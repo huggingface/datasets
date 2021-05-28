@@ -702,8 +702,13 @@ class BaseDatasetTest(TestCase):
                         self.assertEqual(dset_concat.info.task_templates, None)
 
     def test_concatenate_with_equal_task_templates(self, in_memory):
-        task_template = TextClassification(text_column="text", label_column="labels", labels=["pos", "neg"])
-        info = DatasetInfo(task_templates=task_template)
+        labels = ["neg", "pos"]
+        task_template = TextClassification(text_column="text", label_column="labels", labels=labels)
+        info = DatasetInfo(
+            features=Features({"text": Value("string"), "labels": ClassLabel(names=labels)}),
+            # Label names are added in `DatasetInfo.__post_init__` so not included here
+            task_templates=TextClassification(text_column="text", label_column="labels"),
+        )
         data = {"text": ["i love transformers!"], "labels": [1]}
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
@@ -716,10 +721,42 @@ class BaseDatasetTest(TestCase):
                         self.assertListEqual(dset_concat.info.task_templates, [task_template])
 
     def test_concatenate_with_mixed_task_templates_in_common(self, in_memory):
-        tc_template = TextClassification(text_column="text", label_column="labels", labels=["pos", "neg"])
+        tc_template = TextClassification(text_column="text", label_column="labels")
         qa_template = QuestionAnswering(question_column="question", context_column="context", answers_column="answers")
-        info1 = DatasetInfo(task_templates=[qa_template])
-        info2 = DatasetInfo(task_templates=[qa_template, tc_template])
+        info1 = DatasetInfo(
+            task_templates=[qa_template],
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+        )
+        info2 = DatasetInfo(
+            task_templates=[qa_template, tc_template],
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+        )
         data = {
             "text": ["i love transformers!"],
             "labels": [1],
@@ -738,15 +775,67 @@ class BaseDatasetTest(TestCase):
                         self.assertListEqual(dset_concat.info.task_templates, [qa_template])
 
     def test_concatenate_with_no_mixed_task_templates_in_common(self, in_memory):
-        tc_template1 = TextClassification(text_column="text", label_column="labels", labels=["pos", "neg"])
-        tc_template2 = TextClassification(text_column="text", label_column="labels", labels=["pos", "neg", "neutral"])
+        tc_template1 = TextClassification(text_column="text", label_column="labels")
+        tc_template2 = TextClassification(text_column="text", label_column="sentiment")
         qa_template = QuestionAnswering(question_column="question", context_column="context", answers_column="answers")
-        info1 = DatasetInfo(task_templates=[tc_template1])
-        info2 = DatasetInfo(task_templates=[tc_template2])
-        info3 = DatasetInfo(task_templates=[qa_template])
+        info1 = DatasetInfo(
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+            task_templates=[tc_template1],
+        )
+        info2 = DatasetInfo(
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+            task_templates=[tc_template2],
+        )
+        info3 = DatasetInfo(
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+            task_templates=[qa_template],
+        )
         data = {
             "text": ["i love transformers!"],
             "labels": [1],
+            "sentiment": [0],
             "context": ["huggingface is going to the moon!"],
             "question": ["where is huggingface going?"],
             "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
@@ -1929,34 +2018,50 @@ class BaseDatasetTest(TestCase):
         features_before_cast = Features(
             {
                 "input_text": Value("string"),
-                "input_labels": Value("int32"),
+                "input_labels": ClassLabel(names=labels),
             }
         )
-        # Labels are cast to tuple during TextClassification init, so we do the same here
+        # Labels are cast to tuple during `TextClassification.__post_init_`, so we do the same here
         features_after_cast = Features(
             {
                 "text": Value("string"),
                 "labels": ClassLabel(names=tuple(labels)),
             }
         )
-        task = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
-        info = DatasetInfo(
+        # Label names are added in `DatasetInfo.__post_init__` so not needed here
+        task_without_labels = TextClassification(text_column="input_text", label_column="input_labels")
+        info1 = DatasetInfo(
             features=features_before_cast,
-            task_templates=task,
+            task_templates=task_without_labels,
+        )
+        # Label names are required when passing a TextClassification template directly to `Dataset.prepare_for_task`
+        # However they also can be used to define `DatasetInfo` so we include a test for this too
+        task_with_labels = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
+        info2 = DatasetInfo(
+            features=features_before_cast,
+            task_templates=task_with_labels,
         )
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
-        # Test we can load from task name
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+        # Test we can load from task name when label names not included in template (default behaviour)
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info1) as dset:
             with self._to(in_memory, tmp_dir, dset) as dset:
                 self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
                 self.assertDictEqual(features_before_cast, dset.features)
                 with dset.prepare_for_task(task="text-classification") as dset:
                     self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
                     self.assertDictEqual(features_after_cast, dset.features)
-        # Test we can load from TaskTemplate
-        info.task_templates = None
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
-            with dset.prepare_for_task(task=task) as dset:
+        # Test we can load from task name when label names included in template
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info2) as dset:
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
+                self.assertDictEqual(features_before_cast, dset.features)
+                with dset.prepare_for_task(task="text-classification") as dset:
+                    self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                    self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from TextClassification template
+        info1.task_templates = None
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info1) as dset:
+            with dset.prepare_for_task(task=task_with_labels) as dset:
                 self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
                 self.assertDictEqual(features_after_cast, dset.features)
 
@@ -2008,7 +2113,7 @@ class BaseDatasetTest(TestCase):
                         set(dset.flatten().column_names),
                     )
                     self.assertDictEqual(features_after_cast, dset.features)
-        # Test we can load from TaskTemplate
+        # Test we can load from QuestionAnswering template
         info.task_templates = None
         with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
@@ -2030,10 +2135,10 @@ class BaseDatasetTest(TestCase):
         features = Features(
             {
                 "input_text": Value("string"),
-                "input_labels": Value("int32"),
+                "input_labels": ClassLabel(names=labels),
             }
         )
-        task = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
+        task = TextClassification(text_column="input_text", label_column="input_labels")
         info = DatasetInfo(
             features=features,
             task_templates=task,
@@ -2041,14 +2146,40 @@ class BaseDatasetTest(TestCase):
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
         with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
             with self._to(in_memory, tmp_dir, dset) as dset:
-                with self.assertRaises(ValueError):
-                    # Invalid task name
-                    dset.prepare_for_task("this-task-does-not-exist")
-                    # Duplicate task templates
-                    dset.info.task_templates = [task, task]
-                    dset.prepare_for_task("text-classification")
-                    # Invalid task type
-                    dset.prepare_for_task(1)
+                # Invalid task name
+                self.assertRaises(ValueError, dset.prepare_for_task, "this-task-does-not-exist")
+                # Invalid task templates with incompatible labels
+                task_with_wrong_labels = TextClassification(
+                    text_column="input_text", label_column="input_labels", labels=["neut"]
+                )
+                self.assertRaises(ValueError, dset.prepare_for_task, task_with_wrong_labels)
+                task_with_no_labels = TextClassification(
+                    text_column="input_text", label_column="input_labels", labels=None
+                )
+                self.assertRaises(ValueError, dset.prepare_for_task, task_with_no_labels)
+                # Duplicate task templates
+                dset.info.task_templates = [task, task]
+                self.assertRaises(ValueError, dset.prepare_for_task, "text-classification")
+                # Invalid task type
+                self.assertRaises(ValueError, dset.prepare_for_task, 1)
+
+    def test_task_templates_empty_after_preparation(self, in_memory):
+        features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(names=["pos", "neg"]),
+            }
+        )
+        task = TextClassification(text_column="input_text", label_column="input_labels")
+        info = DatasetInfo(
+            features=features,
+            task_templates=task,
+        )
+        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with dset.prepare_for_task(task="text-classification") as dset:
+                    self.assertIsNone(dset.info.task_templates)
 
 
 class MiscellaneousDatasetTest(TestCase):
