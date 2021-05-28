@@ -171,10 +171,10 @@ class DatasetInfo:
                 self.task_templates = [template] if template is not None else []
 
         # Insert labels and mappings for text classification
-        if self.task_templates is not None:
+        if self.task_templates is not None and self.features is not None:
             self.task_templates = list(self.task_templates)
             for idx, template in enumerate(self.task_templates):
-                if isinstance(template, TextClassification) and self.features is not None:
+                if isinstance(template, TextClassification):
                     labels = self.features[template.label_column].names
                     self.task_templates[idx] = TextClassification(
                         text_column=template.text_column, label_column=template.label_column, labels=labels
