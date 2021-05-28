@@ -17,10 +17,10 @@
 
 
 import csv
-from datasets.tasks import TextClassification
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DOWNLOAD_URL = "https://raw.githubusercontent.com/timpal0l/swedish-sentiment/main/swedish_sentiment.zip"
@@ -51,7 +51,8 @@ class SwedishReviews(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/timpal0l/swedish-sentiment",
             citation=_CITATION,
-        task_templates=[TextClassification(text_column="text", label_column="label")])
+            task_templates=[TextClassification(text_column="text", label_column="label")],
+        )
 
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)

@@ -16,9 +16,9 @@
 
 
 import csv
-from datasets.tasks import TextClassification
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -52,7 +52,8 @@ class KorSarcasm(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,
-        task_templates=[TextClassification(text_column="tokens", label_column="label")])
+            task_templates=[TextClassification(text_column="tokens", label_column="label")],
+        )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""

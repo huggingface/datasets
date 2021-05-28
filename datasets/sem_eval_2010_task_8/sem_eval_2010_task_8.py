@@ -16,9 +16,9 @@
 
 
 import os
-from datasets.tasks import TextClassification
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -99,7 +99,8 @@ class SemEval2010Task8(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage="https://semeval2.fbk.eu/semeval2.php?location=tasks&taskid=11",
             citation=_CITATION,
-        task_templates=[TextClassification(text_column="sentence", label_column="relation")])
+            task_templates=[TextClassification(text_column="sentence", label_column="relation")],
+        )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""

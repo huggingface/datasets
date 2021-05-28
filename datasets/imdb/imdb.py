@@ -18,9 +18,9 @@
 
 
 import os
-from datasets.tasks import TextClassification
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -79,7 +79,8 @@ class Imdb(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="http://ai.stanford.edu/~amaas/data/sentiment/",
             citation=_CITATION,
-        task_templates=[TextClassification(text_column="text", label_column="label")])
+            task_templates=[TextClassification(text_column="text", label_column="label")],
+        )
 
     def _vocab_text_gen(self, archive):
         for _, ex in self._generate_examples(archive, os.path.join("aclImdb", "train")):

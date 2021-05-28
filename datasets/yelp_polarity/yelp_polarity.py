@@ -31,9 +31,9 @@
 
 
 import os
-from datasets.tasks import TextClassification
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -124,7 +124,8 @@ class YelpPolarity(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://course.fast.ai/datasets",
             citation=_CITATION,
-        task_templates=[TextClassification(text_column="text", label_column="label")])
+            task_templates=[TextClassification(text_column="text", label_column="label")],
+        )
 
     def _vocab_text_gen(self, train_file):
         for _, ex in self._generate_examples(train_file):

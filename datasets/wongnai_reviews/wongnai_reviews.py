@@ -16,10 +16,10 @@
 
 
 import csv
-from datasets.tasks import TextClassification
 import os
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 # no BibTeX citation
@@ -52,7 +52,8 @@ class WongnaiReviews(datasets.GeneratorBasedBuilder):
             homepage="https://github.com/wongnai/wongnai-corpus",
             license=_LICENSE,
             citation=_CITATION,
-        task_templates=[TextClassification(text_column="review_body", label_column="star_rating")])
+            task_templates=[TextClassification(text_column="review_body", label_column="star_rating")],
+        )
 
     def _split_generators(self, dl_manager):
         my_urls = _URLs[self.config.name]
