@@ -1,5 +1,7 @@
 ---
 paperswithcode_id: dailydialog
+licenses:
+- cc-by-sa-4.0
 ---
 
 # Dataset Card for "daily_dialog"
