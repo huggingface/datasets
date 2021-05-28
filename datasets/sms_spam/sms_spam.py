@@ -20,7 +20,6 @@
 import os
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -63,7 +62,6 @@ class SmsSpam(datasets.GeneratorBasedBuilder):
             supervised_keys=("sms", "label"),
             homepage="http://archive.ics.uci.edu/ml/datasets/SMS+Spam+Collection",
             citation=_CITATION,
-            task_templates=[TextClassification(labels=("ham", "spam"), text_column="sms", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

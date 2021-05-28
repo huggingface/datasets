@@ -19,7 +19,6 @@ import csv
 import os
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -62,7 +61,6 @@ class Cdt(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[TextClassification(labels=("0", "1"), text_column="sentence", label_column="target")],
         )
 
     def _split_generators(self, dl_manager):

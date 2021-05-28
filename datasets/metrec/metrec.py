@@ -20,7 +20,6 @@
 import os
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -95,28 +94,6 @@ class Metrec(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/zaidalyafeai/MetRec",
             citation=_CITATION,
-            task_templates=[
-                TextClassification(
-                    labels=(
-                        "baseet",
-                        "hazaj",
-                        "kamel",
-                        "khafeef",
-                        "madeed",
-                        "mujtath",
-                        "munsareh",
-                        "mutadarak",
-                        "mutakareb",
-                        "rajaz",
-                        "ramal",
-                        "saree",
-                        "taweel",
-                        "wafer",
-                    ),
-                    text_column="text",
-                    label_column="label",
-                )
-            ],
         )
 
     def _vocab_text_gen(self, archive):

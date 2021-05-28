@@ -5,7 +5,6 @@ import json
 import os
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -66,7 +65,6 @@ class AllocineDataset(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/TheophileBlard/french-sentiment-analysis-with-bert",
             citation=_CITATION,
-            task_templates=[TextClassification(labels=("neg", "pos"), text_column="review", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

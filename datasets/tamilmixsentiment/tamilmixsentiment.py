@@ -18,7 +18,6 @@
 import csv
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -70,13 +69,6 @@ class Tamilmixsentiment(datasets.GeneratorBasedBuilder):
             ),
             homepage="https://dravidian-codemix.github.io/2020/datasets.html",
             citation=_CITATION,
-            task_templates=[
-                TextClassification(
-                    labels=("Mixed_feelings", "Negative", "Positive", "not-Tamil", "unknown_state"),
-                    text_column="text",
-                    label_column="label",
-                )
-            ],
         )
 
     def _split_generators(self, dl_manager):

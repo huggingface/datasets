@@ -18,7 +18,6 @@
 import os
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -90,9 +89,6 @@ class SentiWS(datasets.GeneratorBasedBuilder):
             license=_LICENSE,
             # Citation for the dataset
             citation=_CITATION,
-            task_templates=[
-                TextClassification(labels=("ADJX", "ADV", "NN", "VVINF"), text_column="word", label_column="pos-tag")
-            ],
         )
 
     def _split_generators(self, dl_manager):

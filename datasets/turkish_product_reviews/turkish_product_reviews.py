@@ -4,7 +4,6 @@
 import os
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 logger = datasets.logging.get_logger(__name__)
@@ -37,9 +36,6 @@ class TurkishProductReviews(datasets.GeneratorBasedBuilder):
             ),
             citation=_CITATION,
             homepage=_HOMEPAGE,
-            task_templates=[
-                TextClassification(labels=("negative", "positive"), text_column="sentence", label_column="sentiment")
-            ],
         )
 
     def _split_generators(self, dl_manager):

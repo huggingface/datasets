@@ -5,7 +5,6 @@ import csv
 import os
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _CITATION = """
@@ -51,9 +50,6 @@ class ImdbUrduReviews(datasets.GeneratorBasedBuilder):
             ),
             citation=_CITATION,
             homepage=_HOMEPAGE,
-            task_templates=[
-                TextClassification(labels=("negative", "positive"), text_column="sentence", label_column="sentiment")
-            ],
         )
 
     def _split_generators(self, dl_manager):

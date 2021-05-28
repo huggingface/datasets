@@ -19,7 +19,6 @@ import json
 import os
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 # TODO: Add BibTeX citation
@@ -296,13 +295,6 @@ class MdGenderBias(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[
-                TextClassification(
-                    labels=("man", "no answer", "nonbinary", "prefer not to say", "woman"),
-                    text_column="confidence",
-                    label_column="turker_gender",
-                )
-            ],
         )
 
     def _split_generators(self, dl_manager):

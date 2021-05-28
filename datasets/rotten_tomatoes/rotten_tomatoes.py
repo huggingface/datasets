@@ -20,7 +20,6 @@
 import os
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -59,7 +58,6 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
             supervised_keys=[""],
             homepage="http://www.cs.cornell.edu/people/pabo/movie-review-data/",
             citation=_CITATION,
-            task_templates=[TextClassification(labels=("neg", "pos"), text_column="text", label_column="label")],
         )
 
     def _vocab_text_gen(self, train_file):

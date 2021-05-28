@@ -18,7 +18,6 @@
 import csv
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -60,13 +59,6 @@ class EmotoneAr(datasets.GeneratorBasedBuilder):
             ),
             homepage=_HOMEPAGE,
             citation=_CITATION,
-            task_templates=[
-                TextClassification(
-                    labels=("anger", "fear", "joy", "love", "none", "sadness", "surprise", "sympathy"),
-                    text_column="tweet",
-                    label_column="label",
-                )
-            ],
         )
 
     def _split_generators(self, dl_manager):

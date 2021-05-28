@@ -18,7 +18,6 @@
 import json
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -81,11 +80,6 @@ class Emo(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://www.aclweb.org/anthology/S19-2005/",
             citation=_CITATION,
-            task_templates=[
-                TextClassification(
-                    labels=("angry", "happy", "others", "sad"), text_column="text", label_column="label"
-                )
-            ],
         )
 
     def _get_drive_url(self, url):

@@ -16,7 +16,6 @@
 
 
 import datasets
-from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -57,11 +56,6 @@ class Ilist(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/kmi-linguistics/vardial2018",
             citation=_CITATION,
-            task_templates=[
-                TextClassification(
-                    labels=("AWA", "BHO", "BRA", "HIN", "MAG"), text_column="text", label_column="language_id"
-                )
-            ],
         )
 
     def _split_generators(self, dl_manager):
