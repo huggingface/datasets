@@ -17,6 +17,7 @@
 
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -312,7 +313,7 @@ class Wili_2018(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(text_column="sentence", label_column="label")])
 
     def _split_generators(self, dl_manager):
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)

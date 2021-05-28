@@ -18,6 +18,7 @@
 
 
 import csv
+from datasets.tasks import TextClassification
 
 import datasets
 
@@ -56,7 +57,7 @@ class TweetsHateSpeechDetection(datasets.GeneratorBasedBuilder):
             ),
             homepage="https://github.com/sharmaroshan/Twitter-Sentiment-Analysis",
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(text_column="tweet", label_column="label")])
 
     def _split_generators(self, dl_manager):
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)

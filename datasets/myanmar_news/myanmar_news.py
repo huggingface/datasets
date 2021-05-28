@@ -15,6 +15,7 @@
 
 
 import csv
+from datasets.tasks import TextClassification
 import os
 
 import datasets
@@ -53,7 +54,7 @@ class MyanmarNews(datasets.GeneratorBasedBuilder):
             homepage="https://github.com/ayehninnkhine/MyanmarNewsClassificationSystem",
             license=_LICENSE,
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(text_column="text", label_column="category")])
 
     def _split_generators(self, dl_manager):
         my_urls = _URLs[self.config.name]

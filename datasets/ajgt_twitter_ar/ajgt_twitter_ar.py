@@ -18,6 +18,7 @@
 
 
 import os
+from datasets.tasks import TextClassification
 
 import openpyxl  # noqa: requires this pandas optional dependency for reading xlsx files
 import pandas as pd
@@ -83,7 +84,7 @@ class AjgtTwitterAr(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/komari6/Arabic-twitter-corpus-AJGT",
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(text_column="text", label_column="label")])
 
     def _split_generators(self, dl_manager):
         urls_to_download = {

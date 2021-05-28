@@ -16,6 +16,7 @@
 
 
 import csv
+from datasets.tasks import TextClassification
 
 import datasets
 
@@ -147,7 +148,7 @@ class Banking77(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-        )
+        task_templates=[TextClassification(text_column="text", label_column="label")])
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
