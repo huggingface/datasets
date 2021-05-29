@@ -170,12 +170,7 @@ class Klue(datasets.GeneratorBasedBuilder):
                 "source": datasets.Value("string"),
                 "premise": datasets.Value("string"),
                 "hypothesis": datasets.Value("string"),
-                "gold_label": datasets.ClassLabel(names=["entailment", "contradiction", "neutral"]),
-                "author": datasets.ClassLabel(names=["entailment", "contradiction", "neutral"]),
-                "label2": datasets.ClassLabel(names=["entailment", "contradiction", "neutral"]),
-                "label3": datasets.ClassLabel(names=["entailment", "contradiction", "neutral"]),
-                "label4": datasets.ClassLabel(names=["entailment", "contradiction", "neutral"]),
-                "label5": datasets.ClassLabel(names=["entailment", "contradiction", "neutral"]),
+                "label": datasets.ClassLabel(names=["entailment", "contradiction", "neutral"]),
             },
             description=textwrap.dedent(
                 """\
