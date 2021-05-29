@@ -142,11 +142,6 @@ class Klue(datasets.GeneratorBasedBuilder):
                     "real-label": datasets.Value("float64"),
                     "binary-label": datasets.ClassLabel(names=["negative", "positive"]),
                 },
-                "annotations": {
-                    "agreement": datasets.Value("string"),
-                    "annotators": [datasets.Value("string")],
-                    "annotations": [datasets.Value("int32")],
-                },
             },
             description=textwrap.dedent(
                 """\
