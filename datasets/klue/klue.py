@@ -301,7 +301,7 @@ class Klue(datasets.GeneratorBasedBuilder):
             name="dp",
             features={
                 "sentence": datasets.Value("string"),
-                "index": [datasets.Value("string")],
+                "index": [datasets.Value("int32")],
                 "word_form": [datasets.Value("string")],
                 "lemma": [datasets.Value("string")],
                 "pos": [datasets.Value("string")],
