@@ -98,7 +98,7 @@ class Klue(datasets.GeneratorBasedBuilder):
             features={
                 "guid": datasets.Value("string"),
                 "title": datasets.Value("string"),
-                "predefined_news_category": datasets.Value("string"),
+                "predefined_news_category": datasets.features.ClassLabel(names=["IT과학", "경제", "사회", "생활문화", "세계", "스포츠", "정치"]),
                 "label": datasets.features.ClassLabel(names=["IT과학", "경제", "사회", "생활문화", "세계", "스포츠", "정치"]),
                 "annotations": {
                     "annotators": [datasets.Value("string")],
