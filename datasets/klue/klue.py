@@ -305,7 +305,7 @@ class Klue(datasets.GeneratorBasedBuilder):
                 "word_form": [datasets.Value("string")],
                 "lemma": [datasets.Value("string")],
                 "pos": [datasets.Value("string")],
-                "head": [datasets.Value("string")],
+                "head": [datasets.Value("int32")],
                 "deprel": [datasets.Value("string")],
             },
             description=textwrap.dedent(
