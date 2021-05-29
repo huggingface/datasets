@@ -405,15 +405,21 @@ class Klue(datasets.GeneratorBasedBuilder):
             with open(data_file, encoding="UTF-8") as f:
                 f = json.load(f)
                 for id_, row in enumerate(f):
-                    yield id_, row
+                    features = {key: row[key] for key in row if key in self.config.features}
+                    yield id_, features
 
         if self.config.name == "nli":
             with open(data_file, encoding="UTF-8") as f:
                 f = json.load(f)
                 for id_, row in enumerate(f):
                     # In train file, "source" is written as "genre"
-                    features = {key: row[key] for key in row.keys() if key not in ["genre", "source"]}
-                    features.update({"source": row["source"] if "source" in row.keys() else row["genre"]})
+                    features = {
+                        "guid": row["guid"],
+                        "source": row["source"] if "source" in row else row["genre"],
+                        "premise": row["premise"],
+                        "hypothesis": row["hypothesis"],
+                        "label": row["gold_label"]
+                    }
                     yield id_, features
 
         if self.config.name == "ner":
