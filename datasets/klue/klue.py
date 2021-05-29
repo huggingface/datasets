@@ -98,16 +98,7 @@ class Klue(datasets.GeneratorBasedBuilder):
             features={
                 "guid": datasets.Value("string"),
                 "title": datasets.Value("string"),
-                "predefined_news_category": datasets.features.ClassLabel(names=["IT과학", "경제", "사회", "생활문화", "세계", "스포츠", "정치"]),
                 "label": datasets.features.ClassLabel(names=["IT과학", "경제", "사회", "생활문화", "세계", "스포츠", "정치"]),
-                "annotations": {
-                    "annotators": [datasets.Value("string")],
-                    "annotations": {
-                        "first-scope": [datasets.Value("string")],
-                        "second-scope": [datasets.Value("string")],
-                        "third-scope": [datasets.Value("string")],
-                    },
-                },
                 "url": datasets.Value("string"),
                 "date": datasets.Value("string"),
             },
