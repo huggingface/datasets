@@ -66,9 +66,18 @@ Cloze tests are widely adopted in Natural Languages Processing to evaluate the p
 Here we present the two cloze testing datasets in code domain with six different programming languages: ClozeTest-maxmin and ClozeTest-all. Each instance in the dataset contains a masked code function, its docstring and the target word.
 The only difference between ClozeTest-maxmin and ClozeTest-all is their selected words sets, where ClozeTest-maxmin only contains two words while ClozeTest-all contains 930 words.
 
+### [Supported Tasks](#supported-tasks)
+
+- `token-prediction`: The dataset can be used to train a model for predicting the missing token from a piece of code, similar to the Cloze test.
+
 ### [Languages](#languages)
 
-go, java, javascript, php, python, ruby
+- Go **programming** language
+- Java **programming** language
+- Javascript **programming** language
+- PHP **programming** language
+- Python **programming** language
+- Ruby **programming** language
 
 ## [Dataset Structure](#dataset-structure)
 
@@ -159,7 +168,7 @@ In the following each data field in go is explained for each config. The data fi
 |nl_tokens |Sequence[string]| Natural language tokens      |
 |pl_tokens |Sequence[string]| Programming language tokens  |
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 |   name   |train|
 |----------|----:|
@@ -169,6 +178,40 @@ In the following each data field in go is explained for each config. The data fi
 |php       |51930|
 |python    |40137|
 |ruby      | 4437|
+
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+Data from CodeSearchNet Challenge dataset.
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data](#considerations-for-using-the-data)
+
+### Social Impact of Dataset](#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases](#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations](#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
 
