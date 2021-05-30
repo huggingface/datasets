@@ -5,6 +5,7 @@ language_creators:
 - found
 languages:
 - code
+- en
 licenses:
 - other-C-UDA
 multilinguality:
@@ -69,9 +70,19 @@ The dataset we use comes from CodeSearchNet and we filter the dataset as the fol
 - Remove examples that documents contain special tokens (e.g. <img ...> or https:...)
 - Remove examples that documents are not English.
 
-### [Languages](#languages)
+### Supported Tasks and Leaderboards
 
-go, java, javascript, php, python, ruby
+- `machine-translation`: The dataset can be used to train a model for automatically generating **English** docstrings for code.
+
+### Languages
+
+- Go **programming** language
+- Java **programming** language
+- Javascript **programming** language
+- PHP **programming** language
+- Python **programming** language
+- Ruby **programming** language
+- English **natural** language
 
 ## [Dataset Structure](#dataset-structure)
 
@@ -218,7 +229,7 @@ In the following each data field in go is explained for each config. The data fi
 |sha             |string          | sha of the file                                                                   |
 |url             |string          | url of the file                                                                   |
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 |   name   |train |validation|test |
 |----------|-----:|---------:|----:|
@@ -228,6 +239,40 @@ In the following each data field in go is explained for each config. The data fi
 |php       |241241|     12982|14014|
 |python    |251820|     13914|14918|
 |ruby      | 24927|      1400| 1261|
+
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+Data from CodeSearchNet Challenge dataset.
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data(#considerations-for-using-the-data)
+
+### Social Impact of Dataset(#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases(#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations(#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
 
