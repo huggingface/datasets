@@ -199,17 +199,17 @@ Data from CodeSearchNet Challenge dataset.
 
 [More Information Needed]
 
-## Considerations for Using the Data](#considerations-for-using-the-data)
+## Considerations for Using the Data(#considerations-for-using-the-data)
 
-### Social Impact of Dataset](#social-impact-of-dataset)
-
-[More Information Needed]
-
-### Discussion of Biases](#discussion-of-biases)
+### Social Impact of Dataset(#social-impact-of-dataset)
 
 [More Information Needed]
 
-### Other Known Limitations](#other-known-limitations)
+### Discussion of Biases(#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations(#other-known-limitations)
 
 [More Information Needed]
 

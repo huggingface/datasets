@@ -116,6 +116,38 @@ In the following each data field in go is explained for each config. The data fi
 |java  | 3000|
 |python|10000|
 
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data(#considerations-for-using-the-data)
+
+### Social Impact of Dataset(#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases(#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations(#other-known-limitations)
+
+[More Information Needed]
+
 ## [Additional Information](#additional-information)
 
 ### [Dataset Curators](#dataset-curators)

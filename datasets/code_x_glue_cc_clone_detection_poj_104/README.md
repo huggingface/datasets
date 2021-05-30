@@ -111,17 +111,17 @@ In the following each data field in go is explained for each config. The data fi
 
 [More Information Needed]
 
-## Considerations for Using the Data](#considerations-for-using-the-data)
+## Considerations for Using the Data(#considerations-for-using-the-data)
 
-### Social Impact of Dataset](#social-impact-of-dataset)
-
-[More Information Needed]
-
-### Discussion of Biases](#discussion-of-biases)
+### Social Impact of Dataset(#social-impact-of-dataset)
 
 [More Information Needed]
 
-### Other Known Limitations](#other-known-limitations)
+### Discussion of Biases(#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations(#other-known-limitations)
 
 [More Information Needed]
 

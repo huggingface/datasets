@@ -122,19 +122,19 @@ Data was manually labeled by three judges by automatically identifying potential
 
 [More Information Needed]
 
-## Considerations for Using the Data](#considerations-for-using-the-data)
+## Considerations for Using the Data(#considerations-for-using-the-data)
 
-### Social Impact of Dataset](#social-impact-of-dataset)
+### Social Impact of Dataset(#social-impact-of-dataset)
 
 [More Information Needed]
 
-### Discussion of Biases](#discussion-of-biases)
+### Discussion of Biases(#discussion-of-biases)
 
 Most of the clones are type 1 and 2 with type 3 and especially type 4 being rare.
 
 [More Information Needed]
 
-### Other Known Limitations](#other-known-limitations)
+### Other Known Limitations(#other-known-limitations)
 
 [More Information Needed]
 
