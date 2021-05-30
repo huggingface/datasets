@@ -44,29 +44,29 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/CodeCompletion-token
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 CodeXGLUE CodeCompletion-token dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/CodeCompletion-token
 
 Predict next code token given context of previous tokens. Models are evaluated by token level accuracy.
     Code completion is a one of the most widely used features in software development through IDEs. An effective code completion tool could improve software developers' productivity. We provide code completion evaluation tasks in two granularities -- token level and line level. Here we introduce token level code completion. Token level task is analogous to language modeling. Models should have be able to predict the next token in arbitary types.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
-- `code-completion`: The dataset can be used to train a model for completing single code tokens.
+- `language-modeling`: The dataset can be used to train a model for completing single code tokens.
 
-### [Languages](#languages)
+### Languages
 
 - Java **programming** language
 - Python **programming** language
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### java
 
@@ -89,7 +89,7 @@ An example of 'train' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
@@ -108,7 +108,7 @@ In the following each data field in go is explained for each config. The data fi
 |path      |string          | Original path in the dataset|
 |code      |Sequence[string]| Code Tokens                 |
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 #### java
 
@@ -122,49 +122,49 @@ In the following each data field in go is explained for each config. The data fi
 |------|-----:|----:|
 |python|100000|50000|
 
-## Dataset Creation(#dataset-creation)
+## Dataset Creation
 
-### Curation Rationale(#curation-rationale)
-
-[More Information Needed]
-
-### Source Data(#source-data)
+### Curation Rationale
 
 [More Information Needed]
 
-### Annotations(#annotations)
+### Source Data
 
 [More Information Needed]
 
-### Personal and Sensitive Information(#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed]
 
-## Considerations for Using the Data(#considerations-for-using-the-data)
-
-### Social Impact of Dataset(#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed]
 
-### Discussion of Biases(#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed]
 
-### Other Known Limitations(#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed]
 
-## [Additional Information](#additional-information)
+### Other Known Limitations
 
-### [Dataset Curators](#dataset-curators)
+[More Information Needed]
+
+## Additional Information
+
+### Dataset Curators
 
 https://github.com/microsoft, https://github.com/madlag
 
-### [Licensing Information](#licensing-information)
+### Licensing Information
 
 Computational Use of Data Agreement (C-UDA) License.
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @article{raychev2016probabilistic,
@@ -186,4 +186,5 @@ Computational Use of Data Agreement (C-UDA) License.
 ```
 
 ### Contributions
+
 Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

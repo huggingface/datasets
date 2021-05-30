@@ -44,29 +44,29 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/code-to-code-trans
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 CodeXGLUE code-to-code-trans dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/code-to-code-trans
 
 The dataset is collected from several public repos, including Lucene(http://lucene.apache.org/), POI(http://poi.apache.org/), JGit(https://github.com/eclipse/jgit/) and Antlr(https://github.com/antlr/).
         We collect both the Java and C# versions of the codes and find the parallel functions. After removing duplicates and functions with the empty body, we split the whole dataset into training, validation and test sets.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
 - `machine-translation`: The dataset can be used to train a model for translating code in Java to C# and vice versa.
 
-### [Languages](#languages)
+### Languages
 
 - Java **programming** language
 - C# **programming** language
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 An example of 'validation' looks as follows.
 ```
@@ -77,7 +77,7 @@ An example of 'validation' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
@@ -89,55 +89,55 @@ In the following each data field in go is explained for each config. The data fi
 |java      |string| The java version of the code|
 |cs        |string| The C# version of the code  |
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 | name  |train|validation|test|
 |-------|----:|---------:|---:|
 |default|10300|       500|1000|
 
-## Dataset Creation(#dataset-creation)
+## Dataset Creation
 
-### Curation Rationale(#curation-rationale)
-
-[More Information Needed]
-
-### Source Data(#source-data)
+### Curation Rationale
 
 [More Information Needed]
 
-### Annotations(#annotations)
+### Source Data
 
 [More Information Needed]
 
-### Personal and Sensitive Information(#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed]
 
-## Considerations for Using the Data(#considerations-for-using-the-data)
-
-### Social Impact of Dataset(#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed]
 
-### Discussion of Biases(#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed]
 
-### Other Known Limitations(#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed]
 
-## [Additional Information](#additional-information)
+### Other Known Limitations
 
-### [Dataset Curators](#dataset-curators)
+[More Information Needed]
+
+## Additional Information
+
+### Dataset Curators
 
 https://github.com/microsoft, https://github.com/madlag
 
-### [Licensing Information](#licensing-information)
+### Licensing Information
 
 Computational Use of Data Agreement (C-UDA) License.
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @article{CodeXGLUE,
@@ -146,4 +146,5 @@ Computational Use of Data Agreement (C-UDA) License.
 ```
 
 ### Contributions
+
 Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

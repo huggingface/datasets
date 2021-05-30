@@ -54,11 +54,11 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-maxmin
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 CodeXGLUE ClozeTesting-maxmin dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/ClozeTesting-maxmin
 
@@ -66,11 +66,11 @@ Cloze tests are widely adopted in Natural Languages Processing to evaluate the p
 Here we present the two cloze testing datasets in code domain with six different programming languages: ClozeTest-maxmin and ClozeTest-all. Each instance in the dataset contains a masked code function, its docstring and the target word.
 The only difference between ClozeTest-maxmin and ClozeTest-all is their selected words sets, where ClozeTest-maxmin only contains two words while ClozeTest-all contains 930 words.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
-- `token-prediction`: The dataset can be used to train a model for predicting the missing token from a piece of code, similar to the Cloze test.
+- `slot-filling`: The dataset can be used to train a model for predicting the missing token from a piece of code, similar to the Cloze test.
 
-### [Languages](#languages)
+### Languages
 
 - Go **programming** language
 - Java **programming** language
@@ -79,9 +79,9 @@ The only difference between ClozeTest-maxmin and ClozeTest-all is their selected
 - Python **programming** language
 - Ruby **programming** language
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### go
 
@@ -155,7 +155,7 @@ An example of 'train' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
@@ -168,7 +168,7 @@ In the following each data field in go is explained for each config. The data fi
 |nl_tokens |Sequence[string]| Natural language tokens      |
 |pl_tokens |Sequence[string]| Programming language tokens  |
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 |   name   |train|
 |----------|----:|
@@ -179,37 +179,42 @@ In the following each data field in go is explained for each config. The data fi
 |python    | 1264|
 |ruby      |   38|
 
-## Dataset Creation(#dataset-creation)
+### Source Data(#source-data)
 
-### Curation Rationale(#curation-rationale)
 
 [More Information Needed]
 
-### Source Data(#source-data)
+## Dataset Creation
+
+### Curation Rationale
+
+[More Information Needed]
+
+### Source Data
 
 Data from CodeSearchNet Challenge dataset.
 
 [More Information Needed]
 
-### Annotations(#annotations)
+### Annotations
 
 [More Information Needed]
 
-### Personal and Sensitive Information(#personal-and-sensitive-information)
+### Personal and Sensitive Information
 
 [More Information Needed]
 
-## Considerations for Using the Data(#considerations-for-using-the-data)
+## Considerations for Using the Data
 
-### Social Impact of Dataset(#social-impact-of-dataset)
-
-[More Information Needed]
-
-### Discussion of Biases(#discussion-of-biases)
+### Social Impact of Dataset
 
 [More Information Needed]
 
-### Other Known Limitations(#other-known-limitations)
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
 
 [More Information Needed]
 
@@ -246,4 +251,5 @@ Computational Use of Data Agreement (C-UDA) License.
 ```
 
 ### Contributions
+
 Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

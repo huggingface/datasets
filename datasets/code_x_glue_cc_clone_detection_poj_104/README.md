@@ -43,28 +43,28 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/Clone-detection-POJ-104
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 CodeXGLUE Clone-detection-POJ-104 dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/Clone-detection-POJ-104
 
 Given a code and a collection of candidates as the input, the task is to return Top K codes with the same semantic. Models are evaluated by MAP score.
 We use POJ-104 dataset on this task.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
-- `clone-detection`: The dataset can be used to train a model for retrieving top-k codes with the same semantics.
+- `document-retrieval`: The dataset can be used to train a model for retrieving top-k codes with the same semantics.
 
-### [Languages](#languages)
+### Languages
 
 - C++ **programming** language
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 An example of 'train' looks as follows.
 ```
@@ -75,7 +75,7 @@ An example of 'train' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
@@ -87,55 +87,55 @@ In the following each data field in go is explained for each config. The data fi
 |code      |string| The full text of the function                |
 |label     |string| The id of problem that the source code solves|
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 | name  |train|validation|test |
 |-------|----:|---------:|----:|
 |default|32000|      8000|12000|
 
-## Dataset Creation(#dataset-creation)
+## Dataset Creation
 
-### Curation Rationale(#curation-rationale)
-
-[More Information Needed]
-
-### Source Data(#source-data)
+### Curation Rationale
 
 [More Information Needed]
 
-### Annotations(#annotations)
+### Source Data
 
 [More Information Needed]
 
-### Personal and Sensitive Information(#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed]
 
-## Considerations for Using the Data(#considerations-for-using-the-data)
-
-### Social Impact of Dataset(#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed]
 
-### Discussion of Biases(#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed]
 
-### Other Known Limitations(#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed]
 
-## [Additional Information](#additional-information)
+### Other Known Limitations
 
-### [Dataset Curators](#dataset-curators)
+[More Information Needed]
+
+## Additional Information
+
+### Dataset Curators
 
 https://github.com/microsoft, https://github.com/madlag
 
-### [Licensing Information](#licensing-information)
+### Licensing Information
 
 Computational Use of Data Agreement (C-UDA) License.
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @inproceedings{mou2016convolutional,
@@ -148,4 +148,5 @@ Computational Use of Data Agreement (C-UDA) License.
 ```
 
 ### Contributions
+
 Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

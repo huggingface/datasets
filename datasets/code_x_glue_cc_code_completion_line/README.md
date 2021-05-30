@@ -54,11 +54,11 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/CodeCompletion-line
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 CodeXGLUE CodeCompletion-line dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/CodeCompletion-line
 
@@ -66,18 +66,18 @@ Complete the unfinished line given previous context. Models are evaluated by exa
 We propose line completion task to test model's ability to autocomplete a line. Majority code completion systems behave well in token level completion, but fail in completing an unfinished line like a method call with specific parameters, a function signature, a loop condition, a variable definition and so on. When a software develop finish one or more tokens of the current line, the line level completion model is expected to generate the entire line of syntactically correct code.
 Line level code completion task shares the train/dev dataset with token level completion. After training a model on CodeCompletion-token, you could directly use it to test on line-level completion.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
-- `code-completion`: The dataset can be used to train a model for completing entire code lines.
+- `slot-filling`: The dataset can be used to train a model for completing entire code lines.
 
-### [Languages](#languages)
+### Languages
 
 - Java **programming** language
 - Python **programming** language
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### java
 
@@ -101,7 +101,7 @@ An example of 'train' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
@@ -113,56 +113,56 @@ In the following each data field in go is explained for each config. The data fi
 |input     |string| Input code string          |
 |gt        |string| Code string to be predicted|
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 | name |train|
 |------|----:|
 |java  | 3000|
 |python|10000|
 
-## Dataset Creation(#dataset-creation)
+## Dataset Creation
 
-### Curation Rationale(#curation-rationale)
-
-[More Information Needed]
-
-### Source Data(#source-data)
+### Curation Rationale
 
 [More Information Needed]
 
-### Annotations(#annotations)
+### Source Data
 
 [More Information Needed]
 
-### Personal and Sensitive Information(#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed]
 
-## Considerations for Using the Data(#considerations-for-using-the-data)
-
-### Social Impact of Dataset(#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed]
 
-### Discussion of Biases(#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed]
 
-### Other Known Limitations(#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed]
 
-## [Additional Information](#additional-information)
+### Other Known Limitations
 
-### [Dataset Curators](#dataset-curators)
+[More Information Needed]
+
+## Additional Information
+
+### Dataset Curators
 
 https://github.com/microsoft, https://github.com/madlag
 
-### [Licensing Information](#licensing-information)
+### Licensing Information
 
 Computational Use of Data Agreement (C-UDA) License.
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @article{raychev2016probabilistic,
@@ -184,4 +184,5 @@ Computational Use of Data Agreement (C-UDA) License.
 ```
 
 ### Contributions
+
 Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

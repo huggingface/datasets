@@ -45,27 +45,27 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/code-refinement
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 CodeXGLUE code-refinement dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Code/code-refinement
 
 We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf). The source side is a Java function with bugs and the target side is the refined one. All the function and variable names are normalized. Their dataset contains two subsets ( i.e.small and medium) based on the function length.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
-- `program-repair`: The dataset can be used to train a model for automatically fixing buggy code.
+- `conditional-text-generation-other-debugging`: The dataset can be used to train a model for automatically fixing buggy code.
 
-### [Languages](#languages)
+### Languages
 
 - Java **programming** language
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### medium
 
@@ -89,7 +89,7 @@ An example of 'validation' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
@@ -101,47 +101,46 @@ In the following each data field in go is explained for each config. The data fi
 |buggy     |string| The buggy version of the code  |
 |fixed     |string| The correct version of the code|
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 | name |train|validation|test|
 |------|----:|---------:|---:|
 |medium|52364|      6546|6545|
 |small |46680|      5835|5835|
 
-## Dataset Creation(#dataset-creation)
+## Dataset Creation
 
-### Curation Rationale(#curation-rationale)
-
-[More Information Needed]
-
-### Source Data(#source-data)
-
-Downloaded from GitHub Archive every public GitHub event between March 2011 and
-October 2017 and used the Google BigQuery APIs.
+### Curation Rationale
 
 [More Information Needed]
 
-### Annotations(#annotations)
+### Source Data
+
+Downloaded from GitHub Archive every public GitHub event between March 2011 and October 2017 and used the Google BigQuery APIs.
+
+[More Information Needed]
+
+### Annotations
 
 Automatically annotated by filtering commit messages containing the pattern: (“fix” or “solve”) and (“bug” or “issue” or “problem” or “error”). A statistically significant amount of samples (95% confidence level with +/- 5% confidence interval) were manually evaluated by two authors to check if the filtered bug/fix pairs were correct. After all disagreements were settled, authors conclude that 97.6% were true positives.
 
 [More Information Needed]
 
-### Personal and Sensitive Information(#personal-and-sensitive-information)
+### Personal and Sensitive Information
 
 [More Information Needed]
 
-## Considerations for Using the Data(#considerations-for-using-the-data)
+## Considerations for Using the Data
 
-### Social Impact of Dataset(#social-impact-of-dataset)
-
-[More Information Needed]
-
-### Discussion of Biases(#discussion-of-biases)
+### Social Impact of Dataset
 
 [More Information Needed]
 
-### Other Known Limitations(#other-known-limitations)
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
 
 [More Information Needed]
 
@@ -164,4 +163,5 @@ Computational Use of Data Agreement (C-UDA) License.
 ```
 
 ### Contributions
+
 Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

@@ -56,11 +56,11 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Code-Text/code-to-text
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 CodeXGLUE code-to-text dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Code-Text/code-to-text
 
@@ -70,9 +70,9 @@ The dataset we use comes from CodeSearchNet and we filter the dataset as the fol
 - Remove examples that documents contain special tokens (e.g. <img ...> or https:...)
 - Remove examples that documents are not English.
 
-### Supported Tasks and Leaderboards
+### Supported Tasks
 
-- `comment-generation`: The dataset can be used to train a model for automatically generating **English** docstrings for code.
+- `machine-translation`: The dataset can be used to train a model for automatically generating **English** docstrings for code.
 
 ### Languages
 
@@ -84,9 +84,9 @@ The dataset we use comes from CodeSearchNet and we filter the dataset as the fol
 - Ruby **programming** language
 - English **natural** language
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 #### go
 
@@ -208,7 +208,7 @@ An example of 'train' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
@@ -229,7 +229,7 @@ In the following each data field in go is explained for each config. The data fi
 |sha             |string          | sha of the file                                                                   |
 |url             |string          | url of the file                                                                   |
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 |   name   |train |validation|test |
 |----------|-----:|---------:|----:|
@@ -240,51 +240,51 @@ In the following each data field in go is explained for each config. The data fi
 |python    |251820|     13914|14918|
 |ruby      | 24927|      1400| 1261|
 
-## Dataset Creation(#dataset-creation)
+## Dataset Creation
 
-### Curation Rationale(#curation-rationale)
+### Curation Rationale
 
 [More Information Needed]
 
-### Source Data(#source-data)
+### Source Data
 
 Data from CodeSearchNet Challenge dataset.
 
 [More Information Needed]
 
-### Annotations(#annotations)
+### Annotations
 
 [More Information Needed]
 
-### Personal and Sensitive Information(#personal-and-sensitive-information)
+### Personal and Sensitive Information
 
 [More Information Needed]
 
-## Considerations for Using the Data(#considerations-for-using-the-data)
+## Considerations for Using the Data
 
-### Social Impact of Dataset(#social-impact-of-dataset)
-
-[More Information Needed]
-
-### Discussion of Biases(#discussion-of-biases)
+### Social Impact of Dataset
 
 [More Information Needed]
 
-### Other Known Limitations(#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed]
 
-## [Additional Information](#additional-information)
+### Other Known Limitations
 
-### [Dataset Curators](#dataset-curators)
+[More Information Needed]
+
+## Additional Information
+
+### Dataset Curators
 
 https://github.com/microsoft, https://github.com/madlag
 
-### [Licensing Information](#licensing-information)
+### Licensing Information
 
 Computational Use of Data Agreement (C-UDA) License.
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @article{husain2019codesearchnet,
@@ -296,4 +296,5 @@ Computational Use of Data Agreement (C-UDA) License.
 ```
 
 ### Contributions
+
 Thanks to @madlag (and partly also @ncoop57) for adding this dataset.

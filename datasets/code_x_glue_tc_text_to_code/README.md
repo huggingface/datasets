@@ -45,27 +45,27 @@ task_ids:
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
 
-## [Dataset Description](#dataset-description)
+## Dataset Description
 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Text-Code/text-to-code
 
-### [Dataset Summary](#dataset-summary)
+### Dataset Summary
 
 CodeXGLUE text-to-code dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Text-Code/text-to-code
 
 The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/.
 
-### [Supported Tasks](#supported-tasks)
+### Supported Tasks
 
-- `program-synthesis`: The dataset can be used to train a model for generating Java code from an **English** natural language description.
+- `machine-translation`: The dataset can be used to train a model for generating Java code from an **English** natural language description.
 
-### [Languages](#languages)
+### Languages
 
 - Java **programming** language
 
-## [Dataset Structure](#dataset-structure)
+## Dataset Structure
 
-### [Data Instances](#data-instances)
+### Data Instances
 
 An example of 'train' looks as follows.
 ```
@@ -76,7 +76,7 @@ An example of 'train' looks as follows.
 }
 ```
 
-### [Data Fields](#data-fields)
+### Data Fields
 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
@@ -88,55 +88,55 @@ In the following each data field in go is explained for each config. The data fi
 |nl        |string| The natural language description of the task|
 |code      |string| The programming source code for the task    |
 
-### [Data Splits Sample Size](#data-splits-sample-size)
+### Data Splits Sample Size
 
 | name  |train |validation|test|
 |-------|-----:|---------:|---:|
 |default|100000|      2000|2000|
 
-## Dataset Creation(#dataset-creation)
+## Dataset Creation
 
-### Curation Rationale(#curation-rationale)
-
-[More Information Needed]
-
-### Source Data(#source-data)
+### Curation Rationale
 
 [More Information Needed]
 
-### Annotations(#annotations)
+### Source Data
 
 [More Information Needed]
 
-### Personal and Sensitive Information(#personal-and-sensitive-information)
+### Annotations
 
 [More Information Needed]
 
-## Considerations for Using the Data(#considerations-for-using-the-data)
-
-### Social Impact of Dataset(#social-impact-of-dataset)
+### Personal and Sensitive Information
 
 [More Information Needed]
 
-### Discussion of Biases(#discussion-of-biases)
+## Considerations for Using the Data
+
+### Social Impact of Dataset
 
 [More Information Needed]
 
-### Other Known Limitations(#other-known-limitations)
+### Discussion of Biases
 
 [More Information Needed]
 
-## [Additional Information](#additional-information)
+### Other Known Limitations
 
-### [Dataset Curators](#dataset-curators)
+[More Information Needed]
+
+## Additional Information
+
+### Dataset Curators
 
 https://github.com/microsoft, https://github.com/madlag
 
-### [Licensing Information](#licensing-information)
+### Licensing Information
 
 Computational Use of Data Agreement (C-UDA) License.
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @article{iyer2018mapping,
@@ -148,4 +148,5 @@ Computational Use of Data Agreement (C-UDA) License.
 ```
 
 ### Contributions
+
 Thanks to @madlag (and partly also @ncoop57) for adding this dataset.
