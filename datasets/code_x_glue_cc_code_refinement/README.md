@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- java
+- code
 licenses:
 - other-C-UDA
 multilinguality:
@@ -55,6 +55,14 @@ CodeXGLUE code-refinement dataset, available at https://github.com/microsoft/Cod
 
 We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf). The source side is a Java function with bugs and the target side is the refined one. All the function and variable names are normalized. Their dataset contains two subsets ( i.e.small and medium) based on the function length.
 
+### [Supported Tasks](#supported-tasks)
+
+- `program-repair`: The dataset can be used to train a model for automatically fixing buggy code.
+
+### [Languages](#languages)
+
+- Java **programming** language
+
 ## [Dataset Structure](#dataset-structure)
 
 ### [Data Instances](#data-instances)
@@ -93,12 +101,49 @@ In the following each data field in go is explained for each config. The data fi
 |buggy     |string| The buggy version of the code  |
 |fixed     |string| The correct version of the code|
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 | name |train|validation|test|
 |------|----:|---------:|---:|
 |medium|52364|      6546|6545|
 |small |46680|      5835|5835|
+
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+Downloaded from GitHub Archive every public GitHub event between March 2011 and
+October 2017 and used the Google BigQuery APIs.
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+Automatically annotated by filtering commit messages containing the pattern: (“fix” or “solve”) and (“bug” or “issue” or “problem” or “error”). A statistically significant amount of samples (95% confidence level with +/- 5% confidence interval) were manually evaluated by two authors to check if the filtered bug/fix pairs were correct. After all disagreements were settled, authors conclude that 97.6% were true positives.
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data(#considerations-for-using-the-data)
+
+### Social Impact of Dataset(#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases(#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations(#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
 
