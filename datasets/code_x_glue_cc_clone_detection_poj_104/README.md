@@ -54,6 +54,14 @@ CodeXGLUE Clone-detection-POJ-104 dataset, available at https://github.com/micro
 Given a code and a collection of candidates as the input, the task is to return Top K codes with the same semantic. Models are evaluated by MAP score.
 We use POJ-104 dataset on this task.
 
+### [Supported Tasks](#supported-tasks)
+
+- `clone-detection`: The dataset can be used to train a model for retrieving top-k codes with the same semantics.
+
+### [Languages](#languages)
+
+- C++ **programming** language
+
 ## [Dataset Structure](#dataset-structure)
 
 ### [Data Instances](#data-instances)
@@ -79,11 +87,43 @@ In the following each data field in go is explained for each config. The data fi
 |code      |string| The full text of the function                |
 |label     |string| The id of problem that the source code solves|
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 | name  |train|validation|test |
 |-------|----:|---------:|----:|
 |default|32000|      8000|12000|
+
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data](#considerations-for-using-the-data)
+
+### Social Impact of Dataset](#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases](#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations](#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
 
