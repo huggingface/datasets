@@ -58,6 +58,10 @@ CodeXGLUE text-to-text dataset, available at https://github.com/microsoft/CodeXG
 
 The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/.
 
+### [Supported Tasks](#supported-tasks)
+
+- `machine-translation`: The dataset can be used to train a model for translating Technical documentation between languages.
+
 ### [Languages](#languages)
 
 da_en, lv_en, no_en, zh_en
@@ -122,7 +126,7 @@ In the following each data field in go is explained for each config. The data fi
 |source    |string| The source language version of the text|
 |target    |string| The target language version of the text|
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 |name |train|validation|test|
 |-----|----:|---------:|---:|
@@ -130,6 +134,38 @@ In the following each data field in go is explained for each config. The data fi
 |lv_en|18749|      1000|1000|
 |no_en|44322|      1000|1000|
 |zh_en|50154|      1000|1000|
+
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data(#considerations-for-using-the-data)
+
+### Social Impact of Dataset(#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases(#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations(#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
 
