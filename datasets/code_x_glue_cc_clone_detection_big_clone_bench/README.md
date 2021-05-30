@@ -55,6 +55,14 @@ CodeXGLUE Clone-detection-BigCloneBench dataset, available at https://github.com
 Given two codes as the input, the task is to do binary classification (0/1), where 1 stands for semantic equivalence and 0 for others. Models are evaluated by F1 score.
 The dataset we use is BigCloneBench and filtered following the paper Detecting Code Clones with Graph Neural Network and Flow-Augmented Abstract Syntax Tree.
 
+### [Supported Tasks](#supported-tasks)
+
+- `clone-detection`: The dataset can be used to train a model for classifying if two given java methods are cloens of each other.
+
+### [Languages](#languages)
+
+- Java **programming** language
+
 ## [Dataset Structure](#dataset-structure)
 
 ### [Data Instances](#data-instances)
@@ -86,11 +94,49 @@ In the following each data field in go is explained for each config. The data fi
 |func2     |string| The full text of the second function              |
 |label     |bool  | 1 is the functions are not equivalent, 0 otherwise|
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 | name  |train |validation| test |
 |-------|-----:|---------:|-----:|
 |default|901028|    415416|415416|
+
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+Data was mined from the IJaDataset 2.0 dataset.
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+Data was manually labeled by three judges by automatically identifying potential clones using search heuristics.
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data](#considerations-for-using-the-data)
+
+### Social Impact of Dataset](#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases](#discussion-of-biases)
+
+Most of the clones are type 1 and 2 with type 3 and especially type 4 being rare.
+
+[More Information Needed]
+
+### Other Known Limitations](#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
 
