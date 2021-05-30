@@ -56,7 +56,7 @@ We use POJ-104 dataset on this task.
 
 ### [Supported Tasks](#supported-tasks)
 
-- `clone-detection`: The dataset can be used to train a model for retrieving top-k codes with the same semantics.
+- `document-retrieval`: The dataset can be used to train a model for retrieving top-k codes with the same semantics.
 
 ### [Languages](#languages)
 
