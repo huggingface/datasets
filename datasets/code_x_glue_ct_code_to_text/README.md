@@ -72,7 +72,7 @@ The dataset we use comes from CodeSearchNet and we filter the dataset as the fol
 
 ### Supported Tasks and Leaderboards
 
-- `machine-translation`: The dataset can be used to train a model for automatically generating **English** docstrings for code.
+- `comment-generation`: The dataset can be used to train a model for automatically generating **English** docstrings for code.
 
 ### Languages
 

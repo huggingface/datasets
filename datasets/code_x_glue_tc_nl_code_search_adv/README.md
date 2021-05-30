@@ -60,7 +60,7 @@ The dataset we use comes from CodeSearchNet and we filter the dataset as the fol
 
 ### [Supported Tasks](#supported-tasks)
 
-- `document-retrieval`: The dataset can be used to train a model for retrieving top-k codes from a given **English** natural language query.
+- `code-search`: The dataset can be used to train a model for retrieving top-k codes from a given **English** natural language query.
 
 ### [Languages](#languages)
 
