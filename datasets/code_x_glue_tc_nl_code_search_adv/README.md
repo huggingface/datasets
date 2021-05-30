@@ -4,7 +4,8 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- python
+- code
+- en
 licenses:
 - other-C-UDA
 multilinguality:
@@ -56,6 +57,15 @@ The dataset we use comes from CodeSearchNet and we filter the dataset as the fol
 - Remove examples that #tokens of documents is < 3 or >256
 - Remove examples that documents contain special tokens (e.g. <img ...> or https:...)
 - Remove examples that documents are not English.
+
+### [Supported Tasks](#supported-tasks)
+
+- `document-retrieval`: The dataset can be used to train a model for retrieving top-k codes from a given **English** natural language query.
+
+### [Languages](#languages)
+
+- Python **programming** language
+- English **natural** language
 
 ## [Dataset Structure](#dataset-structure)
 
@@ -114,11 +124,45 @@ In the following each data field in go is explained for each config. The data fi
 |nwo              |string                 | nwo                                                                               |
 |score            |datasets.Value("float"]| score for this search                                                             |
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 | name  |train |validation|test |
 |-------|-----:|---------:|----:|
 |default|251820|      9604|19210|
+
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+Data from CodeSearchNet Challenge dataset.
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data(#considerations-for-using-the-data)
+
+### Social Impact of Dataset(#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases(#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations(#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
 
