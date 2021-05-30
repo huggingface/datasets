@@ -54,6 +54,14 @@ CodeXGLUE Defect-detection dataset, available at https://github.com/microsoft/Co
 Given a source code, the task is to identify whether it is an insecure code that may attack software systems, such as resource leaks, use-after-free vulnerabilities and DoS attack. We treat the task as binary classification (0/1), where 1 stands for insecure code and 0 for secure code.
 The dataset we use comes from the paper Devign: Effective Vulnerability Identification by Learning Comprehensive Program Semantics via Graph Neural Networks. We combine all projects and split 80%/10%/10% for training/dev/test.
 
+### [Supported Tasks](#supported-tasks)
+
+- `defect-prediction`: The dataset can be used to train a model for detecting if code has a defect in it.
+
+### [Languages](#languages)
+
+- C **programming** language
+
 ## [Dataset Structure](#dataset-structure)
 
 ### [Data Instances](#data-instances)
@@ -83,11 +91,43 @@ In the following each data field in go is explained for each config. The data fi
 |project   |string| Original project that contains this code |
 |commit_id |string| Commit identifier in the original project|
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 | name  |train|validation|test|
 |-------|----:|---------:|---:|
 |default|21854|      2732|2732|
+
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data(#considerations-for-using-the-data)
+
+### Social Impact of Dataset(#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases(#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations(#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
 
