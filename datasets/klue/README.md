@@ -103,14 +103,9 @@ Topic Classification, Semantic Textual Similarity, Natural Language Inference, N
 An example of 'train' looks as follows.
 
 ```
-{'annotations': {'annotations': {'first-scope': ['생활문화', '생활문화', 'IT과학'],
-   'second-scope': ['IT과학', '해당없음', '해당없음'],
-   'third-scope': ['해당없음', '해당없음', '해당없음']},
-  'annotators': ['08', '13', '07']},
- 'date': '2016.06.30. 오전 10:36',
+{'date': '2016.06.30. 오전 10:36',
  'guid': 'ynat-v1_train_00000',
  'label': 3,
- 'predefined_news_category': 'IT과학',
  'title': '유튜브 내달 2일까지 크리에이터 지원 공간 운영',
  'url': 'https://news.naver.com/main/read.nhn?mode=LS2D&mid=shm&sid1=105&sid2=227&oid=001&aid=0008508947'}
 ```
@@ -119,11 +114,8 @@ An example of 'train' looks as follows.
 An example of 'train' looks as follows.
 
 ```
-{'annotations': {'agreement': '0:0:0:2:5:0',
-  'annotations': [3, 4, 4, 4, 3, 4, 4],
-  'annotators': ['07', '13', '15', '10', '12', '02', '19']},
- 'guid': 'klue-sts-v1_train_00000',
- 'labels': {'binary-label': 1, 'label': 3.7, 'real-label': 3.714285714285714},
+{'guid': 'klue-sts-v1_train_00000',
+ 'labels': {'label': 3.7, 'real-label': 3.714285714285714, 'binary-label': 1},
  'sentence1': '숙소 위치는 찾기 쉽고 일반적인 한국의 반지하 숙소입니다.',
  'sentence2': '숙박시설의 위치는 쉽게 찾을 수 있고 한국의 대표적인 반지하 숙박시설입니다.',
  'source': 'airbnb-rtt'}
@@ -133,14 +125,9 @@ An example of 'train' looks as follows.
 An example of 'train' looks as follows.
 
 ```
-{'author': 0,
- 'gold_label': 0,
- 'guid': 'klue-nli-v1_train_00000',
+{'guid': 'klue-nli-v1_train_00000',
  'hypothesis': '힛걸 진심 최고로 멋지다.',
- 'label2': 0,
- 'label3': 0,
- 'label4': 0,
- 'label5': 0,
+ 'label': 0,
  'premise': '힛걸 진심 최고다 그 어떤 히어로보다 멋지다',
  'source': 'NSMC'}
 ```
@@ -160,16 +147,16 @@ An example of 'train' looks as follows.
 ```
 {'guid': 'klue-re-v1_train_00000',
  'label': 0,
- 'object_entity': {'end_idx': 18,
+ 'object_entity': {'word': '조지 해리슨',
   'start_idx': 13,
-  'type': 'PER',
-  'word': '조지 해리슨'},
+  'end_idx': 18,
+  'type': 'PER'},
  'sentence': '〈Something〉는 조지 해리슨이 쓰고 비틀즈가 1969년 앨범 《Abbey Road》에 담은 노래다.',
  'source': 'wikipedia',
- 'subject_entity': {'end_idx': 26,
+ 'subject_entity': {'word': '비틀즈',
   'start_idx': 24,
-  'type': 'ORG',
-  'word': '비틀즈'}}
+  'end_idx': 26,
+  'type': 'ORG'}}
 ```
 
 #### dp
@@ -177,8 +164,8 @@ An example of 'train' looks as follows.
 
 ```
 {'deprel': ['NP', 'NP_OBJ', 'VP', 'NP', 'NP_SBJ', 'NP', 'NP_MOD', 'NP_CNJ', 'NP_CNJ', 'NP', 'NP', 'NP_OBJ', 'AP', 'VP'],
- 'head': ['2', '3', '14', '5', '14', '7', '10', '10', '10', '11', '12', '14', '14', '0'],
- 'index': ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'],
+ 'head': [2, 3, 14, 5, 14, 7, 10, 10, 10, 11, 12, 14, 14, 0],
+ 'index': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
  'lemma': ['해당', '그림 을', '보 면', '디즈니', '공주 들 이', '브리트니', '스피어스 의', '앨범 이나', '뮤직 비디오 ,', '화보', '속', '모습 을', '똑같이', '재연 하 였 다 .'],
  'pos': ['NNG', 'NNG+JKO', 'VV+EC', 'NNP', 'NNG+XSN+JKS', 'NNP', 'NNP+JKG', 'NNG+JC', 'NNG+NNG+SP', 'NNG', 'NNG', 'NNG+JKO', 'MAG', 'NNG+XSA+EP+EF+SF'],
  'sentence': '해당 그림을 보면 디즈니 공주들이 브리트니 스피어스의 앨범이나 뮤직비디오, 화보 속 모습을 똑같이 재연했다.',
@@ -206,23 +193,23 @@ An example of 'train' looks as follows.
 
 ```
 {'dialogue': [{'role': 'user',
-   'state': ['관광-종류-쇼핑', '관광-지역-서울 서쪽'],
-   'text': '쇼핑을 하려는데 서울 서쪽에 있을까요?'},
+   'text': '쇼핑을 하려는데 서울 서쪽에 있을까요?',
+   'state': ['관광-종류-쇼핑', '관광-지역-서울 서쪽']},
   {'role': 'sys',
-   'state': [],
-   'text': '서울 서쪽에 쇼핑이 가능한 곳이라면 노량진 수산물 도매시장이 있습니다.'},
+   'text': '서울 서쪽에 쇼핑이 가능한 곳이라면 노량진 수산물 도매시장이 있습니다.',
+   'state': []},
   {'role': 'user',
-   'state': ['관광-종류-쇼핑', '관광-지역-서울 서쪽', '관광-이름-노량진 수산물 도매시장'],
-   'text': '오 네 거기 주소 좀 알려주세요.'},
-  {'role': 'sys', 'state': [], 'text': '노량진 수산물 도매시장의 주소는 서울 동작구 93806입니다.'},
+   'text': '오 네 거기 주소 좀 알려주세요.',
+   'state': ['관광-종류-쇼핑', '관광-지역-서울 서쪽', '관광-이름-노량진 수산물 도매시장']},
+  {'role': 'sys', 'text': '노량진 수산물 도매시장의 주소는 서울 동작구 93806입니다.', 'state': []},
   {'role': 'user',
-   'state': ['관광-종류-쇼핑', '관광-지역-서울 서쪽', '관광-이름-노량진 수산물 도매시장'],
-   'text': '알려주시는김에 연락처랑 평점도 좀 알려주세요.'},
-  {'role': 'sys', 'state': [], 'text': '그럼. 연락처는 6182006591이고 평점은 4점입니다.'},
+   'text': '알려주시는김에 연락처랑 평점도 좀 알려주세요.',
+   'state': ['관광-종류-쇼핑', '관광-지역-서울 서쪽', '관광-이름-노량진 수산물 도매시장']},
+  {'role': 'sys', 'text': '그럼. 연락처는 6182006591이고 평점은 4점입니다.', 'state': []},
   {'role': 'user',
-   'state': ['관광-종류-쇼핑', '관광-지역-서울 서쪽', '관광-이름-노량진 수산물 도매시장'],
-   'text': '와 감사합니다.'},
-  {'role': 'sys', 'state': [], 'text': '감사합니다.'}],
+   'text': '와 감사합니다.',
+   'state': ['관광-종류-쇼핑', '관광-지역-서울 서쪽', '관광-이름-노량진 수산물 도매시장']},
+  {'role': 'sys', 'text': '감사합니다.', 'state': []}],
  'domains': ['관광'],
  'guid': 'wos-v1_train_00001'}
 ```
@@ -326,4 +313,4 @@ You can see data description in [here](https://klue-benchmark.com/tasks/73/overv
 ```
 ### Contributions
 
-Thanks to [@jungwhank](https://github.com/jungwhank) for adding this dataset.
+Thanks to [@jungwhank](https://github.com/jungwhank), [@bzantium](https://github.com/bzantium) for adding this dataset.
