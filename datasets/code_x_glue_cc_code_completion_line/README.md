@@ -67,9 +67,14 @@ Complete the unfinished line given previous context. Models are evaluated by exa
 We propose line completion task to test model's ability to autocomplete a line. Majority code completion systems behave well in token level completion, but fail in completing an unfinished line like a method call with specific parameters, a function signature, a loop condition, a variable definition and so on. When a software develop finish one or more tokens of the current line, the line level completion model is expected to generate the entire line of syntactically correct code.
 Line level code completion task shares the train/dev dataset with token level completion. After training a model on CodeCompletion-token, you could directly use it to test on line-level completion.
 
+### [Supported Tasks](#supported-tasks)
+
+- `code-completion`: The dataset can be used to train a model for completing entire code lines.
+
 ### [Languages](#languages)
 
-java, python
+- Java **programming** language
+- Python **programming** language
 
 ## [Dataset Structure](#dataset-structure)
 
@@ -109,7 +114,7 @@ In the following each data field in go is explained for each config. The data fi
 |input     |string| Input code string          |
 |gt        |string| Code string to be predicted|
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 | name |train|
 |------|----:|

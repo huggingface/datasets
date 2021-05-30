@@ -55,9 +55,14 @@ CodeXGLUE CodeCompletion-token dataset, available at https://github.com/microsof
 Predict next code token given context of previous tokens. Models are evaluated by token level accuracy.
     Code completion is a one of the most widely used features in software development through IDEs. An effective code completion tool could improve software developers' productivity. We provide code completion evaluation tasks in two granularities -- token level and line level. Here we introduce token level code completion. Token level task is analogous to language modeling. Models should have be able to predict the next token in arbitary types.
 
+### [Supported Tasks](#supported-tasks)
+
+- `code-completion`: The dataset can be used to train a model for completing single code tokens.
+
 ### [Languages](#languages)
 
-java, python
+- Java **programming** language
+- Python **programming** language
 
 ## [Dataset Structure](#dataset-structure)
 
@@ -103,7 +108,7 @@ In the following each data field in go is explained for each config. The data fi
 |path      |string          | Original path in the dataset|
 |code      |Sequence[string]| Code Tokens                 |
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 #### java
 
@@ -116,6 +121,38 @@ In the following each data field in go is explained for each config. The data fi
 |      |train |test |
 |------|-----:|----:|
 |python|100000|50000|
+
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data(#considerations-for-using-the-data)
+
+### Social Impact of Dataset(#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases(#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations(#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
 
