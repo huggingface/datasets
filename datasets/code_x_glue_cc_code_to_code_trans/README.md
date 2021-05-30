@@ -4,8 +4,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- java
-- C#
+- code
 licenses:
 - other-C-UDA
 multilinguality:
@@ -56,6 +55,15 @@ CodeXGLUE code-to-code-trans dataset, available at https://github.com/microsoft/
 The dataset is collected from several public repos, including Lucene(http://lucene.apache.org/), POI(http://poi.apache.org/), JGit(https://github.com/eclipse/jgit/) and Antlr(https://github.com/antlr/).
         We collect both the Java and C# versions of the codes and find the parallel functions. After removing duplicates and functions with the empty body, we split the whole dataset into training, validation and test sets.
 
+### [Supported Tasks](#supported-tasks)
+
+- `machine-translation`: The dataset can be used to train a model for translating code in Java to C# and vice versa.
+
+### [Languages](#languages)
+
+- Java **programming** language
+- C# **programming** language
+
 ## [Dataset Structure](#dataset-structure)
 
 ### [Data Instances](#data-instances)
@@ -81,11 +89,43 @@ In the following each data field in go is explained for each config. The data fi
 |java      |string| The java version of the code|
 |cs        |string| The C# version of the code  |
 
-### [Data Splits](#data-splits)
+### [Data Splits Sample Size](#data-splits-sample-size)
 
 | name  |train|validation|test|
 |-------|----:|---------:|---:|
 |default|10300|       500|1000|
+
+## Dataset Creation(#dataset-creation)
+
+### Curation Rationale(#curation-rationale)
+
+[More Information Needed]
+
+### Source Data(#source-data)
+
+[More Information Needed]
+
+### Annotations(#annotations)
+
+[More Information Needed]
+
+### Personal and Sensitive Information(#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## Considerations for Using the Data(#considerations-for-using-the-data)
+
+### Social Impact of Dataset(#social-impact-of-dataset)
+
+[More Information Needed]
+
+### Discussion of Biases(#discussion-of-biases)
+
+[More Information Needed]
+
+### Other Known Limitations(#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
 
