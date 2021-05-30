@@ -418,7 +418,7 @@ class Klue(datasets.GeneratorBasedBuilder):
                         "source": row["source"] if "source" in row else row["genre"],
                         "premise": row["premise"],
                         "hypothesis": row["hypothesis"],
-                        "label": row["gold_label"]
+                        "label": row["gold_label"],
                     }
                     yield id_, features
 
