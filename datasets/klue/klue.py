@@ -316,15 +316,9 @@ class Klue(datasets.GeneratorBasedBuilder):
                 "question": datasets.Value("string"),
                 "answers": datasets.features.Sequence(
                     {
-                        "text": datasets.Value("string"),
                         "answer_start": datasets.Value("int32"),
+                        "text": datasets.Value("string"),
                     },
-                ),
-                "plausible_answers": datasets.features.Sequence(
-                    {
-                        "text": datasets.Value("string"),
-                        "answer_start": datasets.Value("int32"),
-                    }
                 ),
             },
             description=textwrap.dedent(
@@ -484,7 +478,7 @@ class Klue(datasets.GeneratorBasedBuilder):
                     title = example.get("title", "")
                     news_category = example.get("news_category", "")
                     source = example["source"]
-                    for id_, paragraph in enumerate(example["paragraphs"]):
+                    for paragraph in example["paragraphs"]:
                         context = paragraph["context"].strip()
                         for qa in paragraph["qas"]:
                             guid = qa["guid"]
@@ -497,7 +491,7 @@ class Klue(datasets.GeneratorBasedBuilder):
                             answer_starts = [answer["answer_start"] for answer in qa["answers"]]
                             answers = [answer["text"].strip() for answer in qa["answers"]]
 
-                            yield id_, {
+                            yield guid, {
                                 "title": title,
                                 "context": context,
                                 "news_category": news_category,
