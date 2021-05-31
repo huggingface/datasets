@@ -1,8 +1,6 @@
 ---
 annotations_creators:
 - no-annotation
-extended:
-- original
 language_creators:
 - expert-generated
 languages:
