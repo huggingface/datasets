@@ -98,6 +98,7 @@ _SUBJECTS = [
     "world_religions",
 ]
 
+
 class HendrycksTest(datasets.GeneratorBasedBuilder):
     """Massive multitask MC test cosisting of 57 tasks"""
 
@@ -174,14 +175,18 @@ class HendrycksTest(datasets.GeneratorBasedBuilder):
 
         id_ = 0
         if split == "auxiliary_train":
-            for f in os.listdir(datadir):
-                reader = csv.reader(open(os.path.join(datadir, f), "r"), quotechar='"', delimiter=",")
+            for f in sorted(os.listdir(datadir)):
+                reader = csv.reader(
+                    open(os.path.join(datadir, f), "r", encoding="utf-8"), quotechar='"', delimiter=","
+                )
                 for data in reader:
                     yield id_, {"question": data[0], "choices": data[1:5], "answer": data[5]}
                     id_ += 1
         else:
             reader = csv.reader(
-                open(os.path.join(datadir, f"{self.config.name}_{split}.csv"), "r"), quotechar='"', delimiter=","
+                open(os.path.join(datadir, f"{self.config.name}_{split}.csv"), "r", encoding="utf-8"),
+                quotechar='"',
+                delimiter=",",
             )
             for data in reader:
                 yield id_, {"question": data[0], "choices": data[1:5], "answer": data[5]}
