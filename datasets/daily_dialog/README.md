@@ -17,7 +17,9 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
+- multi-label-classification
 - text-classification-other-emotion-classification
+- text-classification-other-dialog-act-classification
 ---
 
 # Dataset Card for "daily_dialog"
