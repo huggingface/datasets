@@ -181,7 +181,6 @@ An example of 'train' looks as follows.
  'guid': 'klue-mrc-v1_train_12759',
  'is_impossible': False,
  'news_category': '종합',
- 'plausible_answers': {'answer_start': [], 'text': []},
  'question': '북태평양 기단과 오호츠크해 기단이 만나 국내에 머무르는 기간은?',
  'question_type': 1,
  'source': 'hankyung',
