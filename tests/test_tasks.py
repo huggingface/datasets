@@ -50,6 +50,6 @@ class QuestionAnsweringTest(TestCase):
             "answers_column": "input_answers",
         }
         task = QuestionAnsweringExtractive.from_dict(template_dict)
-        self.assertEqual("question-answering", task.task)
+        self.assertEqual("question-answering-extractive", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
