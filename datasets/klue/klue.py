@@ -474,6 +474,7 @@ class Klue(datasets.GeneratorBasedBuilder):
         if self.config.name == "mrc":
             with open(data_file, encoding="UTF-8") as f:
                 f = json.load(f)
+                id_ = -1
                 for example in f["data"]:
                     title = example.get("title", "")
                     news_category = example.get("news_category", "")
@@ -490,13 +491,14 @@ class Klue(datasets.GeneratorBasedBuilder):
                                 qa["answers"].extend(qa["plausible_answers"])
                             answer_starts = [answer["answer_start"] for answer in qa["answers"]]
                             answers = [answer["text"].strip() for answer in qa["answers"]]
+                            id_ += 1
 
-                            yield guid, {
+                            yield id_, {
+                                "guid": guid,
                                 "title": title,
                                 "context": context,
                                 "news_category": news_category,
                                 "source": source,
-                                "guid": guid,
                                 "question_type": question_type,
                                 "is_impossible": is_impossible,
                                 "question": question,
