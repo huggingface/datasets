@@ -492,13 +492,10 @@ class Klue(datasets.GeneratorBasedBuilder):
                             is_impossible = qa["is_impossible"]
                             question = qa["question"].strip()
 
+                            if "plausible_answers" in qa:
+                                qa["answers"].extend(qa["plausible_answers"])
                             answer_starts = [answer["answer_start"] for answer in qa["answers"]]
                             answers = [answer["text"].strip() for answer in qa["answers"]]
-                            p_answer_starts, p_answers = [], []  # when answer exists
-
-                            if "plausible_answers" in qa:
-                                p_answer_starts = [answer["answer_start"] for answer in qa["plausible_answers"]]
-                                p_answers = [answer["text"].strip() for answer in qa["plausible_answers"]]
 
                             yield id_, {
                                 "title": title,
