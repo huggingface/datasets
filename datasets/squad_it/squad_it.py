@@ -2,6 +2,7 @@
 
 
 import json
+from datasets.tasks import QuestionAnsweringExtractive
 
 import datasets
 
@@ -69,7 +70,7 @@ class SquadIt(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage="https://github.com/crux82/squad-it",
             citation=_CITATION,
-        )
+        task_templates=[QuestionAnsweringExtractive(question_column="question", context_column="context", answers_column="answers")])
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""

@@ -18,6 +18,7 @@
 
 
 import json
+from datasets.tasks import QuestionAnsweringExtractive
 
 import datasets
 
@@ -98,7 +99,7 @@ class Squad(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://rajpurkar.github.io/SQuAD-explorer/",
             citation=_CITATION,
-        )
+        task_templates=[QuestionAnsweringExtractive(question_column="question", context_column="context", answers_column="answers")])
 
     def _split_generators(self, dl_manager):
         downloaded_files = dl_manager.download_and_extract(_URLS)

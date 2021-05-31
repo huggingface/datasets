@@ -2,6 +2,7 @@
 
 
 import json
+from datasets.tasks import QuestionAnsweringExtractive
 
 import datasets
 
@@ -79,7 +80,7 @@ class Arcd(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/husseinmozannar/SOQAL/tree/master/data",
             citation=_CITATION,
-        )
+        task_templates=[QuestionAnsweringExtractive(question_column="question", context_column="context", answers_column="answers")])
 
     def _split_generators(self, dl_manager):
         urls_to_download = _URLs

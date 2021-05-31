@@ -18,6 +18,7 @@
 
 
 import json
+from datasets.tasks import QuestionAnsweringExtractive
 
 import datasets
 
@@ -93,7 +94,7 @@ class Piaf(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://piaf.etalab.studio",
             citation=_CITATION,
-        )
+        task_templates=[QuestionAnsweringExtractive(question_column="question", context_column="context", answers_column="answers")])
 
     def _split_generators(self, dl_manager):
         urls_to_download = _URLS
