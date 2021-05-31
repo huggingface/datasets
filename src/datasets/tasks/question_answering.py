@@ -8,7 +8,7 @@ from .base import TaskTemplate
 @dataclass(frozen=True)
 class QuestionAnsweringExtractive(TaskTemplate):
     # `task` is not a ClassVar since we want it to be part of the `asdict` output for JSON serialization
-    task: str = "question-answering"
+    task: str = "question-answering-extractive"
     input_schema: ClassVar[Features] = Features({"question": Value("string"), "context": Value("string")})
     label_schema: ClassVar[Features] = Features(
         {
