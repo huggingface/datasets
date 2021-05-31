@@ -153,6 +153,7 @@ TESTS_REQUIRE = [
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
     "Werkzeug>=1.0.1",
+    "six~=1.15.0",
     # metadata validation
     "importlib_resources;python_version<'3.7'",
 ]
