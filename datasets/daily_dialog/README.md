@@ -1,5 +1,25 @@
 ---
 paperswithcode_id: dailydialog
+annotations_creators:
+- expert-generated
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc-by-nc-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- multi-label-classification
+- text-classification-other-emotion-classification
+- text-classification-other-dialog-act-classification
 ---
 
 # Dataset Card for "daily_dialog"
@@ -144,7 +164,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+DailyDialog dataset is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
 ### Citation Information
 
