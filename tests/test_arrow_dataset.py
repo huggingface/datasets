@@ -2128,7 +2128,7 @@ class BaseDatasetTest(TestCase):
                     set(dset.flatten().column_names),
                 )
                 self.assertDictEqual(features_before_cast, dset.features)
-                with dset.prepare_for_task(task="question-answering") as dset:
+                with dset.prepare_for_task(task="question-answering-extractive") as dset:
                     self.assertSetEqual(
                         set(["context", "question", "answers.text", "answers.answer_start"]),
                         set(dset.flatten().column_names),
