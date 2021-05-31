@@ -410,6 +410,7 @@ class DatasetDict(dict):
         disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
+        desc: Optional[str] = None,
     ) -> "DatasetDict":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does updated examples).
@@ -445,6 +446,7 @@ class DatasetDict(dict):
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         self._check_values_type()
         if cache_file_names is None:
@@ -466,6 +468,7 @@ class DatasetDict(dict):
                     disable_nullable=disable_nullable,
                     fn_kwargs=fn_kwargs,
                     num_proc=num_proc,
+                    desc=desc,
                 )
                 for k, dataset in self.items()
             }
