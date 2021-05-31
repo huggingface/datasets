@@ -1,7 +1,23 @@
 ---
 paperswithcode_id: dailydialog
+annotations_creators:
+- expert-generated
+language_creators:
+- found
+languages:
+- en
 licenses:
-- cc-by-sa-4.0
+- cc-by-nc-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- text-classification-other-emotion-classification
 ---
 
 # Dataset Card for "daily_dialog"
