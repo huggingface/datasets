@@ -1,7 +1,7 @@
 from unittest.case import TestCase
 
 from datasets.features import ClassLabel, Features, Sequence, Value
-from datasets.tasks import QuestionAnswering, TextClassification
+from datasets.tasks import QuestionAnsweringExtractive, TextClassification
 
 
 class TextClassificationTest(TestCase):
@@ -25,7 +25,7 @@ class TextClassificationTest(TestCase):
 
 class QuestionAnsweringTest(TestCase):
     def test_column_mapping(self):
-        task = QuestionAnswering(
+        task = QuestionAnsweringExtractive(
             context_column="input_context", question_column="input_question", answers_column="input_answers"
         )
         self.assertDictEqual(
@@ -49,7 +49,7 @@ class QuestionAnsweringTest(TestCase):
             "question_column": "input_question",
             "answers_column": "input_answers",
         }
-        task = QuestionAnswering.from_dict(template_dict)
-        self.assertEqual("question-answering", task.task)
+        task = QuestionAnsweringExtractive.from_dict(template_dict)
+        self.assertEqual("question-answering-extractive", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)

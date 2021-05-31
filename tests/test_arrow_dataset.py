@@ -20,7 +20,7 @@ from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, 
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
-from datasets.tasks import QuestionAnswering, TextClassification
+from datasets.tasks import QuestionAnsweringExtractive, TextClassification
 from datasets.utils.logging import WARNING
 
 from .conftest import s3_test_bucket_name
@@ -739,7 +739,9 @@ class BaseDatasetTest(TestCase):
 
     def test_concatenate_with_mixed_task_templates_in_common(self, in_memory):
         tc_template = TextClassification(text_column="text", label_column="labels")
-        qa_template = QuestionAnswering(question_column="question", context_column="context", answers_column="answers")
+        qa_template = QuestionAnsweringExtractive(
+            question_column="question", context_column="context", answers_column="answers"
+        )
         info1 = DatasetInfo(
             task_templates=[qa_template],
             features=Features(
@@ -794,7 +796,9 @@ class BaseDatasetTest(TestCase):
     def test_concatenate_with_no_mixed_task_templates_in_common(self, in_memory):
         tc_template1 = TextClassification(text_column="text", label_column="labels")
         tc_template2 = TextClassification(text_column="text", label_column="sentiment")
-        qa_template = QuestionAnswering(question_column="question", context_column="context", answers_column="answers")
+        qa_template = QuestionAnsweringExtractive(
+            question_column="question", context_column="context", answers_column="answers"
+        )
         info1 = DatasetInfo(
             features=Features(
                 {
@@ -2107,7 +2111,7 @@ class BaseDatasetTest(TestCase):
                 ),
             }
         )
-        task = QuestionAnswering(
+        task = QuestionAnsweringExtractive(
             context_column="input_context", question_column="input_question", answers_column="input_answers"
         )
         info = DatasetInfo(features=features_before_cast, task_templates=task)
@@ -2124,13 +2128,13 @@ class BaseDatasetTest(TestCase):
                     set(dset.flatten().column_names),
                 )
                 self.assertDictEqual(features_before_cast, dset.features)
-                with dset.prepare_for_task(task="question-answering") as dset:
+                with dset.prepare_for_task(task="question-answering-extractive") as dset:
                     self.assertSetEqual(
                         set(["context", "question", "answers.text", "answers.answer_start"]),
                         set(dset.flatten().column_names),
                     )
                     self.assertDictEqual(features_after_cast, dset.features)
-        # Test we can load from QuestionAnswering template
+        # Test we can load from QuestionAnsweringExtractive template
         info.task_templates = None
         with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
