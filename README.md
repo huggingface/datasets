@@ -153,4 +153,43 @@ If you want to cite this framework you can use this:
   volume={1},
   year={2020}
 }
+@software{quentin_lhoest_2021_4817769,
+  author       = {Quentin Lhoest and
+                  Patrick von Platen and
+                  Thomas Wolf and
+                  Albert Villanova del Moral and
+                  Yacine Jernite and
+                  Mario Šaško and
+                  Suraj Patil and
+                  mariamabarham and
+                  Julien Chaumond and
+                  Julien Plu and
+                  Bhavitvya Malik and
+                  Gunjan Chhablani and
+                  Charin and
+                  Joe Davison and
+                  Cahya Wirawan and
+                  Jonatas Grosman and
+                  Simon Brandeis and
+                  Teven and
+                  Thomas Hudson and
+                  Victor SANH and
+                  Kevin Canwen Xu and
+                  lewtun and
+                  Nicolas Patry and
+                  Zaid Alyafeai and
+                  Rahul Chauhan and
+                  Vineeth S and
+                  mcmillanmajora and
+                  sandip and
+                  yvonnegitau and
+                  Jared T Nielsen},
+  title        = {huggingface/datasets: 1.7.0},
+  month        = may,
+  year         = 2021,
+  publisher    = {Zenodo},
+  version      = {1.7.0},
+  doi          = {10.5281/zenodo.4817769},
+  url          = {https://doi.org/10.5281/zenodo.4817769}
+}
 ```
