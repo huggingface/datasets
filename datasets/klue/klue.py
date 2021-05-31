@@ -510,10 +510,6 @@ class Klue(datasets.GeneratorBasedBuilder):
                                     "answer_start": answer_starts,
                                     "text": answers,
                                 },
-                                "plausible_answers": {
-                                    "answer_start": p_answer_starts,
-                                    "text": p_answers,
-                                },
                             }
 
         if self.config.name == "wos":
