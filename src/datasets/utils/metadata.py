@@ -82,24 +82,22 @@ def tagset_validator(
     reference_values: List[str],
     name: str,
     url: str,
-    escape_validation_mask: Union[List[str], Dict[str, List[str]]] = None,
+    escape_validation_predicate_fn: Optional[Callable[[Any], bool]] = None,
 ) -> ValidatorOutput:
     if isinstance(items, list):
-        if escape_validation_mask is not None:
+        if escape_validation_predicate_fn is not None:
             invalid_values = [
-                v for idx, v in enumerate(items) if v not in reference_values and escape_validation_mask[idx] is False
+                v for v in items if v not in reference_values and escape_validation_predicate_fn(v) is False
             ]
         else:
             invalid_values = [v for v in items if v not in reference_values]
 
     else:
         invalid_values = []
-        if escape_validation_mask is not None:
+        if escape_validation_predicate_fn is not None:
             for config_name, values in items.items():
                 invalid_values += [
-                    v
-                    for idx, v in enumerate(values)
-                    if v not in reference_values and escape_validation_mask[config_name][idx] is False
+                    v for v in values if v not in reference_values and escape_validation_predicate_fn(v) is False
                 ]
         else:
             for config_name, values in items.items():
@@ -108,33 +106,6 @@ def tagset_validator(
     if len(invalid_values) > 0:
         return [], f"{invalid_values} are not registered tags for '{name}', reference at {url}"
     return items, None
-
-
-def escape_validation_mask_for_predicate(
-    items: Union[List[Any], Dict[str, List[Any]]], predicate_fn: Callable[[Any], bool]
-) -> Union[List[Any], Dict[str, List[Any]]]:
-    values_to_ignore = []
-    if isinstance(items, list):
-        mask = []
-        for v in items:
-            if predicate_fn(v):
-                mask.append(True)
-                values_to_ignore.append(v)
-            else:
-                mask.append(False)
-    if isinstance(items, dict):
-        mask = {}
-        for k, values in items.items():
-            mask[k] = []
-            for v in values:
-                if predicate_fn(v):
-                    mask[k].append(True)
-                    values_to_ignore.append(v)
-                else:
-                    mask[k].append(False)
-    if len(values_to_ignore) > 0:
-        logger.warning(f"The following values will escape validation: {values_to_ignore}")
-    return mask
 
 
 def validate_type(value: Any, expected_type: Type):
@@ -310,11 +281,9 @@ class DatasetMetadata:
 
     @staticmethod
     def validate_licences(licenses: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
-        escape_validation_mask = escape_validation_mask_for_predicate(
-            licenses, lambda e: "-other-" in e or e.startswith("other-")
-        )
+        escape_validation_predicate_fn = lambda e: "-other-" in e or e.startswith("other-")
         validated, error = tagset_validator(
-            licenses, list(known_licenses.keys()), "licenses", known_licenses_url, escape_validation_mask
+            licenses, list(known_licenses.keys()), "licenses", known_licenses_url, escape_validation_predicate_fn
         )
         return validated, error
 
@@ -323,11 +292,9 @@ class DatasetMetadata:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = list(known_task_ids.keys())
-        escape_validation_mask = escape_validation_mask_for_predicate(
-            task_categories, lambda e: e.startswith("other-")
-        )
+        escape_validation_predicate_fn = lambda e: e.startswith("other-")
         validated, error = tagset_validator(
-            task_categories, known_set, "task_categories", known_task_ids_url, escape_validation_mask
+            task_categories, known_set, "task_categories", known_task_ids_url, escape_validation_predicate_fn
         )
         return validated, error
 
@@ -336,25 +303,21 @@ class DatasetMetadata:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = [tid for _cat, d in known_task_ids.items() for tid in d["options"]]
-        escape_validation_mask = escape_validation_mask_for_predicate(
-            task_ids, lambda e: "-other-" in e or e.startswith("other-")
-        )
+        escape_validation_predicate_fn = lambda e: "-other-" in e or e.startswith("other-")
         validated, error = tagset_validator(
-            task_ids, known_set, "task_ids", known_task_ids_url, escape_validation_mask
+            task_ids, known_set, "task_ids", known_task_ids_url, escape_validation_predicate_fn
         )
         return validated, error
 
     @staticmethod
     def validate_mulitlinguality(multilinguality: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
-        escape_validation_mask = escape_validation_mask_for_predicate(
-            multilinguality, lambda e: e.startswith("other-")
-        )
+        escape_validation_predicate_fn = lambda e: e.startswith("other-")
         validated, error = tagset_validator(
             multilinguality,
             list(known_multilingualities.keys()),
             "multilinguality",
             known_size_categories_url,
-            escape_validation_mask,
+            escape_validation_predicate_fn,
         )
         return validated, error
 
