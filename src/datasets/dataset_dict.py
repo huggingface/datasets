@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import fsspec
 import numpy as np
 
+from datasets.splits import NamedSplit, Split
 from datasets.utils.doc_utils import is_documented_by
 
 from .arrow_dataset import Dataset
@@ -29,6 +30,20 @@ class DatasetDict(dict):
                 raise TypeError(
                     "Values in `DatasetDict` should of type `Dataset` but got type '{}'".format(type(dataset))
                 )
+
+    def __getitem__(self, k) -> Dataset:
+        if isinstance(k, (str, NamedSplit)) or len(self) == 0:
+            return super().__getitem__(k)
+        else:
+            available_suggested_splits = [
+                str(split) for split in (Split.TRAIN, Split.TEST, Split.VALIDATION) if split in self
+            ]
+            suggested_split = available_suggested_splits[0] if available_suggested_splits else list(self)[0]
+            raise KeyError(
+                f"Invalid key: {k}. Please first select a split. For example: "
+                f"`my_dataset_dictionary['{suggested_split}'][{k}]`. "
+                f"Available splits: {sorted(self)}"
+            )
 
     @property
     def data(self) -> Dict[str, Table]:
