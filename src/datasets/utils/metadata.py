@@ -3,6 +3,7 @@ import logging
 from collections import Counter
 from dataclasses import dataclass, fields
 from pathlib import Path
+from types import prepare_class
 from typing import Type, Any, Callable, Dict, List, Optional, Tuple, Union
 import typing
 
@@ -76,7 +77,7 @@ def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
 
 
 ValidatorOutput = Tuple[List[str], Optional[str]]
-
+MetadataOutput = Dict[str, Union[List[str], Dict[str, List[str]]]]
 
 def tagset_validator(items: Union[List[str],Dict[str,List[str]]], reference_values: List[str], name: str, url: str, escape_validation_mask:Union[List[str],Dict[str,List[str]]] =None) -> ValidatorOutput:
     if isinstance(items, list):
@@ -364,6 +365,40 @@ class DatasetMetadata:
                 )
             else:
                 return paperswithcode_id, None
+
+    @staticmethod
+    def validate_pretty_names(pretty_names: Union[str, Dict[str,str]]):
+        if isinstance(pretty_names, str):
+            if len(pretty_names) == 0:
+                return None, f"The pretty name must have a length greater than 0 but got an empty string."
+        else:
+            error_string = ""
+            for key, value in pretty_names.items():
+                if len(value) == 0:
+                    error_string+=f"The pretty name must have a length greater than 0 but got an empty string for config: {key}.\n"
+                    
+            if error_string == "":
+                return None, error_string
+            else:
+                return pretty_names, None
+
+    def get_metadata_by_config_name(self, name: str) -> MetadataOutput:
+        metadata_dict = self.asdict()
+        config_name_hits = 0
+        result_dict = {}
+        for tag_key, tag_value in metadata_dict.items():
+            if isinstance(tag_value, str) or isinstance(tag_value, list):
+                result_dict[tag_key] = tag_value
+            elif isinstance(tag_value, dict):
+                for config_name, value in tag_value.items():
+                    if config_name == name:
+                        result_dict[tag_key] = value
+                        config_name_hits+=1
+
+        if config_name_hits==0:
+            logger.warning("No matching config names found in the metadata, using the common values to create metadata.")
+        
+        return DatasetMetadata(**result_dict)
 
 
 if __name__ == "__main__":
