@@ -445,7 +445,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: 
+            pretty_names:
               en: English Test Dataset
               fr: French Test Dataset
             size_categories:
