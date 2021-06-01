@@ -3,9 +3,7 @@ import logging
 from collections import Counter
 from dataclasses import dataclass, fields
 from pathlib import Path
-from types import prepare_class
-from typing import Type, Any, Callable, Dict, List, Optional, Tuple, Union
-import typing
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 
 # loading package files: https://stackoverflow.com/a/20885799
@@ -68,7 +66,7 @@ def yaml_block_from_readme(path: Path) -> Optional[str]:
 
 
 def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
-    """ Loads a dataset's metadata from the dataset card (REAMDE.md), as a Python dict"""
+    """Loads a dataset's metadata from the dataset card (REAMDE.md), as a Python dict"""
     yaml_block = yaml_block_from_readme(path=path)
     if yaml_block is None:
         return None
@@ -77,12 +75,20 @@ def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
 
 
 ValidatorOutput = Tuple[List[str], Optional[str]]
-MetadataOutput = Dict[str, Union[List[str], Dict[str, List[str]]]]
 
-def tagset_validator(items: Union[List[str],Dict[str,List[str]]], reference_values: List[str], name: str, url: str, escape_validation_mask:Union[List[str],Dict[str,List[str]]] =None) -> ValidatorOutput:
+
+def tagset_validator(
+    items: Union[List[str], Dict[str, List[str]]],
+    reference_values: List[str],
+    name: str,
+    url: str,
+    escape_validation_mask: Union[List[str], Dict[str, List[str]]] = None,
+) -> ValidatorOutput:
     if isinstance(items, list):
         if escape_validation_mask is not None:
-            invalid_values = [v for idx,v in enumerate(items) if v not in reference_values and escape_validation_mask[idx] is False]
+            invalid_values = [
+                v for idx, v in enumerate(items) if v not in reference_values and escape_validation_mask[idx] is False
+            ]
         else:
             invalid_values = [v for v in items if v not in reference_values]
 
@@ -90,7 +96,11 @@ def tagset_validator(items: Union[List[str],Dict[str,List[str]]], reference_valu
         invalid_values = []
         if escape_validation_mask is not None:
             for config_name, values in items.items():
-                invalid_values += [v for idx, v in enumerate(values) if v not in reference_values and escape_validation_mask[config_name][idx] is False]
+                invalid_values += [
+                    v
+                    for idx, v in enumerate(values)
+                    if v not in reference_values and escape_validation_mask[config_name][idx] is False
+                ]
         else:
             for config_name, values in items.items():
                 invalid_values += [v for v in values if v not in reference_values]
@@ -101,8 +111,8 @@ def tagset_validator(items: Union[List[str],Dict[str,List[str]]], reference_valu
 
 
 def escape_validation_mask_for_predicate(
-    items: Union[List[Any],Dict[str, List[Any]]], predicate_fn: Callable[[Any], bool]
-) -> Union[List[Any],Dict[str, List[Any]]]:
+    items: Union[List[Any], Dict[str, List[Any]]], predicate_fn: Callable[[Any], bool]
+) -> Union[List[Any], Dict[str, List[Any]]]:
     values_to_ignore = []
     if isinstance(items, list):
         mask = []
@@ -114,9 +124,9 @@ def escape_validation_mask_for_predicate(
                 mask.append(False)
     if isinstance(items, dict):
         mask = {}
-        for k,values in items.items():
+        for k, values in items.items():
             mask[k] = []
-            for v in values: 
+            for v in values:
                 if predicate_fn(v):
                     mask[k].append(True)
                     values_to_ignore.append(v)
@@ -128,10 +138,10 @@ def escape_validation_mask_for_predicate(
 
 
 def validate_type(value: Any, expected_type: Type):
-    error_string = ''
+    error_string = ""
     if expected_type == str:
-        if not isinstance(value, str) or len(value)==0:
-            return f'Expected `{str}` with length > 0. Found value: `{value}` of type: `{type(value)}`, with length: {len(value)}.\n'
+        if not isinstance(value, str) or len(value) == 0:
+            return f"Expected `{str}` with length > 0. Found value: `{value}` of type: `{type(value)}`, with length: {len(value)}.\n"
         else:
             return error_string
     # Add more `elif` statements if primitive type checking is needed
@@ -142,37 +152,37 @@ def validate_type(value: Any, expected_type: Type):
         if expected_type_origin == Union:
             for type_arg in expected_type_args:
                 temp_error_string = validate_type(value, type_arg)
-                if temp_error_string == '': # at least one type is successfully validated
+                if temp_error_string == "":  # at least one type is successfully validated
                     return temp_error_string
                 else:
-                    if error_string == '':
-                        error_string = '('+temp_error_string+')'
+                    if error_string == "":
+                        error_string = "(" + temp_error_string + ")"
                     else:
-                        error_string+= '\nOR\n' + '('+temp_error_string+')'
-            
+                        error_string += "\nOR\n" + "(" + temp_error_string + ")"
+
         else:
             # Assuming `List`/`Dict`/`Tuple`
-            if not isinstance(value, expected_type_origin) or len(value)==0:
-                return f'Expected `{expected_type_origin}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n'
+            if not isinstance(value, expected_type_origin) or len(value) == 0:
+                return f"Expected `{expected_type_origin}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n"
 
             if expected_type_origin == Dict:
                 key_type, value_type = expected_type_args
-                key_error_string = ''
-                value_error_string = ''
+                key_error_string = ""
+                value_error_string = ""
                 for k, v in value.items():
-                    key_error_string+=validate_type(k, key_type)
-                    value_error_string+=validate_type(v, value_type)
-                if key_error_string!='' or value_error_string!='':
-                    return f'Typing errors with keys:\n {key_error_string} and values:\n {value_error_string}'
-    
-            else: # `List`/`Tuple`
+                    key_error_string += validate_type(k, key_type)
+                    value_error_string += validate_type(v, value_type)
+                if key_error_string != "" or value_error_string != "":
+                    return f"Typing errors with keys:\n {key_error_string} and values:\n {value_error_string}"
+
+            else:  # `List`/`Tuple`
                 value_type = expected_type_args[0]
-                value_error_string = ''
+                value_error_string = ""
                 for v in value:
-                    value_error_string+=validate_type(v, value_type)
-                if value_error_string!='':
-                    return f'Typing errors with values:\n {value_error_string}'
-                
+                    value_error_string += validate_type(v, value_type)
+                if value_error_string != "":
+                    return f"Typing errors with values:\n {value_error_string}"
+
         return error_string
 
 
@@ -182,7 +192,7 @@ def validate_metadata_type(metadata_dict: dict):
     typing_errors = {}
     for field_name, field_type in fields_types.items():
         field_type_error = validate_type(metadata_dict[field_name], field_type)
-        if field_type_error!='':
+        if field_type_error != "":
             typing_errors[field_name] = field_type_error
     if len(typing_errors) > 0:
         raise TypeError(f"The following typing errors are found: {typing_errors}")
@@ -195,7 +205,7 @@ class DatasetMetadata:
     languages: Union[List[str], Dict[str, List[str]]]
     licenses: Union[List[str], Dict[str, List[str]]]
     multilinguality: Union[List[str], Dict[str, List[str]]]
-    pretty_names: Union[str, Dict[str,str]]
+    pretty_names: Union[str, Dict[str, str]]
     size_categories: Union[List[str], Dict[str, List[str]]]
     source_datasets: Union[List[str], Dict[str, List[str]]]
     task_categories: Union[List[str], Dict[str, List[str]]]
@@ -303,7 +313,9 @@ class DatasetMetadata:
         escape_validation_mask = escape_validation_mask_for_predicate(
             licenses, lambda e: "-other-" in e or e.startswith("other-")
         )
-        validated, error = tagset_validator(licenses, list(known_licenses.keys()), "licenses", known_licenses_url, escape_validation_mask)
+        validated, error = tagset_validator(
+            licenses, list(known_licenses.keys()), "licenses", known_licenses_url, escape_validation_mask
+        )
         return validated, error
 
     @staticmethod
@@ -311,8 +323,12 @@ class DatasetMetadata:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = list(known_task_ids.keys())
-        escape_validation_mask = escape_validation_mask_for_predicate(task_categories, lambda e: e.startswith("other-"))
-        validated, error = tagset_validator(task_categories, known_set, "task_categories", known_task_ids_url, escape_validation_mask)
+        escape_validation_mask = escape_validation_mask_for_predicate(
+            task_categories, lambda e: e.startswith("other-")
+        )
+        validated, error = tagset_validator(
+            task_categories, known_set, "task_categories", known_task_ids_url, escape_validation_mask
+        )
         return validated, error
 
     @staticmethod
@@ -323,14 +339,22 @@ class DatasetMetadata:
         escape_validation_mask = escape_validation_mask_for_predicate(
             task_ids, lambda e: "-other-" in e or e.startswith("other-")
         )
-        validated, error = tagset_validator(task_ids, known_set, "task_ids", known_task_ids_url, escape_validation_mask)
+        validated, error = tagset_validator(
+            task_ids, known_set, "task_ids", known_task_ids_url, escape_validation_mask
+        )
         return validated, error
 
     @staticmethod
     def validate_mulitlinguality(multilinguality: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
-        escape_validation_mask = escape_validation_mask_for_predicate(multilinguality, lambda e: e.startswith("other-"))
+        escape_validation_mask = escape_validation_mask_for_predicate(
+            multilinguality, lambda e: e.startswith("other-")
+        )
         validated, error = tagset_validator(
-            multilinguality, list(known_multilingualities.keys()), "multilinguality", known_size_categories_url, escape_validation_mask
+            multilinguality,
+            list(known_multilingualities.keys()),
+            "multilinguality",
+            known_size_categories_url,
+            escape_validation_mask,
         )
         return validated, error
 
@@ -367,7 +391,7 @@ class DatasetMetadata:
                 return paperswithcode_id, None
 
     @staticmethod
-    def validate_pretty_names(pretty_names: Union[str, Dict[str,str]]):
+    def validate_pretty_names(pretty_names: Union[str, Dict[str, str]]):
         if isinstance(pretty_names, str):
             if len(pretty_names) == 0:
                 return None, f"The pretty name must have a length greater than 0 but got an empty string."
@@ -375,14 +399,14 @@ class DatasetMetadata:
             error_string = ""
             for key, value in pretty_names.items():
                 if len(value) == 0:
-                    error_string+=f"The pretty name must have a length greater than 0 but got an empty string for config: {key}.\n"
-                    
+                    error_string += f"The pretty name must have a length greater than 0 but got an empty string for config: {key}.\n"
+
             if error_string == "":
                 return None, error_string
             else:
                 return pretty_names, None
 
-    def get_metadata_by_config_name(self, name: str) -> MetadataOutput:
+    def get_metadata_by_config_name(self, name: str) -> DatasetMetadata:
         metadata_dict = self.asdict()
         config_name_hits = 0
         result_dict = {}
@@ -393,11 +417,13 @@ class DatasetMetadata:
                 for config_name, value in tag_value.items():
                     if config_name == name:
                         result_dict[tag_key] = value
-                        config_name_hits+=1
+                        config_name_hits += 1
 
-        if config_name_hits==0:
-            logger.warning("No matching config names found in the metadata, using the common values to create metadata.")
-        
+        if config_name_hits == 0:
+            logger.warning(
+                "No matching config names found in the metadata, using the common values to create metadata."
+            )
+
         return DatasetMetadata(**result_dict)
 
 
