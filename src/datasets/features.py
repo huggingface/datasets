@@ -984,6 +984,7 @@ class Features(dict):
             >>> assert f1.reorder_fields_as(f2).type == f2.type
 
         """
+
         def recursive_reorder(source, target, stack=""):
             stack_position = " at " + stack[1:] if stack else ""
             if isinstance(target, Sequence):
