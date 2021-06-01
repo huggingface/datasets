@@ -1,32 +1,59 @@
 ---
+annotations_creators:
+- machine-generated
+language_creators:
+- machine-generated
+languages:
+- it-IT
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- unknown
+source_datasets:
+- extended|squad
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+- extractive-qa
 paperswithcode_id: squad-it
 ---
 
 # Dataset Card for "squad_it"
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
-  - [Contributions](#contributions)
+- [Dataset Card for "squad_it"](#dataset-card-for-squad_it)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+      - [default](#default)
+    - [Data Fields](#data-fields)
+      - [default](#default-1)
+    - [Data Splits](#data-splits)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -91,9 +118,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-| name  |train|test|
-|-------|----:|---:|
-|default|54159|7609|
+| name    | train | test |
+| ------- | ----: | ---: |
+| default | 54159 | 7609 |
 
 ## Dataset Creation
 
