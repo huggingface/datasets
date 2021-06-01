@@ -1,7 +1,7 @@
 import json
 import logging
 from collections import Counter
-from dataclasses import dataclass, fields
+from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
@@ -383,19 +383,25 @@ class DatasetMetadata:
                 return pretty_names, None
 
     def get_metadata_by_config_name(self, name: str) -> "DatasetMetadata":
-        metadata_dict = self.asdict()
-        config_name_hits = 0
+        metadata_dict = asdict(self)
+        config_name_hit = []
+        has_multi_configs = []
         result_dict = {}
         for tag_key, tag_value in metadata_dict.items():
             if isinstance(tag_value, str) or isinstance(tag_value, list):
                 result_dict[tag_key] = tag_value
             elif isinstance(tag_value, dict):
+                has_multi_configs.append(tag_key)
                 for config_name, value in tag_value.items():
                     if config_name == name:
                         result_dict[tag_key] = value
-                        config_name_hits += 1
+                        config_name_hit.append(tag_key)
 
-        if config_name_hits == 0:
+        if len(has_multi_configs) > 0 and has_multi_configs != config_name_hit:
+            raise TypeError(
+                f"The following tags have multiple configs: {has_multi_configs} but the config `{name}`  was found only in: {config_name_hit}."
+            )
+        if config_name_hit == 0:
             logger.warning(
                 "No matching config names found in the metadata, using the common values to create metadata."
             )

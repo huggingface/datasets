@@ -1,6 +1,7 @@
 import re
 import tempfile
 import unittest
+from dataclasses import asdict
 from pathlib import Path
 
 from datasets.utils.metadata import (
@@ -427,3 +428,200 @@ class TestMetadataUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             metadata = DatasetMetadata.from_yaml_string(valid_yaml_string_with_list_paperswithcode_id)
             metadata.validate()
+
+    def test_get_metadata_by_config_name(self):
+        valid_yaml_with_multiple_configs = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+              en:
+              - en
+              fr:
+              - fr
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            pretty_names: 
+              en: English Test Dataset
+              fr: French Test Dataset
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id:
+            - squad
+            """
+        )
+
+        metadata = DatasetMetadata.from_yaml_string(valid_yaml_with_multiple_configs)
+        en_metadata = metadata.get_metadata_by_config_name("en")
+        self.assertEqual(
+            asdict(en_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["en"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_names": "English Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+        fr_metadata = metadata.get_metadata_by_config_name("fr")
+        self.assertEqual(
+            asdict(fr_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["fr"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_names": "French Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+
+        valid_yaml_with_single_configs = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            pretty_names: Test Dataset
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id:
+            - squad
+            """
+        )
+
+        metadata = DatasetMetadata.from_yaml_string(valid_yaml_with_single_configs)
+        en_metadata = metadata.get_metadata_by_config_name("en")
+        self.assertEqual(
+            asdict(en_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["en"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_names": "Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+        fr_metadata = metadata.get_metadata_by_config_name("fr")
+        self.assertEqual(
+            asdict(fr_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["en"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_names": "Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+
+        invalid_yaml_with_multiple_configs = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+              en:
+              - en
+              zh:
+              - zh
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            pretty_names: Test Dataset
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id:
+            - squad
+            """
+        )
+
+        metadata = DatasetMetadata.from_yaml_string(invalid_yaml_with_multiple_configs)
+        en_metadata = metadata.get_metadata_by_config_name("en")
+        self.assertEqual(
+            asdict(en_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["en"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_names": "Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+        zh_metadata = metadata.get_metadata_by_config_name("zh")
+        self.assertEqual(
+            asdict(zh_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["zh"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_names": "Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+        with self.assertRaises(TypeError):
+            fr_metadata = metadata.get_metadata_by_config_name("fr")
