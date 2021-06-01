@@ -678,7 +678,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset_info_path = Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix()
         if not fs.isfile(dataset_info_path) and fs.isfile(dataset_dict_json_path):
             raise FileNotFoundError(
-                f"No such file or directory: '{dataset_info_path}'. Looks like you tried to load a DatasetDict object, not a Dataset. Please use DatasetDict.load_from_disk instead."
+                f"No such file or directory: '{dataset_info_path}'. Expected to load a Dataset object, but got a DatasetDict. Please use DatasetDict.load_from_disk instead."
             )
 
         with open(

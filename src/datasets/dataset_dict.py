@@ -711,7 +711,7 @@ class DatasetDict(dict):
         dataset_info_path = Path(dest_dataset_dict_path, config.DATASET_INFO_FILENAME).as_posix()
         if fs.isfile(dataset_info_path) and not fs.isfile(dataset_dict_json_path):
             raise FileNotFoundError(
-                f"No such file or directory: '{dataset_dict_json_path}'. Looks like you tried to load a Dataset object, not a DatasetDict. Please use Dataset.load_from_disk instead."
+                f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a DatasetDict object, but got a Dataset. Please use Dataset.load_from_disk instead."
             )
         for k in json.load(
             fs.open(Path(dest_dataset_dict_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8")
