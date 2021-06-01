@@ -260,7 +260,7 @@ class DatasetMetadata:
         if yaml_string is not None:
             return cls.from_yaml_string(yaml_string)
         else:
-            raise TypeError(f"did not find a yaml block in '{path}'")
+            raise TypeError(f"Unable to find a yaml block in '{path}'")
 
     @classmethod
     def from_yaml_string(cls, string: str) -> "DatasetMetadata":
@@ -279,17 +279,17 @@ class DatasetMetadata:
         return cls(**metada_dict)
 
     @staticmethod
-    def validate_annotations_creators(annotations_creators: List[str]) -> ValidatorOutput:
+    def validate_annotations_creators(annotations_creators: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         return tagset_validator(
             annotations_creators, known_creators["annotations"], "annotations_creators", known_creators_url
         )
 
     @staticmethod
-    def validate_language_creators(language_creators: List[str]) -> ValidatorOutput:
+    def validate_language_creators(language_creators: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         return tagset_validator(language_creators, known_creators["language"], "language_creators", known_creators_url)
 
     @staticmethod
-    def validate_language_codes(languages: List[str]) -> ValidatorOutput:
+    def validate_language_codes(languages: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         return tagset_validator(
             values=languages,
             reference_values=known_language_codes.keys(),
@@ -298,47 +298,47 @@ class DatasetMetadata:
         )
 
     @staticmethod
-    def validate_licences(licenses: List[str]) -> ValidatorOutput:
-        others, to_validate = escape_validation_for_predicate(
+    def validate_licences(licenses: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
+        escape_validation_mask = escape_validation_mask_for_predicate(
             licenses, lambda e: "-other-" in e or e.startswith("other-")
         )
-        validated, error = tagset_validator(to_validate, list(known_licenses.keys()), "licenses", known_licenses_url)
-        return [*validated, *others], error
+        validated, error = tagset_validator(licenses, list(known_licenses.keys()), "licenses", known_licenses_url, escape_validation_mask)
+        return validated, error
 
     @staticmethod
-    def validate_task_categories(task_categories: List[str]) -> ValidatorOutput:
+    def validate_task_categories(task_categories: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = list(known_task_ids.keys())
-        others, to_validate = escape_validation_for_predicate(task_categories, lambda e: e.startswith("other-"))
-        validated, error = tagset_validator(to_validate, known_set, "task_categories", known_task_ids_url)
-        return [*validated, *others], error
+        escape_validation_mask = escape_validation_mask_for_predicate(task_categories, lambda e: e.startswith("other-"))
+        validated, error = tagset_validator(task_categories, known_set, "task_categories", known_task_ids_url, escape_validation_mask)
+        return validated, error
 
     @staticmethod
-    def validate_task_ids(task_ids: List[str]) -> ValidatorOutput:
+    def validate_task_ids(task_ids: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = [tid for _cat, d in known_task_ids.items() for tid in d["options"]]
-        others, to_validate = escape_validation_for_predicate(
+        escape_validation_mask = escape_validation_mask_for_predicate(
             task_ids, lambda e: "-other-" in e or e.startswith("other-")
         )
-        validated, error = tagset_validator(to_validate, known_set, "task_ids", known_task_ids_url)
-        return [*validated, *others], error
+        validated, error = tagset_validator(task_ids, known_set, "task_ids", known_task_ids_url, escape_validation_mask)
+        return validated, error
 
     @staticmethod
-    def validate_mulitlinguality(multilinguality: List[str]) -> ValidatorOutput:
-        others, to_validate = escape_validation_for_predicate(multilinguality, lambda e: e.startswith("other-"))
+    def validate_mulitlinguality(multilinguality: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
+        escape_validation_mask = escape_validation_mask_for_predicate(multilinguality, lambda e: e.startswith("other-"))
         validated, error = tagset_validator(
-            to_validate, list(known_multilingualities.keys()), "multilinguality", known_size_categories_url
+            multilinguality, list(known_multilingualities.keys()), "multilinguality", known_size_categories_url, escape_validation_mask
         )
-        return [*validated, *others], error
+        return validated, error
 
     @staticmethod
-    def validate_size_catgeories(size_cats: List[str]) -> ValidatorOutput:
+    def validate_size_catgeories(size_cats: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         return tagset_validator(size_cats, known_size_categories, "size_categories", known_size_categories_url)
 
     @staticmethod
-    def validate_source_datasets(sources: List[str]) -> ValidatorOutput:
+    def validate_source_datasets(sources: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         invalid_values = []
         for src in sources:
             is_ok = src in ["original", "extended"] or src.startswith("extended|")
