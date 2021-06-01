@@ -3,7 +3,7 @@ import logging
 from collections import Counter
 from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 
 # loading package files: https://stackoverflow.com/a/20885799
@@ -66,7 +66,7 @@ def yaml_block_from_readme(path: Path) -> Optional[str]:
 
 
 def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
-    """ "Loads a dataset's metadata from the dataset card (REAMDE.md), as a Python dict"""
+    """ Loads a dataset's metadata from the dataset card (REAMDE.md), as a Python dict"""
     yaml_block = yaml_block_from_readme(path=path)
     if yaml_block is None:
         return None
@@ -77,11 +77,16 @@ def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
 ValidatorOutput = Tuple[List[str], Optional[str]]
 
 
-def tagset_validator(values: List[str], reference_values: List[str], name: str, url: str) -> ValidatorOutput:
-    invalid_values = [v for v in values if v not in reference_values]
+def tagset_validator(items: Union[List[str],Dict[str,List[str]]], reference_values: List[str], name: str, url: str) -> ValidatorOutput:
+    if isinstance(items, list):
+        invalid_values = [v for v in items if v not in reference_values]
+    else:
+        invalid_values = []
+        for config_name, values in items.items():
+            invalid_values += [v for v in values if v not in reference_values]
     if len(invalid_values) > 0:
         return [], f"{invalid_values} are not registered tags for '{name}', reference at {url}"
-    return values, None
+    return items, None
 
 
 def escape_validation_for_predicate(
@@ -120,18 +125,19 @@ def validate_metadata_type(metadata_dict: dict):
 
 @dataclass
 class DatasetMetadata:
-    annotations_creators: List[str]
-    language_creators: List[str]
-    languages: List[str]
-    licenses: List[str]
-    multilinguality: List[str]
-    size_categories: List[str]
-    source_datasets: List[str]
-    task_categories: List[str]
-    task_ids: List[str]
+    annotations_creators: Union[List[str], Dict[str, List[str]]]
+    language_creators: Union[List[str], Dict[str, List[str]]]
+    languages: Union[List[str], Dict[str, List[str]]]
+    licenses: Union[List[str], Dict[str, List[str]]]
+    multilinguality: Union[List[str], Dict[str, List[str]]]
+    pretty_names: Union[str, Dict[str,str]]
+    size_categories: Union[List[str], Dict[str, List[str]]]
+    source_datasets: Union[List[str], Dict[str, List[str]]]
+    task_categories: Union[List[str], Dict[str, List[str]]]
+    task_ids: Union[List[str], Dict[str, List[str]]]
     paperswithcode_id: Optional[str] = None
 
-    def __post_init__(self):
+    def validate(self):
         validate_metadata_type(metadata_dict=vars(self))
 
         self.annotations_creators, annotations_creators_errors = self.validate_annotations_creators(
@@ -168,7 +174,7 @@ class DatasetMetadata:
                 exception_msg_dict[field] = errs
         if len(exception_msg_dict) > 0:
             raise TypeError(
-                "Could not validate the metada, found the following errors:\n"
+                "Could not validate the metadata, found the following errors:\n"
                 + "\n".join(f"* field '{fieldname}':\n\t{err}" for fieldname, err in exception_msg_dict.items())
             )
 
@@ -206,10 +212,6 @@ class DatasetMetadata:
             :obj:`TypeError`: If the dataset's metadata is invalid
         """
         metada_dict = yaml.load(string, Loader=NoDuplicateSafeLoader) or dict()
-        # flatten the metadata of each config
-        for key in metada_dict:
-            if isinstance(metada_dict[key], dict):
-                metada_dict[key] = list(set(sum(metada_dict[key].values(), [])))
         return cls(**metada_dict)
 
     @staticmethod
@@ -308,4 +310,5 @@ if __name__ == "__main__":
     args = ap.parse_args()
 
     readme_filepath = Path(args.readme_filepath)
-    DatasetMetadata.from_readme(readme_filepath)
+    dataset_metadata = DatasetMetadata.from_readme(readme_filepath)
+    dataset_metadata.validate()
