@@ -162,7 +162,7 @@ def validate_type(value: Any, expected_type: Type):
                     key_error_string+=validate_type(k, key_type)
                     value_error_string+=validate_type(v, value_type)
                 if key_error_string!='' or value_error_string!='':
-                    return f'Type errors with keys:\n {key_error_string} and values:\n {value_error_string}'
+                    return f'Typing errors with keys:\n {key_error_string} and values:\n {value_error_string}'
     
             else: # `List`/`Tuple`
                 value_type = expected_type_args[0]
@@ -170,7 +170,7 @@ def validate_type(value: Any, expected_type: Type):
                 for v in value:
                     value_error_string+=validate_type(v, value_type)
                 if value_error_string!='':
-                    return f'Type errors with values:\n {value_error_string}'
+                    return f'Typing errors with values:\n {value_error_string}'
                 
         return error_string
 
@@ -184,7 +184,7 @@ def validate_metadata_type(metadata_dict: dict):
         if field_type_error!='':
             typing_errors[field_name] = field_type_error
     if len(typing_errors) > 0:
-        raise TypeError(f"Found fields that are lists instead of single strings: {typing_errors}")
+        raise TypeError(f"The following typing errors are found: {typing_errors}")
 
 
 @dataclass
