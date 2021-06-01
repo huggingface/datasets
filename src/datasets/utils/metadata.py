@@ -110,9 +110,20 @@ def tagset_validator(
 
 def validate_type(value: Any, expected_type: Type):
     error_string = ""
+    NoneType = type(None)
+    if expected_type == NoneType:
+        if not isinstance(value, NoneType):
+            return f"Expected `{NoneType}`. Found value: `{value}` of type `{type(value)}`.\n"
+        else:
+            return error_string
     if expected_type == str:
-        if not isinstance(value, str) or len(value) == 0:
-            return f"Expected `{str}` with length > 0. Found value: `{value}` of type: `{type(value)}`, with length: {len(value)}.\n"
+        if not isinstance(value, str):
+            return f"Expected `{str}`. Found value: `{value}` of type: `{type(value)}`.\n"
+
+        elif isinstance(value, str) and len(value) == 0:
+            return (
+                f"Expected `{str}` with length > 0. Found value: `{value}` of type: `{type(value)}` with length: 0.\n"
+            )
         else:
             return error_string
     # Add more `elif` statements if primitive type checking is needed
@@ -158,11 +169,13 @@ def validate_type(value: Any, expected_type: Type):
 
 
 def validate_metadata_type(metadata_dict: dict):
-    fields_types = {field.name: field.type for field in fields(DatasetMetadata)}
+    field_types = {field.name: field.type for field in fields(DatasetMetadata)}
 
     typing_errors = {}
-    for field_name, field_type in fields_types.items():
-        field_type_error = validate_type(metadata_dict[field_name], field_type)
+    for field_name, field_value in metadata_dict.items():
+        field_type_error = validate_type(
+            metadata_dict[field_name], field_types.get(field_name, Union[List[str], Dict[str, List[str]]])
+        )
         if field_type_error != "":
             typing_errors[field_name] = field_type_error
     if len(typing_errors) > 0:
@@ -369,7 +382,7 @@ class DatasetMetadata:
             else:
                 return pretty_names, None
 
-    def get_metadata_by_config_name(self, name: str) -> DatasetMetadata:
+    def get_metadata_by_config_name(self, name: str) -> "DatasetMetadata":
         metadata_dict = self.asdict()
         config_name_hits = 0
         result_dict = {}
