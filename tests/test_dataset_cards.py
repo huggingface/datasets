@@ -60,7 +60,8 @@ def test_changed_dataset_card(dataset_name):
     except Exception as readme_error:
         error_messages.append(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
     try:
-        DatasetMetadata.from_readme(card_path)
+        metadata = DatasetMetadata.from_readme(card_path)
+        metadata.validate()
     except Exception as metadata_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
@@ -81,7 +82,8 @@ def test_dataset_card(dataset_name):
     except Exception as readme_error:
         error_messages.append(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
     try:
-        DatasetMetadata.from_readme(card_path)
+        metadata = DatasetMetadata.from_readme(card_path)
+        metadata.validate()
     except Exception as metadata_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
