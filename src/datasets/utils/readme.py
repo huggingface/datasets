@@ -1,5 +1,4 @@
 import logging
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Tuple
 
@@ -38,22 +37,20 @@ FILLER_TEXT = [
 ReadmeValidatorOutput = Tuple[dict, List[str], List[str]]
 
 
-@dataclass
 class Section:
-    name: str
-    level: str
-    lines: List[str] = None
-
-    def __post_init__(self):
+    def __init__(self, name: str, level: str, lines: List[str] = None, suppress_parsing_errors: bool = False):
+        self.name = name
+        self.level = level
+        self.lines = lines
         self.text = ""
         self.is_empty_text = True
         self.content = {}
         self.parsing_error_list = []
         self.parsing_warning_list = []
         if self.lines is not None:
-            self.parse()
+            self.parse(suppress_parsing_errors=suppress_parsing_errors)
 
-    def parse(self):
+    def parse(self, suppress_parsing_errors: bool = False):
         current_sub_level = ""
         current_lines = []
         code_start = False
@@ -88,6 +85,12 @@ class Section:
                     self.text += "".join(current_lines).strip()
                     if self.text != "" and self.text not in FILLER_TEXT:
                         self.is_empty_text = False
+
+        if self.level == "" and not suppress_parsing_errors:
+            if self.parsing_error_list != [] or self.parsing_warning_list != []:
+                errors = "\n".join(list(map(lambda x: "-\t" + x, self.parsing_error_list + self.parsing_warning_list)))
+                error_string = f"The following issues were found while parsing the README at `{self.name}`:\n" + errors
+                raise ValueError(error_string)
 
     def validate(self, structure: dict) -> ReadmeValidatorOutput:
         """Validates a Section class object recursively using the structure provided as a dictionary.
@@ -151,8 +154,6 @@ class Section:
                         warning_list.append(
                             f"`{self.name}` has an extra subsection: `{name}`. Skipping further validation checks for this subsection as expected structure is unknown."
                         )
-        error_list = self.parsing_error_list + error_list
-        warning_list = self.parsing_warning_list + warning_list
         if error_list:
             # If there are errors, do not return the dictionary as it is invalid
             return {}, error_list, warning_list
@@ -170,40 +171,39 @@ class Section:
 
 
 class ReadMe(Section):  # Level 0
-    def __init__(self, name: str, lines: List[str], structure: dict = None):
+    def __init__(self, name: str, lines: List[str], structure: dict = None, suppress_parsing_errors: bool = False):
         super().__init__(name=name, level="")  # Not using lines here as we need to use a child class parse
         self.structure = structure
         self.yaml_tags_line_count = -2
         self.tag_count = 0
         self.lines = lines
         if self.lines is not None:
-            self.parse()
+            self.parse(suppress_parsing_errors=suppress_parsing_errors)
 
-        # Validation
+    def validate(self):
         if self.structure is None:
-            content, error_list, warning_list = self.validate(readme_structure)
+            content, error_list, warning_list = self._validate(readme_structure)
         else:
-            content, error_list, warning_list = self.validate(self.structure)
-
-        error_list = self.parsing_error_list + error_list
-        warning_list = self.parsing_warning_list + warning_list
+            content, error_list, warning_list = self._validate(self.structure)
         if error_list != [] or warning_list != []:
             errors = "\n".join(list(map(lambda x: "-\t" + x, error_list + warning_list)))
             error_string = f"The following issues were found for the README at `{self.name}`:\n" + errors
             raise ValueError(error_string)
 
     @classmethod
-    def from_readme(cls, path: Path, structure: dict = None):
+    def from_readme(cls, path: Path, structure: dict = None, suppress_parsing_errors: bool = False):
         with open(path) as f:
             lines = f.readlines()
-        return cls(path, lines, structure)
+        return cls(path, lines, structure, suppress_parsing_errors=suppress_parsing_errors)
 
     @classmethod
-    def from_string(cls, string: str, structure: dict = None, root_name: str = "root"):
+    def from_string(
+        cls, string: str, structure: dict = None, root_name: str = "root", suppress_parsing_errors: bool = False
+    ):
         lines = string.split("\n")
-        return cls(root_name, lines, structure)
+        return cls(root_name, lines, structure, suppress_parsing_errors=suppress_parsing_errors)
 
-    def parse(self):
+    def parse(self, suppress_parsing_errors: bool = False):
         # Skip Tags
         line_count = 0
 
@@ -218,13 +218,13 @@ class ReadMe(Section):  # Level 0
             self.lines = self.lines[line_count + 1 :]  # Get the last + 1 th item.
         else:
             self.lines = self.lines[self.tag_count :]
-        super().parse()
+        super().parse(suppress_parsing_errors=suppress_parsing_errors)
 
     def __str__(self):
         """Returns the string of dictionary representation of the ReadMe."""
         return str(self.to_dict())
 
-    def validate(self, readme_structure):
+    def _validate(self, readme_structure):
         error_list = []
         warning_list = []
         if self.yaml_tags_line_count == 0:
