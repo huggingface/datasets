@@ -713,9 +713,7 @@ class DatasetDict(dict):
             raise FileNotFoundError(
                 f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a DatasetDict object, but got a Dataset. Please use Dataset.load_from_disk instead."
             )
-        for k in json.load(
-            fs.open(Path(dest_dataset_dict_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8")
-        )["splits"]:
+        for k in json.load(fs.open(dataset_dict_json_path, "r", encoding="utf-8"))["splits"]:
             dataset_dict_split_path = (
                 dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
                 if is_remote_filesystem(fs)

@@ -669,17 +669,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 - if `dataset_path` is a path of a dataset dict directory: a :class:`DatasetDict` with each split.
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
-        if is_remote_filesystem(fs):
-            src_dataset_path = extract_path_from_uri(dataset_path)
-            tmp_dir = tempfile.TemporaryDirectory()
-            dataset_path = Path(tmp_dir.name, src_dataset_path)
-            fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
+        fs = fsspec.filesystem("file") if fs is None else fs
         dataset_dict_json_path = Path(dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()
         dataset_info_path = Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix()
         if not fs.isfile(dataset_info_path) and fs.isfile(dataset_dict_json_path):
             raise FileNotFoundError(
                 f"No such file or directory: '{dataset_info_path}'. Expected to load a Dataset object, but got a DatasetDict. Please use DatasetDict.load_from_disk instead."
             )
+
+        if is_remote_filesystem(fs):
+            src_dataset_path = extract_path_from_uri(dataset_path)
+            tmp_dir = tempfile.TemporaryDirectory()
+            dataset_path = Path(tmp_dir.name, src_dataset_path)
+            fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
         with open(
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
