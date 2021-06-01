@@ -2,16 +2,19 @@ from typing import Optional
 
 from ..utils.logging import get_logger
 from .base import TaskTemplate
-from .question_answering import QuestionAnswering
+from .question_answering import QuestionAnsweringExtractive
 from .text_classification import TextClassification
 
 
-__all__ = ["TaskTemplate", "QuestionAnswering", "TextClassification"]
+__all__ = ["TaskTemplate", "QuestionAnsweringExtractive", "TextClassification"]
 
 logger = get_logger(__name__)
 
 
-NAME2TEMPLATE = {QuestionAnswering.task: QuestionAnswering, TextClassification.task: TextClassification}
+NAME2TEMPLATE = {
+    QuestionAnsweringExtractive.task: QuestionAnsweringExtractive,
+    TextClassification.task: TextClassification,
+}
 
 
 def task_template_from_dict(task_template_dict: dict) -> Optional[TaskTemplate]:
