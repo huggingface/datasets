@@ -3,7 +3,8 @@ import logging
 from collections import Counter
 from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Type, Any, Callable, Dict, List, Optional, Tuple, Union
+import typing
 
 
 # loading package files: https://stackoverflow.com/a/20885799
@@ -125,24 +126,65 @@ def escape_validation_mask_for_predicate(
     return mask
 
 
+def validate_type(value: Any, expected_type: Type):
+    error_string = ''
+    if expected_type == str:
+        if not isinstance(value, str) or len(value)==0:
+            return f'Expected `{str}` with length > 0. Found value: `{value}` of type: `{type(value)}`, with length: {len(value)}.\n'
+        else:
+            return error_string
+    # Add more `elif` statements if primitive type checking is needed
+    else:
+        expected_type_origin = expected_type.__origin__
+        expected_type_args = expected_type.__args__
+
+        if expected_type_origin == Union:
+            for type_arg in expected_type_args:
+                temp_error_string = validate_type(value, type_arg)
+                if temp_error_string == '': # at least one type is successfully validated
+                    return temp_error_string
+                else:
+                    if error_string == '':
+                        error_string = '('+temp_error_string+')'
+                    else:
+                        error_string+= '\nOR\n' + '('+temp_error_string+')'
+            
+        else:
+            # Assuming `List`/`Dict`/`Tuple`
+            if not isinstance(value, expected_type_origin) or len(value)==0:
+                return f'Expected `{expected_type_origin}` with length > 0. Found value of type: `{type(value)}`, with length: {len(value)}.\n'
+
+            if expected_type_origin == Dict:
+                key_type, value_type = expected_type_args
+                key_error_string = ''
+                value_error_string = ''
+                for k, v in value.items():
+                    key_error_string+=validate_type(k, key_type)
+                    value_error_string+=validate_type(v, value_type)
+                if key_error_string!='' or value_error_string!='':
+                    return f'Type errors with keys:\n {key_error_string} and values:\n {value_error_string}'
+    
+            else: # `List`/`Tuple`
+                value_type = expected_type_args[0]
+                value_error_string = ''
+                for v in value:
+                    value_error_string+=validate_type(v, value_type)
+                if value_error_string!='':
+                    return f'Type errors with values:\n {value_error_string}'
+                
+        return error_string
+
+
 def validate_metadata_type(metadata_dict: dict):
     fields_types = {field.name: field.type for field in fields(DatasetMetadata)}
-    list_typing_errors = {
-        name: value
-        for name, value in metadata_dict.items()
-        if fields_types.get(name, List[str]) == List[str]
-        and (not isinstance(value, list) or len(value) == 0 or not isinstance(value[0], str))
-    }
-    if len(list_typing_errors) > 0:
-        raise TypeError(f"Found fields that are not non-empty list of strings: {list_typing_errors}")
 
-    other_typing_errors = {
-        name: value
-        for name, value in metadata_dict.items()
-        if fields_types.get(name, List[str]) != List[str] and isinstance(value, list)
-    }
-    if len(other_typing_errors) > 0:
-        raise TypeError(f"Found fields that are lists instead of single strings: {other_typing_errors}")
+    typing_errors = {}
+    for field_name, field_type in fields_types.items():
+        field_type_error = validate_type(metadata_dict[field_name], field_type)
+        if field_type_error!='':
+            typing_errors[field_name] = field_type_error
+    if len(typing_errors) > 0:
+        raise TypeError(f"Found fields that are lists instead of single strings: {typing_errors}")
 
 
 @dataclass
