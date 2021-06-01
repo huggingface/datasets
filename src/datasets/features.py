@@ -965,6 +965,25 @@ class Features(dict):
         return copy.deepcopy(self)
 
     def reorder_fields_as(self, other: "Features") -> "Features":
+        """
+        The order of the fields is important since it matters for the underlying arrow data.
+        This method is used to re-order your features to match the fields orders of other features.
+
+        Re-ordering the fields allows to make the underlying arrow data type match.
+
+        Example::
+
+            >>> from datasets import Features, Sequence, Value
+            >>> # let's say we have to features with a different order of nested fields (for a and b for example)
+            >>> f1 = Features({"root": Sequence({"a": Value("string"), "b": Value("string")})})
+            >>> f2 = Features({"root": {"b": Sequence(Value("string")), "a": Sequence(Value("string"))}})
+            >>> assert f1.type != f2.type
+            >>> # re-ordering keeps the base structure (here Sequence is defined at the root level), but make the fields order match
+            >>> f1.reorder_fields_as(f2)
+            {'root': Sequence(feature={'b': Value(dtype='string', id=None), 'a': Value(dtype='string', id=None)}, length=-1, id=None)}
+            >>> assert f1.reorder_fields_as(f2).type == f2.type
+
+        """
         def recursive_reorder(source, target, stack=""):
             stack_position = " at " + stack[1:] if stack else ""
             if isinstance(target, Sequence):
