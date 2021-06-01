@@ -294,9 +294,12 @@ class DatasetMetadata:
 
     @staticmethod
     def validate_licences(licenses: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
-        escape_validation_predicate_fn = lambda e: "-other-" in e or e.startswith("other-")
         validated, error = tagset_validator(
-            licenses, list(known_licenses.keys()), "licenses", known_licenses_url, escape_validation_predicate_fn
+            licenses,
+            list(known_licenses.keys()),
+            "licenses",
+            known_licenses_url,
+            lambda e: "-other-" in e or e.startswith("other-"),
         )
         return validated, error
 
@@ -305,9 +308,8 @@ class DatasetMetadata:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = list(known_task_ids.keys())
-        escape_validation_predicate_fn = lambda e: e.startswith("other-")
         validated, error = tagset_validator(
-            task_categories, known_set, "task_categories", known_task_ids_url, escape_validation_predicate_fn
+            task_categories, known_set, "task_categories", known_task_ids_url, lambda e: e.startswith("other-")
         )
         return validated, error
 
@@ -316,21 +318,19 @@ class DatasetMetadata:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = [tid for _cat, d in known_task_ids.items() for tid in d["options"]]
-        escape_validation_predicate_fn = lambda e: "-other-" in e or e.startswith("other-")
         validated, error = tagset_validator(
-            task_ids, known_set, "task_ids", known_task_ids_url, escape_validation_predicate_fn
+            task_ids, known_set, "task_ids", known_task_ids_url, lambda e: "-other-" in e or e.startswith("other-")
         )
         return validated, error
 
     @staticmethod
     def validate_mulitlinguality(multilinguality: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
-        escape_validation_predicate_fn = lambda e: e.startswith("other-")
         validated, error = tagset_validator(
             multilinguality,
             list(known_multilingualities.keys()),
             "multilinguality",
             known_size_categories_url,
-            escape_validation_predicate_fn,
+            lambda e: e.startswith("other-"),
         )
         return validated, error
 
