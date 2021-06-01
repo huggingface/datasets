@@ -77,30 +77,52 @@ def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
 ValidatorOutput = Tuple[List[str], Optional[str]]
 
 
-def tagset_validator(items: Union[List[str],Dict[str,List[str]]], reference_values: List[str], name: str, url: str) -> ValidatorOutput:
+def tagset_validator(items: Union[List[str],Dict[str,List[str]]], reference_values: List[str], name: str, url: str, escape_validation_mask:Union[List[str],Dict[str,List[str]]] =None) -> ValidatorOutput:
     if isinstance(items, list):
-        invalid_values = [v for v in items if v not in reference_values]
+        if escape_validation_mask is not None:
+            invalid_values = [v for idx,v in enumerate(items) if v not in reference_values and escape_validation_mask[idx] is False]
+        else:
+            invalid_values = [v for v in items if v not in reference_values]
+
     else:
         invalid_values = []
-        for config_name, values in items.items():
-            invalid_values += [v for v in values if v not in reference_values]
+        if escape_validation_mask is not None:
+            for config_name, values in items.items():
+                invalid_values += [v for idx, v in enumerate(values) if v not in reference_values and escape_validation_mask[config_name][idx] is False]
+        else:
+            for config_name, values in items.items():
+                invalid_values += [v for v in values if v not in reference_values]
+
     if len(invalid_values) > 0:
         return [], f"{invalid_values} are not registered tags for '{name}', reference at {url}"
     return items, None
 
 
-def escape_validation_for_predicate(
-    values: List[Any], predicate_fn: Callable[[Any], bool]
-) -> Tuple[List[Any], List[Any]]:
-    trues, falses = list(), list()
-    for v in values:
-        if predicate_fn(v):
-            trues.append(v)
-        else:
-            falses.append(v)
-    if len(trues) > 0:
-        logger.warning(f"The following values will escape validation: {trues}")
-    return trues, falses
+def escape_validation_mask_for_predicate(
+    items: Union[List[Any],Dict[str, List[Any]]], predicate_fn: Callable[[Any], bool]
+) -> Union[List[Any],Dict[str, List[Any]]]:
+    values_to_ignore = []
+    if isinstance(items, list):
+        mask = []
+        for v in items:
+            if predicate_fn(v):
+                mask.append(True)
+                values_to_ignore.append(v)
+            else:
+                mask.append(False)
+    if isinstance(items, dict):
+        mask = {}
+        for k,values in items.items():
+            mask[k] = []
+            for v in values: 
+                if predicate_fn(v):
+                    mask[k].append(True)
+                    values_to_ignore.append(v)
+                else:
+                    mask[k].append(False)
+    if len(values_to_ignore) > 0:
+        logger.warning(f"The following values will escape validation: {values_to_ignore}")
+    return mask
 
 
 def validate_metadata_type(metadata_dict: dict):
