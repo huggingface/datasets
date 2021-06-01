@@ -164,11 +164,11 @@ If you want to cite this framework you can use this:
                   Cahya Wirawan and
                   Jonatas Grosman and
                   Simon Brandeis and
-                  Teven and
+                  Teven Le Scao and
                   Thomas Hudson and
-                  Victor SANH and
+                  Victor Sanh and
                   Kevin Canwen Xu and
-                  lewtun and
+                  Lewis Tunstall and
                   Nicolas Patry and
                   Zaid Alyafeai and
                   Rahul Chauhan and
