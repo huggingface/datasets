@@ -576,11 +576,11 @@ def load_metric(
     Args:
 
         path (``str``):
-            path to the dataset processing script with the dataset builder. Can be either:
+            path to the metric processing script with the metric builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
-                    e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-                - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
-                    e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+                    e.g. ``'./metrics/rouge'`` or ``'./metrics/rogue/rouge.py'``
+                - a metric identifier on the HuggingFace datasets repo (list all available metrics with ``datasets.list_metrics()``)
+                    e.g. ``'rouge'`` or ``'bleu'``
         config_name (Optional ``str``): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
         process_id (Optional ``int``): for distributed evaluation: id of the process
         num_process (Optional ``int``): for distributed evaluation: total number of processes
