@@ -146,13 +146,6 @@ If you're a dataset owner and wish to update any part of it (description, citati
 If you want to cite this framework you can use this:
 
 ```bibtex
-@article{2020HuggingFace-datasets,
-  title={Datasets},
-  author={Thomas Wolf and Quentin Lhoest and Patrick von Platen and Yacine Jernite and Mariama Drame and Julien Plu and Julien Chaumond and Clement Delangue and Clara Ma and Abhishek Thakur and Suraj Patil and Joe Davison and Teven Le Scao and Victor Sanh and Canwen Xu and Nicolas Patry and Angie McMillan-Major and Simon Brandeis and Sylvain Gugger and François Lagunas and Lysandre Debut and Morgan Funtowicz and Anthony Moi and Sasha Rush and Philipp Schmidd and Pierric Cistac and Victor Muštar and Jeff Boudier and Anna Tordjmann},
-  journal={GitHub. Note: https://github.com/huggingface/datasets},
-  volume={1},
-  year={2020}
-}
 @software{quentin_lhoest_2021_4817769,
   author       = {Quentin Lhoest and
                   Patrick von Platen and
