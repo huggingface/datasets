@@ -674,6 +674,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             tmp_dir = tempfile.TemporaryDirectory()
             dataset_path = Path(tmp_dir.name, src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
+        dataset_dict_json_path = Path(dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()
+        dataset_info_path = Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix()
+        if not fs.isfile(dataset_info_path) and fs.isfile(dataset_dict_json_path):
+            raise FileNotFoundError(
+                f"No such file or directory: '{dataset_info_path}'. Looks like you tried to load a DatasetDict object, not a Dataset. Please use DatasetDict.load_from_disk instead."
+            )
 
         with open(
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
