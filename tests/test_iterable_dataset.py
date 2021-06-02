@@ -1,8 +1,9 @@
-from itertools import islice
+from itertools import chain, islice
 
 import numpy as np
 import pytest
 
+from datasets.info import DatasetInfo
 from datasets.iterable_dataset import (
     BufferShuffledExamplesIterable,
     CyclingMultiSourcesExamplesIterable,
@@ -10,20 +11,37 @@ from datasets.iterable_dataset import (
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
+    ShuffingConfig,
+    _batch_to_examples,
+    _examples_to_batch,
     iterable_dataset,
 )
+
+from .utils import require_torch
+
+
+DEFAULT_N_EXAMPLES = 20
+DEFAULT_FILEPATH = "file.txt"
 
 
 @pytest.fixture
 def generate_examples_fn():
     def generate_examples_fn(**kwargs):
-        n = kwargs.pop("n", 3)
-        filepaths = kwargs.pop("filepaths", ["0.txt"])
-        for filepath in filepaths:
+        n = kwargs.pop("n", DEFAULT_N_EXAMPLES)
+        filepaths = kwargs.pop("filepaths", None)
+        for filepath in filepaths or [DEFAULT_FILEPATH]:
+            if filepaths is not None:
+                kwargs["filepath"] = filepath
             for i in range(n):
-                yield f"{filepath}_{i}", {"id": i, "filepath": filepath, **kwargs}
+                yield f"{filepath}_{i}", {"id": i, **kwargs}
 
     return generate_examples_fn
+
+
+@pytest.fixture
+def dataset(generate_examples_fn):
+    ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    return IterableDataset(ex_iterable, info=DatasetInfo(description="dummy"), split="train")
 
 
 def test_examples_iterable(generate_examples_fn):
@@ -48,8 +66,9 @@ def test_examples_iterable_shuffle(generate_examples_fn):
     assert list(ex_iterable) == expected
 
 
-def test_buffer_shuffled_examples_iterable(generate_examples_fn):
-    n, buffer_size, seed = 100, 30, 42
+@pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
+def test_buffer_shuffled_examples_iterable(generate_examples_fn, seed):
+    n, buffer_size = 100, 30
     rng = np.random.default_rng(seed)
     expected_indices_used_for_shuffling = list(
         islice(BufferShuffledExamplesIterable._iter_random_indices(rng, buffer_size=buffer_size), n - buffer_size)
@@ -78,3 +97,163 @@ def test_buffer_shuffled_examples_iterable(generate_examples_fn):
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
     assert sorted(list(ex_iterable)) == sorted(all_examples)
+
+
+def test_cycling_multi_sources_examples_iterable(generate_examples_fn):
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"text": "foo"})
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"text": "bar"})
+    ex_iterable = CyclingMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
+    expected = list(chain(*zip(generate_examples_fn(text="foo"), generate_examples_fn(text="bar"))))
+
+    assert next(iter(ex_iterable)) == expected[0]
+    assert list(ex_iterable) == expected
+    assert all((x["id"], x["text"]) == (i // 2, "bar" if i % 2 else "foo") for i, (_, x) in enumerate(ex_iterable))
+
+
+@pytest.mark.parametrize("probabilities", [None, (0.5, 0.5), (0.9, 0.1)])
+def test_randomly_cycling_multi_sources_examples_iterable(generate_examples_fn, probabilities):
+    seed = 42
+    ex_iterable1 = ExamplesIterable(generate_examples_fn, {"text": "foo"})
+    ex_iterable2 = ExamplesIterable(generate_examples_fn, {"text": "bar"})
+    ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
+        [ex_iterable1, ex_iterable2], seed=seed, probabilities=probabilities
+    )
+
+    # The source used randomly changes at each example. It stops when one of the iterators is empty.
+    rng = np.random.default_rng(seed)
+    iterators = (generate_examples_fn(text="foo"), generate_examples_fn(text="bar"))
+    indices_iterator = RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(
+        rng, len(iterators), p=probabilities
+    )
+    expected = []
+    for i in indices_iterator:
+        for key, example in iterators[i]:
+            expected.append((key, example))
+            break
+        else:
+            break
+
+    assert next(iter(ex_iterable)) == expected[0]
+    assert list(ex_iterable) == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batch_size",
+    [
+        (3, lambda x: {"id+1": x["id"] + 1}, None),  # just add 1 to the id
+        (3, lambda x: {"id+1": [x["id"][0] + 1]}, 1),  # same with bs=1
+        (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, 10),  # same with bs=10
+        (25, lambda x: {"id+1": [i + 1 for i in x["id"]]}, 10),  # same with bs=10
+        (3, lambda x: {k: v * 2 for k, v in x.items()}, 1),  # make a duplicate of each example
+        (
+            50,
+            lambda x: {"foo": ["bar"] * np.random.default_rng(x["id"][0]).integers(0, 10)},
+            8,
+        ),  # make a duplicate of each example
+    ],
+)
+def test_mapped_examples_iterable(generate_examples_fn, n, func, batch_size):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = MappedExamplesIterable(base_ex_iterable, func, batch_size)
+    all_examples = list(generate_examples_fn(n=n))
+    if batch_size is None:
+        expected = [(key, func(x)) for key, x in all_examples]
+    else:
+        # For batched map we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
+        expected_examples_per_batch = [
+            list(_batch_to_examples(func(_examples_to_batch([x for _, x in all_examples[i : i + batch_size]]))))
+            for i in range(0, len(all_examples), batch_size)
+        ]
+        # The new key is the concatenation of the keys of each example in the batch
+        expected_keys_per_batch = [
+            ["_".join(key for key, _ in all_examples[i : i + batch_size])] * len(examples)
+            for i, examples in zip(range(0, len(all_examples), batch_size), expected_examples_per_batch)
+        ]
+        # Combine keys and examples
+        expected = [
+            (key, example)
+            for expected_keys, expected_examples in zip(expected_keys_per_batch, expected_examples_per_batch)
+            for key, example in zip(expected_keys, expected_examples)
+        ]
+    assert next(iter(ex_iterable)) == expected[0]
+    assert list(ex_iterable) == expected
+
+
+def test_iterable_dataset(generate_examples_fn):
+    dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {}))
+    expected = [x for _, x in generate_examples_fn()]
+    assert next(iter(dataset)) == expected[0]
+    assert list(dataset) == expected
+
+
+def test_iterable_dataset_factory(generate_examples_fn):
+    ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    dataset = iterable_dataset(ex_iterable)
+    assert isinstance(dataset, IterableDataset)
+    assert dataset._ex_iterable is ex_iterable
+
+
+@require_torch
+def test_iterable_dataset_factory_torch_integration(generate_examples_fn):
+    import torch
+
+    ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    dataset = iterable_dataset(ex_iterable, format_type="torch")
+    assert isinstance(dataset, IterableDataset)
+    assert isinstance(dataset, torch.utils.data.IterableDataset)
+    assert dataset._format_type == "torch"
+    assert dataset._ex_iterable is ex_iterable
+
+
+def test_iterable_dataset_info(generate_examples_fn):
+    info = DatasetInfo(description="desc", citation="@article{}", size_in_bytes=42)
+    ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    dataset = IterableDataset(ex_iterable, info=info)
+    assert dataset.info == info
+    assert dataset.description == info.description
+    assert dataset.citation == info.citation
+    assert dataset.size_in_bytes == info.size_in_bytes
+
+
+def test_iterable_dataset_set_epoch(dataset: IterableDataset):
+    assert dataset._epoch == 0
+    dataset.set_epoch(42)
+    assert dataset._epoch == 42
+
+
+def test_iterable_dataset_map(dataset: IterableDataset, generate_examples_fn):
+    func = lambda x: {"id+1": x["id"] + 1}  # noqa: E731
+    dataset = dataset.map(func)
+    assert isinstance(dataset._ex_iterable, MappedExamplesIterable)
+    assert dataset._ex_iterable.function is func
+    assert dataset._ex_iterable.batch_size is None
+    assert next(iter(dataset)) == func(next(iter(generate_examples_fn()))[1])
+
+
+def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_examples_fn):
+    func = lambda x: {"id+1": [i + 1 for i in x["id"]]}  # noqa: E731
+    _func_unbatched = lambda x: {"id+1": x["id"] + 1}  # noqa: E731
+    batch_size = 3
+    dataset = dataset.map(func, batch_size=batch_size)
+    assert isinstance(dataset._ex_iterable, MappedExamplesIterable)
+    assert dataset._ex_iterable.function is func
+    assert dataset._ex_iterable.batch_size == batch_size
+    assert next(iter(dataset)) == _func_unbatched(next(iter(generate_examples_fn()))[1])
+
+
+@pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
+def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn, seed):
+    buffer_size = 3
+    dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
+    dataset = dataset.shuffle(buffer_size, seed=seed)
+    assert isinstance(dataset._shuffling, ShuffingConfig)
+    assert dataset._shuffling.seed == seed
+    # Shuffling adds a shuffle buffer
+    expected_first_example_index = next(
+        iter(BufferShuffledExamplesIterable._iter_random_indices(np.random.default_rng(seed), buffer_size))
+    )
+    assert isinstance(dataset._ex_iterable, BufferShuffledExamplesIterable)
+    # It also shuffles the underlying examples iterable
+    expected_ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]}).shuffle(seed)
+    assert isinstance(dataset._ex_iterable.ex_iterable, ExamplesIterable)
+    assert next(iter(dataset)) == list(islice(expected_ex_iterable, expected_first_example_index + 1))[-1][1]

@@ -1,6 +1,6 @@
 import copy
 from dataclasses import dataclass
-from itertools import cycle, repeat
+from itertools import cycle, islice, repeat
 from typing import Any, Callable, Dict, Iterable, List, Optional
 
 import numpy as np
@@ -147,12 +147,13 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 yield key, self.function(example)
             else:
                 key_examples = [(key, example)] + [
-                    (key, example) for (key, example), _ in zip(iterator, range(self.batch_size - 1))
+                    (key, example) for key, example in islice(iterator, self.batch_size - 1)
                 ]
                 keys, examples = zip(*key_examples)
                 batch = _examples_to_batch(examples)
                 transformed_batch = self.function(batch)
-                yield from zip(repeat(keys), _batch_to_examples(transformed_batch))
+                new_key = "_".join(str(key) for key in keys)
+                yield from zip(repeat(new_key), _batch_to_examples(transformed_batch))
 
     def shuffle(self, seed: Optional[int]) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -228,7 +229,7 @@ class IterableDataset(DatasetInfoMixin):
         self._epoch = 0
 
     def _head(self, n=5):
-        return _examples_to_batch([x for (key, x), _ in zip(self._iter(), range(n))])
+        return _examples_to_batch([x for key, x in islice(self._iter(), n)])
 
     def _iter(
         self,
