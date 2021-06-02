@@ -152,31 +152,15 @@ If you want to cite this framework you can use this:
                   Thomas Wolf and
                   Albert Villanova del Moral and
                   Yacine Jernite and
-                  Mario Šaško and
                   Suraj Patil and
-                  mariamabarham and
                   Julien Chaumond and
                   Julien Plu and
-                  Bhavitvya Malik and
-                  Gunjan Chhablani and
-                  Charin and
                   Joe Davison and
-                  Cahya Wirawan and
-                  Jonatas Grosman and
                   Simon Brandeis and
                   Teven Le Scao and
-                  Thomas Hudson and
                   Victor Sanh and
-                  Kevin Canwen Xu and
                   Lewis Tunstall and
-                  Nicolas Patry and
-                  Zaid Alyafeai and
-                  Rahul Chauhan and
-                  Vineeth S and
-                  mcmillanmajora and
-                  sandip and
-                  yvonnegitau and
-                  Jared T Nielsen},
+                  Nicolas Patry},
   title        = {huggingface/datasets: 1.7.0},
   month        = may,
   year         = 2021,
