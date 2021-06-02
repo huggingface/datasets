@@ -1,4 +1,6 @@
 ---
+languages:
+- en
 paperswithcode_id: wnut-2017-emerging-and-rare-entity
 ---
 

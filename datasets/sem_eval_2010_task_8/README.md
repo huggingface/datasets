@@ -1,4 +1,6 @@
 ---
+languages:
+- en
 paperswithcode_id: semeval-2010-task-8
 ---
 
