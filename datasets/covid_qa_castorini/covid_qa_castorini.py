@@ -96,9 +96,9 @@ class CovidQaCastorini(datasets.GeneratorBasedBuilder):
         logger.info("generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             covid_qa = json.load(f)
-            for article in covid_qa["categories"]:
+            for article_idx, article in enumerate(covid_qa["categories"]):
                 category_name = article["name"]
-                for idx, paragraph in enumerate(article["sub_categories"]):
+                for paragraph_idx, paragraph in enumerate(article["sub_categories"]):
                     question_query = paragraph["nq_name"]
                     keyword_query = paragraph["kq_name"]
 
@@ -106,7 +106,7 @@ class CovidQaCastorini(datasets.GeneratorBasedBuilder):
                     titles = [answer["title"] for answer in paragraph["answers"]]
                     exact_answers = [answer["exact_answer"] for answer in paragraph["answers"]]
 
-                    yield idx, {
+                    yield f"{article_idx}_{paragraph_idx}", {
                         "category_name": category_name,
                         "question_query": question_query,
                         "keyword_query": keyword_query,

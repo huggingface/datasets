@@ -1,3 +1,4 @@
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,7 +14,8 @@ from datasets.utils.metadata import (
 
 
 def _dedent(string: str) -> str:
-    return "\n".join([line.lstrip() for line in string.splitlines()])
+    indent_level = min(re.search("^ +", t).end() if t.startswith(" ") else 0 for t in string.splitlines())
+    return "\n".join([line[indent_level:] for line in string.splitlines() if indent_level < len(line)])
 
 
 README_YAML = """\
@@ -124,7 +126,7 @@ class TestMetadataUtils(unittest.TestCase):
                     - en
                     task_ids:
                     - sentiment-classification
-"""
+                    """
                 ),
             )
 
@@ -187,6 +189,33 @@ class TestMetadataUtils(unittest.TestCase):
         )
         DatasetMetadata.from_yaml_string(valid_yaml_string)
 
+        valid_yaml_string_with_configs = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+              en:
+              - en
+              fr:
+              - fr
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            """
+        )
+        DatasetMetadata.from_yaml_string(valid_yaml_string_with_configs)
+
         invalid_tag_yaml = _dedent(
             """\
             annotations_creators:
@@ -234,3 +263,133 @@ class TestMetadataUtils(unittest.TestCase):
         )
         with self.assertRaises(TypeError):
             DatasetMetadata.from_yaml_string(missing_tag_yaml)
+
+        duplicate_yaml_keys = _dedent(
+            """\
+            annotations_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            task_ids:
+            - open-domain-qa
+            """
+        )
+        with self.assertRaises(TypeError):
+            DatasetMetadata.from_yaml_string(duplicate_yaml_keys)
+
+        valid_yaml_string_with_duplicate_configs = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+              en:
+              - en
+              en:
+              - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            """
+        )
+        with self.assertRaises(TypeError):
+            DatasetMetadata.from_yaml_string(valid_yaml_string_with_duplicate_configs)
+
+        valid_yaml_string_with_paperswithcode_id = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id: squad
+            """
+        )
+        DatasetMetadata.from_yaml_string(valid_yaml_string_with_paperswithcode_id)
+
+        valid_yaml_string_with_null_paperswithcode_id = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id: null
+            """
+        )
+        DatasetMetadata.from_yaml_string(valid_yaml_string_with_null_paperswithcode_id)
+
+        valid_yaml_string_with_list_paperswithcode_id = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id:
+            - squad
+            """
+        )
+        with self.assertRaises(TypeError):
+            DatasetMetadata.from_yaml_string(valid_yaml_string_with_list_paperswithcode_id)

@@ -15,7 +15,7 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
 
 .. autoclass:: datasets.Dataset
     :members:
-        add_item,
+        add_column, add_item,
         from_file, from_buffer, from_pandas, from_dict,
         data, cache_files, num_columns, num_rows, column_names, shape,
         unique,
@@ -33,6 +33,8 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         description, download_checksums, download_size, features, homepage,
         license, size_in_bytes, supervised_keys, version,
         from_csv, from_json, from_text,
+        prepare_for_task,
+        to_json,
 
 .. autofunction:: datasets.concatenate_datasets
 
@@ -54,7 +56,7 @@ It also has dataset transform methods like map or filter, to process all the spl
         flatten_, cast_, remove_columns_, rename_column_,
         flatten, cast, remove_columns, rename_column, class_encode_column,
         save_to_disk, load_from_disk,
-        from_csv, from_json, from_text,
+        from_csv, from_json, from_text, prepare_for_task
 
 
 ``Features``

@@ -9,10 +9,13 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import fsspec
 import numpy as np
 
+from datasets.utils.doc_utils import is_documented_by
+
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .table import Table
+from .tasks import TaskTemplate
 from .utils.deprecation_utils import deprecated
 from .utils.typing import PathLike
 
@@ -407,6 +410,7 @@ class DatasetDict(dict):
         disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
+        desc: Optional[str] = None,
     ) -> "DatasetDict":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does updated examples).
@@ -442,6 +446,7 @@ class DatasetDict(dict):
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         self._check_values_type()
         if cache_file_names is None:
@@ -463,6 +468,7 @@ class DatasetDict(dict):
                     disable_nullable=disable_nullable,
                     fn_kwargs=fn_kwargs,
                     num_proc=num_proc,
+                    desc=desc,
                 )
                 for k, dataset in self.items()
             }
@@ -686,9 +692,10 @@ class DatasetDict(dict):
                 Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
                 dataset will be copied in-memory if its size is smaller than
-                `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
-                disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case
-                the dataset is not loaded in memory.
+                `datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
+                disabled (i.e., the dataset will not be loaded in memory) by setting to ``0`` either the configuration
+                option ``datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (higher precedence) or the environment
+                variable ``HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (lower precedence).
 
         Returns:
             :class:`DatasetDict`
@@ -790,6 +797,12 @@ class DatasetDict(dict):
         return TextDatasetReader(
             path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         ).read()
+
+
+    @is_documented_by(Dataset.prepare_for_task)
+    def prepare_for_task(self, task: Union[str, TaskTemplate]):
+        self._check_values_type()
+        return DatasetDict({k: dataset.prepare_for_task(task=task) for k, dataset in self.items()})
 
 
 class IterableDatasetDict(dict):

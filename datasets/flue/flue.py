@@ -387,7 +387,7 @@ class Flue(datasets.GeneratorBasedBuilder):
                         if len(line) > 9:
                             id += 1
                             review_text, label = self._cls_extractor(line)
-                            yield id_, {"idx": id, "text": review_text, "label": label}
+                            yield f"{category}_{id_}", {"idx": id, "text": review_text, "label": label}
         elif self.config.name == "PAWS-X":
             with open(data_file, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")

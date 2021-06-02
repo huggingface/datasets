@@ -1,6 +1,7 @@
 import json
 import logging
-from dataclasses import dataclass
+from collections import Counter
+from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -38,9 +39,24 @@ known_size_categories, known_size_categories_url = load_json_resource("size_cate
 known_multilingualities, known_multilingualities_url = load_json_resource("multilingualities.json")
 
 
+class NoDuplicateSafeLoader(yaml.SafeLoader):
+    def _check_no_duplicates_on_constructed_node(self, node):
+        keys = [self.constructed_objects[key_node] for key_node, _ in node.value]
+        keys = [tuple(key) if isinstance(key, list) else key for key in keys]
+        counter = Counter(keys)
+        duplicate_keys = [key for key in counter if counter[key] > 1]
+        if duplicate_keys:
+            raise TypeError(f"Got duplicate yaml keys: {duplicate_keys}")
+
+    def construct_mapping(self, node, deep=False):
+        mapping = super().construct_mapping(node, deep=deep)
+        self._check_no_duplicates_on_constructed_node(node)
+        return mapping
+
+
 def yaml_block_from_readme(path: Path) -> Optional[str]:
     with path.open() as readme_file:
-        content = [line.strip() for line in readme_file]
+        content = [line.rstrip("\n") for line in readme_file]
 
     if content[0] == "---" and "---" in content[1:]:
         yamlblock = "\n".join(content[1 : content[1:].index("---") + 1])
@@ -54,7 +70,7 @@ def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
     yaml_block = yaml_block_from_readme(path=path)
     if yaml_block is None:
         return None
-    metada_dict = yaml.safe_load(yaml_block) or dict()
+    metada_dict = yaml.load(yaml_block, Loader=NoDuplicateSafeLoader) or dict()
     return metada_dict
 
 
@@ -83,13 +99,23 @@ def escape_validation_for_predicate(
 
 
 def validate_metadata_type(metadata_dict: dict):
-    basic_typing_errors = {
+    fields_types = {field.name: field.type for field in fields(DatasetMetadata)}
+    list_typing_errors = {
         name: value
         for name, value in metadata_dict.items()
-        if not isinstance(value, list) or len(value) == 0 or not isinstance(value[0], str)
+        if fields_types.get(name, List[str]) == List[str]
+        and (not isinstance(value, list) or len(value) == 0 or not isinstance(value[0], str))
     }
-    if len(basic_typing_errors) > 0:
-        raise TypeError(f"Found fields that are not non-empty list of strings: {basic_typing_errors}")
+    if len(list_typing_errors) > 0:
+        raise TypeError(f"Found fields that are not non-empty list of strings: {list_typing_errors}")
+
+    other_typing_errors = {
+        name: value
+        for name, value in metadata_dict.items()
+        if fields_types.get(name, List[str]) != List[str] and isinstance(value, list)
+    }
+    if len(other_typing_errors) > 0:
+        raise TypeError(f"Found fields that are lists instead of single strings: {other_typing_errors}")
 
 
 @dataclass
@@ -103,6 +129,7 @@ class DatasetMetadata:
     source_datasets: List[str]
     task_categories: List[str]
     task_ids: List[str]
+    paperswithcode_id: Optional[str] = None
 
     def __post_init__(self):
         validate_metadata_type(metadata_dict=vars(self))
@@ -118,6 +145,9 @@ class DatasetMetadata:
         self.source_datasets, source_datasets_errors = self.validate_source_datasets(self.source_datasets)
         self.task_categories, task_categories_errors = self.validate_task_categories(self.task_categories)
         self.task_ids, task_ids_errors = self.validate_task_ids(self.task_ids)
+        self.paperswithcode_id, paperswithcode_id_errors = self.validate_paperswithcode_id_errors(
+            self.paperswithcode_id
+        )
 
         errors = {
             "annotations_creators": annotations_creators_errors,
@@ -129,6 +159,7 @@ class DatasetMetadata:
             "task_categories": task_categories_errors,
             "task_ids": task_ids_errors,
             "languages": languages_errors,
+            "paperswithcode_id": paperswithcode_id_errors,
         }
 
         exception_msg_dict = dict()
@@ -174,7 +205,11 @@ class DatasetMetadata:
         Raises:
             :obj:`TypeError`: If the dataset's metadata is invalid
         """
-        metada_dict = yaml.safe_load(string) or dict()
+        metada_dict = yaml.load(string, Loader=NoDuplicateSafeLoader) or dict()
+        # flatten the metadata of each config
+        for key in metada_dict:
+            if isinstance(metada_dict[key], dict):
+                metada_dict[key] = list(set(sum(metada_dict[key].values(), [])))
         return cls(**metada_dict)
 
     @staticmethod
@@ -198,7 +233,9 @@ class DatasetMetadata:
 
     @staticmethod
     def validate_licences(licenses: List[str]) -> ValidatorOutput:
-        others, to_validate = escape_validation_for_predicate(licenses, lambda e: "-other-" in e)
+        others, to_validate = escape_validation_for_predicate(
+            licenses, lambda e: "-other-" in e or e.startswith("other-")
+        )
         validated, error = tagset_validator(to_validate, list(known_licenses.keys()), "licenses", known_licenses_url)
         return [*validated, *others], error
 
@@ -207,7 +244,7 @@ class DatasetMetadata:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = list(known_task_ids.keys())
-        others, to_validate = escape_validation_for_predicate(task_categories, lambda e: e.startswith("other"))
+        others, to_validate = escape_validation_for_predicate(task_categories, lambda e: e.startswith("other-"))
         validated, error = tagset_validator(to_validate, known_set, "task_categories", known_task_ids_url)
         return [*validated, *others], error
 
@@ -216,13 +253,15 @@ class DatasetMetadata:
         # TODO: we're currently ignoring all values starting with 'other' as our task taxonomy is bound to change
         #   in the near future and we don't want to waste energy in tagging against a moving taxonomy.
         known_set = [tid for _cat, d in known_task_ids.items() for tid in d["options"]]
-        others, to_validate = escape_validation_for_predicate(task_ids, lambda e: "-other-" in e)
+        others, to_validate = escape_validation_for_predicate(
+            task_ids, lambda e: "-other-" in e or e.startswith("other-")
+        )
         validated, error = tagset_validator(to_validate, known_set, "task_ids", known_task_ids_url)
         return [*validated, *others], error
 
     @staticmethod
     def validate_mulitlinguality(multilinguality: List[str]) -> ValidatorOutput:
-        others, to_validate = escape_validation_for_predicate(multilinguality, lambda e: e.startswith("other"))
+        others, to_validate = escape_validation_for_predicate(multilinguality, lambda e: e.startswith("other-"))
         validated, error = tagset_validator(
             to_validate, list(known_multilingualities.keys()), "multilinguality", known_size_categories_url
         )
@@ -246,6 +285,19 @@ class DatasetMetadata:
             )
 
         return sources, None
+
+    @staticmethod
+    def validate_paperswithcode_id_errors(paperswithcode_id: Optional[str]) -> ValidatorOutput:
+        if paperswithcode_id is None:
+            return paperswithcode_id, None
+        else:
+            if " " in paperswithcode_id or paperswithcode_id.lower() != paperswithcode_id:
+                return (
+                    None,
+                    f"The paperswithcode_id must be lower case and not contain spaces but got {paperswithcode_id}. You can find the paperswithcode_id in the URL of the dataset page on paperswithcode.com.",
+                )
+            else:
+                return paperswithcode_id, None
 
 
 if __name__ == "__main__":

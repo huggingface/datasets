@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
+paperswithcode_id: ag-news
 ---
 
 # Dataset Card for "ag_news"
@@ -24,12 +25,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -72,7 +73,7 @@ classification benchmark in the following paper: Xiang Zhang, Junbo Zhao, Yann
 LeCun. Character-level Convolutional Networks for Text Classification. Advances
 in Neural Information Processing Systems 28 (NIPS 2015).
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
@@ -108,7 +109,7 @@ The data fields are the same among all splits.
 - `text`: a `string` feature.
 - `label`: a classification label, with possible values including `World` (0), `Sports` (1), `Business` (2), `Sci/Tech` (3).
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train |test|
 |-------|-----:|---:|
@@ -122,9 +123,21 @@ The data fields are the same among all splits.
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the annotators?
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 

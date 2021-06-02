@@ -95,7 +95,7 @@ class IndexedTableMixin:
     def __init__(self, table: pa.Table):
         self._schema = table.schema
         self._batches = table.to_batches()
-        self._offsets = np.cumsum([0] + [len(b) for b in self._batches])
+        self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
 
     def fast_gather(self, indices: Union[List[int], np.ndarray]) -> pa.Table:
         """
@@ -158,6 +158,8 @@ class Table(IndexedTableMixin):
         # moreover calling deepcopy on a pyarrow table seems to make pa.total_allocated_bytes() decrease for some reason
         # by adding it to the memo, self.table won't be copied
         memo[id(self.table)] = self.table
+        # same for the recordbatches used by the index
+        memo[id(self._batches)] = list(self._batches)
         return _deepcopy(self, memo)
 
     def __getstate__(self):

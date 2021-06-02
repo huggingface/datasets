@@ -18,7 +18,7 @@ import json
 import os
 import socket
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pyarrow as pa
 from tqdm.auto import tqdm
@@ -26,6 +26,7 @@ from tqdm.auto import tqdm
 from . import config
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
+from .keyhash import DuplicatedKeysError, KeyHasher
 from .utils.file_utils import hash_url_to_filename
 from .utils.logging import WARNING, get_logger
 
@@ -156,6 +157,8 @@ class ArrowWriter:
         stream: Optional[pa.NativeFile] = None,
         fingerprint: Optional[str] = None,
         writer_batch_size: Optional[int] = None,
+        hash_salt: Optional[str] = None,
+        check_duplicates: Optional[bool] = False,
         disable_nullable: bool = False,
         update_features: bool = False,
         with_metadata: bool = True,
@@ -172,6 +175,14 @@ class ArrowWriter:
         else:
             self._features = None
             self._schema = None
+
+        if hash_salt is not None:
+            # Create KeyHasher instance using split name as hash salt
+            self._hasher = KeyHasher(hash_salt)
+        else:
+            self._hasher = KeyHasher("")
+
+        self._check_duplicates = check_duplicates
 
         if disable_nullable and self._schema is not None:
             self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
@@ -193,9 +204,10 @@ class ArrowWriter:
 
         self._num_examples = 0
         self._num_bytes = 0
-        self.current_examples: List[Dict[str, Any]] = []
+        self.current_examples: List[Tuple[Dict[str, Any], str]] = []
         self.current_rows: List[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
+        self.hkey_record = []
 
     def __len__(self):
         """Return the number of writed and staged examples"""
@@ -258,7 +270,10 @@ class ArrowWriter:
         """Write stored examples from the write-pool of examples. It makes a table out of the examples and write it."""
         if not self.current_examples:
             return
-        cols = sorted(self.current_examples[0].keys())
+
+        # Since current_examples contains (example, key) tuples
+        cols = sorted(self.current_examples[0][0].keys())
+
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
         arrays = []
@@ -267,7 +282,7 @@ class ArrowWriter:
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = OptimizedTypedSequence(
-                [row[col] for row in self.current_examples], type=col_type, try_type=col_try_type, col=col
+                [row[0][col] for row in self.current_examples], type=col_type, try_type=col_try_type, col=col
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
@@ -293,17 +308,47 @@ class ArrowWriter:
         self.write_table(table)
         self.current_rows = []
 
-    def write(self, example: Dict[str, Any], writer_batch_size: Optional[int] = None):
-        """Add a given Example to the write-pool of examples which is written to file.
+    def write(
+        self,
+        example: Dict[str, Any],
+        key: Optional[Union[str, int, bytes]] = None,
+        writer_batch_size: Optional[int] = None,
+    ):
+        """Add a given (Example,Key) pair to the write-pool of examples which is written to file.
 
         Args:
             example: the Example to add.
+            key: Optional, a unique identifier(str, int or bytes) associated with each example
         """
-        self.current_examples.append(example)
+        # Utilize the keys and duplicate checking when `self._check_duplicates` is passed True
+        if self._check_duplicates:
+            # Create unique hash from key and store as (key, example) pairs
+            hash = self._hasher.hash(key)
+            self.current_examples.append((example, hash))
+            # Maintain record of keys and their respective hashes for checking duplicates
+            self.hkey_record.append((hash, key))
+        else:
+            # Store example as a tuple so as to keep the structure of `self.current_examples` uniform
+            self.current_examples.append((example, ""))
+
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
+            if self._check_duplicates:
+                self.check_duplicate_keys()
+                # Re-intializing to empty list for next batch
+                self.hkey_record = []
+
             self.write_examples_on_file()
+
+    def check_duplicate_keys(self):
+        """Raises error if duplicates found in a batch"""
+        tmp_record = set()
+        for hash, key in self.hkey_record:
+            if hash in tmp_record:
+                raise DuplicatedKeysError(key)
+            else:
+                tmp_record.add(hash)
 
     def write_row(self, row: pa.Table, writer_batch_size: Optional[int] = None):
         """Add a given single-row Table to the write-pool of rows which is written to file.
@@ -359,6 +404,11 @@ class ArrowWriter:
 
     def finalize(self, close_stream=True):
         self.write_rows_on_file()
+        # In case current_examples < writer_batch_size, but user uses finalize()
+        if self._check_duplicates:
+            self.check_duplicate_keys()
+            # Re-intializing to empty list for next batch
+            self.hkey_record = []
         self.write_examples_on_file()
         if self.pa_writer is None:
             if self._schema is not None:
