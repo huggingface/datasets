@@ -89,7 +89,7 @@ task_ids:
 - summarization
 paperswithcode_id: wikilingua
 ---
-# Dataset Card Creation Guide
+# Dataset Card for "wiki_lingua"
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
