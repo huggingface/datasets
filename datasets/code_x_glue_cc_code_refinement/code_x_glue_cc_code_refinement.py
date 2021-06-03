@@ -2,14 +2,18 @@ from typing import List
 
 import datasets
 
-from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-
+import datasets
+import json
+import os
+import os.path
+from .common import Child
+from .common import TrainValidTestChild
 class CodeXGlueCCCodeRefinement(TrainValidTestChild):
     _DESCRIPTION = """We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf). The source side is a Java function with bugs and the target side is the refined one. All the function and variable names are normalized. Their dataset contains two subsets ( i.e.small and medium) based on the function length."""
     _FEATURES = {
-        "id": datasets.Value("int32"),  # Index of the sample
+        "id": datasets.Value("int32"), # Index of the sample
         "buggy": datasets.Value("string"),  # The buggy version of the code
         "fixed": datasets.Value("string"),  # The correct version of the code
     }
@@ -21,15 +25,15 @@ class CodeXGlueCCCodeRefinement(TrainValidTestChild):
         for key in "buggy", "fixed":
             yield key, f"{size}/{split_name}.buggy-fixed.{key}"
 
-    def _generate_examples(self, split_name, file_pathes):
+    def _generate_examples(self, split_name, file_paths):
         """This function returns the examples in the raw (text) form."""
         # Open each file (one for java, and one for c#)
-        files = {k: open(file_pathes[k]) for k in file_pathes}
+        files = {k: open(file_paths[k]) for k in file_paths}
 
         id_ = 0
         while True:
             # Read a single line from each file
-            entries = {k: files[k].readline() for k in file_pathes}
+            entries = {k: files[k].readline() for k in file_paths}
 
             empty = self.check_empty(entries)
             if empty:
@@ -41,9 +45,9 @@ class CodeXGlueCCCodeRefinement(TrainValidTestChild):
             id_ += 1
 
 
-CLASS_MAPPING = {
-    "CodeXGlueCCCodeRefinement": CodeXGlueCCCodeRefinement,
+CLASS_MAPPING={'CodeXGlueCCCodeRefinement':CodeXGlueCCCodeRefinement,
 }
+
 
 
 class CodeXGlueCCCodeRefinementMain(datasets.GeneratorBasedBuilder):
@@ -65,5 +69,5 @@ class CodeXGlueCCCodeRefinementMain(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
-    def _generate_examples(self, split_name, file_pathes):
-        return self.child._generate_examples(split_name, file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        return self.child._generate_examples(split_name, file_paths)

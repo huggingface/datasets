@@ -1,4 +1,4 @@
-DEFINITIONS = {
+DEFINITIONS={
     "default": {
         "class_name": "CodeXGlueTCTextToCode",
         "dataset_type": "Text-Code",
@@ -7,6 +7,10 @@ DEFINITIONS = {
         "name": "default",
         "project_url": "https://github.com/madlag/CodeXGLUE/tree/main/Text-Code/text-to-code",
         "raw_url": "https://raw.githubusercontent.com/madlag/CodeXGLUE/main/Text-Code/text-to-code/dataset",
-        "sizes": {"test": 2000, "train": 100000, "validation": 2000},
+        "sizes": {
+            "test": 2000,
+            "train": 100000,
+            "validation": 2000
+        }
     }
 }

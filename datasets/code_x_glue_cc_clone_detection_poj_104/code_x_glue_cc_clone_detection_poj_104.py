@@ -1,14 +1,15 @@
-import json
-import os
-import os.path
 from typing import List
 
 import datasets
 
-from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-
+import datasets
+import json
+import os
+import os.path
+from .common import Child
+from .common import TrainValidTestChild
 class CodeXGlueCCCloneDetectionPOJ104(TrainValidTestChild):
     _DESCRIPTION = """Given a code and a collection of candidates as the input, the task is to return Top K codes with the same semantic. Models are evaluated by MAP score.
 We use POJ-104 dataset on this task."""
@@ -22,13 +23,13 @@ We use POJ-104 dataset on this task."""
 }"""
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
-        "code": datasets.Value("string"),  # The full text of the function
+        "code": datasets.Value("string"), # The full text of the function
         "label": datasets.Value("string"),  # The id of problem that the source code solves
     }
 
     _SUPERVISED_KEYS = ["label"]
 
-    SPLIT_RANGES = {"train": (1, 65), "valid": (65, 81), "test": (81, 195)}
+    SPLIT_RANGES = {"train": (1, 65), "valid":(65,81), "test":(81, 195)}
 
     def generate_urls(self, split_name):
         yield "data", "programs.tar.gz"
@@ -44,19 +45,19 @@ We use POJ-104 dataset on this task."""
 
         cont = 0
         for split_name, range_info in self.SPLIT_RANGES.items():
-            with open(os.path.join(root_path, f"{split_name}.jsonl"), "w") as f:
+            with open(os.path.join(root_path, f"{split_name}.jsonl"), 'w') as f:
                 for i in range(*range_info):
                     items = files(os.path.join(root_path, "ProgramData/{}".format(i)))
                     for item in items:
                         js = {}
-                        js["label"] = item.split("/")[1]
-                        js["index"] = str(cont)
-                        js["code"] = open(item, encoding="latin-1").read()
-                        f.write(json.dumps(js) + "\n")
+                        js['label'] = item.split('/')[1]
+                        js['index'] = str(cont)
+                        js['code'] = open(item, encoding='latin-1').read()
+                        f.write(json.dumps(js) + '\n')
                         cont += 1
 
-    def _generate_examples(self, split_name, file_pathes):
-        root_path = file_pathes["data"]
+    def _generate_examples(self, split_name, file_paths):
+        root_path = file_paths["data"]
 
         mark_file = os.path.join(root_path, ".mark")
 
@@ -77,9 +78,10 @@ We use POJ-104 dataset on this task."""
                 yield idx, e
 
 
-CLASS_MAPPING = {
-    "CodeXGlueCCCloneDetectionPOJ104": CodeXGlueCCCloneDetectionPOJ104,
+
+CLASS_MAPPING={'CodeXGlueCCCloneDetectionPOJ104':CodeXGlueCCCloneDetectionPOJ104,
 }
+
 
 
 class CodeXGlueCCCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
@@ -101,5 +103,5 @@ class CodeXGlueCCCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
-    def _generate_examples(self, split_name, file_pathes):
-        return self.child._generate_examples(split_name, file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        return self.child._generate_examples(split_name, file_paths)

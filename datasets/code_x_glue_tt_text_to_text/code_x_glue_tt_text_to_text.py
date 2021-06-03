@@ -2,15 +2,19 @@ from typing import List
 
 import datasets
 
-from .common import Child
 from .generated_definitions import DEFINITIONS
 
-
+import datasets
+import json
+import os
+import os.path
+from .common import Child
+from .common import TrainValidTestChild
 class CodeXGlueTTTextToText(Child):
     _DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
 
     _FEATURES = {
-        "id": datasets.Value("int32"),  # The index of the sample
+        "id": datasets.Value("int32"), # The index of the sample
         "source": datasets.Value("string"),  # The source language version of the text
         "target": datasets.Value("string"),  # The target language version of the text
     }
@@ -26,15 +30,15 @@ class CodeXGlueTTTextToText(Child):
         for i, lang in enumerate(lang_pair.split("-")):
             yield self.KEYS[i], f"{split_name}/{lang_pair}.{split_name}.{lang}"
 
-    def _generate_examples(self, split_name, file_pathes):
-        print(file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        print(file_paths)
         # Open each file (one for source language and the other for target language)
-        files = {k: open(file_pathes[k]) for k in file_pathes}
+        files = {k: open(file_paths[k]) for k in file_paths}
 
         id_ = 0
         while True:
             # Read a single line from each file
-            entries = {k: files[k].readline() for k in file_pathes}
+            entries = {k: files[k].readline() for k in file_paths}
 
             empty = self.check_empty(entries)
             if empty:
@@ -45,10 +49,9 @@ class CodeXGlueTTTextToText(Child):
             yield id_, entries
             id_ += 1
 
-
-CLASS_MAPPING = {
-    "CodeXGlueTTTextToText": CodeXGlueTTTextToText,
+CLASS_MAPPING={'CodeXGlueTTTextToText':CodeXGlueTTTextToText,
 }
+
 
 
 class CodeXGlueTTTextToTextMain(datasets.GeneratorBasedBuilder):
@@ -70,5 +73,5 @@ class CodeXGlueTTTextToTextMain(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
         return self.child._split_generators(dl_manager=dl_manager)
 
-    def _generate_examples(self, split_name, file_pathes):
-        return self.child._generate_examples(split_name, file_pathes)
+    def _generate_examples(self, split_name, file_paths):
+        return self.child._generate_examples(split_name, file_paths)

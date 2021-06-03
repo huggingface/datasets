@@ -27,101 +27,94 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
   - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-
-
 ## [Dataset Description](#dataset-description)
 
- 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Text-Text/text-to-text
 
- 
-
 ### [Dataset Summary](#dataset-summary)
-
 
 CodeXGLUE text-to-text dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Text-Text/text-to-text
 
 The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/.
 
+### [Supported Tasks](#supported-tasks)
+
+[More Information Needed]
 
 ### [Languages](#languages)
 
-
 da_en, lv_en, no_en, zh_en
 
-
 ## [Dataset Structure](#dataset-structure)
- 
 
 ### [Data Instances](#data-instances)
 
- 
-
- 
-
 #### da_en
-
-An example of 'test' looks as follows.
-```
-{
-    "id": 0, 
-    "source": "4 . K\u00f8r modellen , og udgiv den som en webtjeneste .\n", 
-    "target": "4 . Run the model , and publish it as a web service .\n"
-}
-```
- 
-
-#### lv_en
-
-An example of 'train' looks as follows.
-```
-{
-    "id": 0, 
-    "source": "title : Pakalpojumu objektu izveide\n", 
-    "target": "title : Create service objects\n"
-}
-```
- 
-
-#### no_en
 
 An example of 'validation' looks as follows.
 ```
 {
-    "id": 0, 
-    "source": "2 . \u00c5pne servicevaren du vil definere komponenter fra en stykkliste for .\n", 
+    "id": 0,
+    "source": "2 . \u00c5bn den serviceartikel , som du vil definere komponenter for ud fra en stykliste .\n",
     "target": "2 . Open the service item for which you want to set up components from a BOM .\n"
 }
 ```
- 
+
+#### lv_en
+
+An example of 'validation' looks as follows.
+```
+{
+    "id": 0,
+    "source": "# # &lt; a name = &quot; chart-of-accounts-and-financial-dimension-components &quot; &gt; &lt; / a &gt; Kontu pl\u0101ns un finan\u0161u dimensiju komponenti\n",
+    "target": "# # Chart of accounts and financial dimension components\n"
+}
+```
+
+#### no_en
+
+An example of 'test' looks as follows.
+```
+{
+    "id": 0,
+    "source": "&#91; Analysere kontantstr\u00f8mmen i firmaet &#93; ( finance-analyze-cash-flow.md )\n",
+    "target": "&#91; Analyzing Cash Flow in Your Company &#93; ( finance-analyze-cash-flow.md )\n"
+}
+```
 
 #### zh_en
 
 An example of 'validation' looks as follows.
 ```
 {
-    "id": 0, 
-    "source": "& # 124 ; MCDUserNotificationReadStateFilterAny & # 124 ; 0 & # 124 ; \u5305\u62ec \u901a\u77e5 , \u800c \u4e0d \u8003\u8651 \u8bfb\u53d6 \u72b6\u6001 \u3002 & # 124 ;\n", 
+    "id": 0,
+    "source": "& # 124 ; MCDUserNotificationReadStateFilterAny & # 124 ; 0 & # 124 ; \u5305\u62ec \u901a\u77e5 , \u800c \u4e0d \u8003\u8651 \u8bfb\u53d6 \u72b6\u6001 \u3002 & # 124 ;\n",
     "target": "&#124; MCDUserNotificationReadStateFilterAny &#124; 0 &#124; Include notifications regardless of read state . &#124;\n"
 }
 ```
- 
-
-
 
 ### [Data Fields](#data-fields)
 
- 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
 #### da_en, lv_en, no_en, zh_en
@@ -132,15 +125,7 @@ In the following each data field in go is explained for each config. The data fi
 |source    |string| The source language version of the text|
 |target    |string| The target language version of the text|
 
-
-
-
-
-
 ### [Data Splits](#data-splits)
-
- 
-
 
 |name |train|validation|test|
 |-----|----:|---------:|---:|
@@ -149,36 +134,53 @@ In the following each data field in go is explained for each config. The data fi
 |no_en|44322|      1000|1000|
 |zh_en|50154|      1000|1000|
 
+## [Dataset Creation](#dataset-creation)
 
+### [Curation Rationale](#curation-rationale)
 
+[More Information Needed]
 
+### [Source Data](#source-data)
 
+[More Information Needed]
 
+### [Annotations](#annotations)
+
+[More Information Needed]
+
+### [Personal and Sensitive Information](#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## [Considerations for Using the Data](#considerations-for-using-the-data)
+
+### [Social Impact of Dataset](#social-impact-of-dataset)
+
+[More Information Needed]
+
+### [Discussion of Biases](#discussion-of-biases)
+
+[More Information Needed]
+
+### [Other Known Limitations](#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
- 
 
 ### [Dataset Curators](#dataset-curators)
 
-
 https://github.com/microsoft, https://github.com/madlag
-
 
 ### [Licensing Information](#licensing-information)
 
-
 Computational Use of Data Agreement (C-UDA) License.
 
-
 ### [Citation Information](#citation-information)
-
 
 ```
 @article{CodeXGLUE,
          title={CodeXGLUE: A Benchmark Dataset and Open Challenge for Code Intelligence},
          year={2020},}
 ```
-
-
-
 
