@@ -153,14 +153,17 @@ If you want to cite this framework you can use this:
                   Albert Villanova del Moral and
                   Yacine Jernite and
                   Suraj Patil and
+                  Mariama Drame and
                   Julien Chaumond and
                   Julien Plu and
                   Joe Davison and
                   Simon Brandeis and
                   Teven Le Scao and
                   Victor Sanh and
+                  Kevin Canwen Xu and
                   Lewis Tunstall and
-                  Nicolas Patry},
+                  Nicolas Patry and
+                  Angelina McMillan-Major},
   title        = {huggingface/datasets: 1.7.0},
   month        = may,
   year         = 2021,
