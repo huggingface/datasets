@@ -3,6 +3,7 @@ from itertools import chain, islice
 import numpy as np
 import pytest
 
+from datasets.features import ClassLabel, Features, Value
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import (
     BufferShuffledExamplesIterable,
@@ -15,6 +16,7 @@ from datasets.iterable_dataset import (
     _batch_to_examples,
     _examples_to_batch,
     iterable_dataset,
+    merge_datasets,
 )
 
 from .utils import require_torch
@@ -221,6 +223,19 @@ def test_iterable_dataset_set_epoch(dataset: IterableDataset):
     assert dataset._epoch == 42
 
 
+@pytest.mark.parametrize("seed", [None, 42, 1337])
+@pytest.mark.parametrize("epoch", [None, 0, 1, 10])
+def test_iterable_dataset_set_epoch_of_shuffled_dataset(dataset: IterableDataset, seed, epoch):
+    buffer_size = 10
+    shuffled_dataset = dataset.shuffle(buffer_size, seed=seed)
+    if epoch is not None:
+        shuffled_dataset.set_epoch(epoch)
+    if seed is None:
+        assert shuffled_dataset._effective_seed is None
+    else:
+        assert shuffled_dataset._effective_seed == seed + (epoch if epoch is not None else 0)
+
+
 def test_iterable_dataset_map(dataset: IterableDataset, generate_examples_fn):
     func = lambda x: {"id+1": x["id"] + 1}  # noqa: E731
     dataset = dataset.map(func)
@@ -242,18 +257,129 @@ def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_example
 
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
-def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn, seed):
+@pytest.mark.parametrize("epoch", [None, 0, 1])
+def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn, seed, epoch):
     buffer_size = 3
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
     dataset = dataset.shuffle(buffer_size, seed=seed)
     assert isinstance(dataset._shuffling, ShuffingConfig)
     assert dataset._shuffling.seed == seed
+    # Effective seed is sum of seed and epoch
+    if epoch is None:
+        effective_seed = seed
+    else:
+        dataset.set_epoch(epoch)
+        effective_seed = seed + epoch
     # Shuffling adds a shuffle buffer
     expected_first_example_index = next(
-        iter(BufferShuffledExamplesIterable._iter_random_indices(np.random.default_rng(seed), buffer_size))
+        iter(BufferShuffledExamplesIterable._iter_random_indices(np.random.default_rng(effective_seed), buffer_size))
     )
     assert isinstance(dataset._ex_iterable, BufferShuffledExamplesIterable)
     # It also shuffles the underlying examples iterable
-    expected_ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]}).shuffle(seed)
+    expected_ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]}).shuffle(
+        effective_seed
+    )
     assert isinstance(dataset._ex_iterable.ex_iterable, ExamplesIterable)
     assert next(iter(dataset)) == list(islice(expected_ex_iterable, expected_first_example_index + 1))[-1][1]
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        Features(
+            {
+                "id": Value("int64"),
+                "label": Value("int64"),
+            }
+        ),
+        Features(
+            {
+                "id": Value("int64"),
+                "label": ClassLabel(names=["negative", "positive"]),
+            }
+        ),
+    ],
+)
+def test_terable_dataset_features(generate_examples_fn, features):
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 0})
+    dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    if features:
+        expected = [features.encode_example(x) for _, x in ex_iterable]
+    else:
+        expected = [x for _, x in ex_iterable]
+    assert list(dataset) == expected
+
+
+@require_torch
+@pytest.mark.parametrize("format_type", [None, "torch", "python"])
+def test_iterable_dataset_with_format(dataset: IterableDataset, format_type):
+    formatted_dataset = dataset.with_format(format_type)
+    assert formatted_dataset._format_type == format_type
+    if format_type == "torch":
+        import torch
+
+        assert isinstance(formatted_dataset, torch.utils.data.IterableDataset)
+
+
+@pytest.mark.parametrize(
+    "probas, seed, expected_length",
+    [
+        (None, None, 3 * DEFAULT_N_EXAMPLES),
+        ([1, 0, 0], None, DEFAULT_N_EXAMPLES),
+        ([0, 1, 0], None, DEFAULT_N_EXAMPLES),
+        ([0.2, 0.5, 0.3], 42, None),
+        ([0.1, 0.1, 0.8], 1337, None),
+        ([0.5, 0.2, 0.3], 101010, None),
+    ],
+)
+def test_merge_datasets(dataset: IterableDataset, probas, seed, expected_length):
+    d1 = dataset
+    d2 = dataset.map(lambda x: {"id+1": x["id"] + 1, **x})
+    d3 = dataset.with_format("python")
+    datasets = [d1, d2, d3]
+    merged_dataset = merge_datasets(datasets, probabilities=probas, seed=seed)
+    # Check the examples iterable
+    assert isinstance(
+        merged_dataset._ex_iterable, (CyclingMultiSourcesExamplesIterable, RandomlyCyclingMultiSourcesExamplesIterable)
+    )
+    # Check that it is deterministic
+    if seed is not None:
+        merged_dataset2 = merge_datasets([d1, d2, d3], probabilities=probas, seed=seed)
+        assert list(merged_dataset) == list(merged_dataset2)
+    # Check first example
+    if seed is not None:
+        rng = np.random.default_rng(seed)
+        i = next(iter(RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(rng, len(datasets), p=probas)))
+        assert next(iter(merged_dataset)) == next(iter(datasets[i]))
+    else:
+        assert any(next(iter(merged_dataset)) == next(iter(dataset)) for dataset in datasets)
+    # Compute length it case it's random
+    if expected_length is None:
+        expected_length = 0
+        counts = [len(list(d)) for d in datasets]
+        rng = np.random.default_rng(seed)
+        for i in RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(rng, len(datasets), p=probas):
+            if counts[i] == 0:
+                break
+            counts[i] -= 1
+            expected_length += 1
+    # Check length
+    assert len(list(merged_dataset)) == expected_length
+
+
+def test_merge_datasets_with_features(dataset: IterableDataset, generate_examples_fn):
+    features = Features(
+        {
+            "id": Value("int64"),
+            "label": ClassLabel(names=["negative", "positive"]),
+        }
+    )
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 0})
+    dataset_with_features = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+
+    merged_dataset = merge_datasets([dataset, dataset_with_features], probabilities=[0, 1])
+    assert isinstance(merged_dataset._ex_iterable, CyclingMultiSourcesExamplesIterable)
+    assert isinstance(merged_dataset._ex_iterable.ex_iterables[1], MappedExamplesIterable)
+    assert merged_dataset._ex_iterable.ex_iterables[1].function == features.encode_example
+    assert next(iter(merged_dataset)) == next(iter(dataset_with_features))

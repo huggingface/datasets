@@ -106,16 +106,16 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
     @staticmethod
     def _iter_random_indices(
         rng: np.random.Generator,
-        num_generate_examples_fn_: int,
+        num_sources: int,
         random_batch_size=1000,
         p: Optional[List[float]] = None,
     ):
         if p is None:
             while True:
-                yield from rng.integers(0, num_generate_examples_fn_, size=random_batch_size)
+                yield from rng.integers(0, num_sources, size=random_batch_size)
         else:
             while True:
-                yield from rng.choice(num_generate_examples_fn_, size=random_batch_size, p=p)
+                yield from rng.choice(num_sources, size=random_batch_size, p=p)
 
     def __iter__(self):
         rng = np.random.default_rng(self.seed)
@@ -231,14 +231,20 @@ class IterableDataset(DatasetInfoMixin):
     def _head(self, n=5):
         return _examples_to_batch([x for key, x in islice(self._iter(), n)])
 
+    @property
+    def _effective_seed(self):
+        if self._shuffling:
+            return self._shuffling.seed + self._epoch if self._shuffling.seed is not None else None
+        else:
+            return None
+
     def _iter(
         self,
         epoch=0,
         shuffling: Optional[ShuffingConfig] = None,
     ):
         if shuffling:
-            effective_seed = shuffling.seed + epoch if shuffling.seed is not None else None
-            ex_iterable = self._ex_iterable.shuffle(effective_seed)
+            ex_iterable = self._ex_iterable.shuffle(self._effective_seed)
         else:
             ex_iterable = self._ex_iterable
         yield from ex_iterable
@@ -259,12 +265,17 @@ class IterableDataset(DatasetInfoMixin):
     ) -> "IterableDataset":
         """
         Return a dataset with the specified format.
+        This method only supports the "torch" format for now.
 
         Args:
 
             type (:obj:`str`, optional, default None): if set to "torch", the returned dataset
                 will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
         """
+        # TODO(QL): add examples formatting to get tensors when using the "torch" format
+        # TODO(QL): add format_kwargs
+        # TODO(QL): add format_columns and return_all_columns
+        # TODO(QL): add pandas, numpy and tf formats
         return iterable_dataset(
             ex_iterable=self._ex_iterable,
             info=copy.deepcopy(self._info),
@@ -376,12 +387,18 @@ def merge_datasets(
             examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example to yield.
     """
+    # Keep individual features formatting
+    ex_iterables = [
+        MappedExamplesIterable(d._ex_iterable, d.features.encode_example) if d.features is not None else d._ex_iterable
+        for d in datasets
+    ]
+    # Use cycling or random cycling or sources
     if probabilities is None:
-        ex_iterable = CyclingMultiSourcesExamplesIterable([d._ex_iterable for d in datasets])
+        ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables)
     else:
-        ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
-            [d._ex_iterable for d in datasets], seed=seed, probabilities=probabilities
-        )
+        ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(ex_iterables, seed=seed, probabilities=probabilities)
+    # Set new info - we reset the features
     info = DatasetInfo.from_merge([d.info for d in datasets])
-    info.features = datasets[0].features
+    info.features = None
+    # Return new daset
     return iterable_dataset(ex_iterable=ex_iterable, info=info)
