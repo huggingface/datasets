@@ -18,7 +18,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "1.6.2.dev0"
+__version__ = "1.7.0.dev0"
 
 import pyarrow
 from pyarrow import total_allocated_bytes
@@ -57,6 +57,7 @@ from .inspect import (
     list_datasets,
     list_metrics,
 )
+from .keyhash import KeyHasher
 from .load import import_main_class, load_dataset, load_from_disk, load_metric, prepare_module
 from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent

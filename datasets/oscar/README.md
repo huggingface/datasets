@@ -116,7 +116,7 @@ languages:
 - new
 - nl
 - nn
-- "no"
+- 'no'
 - oc
 - or
 - os
@@ -845,6 +845,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: oscar
 ---
 
 # Dataset Card for "oscar"
@@ -852,12 +853,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -884,7 +885,7 @@ task_ids:
 
 OSCAR or **O**pen **S**uper-large **C**rawled [**A**LMAnaCH](https://team.inria.fr/almanach/) co**R**pus is a huge multilingual corpus obtained by language classification and filtering of the [Common Crawl](https://commoncrawl.org/) corpus using the [goclassy](https://github.com/pjox/goclassy) architecture. Data is distributed by language in both original and deduplicated form.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 OSCAR is mainly inteded to pretrain language models and word represantations.
 
@@ -6137,7 +6138,7 @@ The data fields are the same among all configs.
 - `id`: a `int64` feature.
 - `text`: a `string` feature.
 
-### Data Splits Sample Size
+### Data Splits
 
 
 <details>

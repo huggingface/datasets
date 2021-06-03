@@ -129,6 +129,7 @@
     "ee": "Ewe",
     "ee-GH": "Ewe (Ghana)",
     "ee-TG": "Ewe (Togo)",
+    "egy": "Egyptian (Ancient)",
     "el": "Greek",
     "el-CY": "Greek (Cyprus)",
     "el-GR": "Greek (Greece)",
@@ -788,5 +789,6 @@
     "zh-Hant-MO": "Chinese (Traditional, Macao SAR China)",
     "zh-Hant-TW": "Chinese (Traditional, Taiwan)",
     "zu": "Zulu",
-    "zu-ZA": "Zulu (South Africa)"
+    "zu-ZA": "Zulu (South Africa)",
+    "code": "Programming language (C++, Java, Javascript, Python, etc.)"
 }

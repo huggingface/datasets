@@ -78,3 +78,4 @@ The documentation is organized in five parts:
     package_reference/builder_classes
     package_reference/table_classes
     package_reference/logging_methods
+    package_reference/task_templates

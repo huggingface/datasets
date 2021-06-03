@@ -124,7 +124,7 @@ class Saudinewsnet(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """Generates examples"""
-        for path in filepath:
+        for file_idx, path in enumerate(filepath):
             with open(path, encoding="utf-8") as f:
                 articles = json.load(f)
                 for _id, article in enumerate(articles):
@@ -135,7 +135,7 @@ class Saudinewsnet(datasets.GeneratorBasedBuilder):
                     author = article.get("author", "").strip("&nbsp;")
                     content = article["content"].strip("/n")
 
-                    yield _id, {
+                    yield f"{file_idx}_{_id}", {
                         "title": title,
                         "source": source,
                         "date_extracted": dt,
