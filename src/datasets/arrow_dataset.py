@@ -39,6 +39,8 @@ import pyarrow.compute as pc
 from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
+from datasets.tasks.text_classification import TextClassification
+
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
@@ -263,6 +265,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
         if self.info.features is None:
             self.info.features = inferred_features
+        else:  # make sure the nested columns are in the right order
+            self.info.features = self.info.features.reorder_fields_as(inferred_features)
 
         # Infer fingerprint if None
 
@@ -638,7 +642,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         with fs.open(
             Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
         ) as dataset_info_file:
-            json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
+            # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
+            sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
+            json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
         logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
@@ -1391,7 +1397,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
         """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
 
-        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema. Intended for single-use only, so all task templates are removed from :attr:`datasets.DatasetInfo.task_templates` after casting.
 
         Args:
             task (:obj:`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If :obj:`str`, supported tasks include:
@@ -1419,10 +1425,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             raise ValueError(
                 f"Expected a `str` or `datasets.tasks.TaskTemplate` object but got task {task} with type {type(task)}."
             )
+        if isinstance(template, TextClassification) and self.info.features is not None:
+            dataset_labels = tuple(sorted(self.info.features[template.label_column].names))
+            if template.labels is None or template.labels != dataset_labels:
+                raise ValueError(
+                    f"Incompatible labels between the dataset and task template! Expected labels {dataset_labels} but got {template.labels}. Please ensure that `datasets.tasks.TextClassification.labels` matches the features of the dataset."
+                )
         column_mapping = template.column_mapping
         columns_to_drop = [column for column in self.column_names if column not in column_mapping]
         dataset = self.remove_columns(columns_to_drop)
         dataset = dataset.rename_columns(column_mapping)
+        # We found a template so now flush `DatasetInfo` to skip the template update in `DatasetInfo.__post_init__`
+        dataset.info.task_templates = None
         dataset = dataset.cast(features=template.features)
         return dataset
 

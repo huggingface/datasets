@@ -23,6 +23,7 @@ import openpyxl  # noqa: requires this pandas optional dependency for reading xl
 import pandas as pd
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -83,6 +84,7 @@ class AjgtTwitterAr(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/komari6/Arabic-twitter-corpus-AJGT",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

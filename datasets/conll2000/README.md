@@ -1,4 +1,6 @@
 ---
+languages:
+- en
 paperswithcode_id: conll-2000-1
 ---
 
