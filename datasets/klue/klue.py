@@ -177,7 +177,7 @@ class Klue(datasets.GeneratorBasedBuilder):
             features={
                 "sentence": datasets.Value("string"),
                 "tokens": datasets.Sequence(datasets.Value("string")),
-                "ner_tags": [
+                "ner_tags": datasets.Sequence(
                     datasets.ClassLabel(
                         names=[
                             "B-DT",
@@ -195,7 +195,7 @@ class Klue(datasets.GeneratorBasedBuilder):
                             "O",
                         ]
                     )
-                ],
+                ),
             },
             description=textwrap.dedent(
                 """\
