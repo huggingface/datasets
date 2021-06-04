@@ -4,6 +4,7 @@
 import json
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 # TODO(squad_v2): BibTeX citation
@@ -82,6 +83,11 @@ class SquadV2(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage="https://rajpurkar.github.io/SQuAD-explorer/",
             citation=_CITATION,
+            task_templates=[
+                QuestionAnsweringExtractive(
+                    question_column="question", context_column="context", answers_column="answers"
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):

@@ -192,7 +192,7 @@ class ReadMe(Section):  # Level 0
 
     @classmethod
     def from_readme(cls, path: Path, structure: dict = None, suppress_parsing_errors: bool = False):
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             lines = f.readlines()
         return cls(path, lines, structure, suppress_parsing_errors=suppress_parsing_errors)
 
