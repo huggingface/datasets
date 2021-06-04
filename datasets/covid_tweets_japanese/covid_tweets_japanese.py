@@ -39,7 +39,7 @@ _LICENSE = "CC-BY-ND 4.0"
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    "url": "http://www.db.info.gifu-u.ac.jp/data/data.csv.bz2",
+    "url": "http://www.db.info.gifu-u.ac.jp/data/covid19.csv.bz2",
 }
 
 
