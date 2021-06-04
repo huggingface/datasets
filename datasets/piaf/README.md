@@ -1,4 +1,23 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- fr-FR
+licenses:
+- mit
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+- open-domain-qa
 paperswithcode_id: null
 ---
 
@@ -91,9 +110,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|   name   |train|
-|----------|----:|
-|plain_text| 3835|
+| name       | train |
+| ---------- | ----: |
+| plain_text |  3835 |
 
 ## Dataset Creation
 
