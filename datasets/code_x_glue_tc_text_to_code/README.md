@@ -61,12 +61,12 @@ The dataset we use is crawled and filtered from Microsoft Documentation, whose d
 
 ### [Data Instances](#data-instances)
 
-An example of 'validation' looks as follows.
+An example of 'train' looks as follows.
 ```
 {
-    "code": "int function ( ) { _total = extractList ( ) . size ( ) ; return _total ; }",
+    "code": "boolean function ( ) { return isParsed ; }",
     "id": 0,
-    "nl": "actually walks the bag to make sure the count is correct and resets the running total concode_field_sep Object _current concode_elem_sep int _total concode_elem_sep DefaultMapBag _parent concode_elem_sep Map _map concode_elem_sep int _mods concode_elem_sep Iterator _support concode_field_sep boolean add concode_elem_sep boolean add concode_elem_sep Object next concode_elem_sep boolean containsAll concode_elem_sep boolean containsAll concode_elem_sep void clear concode_elem_sep boolean isEmpty concode_elem_sep boolean hasNext concode_elem_sep void remove concode_elem_sep boolean remove concode_elem_sep boolean remove concode_elem_sep Map getMap concode_elem_sep int modCount concode_elem_sep boolean contains concode_elem_sep Iterator iterator concode_elem_sep boolean removeAll concode_elem_sep int size concode_elem_sep boolean addAll concode_elem_sep int hashCode concode_elem_sep boolean equals concode_elem_sep Object[] toArray concode_elem_sep Object[] toArray concode_elem_sep Set uniqueSet concode_elem_sep void setMap concode_elem_sep String toString concode_elem_sep int getCount concode_elem_sep List extractList concode_elem_sep boolean retainAll concode_elem_sep boolean retainAll"
+    "nl": "check if details are parsed . concode_field_sep Container parent concode_elem_sep boolean isParsed concode_elem_sep long offset concode_elem_sep long contentStartPosition concode_elem_sep ByteBuffer deadBytes concode_elem_sep boolean isRead concode_elem_sep long memMapSize concode_elem_sep Logger LOG concode_elem_sep byte[] userType concode_elem_sep String type concode_elem_sep ByteBuffer content concode_elem_sep FileChannel fileChannel concode_field_sep Container getParent concode_elem_sep byte[] getUserType concode_elem_sep void readContent concode_elem_sep long getOffset concode_elem_sep long getContentSize concode_elem_sep void getContent concode_elem_sep void setDeadBytes concode_elem_sep void parse concode_elem_sep void getHeader concode_elem_sep long getSize concode_elem_sep void parseDetails concode_elem_sep String getType concode_elem_sep void _parseDetails concode_elem_sep String getPath concode_elem_sep boolean verify concode_elem_sep void setParent concode_elem_sep void getBox concode_elem_sep boolean isSmallBox"
 }
 ```
 

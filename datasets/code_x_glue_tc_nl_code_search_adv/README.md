@@ -4,14 +4,15 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- python
+- code
 licenses:
 - other-C-UDA
 multilinguality:
 - other-programming-languages
 size_categories:
 - 100K<n<1M
-source_datasets: []
+source_datasets:
+- original
 task_categories:
 - text-retrieval
 task_ids:
@@ -22,26 +23,30 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
   - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
-
-
 ## [Dataset Description](#dataset-description)
 
- 
 - **Homepage:** https://github.com/microsoft/CodeXGLUE/tree/main/Text-Code/NL-code-search-Adv
 
- 
-
 ### [Dataset Summary](#dataset-summary)
-
 
 CodeXGLUE NL-code-search-Adv dataset, available at https://github.com/microsoft/CodeXGLUE/tree/main/Text-Code/NL-code-search-Adv
 
@@ -51,48 +56,41 @@ The dataset we use comes from CodeSearchNet and we filter the dataset as the fol
 - Remove examples that documents contain special tokens (e.g. <img ...> or https:...)
 - Remove examples that documents are not English.
 
+### [Supported Tasks](#supported-tasks)
 
+[More Information Needed]
 
 ## [Dataset Structure](#dataset-structure)
- 
 
 ### [Data Instances](#data-instances)
-
- 
-
- 
 
 An example of 'validation' looks as follows.
 ```
 {
-    "argument_list": "", 
-    "code": "def Func(arg_0, arg_1='.', arg_2=True, arg_3=False, **arg_4):\n    \"\"\"Downloads Dailymotion videos by URL.\n    \"\"\"\n\n    arg_5 = get_content(rebuilt_url(arg_0))\n    arg_6 = json.loads(match1(arg_5, r'qualities\":({.+?}),\"'))\n    arg_7 = match1(arg_5, r'\"video_title\"\\s*:\\s*\"([^\"]+)\"') or \\\n            match1(arg_5, r'\"title\"\\s*:\\s*\"([^\"]+)\"')\n    arg_7 = unicodize(arg_7)\n\n    for arg_8 in ['1080','720','480','380','240','144','auto']:\n        try:\n            arg_9 = arg_6[arg_8][1][\"url\"]\n            if arg_9:\n                break\n        except KeyError:\n            pass\n\n    arg_10, arg_11, arg_12 = url_info(arg_9)\n\n    print_info(site_info, arg_7, arg_10, arg_12)\n    if not arg_3:\n        download_urls([arg_9], arg_7, arg_11, arg_12, arg_1=arg_1, arg_2=arg_2)", 
-    "code_tokens": ["def", "Func", "(", "arg_0", ",", "arg_1", "=", "'.'", ",", "arg_2", "=", "True", ",", "arg_3", "=", "False", ",", "**", "arg_4", ")", ":", "arg_5", "=", "get_content", "(", "rebuilt_url", "(", "arg_0", ")", ")", "arg_6", "=", "json", ".", "loads", "(", "match1", "(", "arg_5", ",", "r'qualities\":({.+?}),\"'", ")", ")", "arg_7", "=", "match1", "(", "arg_5", ",", "r'\"video_title\"\\s*:\\s*\"([^\"]+)\"'", ")", "or", "match1", "(", "arg_5", ",", "r'\"title\"\\s*:\\s*\"([^\"]+)\"'", ")", "arg_7", "=", "unicodize", "(", "arg_7", ")", "for", "arg_8", "in", "[", "'1080'", ",", "'720'", ",", "'480'", ",", "'380'", ",", "'240'", ",", "'144'", ",", "'auto'", "]", ":", "try", ":", "arg_9", "=", "arg_6", "[", "arg_8", "]", "[", "1", "]", "[", "\"url\"", "]", "if", "arg_9", ":", "break", "except", "KeyError", ":", "pass", "arg_10", ",", "arg_11", ",", "arg_12", "=", "url_info", "(", "arg_9", ")", "print_info", "(", "site_info", ",", "arg_7", ",", "arg_10", ",", "arg_12", ")", "if", "not", "arg_3", ":", "download_urls", "(", "[", "arg_9", "]", ",", "arg_7", ",", "arg_11", ",", "arg_12", ",", "arg_1", "=", "arg_1", ",", "arg_2", "=", "arg_2", ")"], 
-    "docstring": "Downloads Dailymotion videos by URL.", 
-    "docstring_summary": "Downloads Dailymotion videos by URL.", 
-    "docstring_tokens": ["Downloads", "Dailymotion", "videos", "by", "URL", "."], 
-    "func_name": "", 
-    "id": 0, 
-    "identifier": "dailymotion_download", 
-    "language": "python", 
-    "nwo": "soimort/you-get", 
-    "original_string": "", 
-    "parameters": "(url, output_dir='.', merge=True, info_only=False, **kwargs)", 
-    "path": "src/you_get/extractors/dailymotion.py", 
-    "repo": "", 
-    "return_statement": "", 
-    "score": 0.9997601509094238, 
-    "sha": "b746ac01c9f39de94cac2d56f665285b0523b974", 
+    "argument_list": "",
+    "code": "def Func(arg_0, arg_1='.', arg_2=True, arg_3=False, **arg_4):\n    \"\"\"Downloads Dailymotion videos by URL.\n    \"\"\"\n\n    arg_5 = get_content(rebuilt_url(arg_0))\n    arg_6 = json.loads(match1(arg_5, r'qualities\":({.+?}),\"'))\n    arg_7 = match1(arg_5, r'\"video_title\"\\s*:\\s*\"([^\"]+)\"') or \\\n            match1(arg_5, r'\"title\"\\s*:\\s*\"([^\"]+)\"')\n    arg_7 = unicodize(arg_7)\n\n    for arg_8 in ['1080','720','480','380','240','144','auto']:\n        try:\n            arg_9 = arg_6[arg_8][1][\"url\"]\n            if arg_9:\n                break\n        except KeyError:\n            pass\n\n    arg_10, arg_11, arg_12 = url_info(arg_9)\n\n    print_info(site_info, arg_7, arg_10, arg_12)\n    if not arg_3:\n        download_urls([arg_9], arg_7, arg_11, arg_12, arg_1=arg_1, arg_2=arg_2)",
+    "code_tokens": ["def", "Func", "(", "arg_0", ",", "arg_1", "=", "'.'", ",", "arg_2", "=", "True", ",", "arg_3", "=", "False", ",", "**", "arg_4", ")", ":", "arg_5", "=", "get_content", "(", "rebuilt_url", "(", "arg_0", ")", ")", "arg_6", "=", "json", ".", "loads", "(", "match1", "(", "arg_5", ",", "r'qualities\":({.+?}),\"'", ")", ")", "arg_7", "=", "match1", "(", "arg_5", ",", "r'\"video_title\"\\s*:\\s*\"([^\"]+)\"'", ")", "or", "match1", "(", "arg_5", ",", "r'\"title\"\\s*:\\s*\"([^\"]+)\"'", ")", "arg_7", "=", "unicodize", "(", "arg_7", ")", "for", "arg_8", "in", "[", "'1080'", ",", "'720'", ",", "'480'", ",", "'380'", ",", "'240'", ",", "'144'", ",", "'auto'", "]", ":", "try", ":", "arg_9", "=", "arg_6", "[", "arg_8", "]", "[", "1", "]", "[", "\"url\"", "]", "if", "arg_9", ":", "break", "except", "KeyError", ":", "pass", "arg_10", ",", "arg_11", ",", "arg_12", "=", "url_info", "(", "arg_9", ")", "print_info", "(", "site_info", ",", "arg_7", ",", "arg_10", ",", "arg_12", ")", "if", "not", "arg_3", ":", "download_urls", "(", "[", "arg_9", "]", ",", "arg_7", ",", "arg_11", ",", "arg_12", ",", "arg_1", "=", "arg_1", ",", "arg_2", "=", "arg_2", ")"],
+    "docstring": "Downloads Dailymotion videos by URL.",
+    "docstring_summary": "Downloads Dailymotion videos by URL.",
+    "docstring_tokens": ["Downloads", "Dailymotion", "videos", "by", "URL", "."],
+    "func_name": "",
+    "id": 0,
+    "identifier": "dailymotion_download",
+    "language": "python",
+    "nwo": "soimort/you-get",
+    "original_string": "",
+    "parameters": "(url, output_dir='.', merge=True, info_only=False, **kwargs)",
+    "path": "src/you_get/extractors/dailymotion.py",
+    "repo": "",
+    "return_statement": "",
+    "score": 0.9997601509094238,
+    "sha": "b746ac01c9f39de94cac2d56f665285b0523b974",
     "url": "https://github.com/soimort/you-get/blob/b746ac01c9f39de94cac2d56f665285b0523b974/src/you_get/extractors/dailymotion.py#L13-L35"
 }
 ```
- 
-
-
 
 ### [Data Fields](#data-fields)
 
- 
 In the following each data field in go is explained for each config. The data fields are the same among all splits.
 
 #### default
@@ -119,43 +117,55 @@ In the following each data field in go is explained for each config. The data fi
 |nwo              |string                 | nwo                                                                               |
 |score            |datasets.Value("float"]| score for this search                                                             |
 
-
-
-
-
-
 ### [Data Splits](#data-splits)
-
- 
-
 
 | name  |train |validation|test |
 |-------|-----:|---------:|----:|
 |default|251820|      9604|19210|
 
+## [Dataset Creation](#dataset-creation)
 
+### [Curation Rationale](#curation-rationale)
 
+[More Information Needed]
 
+### [Source Data](#source-data)
 
+[More Information Needed]
 
+### [Annotations](#annotations)
+
+[More Information Needed]
+
+### [Personal and Sensitive Information](#personal-and-sensitive-information)
+
+[More Information Needed]
+
+## [Considerations for Using the Data](#considerations-for-using-the-data)
+
+### [Social Impact of Dataset](#social-impact-of-dataset)
+
+[More Information Needed]
+
+### [Discussion of Biases](#discussion-of-biases)
+
+[More Information Needed]
+
+### [Other Known Limitations](#other-known-limitations)
+
+[More Information Needed]
 
 ## [Additional Information](#additional-information)
- 
 
 ### [Dataset Curators](#dataset-curators)
 
-
 https://github.com/microsoft, https://github.com/madlag
-
 
 ### [Licensing Information](#licensing-information)
 
-
 Computational Use of Data Agreement (C-UDA) License.
 
-
 ### [Citation Information](#citation-information)
-
 
 ```
 @article{husain2019codesearchnet,
@@ -165,7 +175,4 @@ Computational Use of Data Agreement (C-UDA) License.
   year={2019}
 }
 ```
-
-
-
 

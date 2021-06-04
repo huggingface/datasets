@@ -61,11 +61,11 @@ We use POJ-104 dataset on this task.
 
 ### [Data Instances](#data-instances)
 
-An example of 'validation' looks as follows.
+An example of 'train' looks as follows.
 ```
 {
-    "code": " \nmain()\n{\n      int n,i,j, c,d;\n      int a=0,b=0;\n      scanf(\"%d\",&n);\n     for(i=0;i<n;i++)\n     {\n      scanf(\"%d%d\",&c,&d);\n      if(c==0&&d==1)a++;\n   if(c==0&&d==2)b++;\n       if(c==1)\n     {if(d==0)b++;\n     else if(d==2)a++;\n     }\n    else  if(c==2)\n     {if(d==0)a++;\n     if(d==1)b++;}\n                          \n     }\n                          if(a>b)printf(\"A\");\n                          else if(a<b)printf(\"B\");\n                          else printf(\"Tie\");\n       }\n\n",
-    "id": 32000,
+    "code": "\nint f(int shu,int min)\n{ \n  int k=1;\n  if(shu < min)\n  { \n    k= 0; \n   return k;\n  } \n  else\n {\n  for(int i = min;i<shu;i++)\n  { \n    if(shu%i == 0)\n    { \n         k=k+ f(shu/i,i); \n    } \n  \n    \n  } \n    return k; \n}\n} \n\nmain()\n{\n      int n,i,a;\n      scanf(\"%d\",&n);\n      \n      for(i=0;i<n;i++)\n      {\n          scanf(\"%d\",&a);\n          \n          if(i!=n-1)                                                        \n           printf(\"%d\\n\",f(a,2));\n           else\n           printf(\"%d\",f(a,2));                           \n                                      \n                     \n                      \n      }              \n                     \n                      \n                      }",
+    "id": 0,
     "label": "home"
 }
 ```

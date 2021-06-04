@@ -104,12 +104,12 @@ An example of 'test' looks as follows.
 
 #### zh_en
 
-An example of 'validation' looks as follows.
+An example of 'train' looks as follows.
 ```
 {
     "id": 0,
-    "source": "& # 124 ; MCDUserNotificationReadStateFilterAny & # 124 ; 0 & # 124 ; \u5305\u62ec \u901a\u77e5 , \u800c \u4e0d \u8003\u8651 \u8bfb\u53d6 \u72b6\u6001 \u3002 & # 124 ;\n",
-    "target": "&#124; MCDUserNotificationReadStateFilterAny &#124; 0 &#124; Include notifications regardless of read state . &#124;\n"
+    "source": "\u4ee5\u4e0b \u547d\u540d \u7a7a\u95f4 \u5305\u542b \u53ef \u8ba9 Android \u5e94\u7528 \u5b9e\u73b0 \u57fa\u4e8e Windows \u7684 \u5c31\u8fd1 \u5171 \u4eab \u529f\u80fd \u7684 API \u3002\n",
+    "target": "The following namespaces contain APIs that allow an Android app to implement the Windows-based Nearby sharing feature .\n"
 }
 ```
 
