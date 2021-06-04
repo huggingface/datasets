@@ -470,6 +470,17 @@ class Klue(datasets.GeneratorBasedBuilder):
                             "head": head,
                             "deprel": deprel,
                         }
+                if index:  # last example
+                    assert len(index) == len(word_form) == len(lemma) == len(pos) == len(head) == len(deprel)
+                    yield id_, {
+                        "sentence": sentence,
+                        "index": index,
+                        "word_form": word_form,
+                        "lemma": lemma,
+                        "pos": pos,
+                        "head": head,
+                        "deprel": deprel,
+                    }
 
         if self.config.name == "mrc":
             with open(data_file, encoding="UTF-8") as f:
