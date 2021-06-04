@@ -80,7 +80,7 @@ paperswithcode_id: klue
 - **Homepage:** https://klue-benchmark.com/
 - **Repository:** https://github.com/KLUE-benchmark/KLUE
 - **Paper:** [KLUE: Korean Language Understanding Evaluation](https://arxiv.org/abs/2105.09680)
-- **Leaderboard:** [Leaderboard](https://klue-benchmark.com/)
+- **Leaderboard:** [Leaderboard](https://klue-benchmark.com/leaderboard)
 - **Point of Contact:** https://github.com/KLUE-benchmark/KLUE/issues
 
 ### Dataset Summary
@@ -136,8 +136,8 @@ An example of 'train' looks as follows.
 An example of 'train' looks as follows.
 
 ```
-{'char': ['특', '히', ' ', '영', '동', '고', '속', '도', '로', ' ', '강', '릉', ' ', '방', '향', ' ', '문', '막', '휴', '게', '소', '에', '서', ' ', '만', '종', '분', '기', '점', '까', '지', ' ', '5', '㎞', ' ', '구', '간', '에', '는', ' ', '승', '용', '차', ' ', '전', '용', ' ', '임', '시', ' ', '갓', '길', '차', '로', '제', '를', ' ', '운', '영', '하', '기', '로', ' ', '했', '다', '.'],
- 'ne_tag': [12, 12, 12, 2, 3, 3, 3, 3, 3, 12, 2, 3, 12, 12, 12, 12, 2, 3, 3, 3, 3, 12, 12, 12, 2, 3, 3, 3, 3, 12, 12, 12, 8, 9, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
+{'tokens': ['특', '히', ' ', '영', '동', '고', '속', '도', '로', ' ', '강', '릉', ' ', '방', '향', ' ', '문', '막', '휴', '게', '소', '에', '서', ' ', '만', '종', '분', '기', '점', '까', '지', ' ', '5', '㎞', ' ', '구', '간', '에', '는', ' ', '승', '용', '차', ' ', '전', '용', ' ', '임', '시', ' ', '갓', '길', '차', '로', '제', '를', ' ', '운', '영', '하', '기', '로', ' ', '했', '다', '.'],
+ 'ner_tags': [12, 12, 12, 2, 3, 3, 3, 3, 3, 12, 2, 3, 12, 12, 12, 12, 2, 3, 3, 3, 3, 12, 12, 12, 2, 3, 3, 3, 3, 12, 12, 12, 8, 9, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12],
  'sentence': '특히 <영동고속도로:LC> <강릉:LC> 방향 <문막휴게소:LC>에서 <만종분기점:LC>까지 <5㎞:QT> 구간에는 승용차 전용 임시 갓길차로제를 운영하기로 했다.'}
 ```
 
@@ -215,33 +215,159 @@ An example of 'train' looks as follows.
 
 ### Data Fields
 
-You can see data fields in [here](https://github.com/KLUE-benchmark/KLUE/wiki).
+#### ynat
+
++ `guid`: a `string` feature
++ `title`: a `string` feature
++ `label`: a classification label, with possible values `IT과학`(0), `경제`(1), `사회`(2), `생활문화`(3), `세계`(4), `스포츠`(5), `정치`(6)
++ `url`: a `string` feature
++ `date`: a `string` feature
+
+#### sts
+
++ `guid`: a `string` feature
++ `source`: a `string` feature
++ `sentence1`: a `string` feature
++ `sentence2`: a `string` feature
++ `labels`: a dictionary feature containing
+    + `label`: a `float64` feature
+    + `real-label`: a `float64` feature
+    + `binary-label`: a classification label, with possible values `negative`(0), `positive`(1)
+  
+#### nli
+
++ `guid`: a `string` feature
++ `source`: a `string` feature
++ `premise`: a `string` feature
++ `hypothesis`: a `string` feature
++ `label`: a classification label, with possible values `entailment`(0), `neutral`(1), `contradiction`(2)
+
+#### ner
+
++ `sentence`: a `string` feature
++ `tokens`: a list of a `string` feature (tokenization is at character level)
++ `ner_tags`: a list of classification labels, with possible values including `B-DT`(0), `I-DT`(1), 
+  `B-LC`(2), `I-LC`(3), `B-OG`(4), `I-OG`(5), `B-PS`(6), `I-PS`(7), `B-QT`(8), `I-QT`(9), `B-TI`(10), 
+  `I-TI`(11), `O`(12)
+  
+#### re
+
++ `guid`: a `string` feature
++ `sentence`: a `string` feature
++ `subject_entity`: a dictionary feature containing
+    + `word`: a `string` feature
+    + `start_idx`: a `int32` feature 
+    + `end_idx`: a `int32` feature
+    + `type`: a `string` feature
++ `object_entity`: a dictionary feature containing
+    + `word`: a `string` feature
+    + `start_idx`: a `int32` feature 
+    + `end_idx`: a `int32` feature
+    + `type`: a `string` feature
++ `label`: a list of labels, with possible values including `no_relation`(0), `org:dissolved`(1), 
+  `org:founded`(2), `org:place_of_headquarters`(3), `org:alternate_names`(4), `org:member_of`(5), 
+  `org:members`(6), `org:political/religious_affiliation`(7), `org:product`(8), `org:founded_by`(9),`org:top_members/employees`(10), 
+  `org:number_of_employees/members`(11), `per:date_of_birth`(12), `per:date_of_death`(13), `per:place_of_birth`(14), 
+  `per:place_of_death`(15), `per:place_of_residence`(16), `per:origin`(17), `per:employee_of`(18), 
+  `per:schools_attended`(19), `per:alternate_names`(20), `per:parents`(21), `per:children`(22), 
+  `per:siblings`(23), `per:spouse`(24), `per:other_family`(25), `per:colleagues`(26), `per:product`(27), 
+  `per:religion`(28), `per:title`(29),
++ `source`: a `string` feature
+
+#### dp
+
++ `sentence`: a `string` feature
++ `index`: a list of `int32` feature 
++ `word_form`: a list of `string` feature
++ `lemma`: a list of `string` feature
++ `pos`: a list of `string` feature
++ `head`: a list of `int32` feature
++ `deprel`: a list of `string` feature
+
+
+#### mrc
+
++ `title`: a `string` feature
++ `context`: a `string` feature
++ `news_category`: a `string` feature
++ `source`: a `string` feature
++ `guid`: a `string` feature
++ `is_impossible`: a `bool` feature
++ `question_type`: a `int32` feature
++ `question`: a `string` feature
++ `answers`: a dictionary feature containing
+   + `answer_start`: a `int32` feature
+   + `text`: a `string` feature
+  
+
+#### wos
+
++ `guid`: a `string` feature
++ `domains`: a `string` feature
++ `dialogue`: a list of dictionary feature containing
+  + `role`: a `string` feature
+  + `text`: a `string` feature
+  + `state`: a `string` feature
+
 
 ### Data Splits
 
 #### ynat
-You can see data description in [here](https://klue-benchmark.com/tasks/66/data/description).
+
+You can see more details in [here](https://klue-benchmark.com/tasks/66/data/description).
+
++ train: 45,678
++ validation: 9,107
+
 
 #### sts
-You can see data description in [here](https://klue-benchmark.com/tasks/67/data/description).
+
+You can see more details in [here](https://klue-benchmark.com/tasks/67/data/description).
+
++ train: 11,668
++ validation: 519
 
 #### nli
-You can see data description in [here](https://klue-benchmark.com/tasks/68/data/description).
+
+You can see more details in [here](https://klue-benchmark.com/tasks/68/data/description).
+
++ train: 24,998
++ validation: 3,000
 
 #### ner
-You can see data description in [here](https://klue-benchmark.com/tasks/69/overview/description).
+
+You can see more details in [here](https://klue-benchmark.com/tasks/69/overview/description).
+
++ train: 21,008
++ validation: 5,000
 
 #### re
-You can see data description in [here](https://klue-benchmark.com/tasks/70/overview/description).
+
+You can see more details in [here](https://klue-benchmark.com/tasks/70/overview/description).
+
++ train: 32,470
++ validation: 7,765
 
 #### dp
-You can see data description in [here](https://klue-benchmark.com/tasks/71/data/description).
+
+You can see more details in [here](https://klue-benchmark.com/tasks/71/data/description).
+
++ train: 10,000
++ validation: 2,000
 
 #### mrc
-You can see data description in [here](https://klue-benchmark.com/tasks/72/overview/description).
+
+You can see more details in [here](https://klue-benchmark.com/tasks/72/overview/description).
+
++ train: 17,554
++ validation: 5,841
 
 #### wos
-You can see data description in [here](https://klue-benchmark.com/tasks/73/overview/description).
+
+You can see more details in [here](https://klue-benchmark.com/tasks/73/overview/description).
+
++ train: 8,000
++ validation: 1,000
 
 
 ## Dataset Creation

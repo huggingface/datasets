@@ -156,7 +156,7 @@ class Klue(datasets.GeneratorBasedBuilder):
                 "source": datasets.Value("string"),
                 "premise": datasets.Value("string"),
                 "hypothesis": datasets.Value("string"),
-                "label": datasets.ClassLabel(names=["entailment", "contradiction", "neutral"]),
+                "label": datasets.ClassLabel(names=["entailment", "neutral", "contradiction"]),
             },
             description=textwrap.dedent(
                 """\
@@ -176,8 +176,8 @@ class Klue(datasets.GeneratorBasedBuilder):
             name="ner",
             features={
                 "sentence": datasets.Value("string"),
-                "char": [datasets.Value("string")],
-                "ne_tag": [
+                "tokens": datasets.Sequence(datasets.Value("string")),
+                "ner_tags": [
                     datasets.ClassLabel(
                         names=[
                             "B-DT",
@@ -426,14 +426,14 @@ class Klue(datasets.GeneratorBasedBuilder):
                     if row:
                         if row[0].startswith("##"):
                             id_ += 1
-                            char, ne_tag = [], []
+                            tokens, ner_tags = [], []
                             sentence = row[1]
                         else:
-                            char.append(row[0])
-                            ne_tag.append(row[1])
+                            tokens.append(row[0])
+                            ner_tags.append(row[1])
                     else:  # new line
-                        assert len(char) == len(ne_tag)
-                        yield id_, {"sentence": sentence, "char": char, "ne_tag": ne_tag}
+                        assert len(tokens) == len(ner_tags)
+                        yield id_, {"sentence": sentence, "tokens": tokens, "ner_tags": ner_tags}
 
         if self.config.name == "dp":
             with open(data_file, encoding="UTF-8") as f:
@@ -470,17 +470,6 @@ class Klue(datasets.GeneratorBasedBuilder):
                             "head": head,
                             "deprel": deprel,
                         }
-                if index:  # last example
-                    assert len(index) == len(word_form) == len(lemma) == len(pos) == len(head) == len(deprel)
-                    yield id_, {
-                        "sentence": sentence,
-                        "index": index,
-                        "word_form": word_form,
-                        "lemma": lemma,
-                        "pos": pos,
-                        "head": head,
-                        "deprel": deprel,
-                    }
 
         if self.config.name == "mrc":
             with open(data_file, encoding="UTF-8") as f:
