@@ -1,28 +1,31 @@
+import json
+import os
+import os.path
 from typing import List
 
 import datasets
 
+from .common import Child, TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-import datasets
-import json
-import os
-import os.path
-from .common import Child
-from .common import TrainValidTestChild
-class CodeXGlueTCTextToCode(Child):
-    _DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
-    _CITATION = """@article{iyer2018mapping,
+
+_DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
+
+_CITATION = """@article{iyer2018mapping,
   title={Mapping language to code in programmatic context},
   author={Iyer, Srinivasan and Konstas, Ioannis and Cheung, Alvin and Zettlemoyer, Luke},
   journal={arXiv preprint arXiv:1808.09588},
   year={2018}
 }"""
 
+
+class CodeXGlueTCTextToCode(Child):
+    _DESCRIPTION = _DESCRIPTION
+    _CITATION = _CITATION
     _FEATURES = {
-        "id": datasets.Value("int32"), # Index of the sample
-        "nl": datasets.Value("string"), # The natural language description of the task
-        "code": datasets.Value("string"), # The programming source code for the task
+        "id": datasets.Value("int32"),  # Index of the sample
+        "nl": datasets.Value("string"),  # The natural language description of the task
+        "code": datasets.Value("string"),  # The programming source code for the task
     }
 
     _SUPERVISED_KEYS = ["code"]
@@ -40,10 +43,9 @@ class CodeXGlueTCTextToCode(Child):
                 yield idx, entry
 
 
-
-CLASS_MAPPING={'CodeXGlueTCTextToCode':CodeXGlueTCTextToCode,
+CLASS_MAPPING = {
+    "CodeXGlueTCTextToCode": CodeXGlueTCTextToCode,
 }
-
 
 
 class CodeXGlueTCTextToCodeMain(datasets.GeneratorBasedBuilder):

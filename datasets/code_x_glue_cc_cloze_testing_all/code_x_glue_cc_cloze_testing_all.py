@@ -1,23 +1,19 @@
+import json
+import os
+import os.path
 from typing import List
 
 import datasets
 
+from .common import Child, TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-import datasets
-import json
-import os
-import os.path
-from .common import Child
-from .common import TrainValidTestChild
 
-
-class CodeXGlueCCClozeTesting(Child):
-    _DESCRIPTION = """Cloze tests are widely adopted in Natural Languages Processing to evaluate the performance of the trained language models. The task is aimed to predict the answers for the blank with the context of the blank, which can be formulated as a multi-choice classification problem.
+_DESCRIPTION = """Cloze tests are widely adopted in Natural Languages Processing to evaluate the performance of the trained language models. The task is aimed to predict the answers for the blank with the context of the blank, which can be formulated as a multi-choice classification problem.
 Here we present the two cloze testing datasets in code domain with six different programming languages: ClozeTest-maxmin and ClozeTest-all. Each instance in the dataset contains a masked code function, its docstring and the target word.
 The only difference between ClozeTest-maxmin and ClozeTest-all is their selected words sets, where ClozeTest-maxmin only contains two words while ClozeTest-all contains 930 words."""
 
-    _CITATION = """@article{CodeXGLUE,
+_CITATION = """@article{CodeXGLUE,
   title={CodeXGLUE: An Open Challenge for Code Intelligence},
   journal={arXiv},
   year={2020},
@@ -34,6 +30,12 @@ The only difference between ClozeTest-maxmin and ClozeTest-all is their selected
   journal={arXiv preprint arXiv:1909.09436},
   year={2019}
 }"""
+
+
+class CodeXGlueCCClozeTesting(Child):
+    _DESCRIPTION = _DESCRIPTION
+
+    _CITATION = _CITATION
 
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample

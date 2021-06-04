@@ -1,19 +1,21 @@
+import json
+import os
+import os.path
 from typing import List
 
 import datasets
 
+from .common import Child, TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-import datasets
-import json
-import os
-import os.path
-from .common import Child
-from .common import TrainValidTestChild
+
+_DESCRIPTION = """We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf). The source side is a Java function with bugs and the target side is the refined one. All the function and variable names are normalized. Their dataset contains two subsets ( i.e.small and medium) based on the function length."""
+
+
 class CodeXGlueCCCodeRefinement(TrainValidTestChild):
-    _DESCRIPTION = """We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf). The source side is a Java function with bugs and the target side is the refined one. All the function and variable names are normalized. Their dataset contains two subsets ( i.e.small and medium) based on the function length."""
+    _DESCRIPTION = _DESCRIPTION
     _FEATURES = {
-        "id": datasets.Value("int32"), # Index of the sample
+        "id": datasets.Value("int32"),  # Index of the sample
         "buggy": datasets.Value("string"),  # The buggy version of the code
         "fixed": datasets.Value("string"),  # The correct version of the code
     }
@@ -45,9 +47,9 @@ class CodeXGlueCCCodeRefinement(TrainValidTestChild):
             id_ += 1
 
 
-CLASS_MAPPING={'CodeXGlueCCCodeRefinement':CodeXGlueCCCodeRefinement,
+CLASS_MAPPING = {
+    "CodeXGlueCCCodeRefinement": CodeXGlueCCCodeRefinement,
 }
-
 
 
 class CodeXGlueCCCodeRefinementMain(datasets.GeneratorBasedBuilder):

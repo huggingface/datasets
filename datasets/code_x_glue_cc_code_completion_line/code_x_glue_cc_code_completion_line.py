@@ -1,23 +1,19 @@
+import json
+import os
+import os.path
 from typing import List
 
 import datasets
 
+from .common import Child, TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-import datasets
-import json
-import os
-import os.path
-from .common import Child
-from .common import TrainValidTestChild
 
-
-class CodeXGlueCCCodeCompletionLine(Child):
-    _DESCRIPTION = """Complete the unfinished line given previous context. Models are evaluated by exact match and edit similarity.
+_DESCRIPTION = """Complete the unfinished line given previous context. Models are evaluated by exact match and edit similarity.
 We propose line completion task to test model's ability to autocomplete a line. Majority code completion systems behave well in token level completion, but fail in completing an unfinished line like a method call with specific parameters, a function signature, a loop condition, a variable definition and so on. When a software develop finish one or more tokens of the current line, the line level completion model is expected to generate the entire line of syntactically correct code.
 Line level code completion task shares the train/dev dataset with token level completion. After training a model on CodeCompletion-token, you could directly use it to test on line-level completion."""
 
-    _CITATION = """@article{raychev2016probabilistic,
+_CITATION = """@article{raychev2016probabilistic,
   title={Probabilistic Model for Code with Decision Trees},
   author={Raychev, Veselin and Bielik, Pavol and Vechev, Martin},
   journal={ACM SIGPLAN Notices},
@@ -33,6 +29,12 @@ Line level code completion task shares the train/dev dataset with token level co
   year={2013},
   organization={IEEE}
 }"""
+
+
+class CodeXGlueCCCodeCompletionLine(Child):
+    _DESCRIPTION = _DESCRIPTION
+
+    _CITATION = _CITATION
 
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample

@@ -1,20 +1,22 @@
+import json
+import os
+import os.path
 from typing import List
 
 import datasets
 
+from .common import Child, TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-import datasets
-import json
-import os
-import os.path
-from .common import Child
-from .common import TrainValidTestChild
-class CodeXGlueCCCodeToCodeTrans(TrainValidTestChild):
-    _DESCRIPTION = """The dataset is collected from several public repos, including Lucene(http://lucene.apache.org/), POI(http://poi.apache.org/), JGit(https://github.com/eclipse/jgit/) and Antlr(https://github.com/antlr/).
+
+_DESCRIPTION = """The dataset is collected from several public repos, including Lucene(http://lucene.apache.org/), POI(http://poi.apache.org/), JGit(https://github.com/eclipse/jgit/) and Antlr(https://github.com/antlr/).
         We collect both the Java and C# versions of the codes and find the parallel functions. After removing duplicates and functions with the empty body, we split the whole dataset into training, validation and test sets."""
+
+
+class CodeXGlueCCCodeToCodeTrans(TrainValidTestChild):
+    _DESCRIPTION = _DESCRIPTION
     _FEATURES = {
-        "id": datasets.Value("int32"), # Index of the sample
+        "id": datasets.Value("int32"),  # Index of the sample
         "java": datasets.Value("string"),  # The java version of the code
         "cs": datasets.Value("string"),  # The C# version of the code
     }
@@ -43,11 +45,9 @@ class CodeXGlueCCCodeToCodeTrans(TrainValidTestChild):
             id_ += 1
 
 
-
-
-CLASS_MAPPING={'CodeXGlueCCCodeToCodeTrans':CodeXGlueCCCodeToCodeTrans,
+CLASS_MAPPING = {
+    "CodeXGlueCCCodeToCodeTrans": CodeXGlueCCCodeToCodeTrans,
 }
-
 
 
 class CodeXGlueCCCodeToCodeTransMain(datasets.GeneratorBasedBuilder):

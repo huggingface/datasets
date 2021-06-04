@@ -1,22 +1,18 @@
+import json
+import os
+import os.path
 from typing import List
 
 import datasets
 
+from .common import Child, TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-import datasets
-import json
-import os
-import os.path
-from .common import Child
-from .common import TrainValidTestChild
 
-
-class CodeXGlueCCCloneDetectionBigCloneBench(TrainValidTestChild):
-    _DESCRIPTION = """Given two codes as the input, the task is to do binary classification (0/1), where 1 stands for semantic equivalence and 0 for others. Models are evaluated by F1 score.
+_DESCRIPTION = """Given two codes as the input, the task is to do binary classification (0/1), where 1 stands for semantic equivalence and 0 for others. Models are evaluated by F1 score.
 The dataset we use is BigCloneBench and filtered following the paper Detecting Code Clones with Graph Neural Network and Flow-Augmented Abstract Syntax Tree."""
 
-    _CITATION = """@inproceedings{svajlenko2014towards,
+_CITATION = """@inproceedings{svajlenko2014towards,
   title={Towards a big data curated benchmark of inter-project code clones},
   author={Svajlenko, Jeffrey and Islam, Judith F and Keivanloo, Iman and Roy, Chanchal K and Mia, Mohammad Mamun},
   booktitle={2014 IEEE International Conference on Software Maintenance and Evolution},
@@ -33,6 +29,11 @@ The dataset we use is BigCloneBench and filtered following the paper Detecting C
   year={2020},
   organization={IEEE}
 }"""
+
+
+class CodeXGlueCCCloneDetectionBigCloneBench(TrainValidTestChild):
+    _DESCRIPTION = _DESCRIPTION
+    _CITATION = _CITATION
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
         "id1": datasets.Value("int32"),  # The first function id

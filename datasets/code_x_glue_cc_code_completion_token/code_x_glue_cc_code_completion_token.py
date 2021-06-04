@@ -1,21 +1,19 @@
+import json
+import os
+import os.path
 from typing import List
 
 import datasets
 
+from .common import Child, TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-import datasets
-import json
-import os
-import os.path
-from .common import Child
-from .common import TrainValidTestChild
-class CodeXGlueCCCodeCompletionToken(Child):
-    _DESCRIPTION = """Predict next code token given context of previous tokens. Models are evaluated by token level accuracy.
+
+_DESCRIPTION = """Predict next code token given context of previous tokens. Models are evaluated by token level accuracy.
     Code completion is a one of the most widely used features in software development through IDEs. An effective code completion tool could improve software developers' productivity. We provide code completion evaluation tasks in two granularities -- token level and line level. Here we introduce token level code completion. Token level task is analogous to language modeling. Models should have be able to predict the next token in arbitary types.
     """
 
-    _CITATION = """@article{raychev2016probabilistic,
+_CITATION = """@article{raychev2016probabilistic,
       title={Probabilistic Model for Code with Decision Trees},
       author={Raychev, Veselin and Bielik, Pavol and Vechev, Martin},
       journal={ACM SIGPLAN Notices},
@@ -31,6 +29,12 @@ class CodeXGlueCCCodeCompletionToken(Child):
       year={2013},
       organization={IEEE}
     }"""
+
+
+class CodeXGlueCCCodeCompletionToken(Child):
+    _DESCRIPTION = _DESCRIPTION
+
+    _CITATION = _CITATION
 
 
 class CodeXGlueCCCodeCompletionTokenJava(CodeXGlueCCCodeCompletionToken):
@@ -69,8 +73,7 @@ class CodeXGlueCCCodeCompletionTokenPython(CodeXGlueCCCodeCompletionToken):
         "code": datasets.features.Sequence(datasets.Value("string")),  # Code Tokens
     }
 
-    PYTHON_FILE_MAPPING = dict(train="python100k_train.txt",
-                               test="python50k_eval.txt")
+    PYTHON_FILE_MAPPING = dict(train="python100k_train.txt", test="python50k_eval.txt")
 
     def generate_urls(self, split_name):
         language = self.info["parameters"]["language"]
@@ -83,6 +86,7 @@ class CodeXGlueCCCodeCompletionTokenPython(CodeXGlueCCCodeCompletionToken):
         # Copyright (c) Microsoft Corporation.
         # Licensed under the MIT License.
         import re
+
         str_quote_options = ["'''", '"""', "'", '"']
         start_quote = ""
         end_quote = ""
@@ -97,7 +101,7 @@ class CodeXGlueCCCodeCompletionTokenPython(CodeXGlueCCCodeCompletionToken):
         for q in str_quote_options:
             if token_string.startswith(q):
                 start_quote = q
-                str_lit = str_lit[len(q):]
+                str_lit = str_lit[len(q) :]
                 if token_string.endswith(q):
                     end_quote = q
                     str_lit = str_lit[: -len(q)]
@@ -106,16 +110,20 @@ class CodeXGlueCCCodeCompletionTokenPython(CodeXGlueCCCodeCompletionToken):
             return ""
         return (
             f"{qualifier}{start_quote}{str_lit}{end_quote}"
-            if len(
-                str_lit) < 15 and "\n" not in str_lit and "</s>" not in str_lit and "<s>" not in str_lit and "<pad>" not in str_lit and "<EOL>" not in str_lit
+            if len(str_lit) < 15
+            and "\n" not in str_lit
+            and "</s>" not in str_lit
+            and "<s>" not in str_lit
+            and "<pad>" not in str_lit
+            and "<EOL>" not in str_lit
             else f"{qualifier}{start_quote}{end_quote}"
         )
 
     def py_tokenize(self, base_dir, file_name):
         # Copyright (c) Microsoft Corporation.
         # Licensed under the MIT License.
-        from tokenize import tokenize, untokenize, COMMENT, STRING, NEWLINE, ENCODING, ENDMARKER, NL, INDENT, NUMBER
         from io import BytesIO
+        from tokenize import COMMENT, ENCODING, ENDMARKER, INDENT, NEWLINE, NL, NUMBER, STRING, tokenize, untokenize
 
         file_paths = open(os.path.join(base_dir, file_name)).readlines()
         for ct, path in enumerate(file_paths):
@@ -163,6 +171,7 @@ class CodeXGlueCCCodeCompletionTokenPython(CodeXGlueCCCodeCompletionToken):
         if not os.path.exists(mark_file):
             import gzip
             import tarfile
+
             gzip_filename = os.path.join(base_dir, "data.tar.gz")
             with gzip.open(gzip_filename, "rb") as gzip_file:
                 t = tarfile.TarFile(fileobj=gzip_file)
@@ -174,16 +183,15 @@ class CodeXGlueCCCodeCompletionTokenPython(CodeXGlueCCCodeCompletionToken):
         idx = 0
         for entry in self.py_tokenize(base_dir=base_dir, file_name=filename):
             path, out_tokens = entry
-            path = path[len("data/"):]
+            path = path[len("data/") :]
             yield idx, dict(id=idx, path=path, code=out_tokens)
             idx += 1
 
 
-
-CLASS_MAPPING={'CodeXGlueCCCodeCompletionTokenJava':CodeXGlueCCCodeCompletionTokenJava,
-'CodeXGlueCCCodeCompletionTokenPython':CodeXGlueCCCodeCompletionTokenPython,
+CLASS_MAPPING = {
+    "CodeXGlueCCCodeCompletionTokenJava": CodeXGlueCCCodeCompletionTokenJava,
+    "CodeXGlueCCCodeCompletionTokenPython": CodeXGlueCCCodeCompletionTokenPython,
 }
-
 
 
 class CodeXGlueCCCodeCompletionTokenMain(datasets.GeneratorBasedBuilder):

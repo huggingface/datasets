@@ -1,24 +1,24 @@
+import json
+import os
+import os.path
 from typing import List
 
 import datasets
 
+from .common import Child, TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-import datasets
-import json
-import os
-import os.path
-from .common import Child
-from .common import TrainValidTestChild
-class CodeXGlueTTTextToText(Child):
-    _DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
 
+_DESCRIPTION = """The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/."""
+
+
+class CodeXGlueTTTextToText(Child):
+    _DESCRIPTION = _DESCRIPTION
     _FEATURES = {
-        "id": datasets.Value("int32"), # The index of the sample
+        "id": datasets.Value("int32"),  # The index of the sample
         "source": datasets.Value("string"),  # The source language version of the text
         "target": datasets.Value("string"),  # The target language version of the text
     }
-
     _SUPERVISED_KEYS = ["target"]
 
     KEYS = ["source", "target"]
@@ -49,9 +49,10 @@ class CodeXGlueTTTextToText(Child):
             yield id_, entries
             id_ += 1
 
-CLASS_MAPPING={'CodeXGlueTTTextToText':CodeXGlueTTTextToText,
-}
 
+CLASS_MAPPING = {
+    "CodeXGlueTTTextToText": CodeXGlueTTTextToText,
+}
 
 
 class CodeXGlueTTTextToTextMain(datasets.GeneratorBasedBuilder):

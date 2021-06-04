@@ -1,35 +1,39 @@
+import json
+import os
+import os.path
 from typing import List
 
 import datasets
 
+from .common import Child, TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
-import datasets
-import json
-import os
-import os.path
-from .common import Child
-from .common import TrainValidTestChild
-class CodeXGlueCCCloneDetectionPOJ104(TrainValidTestChild):
-    _DESCRIPTION = """Given a code and a collection of candidates as the input, the task is to return Top K codes with the same semantic. Models are evaluated by MAP score.
+
+_DESCRIPTION = """Given a code and a collection of candidates as the input, the task is to return Top K codes with the same semantic. Models are evaluated by MAP score.
 We use POJ-104 dataset on this task."""
 
-    _CITATION = """@inproceedings{mou2016convolutional,
+_CITATION = """@inproceedings{mou2016convolutional,
   title={Convolutional neural networks over tree structures for programming language processing},
   author={Mou, Lili and Li, Ge and Zhang, Lu and Wang, Tao and Jin, Zhi},
   booktitle={Proceedings of the Thirtieth AAAI Conference on Artificial Intelligence},
   pages={1287--1293},
   year={2016}
 }"""
+
+
+class CodeXGlueCCCloneDetectionPOJ104(TrainValidTestChild):
+    _DESCRIPTION = _DESCRIPTION
+
+    _CITATION = _CITATION
     _FEATURES = {
         "id": datasets.Value("int32"),  # Index of the sample
-        "code": datasets.Value("string"), # The full text of the function
+        "code": datasets.Value("string"),  # The full text of the function
         "label": datasets.Value("string"),  # The id of problem that the source code solves
     }
 
     _SUPERVISED_KEYS = ["label"]
 
-    SPLIT_RANGES = {"train": (1, 65), "valid":(65,81), "test":(81, 195)}
+    SPLIT_RANGES = {"train": (1, 65), "valid": (65, 81), "test": (81, 195)}
 
     def generate_urls(self, split_name):
         yield "data", "programs.tar.gz"
@@ -45,15 +49,15 @@ We use POJ-104 dataset on this task."""
 
         cont = 0
         for split_name, range_info in self.SPLIT_RANGES.items():
-            with open(os.path.join(root_path, f"{split_name}.jsonl"), 'w') as f:
+            with open(os.path.join(root_path, f"{split_name}.jsonl"), "w") as f:
                 for i in range(*range_info):
                     items = files(os.path.join(root_path, "ProgramData/{}".format(i)))
                     for item in items:
                         js = {}
-                        js['label'] = item.split('/')[1]
-                        js['index'] = str(cont)
-                        js['code'] = open(item, encoding='latin-1').read()
-                        f.write(json.dumps(js) + '\n')
+                        js["label"] = item.split("/")[1]
+                        js["index"] = str(cont)
+                        js["code"] = open(item, encoding="latin-1").read()
+                        f.write(json.dumps(js) + "\n")
                         cont += 1
 
     def _generate_examples(self, split_name, file_paths):
@@ -78,10 +82,9 @@ We use POJ-104 dataset on this task."""
                 yield idx, e
 
 
-
-CLASS_MAPPING={'CodeXGlueCCCloneDetectionPOJ104':CodeXGlueCCCloneDetectionPOJ104,
+CLASS_MAPPING = {
+    "CodeXGlueCCCloneDetectionPOJ104": CodeXGlueCCCloneDetectionPOJ104,
 }
-
 
 
 class CodeXGlueCCCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
