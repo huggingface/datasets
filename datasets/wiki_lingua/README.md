@@ -187,7 +187,27 @@ ______________________________
 
 ### Data Splits
 
-[More Information Needed]
+|            |   train |
+|:-----------|--------:|
+| arabic     |    9995 |
+| chinese    |    6541 |
+| czech      |    2520 |
+| dutch      |   10862 |
+| english    |   57945 |
+| french     |   21690 |
+| german     |   20103 |
+| hindi      |    3402 |
+| indonesian |   16308 |
+| italian    |   17673 |
+| japanese   |    4372 |
+| korean     |    4111 |
+| portuguese |   28143 |
+| russian    |   18143 |
+| spanish    |    6616 |
+| thai       |    5093 |
+| turkish    |    1512 |
+| vietnamese |    6616 |
+
 ## Dataset Creation
 
 ### Curation Rationale
@@ -250,7 +270,15 @@ ______________________________
 
 ### Citation Information
 
-[More Information Needed]
+```bibtex
+@article{ladhak-wiki-2020,
+  title   = {WikiLingua: A New Benchmark Dataset for Multilingual Abstractive Summarization},
+  authors = {Faisal Ladhak, Esin Durmus, Claire Cardie and Kathleen McKeown},
+  journal = {arXiv preprint arXiv:2010.03093},
+  year    = {2020},
+  url     = {https://arxiv.org/abs/2010.03093}
+}
+```
 
 ### Contributions
 
