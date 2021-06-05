@@ -111,6 +111,12 @@ In the following each data field in go is explained for each config. The data fi
 
 ### Annotations
 
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
 [More Information Needed]
 
 ### Personal and Sensitive Information

@@ -198,6 +198,12 @@ Software Engineering developers.
 
 ### Annotations
 
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
 [More Information Needed]
 
 ### Personal and Sensitive Information

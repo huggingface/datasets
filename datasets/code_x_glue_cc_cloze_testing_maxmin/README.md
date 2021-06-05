@@ -179,7 +179,13 @@ In the following each data field in go is explained for each config. The data fi
 |python    | 1264|
 |ruby      |   38|
 
-### Source Data(#source-data)
+## Dataset Creation
+
+### Curation Rationale
+
+[More Information Needed]
+
+### Source Data
 
 #### Initial Data Collection and Normalization
 
@@ -189,19 +195,14 @@ Data from CodeSearchNet Challenge dataset.
 #### Who are the source language producers?
 
 Software Engineering developers.
-## Dataset Creation
-
-### Curation Rationale
-
-[More Information Needed]
-
-### Source Data
-
-Data from CodeSearchNet Challenge dataset.
-
-[More Information Needed]
 
 ### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
 
 [More Information Needed]
 

@@ -119,7 +119,12 @@ Data was mined from the IJaDataset 2.0 dataset.
 
 ### Annotations
 
+#### Annotation process
+
 Data was manually labeled by three judges by automatically identifying potential clones using search heuristics.
+[More Information Needed]
+
+#### Who are the annotators?
 
 [More Information Needed]
 
