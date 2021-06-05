@@ -23,7 +23,7 @@ size_categories:
   ruby:
   - 1K<n<10K
 source_datasets:
-- code_search_net
+- original
 task_categories:
 - sequence-modeling
 task_ids:

@@ -13,7 +13,7 @@ multilinguality:
 size_categories:
 - 100K<n<1M
 source_datasets:
-- code_search_net
+- original
 task_categories:
 - text-retrieval
 task_ids:
