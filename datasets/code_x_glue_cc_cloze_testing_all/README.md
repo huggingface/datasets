@@ -22,7 +22,8 @@ size_categories:
   - 10K<n<100K
   ruby:
   - 1K<n<10K
-source_datasets: []
+source_datasets:
+- code_search_net
 task_categories:
 - sequence-modeling
 task_ids:

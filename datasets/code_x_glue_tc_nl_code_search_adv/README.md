@@ -12,7 +12,8 @@ multilinguality:
 - other-programming-languages
 size_categories:
 - 100K<n<1M
-source_datasets: []
+source_datasets:
+- code_search_net
 task_categories:
 - text-retrieval
 task_ids:
