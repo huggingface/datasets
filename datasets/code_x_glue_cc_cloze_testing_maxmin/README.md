@@ -225,17 +225,17 @@ Software Engineering developers.
 
 [More Information Needed]
 
-## [Additional Information](#additional-information)
+## Additional Information
 
-### [Dataset Curators](#dataset-curators)
+### Dataset Curators
 
 https://github.com/microsoft, https://github.com/madlag
 
-### [Licensing Information](#licensing-information)
+### Licensing Information
 
 Computational Use of Data Agreement (C-UDA) License.
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @article{CodeXGLUE,
