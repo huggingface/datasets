@@ -33,12 +33,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits-sample-size)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -66,7 +66,7 @@ Cloze tests are widely adopted in Natural Languages Processing to evaluate the p
 Here we present the two cloze testing datasets in code domain with six different programming languages: ClozeTest-maxmin and ClozeTest-all. Each instance in the dataset contains a masked code function, its docstring and the target word.
 The only difference between ClozeTest-maxmin and ClozeTest-all is their selected words sets, where ClozeTest-maxmin only contains two words while ClozeTest-all contains 930 words.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 - `slot-filling`: The dataset can be used to train a model for predicting the missing token from a piece of code, similar to the Cloze test.
 
@@ -168,7 +168,7 @@ In the following each data field in go is explained for each config. The data fi
 |nl_tokens |Sequence[string]| Natural language tokens      |
 |pl_tokens |Sequence[string]| Programming language tokens  |
 
-### Data Splits Sample Size
+### Data Splits
 
 |   name   |train|
 |----------|----:|

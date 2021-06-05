@@ -23,12 +23,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits-sample-size)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -55,7 +55,7 @@ CodeXGLUE code-to-code-trans dataset, available at https://github.com/microsoft/
 The dataset is collected from several public repos, including Lucene(http://lucene.apache.org/), POI(http://poi.apache.org/), JGit(https://github.com/eclipse/jgit/) and Antlr(https://github.com/antlr/).
         We collect both the Java and C# versions of the codes and find the parallel functions. After removing duplicates and functions with the empty body, we split the whole dataset into training, validation and test sets.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 - `machine-translation`: The dataset can be used to train a model for translating code in Java to C# and vice versa.
 
@@ -89,7 +89,7 @@ In the following each data field in go is explained for each config. The data fi
 |java      |string| The java version of the code|
 |cs        |string| The C# version of the code  |
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train|validation|test|
 |-------|----:|---------:|---:|

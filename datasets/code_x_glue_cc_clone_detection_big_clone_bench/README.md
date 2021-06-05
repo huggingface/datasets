@@ -23,12 +23,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits-sample-size)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -55,7 +55,7 @@ CodeXGLUE Clone-detection-BigCloneBench dataset, available at https://github.com
 Given two codes as the input, the task is to do binary classification (0/1), where 1 stands for semantic equivalence and 0 for others. Models are evaluated by F1 score.
 The dataset we use is BigCloneBench and filtered following the paper Detecting Code Clones with Graph Neural Network and Flow-Augmented Abstract Syntax Tree.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 - `semantic-similarity-classification`: The dataset can be used to train a model for classifying if two given java methods are cloens of each other.
 
@@ -94,7 +94,7 @@ In the following each data field in go is explained for each config. The data fi
 |func2     |string| The full text of the second function              |
 |label     |bool  | 1 is the functions are not equivalent, 0 otherwise|
 
-### Data Splits Sample Size
+### Data Splits
 
 | name  |train |validation| test |
 |-------|-----:|---------:|-----:|

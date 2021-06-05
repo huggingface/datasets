@@ -23,12 +23,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits-sample-size)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -55,7 +55,7 @@ CodeXGLUE CodeCompletion-token dataset, available at https://github.com/microsof
 Predict next code token given context of previous tokens. Models are evaluated by token level accuracy.
     Code completion is a one of the most widely used features in software development through IDEs. An effective code completion tool could improve software developers' productivity. We provide code completion evaluation tasks in two granularities -- token level and line level. Here we introduce token level code completion. Token level task is analogous to language modeling. Models should have be able to predict the next token in arbitary types.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 - `language-modeling`: The dataset can be used to train a model for completing single code tokens.
 
@@ -108,7 +108,7 @@ In the following each data field in go is explained for each config. The data fi
 |path      |string          | Original path in the dataset|
 |code      |Sequence[string]| Code Tokens                 |
 
-### Data Splits Sample Size
+### Data Splits
 
 #### java
 

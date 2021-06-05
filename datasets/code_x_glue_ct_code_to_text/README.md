@@ -35,12 +35,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits-sample-size)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -70,7 +70,7 @@ The dataset we use comes from CodeSearchNet and we filter the dataset as the fol
 - Remove examples that documents contain special tokens (e.g. <img ...> or https:...)
 - Remove examples that documents are not English.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 - `machine-translation`: The dataset can be used to train a model for automatically generating **English** docstrings for code.
 
@@ -229,7 +229,7 @@ In the following each data field in go is explained for each config. The data fi
 |sha             |string          | sha of the file                                                                   |
 |url             |string          | url of the file                                                                   |
 
-### Data Splits Sample Size
+### Data Splits
 
 |   name   |train |validation|test |
 |----------|-----:|---------:|----:|

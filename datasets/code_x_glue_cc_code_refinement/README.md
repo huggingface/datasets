@@ -24,12 +24,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits-sample-size)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -55,7 +55,7 @@ CodeXGLUE code-refinement dataset, available at https://github.com/microsoft/Cod
 
 We use the dataset released by this paper(https://arxiv.org/pdf/1812.08693.pdf). The source side is a Java function with bugs and the target side is the refined one. All the function and variable names are normalized. Their dataset contains two subsets ( i.e.small and medium) based on the function length.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 - `conditional-text-generation-other-debugging`: The dataset can be used to train a model for automatically fixing buggy code.
 
@@ -101,7 +101,7 @@ In the following each data field in go is explained for each config. The data fi
 |buggy     |string| The buggy version of the code  |
 |fixed     |string| The correct version of the code|
 
-### Data Splits Sample Size
+### Data Splits
 
 | name |train|validation|test|
 |------|----:|---------:|---:|

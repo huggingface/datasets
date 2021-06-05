@@ -27,12 +27,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits-sample-size)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -58,7 +58,7 @@ CodeXGLUE text-to-text dataset, available at https://github.com/microsoft/CodeXG
 
 The dataset we use is crawled and filtered from Microsoft Documentation, whose document located at https://github.com/MicrosoftDocs/.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 - `machine-translation`: The dataset can be used to train a model for translating Technical documentation between languages.
 
@@ -126,7 +126,7 @@ In the following each data field in go is explained for each config. The data fi
 |source    |string| The source language version of the text|
 |target    |string| The target language version of the text|
 
-### Data Splits Sample Size
+### Data Splits
 
 |name |train|validation|test|
 |-----|----:|---------:|---:|

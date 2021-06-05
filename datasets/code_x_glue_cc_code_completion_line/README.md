@@ -33,12 +33,12 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks)
+  - [Supported Tasks and Leaderboards](#supported-tasks)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-fields)
-  - [Data Splits Sample Size](#data-splits-sample-size)
+  - [Data Splits](#data-splits-sample-size)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -66,7 +66,7 @@ Complete the unfinished line given previous context. Models are evaluated by exa
 We propose line completion task to test model's ability to autocomplete a line. Majority code completion systems behave well in token level completion, but fail in completing an unfinished line like a method call with specific parameters, a function signature, a loop condition, a variable definition and so on. When a software develop finish one or more tokens of the current line, the line level completion model is expected to generate the entire line of syntactically correct code.
 Line level code completion task shares the train/dev dataset with token level completion. After training a model on CodeCompletion-token, you could directly use it to test on line-level completion.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 - `slot-filling`: The dataset can be used to train a model for completing entire code lines.
 
@@ -113,7 +113,7 @@ In the following each data field in go is explained for each config. The data fi
 |input     |string| Input code string          |
 |gt        |string| Code string to be predicted|
 
-### Data Splits Sample Size
+### Data Splits
 
 | name |train|
 |------|----:|
