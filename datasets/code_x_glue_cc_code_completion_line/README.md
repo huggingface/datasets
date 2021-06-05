@@ -128,6 +128,12 @@ In the following each data field in go is explained for each config. The data fi
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+#### Who are the source language producers?
+
 [More Information Needed]
 
 ### Annotations

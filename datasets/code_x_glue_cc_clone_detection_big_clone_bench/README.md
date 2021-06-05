@@ -108,7 +108,12 @@ In the following each data field in go is explained for each config. The data fi
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
 Data was mined from the IJaDataset 2.0 dataset.
+[More Information Needed]
+
+#### Who are the source language producers?
 
 [More Information Needed]
 

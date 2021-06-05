@@ -181,9 +181,14 @@ In the following each data field in go is explained for each config. The data fi
 
 ### Source Data(#source-data)
 
+#### Initial Data Collection and Normalization
 
+Data from CodeSearchNet Challenge dataset.
 [More Information Needed]
 
+#### Who are the source language producers?
+
+Software Engineering developers.
 ## Dataset Creation
 
 ### Curation Rationale

@@ -116,9 +116,14 @@ In the following each data field in go is explained for each config. The data fi
 
 ### Source Data
 
-Downloaded from GitHub Archive every public GitHub event between March 2011 and October 2017 and used the Google BigQuery APIs.
+#### Initial Data Collection and Normalization
 
+Downloaded from GitHub Archive every public GitHub event between March 2011 and October 2017 and used the Google BigQuery APIs.
 [More Information Needed]
+
+#### Who are the source language producers?
+
+Software Engineering developers.
 
 ### Annotations
 
