@@ -129,7 +129,7 @@ Software Engineering developers.
 
 #### Annotation process
 
-Automatically annotated by filtering commit messages containing the pattern: (“fix” or “solve”) and (“bug” or “issue” or “problem” or “error”). A statistically significant amount of samples (95% confidence level with +/- 5% confidence interval) were manually evaluated by two authors to check if the filtered bug/fix pairs were correct. After all disagreements were settled, authors conclude that 97.6% were true positives.
+Automatically annotated by filtering commit messages containing the pattern: (“fix” or “solve”) and (“bug” or “issue” or “problem” or “error”). A statistically significant amount of samples (95% confidence level with 5% confidence interval) were manually evaluated by two authors to check if the filtered bug/fix pairs were correct. After all disagreements were settled, authors conclude that 97.6% were true positives.
 
 #### Who are the annotators?
 
