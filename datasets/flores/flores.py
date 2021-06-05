@@ -119,6 +119,7 @@ class Flores(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs=files["dev"]),
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs=files["devtest"]),
         ]
+
     def _generate_examples(self, source_file, target_file):
         """This function returns the examples in the raw (text) form."""
         with open(source_file, encoding="utf-8") as f:
