@@ -1,4 +1,23 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+- extractive-qa
 paperswithcode_id: squad
 ---
 
@@ -95,9 +114,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|  name  |train |validation|
-|--------|-----:|---------:|
-|squad_v2|130319|     11873|
+| name     |  train | validation |
+| -------- | -----: | ---------: |
+| squad_v2 | 130319 |      11873 |
 
 ## Dataset Creation
 
