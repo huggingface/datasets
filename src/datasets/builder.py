@@ -45,7 +45,6 @@ from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.logging import WARNING, get_logger
-from .utils.streaming_download_manager import StreamingDownloadManager
 
 
 logger = get_logger(__name__)
@@ -849,6 +848,14 @@ class DatasetBuilder:
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
+        if not config.AIOHTTP_AVAILABLE:
+            raise ImportError(
+                f"To be able to use dataset streaming, you need to install dependencies like aiohttp "
+                f"using 'pip install datasets[streaming]' or 'pip install aiohttp' for instance"
+            )
+
+        from .utils.streaming_download_manager import StreamingDownloadManager
+
         dl_manager = StreamingDownloadManager(
             base_path=base_path,
             download_config=DownloadConfig(use_auth_token=use_auth_token),
