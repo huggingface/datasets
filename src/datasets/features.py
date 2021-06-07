@@ -817,8 +817,8 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, Features):
         return pa.struct(
-            {key: get_nested_type(schema[key]) for key in sorted(schema)}
-        )  # sort to make the order of columns deterministic
+            {key: get_nested_type(schema[key]) for key in schema}
+        )  # Features is subclass of dict, and dict order is deterministic since Python 3.7
     elif isinstance(schema, dict):
         return pa.struct(
             {key: get_nested_type(schema[key]) for key in schema}
