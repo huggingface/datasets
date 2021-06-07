@@ -272,7 +272,7 @@ class ArrowWriter:
             return
 
         # Since current_examples contains (example, key) tuples
-        cols = sorted(self.current_examples[0][0].keys())
+        cols = self.current_examples[0][0].keys()
 
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
