@@ -307,7 +307,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_filename: Optional[str] = None,
-        keep_in_memory: bool = False,
+        in_memory: bool = False,
     ) -> "Dataset":
         """Instantiate a Dataset backed by an Arrow table at filename.
 
@@ -316,15 +316,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (:class:`NamedSplit`, optional): Name of the dataset split.
             indices_filename (:obj:`str`, optional): File names of the indices.
-            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
 
         Returns:
             :class:`Dataset`
         """
-        table = ArrowReader.read_table(filename, in_memory=keep_in_memory)
+        table = ArrowReader.read_table(filename, in_memory=in_memory)
 
         if indices_filename is not None:
-            indices_pa_table = ArrowReader.read_table(indices_filename, in_memory=keep_in_memory)
+            indices_pa_table = ArrowReader.read_table(indices_filename, in_memory=in_memory)
         else:
             indices_pa_table = None
 
