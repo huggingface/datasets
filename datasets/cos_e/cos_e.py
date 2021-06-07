@@ -56,7 +56,7 @@ _CQA_V1_0_URL_TEST = _COS_E_URL + "v1.0/test_rand_split_no_answers.jsonl"
 def _download_and_index_cqa(dl_manager, name):
     """Downloads CQA and returns it, indexed by id, for joining with Cos-E."""
 
-    downloaded_files = dl_manager.download(
+    downloaded_files = dl_manager.download_and_extract(
         {
             "cqa_train": _CQA_V1_11_URL_TRAIN if name == "v1.11" else _CQA_V1_0_URL_TRAIN,
             "cqa_dev": _CQA_V1_11_URL_DEV if name == "v1.11" else _CQA_V1_0_URL_DEV,
@@ -147,7 +147,7 @@ class CosE(datasets.GeneratorBasedBuilder):
         cqa_indexed = _download_and_index_cqa(dl_manager, self.config.name)
 
         if self.config.name == "v1.11":
-            files = dl_manager.download(
+            files = dl_manager.download_and_extract(
                 {
                     "dev": [_COS_E_URL + "v1.11/cose_dev_v1.11_processed.jsonl"],
                     "train": [_COS_E_URL + "v1.11/cose_train_v1.11_processed.jsonl"],
@@ -155,7 +155,7 @@ class CosE(datasets.GeneratorBasedBuilder):
             )
 
         elif self.config.name == "v1.0":
-            files = dl_manager.download(
+            files = dl_manager.download_and_extract(
                 {
                     "dev": [_COS_E_URL + "v1.0/cose_dev_v1.0_processed.jsonl"],
                     "train": [_COS_E_URL + "v1.0/cose_train_v1.0_processed.jsonl"],

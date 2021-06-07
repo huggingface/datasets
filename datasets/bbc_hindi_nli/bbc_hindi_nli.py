@@ -133,9 +133,9 @@ class BbcHindiNLI(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        train_path = dl_manager.download(_TRAIN_DOWNLOAD_URL)
-        test_path = dl_manager.download(_TEST_DOWNLOAD_URL)
-        valid_path = dl_manager.download(_VALID_DOWNLOAD_URL)
+        train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
+        test_path = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
+        valid_path = dl_manager.download_and_extract(_VALID_DOWNLOAD_URL)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),

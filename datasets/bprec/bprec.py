@@ -171,7 +171,7 @@ class Bprec(datasets.GeneratorBasedBuilder):
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         _my_urls = [_URLs[cat] for cat in self.config.categories]
 
-        downloaded_files = dl_manager.download(_my_urls)
+        downloaded_files = dl_manager.download_and_extract(_my_urls)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filedirs": downloaded_files}),

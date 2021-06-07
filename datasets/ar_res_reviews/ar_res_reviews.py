@@ -67,7 +67,7 @@ class ArResReviews(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        data_dir = dl_manager.download(_DOWNLOAD_URL)
+        data_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir}),
         ]

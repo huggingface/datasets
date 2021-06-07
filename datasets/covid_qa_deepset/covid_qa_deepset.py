@@ -86,7 +86,7 @@ class CovidQADeepset(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         url = _URLs[self.config.name]
-        downloaded_filepath = dl_manager.download(url)
+        downloaded_filepath = dl_manager.download_and_extract(url)
 
         return [
             datasets.SplitGenerator(

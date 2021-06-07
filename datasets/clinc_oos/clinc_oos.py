@@ -256,7 +256,7 @@ class ClincOos(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        file_ = dl_manager.download(self.config.data_url)
+        file_ = dl_manager.download_and_extract(self.config.data_url)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": file_, "split": "train"}),

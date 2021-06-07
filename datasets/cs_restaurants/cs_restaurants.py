@@ -78,9 +78,9 @@ class CSRestaurants(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         master_url = _URLs[self.config.name]
-        train_path = dl_manager.download(master_url + "train.json")
-        valid_path = dl_manager.download(master_url + "devel.json")
-        test_path = dl_manager.download(master_url + "test.json")
+        train_path = dl_manager.download_and_extract(master_url + "train.json")
+        valid_path = dl_manager.download_and_extract(master_url + "devel.json")
+        test_path = dl_manager.download_and_extract(master_url + "test.json")
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),

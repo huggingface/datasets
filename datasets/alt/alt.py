@@ -194,7 +194,7 @@ class Alt(datasets.GeneratorBasedBuilder):
         else:
             data_split = {}
             for k in _SPLIT:
-                data_split[k] = dl_manager.download(_SPLIT[k])
+                data_split[k] = dl_manager.download_and_extract(_SPLIT[k])
 
             return [
                 datasets.SplitGenerator(

@@ -126,7 +126,7 @@ class CuriosityDialogs(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        data_dir = dl_manager.download(_URLs)
+        data_dir = dl_manager.download_and_extract(_URLs)
         return [
             datasets.SplitGenerator(
                 name="train",

@@ -73,7 +73,7 @@ class BnHateSpeech(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        train_path = dl_manager.download(_URL)
+        train_path = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
         ]

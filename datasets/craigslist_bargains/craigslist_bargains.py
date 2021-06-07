@@ -106,7 +106,7 @@ class CraigslistBargains(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         my_urls = _URLs
-        data_dir = dl_manager.download(my_urls)
+        data_dir = dl_manager.download_and_extract(my_urls)
 
         return [
             datasets.SplitGenerator(
