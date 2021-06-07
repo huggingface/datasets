@@ -163,7 +163,14 @@ If you want to cite this framework you can use this:
                   Kevin Canwen Xu and
                   Lewis Tunstall and
                   Nicolas Patry and
-                  Angelina McMillan-Major},
+                  Angelina McMillan-Major and
+                  Philipp Schmid and
+                  Sylvain Gugger and
+                  Lysandre Debut and
+                  Clément Delangue and
+                  Théo Matussière and
+                  Stas Bekman and
+                  François Lagunas},
   title        = {huggingface/datasets: 1.7.0},
   month        = may,
   year         = 2021,
