@@ -69,6 +69,7 @@ task_ids:
   - parsing
   webnlg_challenge_2017:
   - other-stuctured-to-text
+paperswithcode_id: webnlg
 ---
 
 # Dataset Card for WebNLG

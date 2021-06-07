@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: wiqa
 ---
 
 # Dataset Card for "wiqa"

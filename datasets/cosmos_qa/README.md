@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: cosmosqa
 ---
 
 # Dataset Card for "cosmos_qa"

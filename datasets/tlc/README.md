@@ -18,6 +18,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: null
 ---
 
 # Dataset Card for Thai Literature Corpora (TLC)

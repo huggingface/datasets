@@ -45,7 +45,7 @@ _HOMEPAGE = "https://github.com/rezacsedu/Bengali-Hate-Speech-Dataset"
 
 _LICENSE = "MIT License"
 
-_URL = "https://raw.githubusercontent.com/rezacsedu/Bengali-Hate-Speech-Dataset/main/Bengali_%20Hate_Speech_Dataset_Subset.csv"
+_URL = "https://raw.githubusercontent.com/rezacsedu/Bengali-Hate-Speech-Dataset/main/bengali_%20hate_v1.0.csv"
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case

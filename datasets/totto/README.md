@@ -17,6 +17,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - table-to-text
+paperswithcode_id: totto
 ---
 
 # Dataset Card Creation Guide

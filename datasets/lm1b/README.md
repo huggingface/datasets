@@ -1,3 +1,6 @@
+---
+paperswithcode_id: billion-word-benchmark
+---
 
 ### Contributions
 

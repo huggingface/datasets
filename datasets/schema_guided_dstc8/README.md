@@ -22,6 +22,7 @@ task_ids:
 - dialogue-modeling
 - multi-class-classification
 - parsing
+paperswithcode_id: sgd
 ---
 
 # Dataset Card for The Schema-Guided Dialogue Dataset

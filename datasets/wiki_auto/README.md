@@ -26,6 +26,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - text-simplification
+paperswithcode_id: null
 ---
 
 # Dataset Card for WikiAuto

@@ -19,7 +19,7 @@ languages:
 - km
 - ms
 - nl
-- "no"
+- 'no'
 - pl
 - pt
 - ru
@@ -42,6 +42,7 @@ task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+paperswithcode_id: mkqa
 ---
 
 # Dataset Card for MKQA: Multilingual Knowledge Questions & Answers

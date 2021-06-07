@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: xquad
 ---
 
 # Dataset Card for "xquad"

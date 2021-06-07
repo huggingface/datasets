@@ -1,7 +1,7 @@
 import json
 import logging
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -55,7 +55,7 @@ class NoDuplicateSafeLoader(yaml.SafeLoader):
 
 
 def yaml_block_from_readme(path: Path) -> Optional[str]:
-    with path.open() as readme_file:
+    with open(path, encoding="utf-8") as readme_file:
         content = [line.rstrip("\n") for line in readme_file]
 
     if content[0] == "---" and "---" in content[1:]:
@@ -99,13 +99,23 @@ def escape_validation_for_predicate(
 
 
 def validate_metadata_type(metadata_dict: dict):
-    basic_typing_errors = {
+    fields_types = {field.name: field.type for field in fields(DatasetMetadata)}
+    list_typing_errors = {
         name: value
         for name, value in metadata_dict.items()
-        if not isinstance(value, list) or len(value) == 0 or not isinstance(value[0], str)
+        if fields_types.get(name, List[str]) == List[str]
+        and (not isinstance(value, list) or len(value) == 0 or not isinstance(value[0], str))
     }
-    if len(basic_typing_errors) > 0:
-        raise TypeError(f"Found fields that are not non-empty list of strings: {basic_typing_errors}")
+    if len(list_typing_errors) > 0:
+        raise TypeError(f"Found fields that are not non-empty list of strings: {list_typing_errors}")
+
+    other_typing_errors = {
+        name: value
+        for name, value in metadata_dict.items()
+        if fields_types.get(name, List[str]) != List[str] and isinstance(value, list)
+    }
+    if len(other_typing_errors) > 0:
+        raise TypeError(f"Found fields that are lists instead of single strings: {other_typing_errors}")
 
 
 @dataclass
@@ -119,6 +129,7 @@ class DatasetMetadata:
     source_datasets: List[str]
     task_categories: List[str]
     task_ids: List[str]
+    paperswithcode_id: Optional[str] = None
 
     def __post_init__(self):
         validate_metadata_type(metadata_dict=vars(self))
@@ -134,6 +145,9 @@ class DatasetMetadata:
         self.source_datasets, source_datasets_errors = self.validate_source_datasets(self.source_datasets)
         self.task_categories, task_categories_errors = self.validate_task_categories(self.task_categories)
         self.task_ids, task_ids_errors = self.validate_task_ids(self.task_ids)
+        self.paperswithcode_id, paperswithcode_id_errors = self.validate_paperswithcode_id_errors(
+            self.paperswithcode_id
+        )
 
         errors = {
             "annotations_creators": annotations_creators_errors,
@@ -145,6 +159,7 @@ class DatasetMetadata:
             "task_categories": task_categories_errors,
             "task_ids": task_ids_errors,
             "languages": languages_errors,
+            "paperswithcode_id": paperswithcode_id_errors,
         }
 
         exception_msg_dict = dict()
@@ -270,6 +285,19 @@ class DatasetMetadata:
             )
 
         return sources, None
+
+    @staticmethod
+    def validate_paperswithcode_id_errors(paperswithcode_id: Optional[str]) -> ValidatorOutput:
+        if paperswithcode_id is None:
+            return paperswithcode_id, None
+        else:
+            if " " in paperswithcode_id or paperswithcode_id.lower() != paperswithcode_id:
+                return (
+                    None,
+                    f"The paperswithcode_id must be lower case and not contain spaces but got {paperswithcode_id}. You can find the paperswithcode_id in the URL of the dataset page on paperswithcode.com.",
+                )
+            else:
+                return paperswithcode_id, None
 
 
 if __name__ == "__main__":

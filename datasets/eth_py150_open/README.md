@@ -17,6 +17,7 @@ task_categories:
 - other
 task_ids:
 - other-other-contextual-embeddings
+paperswithcode_id: eth-py150-open
 ---
 
 # Dataset Card for ethpy150open

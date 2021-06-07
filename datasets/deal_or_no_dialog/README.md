@@ -17,6 +17,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - conditional-text-generation-other-dialogue-generation
+paperswithcode_id: negotiation-dialogues-dataset
 ---
 
 

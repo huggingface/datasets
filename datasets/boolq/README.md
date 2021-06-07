@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: boolq
 ---
 
 # Dataset Card for "boolq"

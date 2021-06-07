@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 - text-classification-other-sarcasm-detection
+paperswithcode_id: null
 ---
 
 # Dataset Card for ArSarcasm

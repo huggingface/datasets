@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: quarel
 ---
 
 # Dataset Card for "quarel"

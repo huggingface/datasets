@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: sciq
 ---
 
 # Dataset Card for "sciq"

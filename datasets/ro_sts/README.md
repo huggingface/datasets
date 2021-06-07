@@ -16,6 +16,7 @@ task_categories:
 - text-scoring
 task_ids:
 - semantic-similarity-scoring
+paperswithcode_id: null
 ---
 
 # Dataset Card for RO-STS

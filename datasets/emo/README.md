@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: emocontext
 ---
 
 # Dataset Card for "emo"

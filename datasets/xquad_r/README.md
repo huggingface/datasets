@@ -39,6 +39,7 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
+paperswithcode_id: xquad-r
 ---
 
 # Dataset Card for [Dataset Name]

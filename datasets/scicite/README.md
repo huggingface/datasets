@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: scicite
 ---
 
 # Dataset Card for "scicite"

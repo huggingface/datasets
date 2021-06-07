@@ -153,6 +153,7 @@ TESTS_REQUIRE = [
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
     "Werkzeug>=1.0.1",
+    "six~=1.15.0",
     # metadata validation
     "importlib_resources;python_version<'3.7'",
 ]
@@ -206,7 +207,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.6.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.7.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",
@@ -216,7 +217,7 @@ setup(
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={"datasets": ["scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml"]},
+    package_data={"datasets": ["py.typed", "scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml"]},
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
@@ -233,4 +234,5 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     keywords="datasets machine learning datasets metrics",
+    zip_safe=False,  # Required for mypy to find the py.typed file
 )

@@ -17,6 +17,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - conditional-text-generation-other-question-generation
+paperswithcode_id: inquisitive
 ---
 
 # Dataset Card Creation Guide

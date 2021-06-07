@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: hellaswag
 ---
 
 # Dataset Card for "hellaswag"

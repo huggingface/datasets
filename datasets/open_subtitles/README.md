@@ -42,7 +42,7 @@ languages:
 - ml
 - ms
 - nl
-- "no"
+- 'no'
 - pl
 - pt
 - pt_br
@@ -87,6 +87,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: opensubtitles
 ---
 
 # Dataset Card Creation Guide

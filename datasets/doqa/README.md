@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: doqa
 ---
 
 # Dataset Card for "doqa"

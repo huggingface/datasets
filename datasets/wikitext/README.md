@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: wikitext-2
 ---
 
 # Dataset Card for "wikitext"

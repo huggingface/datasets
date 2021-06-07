@@ -17,6 +17,7 @@ task_categories:
 - other
 task_ids:
 - other-other-knowledge-base
+paperswithcode_id: ascentkb
 ---
 
 # Dataset Card for Ascent KB

@@ -39,6 +39,8 @@ import pyarrow.compute as pc
 from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
+from datasets.tasks.text_classification import TextClassification
+
 from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
@@ -50,6 +52,7 @@ from .fingerprint import (
     generate_random_fingerprint,
     get_temporary_cache_files_directory,
     is_caching_enabled,
+    maybe_register_dataset_for_temp_dir_deletion,
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
@@ -239,6 +242,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data: Table = _check_table(arrow_table)
         self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
+        maybe_register_dataset_for_temp_dir_deletion(self)
 
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
@@ -263,6 +267,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
         if self.info.features is None:
             self.info.features = inferred_features
+        else:  # make sure the nested columns are in the right order
+            self.info.features = self.info.features.reorder_fields_as(inferred_features)
 
         # Infer fingerprint if None
 
@@ -645,14 +651,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         with fs.open(
             Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
         ) as dataset_info_file:
-            json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
+            # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
+            sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
+            json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
         logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
     def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
-        filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
+        filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of
+        ``fsspec.spec.AbstractFileSystem``.
 
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`) of
@@ -660,10 +669,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
                 Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
-                dataset will be copied in-memory if its size is smaller than
-                `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
-                disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and
-                in this case the dataset is not loaded in memory.
+                dataset will be copied in-memory if its size is smaller than `datasets.config.IN_MEMORY_MAX_SIZE`
+                (default ``250 * 2 ** 20`` B). This behavior can be disabled (i.e., the dataset will not be loaded in
+                memory) by setting to ``0`` either the configuration option ``datasets.config.IN_MEMORY_MAX_SIZE``
+                (higher precedence) or the environment variable ``HF_DATASETS_IN_MEMORY_MAX_SIZE`` (lower precedence).
 
         Returns:
             :class:`Dataset` or :class:`DatasetDict`.
@@ -1403,7 +1412,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
         """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
 
-        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema.
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema. Intended for single-use only, so all task templates are removed from :attr:`datasets.DatasetInfo.task_templates` after casting.
 
         Args:
             task (:obj:`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If :obj:`str`, supported tasks include:
@@ -1431,10 +1440,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             raise ValueError(
                 f"Expected a `str` or `datasets.tasks.TaskTemplate` object but got task {task} with type {type(task)}."
             )
+        if isinstance(template, TextClassification) and self.info.features is not None:
+            dataset_labels = tuple(sorted(self.info.features[template.label_column].names))
+            if template.labels is None or template.labels != dataset_labels:
+                raise ValueError(
+                    f"Incompatible labels between the dataset and task template! Expected labels {dataset_labels} but got {template.labels}. Please ensure that `datasets.tasks.TextClassification.labels` matches the features of the dataset."
+                )
         column_mapping = template.column_mapping
         columns_to_drop = [column for column in self.column_names if column not in column_mapping]
         dataset = self.remove_columns(columns_to_drop)
         dataset = dataset.rename_columns(column_mapping)
+        # We found a template so now flush `DatasetInfo` to skip the template update in `DatasetInfo.__post_init__`
+        dataset.info.task_templates = None
         dataset = dataset.cast(features=template.features)
         return dataset
 
@@ -1524,6 +1541,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         num_proc: Optional[int] = None,
         suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
+        desc: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -1569,6 +1587,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 rank=1 and num_proc=4, the resulting file would be "processed_00001_of_00004.arrow" for the default suffix.
             new_fingerprint (`Optional[str]`, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         assert num_proc is None or num_proc > 0, "num_proc must be an integer > 0."
 
@@ -1613,6 +1632,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
+                desc=desc,
             )
         else:
 
@@ -1664,6 +1684,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         fn_kwargs=fn_kwargs,
                         rank=rank,
                         offset=sum(len(s) for s in shards[:rank]),
+                        desc=desc,
                     )
                     for rank in range(num_proc)
                 ]
@@ -1677,7 +1698,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return result
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"])
     def _map_single(
         self,
         function: Optional[Callable] = None,
@@ -1697,6 +1718,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
+        desc: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -1735,6 +1757,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
             offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         assert (
             not keep_in_memory or cache_file_name is None
@@ -1912,7 +1935,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
-                pbar_desc = "#" + str(rank) if rank is not None else None
+                pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
                 pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
                 if not batched:
                     for i, example in enumerate(pbar):

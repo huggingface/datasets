@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: qasc
 ---
 
 # Dataset Card for "qasc"

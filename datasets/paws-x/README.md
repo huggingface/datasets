@@ -28,6 +28,7 @@ task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
 - text-scoring-other-paraphrase-identification
+paperswithcode_id: paws-x
 ---
 
 # Dataset Card for PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification

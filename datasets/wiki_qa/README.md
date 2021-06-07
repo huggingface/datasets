@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: wikiqa
 ---
 
 # Dataset Card for "wiki_qa"

@@ -21,6 +21,7 @@ task_categories:
 - other
 task_ids:
 - other-other-relation-extraction
+paperswithcode_id: fewrel
 ---
 
 # Dataset Card for few_rel

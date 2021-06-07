@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: race
 ---
 
 # Dataset Card for "race"

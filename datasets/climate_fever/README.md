@@ -23,6 +23,7 @@ task_ids:
 - fact-checking
 - fact-checking-retrieval
 - semantic-similarity-scoring
+paperswithcode_id: climate-fever
 ---
 
 # Dataset Card for ClimateFever

@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - language-modeling
 - other-stuctured-to-text
+paperswithcode_id: null
 ---
 
 # Dataset Card for id_puisi

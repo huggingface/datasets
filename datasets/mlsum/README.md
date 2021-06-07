@@ -36,6 +36,7 @@ task_ids:
 - multi-label-classification
 - summarization
 - topic-classification
+paperswithcode_id: mlsum
 ---
 
 # Dataset Card for "mlsum"
@@ -292,7 +293,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Usage of dataset is restricted to non-commercial research purposes only. Copyright belongs to the original copyright holders. See https://github.com/recitalAI/MLSUM#mlsum
 
 ### Citation Information
 
