@@ -234,9 +234,9 @@ def test_load_dataset_local_with_default_in_memory(
     current_dataset_size = 148
     if max_in_memory_dataset_size == "default":
         # default = 250 * 2 ** 20
-        max_in_memory_dataset_size = datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
+        max_in_memory_dataset_size = datasets.config.IN_MEMORY_MAX_SIZE
     else:
-        monkeypatch.setattr(datasets.config, "HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES", max_in_memory_dataset_size)
+        monkeypatch.setattr(datasets.config, "IN_MEMORY_MAX_SIZE", max_in_memory_dataset_size)
     if max_in_memory_dataset_size:
         expected_in_memory = current_dataset_size < max_in_memory_dataset_size
     else:
@@ -254,9 +254,9 @@ def test_load_from_disk_with_default_in_memory(
     current_dataset_size = 512  # arrow file size = 512, in-memory dataset size = 148
     if max_in_memory_dataset_size == "default":
         # default = 250 * 2 ** 20
-        max_in_memory_dataset_size = datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES
+        max_in_memory_dataset_size = datasets.config.IN_MEMORY_MAX_SIZE
     else:
-        monkeypatch.setattr(datasets.config, "HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES", max_in_memory_dataset_size)
+        monkeypatch.setattr(datasets.config, "IN_MEMORY_MAX_SIZE", max_in_memory_dataset_size)
     if max_in_memory_dataset_size:
         expected_in_memory = current_dataset_size < max_in_memory_dataset_size
     else:
