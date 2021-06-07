@@ -3077,7 +3077,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             :class:`Dataset`
         """
-        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        item_table = InMemoryTable.from_pydict({k: [item[k]] for k in self.features.keys() if k in item})
         # Cast item
         schema = pa.schema(self.features.type)
         item_table = item_table.cast(schema)
