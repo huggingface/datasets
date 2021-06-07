@@ -220,9 +220,13 @@ def test_in_memory_table_from_buffer(in_memory_pa_table):
 def test_in_memory_table_from_pandas(in_memory_pa_table):
     df = in_memory_pa_table.to_pandas()
     with assert_arrow_memory_increases():
+        # with no schema it might infer another order of the fields in the schema
         table = InMemoryTable.from_pandas(df)
-        assert table.table == in_memory_pa_table
         assert isinstance(table, InMemoryTable)
+    # by specifying schema we get the same order of features, and so the exact same table
+    table = InMemoryTable.from_pandas(df, schema=in_memory_pa_table.schema)
+    assert table.table == in_memory_pa_table
+    assert isinstance(table, InMemoryTable)
 
 
 def test_in_memory_table_from_arrays(in_memory_pa_table):
