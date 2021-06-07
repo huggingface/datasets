@@ -716,6 +716,7 @@ class DatasetBuilder:
             ignore_verifications (bool, default=False): Whether to ignore the verifications of the
                 downloaded/processed dataset information (checksums/size/splits/...).
             in_memory (bool, default=False): Whether to copy the data in-memory.
+            use_caching(bool, default=True): Whether to cache the dataset transforms.
 
         Returns:
             datasets.Dataset

@@ -651,6 +651,8 @@ Enable or disable caching
 Locally you can prevent the library from reloading a cached file by using ``load_from_cache=False`` in transforms like :func:`datasets.Dataset.map` for example.
 You can also specify the name of path where the cache file will be written using the parameter ``cache_file_name``.
 
+By setting ``use_caching=False`` in :func:`datasets.load_dataset`, you can disable caching on a specific dataset instance.
+
 It is also possible to disable caching globally with :func:`datasets.set_caching_enabled`.
 
 If the caching is disabled, the library will no longer reload cached dataset files when applying transforms to the datasets.
