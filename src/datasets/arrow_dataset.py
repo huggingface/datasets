@@ -1813,7 +1813,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
-                return Dataset.from_file(cache_file_name, info=info, split=self.split, in_memory=not self.cache_files)
+                dataset = Dataset.from_file(
+                    cache_file_name, info=info, split=self.split, in_memory=not self.cache_files
+                )
+                dataset._cache_dir = (
+                    os.path.dirname(cache_file_name)
+                    if dataset._cache_dir is None and self._cache_dir is not None
+                    else None
+                )
+                return dataset
 
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.
@@ -1999,7 +2007,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             info = self.info.copy()
             info.features = writer._features
             if buf_writer is None:
-                return Dataset.from_file(cache_file_name, info=info, split=self.split)
+                dataset = Dataset.from_file(
+                    cache_file_name, info=info, split=self.split, in_memory=not self.cache_files
+                )
+                dataset._cache_dir = (
+                    os.path.dirname(cache_file_name)
+                    if dataset._cache_dir is None and self._cache_dir is not None
+                    else None
+                )
+                return dataset
             else:
                 return Dataset.from_buffer(buf_writer.getvalue(), info=info, split=self.split)
         else:
