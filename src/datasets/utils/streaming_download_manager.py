@@ -9,7 +9,7 @@ from aiohttp.client_exceptions import ServerDisconnectedError
 
 from .. import config
 from .download_manager import DownloadConfig, map_nested
-from .file_utils import is_local_path, is_relative_path, url_or_path_join
+from .file_utils import get_authentication_headers_for_url, is_local_path, is_relative_path, url_or_path_join
 from .logging import get_logger
 
 
@@ -69,7 +69,10 @@ def xopen(file, mode="r", *args, **kwargs):
     This function extends the builin `open` function to support remote files using fsspec.
 
     It also has a retry mechanism in case connection fails.
+    The args and kwargs are passed to fsspec.open, except `use_auth_token` which is used for queries to private repos on huggingface.co
     """
+    if fsspec.get_fs_token_paths(file)[0].protocol == "https":
+        kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=kwargs.pop("use_auth_token", None))
     file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj

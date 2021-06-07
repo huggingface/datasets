@@ -1,4 +1,6 @@
 import importlib
+from functools import partial
+from typing import Optional, Union
 
 from .utils.logging import get_logger
 from .utils.streaming_download_manager import xjoin, xopen
@@ -70,7 +72,7 @@ class patch_submodule:
         return self.__exit__()
 
 
-def extend_module_for_streaming(module_path):
+def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str, bool]] = None):
     """
     Extend the `open` and `os.path.join` functions of the module to support data streaming.
     They rare replaced by `xopen` and `xjoin` defined to work with the StreamingDownloadManager.
@@ -81,6 +83,9 @@ def extend_module_for_streaming(module_path):
 
     module = importlib.import_module(module_path)
     # open files in a streaming fashion
-    patch_submodule(module, "open", xopen).start()
+    if use_auth_token:
+        patch_submodule(module, "open", partial(xopen, use_auth_token=use_auth_token)).start()
+    else:
+        patch_submodule(module, "open", xopen).start()
     # allow to navigate in remote zip files
     patch_submodule(module, "os.path.join", xjoin).start()

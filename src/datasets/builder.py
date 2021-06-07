@@ -849,18 +849,25 @@ class DatasetBuilder:
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
+        dl_manager = StreamingDownloadManager(
+            base_path=base_path,
+            download_config=DownloadConfig(use_auth_token=use_auth_token),
+            dataset_name=self.name,
+            data_dir=self.config.data_dir,
+        )
+        splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
         # By default, return all splits
         if split is None:
-            split = {s: s for s in self.info.splits}
+            splits_generator = splits_generators
+        elif split in splits_generators:
+            splits_generator = splits_generators[split]
+        else:
+            raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
 
         # Create a dataset for each of the given splits
         datasets = utils.map_nested(
-            partial(
-                self._as_streaming_dataset_single,
-                base_path=base_path,
-                use_auth_token=use_auth_token,
-            ),
-            split,
+            self._as_streaming_dataset_single,
+            splits_generator,
             map_tuple=True,
         )
         if isinstance(datasets, dict):
@@ -869,21 +876,10 @@ class DatasetBuilder:
 
     def _as_streaming_dataset_single(
         self,
-        split: str,
-        base_path: Optional[str] = None,
-        use_auth_token: Optional[str] = None,
+        splits_generator,
     ) -> IterableDataset:
-        dl_manager = StreamingDownloadManager(
-            base_path=base_path,
-            download_config=DownloadConfig(use_auth_token=use_auth_token),
-            dataset_name=self.name,
-            data_dir=self.config.data_dir,
-        )
-        splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
-        if split not in splits_generators:
-            raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
-        ex_iterable = self._get_examples_iterable_for_split(splits_generators[split])
-        return IterableDataset(ex_iterable, info=self.info, split=split)
+        ex_iterable = self._get_examples_iterable_for_split(splits_generator)
+        return IterableDataset(ex_iterable, info=self.info, split=splits_generator.name)
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""

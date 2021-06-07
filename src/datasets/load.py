@@ -763,7 +763,7 @@ def load_dataset(
     # Retturn iterable dataset in case of streaming
     if streaming:
         # this extends the open and os.path.join functions for data streaming
-        extend_module_for_streaming(module_path)
+        extend_module_for_streaming(module_path, use_auth_token=use_auth_token)
         return builder_instance.as_streaming_dataset(
             split=split,
             base_path=base_path,
