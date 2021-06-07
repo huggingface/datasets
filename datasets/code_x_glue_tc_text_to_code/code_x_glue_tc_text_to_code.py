@@ -16,7 +16,7 @@ year={2018}
 }"""
 
 
-class CodeXGlueTcTextToCode(Child):
+class CodeXGlueTcTextToCodeImpl(Child):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
@@ -42,11 +42,11 @@ class CodeXGlueTcTextToCode(Child):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueTcTextToCode": CodeXGlueTcTextToCode,
+    "CodeXGlueTcTextToCode": CodeXGlueTcTextToCodeImpl,
 }
 
 
-class CodeXGlueTcTextToCodeMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueTcTextToCode(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

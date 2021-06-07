@@ -23,7 +23,7 @@ year={2019}
 }"""
 
 
-class CodeXGlueCtCodeToTextBase(TrainValidTestChild):
+class CodeXGlueCtCodeToTextBaseImpl(TrainValidTestChild):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
@@ -113,7 +113,7 @@ class CodeXGlueCtCodeToTextBase(TrainValidTestChild):
             f.close()
 
 
-class CodeXGlueCtCodeToText(CodeXGlueCtCodeToTextBase):
+class CodeXGlueCtCodeToTextImpl(CodeXGlueCtCodeToTextBaseImpl):
     SINGLE_LANGUAGE = False
 
     def generate_urls(self, split_name):
@@ -128,11 +128,11 @@ class CodeXGlueCtCodeToText(CodeXGlueCtCodeToTextBase):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCtCodeToText": CodeXGlueCtCodeToText,
+    "CodeXGlueCtCodeToText": CodeXGlueCtCodeToTextImpl,
 }
 
 
-class CodeXGlueCtCodeToTextMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCtCodeToText(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

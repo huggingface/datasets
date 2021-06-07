@@ -28,7 +28,7 @@ keywords = {bug-fixes, Neural machine translation}
 }"""
 
 
-class CodeXGlueCcCodeRefinement(TrainValidTestChild):
+class CodeXGlueCcCodeRefinementImpl(TrainValidTestChild):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
@@ -66,11 +66,11 @@ class CodeXGlueCcCodeRefinement(TrainValidTestChild):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCcCodeRefinement": CodeXGlueCcCodeRefinement,
+    "CodeXGlueCcCodeRefinement": CodeXGlueCcCodeRefinementImpl,
 }
 
 
-class CodeXGlueCcCodeRefinementMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCodeRefinement(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

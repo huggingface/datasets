@@ -30,12 +30,12 @@ _CITATION = """@article{raychev2016probabilistic,
 }"""
 
 
-class CodeXGlueCcCodeCompletionToken(Child):
+class CodeXGlueCcCodeCompletionTokenImpl(Child):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
 
-class CodeXGlueCcCodeCompletionTokenJava(CodeXGlueCcCodeCompletionToken):
+class CodeXGlueCcCodeCompletionTokenJavaImpl(CodeXGlueCcCodeCompletionTokenImpl):
     SPLITS = {
         "training": datasets.Split.TRAIN,
         "validation": datasets.Split.VALIDATION,
@@ -66,7 +66,7 @@ class CodeXGlueCcCodeCompletionTokenJava(CodeXGlueCcCodeCompletionToken):
                 yield idx, entry
 
 
-class CodeXGlueCcCodeCompletionTokenPython(CodeXGlueCcCodeCompletionToken):
+class CodeXGlueCcCodeCompletionTokenPythonImpl(CodeXGlueCcCodeCompletionTokenImpl):
     SPLITS = {"train": datasets.Split.TRAIN, "test": datasets.Split.TEST}
 
     _FEATURES = {
@@ -188,12 +188,12 @@ class CodeXGlueCcCodeCompletionTokenPython(CodeXGlueCcCodeCompletionToken):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCcCodeCompletionTokenJava": CodeXGlueCcCodeCompletionTokenJava,
-    "CodeXGlueCcCodeCompletionTokenPython": CodeXGlueCcCodeCompletionTokenPython,
+    "CodeXGlueCcCodeCompletionTokenJava": CodeXGlueCcCodeCompletionTokenJavaImpl,
+    "CodeXGlueCcCodeCompletionTokenPython": CodeXGlueCcCodeCompletionTokenPythonImpl,
 }
 
 
-class CodeXGlueCcCodeCompletionTokenMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCodeCompletionToken(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

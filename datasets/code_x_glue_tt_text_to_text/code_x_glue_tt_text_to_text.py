@@ -38,7 +38,7 @@ _CITATION = """@article{DBLP:journals/corr/abs-2102-04664,
 }"""
 
 
-class CodeXGlueTtTextToText(Child):
+class CodeXGlueTtTextToTextImpl(Child):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
@@ -80,11 +80,11 @@ class CodeXGlueTtTextToText(Child):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueTtTextToText": CodeXGlueTtTextToText,
+    "CodeXGlueTtTextToText": CodeXGlueTtTextToTextImpl,
 }
 
 
-class CodeXGlueTtTextToTextMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueTtTextToText(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

@@ -29,7 +29,7 @@ organization={IEEE}
 }"""
 
 
-class CodeXGlueCcCodeCompletionLine(Child):
+class CodeXGlueCcCodeCompletionLineImpl(Child):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
@@ -53,11 +53,11 @@ class CodeXGlueCcCodeCompletionLine(Child):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCcCodeCompletionLine": CodeXGlueCcCodeCompletionLine,
+    "CodeXGlueCcCodeCompletionLine": CodeXGlueCcCodeCompletionLineImpl,
 }
 
 
-class CodeXGlueCcCodeCompletionLineMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCodeCompletionLine(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

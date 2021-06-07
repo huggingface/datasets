@@ -15,7 +15,7 @@ booktitle={Advances in Neural Information Processing Systems},
 pages={10197--10207}, year={2019}"""
 
 
-class CodeXGlueCcDefectDetection(TrainValidTestChild):
+class CodeXGlueCcDefectDetectionImpl(TrainValidTestChild):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
@@ -51,11 +51,11 @@ class CodeXGlueCcDefectDetection(TrainValidTestChild):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCcDefectDetection": CodeXGlueCcDefectDetection,
+    "CodeXGlueCcDefectDetection": CodeXGlueCcDefectDetectionImpl,
 }
 
 
-class CodeXGlueCcDefectDetectionMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcDefectDetection(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

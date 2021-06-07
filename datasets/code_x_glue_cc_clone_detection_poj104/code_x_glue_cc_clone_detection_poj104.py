@@ -20,7 +20,7 @@ year={2016}
 }"""
 
 
-class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
+class CodeXGlueCcCloneDetectionPoj104Impl(TrainValidTestChild):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
@@ -60,11 +60,11 @@ class CodeXGlueCcCloneDetectionPoj104(TrainValidTestChild):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCcCloneDetectionPoj104": CodeXGlueCcCloneDetectionPoj104,
+    "CodeXGlueCcCloneDetectionPoj104": CodeXGlueCcCloneDetectionPoj104Impl,
 }
 
 
-class CodeXGlueCcCloneDetectionPoj104Main(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCloneDetectionPoj104(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

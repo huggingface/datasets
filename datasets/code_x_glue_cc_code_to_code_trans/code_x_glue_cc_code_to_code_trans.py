@@ -39,7 +39,7 @@ _CITATION = """@article{DBLP:journals/corr/abs-2102-04664,
 }"""
 
 
-class CodeXGlueCcCodeToCodeTrans(TrainValidTestChild):
+class CodeXGlueCcCodeToCodeTransImpl(TrainValidTestChild):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
@@ -74,11 +74,11 @@ class CodeXGlueCcCodeToCodeTrans(TrainValidTestChild):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCcCodeToCodeTrans": CodeXGlueCcCodeToCodeTrans,
+    "CodeXGlueCcCodeToCodeTrans": CodeXGlueCcCodeToCodeTransImpl,
 }
 
 
-class CodeXGlueCcCodeToCodeTransMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCodeToCodeTrans(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

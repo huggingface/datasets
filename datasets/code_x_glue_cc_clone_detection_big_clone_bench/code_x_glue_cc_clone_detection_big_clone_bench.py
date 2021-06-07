@@ -28,7 +28,7 @@ organization={IEEE}
 }"""
 
 
-class CodeXGlueCcCloneDetectionBigCloneBench(TrainValidTestChild):
+class CodeXGlueCcCloneDetectionBigCloneBenchImpl(TrainValidTestChild):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
@@ -68,11 +68,11 @@ class CodeXGlueCcCloneDetectionBigCloneBench(TrainValidTestChild):
 
 
 CLASS_MAPPING = {
-    "CodeXGlueCcCloneDetectionBigCloneBench": CodeXGlueCcCloneDetectionBigCloneBench,
+    "CodeXGlueCcCloneDetectionBigCloneBench": CodeXGlueCcCloneDetectionBigCloneBenchImpl,
 }
 
 
-class CodeXGlueCcCloneDetectionBigCloneBenchMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcCloneDetectionBigCloneBench(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()

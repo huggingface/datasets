@@ -30,7 +30,7 @@ year={2019}
 }"""
 
 
-class CodeXGlueCcClozeTesting(Child):
+class CodeXGlueCcClozeTestingImpl(Child):
     _DESCRIPTION = _DESCRIPTION
     _CITATION = _CITATION
 
@@ -55,16 +55,12 @@ class CodeXGlueCcClozeTesting(Child):
                 index += 1
 
 
-class CodeXGlueCcClozeTestingMaxmin(CodeXGlueCcClozeTesting):
-    pass
-
-
 CLASS_MAPPING = {
-    "CodeXGlueCcClozeTestingMaxmin": CodeXGlueCcClozeTestingMaxmin,
+    "CodeXGlueCcClozeTestingMaxmin": CodeXGlueCcClozeTestingImpl,
 }
 
 
-class CodeXGlueCcClozeTestingMaxminMain(datasets.GeneratorBasedBuilder):
+class CodeXGlueCcClozeTestingMaxmin(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = datasets.BuilderConfig
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name=name, description=info["description"]) for name, info in DEFINITIONS.items()
