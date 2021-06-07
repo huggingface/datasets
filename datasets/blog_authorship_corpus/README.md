@@ -1,4 +1,6 @@
 ---
+languages:
+- en
 paperswithcode_id: blog-authorship-corpus
 ---
 

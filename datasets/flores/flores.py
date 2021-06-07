@@ -37,7 +37,7 @@ _CITATION = """\
 }
 """
 
-_DATA_URL = "https://github.com/facebookresearch/flores/raw/master/data/wikipedia_en_ne_si_test_sets.tgz"
+_DATA_URL = "https://github.com/facebookresearch/flores/raw/master/floresv1/data/wikipedia_en_ne_si_test_sets.tgz"
 
 # Tuple that describes a single pair of files with matching translations.
 # language_to_file is the map from language (2 letter string: example 'en')

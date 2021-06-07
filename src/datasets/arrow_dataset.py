@@ -265,6 +265,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
         if self.info.features is None:
             self.info.features = inferred_features
+        else:  # make sure the nested columns are in the right order
+            self.info.features = self.info.features.reorder_fields_as(inferred_features)
 
         # Infer fingerprint if None
 
