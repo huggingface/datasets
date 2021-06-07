@@ -1,7 +1,7 @@
 import copy
 from dataclasses import dataclass
 from itertools import cycle, islice, repeat
-from typing import Any, Callable, Dict, Iterable, List, Optional
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional
 
 import numpy as np
 import pyarrow as pa
@@ -109,13 +109,13 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         num_sources: int,
         random_batch_size=1000,
         p: Optional[List[float]] = None,
-    ):
+    ) -> Iterator[int]:
         if p is None:
             while True:
-                yield from rng.integers(0, num_sources, size=random_batch_size)
+                yield from (int(i) for i in rng.integers(0, num_sources, size=random_batch_size))
         else:
             while True:
-                yield from rng.choice(num_sources, size=random_batch_size, p=p)
+                yield from (int(i) for i in rng.choice(num_sources, size=random_batch_size, p=p))
 
     def __iter__(self):
         rng = np.random.default_rng(self.seed)
@@ -169,9 +169,9 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         self.seed = seed
 
     @staticmethod
-    def _iter_random_indices(rng: np.random.Generator, buffer_size: int, random_batch_size=1000):
+    def _iter_random_indices(rng: np.random.Generator, buffer_size: int, random_batch_size=1000) -> Iterator[int]:
         while True:
-            yield from rng.integers(0, buffer_size, size=random_batch_size)
+            yield from (int(i) for i in rng.integers(0, buffer_size, size=random_batch_size))
 
     def __iter__(self):
         buffer_size = self.buffer_size
