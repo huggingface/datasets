@@ -44,13 +44,13 @@ _DESCRIPTIONS = {
 _DATA_URLS = {
     "xor-retrieve": {
         "train": "https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_train_retrieve_eng_span.jsonl",
-        "dev": "https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_retrieve_eng_span.jsonl",
-        "test": "https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_test_retrieve_eng_span_q_only.jsonl",
+        "dev": "https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_retrieve_eng_span_v1_1.jsonl",
+        "test": "https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_test_retrieve_eng_span_q_only_v1_1.jsonl",
     },
     "xor-full": {
         "train": "https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_train_full.jsonl",
-        "dev": "https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full.jsonl",
-        "test": "https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_test_full_q_only.jsonl",
+        "dev": "https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full_v1_1.jsonl",
+        "test": "https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_test_full_q_only_v1_1.jsonl",
     },
 }
 
