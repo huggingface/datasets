@@ -2287,7 +2287,7 @@ class MiscellaneousDatasetTest(TestCase):
 
 def test_cast_with_sliced_list():
     old_features = Features({"foo": Sequence(Value("int64"))})
-    new_features = Features({"foo": Sequence(Value("int64"))})
+    new_features = Features({"foo": Sequence(Value("int32"))})
     dataset = Dataset.from_dict({"foo": [[i] * (i % 3) for i in range(20)]}, features=old_features)
     casted_dataset = dataset.cast(new_features, batch_size=2)  # small batch size to slice the ListArray
     assert dataset["foo"] == casted_dataset["foo"]
