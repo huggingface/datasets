@@ -66,11 +66,11 @@ This call to :func:`datasets.load_dataset` does the following steps under the ho
     to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use
     memory-mapping and pay effectively zero cost with O(1) random access. Alternatively, you can copy it in CPU memory
     (RAM) by setting the ``keep_in_memory`` argument of :func:`datasets.load_datasets` to ``True``.
-    The default in 🤗Datasets is to memory-map the dataset on drive if its size is larger than
-    ``datasets.config.IN_MEMORY_MAX_SIZE`` (default ``250 * 2 ** 20`` B); otherwise, the dataset is copied in-memory.
-    This behavior can be disabled (i.e., the dataset will not be loaded in memory) by setting to ``0`` either the
-    configuration option ``datasets.config.IN_MEMORY_MAX_SIZE`` (higher precedence) or the environment variable
-    ``HF_DATASETS_IN_MEMORY_MAX_SIZE`` (lower precedence).
+    The default in 🤗Datasets is to memory-map the dataset on disk unless you set ``datasets.config.IN_MEMORY_MAX_SIZE``
+    different from ``0`` bytes (default). In that case, the dataset will be copied in-memory if its size is smaller than
+    ``datasets.config.IN_MEMORY_MAX_SIZE`` bytes, and memory-mapped otherwise. This behavior can be enabled by setting
+    either the configuration option ``datasets.config.IN_MEMORY_MAX_SIZE`` (higher precedence) or the environment
+    variable ``HF_DATASETS_IN_MEMORY_MAX_SIZE`` (lower precedence) to nonzero.
 
 3. Return a **dataset built from the splits** asked by the user (default: all); in the above example we create a dataset with the train split.
 
@@ -440,3 +440,15 @@ Indeed, if you've already loaded the dataset once before (when you had an intern
 You can even set the environment variable `HF_DATASETS_OFFLINE` to ``1`` to tell ``datasets`` to run in full offline mode.
 This mode disables all the network calls of the library.
 This way, instead of waiting for a dataset builder download to time out, the library looks directly at the cache.
+
+.. _load_dataset_enhancing_performance:
+
+Enhancing performance
+-----------------------------------------------------------
+
+If you would like to speed up dataset operations, you can disable caching and copy the dataset in-memory by setting
+``datasets.config.IN_MEMORY_MAX_SIZE`` to a nonzero size (in bytes) that fits in your RAM memory. In that case, the
+dataset will be copied in-memory if its size is smaller than ``datasets.config.IN_MEMORY_MAX_SIZE`` bytes, and
+memory-mapped otherwise. This behavior can be enabled by setting either the configuration option
+``datasets.config.IN_MEMORY_MAX_SIZE`` (higher precedence) or the environment variable
+``HF_DATASETS_IN_MEMORY_MAX_SIZE`` (lower precedence) to nonzero.
