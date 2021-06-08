@@ -59,7 +59,15 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
+from .table import (
+    ConcatenationTable,
+    InMemoryTable,
+    MemoryMappedTable,
+    Table,
+    cast_with_sliced_list_support,
+    concat_tables,
+    list_table_cache_files,
+)
 from .tasks import TaskTemplate
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
@@ -919,7 +927,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema),
+            lambda t: cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -978,7 +986,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         format = self.format
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema),
+            lambda t: cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,

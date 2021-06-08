@@ -2285,6 +2285,15 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
 
 
+def test_cast_with_sliced_list():
+    old_features = Features({"foo": Sequence(Value("int64"))})
+    new_features = Features({"foo": Sequence(Value("int32"))})
+    dataset = Dataset.from_dict({"foo": [[i] * (i % 3) for i in range(20)]}, features=old_features)
+    casted_dataset = dataset.cast(new_features, batch_size=2)  # small batch size to slice the ListArray
+    assert dataset["foo"] == casted_dataset["foo"]
+    assert casted_dataset.features == new_features
+
+
 def test_update_metadata_with_features(dataset_dict):
     table1 = pa.Table.from_pydict(dataset_dict)
     features1 = Features.from_arrow_schema(table1.schema)
