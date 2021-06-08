@@ -12,6 +12,7 @@ import numpy as np
 from datasets.splits import NamedSplit, Split
 from datasets.utils.doc_utils import is_documented_by
 
+from . import config
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -688,7 +689,7 @@ class DatasetDict(dict):
 
         json.dump(
             {"splits": list(self)},
-            fs.open(Path(dest_dataset_dict_path, "dataset_dict.json").as_posix(), "w", encoding="utf-8"),
+            fs.open(Path(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME).as_posix(), "w", encoding="utf-8"),
         )
         for k, dataset in self.items():
             dataset.save_to_disk(Path(dest_dataset_dict_path, k).as_posix(), fs)
@@ -719,9 +720,13 @@ class DatasetDict(dict):
         else:
             fs = fsspec.filesystem("file")
             dest_dataset_dict_path = dataset_dict_path
-        for k in json.load(
-            fs.open(Path(dest_dataset_dict_path, "dataset_dict.json").as_posix(), "r", encoding="utf-8")
-        )["splits"]:
+        dataset_dict_json_path = Path(dest_dataset_dict_path, config.DATASETDICT_JSON_FILENAME).as_posix()
+        dataset_info_path = Path(dest_dataset_dict_path, config.DATASET_INFO_FILENAME).as_posix()
+        if fs.isfile(dataset_info_path) and not fs.isfile(dataset_dict_json_path):
+            raise FileNotFoundError(
+                f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a DatasetDict object, but got a Dataset. Please use datasets.load_from_disk instead."
+            )
+        for k in json.load(fs.open(dataset_dict_json_path, "r", encoding="utf-8"))["splits"]:
             dataset_dict_split_path = (
                 dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
                 if is_remote_filesystem(fs)

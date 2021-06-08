@@ -791,9 +791,9 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
 
     if not fs.exists(dest_dataset_path):
         raise FileNotFoundError("Directory {} not found".format(dataset_path))
-    if fs.isfile(Path(dest_dataset_path, "dataset_info.json").as_posix()):
+    if fs.isfile(Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()):
         return Dataset.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
-    elif fs.isfile(Path(dest_dataset_path, "dataset_dict.json").as_posix()):
+    elif fs.isfile(Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()):
         return DatasetDict.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     else:
         raise FileNotFoundError(
