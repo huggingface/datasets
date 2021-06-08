@@ -144,7 +144,7 @@ else:
     HF_DATASETS_OFFLINE = False
 
 # In-memory
-DEFAULT_IN_MEMORY_MAX_SIZE = 250 * 2 ** 20  # 250 MiB
+DEFAULT_IN_MEMORY_MAX_SIZE = 0  # Disabled
 IN_MEMORY_MAX_SIZE = float(os.environ.get("HF_DATASETS_IN_MEMORY_MAX_SIZE", DEFAULT_IN_MEMORY_MAX_SIZE))
 
 # File names

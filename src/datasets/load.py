@@ -683,10 +683,8 @@ def load_dataset(
         download_mode (:class:`GenerateMode`, optional): Select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
         ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
-            will be copied in-memory if its size is smaller than `datasets.config.IN_MEMORY_MAX_SIZE` (default
-            ``250 * 2 ** 20`` B). This behavior can be disabled (i.e., the dataset will not be loaded in memory) by
-            setting to ``0`` either the configuration option ``datasets.config.IN_MEMORY_MAX_SIZE`` (higher precedence)
-            or the environment variable ``HF_DATASETS_IN_MEMORY_MAX_SIZE`` (lower precedence).
+            will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
+            nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.
         save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
@@ -775,10 +773,8 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
         fs (:class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
             Instance of of the remote filesystem used to download the files from.
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
-            will be copied in-memory if its size is smaller than `datasets.config.IN_MEMORY_MAX_SIZE` (default
-            ``250 * 2 ** 20`` B). This behavior can be disabled (i.e., the dataset will not be loaded in memory) by
-            setting to ``0`` either the configuration option ``datasets.config.IN_MEMORY_MAX_SIZE`` (higher precedence)
-            or the environment variable ``HF_DATASETS_IN_MEMORY_MAX_SIZE`` (lower precedence).
+            will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
+            nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
