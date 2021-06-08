@@ -281,11 +281,11 @@ This is simply done using the ``text`` loading script which will generate a data
 Specifying the features of the dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When you create a dataset from local files, the :class:`datasets.Feature` of the dataset are automatically guessed using an automatic type inference system based on `Apache Arrow Automatic Type Inference <https://arrow.apache.org/docs/python/json.html#automatic-type-inference>`__.
+When you create a dataset from local files, the :class:`datasets.Features` of the dataset are automatically guessed using an automatic type inference system based on `Apache Arrow Automatic Type Inference <https://arrow.apache.org/docs/python/json.html#automatic-type-inference>`__.
 
 However sometime you may want to define yourself the features of the dataset, for instance to control the names and indices of labels using a :class:`datasets.ClassLabel`.
 
-In this case you can use the :obj:`feature` arguments to :func:`datasets.load_dataset` to supply a :class:`datasets.Features` instance definining the features of your dataset and overriding the default pre-computed features.
+In this case you can use the :obj:`features` arguments to :func:`datasets.load_dataset` to supply a :class:`datasets.Features` instance definining the features of your dataset and overriding the default pre-computed features.
 
 From in-memory data
 -----------------------------------------------------------
@@ -331,7 +331,7 @@ You can similarly instantiate a Dataset object from a ``pandas`` DataFrame:
 
     Be aware that Series of the `object` dtype don't carry enough information to always lead to a meaningful Arrow type. In the case that we cannot infer a type, e.g. because the DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to null. This behavior can be avoided by constructing an explicit schema and passing it to this function.
 
-To be sure that the schema and type of the instantiated :class:`datasets.Dataset` are as intended, you can explicitely provide the features of the dataset as a :class:`datasets.Feature` object to the ``from_dict`` and ``from_pandas`` methods.
+To be sure that the schema and type of the instantiated :class:`datasets.Dataset` are as intended, you can explicitely provide the features of the dataset as a :class:`datasets.Features` object to the ``from_dict`` and ``from_pandas`` methods.
 
 Using a custom dataset loading script
 -----------------------------------------------------------
