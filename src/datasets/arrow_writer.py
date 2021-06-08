@@ -276,7 +276,7 @@ class ArrowWriter:
 
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
-        arrays = []
+        arrays = {}
         inferred_types = []
         for col in cols:
             col_type = schema.field(col).type if schema is not None else None
@@ -293,9 +293,10 @@ class ArrowWriter:
                         type(pa_array)
                     )
                 )
-            arrays.append(pa_array)
+            arrays[col] = pa_array
             inferred_types.append(inferred_type)
-        schema = pa.schema(zip(cols, inferred_types)) if self.pa_writer is None else self._schema
+        schema = pa.schema(sorted(zip(cols, inferred_types))) if self.pa_writer is None else self._schema
+        arrays = [arrays[col] for col in schema.names]
         table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(table)
         self.current_examples = []
