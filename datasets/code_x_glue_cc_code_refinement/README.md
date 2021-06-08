@@ -129,7 +129,7 @@ Software Engineering developers.
 
 #### Annotation process
 
-Automatically annotated by filtering commit messages containing the pattern: (“fix” or “solve”) and (“bug” or “issue” or “problem” or “error”). A statistically significant amount of samples (95% confidence level with 5% confidence interval) were manually evaluated by two authors to check if the filtered bug/fix pairs were correct. After all disagreements were settled, authors conclude that 97.6% were true positives.
+Automatically annotated by filtering commit messages containing the pattern: ("fix" or "solve") and ("bug" or "issue" or "problem" or "error"). A statistically significant amount of samples (95% confidence level with 5% confidence interval) were manually evaluated by two authors to check if the filtered bug/fix pairs were correct. After all disagreements were settled, authors conclude that 97.6% were true positives.
 
 #### Who are the annotators?
 
@@ -153,17 +153,17 @@ Heuristics and the authors of the paper.
 
 [More Information Needed]
 
-## [Additional Information](#additional-information)
+## Additional Information
 
-### [Dataset Curators](#dataset-curators)
+### Dataset Curators
 
 https://github.com/microsoft, https://github.com/madlag
 
-### [Licensing Information](#licensing-information)
+### Licensing Information
 
 Computational Use of Data Agreement (C-UDA) License.
 
-### [Citation Information](#citation-information)
+### Citation Information
 
 ```
 @article{CodeXGLUE,
