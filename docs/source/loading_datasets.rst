@@ -331,7 +331,7 @@ You can similarly instantiate a Dataset object from a ``pandas`` DataFrame:
 
     Be aware that Series of the `object` dtype don't carry enough information to always lead to a meaningful Arrow type. In the case that we cannot infer a type, e.g. because the DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to null. This behavior can be avoided by constructing an explicit schema and passing it to this function.
 
-To be sure that the schema and type of the instantiated :class:`datasets.Dataset` are as intended, you can explicitely provide the features of the dataset as a :class:`datasets.Feature` object to the ``from_dict`` and ``from_pandas`` methods.
+To be sure that the schema and type of the instantiated :class:`datasets.Dataset` are as intended, you can explicitely provide the features of the dataset as a :class:`datasets.Features` object to the ``from_dict`` and ``from_pandas`` methods.
 
 Using a custom dataset loading script
 -----------------------------------------------------------
