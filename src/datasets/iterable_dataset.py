@@ -44,6 +44,10 @@ class _BaseExamplesIterable:
     def shuffle(self, seed: Optional[int]) -> "_BaseExamplesIterable":
         raise NotImplementedError()
 
+    @property
+    def n_shards(self) -> int:
+        raise NotImplementedError()
+
 
 def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
     shuffled_kwargs = {}
@@ -52,17 +56,13 @@ def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
             value = list(value)
             rng.shuffle(value)
             shuffled_kwargs[key] = value
-        elif isinstance(value, dict):
-            keys = list(value)
-            rng.shuffle(keys)
-            shuffled_kwargs[key] = {k: value[k] for k in keys}
         else:
             shuffled_kwargs[key] = value
     return shuffled_kwargs
 
 
 class ExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, generate_examples_fn, kwargs):
+    def __init__(self, generate_examples_fn: Callable, kwargs: dict):
         self.generate_examples_fn = generate_examples_fn
         self.kwargs = kwargs
 
@@ -76,9 +76,14 @@ class ExamplesIterable(_BaseExamplesIterable):
         kwargs = _shuffle_kwargs(rng, self.kwargs)
         return ExamplesIterable(self.generate_examples_fn, kwargs)
 
+    @property
+    def n_shards(self) -> int:
+        max_length = max([len(value) for value in self.kwargs.values() if isinstance(value, list)], default=0)
+        return max(1, max_length)
+
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterables):
+    def __init__(self, ex_iterables: List[_BaseExamplesIterable]):
         self.ex_iterables = ex_iterables
 
     def __iter__(self):
@@ -95,6 +100,10 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
         """Shuffle each underlying examples iterable."""
         ex_iterables = [ex_iterable.shuffle(seed) for ex_iterable in self.ex_iterables]
         return CyclingMultiSourcesExamplesIterable(ex_iterables)
+
+    @property
+    def n_shards(self) -> int:
+        return sum(ex_iterable.n_shards for ex_iterable in self.ex_iterables)
 
 
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
@@ -135,17 +144,18 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
 
 
 class MappedExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, function: Callable, batch_size: Optional[int] = None):
+    def __init__(
+        self, ex_iterable: _BaseExamplesIterable, function: Callable, batched: bool = False, batch_size: int = 1000
+    ):
         self.ex_iterable = ex_iterable
         self.function = function
+        self.batched = batched
         self.batch_size = batch_size
 
     def __iter__(self):
         iterator = iter(self.ex_iterable)
         for key, example in iterator:
-            if self.batch_size is None:
-                yield key, self.function(example)
-            else:
+            if self.batched:
                 key_examples = [(key, example)] + [
                     (key, example) for key, example in islice(iterator, self.batch_size - 1)
                 ]
@@ -154,12 +164,18 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 transformed_batch = self.function(batch)
                 new_key = "_".join(str(key) for key in keys)
                 yield from zip(repeat(new_key), _batch_to_examples(transformed_batch))
+            else:
+                yield key, self.function(example)
 
     def shuffle(self, seed: Optional[int]) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return MappedExamplesIterable(
             self.ex_iterable.shuffle(seed), function=self.function, batch_size=self.batch_size
         )
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
 
 
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
@@ -191,6 +207,10 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def shuffle(self, seed: Optional[int]) -> "BufferShuffledExamplesIterable":
         """Shuffle the wrapped examples iterable as well as the shuffling buffer."""
         return BufferShuffledExamplesIterable(self.ex_iterable.shuffle(seed), buffer_size=self.buffer_size, seed=seed)
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
 
 
 def _generate_examples_from_tables_wrapper(generate_tables_fn):
@@ -238,22 +258,19 @@ class IterableDataset(DatasetInfoMixin):
         else:
             return None
 
-    def _iter(
-        self,
-        epoch=0,
-        shuffling: Optional[ShuffingConfig] = None,
-    ):
-        if shuffling:
+    @property
+    def n_shards(self) -> int:
+        return self._ex_iterable.n_shards
+
+    def _iter(self):
+        if self._shuffling:
             ex_iterable = self._ex_iterable.shuffle(self._effective_seed)
         else:
             ex_iterable = self._ex_iterable
         yield from ex_iterable
 
     def __iter__(self):
-        for key, example in self._iter(
-            epoch=self._epoch,
-            shuffling=self._shuffling,
-        ):
+        for key, example in self._iter():
             if self.features:
                 yield self.features.encode_example(example)
             else:
@@ -284,7 +301,7 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
         )
 
-    def map(self, function: Callable, batch_size: Optional[int] = None):
+    def map(self, function: Callable, batched: bool = False, batch_size: int = 1000):
         """
         Return a dataset with the specified map function. The function is applied on-the-fly on the examples
         when iterating the dataset
@@ -292,22 +309,23 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             function (:obj:`Callable`, optional, default None): if not None, this function is applied
                 on-the-fly on the examples when you iterate on the dataset.
-            batch_size (:obj:`int`, optional, default None): define the size of the batch passed
-                to each call of the function:
-
-                - if batch_size is None, then the function takes 1 example in and should return 1 example.
+            batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
+            batch_size (`Optional[int]`, default `1000`): Number of examples per batch provided to `function` if `batched=True`
+                - if batched is False, then the function takes 1 example in and should return 1 example.
                     An example is a dictionary, e.g. {"text": "Hello there !"}
-                - if batch_size is 1, then the function takes a batch of 1 example as input and can return
+                - if batched is True and batch_size is 1, then the function takes a batch of 1 example as input and can return
                     a batch with 1 or more examples.
                     A batch is a dictionary, e.g. a batch of 1 example is {"text": ["Hello there !"]}
-                - if batch_size is ``n`` > 1, then the function takes a batch of ``n`` examples as input
+                - if batched is True and batch_size is ``n`` > 1, then the function takes a batch of ``n`` examples as input
                     and can return a batch with ``n`` examples, or with an arbitrary number of examples.
                     Note that the last batch may have less than ``n`` examples.
                     A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
         """
         info = copy.deepcopy(self._info)
         info.features = None
-        ex_iterable = MappedExamplesIterable(self._ex_iterable, function=function, batch_size=batch_size)
+        ex_iterable = MappedExamplesIterable(
+            self._ex_iterable, function=function, batched=batched, batch_size=batch_size
+        )
         return iterable_dataset(
             ex_iterable=ex_iterable,
             info=info,

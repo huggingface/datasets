@@ -156,7 +156,7 @@ def test_randomly_cycling_multi_sources_examples_iterable(generate_examples_fn, 
 )
 def test_mapped_examples_iterable(generate_examples_fn, n, func, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    ex_iterable = MappedExamplesIterable(base_ex_iterable, func, batch_size)
+    ex_iterable = MappedExamplesIterable(base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size)
     all_examples = list(generate_examples_fn(n=n))
     if batch_size is None:
         expected = [(key, func(x)) for key, x in all_examples]
@@ -241,7 +241,7 @@ def test_iterable_dataset_map(dataset: IterableDataset, generate_examples_fn):
     dataset = dataset.map(func)
     assert isinstance(dataset._ex_iterable, MappedExamplesIterable)
     assert dataset._ex_iterable.function is func
-    assert dataset._ex_iterable.batch_size is None
+    assert dataset._ex_iterable.batched is False
     assert next(iter(dataset)) == func(next(iter(generate_examples_fn()))[1])
 
 
@@ -249,7 +249,7 @@ def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_example
     func = lambda x: {"id+1": [i + 1 for i in x["id"]]}  # noqa: E731
     _func_unbatched = lambda x: {"id+1": x["id"] + 1}  # noqa: E731
     batch_size = 3
-    dataset = dataset.map(func, batch_size=batch_size)
+    dataset = dataset.map(func, batched=True, batch_size=batch_size)
     assert isinstance(dataset._ex_iterable, MappedExamplesIterable)
     assert dataset._ex_iterable.function is func
     assert dataset._ex_iterable.batch_size == batch_size
