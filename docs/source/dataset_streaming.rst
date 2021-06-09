@@ -1,4 +1,4 @@
-Dataset Streaming
+Load a Dataset in Streaming mode
 ==============================================================
 
 When a dataset is in streaming mode, you can iterate over it directly, without having to download the entire dataset.
@@ -16,12 +16,12 @@ Here is a demonstration:
     >>> print(next(iter(dataset)))
     {'text': 'Mtendere Village was inspired by the vision of Chief Napoleon Dzombe, which he shared with John Blanchard during his first visit to Malawi. Chief Napoleon conveyed the desperate need for a program to intervene and care for the orphans and vulnerable children (OVC) in Malawi, and John committed to help...
 
-Even though the dataset is 1.2 terabytes of data, you can start using it right away. Under the hood, it downloads only the first examples of the dataset
+Even though the dataset is 1.2 terabytes of data, you can start using it right away. Under the hood, it downloaded only the first examples of the dataset
 
 .. note::
 
-    The dataset that is returned in a :class:`datasets.IterableDataset`, not the classic map-style :class:`datasets.Dataset`. To get examples from an iterable dataset, you have to iterate over it using a for loop for example. To get the very last example of the dataset, you first have to iterate on all the previous examples.
-    Therefore iterable datasets are mostly useful for iterative jobs like training a transformer model, but not for jobs that require random access of examples.
+    The dataset that is returned is a :class:`datasets.IterableDataset`, not the classic map-style :class:`datasets.Dataset`. To get examples from an iterable dataset, you have to iterate over it using a for loop for example. To get the very last example of the dataset, you first have to iterate on all the previous examples.
+    Therefore iterable datasets are mostly useful for iterative jobs like training a model, but not for jobs that require random access of examples.
 
 
 Shuffling the dataset: ``shuffle``
@@ -41,8 +41,6 @@ Once an example is selected, its space in the buffer is replaced by the next (i.
 
 Moreover, for larger datasets that are sharded into multiple files, :func:`datasets.IterableDataset.shuffle` also shuffles the order of the shards.
 
-You can shuffle a dataset like this:
-
 .. code-block::
 
     >>> shuffled_dataset = dataset.shuffle(buffer_size=10_000, seed=42)
@@ -57,7 +55,7 @@ The example was selected randomly from this buffer, and replaced by the 10,001-s
 Reshuffle the dataset at each epoch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The seed used to shuffle the dataset is the one you specify in :fun:`datasets.IterableDataset.shuffle`. But often we want to use another seed after each epoch to reshuffle the dataset.
+The seed used to shuffle the dataset is the one you specify in :func:`datasets.IterableDataset.shuffle`. But often we want to use another seed after each epoch to reshuffle the dataset.
 Therefore between epochs you can simply tell the dataset at what epoch you're at, and the data will be shuffled using an effective seed of ``seed + epoch``.
 
 For example your training loop can look like this:
@@ -69,7 +67,7 @@ For example your training loop can look like this:
     ...     for example in shuffled_dataset:
     ...         ...
 
-In this case in the first epoch, the dataset is shuffled with ``seed + 0`` and in the second epoch it is shuffled with ``seed + 1``, making your dataset reshuffled at each epoch.
+In this case in the first epoch, the dataset is shuffled with ``seed + 0`` and in the second epoch it is shuffled with ``seed + 1``, making your dataset reshuffled at each epoch. It randomizes both the shuffle buffer and the shards order.
 
 
 Processing data with ``map``
@@ -78,7 +76,7 @@ Processing data with ``map``
 As for :class:`datasets.Dataset` objects, you can process your data using ``map``. This is useful if you want to transform the data or rename/remove columns.
 Since the examples of an :class:`datasets.IterableDataset` are downloaded progressively, the :func:`datasets.IterableDataset.map` method processes the examples on-the-fly when you are iterating over the dataset (contrary to :func:`datasets.Dataset.map` which processes all the examples directly).
 
-For example, to tokenize your dataset you can do this:
+This example shows how to tokenize your dataset:
 
 .. code-block::
 
@@ -94,8 +92,9 @@ Tokenizers are written in Rust and use parallelism to speed up tokenization. To 
     >>> print(next(iter(tokenized_dataset)))
     {'input_ids': [101, 11047, 10497, 7869, 2352...], 'token_type_ids': [0, 0, 0, 0, 0...], 'attention_mask': [1, 1, 1, 1, 1...]}
 
+
 Mix several iterable datasets together with ``merge_datasets``
---------------------------------------------------
+----------------------------------------------------------------------------------------------------
 
 It is common to use several datasets to use a model. For example BERT was trained on a mix of Wikipedia and BookCorpus.
 You can mix several iterable datasets together using :func:`datasets.merge_datasets`.

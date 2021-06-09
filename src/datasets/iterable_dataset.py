@@ -303,23 +303,24 @@ class IterableDataset(DatasetInfoMixin):
 
     def map(self, function: Callable, batched: bool = False, batch_size: int = 1000):
         """
-        Return a dataset with the specified map function. The function is applied on-the-fly on the examples
-        when iterating the dataset
+        Return a dataset with the specified map function. The function is applied on-the-fly on the examples when iterating over the dataset.
+
+        You can specify whether the function should be batched or not with the ``batched`` parameter:
+
+        - If batched is False, then the function takes 1 example in and should return 1 example.
+          An example is a dictionary, e.g. {"text": "Hello there !"}
+        - If batched is True and batch_size is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
+          A batch is a dictionary, e.g. a batch of 1 example is {"text": ["Hello there !"]}
+        - If batched is True and batch_size is ``n`` > 1, then the function takes a batch of ``n`` examples as input and can return a batch with ``n`` examples, or with an arbitrary number of examples.
+          Note that the last batch may have less than ``n`` examples.
+          A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
 
         Args:
             function (:obj:`Callable`, optional, default None): if not None, this function is applied
                 on-the-fly on the examples when you iterate on the dataset.
             batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
-            batch_size (`Optional[int]`, default `1000`): Number of examples per batch provided to `function` if `batched=True`
-                - if batched is False, then the function takes 1 example in and should return 1 example.
-                    An example is a dictionary, e.g. {"text": "Hello there !"}
-                - if batched is True and batch_size is 1, then the function takes a batch of 1 example as input and can return
-                    a batch with 1 or more examples.
-                    A batch is a dictionary, e.g. a batch of 1 example is {"text": ["Hello there !"]}
-                - if batched is True and batch_size is ``n`` > 1, then the function takes a batch of ``n`` examples as input
-                    and can return a batch with ``n`` examples, or with an arbitrary number of examples.
-                    Note that the last batch may have less than ``n`` examples.
-                    A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
+            batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+
         """
         info = copy.deepcopy(self._info)
         info.features = None
