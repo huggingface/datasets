@@ -130,6 +130,13 @@ DATA_DICT_OF_LISTS = {
     "col_3": [0.0, 1.0, 2.0, 3.0],
 }
 
+DATA_STR = [
+    {"col_1": "s0", "col_2": 0, "col_3": 0.0},
+    {"col_1": "s1", "col_2": 1, "col_3": 1.0},
+    {"col_1": "s2", "col_2": 2, "col_3": 2.0},
+    {"col_1": "s3", "col_2": 3, "col_3": 3.0},
+]
+
 
 @pytest.fixture(scope="session")
 def dataset_dict():
@@ -178,6 +185,15 @@ def jsonl_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.jsonl")
     with open(path, "w") as f:
         for item in DATA:
+            f.write(json.dumps(item))
+    return path
+
+
+@pytest.fixture(scope="session")
+def jsonl_str_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset-str.jsonl")
+    with open(path, "w") as f:
+        for item in DATA_STR:
             f.write(json.dumps(item))
     return path
 
