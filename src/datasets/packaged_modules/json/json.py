@@ -92,6 +92,12 @@ class Json(datasets.ArrowBasedBuilder):
                         f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
                     )
             if self.config.schema:
+                # Encode column if ClassLabel
+                for i, col in enumerate(self.config.features.keys()):
+                    if isinstance(self.config.features[col], datasets.ClassLabel):
+                        pa_table = pa_table.set_column(
+                            i, self.config.schema.field(col), [self.config.features[col].str2int(pa_table[col])]
+                        )
                 # Cast allows str <-> int/float, while parse_option explicit_schema does NOT
                 pa_table = pa_table.cast(self.config.schema)
             yield i, pa_table

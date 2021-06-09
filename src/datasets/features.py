@@ -604,7 +604,7 @@ class ClassLabel:
             if self._str2int:
                 # strip key if not in dict
                 if value not in self._str2int:
-                    value = value.strip()
+                    value = str(value).strip()
                 output.append(self._str2int[str(value)])
             else:
                 # No names provided, try to integerize
