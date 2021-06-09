@@ -220,10 +220,8 @@ _DESCRIPTIONS = {
     "tatoeba": textwrap.dedent(
         """\
           his data is extracted from the Tatoeba corpus, dated Saturday 2018/11/17.
-
           For each languages, we have selected 1000 English sentences and their translations, if available. Please check
           this paper for a description of the languages, their families and scripts as well as baseline results.
-
           Please note that the English sentences are not identical for all language pairs. This means that the results are
           not directly comparable across languages. In particular, the sentences tend to have less variety for several
           low-resource languages, e.g. "Tom needed water", "Tom needs water", "Tom is getting water", ...
@@ -352,15 +350,52 @@ _CITATIONS = {
 }
 
 _TEXT_FEATURES = {
-    "XNLI": {"language": "language", "sentence1": "sentence1", "sentence2": "sentence2"},
-    "tydiqa": {"id": "id", "title": "title", "context": "context", "question": "question", "answers": "answers"},
-    "XQuAD": {"id": "id", "context": "context", "question": "question", "answers": "answers"},
-    "MLQA": {"id": "id", "title": "title", "context": "context", "question": "question", "answers": "answers"},
-    "tatoeba": {"source_sentence": "", "target_sentence": "", "source_lang": "", "target_lang": ""},
-    "bucc18": {"source_sentence": "", "target_sentence": "", "source_lang": "", "target_lang": ""},
+    "XNLI": {
+        "language": "language",
+        "sentence1": "sentence1",
+        "sentence2": "sentence2",
+    },
+    "tydiqa": {
+        "id": "id",
+        "title": "title",
+        "context": "context",
+        "question": "question",
+        "answers": "answers",
+    },
+    "XQuAD": {
+        "id": "id",
+        "context": "context",
+        "question": "question",
+        "answers": "answers",
+    },
+    "MLQA": {
+        "id": "id",
+        "title": "title",
+        "context": "context",
+        "question": "question",
+        "answers": "answers",
+    },
+    "tatoeba": {
+        "source_sentence": "",
+        "target_sentence": "",
+        "source_lang": "",
+        "target_lang": "",
+    },
+    "bucc18": {
+        "source_sentence": "",
+        "target_sentence": "",
+        "source_lang": "",
+        "target_lang": "",
+    },
     "PAWS-X": {"sentence1": "sentence1", "sentence2": "sentence2"},
-    "udpos": {"token": "", "pos_tag": ""},
-    "SQuAD": {"id": "id", "title": "title", "context": "context", "question": "question", "answers": "answers"},
+    "udpos": {"tokens": "", "pos_tags": ""},
+    "SQuAD": {
+        "id": "id",
+        "title": "title",
+        "context": "context",
+        "question": "question",
+        "answers": "answers",
+    },
     "PAN-X": {"tokens": "", "ner_tags": "", "lang": ""},
 }
 _DATA_URLS = {
@@ -395,7 +430,6 @@ class XtremeConfig(datasets.BuilderConfig):
 
     def __init__(self, data_url, citation, url, text_features, **kwargs):
         """
-
         Args:
             text_features: `dict[string, string]`, map from the name of the feature
         dict for each text field to the name of the column in the tsv file
@@ -403,7 +437,9 @@ class XtremeConfig(datasets.BuilderConfig):
             label_classes
             **kwargs: keyword arguments forwarded to super.
         """
-        super(XtremeConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(XtremeConfig, self).__init__(
+            version=datasets.Version("1.0.0", ""), **kwargs
+        )
         self.text_features = text_features
         self.data_url = data_url
         self.citation = citation
@@ -429,10 +465,16 @@ class Xtreme(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO(xtreme): Specifies the datasets.DatasetInfo object
-        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
+        features = {
+            text_feature: datasets.Value("string")
+            for text_feature in self.config.text_features.keys()
+        }
         if "answers" in features.keys():
             features["answers"] = datasets.features.Sequence(
-                {"answer_start": datasets.Value("int32"), "text": datasets.Value("string")}
+                {
+                    "answer_start": datasets.Value("int32"),
+                    "text": datasets.Value("string"),
+                }
             )
         if self.config.name.startswith("PAWS-X"):
             features["label"] = datasets.Value("string")
@@ -442,27 +484,29 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("udpos"):
             features = datasets.Features(
                 {
-                    "token": datasets.Value("string"),
-                    "pos_tag": datasets.features.ClassLabel(
-                        names=[
-                            "ADJ",
-                            "ADP",
-                            "ADV",
-                            "AUX",
-                            "CCONJ",
-                            "DET",
-                            "INTJ",
-                            "NOUN",
-                            "NUM",
-                            "PART",
-                            "PRON",
-                            "PROPN",
-                            "PUNCT",
-                            "SCONJ",
-                            "SYM",
-                            "VERB",
-                            "X",
-                        ]
+                    "tokens": datasets.Sequence(datasets.Value("string")),
+                    "pos_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "ADJ",
+                                "ADP",
+                                "ADV",
+                                "AUX",
+                                "CCONJ",
+                                "DET",
+                                "INTJ",
+                                "NOUN",
+                                "NUM",
+                                "PART",
+                                "PRON",
+                                "PROPN",
+                                "PUNCT",
+                                "SCONJ",
+                                "SYM",
+                                "VERB",
+                                "X",
+                            ]
+                        )
                     ),
                 }
             )
@@ -500,7 +544,9 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
-            homepage="https://github.com/google-research/xtreme" + "\t" + self.config.url,
+            homepage="https://github.com/google-research/xtreme"
+            + "\t"
+            + self.config.url,
             citation=self.config.citation + "\n" + _CITATION,
         )
 
@@ -535,15 +581,19 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             data_dir = os.path.join(dl_dir, "XNLI-1.0")
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")}
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")}
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")},
                 ),
             ]
 
         if self.config.name.startswith("MLQA"):
-            mlqa_downloaded_files = dl_manager.download_and_extract(self.config.data_url)
+            mlqa_downloaded_files = dl_manager.download_and_extract(
+                self.config.data_url
+            )
             l1 = self.config.name.split(".")[1]
             l2 = self.config.name.split(".")[2]
             return [
@@ -610,7 +660,9 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             lang = self.config.name.split(".")[1]
 
             tatoeba_source_data = dl_manager.download_and_extract(
-                os.path.join(self.config.data_url, "tatoeba.{}-eng.{}".format(lang, lang))
+                os.path.join(
+                    self.config.data_url, "tatoeba.{}-eng.{}".format(lang, lang)
+                )
             )
             tatoeba_eng_data = dl_manager.download_and_extract(
                 os.path.join(self.config.data_url, "tatoeba.{}-eng.eng".format(lang))
@@ -625,25 +677,41 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("bucc18"):
             lang = self.config.name.split(".")[1]
             bucc18_dl_test_dir = dl_manager.download_and_extract(
-                os.path.join(self.config.data_url, "bucc2018-{}-en.training-gold.tar.bz2".format(lang))
+                os.path.join(
+                    self.config.data_url,
+                    "bucc2018-{}-en.training-gold.tar.bz2".format(lang),
+                )
             )
             bucc18_dl_dev_dir = dl_manager.download_and_extract(
-                os.path.join(self.config.data_url, "bucc2018-{}-en.sample-gold.tar.bz2".format(lang))
+                os.path.join(
+                    self.config.data_url,
+                    "bucc2018-{}-en.sample-gold.tar.bz2".format(lang),
+                )
             )
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(bucc18_dl_dev_dir, "bucc2018", lang + "-en")},
+                    gen_kwargs={
+                        "filepath": os.path.join(
+                            bucc18_dl_dev_dir, "bucc2018", lang + "-en"
+                        )
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(bucc18_dl_test_dir, "bucc2018", lang + "-en")},
+                    gen_kwargs={
+                        "filepath": os.path.join(
+                            bucc18_dl_test_dir, "bucc2018", lang + "-en"
+                        )
+                    },
                 ),
             ]
         if self.config.name.startswith("udpos"):
-            udpos_downloaded_files = dl_manager.download_and_extract(self.config.data_url)
+            udpos_downloaded_files = dl_manager.download_and_extract(
+                self.config.data_url
+            )
             data_dir = os.path.join(udpos_downloaded_files, "ud-treebanks-v2.5")
 
             lang = self.config.name.split(".")[1]
@@ -703,7 +771,9 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 os.path.join(folder, file)
                                 for folder in folders
                                 for file in sorted(os.listdir(folder))
-                                if "NYUAD" not in folder and "dev" in file and file.endswith(".conllu")
+                                if "NYUAD" not in folder
+                                and "dev" in file
+                                and file.endswith(".conllu")
                             ]
                         },
                     ),
@@ -715,7 +785,9 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 os.path.join(folder, file)
                                 for folder in folders
                                 for file in sorted(os.listdir(folder))
-                                if "NYUAD" not in folder and "test" in file and file.endswith(".conllu")
+                                if "NYUAD" not in folder
+                                and "test" in file
+                                and file.endswith(".conllu")
                             ]
                         },
                     ),
@@ -727,7 +799,9 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 os.path.join(folder, file)
                                 for folder in folders
                                 for file in sorted(os.listdir(folder))
-                                if "NYUAD" not in folder and "train" in file and file.endswith(".conllu")
+                                if "NYUAD" not in folder
+                                and "train" in file
+                                and file.endswith(".conllu")
                             ]
                         },
                     ),
@@ -742,16 +816,22 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
             return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"filepath": downloaded_files["train"]},
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={"filepath": downloaded_files["dev"]},
                 ),
             ]
 
         if self.config.name.startswith("PAN-X"):
             panx_dl_dir = dl_manager.download_and_extract(self.config.data_url)
             lang = self.config.name.split(".")[1]
-            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, lang + ".tar.gz"))
+            lang_folder = dl_manager.extract(
+                os.path.join(panx_dl_dir, lang + ".tar.gz")
+            )
 
             return [
                 datasets.SplitGenerator(
@@ -775,7 +855,11 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(xtreme): Yields (key, example) tuples from the dataset
 
-        if self.config.name == "tydiqa" or self.config.name.startswith("MLQA") or self.config.name == "SQuAD":
+        if (
+            self.config.name == "tydiqa"
+            or self.config.name.startswith("MLQA")
+            or self.config.name == "SQuAD"
+        ):
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 for article in data["data"]:
@@ -786,8 +870,12 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                             question = qa["question"].strip()
                             id_ = qa["id"]
 
-                            answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-                            answers = [answer["text"].strip() for answer in qa["answers"]]
+                            answer_starts = [
+                                answer["answer_start"] for answer in qa["answers"]
+                            ]
+                            answers = [
+                                answer["text"].strip() for answer in qa["answers"]
+                            ]
 
                             # Features currently used are "context", "question", and "answers".
                             # Others are extracted here for the ease of future expansions.
@@ -796,7 +884,10 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 "context": context,
                                 "question": question,
                                 "id": id_,
-                                "answers": {"answer_start": answer_starts, "text": answers},
+                                "answers": {
+                                    "answer_start": answer_starts,
+                                    "text": answers,
+                                },
                             }
         if self.config.name == "XNLI":
             with open(filepath, encoding="utf-8") as f:
@@ -814,7 +905,11 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 next(data)  # skip header
                 for id_, row in enumerate(data):
                     if len(row) == 4:
-                        yield id_, {"sentence1": row[1], "sentence2": row[2], "label": row[3]}
+                        yield id_, {
+                            "sentence1": row[1],
+                            "sentence2": row[2],
+                            "label": row[3],
+                        }
         if self.config.name.startswith("XQuAD"):
             with open(filepath, encoding="utf-8") as f:
                 xquad = json.load(f)
@@ -825,8 +920,12 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                             question = qa["question"].strip()
                             id_ = qa["id"]
 
-                            answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-                            answers = [answer["text"].strip() for answer in qa["answers"]]
+                            answer_starts = [
+                                answer["answer_start"] for answer in qa["answers"]
+                            ]
+                            answers = [
+                                answer["text"].strip() for answer in qa["answers"]
+                            ]
 
                             # Features currently used are "context", "question", and "answers".
                             # Others are extracted here for the ease of future expansions.
@@ -834,7 +933,10 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 "context": context,
                                 "question": question,
                                 "id": id_,
-                                "answers": {"answer_start": answer_starts, "text": answers},
+                                "answers": {
+                                    "answer_start": answer_starts,
+                                    "text": answers,
+                                },
                             }
         if self.config.name.startswith("bucc18"):
             files = sorted(os.listdir(filepath))
@@ -900,9 +1002,19 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             for id_file, file in enumerate(filepath):
                 with open(file, encoding="utf-8") as f:
                     data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
+                    tokens = []
+                    pos_tags = []
                     for id_row, row in enumerate(data):
                         if len(row) >= 10 and row[1] != "_" and row[3] != "_":
-                            yield str(id_file) + "_" + str(id_row), {"token": row[1], "pos_tag": row[3]}
+                            tokens.append(row[1])
+                            pos_tags.append(row[3])
+                        if len(row) == 0 and len(tokens) > 0:
+                            yield str(id_file) + "_" + str(id_row), {
+                                "tokens": tokens,
+                                "pos_tags": pos_tags,
+                            }
+                            tokens = []
+                            pos_tags = []
         if self.config.name.startswith("PAN-X"):
             guid_index = 1
             with open(filepath, encoding="utf-8") as f:
@@ -912,7 +1024,11 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 for line in f:
                     if line == "" or line == "\n":
                         if tokens:
-                            yield guid_index, {"tokens": tokens, "ner_tags": ner_tags, "langs": langs}
+                            yield guid_index, {
+                                "tokens": tokens,
+                                "ner_tags": ner_tags,
+                                "langs": langs,
+                            }
                             guid_index += 1
                             tokens = []
                             ner_tags = []
