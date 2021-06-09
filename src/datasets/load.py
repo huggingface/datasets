@@ -713,8 +713,7 @@ def load_dataset(
         :class:`Dataset` or :class:`DatasetDict`:
             if `split` is not None: the dataset requested,
             if `split` is None, a ``datasets.DatasetDict`` with each split.
-        or if streaming=True:
-        :class:`IterableDataset` or :class:`IterableDatasetDict`:
+        or :class:`IterableDataset` or :class:`IterableDatasetDict` if streaming=True:
             if `split` is not None: the dataset requested,
             if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
 
