@@ -59,7 +59,15 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
+from .table import (
+    ConcatenationTable,
+    InMemoryTable,
+    MemoryMappedTable,
+    Table,
+    cast_with_sliced_list_support,
+    concat_tables,
+    list_table_cache_files,
+)
 from .tasks import TaskTemplate
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
@@ -651,7 +659,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
-        filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
+        filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of
+        ``fsspec.spec.AbstractFileSystem``.
 
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`) of
@@ -659,11 +668,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
                 Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
-                dataset will be copied in-memory if its size is smaller than
-                `datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
-                disabled (i.e., the dataset will not be loaded in memory) by setting to ``0`` either the configuration
-                option ``datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (higher precedence) or the
-                environment variable ``HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (lower precedence).
+                dataset will not be copied in-memory unless explicitly enabled by setting
+                `datasets.config.IN_MEMORY_MAX_SIZE` to nonzero. See more details in the
+                :ref:`load_dataset_enhancing_performance` section.
 
         Returns:
             :class:`Dataset` or :class:`DatasetDict`.
@@ -671,6 +678,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 - if `dataset_path` is a path of a dataset dict directory: a :class:`DatasetDict` with each split.
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
+        fs = fsspec.filesystem("file") if fs is None else fs
+        dataset_dict_json_path = Path(dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()
+        dataset_info_path = Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix()
+        if not fs.isfile(dataset_info_path) and fs.isfile(dataset_dict_json_path):
+            raise FileNotFoundError(
+                f"No such file or directory: '{dataset_info_path}'. Expected to load a Dataset object, but got a DatasetDict. Please use datasets.load_from_disk instead."
+            )
+
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
             tmp_dir = tempfile.TemporaryDirectory()
@@ -920,7 +935,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema),
+            lambda t: cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -979,7 +994,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         format = self.format
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema),
+            lambda t: cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
