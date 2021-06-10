@@ -126,9 +126,9 @@ The examples look like this for Yorùbá:
 from datasets import load_dataset
 data = load_dataset('masakhaner', 'yor') 
 
-Please, specify the language code
+# Please, specify the language code
 
-A data point consists of sentences seperated by empty line and tab-seperated tokens and tags. 
+# A data point consists of sentences seperated by empty line and tab-seperated tokens and tags. 
 {'id': '0',
  'ner_tags': [B-DATE, I-DATE, 0, 0, 0, 0, 0, B-PER, I-PER, I-PER, O, O, O, O],
  'tokens': ['Wákàtí', 'méje', 'ti', 'ré', 'kọjá', 'lọ', 'tí', 'Luis', 'Carlos', 'Díaz', 'ti', 'di', 'awati', '.']
