@@ -1003,3 +1003,9 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                         else:
                             # examples have no label in test set
                             ner_tags.append("O")
+                if tokens:
+                    yield guid_index, {
+                        "tokens": tokens,
+                        "ner_tags": ner_tags,
+                        "langs": langs,
+                    }
