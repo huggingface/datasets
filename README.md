@@ -146,11 +146,37 @@ If you're a dataset owner and wish to update any part of it (description, citati
 If you want to cite this framework you can use this:
 
 ```bibtex
-@article{2020HuggingFace-datasets,
-  title={Datasets},
-  author={Thomas Wolf and Quentin Lhoest and Patrick von Platen and Yacine Jernite and Mariama Drame and Julien Plu and Julien Chaumond and Clement Delangue and Clara Ma and Abhishek Thakur and Suraj Patil and Joe Davison and Teven Le Scao and Victor Sanh and Canwen Xu and Nicolas Patry and Angie McMillan-Major and Simon Brandeis and Sylvain Gugger and François Lagunas and Lysandre Debut and Morgan Funtowicz and Anthony Moi and Sasha Rush and Philipp Schmidd and Pierric Cistac and Victor Muštar and Jeff Boudier and Anna Tordjmann},
-  journal={GitHub. Note: https://github.com/huggingface/datasets},
-  volume={1},
-  year={2020}
+@software{quentin_lhoest_2021_4817769,
+  author       = {Quentin Lhoest and
+                  Patrick von Platen and
+                  Thomas Wolf and
+                  Albert Villanova del Moral and
+                  Yacine Jernite and
+                  Suraj Patil and
+                  Mariama Drame and
+                  Julien Chaumond and
+                  Julien Plu and
+                  Joe Davison and
+                  Simon Brandeis and
+                  Teven Le Scao and
+                  Victor Sanh and
+                  Kevin Canwen Xu and
+                  Lewis Tunstall and
+                  Nicolas Patry and
+                  Angelina McMillan-Major and
+                  Philipp Schmid and
+                  Sylvain Gugger and
+                  Lysandre Debut and
+                  Clément Delangue and
+                  Théo Matussière and
+                  Stas Bekman and
+                  François Lagunas},
+  title        = {huggingface/datasets: 1.7.0},
+  month        = may,
+  year         = 2021,
+  publisher    = {Zenodo},
+  version      = {1.7.0},
+  doi          = {10.5281/zenodo.4817769},
+  url          = {https://doi.org/10.5281/zenodo.4817769}
 }
 ```
