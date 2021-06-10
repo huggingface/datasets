@@ -71,7 +71,7 @@ paperswithcode_id: null
 - **Homepage:** [homepage](https://github.com/masakhane-io/masakhane-ner)
 - **Repository:** [github](https://github.com/masakhane-io/masakhane-ner)
 - **Paper:** [paper](https://arxiv.org/abs/2103.11811)
-- **Point of Contact:** didelani@lsv.uni-saarland.de
+- **Point of Contact:** [Masakhane](https://www.masakhane.io/) or didelani@lsv.uni-saarland.de
 
 ### Dataset Summary
 
@@ -160,18 +160,18 @@ The original splits were named `train`, `testa` and `testb` and they correspond 
 
 The splits have the following sizes :
 
-|                            | Tain  | Valid | Test |
+| Language                           | Tain  | Valid | Test |
 | -----                      | ----- | ----- | ---- |
-| N. Examples (Amharic)      | 1750  |  250  |  500 |
-| N. Examples (Hausa)        | 1903  |  272  |  545 |
-| N. Examples (Igbo)         | 2233  |  319  |  638 |
-| N. Examples (Kinyarwanda)  | 2110  |  301  |  604 |
-| N. Examples (Luganda)      | 2003  |  200  |  401 |
-| N. Examples (Luo)          |  644  |   92  |  185 |
-| N. Exa. (Nigerian-Pidgin)  | 2100  |  300  |  600 |
-| N. Examples (Swahili)      | 2104  |  300  |  602 |
-| N. Examples (Wolof)        | 1871  |  267  |  536 |
-| N. Examples (Yoruba)       | 2124  |  303  |  608 |
+| Amharic      | 1750  |  250  |  500 |
+| Hausa        | 1903  |  272  |  545 |
+| Igbo         | 2233  |  319  |  638 |
+| Kinyarwanda  | 2110  |  301  |  604 |
+| Luganda      | 2003  |  200  |  401 |
+| Luo          |  644  |   92  |  185 |
+| Nigerian-Pidgin  | 2100  |  300  |  600 |
+| Swahili     | 2104  |  300  |  602 |
+| Wolof       | 1871  |  267  |  536 |
+| Yoruba      | 2124  |  303  |  608 |
 
 ## Dataset Creation
 
