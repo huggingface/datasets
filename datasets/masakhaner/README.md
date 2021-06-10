@@ -40,7 +40,7 @@ task_ids:
 paperswithcode_id: null
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for MasakhaNER
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
