@@ -189,7 +189,7 @@ class DatasetMetadata:
     languages: Union[List[str], Dict[str, List[str]]]
     licenses: Union[List[str], Dict[str, List[str]]]
     multilinguality: Union[List[str], Dict[str, List[str]]]
-    pretty_names: Union[str, Dict[str, str]]
+    pretty_name: Union[str, Dict[str, str]]
     size_categories: Union[List[str], Dict[str, List[str]]]
     source_datasets: Union[List[str], Dict[str, List[str]]]
     task_categories: Union[List[str], Dict[str, List[str]]]
@@ -367,20 +367,20 @@ class DatasetMetadata:
                 return paperswithcode_id, None
 
     @staticmethod
-    def validate_pretty_names(pretty_names: Union[str, Dict[str, str]]):
-        if isinstance(pretty_names, str):
-            if len(pretty_names) == 0:
+    def validate_pretty_name(pretty_name: Union[str, Dict[str, str]]):
+        if isinstance(pretty_name, str):
+            if len(pretty_name) == 0:
                 return None, f"The pretty name must have a length greater than 0 but got an empty string."
         else:
             error_string = ""
-            for key, value in pretty_names.items():
+            for key, value in pretty_name.items():
                 if len(value) == 0:
                     error_string += f"The pretty name must have a length greater than 0 but got an empty string for config: {key}.\n"
 
             if error_string == "":
                 return None, error_string
             else:
-                return pretty_names, None
+                return pretty_name, None
 
     def get_metadata_by_config_name(self, name: str) -> "DatasetMetadata":
         metadata_dict = asdict(self)

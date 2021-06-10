@@ -198,7 +198,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -226,7 +226,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -251,7 +251,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -276,7 +276,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -301,7 +301,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -333,7 +333,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -360,7 +360,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -386,7 +386,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -412,7 +412,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -445,7 +445,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names:
+            pretty_name:
               en: English Test Dataset
               fr: French Test Dataset
             size_categories:
@@ -471,7 +471,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "languages": ["en"],
                 "licenses": ["unknown"],
                 "multilinguality": ["monolingual"],
-                "pretty_names": "English Test Dataset",
+                "pretty_name": "English Test Dataset",
                 "size_categories": ["10K<n<100K"],
                 "source_datasets": ["extended|other-yahoo-webscope-l6"],
                 "task_categories": ["question-answering"],
@@ -488,7 +488,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "languages": ["fr"],
                 "licenses": ["unknown"],
                 "multilinguality": ["monolingual"],
-                "pretty_names": "French Test Dataset",
+                "pretty_name": "French Test Dataset",
                 "size_categories": ["10K<n<100K"],
                 "source_datasets": ["extended|other-yahoo-webscope-l6"],
                 "task_categories": ["question-answering"],
@@ -509,7 +509,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -533,7 +533,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "languages": ["en"],
                 "licenses": ["unknown"],
                 "multilinguality": ["monolingual"],
-                "pretty_names": "Test Dataset",
+                "pretty_name": "Test Dataset",
                 "size_categories": ["10K<n<100K"],
                 "source_datasets": ["extended|other-yahoo-webscope-l6"],
                 "task_categories": ["question-answering"],
@@ -550,7 +550,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "languages": ["en"],
                 "licenses": ["unknown"],
                 "multilinguality": ["monolingual"],
-                "pretty_names": "Test Dataset",
+                "pretty_name": "Test Dataset",
                 "size_categories": ["10K<n<100K"],
                 "source_datasets": ["extended|other-yahoo-webscope-l6"],
                 "task_categories": ["question-answering"],
@@ -574,7 +574,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
-            pretty_names: Test Dataset
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -598,7 +598,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "languages": ["en"],
                 "licenses": ["unknown"],
                 "multilinguality": ["monolingual"],
-                "pretty_names": "Test Dataset",
+                "pretty_name": "Test Dataset",
                 "size_categories": ["10K<n<100K"],
                 "source_datasets": ["extended|other-yahoo-webscope-l6"],
                 "task_categories": ["question-answering"],
@@ -615,7 +615,7 @@ class TestMetadataUtils(unittest.TestCase):
                 "languages": ["zh"],
                 "licenses": ["unknown"],
                 "multilinguality": ["monolingual"],
-                "pretty_names": "Test Dataset",
+                "pretty_name": "Test Dataset",
                 "size_categories": ["10K<n<100K"],
                 "source_datasets": ["extended|other-yahoo-webscope-l6"],
                 "task_categories": ["question-answering"],

@@ -88,7 +88,7 @@ class Section:
 
         if self.level == "" and not suppress_parsing_errors:
             if self.parsing_error_list != [] or self.parsing_warning_list != []:
-                errors = "\n".join(list(map(lambda x: "-\t" + x, self.parsing_error_list + self.parsing_warning_list)))
+                errors = errors = "\n".join("-\t" + x for x in self.parsing_error_list + self.parsing_warning_list)
                 error_string = f"The following issues were found while parsing the README at `{self.name}`:\n" + errors
                 raise ValueError(error_string)
 
