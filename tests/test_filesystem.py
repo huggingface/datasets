@@ -6,6 +6,7 @@ import pytest
 from moto import mock_s3
 
 from datasets.filesystems import S3FileSystem, extract_path_from_uri, is_remote_filesystem
+from datasets.filesystems.compression.gzip import GZipFileSystem
 
 
 @pytest.fixture(scope="function")
@@ -50,3 +51,12 @@ def test_is_remote_filesystem():
 
     is_remote = is_remote_filesystem(fs)
     assert is_remote is False
+
+
+def test_gzip_filesystem(text_gz_path, text_path):
+    fs = fsspec.filesystem("gzip", urlpath=text_gz_path)
+    assert isinstance(fs, GZipFileSystem)
+    expected_filename = os.path.basename(text_gz_path).rstrip(".gz")
+    assert fs.ls("/") == [expected_filename]
+    with fs.open(expected_filename, "r", encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+        assert f.read() == expected_file.read()

@@ -14,6 +14,7 @@ from .logging import get_logger
 
 
 logger = get_logger(__name__)
+BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll"]
 
 
 def xjoin(a, *p):
@@ -118,10 +119,22 @@ class StreamingDownloadManager(object):
 
     def _extract(self, urlpath):
         protocol = self._get_extraction_protocol(urlpath)
-        return f"{protocol}://::{urlpath}"
+        if protocol is None:
+            # no extraction
+            return urlpath
+        elif protocol == "gzip":
+            # there is one single file which is the uncompressed gzip file
+            return f"{protocol}://{urlpath.split('::')[0].split('/')[-1].rstrip('.gz')}::{urlpath}"
+        else:
+            return f"{protocol}://::{urlpath}"
 
-    def _get_extraction_protocol(self, urlpath):
-        if urlpath.split("::")[0].endswith("zip"):
+    def _get_extraction_protocol(self, urlpath) -> Optional[str]:
+        path = urlpath.split("::")[0]
+        if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS:
+            return None
+        elif path.endswith(".gz") and not path.endswith(".tar.gz"):
+            return "gzip"
+        elif path.endswith(".zip"):
             return "zip"
         raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
 
