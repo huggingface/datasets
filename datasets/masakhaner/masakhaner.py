@@ -43,6 +43,8 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
+MasakhaNER is the first large publicly available high-quality dataset for named entity recognition (NER) in ten African languages.
+
 Named entities are phrases that contain the names of persons, organizations, locations, times and quantities.
 
 Example:
