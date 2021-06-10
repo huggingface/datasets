@@ -3098,7 +3098,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     def align_labels_with_mapping(self, label2id: Dict, label_column: str = "labels") -> "Dataset":
-        features = self.features
+        features = self.features.copy()
         int2str_function = features[label_column].int2str
         # Some label mappings use uppercase label names so we lowercase them
         label2id = {k.lower(): v for k, v in label2id.items()}
