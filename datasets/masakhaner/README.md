@@ -75,6 +75,8 @@ paperswithcode_id: null
 
 ### Dataset Summary
 
+MasakhaNER is the first large publicly available high-quality dataset for named entity recognition (NER) in ten African languages.
+
 Named entities are phrases that contain the names of persons, organizations, locations, times and quantities. Example:
 
 [PER Wolff] , currently a journalist in [LOC Argentina] , played with [PER Del Bosque] in the final years of the seventies in [ORG Real Madrid] .
