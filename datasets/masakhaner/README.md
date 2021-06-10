@@ -253,4 +253,4 @@ Provide the [BibTex](http://www.bibtex.org/)-formatted reference for the dataset
 
 ### Contributions
 
-Thanks to David Adelani (https://dadelani.github.io/) for adding this dataset.
+Thanks to [@dadelani](https://github.com/dadelani) for adding this dataset.
