@@ -3097,20 +3097,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fingerprint=new_fingerprint,
         )
 
-    def align_labels_with_mapping(self, id2label: Dict, label2id: Dict, label_column: str = "labels") -> "Dataset":
+    def align_labels_with_mapping(self, label2id: Dict, label_column: str = "labels") -> "Dataset":
         features = self.features
         int2str_function = features[label_column].int2str
-        label_name_to_id = {k.lower(): v for k, v in label2id.items()}
-        label_names = [k.lower() for k in id2label.values()]
+        # Some label mappings use uppercase label names so we lowercase them
+        label2id = {k.lower(): v for k, v in label2id.items()}
+        label_names = list(label2id.keys())
         features[label_column] = ClassLabel(num_classes=len(label_names), names=label_names)
 
-        def _process_labels(batch):
-            label_names = [int2str_function(label_id) for label_id in batch[label_column]]
-            # TODO(lewtun): do we need to also lowercase dataset label names?
-            batch[label_column] = [label_name_to_id[label_name] for label_name in label_names]
+        def process_label_ids(batch):
+            dset_label_names = [int2str_function(label_id).lower() for label_id in batch[label_column]]
+            batch[label_column] = [label2id[label_name] for label_name in dset_label_names]
             return batch
 
-        return self.map(_process_labels, features=features, batched=True)
+        return self.map(process_label_ids, features=features, batched=True)
 
 
 def concatenate_datasets(
