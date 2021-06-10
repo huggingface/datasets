@@ -437,9 +437,7 @@ class XtremeConfig(datasets.BuilderConfig):
             label_classes
             **kwargs: keyword arguments forwarded to super.
         """
-        super(XtremeConfig, self).__init__(
-            version=datasets.Version("1.0.0", ""), **kwargs
-        )
+        super(XtremeConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.data_url = data_url
         self.citation = citation
@@ -465,10 +463,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO(xtreme): Specifies the datasets.DatasetInfo object
-        features = {
-            text_feature: datasets.Value("string")
-            for text_feature in self.config.text_features.keys()
-        }
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
         if "answers" in features.keys():
             features["answers"] = datasets.features.Sequence(
                 {
@@ -544,9 +539,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
-            homepage="https://github.com/google-research/xtreme"
-            + "\t"
-            + self.config.url,
+            homepage="https://github.com/google-research/xtreme" + "\t" + self.config.url,
             citation=self.config.citation + "\n" + _CITATION,
         )
 
@@ -591,9 +584,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             ]
 
         if self.config.name.startswith("MLQA"):
-            mlqa_downloaded_files = dl_manager.download_and_extract(
-                self.config.data_url
-            )
+            mlqa_downloaded_files = dl_manager.download_and_extract(self.config.data_url)
             l1 = self.config.name.split(".")[1]
             l2 = self.config.name.split(".")[2]
             return [
@@ -660,9 +651,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             lang = self.config.name.split(".")[1]
 
             tatoeba_source_data = dl_manager.download_and_extract(
-                os.path.join(
-                    self.config.data_url, "tatoeba.{}-eng.{}".format(lang, lang)
-                )
+                os.path.join(self.config.data_url, "tatoeba.{}-eng.{}".format(lang, lang))
             )
             tatoeba_eng_data = dl_manager.download_and_extract(
                 os.path.join(self.config.data_url, "tatoeba.{}-eng.eng".format(lang))
@@ -692,26 +681,16 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(
-                            bucc18_dl_dev_dir, "bucc2018", lang + "-en"
-                        )
-                    },
+                    gen_kwargs={"filepath": os.path.join(bucc18_dl_dev_dir, "bucc2018", lang + "-en")},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(
-                            bucc18_dl_test_dir, "bucc2018", lang + "-en"
-                        )
-                    },
+                    gen_kwargs={"filepath": os.path.join(bucc18_dl_test_dir, "bucc2018", lang + "-en")},
                 ),
             ]
         if self.config.name.startswith("udpos"):
-            udpos_downloaded_files = dl_manager.download_and_extract(
-                self.config.data_url
-            )
+            udpos_downloaded_files = dl_manager.download_and_extract(self.config.data_url)
             data_dir = os.path.join(udpos_downloaded_files, "ud-treebanks-v2.5")
 
             lang = self.config.name.split(".")[1]
@@ -771,9 +750,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 os.path.join(folder, file)
                                 for folder in folders
                                 for file in sorted(os.listdir(folder))
-                                if "NYUAD" not in folder
-                                and "dev" in file
-                                and file.endswith(".conllu")
+                                if "NYUAD" not in folder and "dev" in file and file.endswith(".conllu")
                             ]
                         },
                     ),
@@ -785,9 +762,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 os.path.join(folder, file)
                                 for folder in folders
                                 for file in sorted(os.listdir(folder))
-                                if "NYUAD" not in folder
-                                and "test" in file
-                                and file.endswith(".conllu")
+                                if "NYUAD" not in folder and "test" in file and file.endswith(".conllu")
                             ]
                         },
                     ),
@@ -799,9 +774,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 os.path.join(folder, file)
                                 for folder in folders
                                 for file in sorted(os.listdir(folder))
-                                if "NYUAD" not in folder
-                                and "train" in file
-                                and file.endswith(".conllu")
+                                if "NYUAD" not in folder and "train" in file and file.endswith(".conllu")
                             ]
                         },
                     ),
@@ -829,9 +802,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("PAN-X"):
             panx_dl_dir = dl_manager.download_and_extract(self.config.data_url)
             lang = self.config.name.split(".")[1]
-            lang_folder = dl_manager.extract(
-                os.path.join(panx_dl_dir, lang + ".tar.gz")
-            )
+            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, lang + ".tar.gz"))
 
             return [
                 datasets.SplitGenerator(
@@ -855,11 +826,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(xtreme): Yields (key, example) tuples from the dataset
 
-        if (
-            self.config.name == "tydiqa"
-            or self.config.name.startswith("MLQA")
-            or self.config.name == "SQuAD"
-        ):
+        if self.config.name == "tydiqa" or self.config.name.startswith("MLQA") or self.config.name == "SQuAD":
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 for article in data["data"]:
@@ -870,12 +837,8 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                             question = qa["question"].strip()
                             id_ = qa["id"]
 
-                            answer_starts = [
-                                answer["answer_start"] for answer in qa["answers"]
-                            ]
-                            answers = [
-                                answer["text"].strip() for answer in qa["answers"]
-                            ]
+                            answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+                            answers = [answer["text"].strip() for answer in qa["answers"]]
 
                             # Features currently used are "context", "question", and "answers".
                             # Others are extracted here for the ease of future expansions.
@@ -920,12 +883,8 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                             question = qa["question"].strip()
                             id_ = qa["id"]
 
-                            answer_starts = [
-                                answer["answer_start"] for answer in qa["answers"]
-                            ]
-                            answers = [
-                                answer["text"].strip() for answer in qa["answers"]
-                            ]
+                            answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+                            answers = [answer["text"].strip() for answer in qa["answers"]]
 
                             # Features currently used are "context", "question", and "answers".
                             # Others are extracted here for the ease of future expansions.
