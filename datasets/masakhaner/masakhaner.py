@@ -132,9 +132,9 @@ class Masakhaner(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         urls_to_download = {
-            "train": f"{_URL}{self.config.name}{'/'}{_TRAINING_FILE}",
-            "dev": f"{_URL}{self.config.name}{'/'}{_DEV_FILE}",
-            "test": f"{_URL}{self.config.name}{'/'}{_TEST_FILE}",
+            "train": f"{_URL}{self.config.name}/{_TRAINING_FILE}",
+            "dev": f"{_URL}{self.config.name}/{_DEV_FILE}",
+            "test": f"{_URL}{self.config.name}/{_TEST_FILE}",
         }
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
