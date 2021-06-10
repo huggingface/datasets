@@ -167,8 +167,9 @@ class Masakhaner(datasets.GeneratorBasedBuilder):
                     tokens.append(splits[0])
                     ner_tags.append(splits[1].rstrip())
             # last example
-            yield guid, {
-                "id": str(guid),
-                "tokens": tokens,
-                "ner_tags": ner_tags,
-            }
+            if tokens:
+                yield guid, {
+                    "id": str(guid),
+                    "tokens": tokens,
+                    "ner_tags": ner_tags,
+                }
