@@ -154,9 +154,9 @@ It is assumed that named entities are non-recursive and non-overlapping. In case
 
 ### Data Splits
 
-For both configurations (Spanish and Dutch), there are three splits.
+For all languages, there are three splits.
 
-The original splits were named `train`, `testa` and `testb` and they correspond to the `train`, `validation` and `test` splits.
+The original splits were named `train`, `dev` and `test` and they correspond to the `train`, `validation` and `test` splits.
 
 The splits have the following sizes :
 
