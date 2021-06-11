@@ -1,4 +1,4 @@
-from __future__ import absolute_import, division, print_function
+import os
 
 import fsspec
 from fsspec.archive import AbstractArchiveFileSystem
@@ -39,7 +39,7 @@ class GZipFileSystem(AbstractArchiveFileSystem):
             raise ValueError("Only read from gzip files accepted")
         self.gzip = fsspec.open(fo, mode=mode, protocol=target_protocol, compression="gzip", **(target_options or {}))
         self.info = self.gzip.fs.info(self.gzip.path)
-        self.compressed_name = self.gzip.path.split("::")[0].split("/")[-1]
+        self.compressed_name = os.path.basename(self.gzip.path.split('::')[0]).rstrip('.gz')
         self.uncompressed_name = self.compressed_name.rstrip(".gz")
         self.block_size = block_size
         self.dir_cache = None

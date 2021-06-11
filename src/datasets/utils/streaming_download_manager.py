@@ -124,7 +124,7 @@ class StreamingDownloadManager(object):
             return urlpath
         elif protocol == "gzip":
             # there is one single file which is the uncompressed gzip file
-            return f"{protocol}://{urlpath.split('::')[0].split('/')[-1].rstrip('.gz')}::{urlpath}"
+            return f"{protocol}://{os.path.basename(urlpath.split('::')[0]).rstrip('.gz')}::{urlpath}"
         else:
             return f"{protocol}://::{urlpath}"
 
