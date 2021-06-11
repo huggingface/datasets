@@ -54,7 +54,7 @@ def test_is_remote_filesystem():
 
 
 def test_gzip_filesystem(text_gz_path, text_path):
-    fs = fsspec.filesystem("gzip", urlpath=text_gz_path)
+    fs = fsspec.filesystem("gzip", fo=text_gz_path)
     assert isinstance(fs, GZipFileSystem)
     expected_filename = os.path.basename(text_gz_path).rstrip(".gz")
     assert fs.ls("/") == [expected_filename]
