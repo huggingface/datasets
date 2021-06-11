@@ -27,7 +27,6 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Dict, List, Optional, Tuple, Union
 
-import datasets
 from datasets.features import Features
 from datasets.utils.mock_download_manager import MockDownloadManager
 
