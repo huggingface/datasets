@@ -27,6 +27,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Dict, List, Optional, Tuple, Union
 
+import datasets
 from datasets.features import Features
 from datasets.utils.mock_download_manager import MockDownloadManager
 
@@ -775,6 +776,11 @@ class DatasetBuilder:
             }
             post_processed = self._post_process(ds, resources_paths)
             if post_processed is not None:
+                del ds
+                # collect the gc to make sure the windows file lock on arrow files is gone
+                import gc
+
+                gc.collect()
                 ds = post_processed
                 recorded_checksums = {}
                 for resource_name, resource_path in resources_paths.items():
