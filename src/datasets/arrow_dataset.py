@@ -553,10 +553,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             del self._data
         if hasattr(self, "_indices"):
             del self._indices
-        # collect the gc to make sure the windows file lock on arrow files is gone
-        import gc
-
-        gc.collect()
 
     def __enter__(self):
         return self
