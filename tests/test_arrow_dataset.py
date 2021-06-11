@@ -1197,12 +1197,12 @@ class BaseDatasetTest(TestCase):
                             dset.features, Features({"filename": Value("string"), "name": Value("string")})
                         )
                         assert_arrow_metadata_are_synced_with_dataset_features(dset)
-                        dset = dset.with_format("numpy", columns=dset.column_names)
-                        with dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names) as dset:
-                            self.assertTrue("filename" not in dset[0])
-                            self.assertTrue("name" in dset[0])
-                            self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
-                            assert_arrow_metadata_are_synced_with_dataset_features(dset)
+                        with dset.with_format("numpy", columns=dset.column_names) as dset:
+                            with dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names) as dset:
+                                self.assertTrue("filename" not in dset[0])
+                                self.assertTrue("name" in dset[0])
+                                self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
+                                assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
     def test_map_stateful_callable(self, in_memory):
         # be sure that the state of the map callable is unaffected
