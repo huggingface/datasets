@@ -65,7 +65,7 @@ This call to :func:`datasets.load_dataset` does the following steps under the ho
     typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you
     to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use
     memory-mapping and pay effectively zero cost with O(1) random access. Alternatively, you can copy it in CPU memory
-    (RAM) by setting the ``keep_in_memory`` argument of :func:`datasets.load_datasets` to ``True``.
+    (RAM) by setting the ``keep_in_memory`` argument of :func:`datasets.load_dataset` to ``True``.
     The default in 🤗Datasets is to memory-map the dataset on disk unless you set ``datasets.config.IN_MEMORY_MAX_SIZE``
     different from ``0`` bytes (default). In that case, the dataset will be copied in-memory if its size is smaller than
     ``datasets.config.IN_MEMORY_MAX_SIZE`` bytes, and memory-mapped otherwise. This behavior can be enabled by setting
