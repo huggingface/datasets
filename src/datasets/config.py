@@ -128,6 +128,10 @@ HF_METRICS_CACHE = Path(os.getenv("HF_METRICS_CACHE", DEFAULT_HF_METRICS_CACHE))
 DEFAULT_HF_MODULES_CACHE = os.path.join(HF_CACHE_HOME, "modules")
 HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 
+DOWNLOADED_DATASETS_DIR = "downloads"
+DEFAULT_DOWNLOADED_DATASETS_PATH = os.path.join(HF_DATASETS_CACHE, DOWNLOADED_DATASETS_DIR)
+DOWNLOADED_DATASETS_PATH = Path(os.getenv("HF_DATASETS_DOWNLOADED_DATASETS_PATH", DEFAULT_DOWNLOADED_DATASETS_PATH))
+
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
