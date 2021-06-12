@@ -2570,10 +2570,6 @@ def test_dataset_from_json_with_class_label_feature(jsonl_str_path, tmp_path):
     )
     cache_dir = tmp_path / "cache"
     dataset = Dataset.from_json(jsonl_str_path, features=features, cache_dir=cache_dir)
-    # import pdb
-    #
-    # pdb.set_trace()
-    # dataset = dataset.map(features.encode_example, features=features)
     assert dataset.features["col_1"].dtype == "int64"
 
 
