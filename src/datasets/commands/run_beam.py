@@ -116,7 +116,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                 download_mode=GenerateMode.REUSE_CACHE_IF_EXISTS
                 if not self._force_redownload
                 else GenerateMode.FORCE_REDOWNLOAD,
-                download_config=DownloadConfig(cache_dir=os.path.join(config.HF_DATASETS_CACHE, "downloads")),
+                download_config=DownloadConfig(cache_dir=config.DOWNLOADED_DATASETS_PATH),
                 save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
