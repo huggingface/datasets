@@ -51,6 +51,11 @@ _LICENSE = "Disfl-QA dataset is licensed under CC BY 4.0"
 
 _URL = "https://raw.githubusercontent.com/google-research-datasets/Disfl-QA/main/"
 
+_URLS_squad_v2 = {
+    "train": "https://rajpurkar.github.io/SQuAD-explorer/dataset/" + "train-v2.0.json",
+    "dev": "https://rajpurkar.github.io/SQuAD-explorer/dataset/" + "dev-v2.0.json",
+}
+
 
 class DisflQA(datasets.GeneratorBasedBuilder):
     """A Benchmark Dataset for Understanding Disfluencies in Question Answering"""
@@ -61,8 +66,16 @@ class DisflQA(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "squad_v2_id": datasets.Value("string"),
-                "original": datasets.Value("string"),
-                "disfluent": datasets.Value("string"),
+                "original question": datasets.Value("string"),
+                "disfluent question": datasets.Value("string"),
+                "title": datasets.Value("string"),
+                "context": datasets.Value("string"),
+                "answers": datasets.features.Sequence(
+                    {
+                        "text": datasets.Value("string"),
+                        "answer_start": datasets.Value("int32"),
+                    }
+                ),
             }
         )
         return datasets.DatasetInfo(
@@ -84,6 +97,16 @@ class DisflQA(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
+
+        squad_v2_downloaded_files = dl_manager.download_and_extract(_URLS_squad_v2)
+        merge_squad_v2_json = {}
+
+        for file in squad_v2_downloaded_files:
+            with open(squad_v2_downloaded_files[file], encoding="utf-8") as f:
+                merge_squad_v2_json.update(json.load(f))
+
+        squad_v2_dict = _helper_dict(merge_squad_v2_json)  # contains all squad_v2 data in a dict with id as key
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -91,12 +114,17 @@ class DisflQA(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "filepath": dl_manager.download_and_extract(_URL + "train.json"),
                     "split": "train",
+                    "squad_v2_dict": squad_v2_dict,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dl_manager.download_and_extract(_URL + "test.json"), "split": "test"},
+                gen_kwargs={
+                    "filepath": dl_manager.download_and_extract(_URL + "test.json"),
+                    "split": "test",
+                    "squad_v2_dict": squad_v2_dict,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
@@ -104,12 +132,16 @@ class DisflQA(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "filepath": dl_manager.download_and_extract(_URL + "dev.json"),
                     "split": "dev",
+                    "squad_v2_dict": squad_v2_dict,
                 },
             ),
         ]
 
     def _generate_examples(
-        self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+        self,
+        filepath,
+        split,
+        squad_v2_dict,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
         """Yields examples as (key, example) tuples."""
 
@@ -120,7 +152,41 @@ class DisflQA(datasets.GeneratorBasedBuilder):
                 for i in data:
                     yield glob_id, {
                         "squad_v2_id": i,
-                        "original": data[i]["original"],
-                        "disfluent": data[i]["disfluent"],
+                        "disfluent question": data[i]["disfluent"],
+                        "title": squad_v2_dict[i]["title"],
+                        "context": squad_v2_dict[i]["context"],
+                        "original question": squad_v2_dict[i]["question"],
+                        "answers": {
+                            "answer_start": squad_v2_dict[i]["answers"]["answer_start"],
+                            "text": squad_v2_dict[i]["answers"]["text"],
+                        },
                     }
                     glob_id += 1
+
+
+def _helper_dict(row_squad_v2: dict):  # creates dict with id as key for combined squad_v2
+
+    squad_v2_dict = {}
+
+    for example in row_squad_v2["data"]:
+        title = example.get("title", "").strip()
+        for paragraph in example["paragraphs"]:
+            context = paragraph["context"].strip()
+            for qa in paragraph["qas"]:
+                question = qa["question"].strip()
+                id_ = qa["id"]
+
+                answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+                answers = [answer["text"].strip() for answer in qa["answers"]]
+
+                squad_v2_dict[id_] = {
+                    "title": title,
+                    "context": context,
+                    "question": question,
+                    "id": id_,
+                    "answers": {
+                        "answer_start": answer_starts,
+                        "text": answers,
+                    },
+                }
+    return squad_v2_dict
