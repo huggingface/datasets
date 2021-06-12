@@ -86,9 +86,7 @@ def test_cached_path_extract(xz_file, tmp_path, text_file):
 
 @pytest.mark.parametrize("default_extracted", [True, False])
 @pytest.mark.parametrize("default_cache_dir", [True, False])
-def test_extracted_datasets_path(
-    default_extracted, default_cache_dir, xz_file, tmp_path, monkeypatch
-):
+def test_extracted_datasets_path(default_extracted, default_cache_dir, xz_file, tmp_path, monkeypatch):
     custom_cache_dir = "custom_cache"
     custom_extracted_dir = "custom_extracted_dir"
     custom_extracted_path = tmp_path / "custom_extracted_path"
