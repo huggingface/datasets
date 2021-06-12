@@ -312,9 +312,15 @@ def cached_path(
             return output_path
 
         # Path where we extract compressed archives
-        # We extract in the cache dir, and get the extracted path name by hashing the original path"
+        # We extract in the cache dir, and get the extracted path name by hashing the original path
         abs_output_path = os.path.abspath(output_path)
-        output_path_extracted = os.path.join(cache_dir, "extracted", hash_url_to_filename(abs_output_path))
+        output_path_extracted = (
+            os.path.join(
+                download_config.cache_dir, config.EXTRACTED_DATASETS_DIR, hash_url_to_filename(abs_output_path)
+            )
+            if download_config.cache_dir
+            else os.path.join(config.EXTRACTED_DATASETS_PATH, hash_url_to_filename(abs_output_path))
+        )
 
         if (
             os.path.isdir(output_path_extracted)
