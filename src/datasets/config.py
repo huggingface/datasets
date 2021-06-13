@@ -65,6 +65,7 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             "tensorflow",
             "tensorflow-cpu",
             "tensorflow-gpu",
+            "tensorflow-macos",
             "tf-nightly",
             "tf-nightly-cpu",
             "tf-nightly-gpu",
