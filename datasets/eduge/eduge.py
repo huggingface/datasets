@@ -60,7 +60,23 @@ class Eduge(datasets.GeneratorBasedBuilder):
             ),
             homepage="http://eduge.mn",
             citation=_CITATION,
-            task_templates=[TextClassification(text_column="news", label_column="label")],
+            task_templates=[
+                TextClassification(
+                    text_column="news",
+                    label_column="label",
+                    labels=[
+                        "урлаг соёл",
+                        "эдийн засаг",
+                        "эрүүл мэнд",
+                        "хууль",
+                        "улс төр",
+                        "спорт",
+                        "технологи",
+                        "боловсрол",
+                        "байгал орчин",
+                    ],
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):
@@ -77,7 +93,7 @@ class Eduge(datasets.GeneratorBasedBuilder):
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
             )
-            headers = next(csv_reader)
+            next(csv_reader)
             for id_, row in enumerate(csv_reader):
                 news, label = row[0], row[1]
                 yield id_, {"news": news, "label": label}
