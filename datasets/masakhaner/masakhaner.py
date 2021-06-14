@@ -94,7 +94,9 @@ class Masakhaner(datasets.GeneratorBasedBuilder):
         MasakhanerConfig(name="kin", version=datasets.Version("1.0.0"), description="Masakhaner Kinyarwanda dataset"),
         MasakhanerConfig(name="lug", version=datasets.Version("1.0.0"), description="Masakhaner Luganda dataset"),
         MasakhanerConfig(name="luo", version=datasets.Version("1.0.0"), description="Masakhaner Luo dataset"),
-        MasakhanerConfig(name="pcm", version=datasets.Version("1.0.0"), description="Masakhaner Nigerian-Pidgin dataset"),
+        MasakhanerConfig(
+            name="pcm", version=datasets.Version("1.0.0"), description="Masakhaner Nigerian-Pidgin dataset"
+        ),
         MasakhanerConfig(name="swa", version=datasets.Version("1.0.0"), description="Masakhaner Swahili dataset"),
         MasakhanerConfig(name="wol", version=datasets.Version("1.0.0"), description="Masakhaner Wolof dataset"),
         MasakhanerConfig(name="yor", version=datasets.Version("1.0.0"), description="Masakhaner Yoruba dataset"),
