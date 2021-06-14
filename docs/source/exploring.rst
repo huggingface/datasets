@@ -184,7 +184,7 @@ In particular, you can easily select a specific column in batches, and also natu
 
 
 Working with NumPy, pandas, PyTorch, TensorFlow, JAX and on-the-fly formatting transforms
-------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
 
 Up to now, the rows/batches/columns returned when querying the elements of the dataset were python objects.
 
