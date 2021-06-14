@@ -56,11 +56,21 @@ def test_changed_dataset_card(dataset_name):
     assert card_path.exists()
     error_messages = []
     try:
-        ReadMe.from_readme(card_path)
-    except Exception as readme_error:
-        error_messages.append(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
+        readme = ReadMe.from_readme(card_path)
+    except Exception as readme_parsing_error:
+        error_messages.append(
+            f"The following issues have been found in the dataset cards:\nREADME Parsing:\n{readme_parsing_error}"
+        )
     try:
-        DatasetMetadata.from_readme(card_path)
+        readme = ReadMe.from_readme(card_path, suppress_parsing_errors=True)
+        readme.validate()
+    except Exception as readme_validation_error:
+        error_messages.append(
+            f"The following issues have been found in the dataset cards:\nREADME Validation:\n{readme_validation_error}"
+        )
+    try:
+        metadata = DatasetMetadata.from_readme(card_path)
+        metadata.validate()
     except Exception as metadata_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
@@ -77,11 +87,21 @@ def test_dataset_card(dataset_name):
     assert card_path.exists()
     error_messages = []
     try:
-        ReadMe.from_readme(card_path)
-    except Exception as readme_error:
-        error_messages.append(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
+        readme = ReadMe.from_readme(card_path)
+    except Exception as readme_parsing_error:
+        error_messages.append(
+            f"The following issues have been found in the dataset cards:\nREADME Parsing:\n{readme_parsing_error}"
+        )
     try:
-        DatasetMetadata.from_readme(card_path)
+        readme = ReadMe.from_readme(card_path, suppress_parsing_errors=True)
+        readme.validate()
+    except Exception as readme_validation_error:
+        error_messages.append(
+            f"The following issues have been found in the dataset cards:\nREADME Validation:\n{readme_validation_error}"
+        )
+    try:
+        metadata = DatasetMetadata.from_readme(card_path)
+        metadata.validate()
     except Exception as metadata_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
