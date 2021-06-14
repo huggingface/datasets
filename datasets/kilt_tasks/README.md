@@ -413,7 +413,22 @@ Examples from all configurations have the following features:
 
 ### Data Splits
 
-[Needs More Information]
+The configurations have the following splits:
+
+|             | Train       | Validation  | Test        |
+| ----------- | ----------- | ----------- | ----------- |
+| triviaqa    | 61844         | 5359  | 6586  |
+| fever       | 104966        | 10444         | 10100         |
+| aidayago2   | 18395         | 4784  | 4463  |
+| wned   | | 3396 | 3376 |
+| cweb   | | 5599 | 5543 |
+| trex   | 2284168       | 5000  | 5000  |
+| structured_zeroshot    | 147909        | 3724  | 4966  |
+| nq     | 87372         | 2837  | 1444  |
+| hotpotqa       | 88869         | 5600  | 5569  |
+| eli5   | 272634        | 1507  | 600   |
+| wow    | 94577         | 3058  | 2944  |
+
 
 ## Dataset Creation
 
@@ -471,7 +486,41 @@ Examples from all configurations have the following features:
 
 ### Citation Information
 
-[Needs More Information]
+Cite as:
+```
+@inproceedings{kilt_tasks,
+  author    = {Fabio Petroni and
+               Aleksandra Piktus and
+               Angela Fan and
+               Patrick S. H. Lewis and
+               Majid Yazdani and
+               Nicola De Cao and
+               James Thorne and
+               Yacine Jernite and
+               Vladimir Karpukhin and
+               Jean Maillard and
+               Vassilis Plachouras and
+               Tim Rockt{\"{a}}schel and
+               Sebastian Riedel},
+  editor    = {Kristina Toutanova and
+               Anna Rumshisky and
+               Luke Zettlemoyer and
+               Dilek Hakkani{-}T{\"{u}}r and
+               Iz Beltagy and
+               Steven Bethard and
+               Ryan Cotterell and
+               Tanmoy Chakraborty and
+               Yichao Zhou},
+  title     = {{KILT:} a Benchmark for Knowledge Intensive Language Tasks},
+  booktitle = {Proceedings of the 2021 Conference of the North American Chapter of
+               the Association for Computational Linguistics: Human Language Technologies,
+               {NAACL-HLT} 2021, Online, June 6-11, 2021},
+  pages     = {2523--2544},
+  publisher = {Association for Computational Linguistics},
+  year      = {2021},
+  url       = {https://www.aclweb.org/anthology/2021.naacl-main.200/}
+}
+```
 
 ### Contributions
 
