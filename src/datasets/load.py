@@ -621,6 +621,50 @@ def load_metric(
     return metric
 
 
+def load_dataset_builder(
+    path: str,
+    name: Optional[str] = None,
+    data_dir: Optional[str] = None,
+    data_files: Union[Dict, List] = None,
+    cache_dir: Optional[str] = None,
+    features: Optional[Features] = None,
+    download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[GenerateMode] = None,
+    script_version: Optional[Union[str, Version]] = None,
+    use_auth_token: Optional[Union[bool, str]] = None,
+    _return_resolved_file_path=False,
+    **config_kwargs,
+) -> DatasetBuilder:
+    # Download/copy dataset processing script
+    module_path, hash, resolved_file_path = prepare_module(
+        path,
+        script_version=script_version,
+        download_config=download_config,
+        download_mode=download_mode,
+        dataset=True,
+        return_resolved_file_path=True,
+        use_auth_token=use_auth_token,
+    )
+
+    # Get dataset builder class from the processing script
+    builder_cls = import_main_class(module_path, dataset=True)
+
+    # Instantiate the dataset builder
+    builder_instance: DatasetBuilder = builder_cls(
+        cache_dir=cache_dir,
+        name=name,
+        data_dir=data_dir,
+        data_files=data_files,
+        hash=hash,
+        features=features,
+        **config_kwargs,
+    )
+
+    if _return_resolved_file_path:
+        return builder_instance, resolved_file_path
+    return builder_instance
+
+
 def load_dataset(
     path: str,
     name: Optional[str] = None,
@@ -704,35 +748,27 @@ def load_dataset(
 
     """
     ignore_verifications = ignore_verifications or save_infos
-    # Download/copy dataset processing script
-    module_path, hash, resolved_file_path = prepare_module(
+
+    # Create a dataset builder
+    builder_instance, resolved_file_path = load_dataset_builder(
         path,
-        script_version=script_version,
-        download_config=download_config,
-        download_mode=download_mode,
-        dataset=True,
-        return_resolved_file_path=True,
-        use_auth_token=use_auth_token,
+        name,
+        data_dir,
+        data_files,
+        cache_dir,
+        features,
+        download_config,
+        download_mode,
+        script_version,
+        use_auth_token,
+        _return_resolved_file_path=True,
     )
+
     # Set the base path for downloads as the parent of the script location
     if resolved_file_path is not None:
         base_path = url_or_path_parent(resolved_file_path)
     else:
         base_path = None
-
-    # Get dataset builder class from the processing script
-    builder_cls = import_main_class(module_path, dataset=True)
-
-    # Instantiate the dataset builder
-    builder_instance: DatasetBuilder = builder_cls(
-        cache_dir=cache_dir,
-        name=name,
-        data_dir=data_dir,
-        data_files=data_files,
-        hash=hash,
-        features=features,
-        **config_kwargs,
-    )
 
     # Some datasets are already processed on the HF google storage
     # Don't try downloading from google storage for the packaged datasets as text, json, csv or pandas

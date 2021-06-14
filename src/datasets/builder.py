@@ -869,7 +869,7 @@ class DatasetBuilder:
 
         Example:
 
-            return[
+            return [
                     datasets.SplitGenerator(
                             name=datasets.Split.TRAIN,
                             gen_kwargs={'file': 'train_data.zip'},
