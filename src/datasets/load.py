@@ -597,7 +597,7 @@ def load_metric(
     Returns:
         `datasets.Metric`
     """
-    module_path, hash = prepare_module(
+    module_path, _ = prepare_module(
         path,
         script_version=script_version,
         download_config=download_config,
@@ -762,6 +762,7 @@ def load_dataset(
         script_version,
         use_auth_token,
         _return_resolved_file_path=True,
+        **config_kwargs,
     )
 
     # Set the base path for downloads as the parent of the script location
