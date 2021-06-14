@@ -112,6 +112,18 @@ def require_tf(test_case):
     return test_case
 
 
+def require_jax(test_case):
+    """
+    Decorator marking a test that requires JAX.
+
+    These tests are skipped when JAX isn't installed.
+
+    """
+    if not config.JAX_AVAILABLE:
+        test_case = unittest.skip("test requires JAX")(test_case)
+    return test_case
+
+
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.

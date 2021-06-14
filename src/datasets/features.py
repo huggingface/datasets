@@ -17,6 +17,7 @@
 """ This class handle features definition in datasets and some utilities to display table type."""
 import copy
 import re
+import sys
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields
 from typing import Any, ClassVar, Dict, List, Optional
@@ -158,18 +159,23 @@ def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
         has_changed (bool): True if the object has been changed, False if it is identical
     """
 
-    if config.TF_AVAILABLE:
+    if config.TF_AVAILABLE and "tensorflow" in sys.modules:
         import tensorflow as tf
 
-    if config.TORCH_AVAILABLE:
+    if config.TORCH_AVAILABLE and "torch" in sys.modules:
         import torch
+
+    if config.JAX_AVAILABLE and "jax" in sys.modules:
+        import jax.numpy as jnp
 
     if isinstance(obj, np.ndarray):
         return obj.tolist(), True
-    elif config.TORCH_AVAILABLE and isinstance(obj, torch.Tensor):
+    elif config.TORCH_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, torch.Tensor):
         return obj.detach().cpu().numpy().tolist(), True
-    elif config.TF_AVAILABLE and isinstance(obj, tf.Tensor):
+    elif config.TF_AVAILABLE and "torch" in sys.modules and isinstance(obj, tf.Tensor):
         return obj.numpy().tolist(), True
+    elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
+        return obj.tolist(), True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
