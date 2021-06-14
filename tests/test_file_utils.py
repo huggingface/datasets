@@ -84,6 +84,29 @@ def test_cached_path_extract(xz_file, tmp_path, text_file):
     assert extracted_file_content == expected_file_content
 
 
+@pytest.mark.parametrize("default_extracted", [True, False])
+@pytest.mark.parametrize("default_cache_dir", [True, False])
+def test_extracted_datasets_path(default_extracted, default_cache_dir, xz_file, tmp_path, monkeypatch):
+    custom_cache_dir = "custom_cache"
+    custom_extracted_dir = "custom_extracted_dir"
+    custom_extracted_path = tmp_path / "custom_extracted_path"
+    if default_extracted:
+        expected = ("downloads" if default_cache_dir else custom_cache_dir, "extracted")
+    else:
+        monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_DIR", custom_extracted_dir)
+        monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(custom_extracted_path))
+        expected = custom_extracted_path.parts[-2:] if default_cache_dir else (custom_cache_dir, custom_extracted_dir)
+
+    filename = xz_file
+    download_config = (
+        DownloadConfig(extract_compressed_file=True)
+        if default_cache_dir
+        else DownloadConfig(cache_dir=tmp_path / custom_cache_dir, extract_compressed_file=True)
+    )
+    extracted_file_path = cached_path(filename, download_config=download_config)
+    assert Path(extracted_file_path).parent.parts[-2:] == expected
+
+
 def test_cached_path_local(text_file):
     # absolute path
     text_file = str(Path(text_file).resolve())

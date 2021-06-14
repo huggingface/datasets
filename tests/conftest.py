@@ -23,6 +23,8 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
     monkeypatch.setattr("datasets.config.HF_MODULES_CACHE", str(test_hf_modules_cache))
     test_downloaded_datasets_path = test_hf_datasets_cache / "downloads"
     monkeypatch.setattr("datasets.config.DOWNLOADED_DATASETS_PATH", str(test_downloaded_datasets_path))
+    test_extracted_datasets_path = test_hf_datasets_cache / "downloads" / "extracted"
+    monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(test_extracted_datasets_path))
 
 
 FILE_CONTENT = """\
