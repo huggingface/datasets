@@ -270,7 +270,7 @@ def cached_path(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
-    cache_dir = download_config.cache_dir or os.path.join(config.HF_DATASETS_CACHE, "downloads")
+    cache_dir = download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
