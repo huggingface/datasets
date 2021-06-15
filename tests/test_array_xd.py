@@ -10,6 +10,7 @@ from absl.testing import parameterized
 import datasets
 from datasets.arrow_writer import ArrowWriter
 from datasets.features import Array2D, Array3D, Array4D, Array5D, Value, _ArrayXD
+from datasets.formatting.formatting import NumpyArrowExtractor
 
 
 SHAPE_TEST_1 = (30, 487)
@@ -237,4 +238,13 @@ def test_table_to_pandas(dtype, dummy_value):
     df = dataset._data.to_pandas()
     assert type(df.foo.dtype) == datasets.features.PandasArrayExtensionDtype
     arr = df.foo.to_numpy()
+    np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
+
+
+@pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
+def test_array_xd_numpy_arrow_extractor(dtype, dummy_value):
+    features = datasets.Features({"foo": datasets.Array2D(dtype=dtype, shape=(2, 2))})
+    dataset = datasets.Dataset.from_dict({"foo": [[[dummy_value] * 2] * 2]}, features=features)
+    arr = NumpyArrowExtractor().extract_column(dataset._data)
+    assert isinstance(arr, np.ndarray)
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
