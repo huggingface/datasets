@@ -274,6 +274,7 @@ class ArrowWriter:
         # Since current_examples contains (example, key) tuples
         cols = (
             [col for col in self._schema.names if col in self.current_examples[0][0]]
+            + [col for col in self.current_examples[0][0].keys() if col not in self._schema.names]
             if self._schema
             else self.current_examples[0][0].keys()
         )
