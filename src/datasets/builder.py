@@ -251,6 +251,9 @@ class DatasetBuilder:
 
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or config.HF_DATASETS_CACHE)
+        self._cache_downloaded_dir = (
+            os.path.join(cache_dir, config.DOWNLOADED_DATASETS_DIR) if cache_dir else config.DOWNLOADED_DATASETS_PATH
+        )
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
@@ -482,7 +485,7 @@ class DatasetBuilder:
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
-                    cache_dir=os.path.join(self._cache_dir_root, "downloads"),
+                    cache_dir=self._cache_downloaded_dir,
                     force_download=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
                     use_etag=False,
                     use_auth_token=use_auth_token,
