@@ -39,7 +39,6 @@ def test_dataset_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_path):
 )
 def test_dataset_from_json_features(features, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
@@ -47,6 +46,29 @@ def test_dataset_from_json_features(features, jsonl_path, tmp_path):
     )
     dataset = JsonDatasetReader(jsonl_path, features=features, cache_dir=cache_dir).read()
     _check_json_dataset(dataset, expected_features)
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_3": "float64", "col_1": "string", "col_2": "int64"},
+    ],
+)
+def test_dataset_from_json_with_unsorted_column_names(features, jsonl_312_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"col_3": "float64", "col_1": "string", "col_2": "int64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = JsonDatasetReader(jsonl_312_path, features=features, cache_dir=cache_dir).read()
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 2
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_3", "col_1", "col_2"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
 
 
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])

@@ -2402,7 +2402,11 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
         original_dataset: Dataset = getattr(original_dataset, transform_name)(*args, **kwargs)
     dataset = original_dataset.add_column(column_name, column)
     assert dataset.data.shape == (4, 4)
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64", column_name: expected_dtype}
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    # Sort expected features as in the original dataset
+    expected_features = {feature: expected_features[feature] for feature in original_dataset.features}
+    # Add new column feature
+    expected_features[column_name] = expected_dtype
     assert dataset.data.column_names == list(expected_features.keys())
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
