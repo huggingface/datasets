@@ -818,7 +818,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     if isinstance(schema, Features):
         return pa.struct(
             {key: get_nested_type(schema[key]) for key in schema}
-        )  # Features is subclass of dict, and dict order is deterministic since Python 3.7
+        )  # Features is subclass of dict, and dict order is deterministic since Python 3.6
     elif isinstance(schema, dict):
         return pa.struct(
             {key: get_nested_type(schema[key]) for key in schema}
