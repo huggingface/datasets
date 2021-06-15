@@ -82,7 +82,7 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-if int(pa.__version__.split(".")[0]) == 0:
+if int(config.PYARROW_VERSION.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
@@ -935,7 +935,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: cast_with_sliced_list_support(t, schema),
+            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -994,7 +994,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         format = self.format
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: cast_with_sliced_list_support(t, schema),
+            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -3092,7 +3092,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             :class:`Dataset`
         """
-        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        item_table = InMemoryTable.from_pydict({k: [item[k]] for k in self.features.keys() if k in item})
         # Cast item
         schema = pa.schema(self.features.type)
         item_table = item_table.cast(schema)

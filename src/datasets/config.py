@@ -37,6 +37,8 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 
 # Imports
+PYARROW_VERSION = importlib_metadata.version("pyarrow")
+
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 
@@ -68,6 +70,9 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             "tf-nightly",
             "tf-nightly-cpu",
             "tf-nightly-gpu",
+            "intel-tensorflow",
+            "tensorflow-rocm",
+            "tensorflow-macos",
         ]:
             try:
                 TF_VERSION = importlib_metadata.version(package)
