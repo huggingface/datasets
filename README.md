@@ -34,6 +34,10 @@
 
 [🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Add a new dataset to the Hub**](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
 
+<h3 align="center">
+    <a href="https://hf.co/course"><img src="https://raw.githubusercontent.com/huggingface/datasets/master/docs/source/imgs/course_banner.png"></a>
+</h3>
+
 `🤗Datasets` also provides access to +15 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. 
 
 `🤗Datasets` has many additional interesting features:
