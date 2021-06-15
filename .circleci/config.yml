@@ -15,7 +15,7 @@ jobs:
             - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
-            - run: pip install pyarrow==3.0.0
+            - run: pip install pyarrow --upgrade
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
     run_dataset_script_tests_pyarrow_1:
@@ -46,7 +46,7 @@ jobs:
             - run: "& venv/Scripts/activate.ps1"
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
-            - run: pip install pyarrow==3.0.0
+            - run: pip install pyarrow --upgrade
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
 

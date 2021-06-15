@@ -330,7 +330,11 @@ class DummyDataCommand(BaseDatasetsCLICommand):
                     print(f"Automatic dummy data generation failed for some configs of '{self._path_to_dataset}'")
 
     def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager, keep_uncompressed) -> Optional[bool]:
-        dl_cache_dir = os.path.join(self._cache_dir or config.HF_DATASETS_CACHE, "downloads")
+        dl_cache_dir = (
+            os.path.join(self._cache_dir, config.DOWNLOADED_DATASETS_DIR)
+            if self._cache_dir
+            else config.DOWNLOADED_DATASETS_PATH
+        )
         download_config = DownloadConfig(cache_dir=dl_cache_dir)
         dl_manager = DummyDataGeneratorDownloadManager(
             dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager, download_config=download_config

@@ -46,11 +46,11 @@ _LICENSE = "cc-by-4.0"
 
 _URLs = {
     "proto_qa": {
-        "dev": "https://raw.githubusercontent.com/iesl/protoqa-data/master/data/dev/protoqa_scraped_dev.jsonl",
-        "train": "https://raw.githubusercontent.com/iesl/protoqa-data/master/data/train/protoqa_train.jsonl",
+        "dev": "https://raw.githubusercontent.com/iesl/protoqa-data/9fb72b4e7d41a7d3a9766c33ef66c78d7a100b41/data/dev/protoqa_scraped_dev.jsonl",
+        "train": "https://raw.githubusercontent.com/iesl/protoqa-data/9fb72b4e7d41a7d3a9766c33ef66c78d7a100b41/data/train/protoqa_train.jsonl",
     },
-    "proto_qa_cs": "https://raw.githubusercontent.com/iesl/protoqa-data/master/data/dev/crowdsource_dev.jsonl",
-    "proto_qa_cs_assessments": "https://raw.githubusercontent.com/iesl/protoqa-data/master/data/dev/crowdsource_dev.assessments.jsonl",
+    "proto_qa_cs": "https://raw.githubusercontent.com/iesl/protoqa-data/9fb72b4e7d41a7d3a9766c33ef66c78d7a100b41/data/dev/crowdsource_dev.jsonl",
+    "proto_qa_cs_assessments": "https://raw.githubusercontent.com/iesl/protoqa-data/9fb72b4e7d41a7d3a9766c33ef66c78d7a100b41/data/dev/crowdsource_dev.assessments.jsonl",
 }
 
 
