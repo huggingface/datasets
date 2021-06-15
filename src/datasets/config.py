@@ -70,6 +70,9 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             "tf-nightly",
             "tf-nightly-cpu",
             "tf-nightly-gpu",
+            "intel-tensorflow",
+            "tensorflow-rocm",
+            "tensorflow-macos",
         ]:
             try:
                 TF_VERSION = importlib_metadata.version(package)
