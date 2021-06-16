@@ -62,7 +62,15 @@ except NameError:
 
 # Data
 # ------------------------------------------------
-__all__ = ["Timeout", "BaseFileLock", "WindowsFileLock", "UnixFileLock", "SoftFileLock", "FileLock"]
+__all__ = [
+    "Timeout",
+    "BaseFileLock",
+    "WindowsFileLock",
+    "UnixFileLock",
+    "SoftFileLock",
+    "FileLock",
+    "hash_filename_if_too_long",
+]
 
 __version__ = "3.0.12"
 
@@ -94,6 +102,24 @@ class Timeout(TimeoutError):
     def __str__(self):
         temp = "The file lock '{}' could not be acquired.".format(self.lock_file)
         return temp
+
+
+# Helpers
+# ------------------------------------------------
+
+
+MAX_LOCK_FILENAME_LENGTH = 255
+
+
+def hash_filename_if_too_long(path: str, max_length=MAX_LOCK_FILENAME_LENGTH) -> str:
+    filename = os.path.basename(path)
+    if len(filename) > max_length:
+        dirname = os.path.dirname(path)
+        hashed_filename = str(hash(filename))
+        new_filename = filename[: max_length - len(hashed_filename) - 3] + "..." + hashed_filename
+        return os.path.join(dirname, new_filename)
+    else:
+        return path
 
 
 # Classes
