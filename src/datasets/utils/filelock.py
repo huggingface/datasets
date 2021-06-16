@@ -116,7 +116,7 @@ def hash_filename_if_too_long(path: str, max_length=MAX_LOCK_FILENAME_LENGTH) ->
     if len(filename) > max_length:
         dirname = os.path.dirname(path)
         hashed_filename = str(hash(filename))
-        new_filename = filename[: max_length - len(hashed_filename) - 3] + "..." + hashed_filename
+        new_filename = filename[: max_length - len(hashed_filename) - 8] + "..." + hashed_filename + ".lock"
         return os.path.join(dirname, new_filename)
     else:
         return path

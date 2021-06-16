@@ -25,7 +25,6 @@ import shutil
 import urllib
 from dataclasses import dataclass
 from functools import partial
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 from datasets.features import Features
@@ -393,11 +392,11 @@ class DatasetBuilder:
         hash = self.hash
         if builder_config:
             # use the enriched name instead of the name to make it unique
-            builder_data_dir = Path(builder_data_dir, self.config_id).as_posix()
+            builder_data_dir = os.path.join(builder_data_dir, self.config_id)
         if with_version:
-            builder_data_dir = Path(builder_data_dir, str(self.config.version)).as_posix()
+            builder_data_dir = os.path.join(builder_data_dir, str(self.config.version))
         if with_hash and hash and isinstance(hash, str):
-            builder_data_dir = Path(builder_data_dir, hash).as_posix()
+            builder_data_dir = os.path.join(builder_data_dir, hash)
         return builder_data_dir
 
     def _build_cache_dir(self):
@@ -847,7 +846,7 @@ class DatasetBuilder:
             in_memory=in_memory,
         )
         hasher = Hasher()
-        hasher.update(self._relative_data_dir())
+        hasher.update(self._relative_data_dir().replace(os.sep, "/"))
         hasher.update(split.to_spec() if isinstance(split, ReadInstruction) else str(split))
         fingerprint = hasher.hexdigest()
         return Dataset(fingerprint=fingerprint, **dataset_kwargs)
