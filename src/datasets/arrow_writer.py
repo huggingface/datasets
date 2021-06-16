@@ -272,7 +272,12 @@ class ArrowWriter:
             return
 
         # Since current_examples contains (example, key) tuples
-        cols = sorted(self.current_examples[0][0].keys())
+        cols = (
+            [col for col in self._schema.names if col in self.current_examples[0][0]]
+            + [col for col in self.current_examples[0][0].keys() if col not in self._schema.names]
+            if self._schema
+            else self.current_examples[0][0].keys()
+        )
 
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
@@ -541,4 +546,10 @@ def parquet_to_arrow(sources, destination):
                     df[col] = df[col].apply(json.loads)
                 reconstructed_table = pa.Table.from_pandas(df)
                 writer.write_table(reconstructed_table)
+    # Collect the gc or the tqdm progress bar keeps references to the open files
+    # and it causes permission errors on windows
+    # see https://app.circleci.com/pipelines/github/huggingface/datasets/6365/workflows/24f7c960-3176-43a5-9652-7830a23a981e/jobs/39232
+    import gc
+
+    gc.collect()
     return destination

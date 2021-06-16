@@ -59,7 +59,15 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
+from .table import (
+    ConcatenationTable,
+    InMemoryTable,
+    MemoryMappedTable,
+    Table,
+    cast_with_sliced_list_support,
+    concat_tables,
+    list_table_cache_files,
+)
 from .tasks import TaskTemplate
 from .utils import map_nested
 from .utils.deprecation_utils import deprecated
@@ -74,7 +82,7 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-if int(pa.__version__.split(".")[0]) == 0:
+if int(config.PYARROW_VERSION.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
@@ -265,6 +273,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
         if self.info.features is None:
             self.info.features = inferred_features
+        else:  # make sure the nested columns are in the right order
+            self.info.features = self.info.features.reorder_fields_as(inferred_features)
 
         # Infer fingerprint if None
 
@@ -649,7 +659,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
-        filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
+        filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of
+        ``fsspec.spec.AbstractFileSystem``.
 
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`) of
@@ -657,11 +668,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
                 Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
-                dataset will be copied in-memory if its size is smaller than
-                `datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
-                disabled (i.e., the dataset will not be loaded in memory) by setting to ``0`` either the configuration
-                option ``datasets.config.HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (higher precedence) or the
-                environment variable ``HF_MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (lower precedence).
+                dataset will not be copied in-memory unless explicitly enabled by setting
+                `datasets.config.IN_MEMORY_MAX_SIZE` to nonzero. See more details in the
+                :ref:`load_dataset_enhancing_performance` section.
 
         Returns:
             :class:`Dataset` or :class:`DatasetDict`.
@@ -669,6 +678,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 - if `dataset_path` is a path of a dataset dict directory: a :class:`DatasetDict` with each split.
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
+        fs = fsspec.filesystem("file") if fs is None else fs
+        dataset_dict_json_path = Path(dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()
+        dataset_info_path = Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix()
+        if not fs.isfile(dataset_info_path) and fs.isfile(dataset_dict_json_path):
+            raise FileNotFoundError(
+                f"No such file or directory: '{dataset_info_path}'. Expected to load a Dataset object, but got a DatasetDict. Please use datasets.load_from_disk instead."
+            )
+
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
             tmp_dir = tempfile.TemporaryDirectory()
@@ -918,7 +935,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema),
+            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -977,7 +994,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         format = self.format
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema),
+            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -3075,7 +3092,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             :class:`Dataset`
         """
-        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        item_table = InMemoryTable.from_pydict({k: [item[k]] for k in self.features.keys() if k in item})
         # Cast item
         schema = pa.schema(self.features.type)
         item_table = item_table.cast(schema)

@@ -74,7 +74,8 @@ REQUIRED_PKGS = [
     "numpy>=1.17",
     # Backend and serialization.
     # Minimum 1.0.0 to avoid permission errors on windows when using the compute layer on memory mapped data
-    "pyarrow>=1.0.0,<4.0.0",
+    # pyarrow 4.0.0 introduced segfault bug, see: https://github.com/huggingface/datasets/pull/2268
+    "pyarrow>=1.0.0,!=4.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -82,9 +83,7 @@ REQUIRED_PKGS = [
     # for downloading datasets over HTTPS
     "requests>=2.19.0",
     # progress bars in download and scripts
-    # tqdm 4.50.0 introduced permission errors on windows
-    # see https://app.circleci.com/pipelines/github/huggingface/datasets/235/workflows/cfb6a39f-68eb-4802-8b17-2cd5e8ea7369/jobs/1111
-    "tqdm>=4.27,<4.50.0",
+    "tqdm>=4.27",
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
     # for fast hashing
@@ -207,7 +206,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.7.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.8.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",
