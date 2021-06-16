@@ -26,10 +26,6 @@ Eduge news classification dataset is provided by Bolorsoft LLC. It is used for t
 75K news articles in 9 categories: урлаг соёл, эдийн засаг, эрүүл мэнд, хууль, улс төр, спорт, технологи, боловсрол and байгал орчин
 """
 
-_CITATION = """\
-NA
-"""
-
 _TRAIN_DOWNLOAD_URL = "https://storage.googleapis.com/eduge_dataset/eduge_train.csv"
 _TEST_DOWNLOAD_URL = "https://storage.googleapis.com/eduge_dataset/eduge_test.csv"
 
@@ -59,7 +55,6 @@ class Eduge(datasets.GeneratorBasedBuilder):
                 }
             ),
             homepage="http://eduge.mn",
-            citation=_CITATION,
             task_templates=[
                 TextClassification(
                     text_column="news",
