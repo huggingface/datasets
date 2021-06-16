@@ -71,6 +71,23 @@ def test_dataset_from_json_with_unsorted_column_names(features, jsonl_312_path, 
         assert dataset.features[feature].dtype == expected_dtype
 
 
+def test_dataset_from_json_with_mismatched_features(jsonl_312_path, tmp_path):
+    # jsonl_312_path features are {"col_3": "float64", "col_1": "string", "col_2": "int64"}
+    features = {"col_2": "int64", "col_3": "float64", "col_1": "string"}
+    expected_features = features.copy()
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    cache_dir = tmp_path / "cache"
+    dataset = JsonDatasetReader(jsonl_312_path, features=features, cache_dir=cache_dir).read()
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 2
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_2", "col_3", "col_1"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 def test_dataset_from_json_split(split, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
