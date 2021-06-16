@@ -15,12 +15,16 @@ from .s3_fixtures import *  # noqa: load s3 fixtures
 def set_test_cache_config(tmp_path_factory, monkeypatch):
     # test_hf_cache_home = tmp_path_factory.mktemp("cache")  # TODO: why a cache dir per test function does not work?
     test_hf_cache_home = tmp_path_factory.getbasetemp() / "cache"
-    test_hf_datasets_cache = str(test_hf_cache_home / "datasets")
-    test_hf_metrics_cache = str(test_hf_cache_home / "metrics")
-    test_hf_modules_cache = str(test_hf_cache_home / "modules")
-    monkeypatch.setattr("datasets.config.HF_DATASETS_CACHE", test_hf_datasets_cache)
-    monkeypatch.setattr("datasets.config.HF_METRICS_CACHE", test_hf_metrics_cache)
-    monkeypatch.setattr("datasets.config.HF_MODULES_CACHE", test_hf_modules_cache)
+    test_hf_datasets_cache = test_hf_cache_home / "datasets"
+    test_hf_metrics_cache = test_hf_cache_home / "metrics"
+    test_hf_modules_cache = test_hf_cache_home / "modules"
+    monkeypatch.setattr("datasets.config.HF_DATASETS_CACHE", str(test_hf_datasets_cache))
+    monkeypatch.setattr("datasets.config.HF_METRICS_CACHE", str(test_hf_metrics_cache))
+    monkeypatch.setattr("datasets.config.HF_MODULES_CACHE", str(test_hf_modules_cache))
+    test_downloaded_datasets_path = test_hf_datasets_cache / "downloads"
+    monkeypatch.setattr("datasets.config.DOWNLOADED_DATASETS_PATH", str(test_downloaded_datasets_path))
+    test_extracted_datasets_path = test_hf_datasets_cache / "downloads" / "extracted"
+    monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(test_extracted_datasets_path))
 
 
 FILE_CONTENT = """\
@@ -130,6 +134,11 @@ DATA_DICT_OF_LISTS = {
     "col_3": [0.0, 1.0, 2.0, 3.0],
 }
 
+DATA_312 = [
+    {"col_3": 0.0, "col_1": "0", "col_2": 0},
+    {"col_3": 1.0, "col_1": "1", "col_2": 1},
+]
+
 DATA_STR = [
     {"col_1": "s0", "col_2": 0, "col_3": 0.0},
     {"col_1": "s1", "col_2": 1, "col_3": 1.0},
@@ -185,6 +194,15 @@ def jsonl_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.jsonl")
     with open(path, "w") as f:
         for item in DATA:
+            f.write(json.dumps(item))
+    return path
+
+
+@pytest.fixture(scope="session")
+def jsonl_312_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset_312.jsonl")
+    with open(path, "w") as f:
+        for item in DATA_312:
             f.write(json.dumps(item))
     return path
 

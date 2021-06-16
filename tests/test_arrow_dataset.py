@@ -1197,12 +1197,12 @@ class BaseDatasetTest(TestCase):
                             dset.features, Features({"filename": Value("string"), "name": Value("string")})
                         )
                         assert_arrow_metadata_are_synced_with_dataset_features(dset)
-                        dset = dset.with_format("numpy", columns=dset.column_names)
-                        with dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names) as dset:
-                            self.assertTrue("filename" not in dset[0])
-                            self.assertTrue("name" in dset[0])
-                            self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
-                            assert_arrow_metadata_are_synced_with_dataset_features(dset)
+                        with dset.with_format("numpy", columns=dset.column_names) as dset:
+                            with dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names) as dset:
+                                self.assertTrue("filename" not in dset[0])
+                                self.assertTrue("name" in dset[0])
+                                self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
+                                assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
     def test_map_stateful_callable(self, in_memory):
         # be sure that the state of the map callable is unaffected
@@ -2285,6 +2285,15 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertEqual(str(dset[:2]), str(encode({"text": ["hello there", "foo"]})))
 
 
+def test_cast_with_sliced_list():
+    old_features = Features({"foo": Sequence(Value("int64"))})
+    new_features = Features({"foo": Sequence(Value("int32"))})
+    dataset = Dataset.from_dict({"foo": [[i] * (i % 3) for i in range(20)]}, features=old_features)
+    casted_dataset = dataset.cast(new_features, batch_size=2)  # small batch size to slice the ListArray
+    assert dataset["foo"] == casted_dataset["foo"]
+    assert casted_dataset.features == new_features
+
+
 def test_update_metadata_with_features(dataset_dict):
     table1 = pa.Table.from_pydict(dataset_dict)
     features1 = Features.from_arrow_schema(table1.schema)
@@ -2393,7 +2402,11 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
         original_dataset: Dataset = getattr(original_dataset, transform_name)(*args, **kwargs)
     dataset = original_dataset.add_column(column_name, column)
     assert dataset.data.shape == (4, 4)
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64", column_name: expected_dtype}
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    # Sort expected features as in the original dataset
+    expected_features = {feature: expected_features[feature] for feature in original_dataset.features}
+    # Add new column feature
+    expected_features[column_name] = expected_dtype
     assert dataset.data.column_names == list(expected_features.keys())
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype

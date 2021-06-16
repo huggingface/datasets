@@ -23,7 +23,7 @@ def test_is_small_dataset(
         if env_max_in_memory_dataset_size:
             assert max_in_memory_dataset_size == env_max_in_memory_dataset_size
         else:
-            assert max_in_memory_dataset_size == 250 * 2 ** 20
+            assert max_in_memory_dataset_size == 0
     else:
         assert max_in_memory_dataset_size == config_max_in_memory_dataset_size
     if dataset_size and max_in_memory_dataset_size:

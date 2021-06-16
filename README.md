@@ -27,12 +27,16 @@
 
 `🤗Datasets` is a lightweight library providing **two** main features:
 
-- **one-line dataloaders for many public datasets**: one liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (in 467 languages and dialects!) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_datasets("squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
+- **one-line dataloaders for many public datasets**: one liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (in 467 languages and dialects!) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
 - **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the above public datasets as well as your own local datasets in CSV/JSON/text. With simple commands like `tokenized_dataset = dataset.map(tokenize_exemple)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
 
 [🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🕹 **Colab tutorial**](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb)
 
 [🔎 **Find a dataset in the Hub**](https://huggingface.co/datasets) [🌟 **Add a new dataset to the Hub**](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
+
+<h3 align="center">
+    <a href="https://hf.co/course"><img src="https://raw.githubusercontent.com/huggingface/datasets/master/docs/source/imgs/course_banner.png"></a>
+</h3>
 
 `🤗Datasets` also provides access to +15 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. 
 
@@ -146,7 +150,7 @@ If you're a dataset owner and wish to update any part of it (description, citati
 If you want to cite this framework you can use this:
 
 ```bibtex
-@software{quentin_lhoest_2021_4817769,
+@software{quentin_lhoest_2021_4946100,
   author       = {Quentin Lhoest and
                   Patrick von Platen and
                   Thomas Wolf and
@@ -156,27 +160,27 @@ If you want to cite this framework you can use this:
                   Mariama Drame and
                   Julien Chaumond and
                   Julien Plu and
+                  Lewis Tunstall and
                   Joe Davison and
                   Simon Brandeis and
                   Teven Le Scao and
                   Victor Sanh and
                   Kevin Canwen Xu and
-                  Lewis Tunstall and
                   Nicolas Patry and
                   Angelina McMillan-Major and
                   Philipp Schmid and
                   Sylvain Gugger and
-                  Lysandre Debut and
                   Clément Delangue and
                   Théo Matussière and
+                  Lysandre Debut and
                   Stas Bekman and
                   François Lagunas},
-  title        = {huggingface/datasets: 1.7.0},
-  month        = may,
+  title        = {huggingface/datasets: 1.8.0},
+  month        = jun,
   year         = 2021,
   publisher    = {Zenodo},
-  version      = {1.7.0},
-  doi          = {10.5281/zenodo.4817769},
-  url          = {https://doi.org/10.5281/zenodo.4817769}
+  version      = {1.8.0},
+  doi          = {10.5281/zenodo.4946100},
+  url          = {https://doi.org/10.5281/zenodo.4946100}
 }
 ```
