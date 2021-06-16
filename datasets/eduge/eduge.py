@@ -64,17 +64,6 @@ class Eduge(datasets.GeneratorBasedBuilder):
                 TextClassification(
                     text_column="news",
                     label_column="label",
-                    labels=[
-                        "урлаг соёл",
-                        "эдийн засаг",
-                        "эрүүл мэнд",
-                        "хууль",
-                        "улс төр",
-                        "спорт",
-                        "технологи",
-                        "боловсрол",
-                        "байгал орчин",
-                    ],
                 )
             ],
         )
