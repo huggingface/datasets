@@ -49,7 +49,7 @@ task_ids:
 ## Dataset Description
 
 - **Homepage:** http://eduge.mn/
-- **Repository:** https://github.com/tugstugi/mongolian-nlp/blob/master/datasets/eduge.csv.gz
+- **Repository:** https://github.com/tugstugi/mongolian-nlp
 - **Paper:** [Needs More Information]
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [Needs More Information]
