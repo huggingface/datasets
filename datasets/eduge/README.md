@@ -7,11 +7,11 @@ language_creators:
 languages:
 - mn
 licenses:
-- 10K<n<100K
+- unknown
 multilinguality:
 - monolingual
 size_categories:
-- unknown
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
