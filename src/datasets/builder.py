@@ -25,6 +25,7 @@ import shutil
 import urllib
 from dataclasses import dataclass
 from functools import partial
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 from datasets.features import Features
@@ -41,7 +42,7 @@ from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import DownloadConfig, is_remote_url
-from .utils.filelock import FileLock
+from .utils.filelock import FileLock, hash_filename_if_too_long
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.logging import WARNING, get_logger
 
@@ -258,7 +259,7 @@ class DatasetBuilder:
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path):
+        with FileLock(hash_filename_if_too_long(lock_path)):
             if os.path.exists(self._cache_dir):  # check if data exist
                 if len(os.listdir(self._cache_dir)) > 0:
                     logger.info("Overwrite dataset info from restored data version.")
@@ -381,7 +382,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True, with_hash=True):
+    def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
@@ -392,11 +393,11 @@ class DatasetBuilder:
         hash = self.hash
         if builder_config:
             # use the enriched name instead of the name to make it unique
-            builder_data_dir = os.path.join(builder_data_dir, self.config_id)
+            builder_data_dir = Path(builder_data_dir, self.config_id).as_posix()
         if with_version:
-            builder_data_dir = os.path.join(builder_data_dir, str(self.config.version))
+            builder_data_dir = Path(builder_data_dir, str(self.config.version)).as_posix()
         if with_hash and hash and isinstance(hash, str):
-            builder_data_dir = os.path.join(builder_data_dir, hash)
+            builder_data_dir = Path(builder_data_dir, hash).as_posix()
         return builder_data_dir
 
     def _build_cache_dir(self):
@@ -503,7 +504,7 @@ class DatasetBuilder:
 
         # Prevent parallel disk operations
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path):
+        with FileLock(hash_filename_if_too_long(lock_path)):
             data_exists = os.path.exists(self._cache_dir)
             if data_exists and download_mode == GenerateMode.REUSE_DATASET_IF_EXISTS:
                 logger.warning("Reusing dataset %s (%s)", self.name, self._cache_dir)
@@ -689,12 +690,12 @@ class DatasetBuilder:
 
     def _save_info(self):
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path):
+        with FileLock(hash_filename_if_too_long(lock_path)):
             self.info.write_to_directory(self._cache_dir)
 
     def _save_infos(self):
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(lock_path):
+        with FileLock(hash_filename_if_too_long(lock_path)):
             DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -845,7 +846,8 @@ class DatasetBuilder:
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
         )
-        return Dataset(**dataset_kwargs)
+        fingerprint = Hasher.hash(self._relative_data_dir())
+        return Dataset(fingerprint=fingerprint, **dataset_kwargs)
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
