@@ -846,7 +846,10 @@ class DatasetBuilder:
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
         )
-        fingerprint = Hasher.hash(self._relative_data_dir())
+        hasher = Hasher()
+        hasher.update(self._relative_data_dir())
+        hasher.update(split.to_spec() if isinstance(split, ReadInstruction) else str(split))
+        fingerprint = hasher.hexdigest()
         return Dataset(fingerprint=fingerprint, **dataset_kwargs)
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
