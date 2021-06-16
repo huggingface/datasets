@@ -81,8 +81,8 @@ For the `default` configuration:
 
 ### Data Fields
 
-- `news`: a complete news article on a specific topic
-- `label`: the single class of the topic
+- `news`: a complete news article on a specific topic as a string
+- `label`: the single class of the topic, among these values: "урлаг соёл" (0), "эдийн засаг" (1), "эрүүл мэнд" (2), "хууль" (3), "улс төр" (4), "спорт" (5), "технологи" (6), "боловсрол" (7), "байгал орчин" (8).
 
 ### Data Splits
 
