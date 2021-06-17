@@ -3098,8 +3098,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "Dataset":
-        """Align the dataset's label ID and label name mappings to match an input :obj:`label2id` mapping.
-        This is useful when you want to ensure that a model's predicted labels are aligned with the evaluation dataset.
+        """Align the dataset's label ID and label name mapping to match an input :obj:`label2id` mapping.
+        This is useful when you want to ensure that a model's predicted labels are aligned with the dataset.
+        The alignment in done using the lowercase label names.
 
         Args:
             label2id (:obj:`dict`):
