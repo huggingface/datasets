@@ -5,6 +5,7 @@ paperswithcode_id: c4
 # Dataset Card for C4
 
 ## Table of Contents
+
 - [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
@@ -45,7 +46,6 @@ paperswithcode_id: c4
 ### Dataset Summary
 
 A colossal, cleaned version of Common Crawl's web crawl corpus. Based on Common Crawl dataset: "https://commoncrawl.org"
-Due to the overhead of cleaning the dataset, it is recommend you prepare it with a distributed service like Cloud Dataflow. More info at https://www.tensorflow.org/datasets/beam_datasets.
 
 ### Supported Tasks and Leaderboards
 
@@ -138,6 +138,4 @@ Due to the overhead of cleaning the dataset, it is recommend you prepare it with
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
-
-Thanks to @thomwolf, @Narsil, @patrickvonplaten, @lhoestq, @lewtun for adding this dataset.
+Thanks to [@dirkgr](https://github.com/dirkgr)[@lhoestq](https://github.com/lhoestq) for adding this dataset.
