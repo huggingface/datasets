@@ -35,6 +35,7 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         from_csv, from_json, from_text,
         prepare_for_task,
         to_json,
+        align_labels_with_mapping
 
 .. autofunction:: datasets.concatenate_datasets
 

@@ -2211,11 +2211,15 @@ class BaseDatasetTest(TestCase):
         )
         data = {"input_text": ["a", "a", "b", "b", "c", "c"], "input_labels": [0, 0, 1, 1, 2, 2]}
         label2id = {"CONTRADICTION": 0, "ENTAILMENT": 2, "NEUTRAL": 1}
+        id2label = {v: k for k, v in label2id.items()}
         expected_labels = [2, 2, 1, 1, 0, 0]
+        expected_label_names = [id2label[idx] for idx in expected_labels]
         with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, features=features) as dset:
             with self._to(in_memory, tmp_dir, dset) as dset:
                 with dset.align_labels_with_mapping(label2id, "input_labels") as dset:
                     self.assertListEqual(expected_labels, dset["input_labels"])
+                    aligned_label_names = [dset.features["input_labels"].int2str(idx) for idx in dset["input_labels"]]
+                    self.assertListEqual(expected_label_names, aligned_label_names)
 
 
 class MiscellaneousDatasetTest(TestCase):

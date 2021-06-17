@@ -3097,13 +3097,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fingerprint=new_fingerprint,
         )
 
-    def align_labels_with_mapping(self, label2id: Dict, label_column: str = "labels") -> "Dataset":
+    def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "Dataset":
+        """Align the dataset's label ID and label name mappings to match an input :obj:`label2id` mapping.
+        This is useful when you want to ensure that a model's predicted labels are aligned with the evaluation dataset.
+
+        Args:
+            label2id (:obj:`dict`):
+                The label name to ID mapping to align the dataset with.
+            label_column (:obj:`str`):
+                The column name of labels to align on.
+
+        Example:
+            .. code-block:: python
+
+                # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+                ds = load_dataset("glue", "mnli", split="train")
+                # mapping to align with
+                label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
+                ds_aligned = ds.align_labels_with_mapping(label2id, "label")
+        """
         features = self.features.copy()
         int2str_function = features[label_column].int2str
-        # Some label mappings use uppercase label names so we lowercase them
-        label2id = {k.lower(): v for k, v in label2id.items()}
+        # Sort input mapping by ID value to ensure the label names are aligned
+        label2id = dict(sorted(label2id.items(), key=lambda item: item[1]))
         label_names = list(label2id.keys())
         features[label_column] = ClassLabel(num_classes=len(label_names), names=label_names)
+        # Some label mappings use uppercase label names so we lowercase them during alignment
+        label2id = {k.lower(): v for k, v in label2id.items()}
 
         def process_label_ids(batch):
             dset_label_names = [int2str_function(label_id).lower() for label_id in batch[label_column]]
