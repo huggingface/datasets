@@ -632,9 +632,41 @@ def load_dataset_builder(
     download_mode: Optional[GenerateMode] = None,
     script_version: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
-    _return_resolved_file_path=False,
     **config_kwargs,
 ) -> DatasetBuilder:
+    """Load a builder for the dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
+    without downloading the dataset itself.
+
+    This method will download and import the dataset loading script from ``path`` if it's not already cached inside the library.
+
+    Args:
+
+        path (:obj:`str`): Path to the dataset processing script with the dataset builder. Can be either:
+
+            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
+              e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
+            - a dataset identifier in the HuggingFace Datasets Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+              e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``.
+        name (:obj:`str`, optional): Defining the name of the dataset configuration.
+        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
+        data_files (:obj:`str`, optional): Defining the data_files of the dataset configuration.
+        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/datasets".
+        features (:class:`Features`, optional): Set the features type to use for this dataset.
+        download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (:class:`GenerateMode`, optional): Select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
+        script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
+
+            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
+              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+            - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
+              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
+        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
+
+    Returns:
+        :class:`DatasetBuilder`
+
+    """
     # Download/copy dataset processing script
     module_path, hash, resolved_file_path = prepare_module(
         path,
@@ -649,6 +681,12 @@ def load_dataset_builder(
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)
 
+    # Set the base path for downloads as the parent of the script location
+    if resolved_file_path is not None:
+        base_path = url_or_path_parent(resolved_file_path)
+    else:
+        base_path = None
+
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
@@ -656,12 +694,11 @@ def load_dataset_builder(
         data_dir=data_dir,
         data_files=data_files,
         hash=hash,
+        base_path=base_path,
         features=features,
         **config_kwargs,
     )
 
-    if _return_resolved_file_path:
-        return builder_instance, resolved_file_path
     return builder_instance
 
 
@@ -715,8 +752,8 @@ def load_dataset(
             - a dataset identifier in the HuggingFace Datasets Hub (list all available datasets and ids with ``datasets.list_datasets()``)
               e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``.
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_files (:obj:`str`, optional): Defining the data_files of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
+        data_files (:obj:`str`, optional): Defining the data_files of the dataset configuration.
         split (:class:`Split` or :obj:`str`): Which split of the data to load.
             If None, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
             If given, will return a single Dataset.
@@ -750,7 +787,7 @@ def load_dataset(
     ignore_verifications = ignore_verifications or save_infos
 
     # Create a dataset builder
-    builder_instance, resolved_file_path = load_dataset_builder(
+    builder_instance = load_dataset_builder(
         path,
         name,
         data_dir,
@@ -765,12 +802,6 @@ def load_dataset(
         **config_kwargs,
     )
 
-    # Set the base path for downloads as the parent of the script location
-    if resolved_file_path is not None:
-        base_path = url_or_path_parent(resolved_file_path)
-    else:
-        base_path = None
-
     # Some datasets are already processed on the HF google storage
     # Don't try downloading from google storage for the packaged datasets as text, json, csv or pandas
     try_from_hf_gcs = path not in _PACKAGED_DATASETS_MODULES
@@ -781,7 +812,6 @@ def load_dataset(
         download_mode=download_mode,
         ignore_verifications=ignore_verifications,
         try_from_hf_gcs=try_from_hf_gcs,
-        base_path=base_path,
         use_auth_token=use_auth_token,
     )
 
