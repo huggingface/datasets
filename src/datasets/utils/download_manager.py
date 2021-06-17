@@ -111,7 +111,9 @@ class DownloadManager:
             raise ValueError("You need to specify 'temp_location' in PipelineOptions to upload files")
 
         def upload(local_file_path):
-            remote_file_path = os.path.join(remote_dir, "downloads", os.path.basename(local_file_path))
+            remote_file_path = os.path.join(
+                remote_dir, config.DOWNLOADED_DATASETS_DIR, os.path.basename(local_file_path)
+            )
             logger.info(
                 "Uploading {} ({}) to {}.".format(
                     local_file_path, size_str(os.path.getsize(local_file_path)), remote_file_path
@@ -146,7 +148,7 @@ class DownloadManager:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        cache_dir = self._download_config.cache_dir or os.path.join(config.HF_DATASETS_CACHE, "downloads")
+        cache_dir = self._download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
         max_retries = self._download_config.max_retries
 
         def url_to_downloaded_path(url):

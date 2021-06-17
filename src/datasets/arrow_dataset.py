@@ -82,7 +82,7 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-if int(pa.__version__.split(".")[0]) == 0:
+if int(config.PYARROW_VERSION.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
@@ -935,7 +935,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: cast_with_sliced_list_support(t, schema),
+            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -994,7 +994,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         format = self.format
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: cast_with_sliced_list_support(t, schema),
+            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -3092,7 +3092,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             :class:`Dataset`
         """
-        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        item_table = InMemoryTable.from_pydict({k: [item[k]] for k in self.features.keys() if k in item})
         # Cast item
         schema = pa.schema(self.features.type)
         item_table = item_table.cast(schema)
@@ -3111,6 +3111,42 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table=indices_table,
             fingerprint=new_fingerprint,
         )
+
+    def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "Dataset":
+        """Align the dataset's label ID and label name mapping to match an input :obj:`label2id` mapping.
+        This is useful when you want to ensure that a model's predicted labels are aligned with the dataset.
+        The alignment in done using the lowercase label names.
+
+        Args:
+            label2id (:obj:`dict`):
+                The label name to ID mapping to align the dataset with.
+            label_column (:obj:`str`):
+                The column name of labels to align on.
+
+        Example:
+            .. code-block:: python
+
+                # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+                ds = load_dataset("glue", "mnli", split="train")
+                # mapping to align with
+                label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
+                ds_aligned = ds.align_labels_with_mapping(label2id, "label")
+        """
+        features = self.features.copy()
+        int2str_function = features[label_column].int2str
+        # Sort input mapping by ID value to ensure the label names are aligned
+        label2id = dict(sorted(label2id.items(), key=lambda item: item[1]))
+        label_names = list(label2id.keys())
+        features[label_column] = ClassLabel(num_classes=len(label_names), names=label_names)
+        # Some label mappings use uppercase label names so we lowercase them during alignment
+        label2id = {k.lower(): v for k, v in label2id.items()}
+
+        def process_label_ids(batch):
+            dset_label_names = [int2str_function(label_id).lower() for label_id in batch[label_column]]
+            batch[label_column] = [label2id[label_name] for label_name in dset_label_names]
+            return batch
+
+        return self.map(process_label_ids, features=features, batched=True)
 
 
 def concatenate_datasets(

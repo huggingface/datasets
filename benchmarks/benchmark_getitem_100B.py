@@ -4,9 +4,9 @@ from dataclasses import dataclass
 
 import numpy as np
 import pyarrow as pa
-from utils import get_duration
 
 import datasets
+from utils import get_duration
 
 
 SPEED_TEST_N_EXAMPLES = 100_000_000_000
