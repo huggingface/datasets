@@ -32,16 +32,21 @@ def _examples_to_batch(examples: List[Dict[str, Any]]) -> Dict[str, list]:
 
 
 def _batch_to_examples(batch: Dict[str, list]) -> List[Dict[str, Any]]:
+    """Convert a batch (dict of examples) to examples list"""
     n_examples = len(batch[next(iter(batch))])
     for i in range(n_examples):
         yield {col: array[i] for col, array in batch.items()}
 
 
 class _BaseExamplesIterable:
+    """Base class for the examples iterable used by an IterableDataset"""
+
     def __iter__(self):
+        """An examples iterable should yield tuples (example_key, example) of type (int/str, dict)"""
         raise NotImplementedError()
 
-    def shuffle(self, seed: Optional[int]) -> "_BaseExamplesIterable":
+    def shuffle_data_sources(self, seed: Optional[int]) -> "_BaseExamplesIterable":
+        """Either shuffle the shards/sources of the dataset, or propagate the shuffling to the underlying iterable."""
         raise NotImplementedError()
 
     @property
@@ -70,8 +75,8 @@ class ExamplesIterable(_BaseExamplesIterable):
         for key, example in self.generate_examples_fn(**self.kwargs):
             yield key, example
 
-    def shuffle(self, seed: Optional[int]) -> "ExamplesIterable":
-        """Shuffle the kwargs order to shuffle shards for example"""
+    def shuffle_data_sources(self, seed: Optional[int]) -> "ExamplesIterable":
+        """Shuffle the kwargs order to shuffle shards"""
         rng = np.random.default_rng(seed)
         kwargs = _shuffle_kwargs(rng, self.kwargs)
         return ExamplesIterable(self.generate_examples_fn, kwargs)
@@ -88,17 +93,17 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
+        # this is an infinite iterator to keep track of which iterator we want to pick examples from
         indices_iterator = cycle(range(len(iterators)))
         for i in indices_iterator:
-            for key, example in iterators[i]:
-                yield key, example
-                break
-            else:
+            try:  # let's pick one example from the iterator at index i
+                yield next(iterators[i])
+            except StopIteration:  # if we ran out of examples on this iterator, break the main for loop
                 break
 
-    def shuffle(self, seed: Optional[int]) -> "CyclingMultiSourcesExamplesIterable":
+    def shuffle_data_sources(self, seed: Optional[int]) -> "CyclingMultiSourcesExamplesIterable":
         """Shuffle each underlying examples iterable."""
-        ex_iterables = [ex_iterable.shuffle(seed) for ex_iterable in self.ex_iterables]
+        ex_iterables = [ex_iterable.shuffle_data_sources(seed) for ex_iterable in self.ex_iterables]
         return CyclingMultiSourcesExamplesIterable(ex_iterables)
 
     @property
@@ -119,6 +124,7 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
         random_batch_size=1000,
         p: Optional[List[float]] = None,
     ) -> Iterator[int]:
+        """Get an infinite iterator that randomly samples the index of the source to pick examples from."""
         if p is None:
             while True:
                 yield from (int(i) for i in rng.integers(0, num_sources, size=random_batch_size))
@@ -129,17 +135,17 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
     def __iter__(self):
         rng = np.random.default_rng(self.seed)
         iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
+        # this is an infinite iterator that randomly samples the index of the source to pick examples from
         indices_iterator = self._iter_random_indices(rng, len(iterators), p=self.probabilities)
         for i in indices_iterator:
-            for key, example in iterators[i]:
-                yield key, example
-                break
-            else:
+            try:  # let's pick one example from the iterator at index i
+                yield next(iterators[i])
+            except StopIteration:  # if we ran out of examples on this iterator, break the main for loop
                 break
 
-    def shuffle(self, seed: Optional[int]) -> "RandomlyCyclingMultiSourcesExamplesIterable":
-        """Shuffle the sources order as well as the each wrapper examples iterable."""
-        ex_iterables = [ex_iterable.shuffle(seed) for ex_iterable in self.ex_iterables]
+    def shuffle_data_sources(self, seed: Optional[int]) -> "RandomlyCyclingMultiSourcesExamplesIterable":
+        """Shuffle the data sources of each wrapped examples iterable."""
+        ex_iterables = [ex_iterable.shuffle_data_sources(seed) for ex_iterable in self.ex_iterables]
         return RandomlyCyclingMultiSourcesExamplesIterable(ex_iterables, seed=seed, probabilities=self.probabilities)
 
 
@@ -156,21 +162,26 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         iterator = iter(self.ex_iterable)
         for key, example in iterator:
             if self.batched:
-                key_examples = [(key, example)] + [
+                # If batched, first build the batch
+                key_examples_list = [(key, example)] + [
                     (key, example) for key, example in islice(iterator, self.batch_size - 1)
                 ]
-                keys, examples = zip(*key_examples)
+                keys, examples = zip(*key_examples_list)
                 batch = _examples_to_batch(examples)
+                # then apply the transform
                 transformed_batch = self.function(batch)
+                # the new key is the concatenation of the examples keys from the batch
                 new_key = "_".join(str(key) for key in keys)
+                # yield one example at a time from the transformed batch
                 yield from zip(repeat(new_key), _batch_to_examples(transformed_batch))
             else:
+                # If not batched, apply the transform and yield the example directly
                 yield key, self.function(example)
 
-    def shuffle(self, seed: Optional[int]) -> "MappedExamplesIterable":
+    def shuffle_data_sources(self, seed: Optional[int]) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return MappedExamplesIterable(
-            self.ex_iterable.shuffle(seed), function=self.function, batch_size=self.batch_size
+            self.ex_iterable.shuffle_data_sources(seed), function=self.function, batch_size=self.batch_size
         )
 
     @property
@@ -193,20 +204,24 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         buffer_size = self.buffer_size
         rng = np.random.default_rng(self.seed)
         indices_iterator = self._iter_random_indices(rng, buffer_size)
+        # this is the shuffle buffer that we keep in memory
         mem_buffer = []
         for x in self.ex_iterable:
-            if len(mem_buffer) == buffer_size:
+            if len(mem_buffer) == buffer_size:  # if the buffer is full, pick and example from it
                 i = next(indices_iterator)
                 yield mem_buffer[i]
-                mem_buffer[i] = x
-            else:
+                mem_buffer[i] = x  # replace the picked example by a new one
+            else:  # otherwise, keep filling the buffer
                 mem_buffer.append(x)
+        # when we run out of examples, we shuffle the remaining examples in the buffer and yield them
         rng.shuffle(mem_buffer)
         yield from mem_buffer
 
-    def shuffle(self, seed: Optional[int]) -> "BufferShuffledExamplesIterable":
+    def shuffle_data_sources(self, seed: Optional[int]) -> "BufferShuffledExamplesIterable":
         """Shuffle the wrapped examples iterable as well as the shuffling buffer."""
-        return BufferShuffledExamplesIterable(self.ex_iterable.shuffle(seed), buffer_size=self.buffer_size, seed=seed)
+        return BufferShuffledExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(seed), buffer_size=self.buffer_size, seed=seed
+        )
 
     @property
     def n_shards(self) -> int:
@@ -264,7 +279,7 @@ class IterableDataset(DatasetInfoMixin):
 
     def _iter(self):
         if self._shuffling:
-            ex_iterable = self._ex_iterable.shuffle(self._effective_seed)
+            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_seed)
         else:
             ex_iterable = self._ex_iterable
         yield from ex_iterable
@@ -272,6 +287,7 @@ class IterableDataset(DatasetInfoMixin):
     def __iter__(self):
         for key, example in self._iter():
             if self.features:
+                # we encode the example for ClassLabel feature types for example
                 yield self.features.encode_example(example)
             else:
                 yield example
@@ -391,11 +407,11 @@ def iterable_dataset(
     )
 
 
-def merge_datasets(
+def interleave_datasets(
     datasets: List[IterableDataset], probabilities: Optional[List[float]] = None, seed: Optional[int] = None
 ) -> IterableDataset:
     """
-    Merge several iterable datasets (sources) into one iterable dataset.
+    Itervleave several iterable datasets (sources) into one iterable dataset.
     The new iterable dataset alternates between the sources to yield the examples.
     By default it cycles through the sources in order, but you can also make the new
     iterable dataset sample examples from one random source at a time.

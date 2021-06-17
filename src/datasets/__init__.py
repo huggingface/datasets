@@ -57,7 +57,7 @@ from .inspect import (
     list_datasets,
     list_metrics,
 )
-from .iterable_dataset import IterableDataset, merge_datasets
+from .iterable_dataset import IterableDataset, interleave_datasets
 from .keyhash import KeyHasher
 from .load import import_main_class, load_dataset, load_from_disk, load_metric, prepare_module
 from .metric import Metric

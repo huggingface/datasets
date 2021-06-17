@@ -93,28 +93,28 @@ Tokenizers are written in Rust and use parallelism to speed up tokenization. To 
     {'input_ids': [101, 11047, 10497, 7869, 2352...], 'token_type_ids': [0, 0, 0, 0, 0...], 'attention_mask': [1, 1, 1, 1, 1...]}
 
 
-Mix several iterable datasets together with ``merge_datasets``
+Mix several iterable datasets together with ``interleave_datasets``
 ----------------------------------------------------------------------------------------------------
 
 It is common to use several datasets to use a model. For example BERT was trained on a mix of Wikipedia and BookCorpus.
-You can mix several iterable datasets together using :func:`datasets.merge_datasets`.
+You can mix several iterable datasets together using :func:`datasets.interleave_datasets`.
 
-By default, the resulting dataset alternates between the original datasets, but can also define sampling probabilities to oversample some datasets compared to the others.
+By default, the resulting dataset alternates between the original datasets, but can also define sampling probabilities to sample randomly from the different datasets.
 
 For example if you want a dataset in several languages:
 
 .. code-block::
 
-    >>> from datasets import merge_datasets
+    >>> from datasets import interleave_datasets
     >>> from itertools import islice
     >>> en_dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
     >>> fr_dataset = load_dataset('oscar', "unshuffled_deduplicated_fr", split='train', streaming=True)
     >>>
-    >>> multilingual_dataset = merge_datasets([en_dataset, fr_dataset])
+    >>> multilingual_dataset = interleave_datasets([en_dataset, fr_dataset])
     >>> print(list(islice(multilingual_dataset, 2)))
     [{'text': 'Mtendere Village was inspired by the vision...}, {'text': "Média de débat d'idées, de culture et de littérature....}]
     >>>
-    >>> multilingual_dataset_with_oversampling = merge_datasets([en_dataset, fr_dataset], probabilities=[0.8, 0.2], seed=42)
+    >>> multilingual_dataset_with_oversampling = interleave_datasets([en_dataset, fr_dataset], probabilities=[0.8, 0.2], seed=42)
     >>> print(list(islice(multilingual_dataset_with_oversampling, 2)))
     [{'text': 'Mtendere Village was inspired by the vision...}, {'text': 'Lily James cannot fight the music...}]
 

@@ -15,8 +15,8 @@ from datasets.iterable_dataset import (
     ShuffingConfig,
     _batch_to_examples,
     _examples_to_batch,
+    interleave_datasets,
     iterable_dataset,
-    merge_datasets,
 )
 
 from .utils import require_torch
@@ -61,9 +61,9 @@ def test_examples_iterable_with_kwargs(generate_examples_fn):
     assert sorted(set(ex["filepath"] for _, ex in ex_iterable)) == ["0.txt", "1.txt"]
 
 
-def test_examples_iterable_shuffle(generate_examples_fn):
+def test_examples_iterable_shuffle_data_sources(generate_examples_fn):
     ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]})
-    ex_iterable = ex_iterable.shuffle(42)
+    ex_iterable = ex_iterable.shuffle_data_sources(42)
     expected = list(generate_examples_fn(filepaths=["1.txt", "0.txt"]))  # shuffle the filepaths
     assert list(ex_iterable) == expected
 
@@ -276,9 +276,9 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn
     )
     assert isinstance(dataset._ex_iterable, BufferShuffledExamplesIterable)
     # It also shuffles the underlying examples iterable
-    expected_ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]}).shuffle(
-        effective_seed
-    )
+    expected_ex_iterable = ExamplesIterable(
+        generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]}
+    ).shuffle_data_sources(effective_seed)
     assert isinstance(dataset._ex_iterable.ex_iterable, ExamplesIterable)
     assert next(iter(dataset)) == list(islice(expected_ex_iterable, expected_first_example_index + 1))[-1][1]
 
@@ -333,19 +333,19 @@ def test_iterable_dataset_with_format(dataset: IterableDataset, format_type):
         ([0.5, 0.2, 0.3], 101010, None),
     ],
 )
-def test_merge_datasets(dataset: IterableDataset, probas, seed, expected_length):
+def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_length):
     d1 = dataset
     d2 = dataset.map(lambda x: {"id+1": x["id"] + 1, **x})
     d3 = dataset.with_format("python")
     datasets = [d1, d2, d3]
-    merged_dataset = merge_datasets(datasets, probabilities=probas, seed=seed)
+    merged_dataset = interleave_datasets(datasets, probabilities=probas, seed=seed)
     # Check the examples iterable
     assert isinstance(
         merged_dataset._ex_iterable, (CyclingMultiSourcesExamplesIterable, RandomlyCyclingMultiSourcesExamplesIterable)
     )
     # Check that it is deterministic
     if seed is not None:
-        merged_dataset2 = merge_datasets([d1, d2, d3], probabilities=probas, seed=seed)
+        merged_dataset2 = interleave_datasets([d1, d2, d3], probabilities=probas, seed=seed)
         assert list(merged_dataset) == list(merged_dataset2)
     # Check first example
     if seed is not None:
@@ -368,7 +368,7 @@ def test_merge_datasets(dataset: IterableDataset, probas, seed, expected_length)
     assert len(list(merged_dataset)) == expected_length
 
 
-def test_merge_datasets_with_features(dataset: IterableDataset, generate_examples_fn):
+def test_interleave_datasets_with_features(dataset: IterableDataset, generate_examples_fn):
     features = Features(
         {
             "id": Value("int64"),
@@ -378,7 +378,7 @@ def test_merge_datasets_with_features(dataset: IterableDataset, generate_example
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 0})
     dataset_with_features = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
 
-    merged_dataset = merge_datasets([dataset, dataset_with_features], probabilities=[0, 1])
+    merged_dataset = interleave_datasets([dataset, dataset_with_features], probabilities=[0, 1])
     assert isinstance(merged_dataset._ex_iterable, CyclingMultiSourcesExamplesIterable)
     assert isinstance(merged_dataset._ex_iterable.ex_iterables[1], MappedExamplesIterable)
     assert merged_dataset._ex_iterable.ex_iterables[1].function == features.encode_example
