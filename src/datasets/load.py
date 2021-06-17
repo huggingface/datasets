@@ -798,7 +798,6 @@ def load_dataset(
         download_mode,
         script_version,
         use_auth_token,
-        _return_resolved_file_path=True,
         **config_kwargs,
     )
 
