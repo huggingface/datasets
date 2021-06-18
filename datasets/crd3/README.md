@@ -7,7 +7,7 @@ language_creators:
 languages:
 - en
 licenses:
-- cc-by-4.0
+- cc-by-sa-4.0
 multilinguality:
 - monolingual
 source_datasets:
@@ -178,7 +178,7 @@ CRTranscript provided transcripts of the show; contributors of the Critical Role
 
 ### Licensing Information
 
-This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License][cc-by-sa]., as corresponding to the Critical Role Wiki https://criticalrole.fandom.com/
+This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License][cc-by-sa-4.0]., as corresponding to the Critical Role Wiki https://criticalrole.fandom.com/
 
 ### Citation Information
 
