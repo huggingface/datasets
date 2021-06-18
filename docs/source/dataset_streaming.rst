@@ -1,7 +1,7 @@
 Load a Dataset in Streaming mode
 ==============================================================
 
-When a dataset is in streaming mode, you can iterate over it directly, without having to download the entire dataset.
+When a dataset is in streaming mode, you can iterate over it directly without having to download the entire dataset.
 The data are downloaded progressively as you iterate over the dataset.
 You can enable dataset streaming by passing ``streaming=True`` in the :func:`load_dataset` function to get an iterable dataset.
 
@@ -33,11 +33,11 @@ Shuffle the dataset
 To shuffle your dataset, the :func:`datasets.IterableDataset.shuffle` method fills a buffer of size ``buffer_size`` and randomly samples examples from this buffer.
 The selected examples in the buffer are replaced by new examples.
 
-For instance, if your dataset contains 1,000,000 examples but buffer_size is set to 1,000, then shuffle will initially select a random examples from only the first 1,000 examples in the buffer.
+For instance, if your dataset contains 1,000,000 examples but ``buffer_size`` is set to 1,000, then shuffle will initially select a random examples from only the first 1,000 examples in the buffer.
 Once an example is selected, its space in the buffer is replaced by the next (i.e. 1,001-st) example, maintaining the 1,000 example buffer.
 
 .. note::
-    For perfect shuffling, you need to set the ``buffer_size`` to be greater than the size of your dataset. But in this case it will download the full dataset in the buffer.
+    For perfect shuffling, you need to set ``buffer_size`` to be greater than the size of your dataset. But in this case it will download the full dataset in the buffer.
 
 Moreover, for larger datasets that are sharded into multiple files, :func:`datasets.IterableDataset.shuffle` also shuffles the order of the shards.
 
@@ -135,4 +135,4 @@ It is possible to get a ``torch.utils.data.IterableDataset`` from a :class:`data
     >>> print(next(iter(torch_tokenized_dataset)))
     {'input_ids': tensor([[101, 11047, 10497, 7869, 2352...]]), 'token_type_ids': tensor([[0, 0, 0, 0, 0...]]), 'attention_mask': tensor([[1, 1, 1, 1, 1...]])}
 
-For now, only the pytorch format is supported but support for TensorFlow and others will be added soon.
+For now, only the PyTorch format is supported but support for TensorFlow and others will be added soon.
