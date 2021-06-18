@@ -1,4 +1,5 @@
 ---
+pretty_name: OSCAR
 annotations_creators:
 - no-annotation
 language_creators:
