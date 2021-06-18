@@ -1,4 +1,5 @@
 ---
+pretty_name: CRD3
 annotations_creators:
 - no-annotation
 language_creators:
