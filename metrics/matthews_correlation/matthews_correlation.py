@@ -63,7 +63,7 @@ _CITATION = """\
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
-class MatthewsCorelation(datasets.Metric):
+class MatthewsCorrelation(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
