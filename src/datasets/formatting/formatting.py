@@ -169,7 +169,7 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
         return pa_table.slice(length=1).to_pandas(types_mapper=pandas_types_mapper)
 
     def extract_column(self, pa_table: pa.Table) -> pd.Series:
-        return pa_table[pa_table.column_names[0]].to_pandas(types_mapper=pandas_types_mapper)
+        return pa_table.select([0]).to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
 
     def extract_batch(self, pa_table: pa.Table) -> pd.DataFrame:
         return pa_table.to_pandas(types_mapper=pandas_types_mapper)
