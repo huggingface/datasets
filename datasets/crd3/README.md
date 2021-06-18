@@ -128,7 +128,7 @@ The data fields are the same among all splits.
 
 ### Curation Rationale
 
-Dialogue understanding and abstractive summarization remain both important and challenging problems for computational linguistics. Current paradigms in summarization modeling have specific failures in capturing semantics and pragmatics, content selection, rewriting, and evaluation in the domain of long, story-telling dialogue.  CRD3 offers a linguistically rich dataset to explore these domains.
+Dialogue understanding and abstractive summarization remain both important and challenging problems for computational linguistics. Current paradigms in summarization modeling have specific failures in capturing semantics and pragmatics, content selection, rewriting, and evaluation in the domain of long, story-telling dialogue. CRD3 offers a linguistically rich dataset to explore these domains.
 
 ### Source Data
 
