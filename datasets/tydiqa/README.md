@@ -1,4 +1,5 @@
 ---
+pretty_name: TyDi QA
 annotations_creators:
 - crowdsourced
 language_creators:
