@@ -1197,12 +1197,12 @@ class BaseDatasetTest(TestCase):
                             dset.features, Features({"filename": Value("string"), "name": Value("string")})
                         )
                         assert_arrow_metadata_are_synced_with_dataset_features(dset)
-                        dset = dset.with_format("numpy", columns=dset.column_names)
-                        with dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names) as dset:
-                            self.assertTrue("filename" not in dset[0])
-                            self.assertTrue("name" in dset[0])
-                            self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
-                            assert_arrow_metadata_are_synced_with_dataset_features(dset)
+                        with dset.with_format("numpy", columns=dset.column_names) as dset:
+                            with dset.map(lambda x: {"name": 1}, remove_columns=dset.column_names) as dset:
+                                self.assertTrue("filename" not in dset[0])
+                                self.assertTrue("name" in dset[0])
+                                self.assertDictEqual(dset.features, Features({"name": Value(dtype="int64")}))
+                                assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
     def test_map_stateful_callable(self, in_memory):
         # be sure that the state of the map callable is unaffected
@@ -2202,6 +2202,25 @@ class BaseDatasetTest(TestCase):
                 with dset.prepare_for_task(task="text-classification") as dset:
                     self.assertIsNone(dset.info.task_templates)
 
+    def test_align_labels_with_mapping(self, in_memory):
+        features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(num_classes=3, names=["entailment", "neutral", "contradiction"]),
+            }
+        )
+        data = {"input_text": ["a", "a", "b", "b", "c", "c"], "input_labels": [0, 0, 1, 1, 2, 2]}
+        label2id = {"CONTRADICTION": 0, "ENTAILMENT": 2, "NEUTRAL": 1}
+        id2label = {v: k for k, v in label2id.items()}
+        expected_labels = [2, 2, 1, 1, 0, 0]
+        expected_label_names = [id2label[idx] for idx in expected_labels]
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, features=features) as dset:
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with dset.align_labels_with_mapping(label2id, "input_labels") as dset:
+                    self.assertListEqual(expected_labels, dset["input_labels"])
+                    aligned_label_names = [dset.features["input_labels"].int2str(idx) for idx in dset["input_labels"]]
+                    self.assertListEqual(expected_label_names, aligned_label_names)
+
 
 class MiscellaneousDatasetTest(TestCase):
     def test_from_pandas(self):
@@ -2402,7 +2421,11 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
         original_dataset: Dataset = getattr(original_dataset, transform_name)(*args, **kwargs)
     dataset = original_dataset.add_column(column_name, column)
     assert dataset.data.shape == (4, 4)
-    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64", column_name: expected_dtype}
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    # Sort expected features as in the original dataset
+    expected_features = {feature: expected_features[feature] for feature in original_dataset.features}
+    # Add new column feature
+    expected_features[column_name] = expected_dtype
     assert dataset.data.column_names == list(expected_features.keys())
     for feature, expected_dtype in expected_features.items():
         assert dataset.features[feature].dtype == expected_dtype
