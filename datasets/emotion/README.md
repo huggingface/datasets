@@ -1,6 +1,23 @@
 ---
+pretty_name: Emotion
+annotations_creators:
+- machine-generated
+language_creators:
+- machine-generated
 languages:
 - en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- multi-class-classification
 paperswithcode_id: emotion
 ---
 
@@ -97,10 +114,10 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-| name  |train|validation|test|
-|-------|----:|---------:|---:|
-|default|16000|      2000|2000|
-|emotion|16000|      2000|2000|
+| name    | train | validation | test |
+| ------- | ----: | ---------: | ---: |
+| default | 16000 |       2000 | 2000 |
+| emotion | 16000 |       2000 | 2000 |
 
 ## Dataset Creation
 
