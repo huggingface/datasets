@@ -3,6 +3,7 @@ from itertools import chain, islice
 import numpy as np
 import pytest
 
+from datasets.combine import interleave_datasets
 from datasets.features import ClassLabel, Features, Value
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import (
@@ -15,7 +16,6 @@ from datasets.iterable_dataset import (
     ShuffingConfig,
     _batch_to_examples,
     _examples_to_batch,
-    interleave_datasets,
     iterable_dataset,
 )
 
