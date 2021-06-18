@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import fsspec
 from fsspec.archive import AbstractArchiveFileSystem
@@ -13,11 +14,11 @@ class GZipFileSystem(AbstractArchiveFileSystem):
 
     def __init__(
         self,
-        fo="",
-        mode="rb",
-        target_protocol=None,
-        target_options=None,
-        block_size=DEFAULT_BLOCK_SIZE,
+        fo: str = "",
+        mode: str = "rb",
+        target_protocol: Optional[str] = None,
+        target_options: Optional[dict] = None,
+        block_size: int = DEFAULT_BLOCK_SIZE,
         **kwargs,
     ):
         """
@@ -54,16 +55,16 @@ class GZipFileSystem(AbstractArchiveFileSystem):
             f = {**self.info, "name": self.uncompressed_name}
             self.dir_cache = {f["name"]: f}
 
-    def cat(self, path):
+    def cat(self, path: str):
         return self.gzip.open().read()
 
     def _open(
         self,
-        path,
-        mode="rb",
-        block_size=None,
-        autocommit=True,
-        cache_options=None,
+        path: str,
+        mode: str = "rb",
+        block_size: Optional[int] = None,
+        autocommit: bool = True,
+        cache_options: Optional[dict] = None,
         **kwargs,
     ):
         path = self._strip_protocol(path)
