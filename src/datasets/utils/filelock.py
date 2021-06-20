@@ -338,6 +338,8 @@ class WindowsFileLock(BaseFileLock):
 
         try:
             fd = os.open(self._lock_file, open_mode)
+        except FileNotFoundError:
+            raise
         except OSError:
             pass
         else:
