@@ -22,14 +22,15 @@ task_ids:
 - multi-class-classification
 - multi-label-classification
 - other-other-citation-recommendation
+paperswithcode_id: s2orc
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for S2ORC: The Semantic Scholar Open Research Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -243,3 +244,6 @@ Semantic Scholar Open Research Corpus is licensed under ODC-BY.
       primaryClass={cs.CL}
 }
 ```
+### Contributions
+
+Thanks to [@bhavitvyamalik](https://github.com/bhavitvyamalik) for adding this dataset.

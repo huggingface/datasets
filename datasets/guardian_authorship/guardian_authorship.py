@@ -344,7 +344,7 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
 
                     # The whole article is stored as one line. We access the 1st element of the list
                     # to store it as string, not as a list
-                    yield id_, {
+                    yield f"{topic}_{author}_{id_}", {
                         "article": art[0],
                         "author": author,
                         "topic": topic,

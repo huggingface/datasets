@@ -9,7 +9,7 @@ import pytest
 from datasets import load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.dataset_dict import DatasetDict
-from datasets.features import Features, Sequence, Value
+from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.splits import NamedSplit
 
 from .conftest import s3_test_bucket_name
@@ -434,6 +434,45 @@ class DatasetDictTest(TestCase):
             self.assertEqual(len(dsets["test"]), 30)
             self.assertListEqual(dsets["test"].column_names, ["filename"])
             del dsets
+
+    def test_align_labels_with_mapping(self):
+        train_features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(num_classes=3, names=["entailment", "neutral", "contradiction"]),
+            }
+        )
+        test_features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(num_classes=3, names=["entailment", "contradiction", "neutral"]),
+            }
+        )
+        train_data = {"input_text": ["a", "a", "b", "b", "c", "c"], "input_labels": [0, 0, 1, 1, 2, 2]}
+        test_data = {"input_text": ["a", "a", "c", "c", "b", "b"], "input_labels": [0, 0, 1, 1, 2, 2]}
+        label2id = {"CONTRADICTION": 0, "ENTAILMENT": 2, "NEUTRAL": 1}
+        id2label = {v: k for k, v in label2id.items()}
+        train_expected_labels = [2, 2, 1, 1, 0, 0]
+        test_expected_labels = [2, 2, 0, 0, 1, 1]
+        train_expected_label_names = [id2label[idx] for idx in train_expected_labels]
+        test_expected_label_names = [id2label[idx] for idx in test_expected_labels]
+        dsets = DatasetDict(
+            {
+                "train": Dataset.from_dict(train_data, features=train_features),
+                "test": Dataset.from_dict(test_data, features=test_features),
+            }
+        )
+        dsets = dsets.align_labels_with_mapping(label2id, "input_labels")
+        self.assertListEqual(train_expected_labels, dsets["train"]["input_labels"])
+        self.assertListEqual(test_expected_labels, dsets["test"]["input_labels"])
+        train_aligned_label_names = [
+            dsets["train"].features["input_labels"].int2str(idx) for idx in dsets["train"]["input_labels"]
+        ]
+        test_aligned_label_names = [
+            dsets["test"].features["input_labels"].int2str(idx) for idx in dsets["test"]["input_labels"]
+        ]
+        self.assertListEqual(train_expected_label_names, train_aligned_label_names)
+        self.assertListEqual(test_expected_label_names, test_aligned_label_names)
 
 
 def _check_csv_datasetdict(dataset_dict, expected_features, splits=("train",)):

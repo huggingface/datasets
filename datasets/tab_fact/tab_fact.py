@@ -138,8 +138,8 @@ class TabFact(datasets.GeneratorBasedBuilder):
 
                 statements, labels, caption = example
 
-                for statement, label in zip(statements, labels):
-                    yield i, {
+                for statement_idx, (statement, label) in enumerate(zip(statements, labels)):
+                    yield f"{i}_{statement_idx}", {
                         "id": i,
                         "table_id": table_id,
                         "table_text": tabel_text,

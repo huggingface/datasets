@@ -76,6 +76,126 @@ class FeaturesTest(TestCase):
         reloaded_features = Features.from_dict(asdict(ds_info)["features"])
         assert features == reloaded_features
 
+    def test_reorder_fields_as(self):
+        features = Features(
+            {
+                "id": Value("string"),
+                "document": {
+                    "title": Value("string"),
+                    "url": Value("string"),
+                    "html": Value("string"),
+                    "tokens": Sequence({"token": Value("string"), "is_html": Value("bool")}),
+                },
+                "question": {
+                    "text": Value("string"),
+                    "tokens": Sequence(Value("string")),
+                },
+                "annotations": Sequence(
+                    {
+                        "id": Value("string"),
+                        "long_answer": {
+                            "start_token": Value("int64"),
+                            "end_token": Value("int64"),
+                            "start_byte": Value("int64"),
+                            "end_byte": Value("int64"),
+                        },
+                        "short_answers": Sequence(
+                            {
+                                "start_token": Value("int64"),
+                                "end_token": Value("int64"),
+                                "start_byte": Value("int64"),
+                                "end_byte": Value("int64"),
+                                "text": Value("string"),
+                            }
+                        ),
+                        "yes_no_answer": ClassLabel(names=["NO", "YES"]),
+                    }
+                ),
+            }
+        )
+
+        other = Features(  # same but with [] instead of sequences, and with a shuffled fields order
+            {
+                "id": Value("string"),
+                "document": {
+                    "tokens": Sequence({"token": Value("string"), "is_html": Value("bool")}),
+                    "title": Value("string"),
+                    "url": Value("string"),
+                    "html": Value("string"),
+                },
+                "question": {
+                    "text": Value("string"),
+                    "tokens": [Value("string")],
+                },
+                "annotations": {
+                    "yes_no_answer": [ClassLabel(names=["NO", "YES"])],
+                    "id": [Value("string")],
+                    "long_answer": [
+                        {
+                            "end_byte": Value("int64"),
+                            "start_token": Value("int64"),
+                            "end_token": Value("int64"),
+                            "start_byte": Value("int64"),
+                        }
+                    ],
+                    "short_answers": [
+                        Sequence(
+                            {
+                                "text": Value("string"),
+                                "start_token": Value("int64"),
+                                "end_token": Value("int64"),
+                                "start_byte": Value("int64"),
+                                "end_byte": Value("int64"),
+                            }
+                        )
+                    ],
+                },
+            }
+        )
+
+        expected = Features(
+            {
+                "id": Value("string"),
+                "document": {
+                    "tokens": Sequence({"token": Value("string"), "is_html": Value("bool")}),
+                    "title": Value("string"),
+                    "url": Value("string"),
+                    "html": Value("string"),
+                },
+                "question": {
+                    "text": Value("string"),
+                    "tokens": Sequence(Value("string")),
+                },
+                "annotations": Sequence(
+                    {
+                        "yes_no_answer": ClassLabel(names=["NO", "YES"]),
+                        "id": Value("string"),
+                        "long_answer": {
+                            "end_byte": Value("int64"),
+                            "start_token": Value("int64"),
+                            "end_token": Value("int64"),
+                            "start_byte": Value("int64"),
+                        },
+                        "short_answers": Sequence(
+                            {
+                                "text": Value("string"),
+                                "start_token": Value("int64"),
+                                "end_token": Value("int64"),
+                                "start_byte": Value("int64"),
+                                "end_byte": Value("int64"),
+                            }
+                        ),
+                    }
+                ),
+            }
+        )
+
+        reordered_features = features.reorder_fields_as(other)
+        self.assertDictEqual(reordered_features, expected)
+        self.assertEqual(reordered_features.type, other.type)
+        self.assertEqual(reordered_features.type, expected.type)
+        self.assertNotEqual(reordered_features.type, features.type)
+
 
 def test_classlabel_init(tmp_path_factory):
     names = ["negative", "positive"]

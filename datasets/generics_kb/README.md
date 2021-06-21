@@ -24,6 +24,7 @@ task_categories:
 - other
 task_ids:
 - other-other-knowledge-base
+paperswithcode_id: genericskb
 ---
 
 # Dataset Card for Generics KB
@@ -31,7 +32,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)

@@ -15,7 +15,7 @@ jobs:
             - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
-            - run: pip install pyarrow==3.0.0
+            - run: pip install pyarrow --upgrade
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
     run_dataset_script_tests_pyarrow_1:
@@ -32,7 +32,6 @@ jobs:
             - run: pip install pyarrow==1.0.0
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
-
     run_dataset_script_tests_pyarrow_latest_WIN:
         working_directory: ~/datasets
         executor:
@@ -47,7 +46,7 @@ jobs:
             - run: "& venv/Scripts/activate.ps1"
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
-            - run: pip install pyarrow==3.0.0
+            - run: pip install pyarrow --upgrade
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
 
@@ -81,7 +80,6 @@ jobs:
             - run: black --check --line-length 119 --target-version py36 tests src benchmarks datasets metrics
             - run: isort --check-only tests src benchmarks datasets metrics
             - run: flake8 tests src benchmarks datasets metrics
-            - run: ./scripts/datasets_metadata_validator.py
 
     build_doc:
         working_directory: ~/datasets
@@ -100,8 +98,8 @@ jobs:
             - image: circleci/python:3.6
         steps:
             - add_ssh_keys:
-                fingerprints:
-                    - "5b:7a:95:18:07:8c:aa:76:4c:60:35:88:ad:60:56:71"
+                  fingerprints:
+                      - "5b:7a:95:18:07:8c:aa:76:4c:60:35:88:ad:60:56:71"
             - checkout
             - run: sudo pip install .[docs]
             - run: ./.circleci/deploy.sh
