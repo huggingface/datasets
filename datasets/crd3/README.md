@@ -1,5 +1,5 @@
 ---
-pretty_name: CRD3
+pretty_name: CRD3 (Critical Role Dungeons and Dragons Dataset)
 annotations_creators:
 - no-annotation
 language_creators:
