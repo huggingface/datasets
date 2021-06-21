@@ -177,7 +177,7 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
-    A formatter is an object that extracts and formats data from pyarrow table.
+    A formatter is an object that extracts and formats data from pyarrow tables.
     It defines the formatting for rows, columns and batches.
     """
 
