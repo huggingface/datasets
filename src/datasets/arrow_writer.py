@@ -420,7 +420,7 @@ class BeamWriter:
         # count examples
         _ = pcoll_examples | "Count N. Examples" >> beam.Map(inc_num_examples)
 
-        # save datasetfrom .
+        # save dataset
         simplified_schema = pa.schema({field.name: pa.string() for field in self._schema})
         return (
             pcoll_examples

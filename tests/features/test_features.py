@@ -20,7 +20,7 @@ from datasets.features import (
 )
 from datasets.info import DatasetInfo
 
-from .utils import require_tf, require_torch
+from ..utils import require_tf, require_torch
 
 
 class FeaturesTest(TestCase):
