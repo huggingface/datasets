@@ -847,7 +847,7 @@ class DatasetBuilder:
         )
         hasher = Hasher()
         hasher.update(self._relative_data_dir().replace(os.sep, "/"))
-        hasher.update(split.to_spec() if isinstance(split, ReadInstruction) else str(split))
+        hasher.update(str(split))
         fingerprint = hasher.hexdigest()
         return Dataset(fingerprint=fingerprint, **dataset_kwargs)
 
