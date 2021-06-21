@@ -18,9 +18,9 @@ languages:
 - br
 - bs
 - ca
-- cb
+- ckb
 - cs
-- cx
+- ceb
 - cy
 - de
 - dv
@@ -75,7 +75,7 @@ languages:
 - ne
 - nl
 - 'no'
-- ns
+- nso
 - ny
 - om
 - or
@@ -83,8 +83,8 @@ languages:
 - pl
 - ps
 - pt
-- qa
-- qd
+- shn
+- kac
 - rm
 - ro
 - ru
@@ -104,8 +104,8 @@ languages:
 - su
 - sv
 - sw
-- sy
-- sz
+- syc
+- szl
 - ta
 - te
 - tg
@@ -116,7 +116,7 @@ languages:
 - tr
 - ts
 - tt
-- tz
+- zgh
 - ug
 - uk
 - ur
@@ -124,31 +124,25 @@ languages:
 - ve
 - vi
 - wo
-- wy
+- war
 - xh
 - yi
 - yo
 - zh
 - zh
 - zu
-- zz
+- zza
 licenses:
 - unknown
 multilinguality:
 - translation
 size_categories:
-  documents-zz_TR:
-  - n<1K
-  sentences-zz_TR:
-  - n<1K
-  documents-tz_MA:
-  - n<1K
-  sentences-tz_MA:
-  - n<1K
-  documents-ak_GH:
-  - n<1K
-  sentences-ak_GH:
-  - n<1K
+- n<1K
+- 1K<n<10K
+- 10K<n<100K
+- 100K<n<1M
+- 1M<n<10M
+- 10M<n<100M
 source_datasets:
 - original
 task_categories:
@@ -252,7 +246,16 @@ For `sentences` type:
 
 ### Data Splits
 
-[Needs More Information]
+Split sizes of some small configurations:
+
+|   name   |train|
+|----------|----:|
+|documents-zz_TR|41|
+|sentences-zz_TR|34|
+|documents-tz_MA|4|
+|sentences-tz_MA|33|
+|documents-ak_GH|249|
+|sentences-ak_GH|478|
 
 ## Dataset Creation
 
