@@ -11,13 +11,14 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- unknown
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+- text-classification-other-emotion-classification
 paperswithcode_id: emotion
 ---
 
