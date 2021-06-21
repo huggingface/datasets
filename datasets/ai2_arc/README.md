@@ -19,6 +19,9 @@ task_ids:
 - open-domain-qa
 - multiple-choice-qa
 paperswithcode_id: null
+pretty_name:
+  ARC-Challenge: '"ai2_arc" (ARC-Challenge)'
+  ARC-Easy: '"ai2_arc" (ARC-Easy)'
 ---
 
 # Dataset Card for "ai2_arc"

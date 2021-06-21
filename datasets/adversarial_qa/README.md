@@ -19,6 +19,11 @@ task_ids:
 - extractive-qa
 - open-domain-qa
 paperswithcode_id: adversarialqa
+pretty_name:
+  adversarialQA: adversarialQA (adversarialQA)
+  dbert: adversarialQA (dbert)
+  dbidaf: adversarialQA (dbidaf)
+  droberta: adversarialQA (droberta)
 ---
 
 # Dataset Card for adversarialQA

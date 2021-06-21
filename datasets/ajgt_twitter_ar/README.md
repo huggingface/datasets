@@ -17,13 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
-<<<<<<< HEAD
-pretty_name:
-  plain_text:
-  - MetRec
-=======
 paperswithcode_id: null
->>>>>>> origin/master
+pretty_name: MetRec
 ---
 
 # Dataset Card for MetRec

@@ -21,6 +21,9 @@ task_ids:
 - dialogue-modeling
 - language-modeling
 paperswithcode_id: null
+pretty_name:
+  air_dialogue_data: air_dialogue (air_dialogue_data)
+  air_dialogue_kb: air_dialogue (air_dialogue_kb)
 ---
 
 # Dataset Card for air_dialogue
