@@ -143,7 +143,7 @@ TESTS_REQUIRE = [
     "sacrebleu",
     "scipy",
     "seqeval",
-    "sklearn",
+    "scikit-learn",
     "jiwer",
     "sentencepiece",  # for bleurt
     # to speed up pip backtracking
