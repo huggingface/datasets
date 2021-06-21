@@ -2158,7 +2158,7 @@ class BaseDatasetTest(TestCase):
             "dummy": ["123456"],
         }
         # Test we can load from task name
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+        with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="summarization") as dset:
                 self.assertSetEqual(
                     set(["text", "summary"]),
@@ -2167,7 +2167,7 @@ class BaseDatasetTest(TestCase):
                 self.assertDictEqual(features_after_cast, dset.features)
         # Test we can load from Summarization template
         info.task_templates = None
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+        with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
                     set(["text", "summary"]),
