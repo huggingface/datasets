@@ -18,6 +18,7 @@ task_categories:
 - text-retrieval
 task_ids:
 - fact-checking-retrieval
+paperswithcode_id: hover
 ---
 
 # Dataset Card Creation Guide

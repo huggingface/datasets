@@ -36,6 +36,8 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import List, Optional, Union
 
+from datasets.tasks.text_classification import TextClassification
+
 from . import config
 from .features import Features, Value
 from .splits import SplitDict
@@ -93,23 +95,24 @@ class DatasetInfo:
     Note: Not all fields are known on construction and may be updated later.
 
     Attributes:
-        description (str):
-        citation (str):
-        homepage (str):
-        license (str):
-        features (Features, optional):
-        post_processed (PostProcessedInfo, optional):
-        supervised_keys (SupervisedKeysData, optional):
-        builder_name (str, optional)
-        config_name (str, optional)
-        version (str or Version, optional):
-        splits (dict, optional):
-        download_checksums (dict, optional):
-        download_size (int, optional):
-        post_processing_size (int, optional):
-        dataset_size (int, optional):
-        size_in_bytes (int, optional):
-        task_templates (List[TaskTemplate], optional):
+        description (str): A description of the dataset.
+        citation (str): A BibTeX citation of the dataset.
+        homepage (str): A URL to the official homepage for the dataset.
+        license (str): The dataset's license. It can be the name of the license or a paragraph containing the terms of the license.
+        features (Features, optional): The features used to specify the dataset's column types.
+        post_processed (PostProcessedInfo, optional): Information regarding the resources of a possible post-processing of a dataset. For example, it can contain the information of an index.
+        supervised_keys (SupervisedKeysData, optional): Specifies the input feature and the label for supervised learning if applicable for the dataset (legacy from TFDS).
+        builder_name (str, optional): The name of the :class:`GeneratorBasedBuilder` subclass used to create the dataset. Usually matched to the corresponding script name. It is also the snake_case version of the dataset builder class name.
+        config_name (str, optional): The name of the configuration derived from :class:`BuilderConfig`
+        version (str or Version, optional): The version of the dataset.
+        splits (dict, optional): The mapping between split name and metadata.
+        download_checksums (dict, optional): The mapping between the URL to download the dataset's checksums and corresponding metadata.
+        download_size (int, optional): The size of the files to download to generate the dataset, in bytes.
+        post_processing_size (int, optional): Size of the dataset in bytes after post-processing, if any.
+        dataset_size (int, optional): The combined size in bytes of the Arrow tables for all splits.
+        size_in_bytes (int, optional): The combined size in bytes of all files associated with the dataset (downloaded files + Arrow files).
+        task_templates (List[TaskTemplate], optional): The task templates to prepare the dataset for during training and evaluation. Each template casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
+        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
     """
 
     # Set in the dataset scripts
@@ -153,6 +156,7 @@ class DatasetInfo:
             else:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
 
+        # Parse and make a list of templates
         if self.task_templates is not None:
             if isinstance(self.task_templates, (list, tuple)):
                 templates = [
@@ -165,6 +169,17 @@ class DatasetInfo:
             else:
                 template = task_template_from_dict(self.task_templates)
                 self.task_templates = [template] if template is not None else []
+
+        # Insert labels and mappings for text classification
+        if self.task_templates is not None:
+            self.task_templates = list(self.task_templates)
+            if self.features is not None:
+                for idx, template in enumerate(self.task_templates):
+                    if isinstance(template, TextClassification):
+                        labels = self.features[template.label_column].names
+                        self.task_templates[idx] = TextClassification(
+                            text_column=template.text_column, label_column=template.label_column, labels=labels
+                        )
 
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)

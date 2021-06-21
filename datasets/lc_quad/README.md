@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: lc-quad-2-0
 ---
 
 # Dataset Card for "lc_quad"

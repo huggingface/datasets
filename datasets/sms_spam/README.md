@@ -19,6 +19,7 @@ task_categories:
 - text-classification
 task_ids:
 - intent-classification
+paperswithcode_id: sms-spam-collection-data-set
 ---
 
 # Dataset Card for [Dataset Name]

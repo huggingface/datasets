@@ -1,4 +1,23 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- zh
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
+paperswithcode_id: cmrc-2018
 ---
 
 # Dataset Card for "cmrc2018"
@@ -94,9 +113,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-| name  |train|validation|test|
-|-------|----:|---------:|---:|
-|default|10142|      3219|1002|
+| name    | train | validation | test |
+| ------- | ----: | ---------: | ---: |
+| default | 10142 |       3219 | 1002 |
 
 ## Dataset Creation
 

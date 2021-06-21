@@ -18,7 +18,7 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
-
+paperswithcode_id: aqua-rat
 ---
 
 # Dataset Card for AQUA-RAT

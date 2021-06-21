@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: blended-skill-talk
 ---
 
 # Dataset Card for "blended_skill_talk"

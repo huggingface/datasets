@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: comqa
 ---
 
 # Dataset Card for "com_qa"

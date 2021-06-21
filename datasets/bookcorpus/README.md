@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: bookcorpus
 ---
 
 # Dataset Card for "bookcorpus"

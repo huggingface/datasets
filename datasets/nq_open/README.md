@@ -12,11 +12,12 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- 'extended|natural_questions'
+- extended|natural_questions
 task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+paperswithcode_id: null
 ---
 
 # Dataset Card for nq_open

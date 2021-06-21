@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: aslg-pc12
 ---
 
 # Dataset Card for "aslg_pc12"

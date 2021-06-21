@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multi-label-classification
 - text-classification-legal-topic-classification
+paperswithcode_id: eurlex57k
 ---
 
 # Dataset Card for the EUR-Lex dataset

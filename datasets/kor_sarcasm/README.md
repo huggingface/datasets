@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-sarcasm-detection
+paperswithcode_id: null
 ---
 
 # Dataset Card for Korean Sarcasm Detection

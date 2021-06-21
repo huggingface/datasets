@@ -21,6 +21,7 @@ task_ids:
 - dialogue-modeling
 - language-modeling
 - other-stuctured-to-text
+paperswithcode_id: czech-restaurant-information
 ---
 
 # Dataset Card Creation Guide

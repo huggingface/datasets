@@ -251,6 +251,7 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+paperswithcode_id: exams
 ---
 
 # Dataset Card for [Dataset Name]

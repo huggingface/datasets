@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - intent-classification
+paperswithcode_id: hate-speech
 ---
 
 # Dataset Card for [Dataset Name]

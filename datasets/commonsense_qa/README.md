@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: commonsenseqa
 ---
 
 # Dataset Card for "commonsense_qa"

@@ -20,11 +20,7 @@ task_ids:
 - conditional-text-generation-other-dialogue-generation
 - dialogue-modeling
 - language-modeling
-pretty_name:
-  air_dialogue_data:
-  - air_dialogue (air_dialogue_data)
-  air_dialogue_kb:
-  - air_dialogue (air_dialogue_kb)
+paperswithcode_id: null
 ---
 
 # Dataset Card for air_dialogue

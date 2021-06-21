@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: opinosis
 ---
 
 # Dataset Card for "opinosis"

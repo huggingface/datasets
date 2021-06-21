@@ -1,11 +1,11 @@
 import re
 import tempfile
 import unittest
+from dataclasses import asdict
 from pathlib import Path
 
 from datasets.utils.metadata import (
     DatasetMetadata,
-    escape_validation_for_predicate,
     metadata_dict_from_readme,
     tagset_validator,
     validate_metadata_type,
@@ -53,7 +53,8 @@ class TestMetadataUtils(unittest.TestCase):
             "tag": ["list", "of", "values"],
             "another tag": ["Another", {"list"}, ["of"], 0x646D46736457567A],
         }
-        validate_metadata_type(metadata_dict)
+        with self.assertRaises(TypeError):
+            validate_metadata_type(metadata_dict)
 
         metadata_dict = {"tag1": []}
         with self.assertRaises(TypeError):
@@ -67,48 +68,68 @@ class TestMetadataUtils(unittest.TestCase):
         name = "test_tag"
         url = "https://dummy.hf.co"
 
-        values = ["tag1", "tag2", "tag2", "tag3"]
+        items = ["tag1", "tag2", "tag2", "tag3"]
         reference_values = ["tag1", "tag2", "tag3"]
-        returned_values, error = tagset_validator(values=values, reference_values=reference_values, name=name, url=url)
-        self.assertListEqual(returned_values, values)
+        returned_values, error = tagset_validator(items=items, reference_values=reference_values, name=name, url=url)
+        self.assertListEqual(returned_values, items)
         self.assertIsNone(error)
 
-        values = []
+        items = []
         reference_values = ["tag1", "tag2", "tag3"]
-        returned_values, error = tagset_validator(values=values, reference_values=reference_values, name=name, url=url)
-        self.assertListEqual(returned_values, values)
+        items, error = tagset_validator(items=items, reference_values=reference_values, name=name, url=url)
+        self.assertListEqual(items, [])
         self.assertIsNone(error)
 
-        values = []
+        items = []
         reference_values = []
-        returned_values, error = tagset_validator(values=values, reference_values=reference_values, name=name, url=url)
-        self.assertListEqual(returned_values, values)
+        returned_values, error = tagset_validator(items=items, reference_values=reference_values, name=name, url=url)
+        self.assertListEqual(returned_values, [])
         self.assertIsNone(error)
 
-        values = ["tag1", "tag2", "tag2", "tag3", "unknown tag"]
+        items = ["tag1", "tag2", "tag2", "tag3", "unknown tag"]
         reference_values = ["tag1", "tag2", "tag3"]
-        returned_values, error = tagset_validator(values=values, reference_values=reference_values, name=name, url=url)
+        returned_values, error = tagset_validator(items=items, reference_values=reference_values, name=name, url=url)
         self.assertListEqual(returned_values, [])
         self.assertEqual(error, f"{['unknown tag']} are not registered tags for '{name}', reference at {url}")
 
-    def test_escape_validation_for_predicate(self):
-        def predicate_fn(string: str) -> bool:
+        def predicate_fn(string):
             return "ignore" in string
 
-        values = ["process me", "process me too", "ignore me"]
-        to_ignore, to_validate = escape_validation_for_predicate(values=values, predicate_fn=predicate_fn)
-        self.assertListEqual(to_ignore, ["ignore me"])
-        self.assertListEqual(to_validate, ["process me", "process me too"])
+        items = ["process me", "process me too", "ignore me"]
+        reference_values = ["process me too"]
+        returned_values, error = tagset_validator(
+            items=items,
+            reference_values=reference_values,
+            name=name,
+            url=url,
+            escape_validation_predicate_fn=predicate_fn,
+        )
+        self.assertListEqual(returned_values, [])
+        self.assertEqual(error, f"{['process me']} are not registered tags for '{name}', reference at {url}")
 
-        values = ["process me", "process me too"]
-        to_ignore, to_validate = escape_validation_for_predicate(values=values, predicate_fn=predicate_fn)
-        self.assertListEqual(to_ignore, [])
-        self.assertListEqual(to_validate, values)
+        items = ["process me", "process me too", "ignore me"]
+        reference_values = ["process me too", "process me"]
+        returned_values, error = tagset_validator(
+            items=items,
+            reference_values=reference_values,
+            name=name,
+            url=url,
+            escape_validation_predicate_fn=predicate_fn,
+        )
+        self.assertListEqual(returned_values, items)
+        self.assertIsNone(error)
 
-        values = ["this value will be ignored", "ignore this one two"]
-        to_ignore, to_validate = escape_validation_for_predicate(values=values, predicate_fn=predicate_fn)
-        self.assertListEqual(to_ignore, values)
-        self.assertListEqual(to_validate, [])
+        items = ["ignore me too", "ignore me"]
+        reference_values = ["process me too"]
+        returned_values, error = tagset_validator(
+            items=items,
+            reference_values=reference_values,
+            name=name,
+            url=url,
+            escape_validation_predicate_fn=predicate_fn,
+        )
+        self.assertListEqual(returned_values, items)
+        self.assertIsNone(error)
 
     def test_yaml_block_from_readme(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -177,6 +198,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -204,6 +226,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -228,6 +251,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -239,7 +263,8 @@ class TestMetadataUtils(unittest.TestCase):
             """
         )
         with self.assertRaises(TypeError):
-            DatasetMetadata.from_yaml_string(invalid_tag_yaml)
+            metadata = DatasetMetadata.from_yaml_string(invalid_tag_yaml)
+            metadata.validate()
 
         missing_tag_yaml = _dedent(
             """\
@@ -251,6 +276,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -262,7 +288,8 @@ class TestMetadataUtils(unittest.TestCase):
             """
         )
         with self.assertRaises(TypeError):
-            DatasetMetadata.from_yaml_string(missing_tag_yaml)
+            metadata = DatasetMetadata.from_yaml_string(missing_tag_yaml)
+            metadata.validate()
 
         duplicate_yaml_keys = _dedent(
             """\
@@ -274,6 +301,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -287,7 +315,8 @@ class TestMetadataUtils(unittest.TestCase):
             """
         )
         with self.assertRaises(TypeError):
-            DatasetMetadata.from_yaml_string(duplicate_yaml_keys)
+            metadata = DatasetMetadata.from_yaml_string(duplicate_yaml_keys)
+            metadata.validate()
 
         valid_yaml_string_with_duplicate_configs = _dedent(
             """\
@@ -304,6 +333,7 @@ class TestMetadataUtils(unittest.TestCase):
             - unknown
             multilinguality:
             - monolingual
+            pretty_name: Test Dataset
             size_categories:
             - 10K<n<100K
             source_datasets:
@@ -315,4 +345,283 @@ class TestMetadataUtils(unittest.TestCase):
             """
         )
         with self.assertRaises(TypeError):
-            DatasetMetadata.from_yaml_string(valid_yaml_string_with_duplicate_configs)
+            metadata = DatasetMetadata.from_yaml_string(valid_yaml_string_with_duplicate_configs)
+            metadata.validate()
+
+        valid_yaml_string_with_paperswithcode_id = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            pretty_name: Test Dataset
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id: squad
+            """
+        )
+        DatasetMetadata.from_yaml_string(valid_yaml_string_with_paperswithcode_id)
+
+        valid_yaml_string_with_null_paperswithcode_id = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            pretty_name: Test Dataset
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id: null
+            """
+        )
+        DatasetMetadata.from_yaml_string(valid_yaml_string_with_null_paperswithcode_id)
+
+        valid_yaml_string_with_list_paperswithcode_id = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            pretty_name: Test Dataset
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id:
+            - squad
+            """
+        )
+        with self.assertRaises(TypeError):
+            metadata = DatasetMetadata.from_yaml_string(valid_yaml_string_with_list_paperswithcode_id)
+            metadata.validate()
+
+    def test_get_metadata_by_config_name(self):
+        valid_yaml_with_multiple_configs = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+              en:
+              - en
+              fr:
+              - fr
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            pretty_name:
+              en: English Test Dataset
+              fr: French Test Dataset
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id:
+            - squad
+            """
+        )
+
+        metadata = DatasetMetadata.from_yaml_string(valid_yaml_with_multiple_configs)
+        en_metadata = metadata.get_metadata_by_config_name("en")
+        self.assertEqual(
+            asdict(en_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["en"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_name": "English Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+        fr_metadata = metadata.get_metadata_by_config_name("fr")
+        self.assertEqual(
+            asdict(fr_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["fr"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_name": "French Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+
+        valid_yaml_with_single_configs = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+            - en
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            pretty_name: Test Dataset
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id:
+            - squad
+            """
+        )
+
+        metadata = DatasetMetadata.from_yaml_string(valid_yaml_with_single_configs)
+        en_metadata = metadata.get_metadata_by_config_name("en")
+        self.assertEqual(
+            asdict(en_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["en"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_name": "Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+        fr_metadata = metadata.get_metadata_by_config_name("fr")
+        self.assertEqual(
+            asdict(fr_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["en"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_name": "Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+
+        invalid_yaml_with_multiple_configs = _dedent(
+            """\
+            annotations_creators:
+            - found
+            language_creators:
+            - found
+            languages:
+              en:
+              - en
+              zh:
+              - zh
+            licenses:
+            - unknown
+            multilinguality:
+            - monolingual
+            pretty_name: Test Dataset
+            size_categories:
+            - 10K<n<100K
+            source_datasets:
+            - extended|other-yahoo-webscope-l6
+            task_categories:
+            - question-answering
+            task_ids:
+            - open-domain-qa
+            paperswithcode_id:
+            - squad
+            """
+        )
+
+        metadata = DatasetMetadata.from_yaml_string(invalid_yaml_with_multiple_configs)
+        en_metadata = metadata.get_metadata_by_config_name("en")
+        self.assertEqual(
+            asdict(en_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["en"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_name": "Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+        zh_metadata = metadata.get_metadata_by_config_name("zh")
+        self.assertEqual(
+            asdict(zh_metadata),
+            {
+                "annotations_creators": ["found"],
+                "language_creators": ["found"],
+                "languages": ["zh"],
+                "licenses": ["unknown"],
+                "multilinguality": ["monolingual"],
+                "pretty_name": "Test Dataset",
+                "size_categories": ["10K<n<100K"],
+                "source_datasets": ["extended|other-yahoo-webscope-l6"],
+                "task_categories": ["question-answering"],
+                "task_ids": ["open-domain-qa"],
+                "paperswithcode_id": ["squad"],
+            },
+        )
+        with self.assertRaises(TypeError):
+            fr_metadata = metadata.get_metadata_by_config_name("fr")

@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: mlqa
 ---
 
 # Dataset Card for "mlqa"

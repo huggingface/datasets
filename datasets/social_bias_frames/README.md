@@ -1,24 +1,25 @@
 ---
-annotations_creators: 
-- crowdsourced 
-language_creators: 
-- found 
-languages: 
-- en 
-licenses: 
-- cc-by-4.0 
-multilinguality: 
-- monolingual 
-size_categories: 
-- 100K<n<1M 
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
 source_datasets:
 - original
-task_categories: 
-- conditional-text-generation 
-- text-classification 
-task_ids: 
-- explanation-generation 
-- hate-speech-detection 
+task_categories:
+- conditional-text-generation
+- text-classification
+task_ids:
+- explanation-generation
+- hate-speech-detection
+paperswithcode_id: null
 ---
 
 

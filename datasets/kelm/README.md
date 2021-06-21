@@ -17,6 +17,7 @@ task_categories:
 - other
 task_ids:
 - other-other-data-to-text-generation
+paperswithcode_id: kelm
 ---
 
 # Dataset Card for Corpus for Knowledge-Enhanced Language Model Pre-training (KELM)

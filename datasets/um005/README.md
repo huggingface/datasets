@@ -18,6 +18,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: umc005-english-urdu
 ---
 
 # Dataset Card Creation Guide

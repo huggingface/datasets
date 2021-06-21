@@ -17,6 +17,7 @@ task_categories:
 - text-scoring
 task_ids:
 - other-social-media-shares-prediction
+paperswithcode_id: null
 ---
 
 # Dataset Card for newspop

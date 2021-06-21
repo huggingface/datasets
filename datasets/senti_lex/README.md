@@ -60,7 +60,7 @@ languages:
 - mt
 - nl
 - nn
-- "no"
+- 'no'
 - pl
 - pt
 - rm
@@ -264,6 +264,7 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for SentiWS

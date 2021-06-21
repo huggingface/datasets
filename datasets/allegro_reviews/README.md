@@ -17,9 +17,7 @@ task_categories:
 - text-scoring
 task_ids:
 - sentiment-scoring
-pretty_name:
-  default:
-  - Allegro Reviews
+paperswithcode_id: allegro-reviews
 ---
 
 # Dataset Card for Allegro Reviews

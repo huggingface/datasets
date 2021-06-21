@@ -17,6 +17,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - dialogue-modeling
+paperswithcode_id: craigslistbargains
 ---
 
 # Dataset Card Creation Guide

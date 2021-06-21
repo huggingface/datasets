@@ -17,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - extractive-qa
+paperswithcode_id: null
 ---
 
 # Dataset Card for PersiNLU (Reading Comprehension)

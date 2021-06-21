@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: hans
 ---
 
 # Dataset Card for "hans"

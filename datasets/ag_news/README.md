@@ -17,9 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
-pretty_name:
-  default:
-  - '"ag_news"'
+paperswithcode_id: ag-news
 ---
 
 # Dataset Card for "ag_news"

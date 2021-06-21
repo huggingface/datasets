@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-question-identification
+paperswithcode_id: null
 ---
 
 # Dataset Card for journalists_questions

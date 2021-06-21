@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: xnli
 ---
 
 # Dataset Card for "xnli"

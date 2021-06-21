@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: web-of-science-dataset
 ---
 
 # Dataset Card for "web_of_science"

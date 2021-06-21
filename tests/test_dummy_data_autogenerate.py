@@ -3,6 +3,7 @@ import shutil
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
+import datasets.config
 from datasets.builder import GeneratorBasedBuilder
 from datasets.commands.dummy_data import DummyDataGeneratorDownloadManager, MockDownloadManager
 from datasets.features import Features, Value
@@ -73,7 +74,7 @@ class DummyDataAutoGenerationTest(TestCase):
                 cache_dir=cache_dir,
                 load_existing_dummy_data=False,  # dummy data don't exist yet
             )
-            download_config = DownloadConfig(cache_dir=os.path.join(tmp_dir, "downloads"))
+            download_config = DownloadConfig(cache_dir=os.path.join(tmp_dir, datasets.config.DOWNLOADED_DATASETS_DIR))
             dl_manager = DummyDataGeneratorDownloadManager(
                 dataset_name=dataset_builder.name,
                 mock_download_manager=mock_dl_manager,

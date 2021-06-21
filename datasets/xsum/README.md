@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: xsum
 ---
 
 # Dataset Card for "xsum"

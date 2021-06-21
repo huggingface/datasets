@@ -17,6 +17,7 @@ task_categories:
 - other
 task_ids:
 - other-other-automatic speech recognition
+paperswithcode_id: arabic-speech-corpus
 ---
 
 # Dataset Card for Arabic Speech Corpus

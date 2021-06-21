@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - language-modeling
 - other-other-pretraining-language-models
+paperswithcode_id: sbwce
 ---
 
 # Dataset Card for Spanish Billion Words

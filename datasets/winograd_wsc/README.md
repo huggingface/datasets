@@ -17,6 +17,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - coreference-resolution
+paperswithcode_id: wsc
 ---
 
 # Dataset Card for The Winograd Schema Challenge

@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: searchqa
 ---
 
 # Dataset Card for "search_qa"

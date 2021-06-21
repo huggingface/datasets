@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - dialogue-modeling
 - other-multi-turn
+paperswithcode_id: kdconv
 ---
 
 # Dataset Card for KdConv

@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: kornli
 ---
 
 # Dataset Card for "kor_nli"

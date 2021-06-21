@@ -14,6 +14,7 @@ task_categories:
 - other
 task_ids:
 - other-other-image-classification
+paperswithcode_id: fashion-mnist
 ---
 
 # Dataset Card for FashionMNIST

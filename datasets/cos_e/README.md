@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: cos-e
 ---
 
 # Dataset Card for "cos_e"

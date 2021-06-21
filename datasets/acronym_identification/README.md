@@ -17,9 +17,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - structure-prediction-other-acronym-identification
-pretty_name:
-  default:
-  - Acronym Identification Dataset
+paperswithcode_id: acronym-identification
 ---
 
 # Dataset Card for Acronym Identification Dataset
