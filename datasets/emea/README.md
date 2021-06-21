@@ -31,7 +31,16 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-- n>1M
+  bg-el:
+  - 1M<n<10M
+  cs-et:
+  - 1M<n<10M
+  de-mt:
+  - 1M<n<10M
+  fr-sk:
+  - 1M<n<10M
+  es-lt:
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:

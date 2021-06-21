@@ -13,7 +13,7 @@ size_categories:
   task1_qa:
   - 100K<n<1M
   task2_recs:
-  - n>1M
+  - 1M<n<10M
   task3_qarecs:
   - 100K<n<1M
   task4_reddit:

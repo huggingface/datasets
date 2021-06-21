@@ -137,11 +137,18 @@ licenses:
 multilinguality:
 - translation
 size_categories:
-- n<1K
-- 1K<n<10K
-- 10K<n<100K
-- 100K<n<1M
-- n>1M
+  documents-zz_TR:
+  - n<1K
+  sentences-zz_TR:
+  - n<1K
+  documents-tz_MA:
+  - n<1K
+  sentences-tz_MA:
+  - n<1K
+  documents-ak_GH:
+  - n<1K
+  sentences-ak_GH:
+  - n<1K
 source_datasets:
 - original
 task_categories:
