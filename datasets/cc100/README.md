@@ -136,6 +136,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: cc100
+pretty_name: CC100
 ---
 
 # Dataset Card Creation Guide

@@ -156,6 +156,7 @@ task_categories:
 task_ids:
 - other-other-translation
 paperswithcode_id: ccaligned
+pretty_name: CCAligned
 ---
 
 # Dataset Card for ccaligned_multilingual

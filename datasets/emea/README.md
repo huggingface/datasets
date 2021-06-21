@@ -48,6 +48,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: EMEA
 ---
 
 # Dataset Card Creation Guide

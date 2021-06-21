@@ -25,6 +25,7 @@ task_categories:
 task_ids:
 - dialogue-modeling
 paperswithcode_id: mdd
+pretty_name: Movie Dialog dataset (MDD)
 ---
 
 # Dataset Card for MDD
