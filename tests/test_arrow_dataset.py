@@ -20,7 +20,7 @@ from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, 
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
-from datasets.tasks import QuestionAnsweringExtractive, TextClassification
+from datasets.tasks import QuestionAnsweringExtractive, Summarization, TextClassification
 from datasets.utils.logging import WARNING
 
 from .conftest import s3_test_bucket_name
@@ -2141,6 +2141,43 @@ class BaseDatasetTest(TestCase):
                 self.assertSetEqual(
                     set(["context", "question", "answers.text", "answers.answer_start"]),
                     set(dset.flatten().column_names),
+                )
+                self.assertDictEqual(features_after_cast, dset.features)
+
+    def test_task_summarization(self, in_memory):
+        # Include a dummy extra column `dummy` to test we drop it correctly
+        features_before_cast = Features(
+            {"input_text": Value("string"), "input_summary": Value("string"), "dummy": Value("string")}
+        )
+        features_after_cast = Features({"text": Value("string"), "summary": Value("string")})
+        task = Summarization(text_column="input_text", summary_column="input_summary")
+        info = DatasetInfo(features=features_before_cast, task_templates=task)
+        data = {
+            "input_text": ["jack and jill took a taxi to attend a super duper party in the city."],
+            "input_summary": ["jack and jill attend party"],
+            "dummy": ["123456"],
+        }
+        # Test we can load from task name
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                self.assertSetEqual(
+                    set(["input_text", "input_summary", "dummy"]),
+                    set(dset.column_names),
+                )
+                self.assertDictEqual(features_before_cast, dset.features)
+                with dset.prepare_for_task(task="summarization") as dset:
+                    self.assertSetEqual(
+                        set(["text", "summary"]),
+                        set(dset.column_names),
+                    )
+                    self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from QuestionAnsweringExtractive template
+        info.task_templates = None
+        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task=task) as dset:
+                self.assertSetEqual(
+                    set(["text", "summary"]),
+                    set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
 
