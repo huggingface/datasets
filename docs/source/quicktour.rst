@@ -183,7 +183,7 @@ Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`
 To be able to train our model with this dataset and PyTorch, we will need to do three modifications:
 
 - rename our ``label`` column in ``labels`` which is the expected input name for labels in `BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#transformers.BertForSequenceClassification.forward>`__ or `TFBertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#tfbertforsequenceclassification>`__,
-- get pytorch (or tensorflow) tensors out of our :class:`datasets.Dataset`, instead of python objects, and
+- get pytorch (or tensorflow, or jax) tensors out of our :class:`datasets.Dataset`, instead of python objects, and
 - filter the columns to return only the subset of the columns that we need for our model inputs (``input_ids``, ``token_type_ids`` and ``attention_mask``).
 
 .. note::
