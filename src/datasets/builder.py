@@ -41,7 +41,7 @@ from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import DownloadConfig, is_remote_url
-from .utils.filelock import FileLock, hash_filename_if_too_long
+from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.logging import WARNING, get_logger
 
@@ -258,7 +258,7 @@ class DatasetBuilder:
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(hash_filename_if_too_long(lock_path)):
+        with FileLock(lock_path):
             if os.path.exists(self._cache_dir):  # check if data exist
                 if len(os.listdir(self._cache_dir)) > 0:
                     logger.info("Overwrite dataset info from restored data version.")
@@ -503,7 +503,7 @@ class DatasetBuilder:
 
         # Prevent parallel disk operations
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(hash_filename_if_too_long(lock_path)):
+        with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
             if data_exists and download_mode == GenerateMode.REUSE_DATASET_IF_EXISTS:
                 logger.warning("Reusing dataset %s (%s)", self.name, self._cache_dir)
@@ -689,12 +689,12 @@ class DatasetBuilder:
 
     def _save_info(self):
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(hash_filename_if_too_long(lock_path)):
+        with FileLock(lock_path):
             self.info.write_to_directory(self._cache_dir)
 
     def _save_infos(self):
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
-        with FileLock(hash_filename_if_too_long(lock_path)):
+        with FileLock(lock_path):
             DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -845,11 +845,16 @@ class DatasetBuilder:
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
         )
+        fingerprint = self._get_dataset_fingerprint(split)
+        return Dataset(fingerprint=fingerprint, **dataset_kwargs)
+
+    def _get_dataset_fingerprint(self, split: Union[ReadInstruction, Split]) -> str:
+        """The dataset fingerprint is the hash of the relative directory dataset_name/config_name/version/hash, as well as the split specs."""
         hasher = Hasher()
         hasher.update(self._relative_data_dir().replace(os.sep, "/"))
-        hasher.update(str(split))
+        hasher.update(str(split))  # for example: train, train+test, train[:10%], test[:33%](pct1_dropremainder)
         fingerprint = hasher.hexdigest()
-        return Dataset(fingerprint=fingerprint, **dataset_kwargs)
+        return fingerprint
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
