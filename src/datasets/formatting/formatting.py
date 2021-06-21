@@ -166,10 +166,10 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
 
 class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFrame]):
     def extract_row(self, pa_table: pa.Table) -> pd.DataFrame:
-        return pa_table.to_pandas(types_mapper=pandas_types_mapper).head(1)
+        return pa_table.slice(length=1).to_pandas(types_mapper=pandas_types_mapper)
 
     def extract_column(self, pa_table: pa.Table) -> pd.Series:
-        return pa_table.to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
+        return pa_table.select([0]).to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
 
     def extract_batch(self, pa_table: pa.Table) -> pd.DataFrame:
         return pa_table.to_pandas(types_mapper=pandas_types_mapper)
@@ -177,8 +177,8 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
-    A formatter is an object that extracts and formats data from pyarrow table.
-    It defines the formatting for rows, colums and batches.
+    A formatter is an object that extracts and formats data from pyarrow tables.
+    It defines the formatting for rows, columns and batches.
     """
 
     simple_arrow_extractor = SimpleArrowExtractor
