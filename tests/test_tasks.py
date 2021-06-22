@@ -1,7 +1,7 @@
 from unittest.case import TestCase
 
 from datasets.features import ClassLabel, Features, Sequence, Value
-from datasets.tasks import QuestionAnsweringExtractive, TextClassification
+from datasets.tasks import AutomaticSpeechRecognition, QuestionAnsweringExtractive, TextClassification
 
 
 class TextClassificationTest(TestCase):
@@ -51,5 +51,24 @@ class QuestionAnsweringTest(TestCase):
         }
         task = QuestionAnsweringExtractive.from_dict(template_dict)
         self.assertEqual("question-answering-extractive", task.task)
+        self.assertEqual(input_schema, task.input_schema)
+        self.assertEqual(label_schema, task.label_schema)
+
+
+class AutomaticSpeechRecognitionTest(TestCase):
+    def test_column_mapping(self):
+        task = AutomaticSpeechRecognition(
+            audio_file_column="input_audio_file", transcription_column="input_transcription"
+        )
+        self.assertDictEqual(
+            {"input_audio_file": "audio_file", "input_transcription": "transcription"}, task.column_mapping
+        )
+
+    def test_from_dict(self):
+        input_schema = Features({"audio_file": Value("string")})
+        label_schema = Features({"transcription": Value("string")})
+        template_dict = {"audio_file_column": "input_audio_file", "transcription_column": "input_transcription"}
+        task = AutomaticSpeechRecognition.from_dict(template_dict)
+        self.assertEqual("automatic-speech-recognition", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)

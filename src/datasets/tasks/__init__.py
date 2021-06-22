@@ -1,10 +1,10 @@
 from typing import Optional
 
 from ..utils.logging import get_logger
+from .automatic_speech_recognition import AutomaticSpeechRecognition
 from .base import TaskTemplate
 from .question_answering import QuestionAnsweringExtractive
 from .text_classification import TextClassification
-from .automatic_speech_recognition import AutomaticSpeechRecognition
 
 
 __all__ = ["TaskTemplate", "QuestionAnsweringExtractive", "TextClassification", "AutomaticSpeechRecognition"]
