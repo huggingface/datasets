@@ -705,172 +705,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
             del dset1, dset2, dset3
 
-    def test_concatenate_with_no_task_templates(self, in_memory):
-        info = DatasetInfo(task_templates=None)
-        data = {"text": ["i love transformers!"], "labels": [1]}
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
-                data, info=info
-            ) as dset2, Dataset.from_dict(data, info=info) as dset3:
-                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
-                    in_memory, tmp_dir, dset2
-                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
-                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
-                        self.assertEqual(dset_concat.info.task_templates, None)
-
-    def test_concatenate_with_equal_task_templates(self, in_memory):
-        labels = ["neg", "pos"]
-        task_template = TextClassification(text_column="text", label_column="labels", labels=labels)
-        info = DatasetInfo(
-            features=Features({"text": Value("string"), "labels": ClassLabel(names=labels)}),
-            # Label names are added in `DatasetInfo.__post_init__` so not included here
-            task_templates=TextClassification(text_column="text", label_column="labels"),
-        )
-        data = {"text": ["i love transformers!"], "labels": [1]}
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
-                data, info=info
-            ) as dset2, Dataset.from_dict(data, info=info) as dset3:
-                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
-                    in_memory, tmp_dir, dset2
-                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
-                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
-                        self.assertListEqual(dset_concat.info.task_templates, [task_template])
-
-    def test_concatenate_with_mixed_task_templates_in_common(self, in_memory):
-        tc_template = TextClassification(text_column="text", label_column="labels")
-        qa_template = QuestionAnsweringExtractive(
-            question_column="question", context_column="context", answers_column="answers"
-        )
-        info1 = DatasetInfo(
-            task_templates=[qa_template],
-            features=Features(
-                {
-                    "text": Value("string"),
-                    "labels": ClassLabel(names=["pos", "neg"]),
-                    "context": Value("string"),
-                    "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
-                }
-            ),
-        )
-        info2 = DatasetInfo(
-            task_templates=[qa_template, tc_template],
-            features=Features(
-                {
-                    "text": Value("string"),
-                    "labels": ClassLabel(names=["pos", "neg"]),
-                    "context": Value("string"),
-                    "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
-                }
-            ),
-        )
-        data = {
-            "text": ["i love transformers!"],
-            "labels": [1],
-            "context": ["huggingface is going to the moon!"],
-            "question": ["where is huggingface going?"],
-            "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
-        }
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(data, info=info1) as dset1, Dataset.from_dict(
-                data, info=info2
-            ) as dset2, Dataset.from_dict(data, info=info2) as dset3:
-                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
-                    in_memory, tmp_dir, dset2
-                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
-                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
-                        self.assertListEqual(dset_concat.info.task_templates, [qa_template])
-
-    def test_concatenate_with_no_mixed_task_templates_in_common(self, in_memory):
-        tc_template1 = TextClassification(text_column="text", label_column="labels")
-        tc_template2 = TextClassification(text_column="text", label_column="sentiment")
-        qa_template = QuestionAnsweringExtractive(
-            question_column="question", context_column="context", answers_column="answers"
-        )
-        info1 = DatasetInfo(
-            features=Features(
-                {
-                    "text": Value("string"),
-                    "labels": ClassLabel(names=["pos", "neg"]),
-                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
-                    "context": Value("string"),
-                    "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
-                }
-            ),
-            task_templates=[tc_template1],
-        )
-        info2 = DatasetInfo(
-            features=Features(
-                {
-                    "text": Value("string"),
-                    "labels": ClassLabel(names=["pos", "neg"]),
-                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
-                    "context": Value("string"),
-                    "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
-                }
-            ),
-            task_templates=[tc_template2],
-        )
-        info3 = DatasetInfo(
-            features=Features(
-                {
-                    "text": Value("string"),
-                    "labels": ClassLabel(names=["pos", "neg"]),
-                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
-                    "context": Value("string"),
-                    "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
-                }
-            ),
-            task_templates=[qa_template],
-        )
-        data = {
-            "text": ["i love transformers!"],
-            "labels": [1],
-            "sentiment": [0],
-            "context": ["huggingface is going to the moon!"],
-            "question": ["where is huggingface going?"],
-            "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
-        }
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(data, info=info1) as dset1, Dataset.from_dict(
-                data, info=info2
-            ) as dset2, Dataset.from_dict(data, info=info3) as dset3:
-                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
-                    in_memory, tmp_dir, dset2
-                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
-                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
-                        self.assertEqual(dset_concat.info.task_templates, None)
-
     def test_flatten(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
@@ -2789,3 +2623,153 @@ class TaskTemplatesTest(TestCase):
                 self.assertListEqual(expected_labels, dset["input_labels"])
                 aligned_label_names = [dset.features["input_labels"].int2str(idx) for idx in dset["input_labels"]]
                 self.assertListEqual(expected_label_names, aligned_label_names)
+
+    def test_concatenate_with_no_task_templates(self):
+        info = DatasetInfo(task_templates=None)
+        data = {"text": ["i love transformers!"], "labels": [1]}
+        with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
+            data, info=info
+        ) as dset2, Dataset.from_dict(data, info=info) as dset3:
+            with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                self.assertEqual(dset_concat.info.task_templates, None)
+
+    def test_concatenate_with_equal_task_templates(self):
+        labels = ["neg", "pos"]
+        task_template = TextClassification(text_column="text", label_column="labels", labels=labels)
+        info = DatasetInfo(
+            features=Features({"text": Value("string"), "labels": ClassLabel(names=labels)}),
+            # Label names are added in `DatasetInfo.__post_init__` so not included here
+            task_templates=TextClassification(text_column="text", label_column="labels"),
+        )
+        data = {"text": ["i love transformers!"], "labels": [1]}
+        with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
+            data, info=info
+        ) as dset2, Dataset.from_dict(data, info=info) as dset3:
+            with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                self.assertListEqual(dset_concat.info.task_templates, [task_template])
+
+    def test_concatenate_with_mixed_task_templates_in_common(self):
+        tc_template = TextClassification(text_column="text", label_column="labels")
+        qa_template = QuestionAnsweringExtractive(
+            question_column="question", context_column="context", answers_column="answers"
+        )
+        info1 = DatasetInfo(
+            task_templates=[qa_template],
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+        )
+        info2 = DatasetInfo(
+            task_templates=[qa_template, tc_template],
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+        )
+        data = {
+            "text": ["i love transformers!"],
+            "labels": [1],
+            "context": ["huggingface is going to the moon!"],
+            "question": ["where is huggingface going?"],
+            "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
+        }
+        with Dataset.from_dict(data, info=info1) as dset1, Dataset.from_dict(
+            data, info=info2
+        ) as dset2, Dataset.from_dict(data, info=info2) as dset3:
+            with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                self.assertListEqual(dset_concat.info.task_templates, [qa_template])
+
+    def test_concatenate_with_no_mixed_task_templates_in_common(self):
+        tc_template1 = TextClassification(text_column="text", label_column="labels")
+        tc_template2 = TextClassification(text_column="text", label_column="sentiment")
+        qa_template = QuestionAnsweringExtractive(
+            question_column="question", context_column="context", answers_column="answers"
+        )
+        info1 = DatasetInfo(
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+            task_templates=[tc_template1],
+        )
+        info2 = DatasetInfo(
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+            task_templates=[tc_template2],
+        )
+        info3 = DatasetInfo(
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+            task_templates=[qa_template],
+        )
+        data = {
+            "text": ["i love transformers!"],
+            "labels": [1],
+            "sentiment": [0],
+            "context": ["huggingface is going to the moon!"],
+            "question": ["where is huggingface going?"],
+            "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
+        }
+        with Dataset.from_dict(data, info=info1) as dset1, Dataset.from_dict(
+            data, info=info2
+        ) as dset2, Dataset.from_dict(data, info=info3) as dset3:
+            with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                self.assertEqual(dset_concat.info.task_templates, None)
