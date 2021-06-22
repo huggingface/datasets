@@ -56,6 +56,10 @@ pretty_name: Turkish Product Reviews
 
 This Turkish Product Reviews Dataset contains 235.165 product reviews collected online. There are 220.284 positive, 14881 negative reviews.
 
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
+
 ### Languages
 
 The dataset is based on Turkish.
@@ -122,7 +126,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 
