@@ -4,9 +4,10 @@ from ..utils.logging import get_logger
 from .base import TaskTemplate
 from .question_answering import QuestionAnsweringExtractive
 from .text_classification import TextClassification
+from .automatic_speech_recognition import AutomaticSpeechRecognition
 
 
-__all__ = ["TaskTemplate", "QuestionAnsweringExtractive", "TextClassification"]
+__all__ = ["TaskTemplate", "QuestionAnsweringExtractive", "TextClassification", "AutomaticSpeechRecognition"]
 
 logger = get_logger(__name__)
 
@@ -14,6 +15,7 @@ logger = get_logger(__name__)
 NAME2TEMPLATE = {
     QuestionAnsweringExtractive.task: QuestionAnsweringExtractive,
     TextClassification.task: TextClassification,
+    AutomaticSpeechRecognition.task: AutomaticSpeechRecognition,
 }
 
 
