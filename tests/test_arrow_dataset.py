@@ -1692,6 +1692,58 @@ class BaseDatasetTest(TestCase):
                     for col_name in dset.column_names:
                         self.assertEqual(len(dset_to_pandas[col_name]), dset.num_rows)
 
+    def test_to_parquet(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # File path argument
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.parquet")
+                dset.to_parquet(path_or_buf=file_path)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))  # because of compression, the number of bytes doesn't match
+                parquet_dset = pd.read_parquet(file_path)
+
+                self.assertEqual(parquet_dset.shape, dset.shape)
+                self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
+
+            # File buffer argument
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_buffer.parquet")
+                with open(file_path, "wb+") as buffer:
+                    dset.to_parquet(path_or_buf=buffer)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))  # because of compression, the number of bytes doesn't match
+                parquet_dset = pd.read_parquet(file_path)
+
+                self.assertEqual(parquet_dset.shape, dset.shape)
+                self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
+
+            # After a select/shuffle transform
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset = dset.select(range(0, len(dset), 2)).shuffle()
+                file_path = os.path.join(tmp_dir, "test_path.parquet")
+                dset.to_parquet(path_or_buf=file_path)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))  # because of compression, the number of bytes doesn't match
+                parquet_dset = pd.read_parquet(file_path)
+
+                self.assertEqual(parquet_dset.shape, dset.shape)
+                self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
+
+            # With array features
+            with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.parquet")
+                dset.to_parquet(path_or_buf=file_path)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))  # because of compression, the number of bytes doesn't match
+                parquet_dset = pd.read_parquet(file_path)
+
+                self.assertEqual(parquet_dset.shape, dset.shape)
+                self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
+
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -2615,6 +2667,67 @@ def test_dataset_from_json_path_type(path_type, jsonl_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_json(path, cache_dir=cache_dir)
     _check_json_dataset(dataset, expected_features)
+
+
+def _check_parquet_dataset(dataset, expected_features):
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_dataset_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_parquet(parquet_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_parquet_dataset(dataset, expected_features)
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+def test_dataset_from_parquet_features(features, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = Dataset.from_parquet(parquet_path, features=features, cache_dir=cache_dir)
+    _check_parquet_dataset(dataset, expected_features)
+
+
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_dataset_from_parquet_split(split, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_parquet(parquet_path, cache_dir=cache_dir, split=split)
+    _check_parquet_dataset(dataset, expected_features)
+    assert dataset.split == str(split) if split else "train"
+
+
+@pytest.mark.parametrize("path_type", [str, list])
+def test_dataset_from_parquet_path_type(path_type, parquet_path, tmp_path):
+    if issubclass(path_type, str):
+        path = parquet_path
+    elif issubclass(path_type, list):
+        path = [parquet_path]
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_parquet(path, cache_dir=cache_dir)
+    _check_parquet_dataset(dataset, expected_features)
 
 
 def _check_text_dataset(dataset, expected_features):

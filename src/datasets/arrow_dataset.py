@@ -520,6 +520,45 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ).read()
 
     @staticmethod
+    def from_parquet(
+        path_or_paths: Union[PathLike, List[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        columns: Optional[List[str]] = None,
+        **kwargs,
+    ):
+        """Create Dataset from Parquet file(s).
+
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the Parquet file(s).
+            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (:obj:`str`, optional, default ``"~/datasets"``): Directory to cache data.
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            columns (:obj:`List[str]`, optional): If not None, only these columns will be read from the file.
+                A column name may be a prefix of a nested field, e.g. 'a' will select
+                'a.b', 'a.c', and 'a.d.e'.
+            **kwargs: Keyword arguments to be passed to :class:`ParquetConfig`.
+
+        Returns:
+            :class:`Dataset`
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.parquet import ParquetDatasetReader
+
+        return ParquetDatasetReader(
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            columns=columns,
+            **kwargs,
+        ).read()
+
+    @staticmethod
     def from_text(
         path_or_paths: Union[PathLike, List[PathLike]],
         split: Optional[NamedSplit] = None,
@@ -2861,6 +2900,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 ).to_pandas()
                 for offset in range(0, len(self), batch_size)
             )
+
+    def to_parquet(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        **parquet_writer_kwargs,
+    ) -> int:
+        """Exports the dataset to parquet
+
+        Args:
+            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
+            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            parquet_writer_kwargs: Parameters to pass to pandas's :func:`pyarrow.parquet.ParquetWriter`
+
+        Returns:
+            int: The number of characters or bytes written
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.parquet import ParquetDatasetWriter
+
+        return ParquetDatasetWriter(self, path_or_buf, batch_size=batch_size, **parquet_writer_kwargs).write()
 
     @transmit_format
     @fingerprint_transform(inplace=False)

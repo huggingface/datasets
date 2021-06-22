@@ -587,6 +587,62 @@ def test_datasetdict_from_json_splits(split, jsonl_path, tmp_path):
     assert all(dataset[split].split == split for split in path.keys())
 
 
+def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",)):
+    assert isinstance(dataset_dict, DatasetDict)
+    for split in splits:
+        dataset = dataset_dict[split]
+        assert dataset.num_rows == 4
+        assert dataset.num_columns == 3
+        assert dataset.column_names == ["col_1", "col_2", "col_3"]
+        for feature, expected_dtype in expected_features.items():
+            assert dataset.features[feature].dtype == expected_dtype
+
+
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_datasetdict_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = DatasetDict.from_parquet({"train": parquet_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_parquet_datasetdict(dataset, expected_features)
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+def test_datasetdict_from_parquet_features(features, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = DatasetDict.from_parquet({"train": parquet_path}, features=features, cache_dir=cache_dir)
+    _check_parquet_datasetdict(dataset, expected_features)
+
+
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_datasetdict_from_parquet_split(split, parquet_path, tmp_path):
+    if split:
+        path = {split: parquet_path}
+    else:
+        split = "train"
+        path = {"train": parquet_path, "test": parquet_path}
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = DatasetDict.from_parquet(path, cache_dir=cache_dir)
+    _check_parquet_datasetdict(dataset, expected_features, splits=list(path.keys()))
+    assert all(dataset[split].split == split for split in path.keys())
+
+
 def _check_text_datasetdict(dataset_dict, expected_features, splits=("train",)):
     assert isinstance(dataset_dict, DatasetDict)
     for split in splits:

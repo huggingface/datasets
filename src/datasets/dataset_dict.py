@@ -790,6 +790,37 @@ class DatasetDict(dict):
         ).read()
 
     @staticmethod
+    def from_parquet(
+        path_or_paths: Dict[str, PathLike],
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        columns: Optional[List[str]] = None,
+        **kwargs,
+    ) -> "DatasetDict":
+        """Create DatasetDict from Parquet file(s).
+
+        Args:
+            path_or_paths (dict of path-like): Path(s) of the CSV file(s).
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            keep_in_memory (bool, default=False): Whether to copy the data in-memory.
+            columns (:obj:`List[str]`, optional): If not None, only these columns will be read from the file.
+                A column name may be a prefix of a nested field, e.g. 'a' will select
+                'a.b', 'a.c', and 'a.d.e'.
+            **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
+
+        Returns:
+            :class:`DatasetDict`
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.parquet import ParquetDatasetReader
+
+        return ParquetDatasetReader(
+            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+        ).read()
+
+    @staticmethod
     def from_text(
         path_or_paths: Dict[str, PathLike],
         features: Optional[Features] = None,
