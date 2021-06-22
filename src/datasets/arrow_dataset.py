@@ -1931,7 +1931,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
-                pbar = tqdm(pbar_iterable, disable=bool(logging.get_verbosity() == logging.NOTSET), position=rank, unit=pbar_unit, desc=pbar_desc)
+                pbar = tqdm(
+                    pbar_iterable,
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    position=rank,
+                    unit=pbar_unit,
+                    desc=pbar_desc,
+                )
                 if not batched:
                     for i, example in enumerate(pbar):
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)

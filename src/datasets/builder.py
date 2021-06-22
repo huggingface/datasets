@@ -39,11 +39,11 @@ from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
+from .utils import logging
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
-from .utils import logging
 
 
 logger = logging.get_logger(__name__)
@@ -1000,7 +1000,11 @@ class GeneratorBasedBuilder(DatasetBuilder):
         ) as writer:
             try:
                 for key, record in utils.tqdm(
-                    generator, unit=" examples", total=split_info.num_examples, leave=False, disable=bool(logging.get_verbosity() == logging.NOTSET)
+                    generator,
+                    unit=" examples",
+                    total=split_info.num_examples,
+                    leave=False,
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
                 ):
                     example = self.info.features.encode_example(record)
                     writer.write(example, key)
@@ -1053,7 +1057,9 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=bool(logging.get_verbosity() == logging.NOTSET)):
+            for key, table in utils.tqdm(
+                generator, unit=" tables", leave=False, disable=bool(logging.get_verbosity() == logging.NOTSET)
+            ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
 

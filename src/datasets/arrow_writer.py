@@ -27,8 +27,8 @@ from . import config
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
-from .utils.file_utils import hash_url_to_filename
 from .utils import logging
+from .utils.file_utils import hash_url_to_filename
 
 
 logger = logging.get_logger(__name__)
