@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: Turkish Product Reviews
 ---
 
 # Dataset Card for Turkish Product Reviews
