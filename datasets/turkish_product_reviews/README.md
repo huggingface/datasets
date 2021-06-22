@@ -150,7 +150,7 @@ The data is under the [CC-BY-SA-4.0 License](https://github.com/fthbrmnby/turkis
 
 ### Citation Information
 
-[More Information Needed]
+No citation available for this dataset.
 
 ### Contributions
 
