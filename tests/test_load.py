@@ -12,6 +12,7 @@ import requests
 
 import datasets
 from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
+from datasets.builder import DatasetBuilder
 
 from .utils import OfflineSimulationMode, assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, offline
 
@@ -184,6 +185,11 @@ class LoadTest(TestCase):
                     "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
                     str(context.exception),
                 )
+
+
+def test_load_dataset_builder(dataset_loading_script_dir, data_dir):
+    builder = datasets.load_dataset_builder(dataset_loading_script_dir, data_dir=data_dir)
+    assert isinstance(builder, DatasetBuilder)
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
