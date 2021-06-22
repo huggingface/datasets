@@ -942,23 +942,65 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
 class Features(dict):
     @property
     def type(self):
+        """
+        Features field types.
+
+        Returns:
+            :obj:`pyarrow.DataType`
+        """
         return get_nested_type(self)
 
     @classmethod
     def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
+        """
+        Construct Features from Arrow Schema.
+
+        Args:
+            pa_schema (:obj:`pyarrow.Schema`): Arrow Schema.
+
+        Returns:
+            :class:`Features`
+        """
         obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
         return cls(**obj)
 
     @classmethod
     def from_dict(cls, dic) -> "Features":
+        """
+        Construct Features from dict.
+
+        Args:
+            dic (:obj:`dict`): Python dictionary.
+
+        Returns:
+            :class:`Features`
+        """
         obj = generate_from_dict(dic)
         return cls(**obj)
 
     def encode_example(self, example):
+        """
+        Encode example.
+
+        Args:
+            example:
+
+        Returns:
+
+        """
         example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
 
     def encode_batch(self, batch):
+        """
+        Encode batch.
+
+        Args:
+            batch:
+
+        Returns:
+
+        """
         encoded_batch = {}
         if set(batch) != set(self):
             raise ValueError("Column mismatch between batch {} and features {}".format(set(batch), set(self)))
@@ -968,13 +1010,19 @@ class Features(dict):
         return encoded_batch
 
     def copy(self) -> "Features":
+        """
+        Make a deep copy of Features.
+
+        Returns:
+            :class:`Features`
+        """
         return copy.deepcopy(self)
 
     def reorder_fields_as(self, other: "Features") -> "Features":
         """
-        The order of the fields is important since it matters for the underlying arrow data.
-        This method is used to re-order your features to match the fields orders of other features.
+        Reorder Features fields to match the field order of other Features.
 
+        The order of the fields is important since it matters for the underlying arrow data.
         Re-ordering the fields allows to make the underlying arrow data type match.
 
         Example::
@@ -989,6 +1037,11 @@ class Features(dict):
             {'root': Sequence(feature={'b': Value(dtype='string', id=None), 'a': Value(dtype='string', id=None)}, length=-1, id=None)}
             >>> assert f1.reorder_fields_as(f2).type == f2.type
 
+        Args:
+            other (:class:`Features`): The other Features.
+
+        Returns:
+            :class:`Features`
         """
 
         def recursive_reorder(source, target, stack=""):
