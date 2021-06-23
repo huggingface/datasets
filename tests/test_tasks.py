@@ -1,7 +1,7 @@
 from unittest.case import TestCase
 
 from datasets.features import ClassLabel, Features, Sequence, Value
-from datasets.tasks import QuestionAnsweringExtractive, Summarization, TextClassification
+from datasets.tasks import AutomaticSpeechRecognition, QuestionAnsweringExtractive, Summarization, TextClassification
 
 
 class TextClassificationTest(TestCase):
@@ -73,16 +73,19 @@ class SummarizationTest(TestCase):
 class AutomaticSpeechRecognitionTest(TestCase):
     def test_column_mapping(self):
         task = AutomaticSpeechRecognition(
-            audio_file_column="input_audio_file", transcription_column="input_transcription"
+            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
         )
         self.assertDictEqual(
-            {"input_audio_file": "audio_file", "input_transcription": "transcription"}, task.column_mapping
+            {"input_audio_file_path": "audio_file_path", "input_transcription": "transcription"}, task.column_mapping
         )
 
     def test_from_dict(self):
-        input_schema = Features({"audio_file": Value("string")})
+        input_schema = Features({"audio_file_path": Value("string")})
         label_schema = Features({"transcription": Value("string")})
-        template_dict = {"audio_file_column": "input_audio_file", "transcription_column": "input_transcription"}
+        template_dict = {
+            "audio_file_path_column": "input_audio_file_path",
+            "transcription_column": "input_transcription",
+        }
         task = AutomaticSpeechRecognition.from_dict(template_dict)
         self.assertEqual("automatic-speech-recognition", task.task)
         self.assertEqual(input_schema, task.input_schema)

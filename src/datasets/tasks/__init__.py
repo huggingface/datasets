@@ -8,7 +8,13 @@ from .summarization import Summarization
 from .text_classification import TextClassification
 
 
-__all__ = ["TaskTemplate", "QuestionAnsweringExtractive", "TextClassification", "Summarization"]
+__all__ = [
+    "TaskTemplate",
+    "QuestionAnsweringExtractive",
+    "TextClassification",
+    "Summarization",
+    "AutomaticSpeechRecognition",
+]
 
 logger = get_logger(__name__)
 
