@@ -31,6 +31,10 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: bianet
+pretty_name:
+  en_to_ku: Bianet (en_to_ku)
+  en_to_tr: Bianet (en_to_tr)
+  ku_to_tr: Bianet (ku_to_tr)
 ---
 
 # Dataset Card for [Dataset Name]

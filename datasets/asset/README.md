@@ -25,6 +25,9 @@ task_ids:
   simplification:
   - text-simplification
 paperswithcode_id: asset
+pretty_name:
+  ratings: ASSET (ratings)
+  simplification: ASSET (simplification)
 ---
 
 # Dataset Card for ASSET

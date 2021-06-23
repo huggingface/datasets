@@ -20,6 +20,10 @@ task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
 paperswithcode_id: assin
+pretty_name:
+  full: ASSIN (full)
+  ptbr: ASSIN (ptbr)
+  ptpt: ASSIN (ptpt)
 ---
 
 # Dataset Card for ASSIN

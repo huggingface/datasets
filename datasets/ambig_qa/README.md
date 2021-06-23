@@ -19,6 +19,9 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: ambigqa
+pretty_name:
+  full: 'AmbigQA: Answering Ambiguous Open-domain Questions (full)'
+  light: 'AmbigQA: Answering Ambiguous Open-domain Questions (light)'
 ---
 
 # Dataset Card for AmbigQA: Answering Ambiguous Open-domain Questions
@@ -117,7 +120,7 @@ Full
  'nq_answer': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None),
  'nq_doc_title': Value(dtype='string', id=None)}
 ```
-In the original data format `annotations` have different keys depending on the `type` field = `singleAnswer` or `multipleQAs`. But this implementation uses an empty list `[]` for the unavailable keys 
+In the original data format `annotations` have different keys depending on the `type` field = `singleAnswer` or `multipleQAs`. But this implementation uses an empty list `[]` for the unavailable keys
 
 please refer to Dataset Contents(https://github.com/shmsw25/AmbigQA#dataset-contents) for more details.
 

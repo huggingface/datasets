@@ -18,6 +18,8 @@ task_categories:
 task_ids:
 - other-stuctured-to-text
 paperswithcode_id: atomic
+pretty_name: An Atlas of Machine Commonsense for If-Then Reasoning - Atomic Common
+  Sense Dataset
 ---
 
 # Dataset Card for An Atlas of Machine Commonsense for If-Then Reasoning - Atomic Common Sense Dataset

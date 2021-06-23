@@ -37,6 +37,17 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: bigpatent
+pretty_name:
+  a: Big Patent (a)
+  all: Big Patent (all)
+  b: Big Patent (b)
+  c: Big Patent (c)
+  d: Big Patent (d)
+  e: Big Patent (e)
+  f: Big Patent (f)
+  g: Big Patent (g)
+  h: Big Patent (h)
+  y: Big Patent (y)
 ---
 
 # Dataset Card for Big Patent

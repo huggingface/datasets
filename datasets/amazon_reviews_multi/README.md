@@ -69,6 +69,14 @@ task_ids:
 - summarization
 - topic-classification
 paperswithcode_id: null
+pretty_name:
+  all_languages: The Multilingual Amazon Reviews Corpus (all_languages)
+  de: The Multilingual Amazon Reviews Corpus (de)
+  en: The Multilingual Amazon Reviews Corpus (en)
+  es: The Multilingual Amazon Reviews Corpus (es)
+  fr: The Multilingual Amazon Reviews Corpus (fr)
+  ja: The Multilingual Amazon Reviews Corpus (ja)
+  zh: The Multilingual Amazon Reviews Corpus (zh)
 ---
 
 # Dataset Card for The Multilingual Amazon Reviews Corpus

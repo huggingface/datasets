@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: allocine
+pretty_name: "Allociné"
 ---
 
 # Dataset Card for Allociné
@@ -48,7 +49,7 @@ paperswithcode_id: allocine
 
 ## Dataset Description
 
-- **Homepage:** 
+- **Homepage:**
 - **Repository:** [Allociné dataset repository](https://github.com/TheophileBlard/french-sentiment-analysis-with-bert/tree/master/allocine_dataset)
 - **Paper:**
 - **Leaderboard:**
@@ -56,11 +57,11 @@ paperswithcode_id: allocine
 
 ### Dataset Summary
 
-The Allociné dataset is a French-language dataset for sentiment analysis. The texts are movie reviews written between 2006 and 2020 by members of the [Allociné.fr](https://www.allocine.fr/) community for various films. It contains 100k positive and 100k negative reviews divided into train (160k), validation (20k), and test (20k). 
+The Allociné dataset is a French-language dataset for sentiment analysis. The texts are movie reviews written between 2006 and 2020 by members of the [Allociné.fr](https://www.allocine.fr/) community for various films. It contains 100k positive and 100k negative reviews divided into train (160k), validation (20k), and test (20k).
 
 ### Supported Tasks and Leaderboards
 
-- `text-classification`, `sentiment-classification`: The dataset can be used to train a model for sentiment classification. The model performance is evaluated based on the accuracy of the predicted labels as compared to the given labels in the dataset. A BERT-based model, [tf-allociné](https://huggingface.co/tblard/tf-allocine), achieves 97.44% accuracy on the test set. 
+- `text-classification`, `sentiment-classification`: The dataset can be used to train a model for sentiment classification. The model performance is evaluated based on the accuracy of the predicted labels as compared to the given labels in the dataset. A BERT-based model, [tf-allociné](https://huggingface.co/tblard/tf-allocine), achieves 97.44% accuracy on the test set.
 
 ### Languages
 
@@ -86,7 +87,7 @@ An example from the Allociné train set looks like the following:
 
 ### Data Splits
 
-The Allociné dataset has 3 splits: _train_, _validation_, and _test_. The splits contain disjoint sets of movies. The following table contains the number of reviews in each split and the percentage of positive and negative reviews. 
+The Allociné dataset has 3 splits: _train_, _validation_, and _test_. The splits contain disjoint sets of movies. The following table contains the number of reviews in each split and the percentage of positive and negative reviews.
 
 | Dataset Split | Number of Instances in Split | Percent Negative Reviews | Percent Positive Reviews |
 | ------------- | ---------------------------- | ------------------------ | ------------------------ |
@@ -98,23 +99,23 @@ The Allociné dataset has 3 splits: _train_, _validation_, and _test_. The split
 
 ### Curation Rationale
 
-The Allociné dataset was developed to support large-scale sentiment analysis in French. It was released alongside the [tf-allociné](https://huggingface.co/tblard/tf-allocine) model and used to compare the performance of several language models on this task. 
+The Allociné dataset was developed to support large-scale sentiment analysis in French. It was released alongside the [tf-allociné](https://huggingface.co/tblard/tf-allocine) model and used to compare the performance of several language models on this task.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-The reviews and ratings were collected using a list of [film page urls](https://github.com/TheophileBlard/french-sentiment-analysis-with-bert/blob/master/allocine_dataset/allocine_films_urls.txt) and the [allocine_scraper.py](https://github.com/TheophileBlard/french-sentiment-analysis-with-bert/blob/master/allocine_dataset/allocine_scraper.py) tool. Up to 30 reviews were collected for each film. 
+The reviews and ratings were collected using a list of [film page urls](https://github.com/TheophileBlard/french-sentiment-analysis-with-bert/blob/master/allocine_dataset/allocine_films_urls.txt) and the [allocine_scraper.py](https://github.com/TheophileBlard/french-sentiment-analysis-with-bert/blob/master/allocine_dataset/allocine_scraper.py) tool. Up to 30 reviews were collected for each film.
 
-The reviews were originally labeled with a rating from 0.5 to 5.0 with a step of 0.5 between each rating. Ratings less than or equal to 2 are labeled as negative and ratings greater than or equal to 4 are labeled as positive. Only reviews with less than 2000 characters are included in the dataset. 
+The reviews were originally labeled with a rating from 0.5 to 5.0 with a step of 0.5 between each rating. Ratings less than or equal to 2 are labeled as negative and ratings greater than or equal to 4 are labeled as positive. Only reviews with less than 2000 characters are included in the dataset.
 
 #### Who are the source language producers?
 
-The dataset contains movie reviews produced by the online community of the [Allociné.fr](https://www.allocine.fr/) website. 
+The dataset contains movie reviews produced by the online community of the [Allociné.fr](https://www.allocine.fr/) website.
 
 ### Annotations
 
-The dataset does not contain any additional annotations. 
+The dataset does not contain any additional annotations.
 
 #### Annotation process
 
@@ -132,23 +133,23 @@ Reviewer usernames or personal information were not collected with the reviews, 
 
 ### Social Impact of Dataset
 
-Sentiment classification is a complex task which requires sophisticated language understanding skills. Successful models can support decision-making based on the outcome of the sentiment analysis, though such models currently require a high degree of domain specificity. 
+Sentiment classification is a complex task which requires sophisticated language understanding skills. Successful models can support decision-making based on the outcome of the sentiment analysis, though such models currently require a high degree of domain specificity.
 
-It should be noted that the community represented in the dataset may not represent any downstream application's potential users, and the observed behavior of a model trained on this dataset may vary based on the domain and use case. 
+It should be noted that the community represented in the dataset may not represent any downstream application's potential users, and the observed behavior of a model trained on this dataset may vary based on the domain and use case.
 
 ### Discussion of Biases
 
-The Allociné website lists a number of topics which violate their [terms of service](https://www.allocine.fr/service/conditions.html#charte). Further analysis is needed to determine the extent to which moderators have successfully removed such content. 
+The Allociné website lists a number of topics which violate their [terms of service](https://www.allocine.fr/service/conditions.html#charte). Further analysis is needed to determine the extent to which moderators have successfully removed such content.
 
 ### Other Known Limitations
 
-The limitations of the Allociné dataset have not yet been investigated, however [Staliūnaitė and Bonfil (2017)](https://www.aclweb.org/anthology/W17-5410.pdf) detail linguistic phenomena that are generally present in sentiment analysis but difficult for models to accurately label, such as negation, adverbial modifiers, and reviewer pragmatics. 
+The limitations of the Allociné dataset have not yet been investigated, however [Staliūnaitė and Bonfil (2017)](https://www.aclweb.org/anthology/W17-5410.pdf) detail linguistic phenomena that are generally present in sentiment analysis but difficult for models to accurately label, such as negation, adverbial modifiers, and reviewer pragmatics.
 
 ## Additional Information
 
 ### Dataset Curators
 
-The Allociné dataset was collected by Théophile Blard. 
+The Allociné dataset was collected by Théophile Blard.
 
 ### Licensing Information
 

@@ -37,6 +37,17 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: null
+pretty_name:
+  Alittihad: Arabic Billion Words Corpus (Alittihad)
+  Almasryalyoum: Arabic Billion Words Corpus (Almasryalyoum)
+  Almustaqbal: Arabic Billion Words Corpus (Almustaqbal)
+  Alqabas: Arabic Billion Words Corpus (Alqabas)
+  Echoroukonline: Arabic Billion Words Corpus (Echoroukonline)
+  Ryiadh: Arabic Billion Words Corpus (Ryiadh)
+  Sabanews: Arabic Billion Words Corpus (Sabanews)
+  SaudiYoum: Arabic Billion Words Corpus (SaudiYoum)
+  Techreen: Arabic Billion Words Corpus (Techreen)
+  Youm7: Arabic Billion Words Corpus (Youm7)
 ---
 
 # Dataset Card for Arabic Billion Words Corpus

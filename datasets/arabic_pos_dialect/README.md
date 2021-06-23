@@ -18,6 +18,11 @@ task_categories:
 task_ids:
 - part-of-speech-tagging
 paperswithcode_id: null
+pretty_name:
+  egy: Arabic POS Dialect (egy)
+  glf: Arabic POS Dialect (glf)
+  lev: Arabic POS Dialect (lev)
+  mgr: Arabic POS Dialect (mgr)
 ---
 
 # Dataset Card for Arabic POS Dialect

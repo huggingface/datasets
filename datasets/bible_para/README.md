@@ -119,6 +119,13 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name:
+  de-en: BiblePara (de-en)
+  en-es: BiblePara (en-es)
+  en-fi: BiblePara (en-fi)
+  en-fr: BiblePara (en-fr)
+  en-hi: BiblePara (en-hi)
+  en-no: BiblePara (en-no)
 ---
 
 # Dataset Card Creation Guide

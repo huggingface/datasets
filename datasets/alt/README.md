@@ -46,6 +46,14 @@ task_ids:
 - machine-translation
 - parsing
 paperswithcode_id: alt
+pretty_name:
+  alt-en: Asian Language Treebank (alt-en)
+  alt-jp: Asian Language Treebank (alt-jp)
+  alt-km: Asian Language Treebank (alt-km)
+  alt-my: Asian Language Treebank (alt-my)
+  alt-my-transliteration: Asian Language Treebank (alt-my-transliteration)
+  alt-my-west-transliteration: Asian Language Treebank (alt-my-west-transliteration)
+  alt-parallel: Asian Language Treebank (alt-parallel)
 ---
 
 # Dataset Card for Asian Language Treebank (ALT)

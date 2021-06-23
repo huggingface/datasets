@@ -25,6 +25,9 @@ task_ids:
 - extractive-qa
 - other-other-query-based-multi-document-summarization
 paperswithcode_id: aquamuse
+pretty_name:
+  abstractive: AQuaMuSe (abstractive)
+  extractive: AQuaMuSe (extractive)
 ---
 
 # Dataset Card for AQuaMuSe

@@ -44,6 +44,13 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name:
+  autshumato-en-tn: autshumato (autshumato-en-tn)
+  autshumato-en-ts: autshumato (autshumato-en-ts)
+  autshumato-en-ts-manual: autshumato (autshumato-en-ts-manual)
+  autshumato-en-zu: autshumato (autshumato-en-zu)
+  autshumato-tn: autshumato (autshumato-tn)
+  autshumato-ts: autshumato (autshumato-ts)
 ---
 
 # Dataset Card Creation Guide
