@@ -375,6 +375,8 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
         ua += "; torch/{}".format(config.TORCH_VERSION)
     if config.TF_AVAILABLE:
         ua += "; tensorflow/{}".format(config.TF_VERSION)
+    if config.JAX_AVAILABLE:
+        ua += "; jax/{}".format(config.JAX_VERSION)
     if config.BEAM_AVAILABLE:
         ua += "; apache_beam/{}".format(config.BEAM_VERSION)
     if isinstance(user_agent, dict):

@@ -227,6 +227,21 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
         mock_head.assert_called()
 
 
+def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir, tmp_path, caplog):
+    cache_dir1 = tmp_path / "cache1"
+    cache_dir2 = tmp_path / "cache2"
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="train", cache_dir=cache_dir1)
+    fingerprint1 = dataset._fingerprint
+    del dataset
+    os.rename(cache_dir1, cache_dir2)
+    caplog.clear()
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="train", cache_dir=cache_dir2)
+    assert "Reusing dataset" in caplog.text
+    assert dataset._fingerprint == fingerprint1, "for the caching mechanism to work, fingerprint should stay the same"
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="test", cache_dir=cache_dir2)
+    assert dataset._fingerprint != fingerprint1
+
+
 @pytest.mark.parametrize("max_in_memory_dataset_size", ["default", 0, 50, 500])
 def test_load_dataset_local_with_default_in_memory(
     max_in_memory_dataset_size, dataset_loading_script_dir, data_dir, monkeypatch

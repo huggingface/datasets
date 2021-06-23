@@ -62,7 +62,14 @@ except NameError:
 
 # Data
 # ------------------------------------------------
-__all__ = ["Timeout", "BaseFileLock", "WindowsFileLock", "UnixFileLock", "SoftFileLock", "FileLock"]
+__all__ = [
+    "Timeout",
+    "BaseFileLock",
+    "WindowsFileLock",
+    "UnixFileLock",
+    "SoftFileLock",
+    "FileLock",
+]
 
 __version__ = "3.0.12"
 
@@ -125,8 +132,10 @@ class BaseFileLock:
     Implements the base class of a file lock.
     """
 
-    def __init__(self, lock_file, timeout=-1):
+    def __init__(self, lock_file, timeout=-1, max_filename_length=255):
         """ """
+        # Hash the filename if it's too long
+        lock_file = self.hash_filename_if_too_long(lock_file, max_filename_length)
         # The path to the lock file.
         self._lock_file = lock_file
 
@@ -321,6 +330,16 @@ class BaseFileLock:
     def __del__(self):
         self.release(force=True)
         return None
+
+    def hash_filename_if_too_long(self, path: str, max_length: int) -> str:
+        filename = os.path.basename(path)
+        if len(filename) > max_length and max_length > 0:
+            dirname = os.path.dirname(path)
+            hashed_filename = str(hash(filename))
+            new_filename = filename[: max_length - len(hashed_filename) - 8] + "..." + hashed_filename + ".lock"
+            return os.path.join(dirname, new_filename)
+        else:
+            return path
 
 
 # Windows locking mechanism

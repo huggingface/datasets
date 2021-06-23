@@ -42,8 +42,8 @@ To create the package for pypi.
 7. Fill release notes in the tag in github once everything is looking hunky-dory.
 
 8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed
-   Update the version mapping in docs/source/_static/js/custom.js,
-   and set version to X.X.X.dev0 in setup.py and __init__.py
+   Update the version mapping in docs/source/_static/js/custom.js with utils/release.py,
+   and set version to X.X.X+1.dev0 (e.g. 1.8.0 -> 1.8.1.dev0) in setup.py and __init__.py
 
 """
 
@@ -206,7 +206,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.8.0.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.8.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",

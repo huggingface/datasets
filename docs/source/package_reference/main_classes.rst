@@ -59,6 +59,7 @@ It also has dataset transform methods like map or filter, to process all the spl
         from_csv, from_json, from_text,
         prepare_for_task, align_labels_with_mapping
 
+.. _package_reference_features:
 
 ``Features``
 ~~~~~~~~~~~~~~~~~~~~~

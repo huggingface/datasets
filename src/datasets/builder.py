@@ -381,7 +381,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True, with_hash=True):
+    def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
@@ -845,7 +845,16 @@ class DatasetBuilder:
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
         )
-        return Dataset(**dataset_kwargs)
+        fingerprint = self._get_dataset_fingerprint(split)
+        return Dataset(fingerprint=fingerprint, **dataset_kwargs)
+
+    def _get_dataset_fingerprint(self, split: Union[ReadInstruction, Split]) -> str:
+        """The dataset fingerprint is the hash of the relative directory dataset_name/config_name/version/hash, as well as the split specs."""
+        hasher = Hasher()
+        hasher.update(self._relative_data_dir().replace(os.sep, "/"))
+        hasher.update(str(split))  # for example: train, train+test, train[:10%], test[:33%](pct1_dropremainder)
+        fingerprint = hasher.hexdigest()
+        return fingerprint
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
