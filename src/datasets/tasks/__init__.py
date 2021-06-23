@@ -3,10 +3,11 @@ from typing import Optional
 from ..utils.logging import get_logger
 from .base import TaskTemplate
 from .question_answering import QuestionAnsweringExtractive
+from .summarization import Summarization
 from .text_classification import TextClassification
 
 
-__all__ = ["TaskTemplate", "QuestionAnsweringExtractive", "TextClassification"]
+__all__ = ["TaskTemplate", "QuestionAnsweringExtractive", "TextClassification", "Summarization"]
 
 logger = get_logger(__name__)
 
@@ -14,6 +15,7 @@ logger = get_logger(__name__)
 NAME2TEMPLATE = {
     QuestionAnsweringExtractive.task: QuestionAnsweringExtractive,
     TextClassification.task: TextClassification,
+    Summarization.task: Summarization,
 }
 
 
