@@ -11,10 +11,12 @@ def interleave_datasets(
     datasets: List["IterableDataset"], probabilities: Optional[List[float]] = None, seed: Optional[int] = None
 ) -> "IterableDataset":
     """
-    Itervleave several iterable datasets (sources) into one iterable dataset.
-    The new iterable dataset alternates between the sources to yield the examples.
-    By default it cycles through the sources in order, but you can also make the new
-    iterable dataset sample examples from one random source at a time.
+    Interleave several iterable datasets (sources) into a single iterable dataset.
+    The new iterable dataset alternates between the sources to yield examples.
+    If `probabilities = None` (default) the iterable dataset will cycles through the sources
+    in order for each next example in the iteration.
+    If `probabilities` is not `None, the iterable dataset will sample a random source according
+    to the provided probabilities for each next examples in the iteration.
 
     Args:
         datasets (:obj:`List[IterableDataset]`): list of datasets to merge
