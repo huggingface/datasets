@@ -2551,6 +2551,43 @@ class TaskTemplatesTest(TestCase):
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
 
+    def test_task_automatic_speech_recognition(self):
+        # Include a dummy extra column `dummy` to test we drop it correctly
+        features_before_cast = Features(
+            {
+                "input_audio_file_path": Value("string"),
+                "input_transcription": Value("string"),
+                "dummy": Value("string"),
+            }
+        )
+        features_after_cast = Features({"audio_file_path": Value("string"), "transcription": Value("string")})
+        task = AutomaticSpeechRecognition(
+            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
+        )
+        info = DatasetInfo(features=features_before_cast, task_templates=task)
+        data = {
+            "input_audio_file_path": ["path/to/some/audio/file.wav"],
+            "input_transcription": ["hello, my name is bob!"],
+            "dummy": ["123456"],
+        }
+        # Test we can load from task name
+        with Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task="automatic-speech-recognition") as dset:
+                self.assertSetEqual(
+                    set(["audio_file_path", "transcription"]),
+                    set(dset.column_names),
+                )
+                self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from Summarization template
+        info.task_templates = None
+        with Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task=task) as dset:
+                self.assertSetEqual(
+                    set(["audio_file_path", "transcription"]),
+                    set(dset.column_names),
+                )
+                self.assertDictEqual(features_after_cast, dset.features)
+
     def test_task_with_no_template(self):
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
         with Dataset.from_dict(data) as dset:
@@ -2773,40 +2810,3 @@ class TaskTemplatesTest(TestCase):
         ) as dset2, Dataset.from_dict(data, info=info3) as dset3:
             with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
                 self.assertEqual(dset_concat.info.task_templates, None)
-
-    def test_task_automatic_speech_recognition(self):
-        # Include a dummy extra column `dummy` to test we drop it correctly
-        features_before_cast = Features(
-            {
-                "input_audio_file_path": Value("string"),
-                "input_transcription": Value("string"),
-                "dummy": Value("string"),
-            }
-        )
-        features_after_cast = Features({"audio_file_path": Value("string"), "transcription": Value("string")})
-        task = AutomaticSpeechRecognition(
-            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
-        )
-        info = DatasetInfo(features=features_before_cast, task_templates=task)
-        data = {
-            "input_audio_file_path": ["path/to/some/audio/file.wav"],
-            "input_transcription": ["hello, my name is bob!"],
-            "dummy": ["123456"],
-        }
-        # Test we can load from task name
-        with Dataset.from_dict(data, info=info) as dset:
-            with dset.prepare_for_task(task="automatic-speech-recognition") as dset:
-                self.assertSetEqual(
-                    set(["audio_file_path", "transcription"]),
-                    set(dset.column_names),
-                )
-                self.assertDictEqual(features_after_cast, dset.features)
-        # Test we can load from Summarization template
-        info.task_templates = None
-        with Dataset.from_dict(data, info=info) as dset:
-            with dset.prepare_for_task(task=task) as dset:
-                self.assertSetEqual(
-                    set(["audio_file_path", "transcription"]),
-                    set(dset.column_names),
-                )
-                self.assertDictEqual(features_after_cast, dset.features)
