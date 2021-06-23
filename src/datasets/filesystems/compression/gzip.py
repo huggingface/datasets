@@ -27,16 +27,10 @@ class GZipFileSystem(AbstractArchiveFileSystem):
         The single file inside the filesystem is named after the Gzip file, without ".gz" at the end.
 
         Args:
-            fo: str
-                Contains GZIP, and must exist. Will fetch file using `fsspec.open()`
-            mode: str
-                Currently, only 'r' accepted
-            target_protocol: str (optional)
-                If ``fo`` is a string, this value can be used to override the
-                FS protocol inferred from a URL
-            target_options: dict (optional)
-                Kwargs passed when instantiating the target FS, if ``fo`` is
-                a string.
+            fo (:obj:``str``): Path to file containing GZIP. Will fetch file using ``fsspec.open()``
+            mode (:obj:``str``): Currently, only 'rb' accepted
+            target_protocol(:obj:``str``, optional): To override the FS protocol inferred from a URL.
+            target_options (:obj:``dict``, optional): Kwargs passed when instantiating the target FS.
         """
         super().__init__(self, **kwargs)
         if mode != "rb":
