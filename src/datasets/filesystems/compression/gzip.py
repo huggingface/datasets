@@ -22,18 +22,21 @@ class GZipFileSystem(AbstractArchiveFileSystem):
         **kwargs,
     ):
         """
-        Parameters
-        ----------
-        fo: str
-            Contains GZIP, and must exist. Will fetch file using `fsspec.open()`
-        mode: str
-            Currently, only 'r' accepted
-        target_protocol: str (optional)
-            If ``fo`` is a string, this value can be used to override the
-            FS protocol inferred from a URL
-        target_options: dict (optional)
-            Kwargs passed when instantiating the target FS, if ``fo`` is
-            a string.
+        The GZipFileSystem can be instantiated from any gzip file.
+        It read the contents of GZip archive as a file-system with one file inside.
+        The single file inside the filesystem is named after the Gzip file, without ".gz" at the end.
+
+        Args:
+            fo: str
+                Contains GZIP, and must exist. Will fetch file using `fsspec.open()`
+            mode: str
+                Currently, only 'r' accepted
+            target_protocol: str (optional)
+                If ``fo`` is a string, this value can be used to override the
+                FS protocol inferred from a URL
+            target_options: dict (optional)
+                Kwargs passed when instantiating the target FS, if ``fo`` is
+                a string.
         """
         super().__init__(self, **kwargs)
         if mode != "rb":
