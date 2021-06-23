@@ -2773,3 +2773,23 @@ class TaskTemplatesTest(TestCase):
         ) as dset2, Dataset.from_dict(data, info=info3) as dset3:
             with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
                 self.assertEqual(dset_concat.info.task_templates, None)
+
+    def test_task_text_classification_when_columns_removed(self):
+        labels = sorted(["pos", "neg"])
+        features_before_map = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(names=labels),
+            }
+        )
+        features_after_map = Features({"new_column": Value("int64")})
+        # Label names are added in `DatasetInfo.__post_init__` so not needed here
+        task = TextClassification(text_column="input_text", label_column="input_labels")
+        info = DatasetInfo(
+            features=features_before_map,
+            task_templates=task,
+        )
+        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        with Dataset.from_dict(data, info=info) as dset:
+            with dset.map(lambda x: {"new_column": 0}, remove_columns=dset.column_names) as dset:
+                self.assertDictEqual(dset.features, features_after_map)
