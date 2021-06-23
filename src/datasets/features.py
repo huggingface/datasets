@@ -884,15 +884,15 @@ def encode_nested_example(schema, obj):
 
 
 def generate_from_dict(obj: Any):
-    """Regenerate the nested feature object from a serialized dict.
+    """Regenerate the nested feature object from a deserialized dict.
     We use the '_type' fields to get the dataclass name to load.
 
     generate_from_dict is the recursive helper for Features.from_dict, and allows for a convenient constructor syntax
-        to define features from json dictionaries. This function is used in particular when deserializing
-        a DatasetInfo that was dumped to a json dictionary. This acts as an analogue to
-        Features.from_arrow_schema and handles the recursive field-by-field instantiation, but doesn't require any
-        mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive dtypes
-        that Value() automatically performs.
+    to define features from deserialized JSON dictionaries. This function is used in particular when deserializing
+    a :class:`DatasetInfo` that was dumped to a JSON object. This acts as an analogue to
+    :meth:`Features.from_arrow_schema` and handles the recursive field-by-field instantiation, but doesn't require any
+    mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive dtypes
+    that :class:`Value` automatically performs.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(obj, list):
@@ -969,37 +969,51 @@ class Features(dict):
         """
         Construct Features from dict.
 
+        Regenerate the nested feature object from a deserialized dict.
+        We use the '_type' key to infer the dataclass name of the feature FieldType.
+
+        It allows for a convenient constructor syntax
+        to define features from deserialized JSON dictionaries. This function is used in particular when deserializing
+        a :class:`DatasetInfo` that was dumped to a JSON object. This acts as an analogue to
+        :meth:`Features.from_arrow_schema` and handles the recursive field-by-field instantiation, but doesn't require
+        any mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive
+        dtypes that :class:`Value` automatically performs.
+
         Args:
-            dic (:obj:`dict`): Python dictionary.
+            dic (:obj:`dict[str, Any]`): Python dictionary.
 
         Returns:
             :class:`Features`
+
+        Examples:
+            >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
+            {'_type': Value(dtype='string', id=None)}
         """
         obj = generate_from_dict(dic)
         return cls(**obj)
 
     def encode_example(self, example):
         """
-        Encode example.
+        Encode example into a format for Arrow.
 
         Args:
-            example:
+            example (:obj:`dict[str, Any]`): Data in a Dataset row.
 
         Returns:
-
+            :obj:`dict[str, Any]`
         """
         example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
 
     def encode_batch(self, batch):
         """
-        Encode batch.
+        Encode batch into a format for Arrow.
 
         Args:
-            batch:
+            batch (:obj:`dict[str, list[Any]]`): Data in a Dataset batch.
 
         Returns:
-
+            :obj:`dict[str, list[Any]]`
         """
         encoded_batch = {}
         if set(batch) != set(self):
@@ -1025,7 +1039,13 @@ class Features(dict):
         The order of the fields is important since it matters for the underlying arrow data.
         Re-ordering the fields allows to make the underlying arrow data type match.
 
-        Example::
+        Args:
+            other (:class:`Features`): The other Features to align with.
+
+        Returns:
+            :class:`Features`
+
+        Examples:
 
             >>> from datasets import Features, Sequence, Value
             >>> # let's say we have to features with a different order of nested fields (for a and b for example)
@@ -1036,12 +1056,6 @@ class Features(dict):
             >>> f1.reorder_fields_as(f2)
             {'root': Sequence(feature={'b': Value(dtype='string', id=None), 'a': Value(dtype='string', id=None)}, length=-1, id=None)}
             >>> assert f1.reorder_fields_as(f2).type == f2.type
-
-        Args:
-            other (:class:`Features`): The other Features.
-
-        Returns:
-            :class:`Features`
         """
 
         def recursive_reorder(source, target, stack=""):
