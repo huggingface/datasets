@@ -20,10 +20,10 @@ task_ids:
 - open-domain-qa
 paperswithcode_id: adversarialqa
 pretty_name:
-  adversarialQA: adversarialQA (adversarialQA)
-  dbert: adversarialQA (dbert)
-  dbidaf: adversarialQA (dbidaf)
-  droberta: adversarialQA (droberta)
+  adversarialQA: AdversarialQA (combined)
+  dbert: AdversarialQA (dbert)
+  dbidaf: AdversarialQA (dbidaf)
+  droberta: AdversarialQA (droberta)
 ---
 
 # Dataset Card for adversarialQA

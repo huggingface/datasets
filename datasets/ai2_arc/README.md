@@ -20,8 +20,8 @@ task_ids:
 - multiple-choice-qa
 paperswithcode_id: null
 pretty_name:
-  ARC-Challenge: '"ai2_arc" (ARC-Challenge)'
-  ARC-Easy: '"ai2_arc" (ARC-Easy)'
+  ARC-Challenge: AI2 Reasoning Challenge (ARC) 2018 (ARC-Challenge)
+  ARC-Easy: AI2 Reasoning Challenge (ARC) 2018 (ARC-Easy)
 ---
 
 # Dataset Card for "ai2_arc"

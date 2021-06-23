@@ -18,7 +18,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
-pretty_name: Afrikaans Ner Corpus
+pretty_name: Afrikaans NER Corpus
 ---
 
 # Dataset Card for Afrikaans Ner Corpus

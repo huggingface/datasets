@@ -18,7 +18,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: ag-news
-pretty_name: '"ag_news"'
+pretty_name: AG news
 ---
 
 # Dataset Card for "ag_news"

@@ -2,7 +2,7 @@
 languages:
 - en
 paperswithcode_id: aeslc
-pretty_name: '"aeslc"'
+pretty_name: Annotated Enron Subject Line Corpus (AESLC)
 ---
 
 # Dataset Card for "aeslc"
