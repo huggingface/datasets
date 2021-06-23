@@ -1998,9 +1998,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # Create new Dataset from buffer or file
             info = self.info.copy()
             # Remove task templates if the required features have been removed
-            for idx, task in enumerate(info.task_templates):
-                if not all(k in writer._features.keys() for k in task.features.keys()):
-                    _ = info.task_templates.pop(idx)
+            if info.task_templates:
+                for idx, task in enumerate(info.task_templates):
+                    if not all(k in writer._features.keys() for k in task.features.keys()):
+                        _ = info.task_templates.pop(idx)
             info.features = writer._features
             print(info.features)
             if buf_writer is None:
