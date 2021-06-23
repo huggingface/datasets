@@ -61,6 +61,28 @@ It also has dataset transform methods like map or filter, to process all the spl
 
 .. _package_reference_features:
 
+``IterableDataset``
+~~~~~~~~~~~~~~~~~~~~~
+
+The base class :class:`datasets.IterableDataset` implements an iterable Dataset backed by python generators.
+
+.. autoclass:: datasets.IterableDataset
+    :members:
+        __iter__,
+        map, shuffle,
+        info, split, builder_name, citation, config_name, dataset_size,
+        description, download_checksums, download_size, features, homepage,
+        license, size_in_bytes, supervised_keys, version,
+
+
+``IterableDatasetDict``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Dictionary with split names as keys ('train', 'test' for example), and :obj:`datasets.IterableDataset` objects as values.
+
+.. autoclass:: datasets.IterableDatasetDict
+
+
 ``Features``
 ~~~~~~~~~~~~~~~~~~~~~
 

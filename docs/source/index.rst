@@ -45,6 +45,7 @@ The documentation is organized in five parts:
     torch_tensorflow
     filesystems
     faiss_and_ea
+    dataset_streaming
 
 .. toctree::
     :maxdepth: 2
