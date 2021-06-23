@@ -276,7 +276,7 @@ class DownloadManager:
         return (
             extracted_paths.data
             if not isinstance(extracted_paths.data, dict)
-            else defaultdict(str, extracted_paths.data)
+            else defaultdict(lambda: "<NOT_DOWNLOADED>", extracted_paths.data)
         )
 
     def download_and_extract(self, url_or_urls):
