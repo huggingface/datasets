@@ -6,7 +6,7 @@ from typing import Generator
 
 import datasets.config
 from datasets.builder import DatasetBuilder
-from datasets.commands import BaseTransformersCLICommand
+from datasets.commands import BaseDatasetsCLICommand
 from datasets.load import import_main_class, prepare_module
 from datasets.utils.download_manager import GenerateMode
 from datasets.utils.filelock import logger as fl_logger
@@ -32,10 +32,10 @@ def test_command_factory(args):
     )
 
 
-class TestCommand(BaseTransformersCLICommand):
+class TestCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        test_parser = parser.add_parser("test")
+        test_parser = parser.add_parser("test", help="Test dataset implementation.")
         test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         test_parser.add_argument(
             "--cache_dir",
@@ -170,12 +170,12 @@ class TestCommand(BaseTransformersCLICommand):
                     copyfile(dataset_infos_path, user_dataset_infos_path)
                     print("Dataset Infos file saved at {}".format(user_dataset_infos_path))
 
-            # If clear_cache=True, the download forlder and the dataset builder cache directory are deleted
+            # If clear_cache=True, the download folder and the dataset builder cache directory are deleted
             if self._clear_cache:
                 if os.path.isdir(builder._cache_dir):
                     logger.warning(f"Clearing cache at {builder._cache_dir}")
                     rmtree(builder._cache_dir)
-                download_dir = os.path.join(self._cache_dir, "downloads")
+                download_dir = os.path.join(self._cache_dir, datasets.config.DOWNLOADED_DATASETS_DIR)
                 if os.path.isdir(download_dir):
                     logger.warning(f"Clearing cache at {download_dir}")
                     rmtree(download_dir)

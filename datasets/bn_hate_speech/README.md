@@ -18,6 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-hate-speech-topic-classification
+paperswithcode_id: bengali-hate-speech
 ---
 
 # Dataset Card for Bengali Hate Speech Dataset
@@ -25,7 +26,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)

@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.compute as pc
 
 from . import config
 from .utils.logging import get_logger
@@ -95,7 +96,7 @@ class IndexedTableMixin:
     def __init__(self, table: pa.Table):
         self._schema = table.schema
         self._batches = table.to_batches()
-        self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches])
+        self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
 
     def fast_gather(self, indices: Union[List[int], np.ndarray]) -> pa.Table:
         """
@@ -870,3 +871,34 @@ def list_table_cache_files(table: Table) -> List[str]:
         return [table.path]
     else:
         return []
+
+
+def cast_with_sliced_list_support(pa_table: pa.Table, schema: pa.Schema) -> pa.Table:
+    """Same as pyarrow.Table.cast, except it works for sliced list arrays"""
+
+    def wrap_for_chunked_arrays(func):
+        """Apply the function on each chunk of a pyarrow.ChunkedArray, or on the array directly"""
+
+        def wrapper(array):
+            if isinstance(array, pa.ChunkedArray):
+                return pa.chunked_array([func(chunk) for chunk in array.chunks])
+            else:
+                return func(array)
+
+        return wrapper
+
+    @wrap_for_chunked_arrays
+    def reset_sliced_list_offset(array: pa.ListArray):
+        """Return the same pyarrow.ListArray but with array.offset == 0 for compatibility with cast"""
+        if array.offset == 0:
+            return array
+        elif len(array) == 0:
+            return array.values.slice(0, 0)
+        else:
+            values_offset = array.offsets[0]  # the relevant values start at this index
+            new_values = array.values.slice(values_offset.as_py())  # get the values to start at the right position
+            new_offsets = pc.subtract(array.offsets, values_offset)  # update the offsets accordingly
+            return pa.ListArray.from_arrays(new_offsets, new_values)
+
+    arrays = [reset_sliced_list_offset(array) if isinstance(array.type, pa.ListType) else array for array in pa_table]
+    return pa.Table.from_arrays(arrays, schema=schema)

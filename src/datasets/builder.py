@@ -251,6 +251,9 @@ class DatasetBuilder:
 
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or config.HF_DATASETS_CACHE)
+        self._cache_downloaded_dir = (
+            os.path.join(cache_dir, config.DOWNLOADED_DATASETS_DIR) if cache_dir else config.DOWNLOADED_DATASETS_PATH
+        )
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
@@ -378,7 +381,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True, with_hash=True):
+    def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
@@ -482,7 +485,7 @@ class DatasetBuilder:
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
-                    cache_dir=os.path.join(self._cache_dir_root, "downloads"),
+                    cache_dir=self._cache_downloaded_dir,
                     force_download=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
                     use_etag=False,
                     use_auth_token=use_auth_token,
@@ -796,6 +799,11 @@ class DatasetBuilder:
             }
             post_processed = self._post_process(ds, resources_paths)
             if post_processed is not None:
+                del ds
+                # collect the gc to make sure the windows file lock on arrow files is gone
+                import gc
+
+                gc.collect()
                 ds = post_processed
                 recorded_checksums = {}
                 for resource_name, resource_path in resources_paths.items():
@@ -858,7 +866,16 @@ class DatasetBuilder:
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
         )
-        return Dataset(**dataset_kwargs)
+        fingerprint = self._get_dataset_fingerprint(split)
+        return Dataset(fingerprint=fingerprint, **dataset_kwargs)
+
+    def _get_dataset_fingerprint(self, split: Union[ReadInstruction, Split]) -> str:
+        """The dataset fingerprint is the hash of the relative directory dataset_name/config_name/version/hash, as well as the split specs."""
+        hasher = Hasher()
+        hasher.update(self._relative_data_dir().replace(os.sep, "/"))
+        hasher.update(str(split))  # for example: train, train+test, train[:10%], test[:33%](pct1_dropremainder)
+        fingerprint = hasher.hexdigest()
+        return fingerprint
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
@@ -995,13 +1012,20 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size) as writer:
+
+        with ArrowWriter(
+            features=self.info.features,
+            path=fpath,
+            writer_batch_size=self._writer_batch_size,
+            hash_salt=split_info.name,
+            check_duplicates=True,
+        ) as writer:
             try:
                 for key, record in utils.tqdm(
                     generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
                 ):
                     example = self.info.features.encode_example(record)
-                    writer.write(example)
+                    writer.write(example, key)
             finally:
                 num_examples, num_bytes = writer.finalize()
 

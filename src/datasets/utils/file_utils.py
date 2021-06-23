@@ -27,7 +27,6 @@ from zipfile import ZipFile, is_zipfile
 
 import numpy as np
 import posixpath
-import pyarrow as pa
 import requests
 from tqdm.auto import tqdm
 
@@ -281,7 +280,7 @@ def cached_path(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
-    cache_dir = download_config.cache_dir or os.path.join(config.HF_DATASETS_CACHE, "downloads")
+    cache_dir = download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
@@ -323,9 +322,15 @@ def cached_path(
             return output_path
 
         # Path where we extract compressed archives
-        # We extract in the cache dir, and get the extracted path name by hashing the original path"
+        # We extract in the cache dir, and get the extracted path name by hashing the original path
         abs_output_path = os.path.abspath(output_path)
-        output_path_extracted = os.path.join(cache_dir, "extracted", hash_url_to_filename(abs_output_path))
+        output_path_extracted = (
+            os.path.join(
+                download_config.cache_dir, config.EXTRACTED_DATASETS_DIR, hash_url_to_filename(abs_output_path)
+            )
+            if download_config.cache_dir
+            else os.path.join(config.EXTRACTED_DATASETS_PATH, hash_url_to_filename(abs_output_path))
+        )
 
         if (
             os.path.isdir(output_path_extracted)
@@ -376,11 +381,13 @@ def cached_path(
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
     ua = "datasets/{}; python/{}".format(__version__, config.PY_VERSION)
-    ua += "; pyarrow/{}".format(pa.__version__)
+    ua += "; pyarrow/{}".format(config.PYARROW_VERSION)
     if config.TORCH_AVAILABLE:
         ua += "; torch/{}".format(config.TORCH_VERSION)
     if config.TF_AVAILABLE:
         ua += "; tensorflow/{}".format(config.TF_VERSION)
+    if config.JAX_AVAILABLE:
+        ua += "; jax/{}".format(config.JAX_VERSION)
     if config.BEAM_AVAILABLE:
         ua += "; apache_beam/{}".format(config.BEAM_VERSION)
     if isinstance(user_agent, dict):

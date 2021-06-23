@@ -152,7 +152,7 @@ class Lst20(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        for fname in sorted(glob.glob(os.path.join(filepath, "*.txt"))):
+        for file_idx, fname in enumerate(sorted(glob.glob(os.path.join(filepath, "*.txt")))):
             with open(fname, encoding="utf-8") as f:
                 guid = 0
                 tokens = []
@@ -163,7 +163,7 @@ class Lst20(datasets.GeneratorBasedBuilder):
                 for line in f:
                     if line in self._SENTENCE_SPLITTERS:
                         if tokens:
-                            yield guid, {
+                            yield f"{file_idx}_{guid}", {
                                 "id": str(guid),
                                 "fname": Path(fname).name,
                                 "tokens": tokens,
@@ -187,7 +187,7 @@ class Lst20(datasets.GeneratorBasedBuilder):
                         clause_tags.append(splits[3].rstrip())
                 # last example
                 if tokens:
-                    yield guid, {
+                    yield f"{file_idx}_{guid}", {
                         "id": str(guid),
                         "fname": Path(fname).name,
                         "tokens": tokens,

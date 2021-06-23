@@ -37,8 +37,11 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 
 # Imports
+PYARROW_VERSION = importlib_metadata.version("pyarrow")
+
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
+USE_JAX = os.environ.get("USE_JAX", "AUTO").upper()
 
 TORCH_VERSION = "N/A"
 TORCH_AVAILABLE = False
@@ -68,6 +71,9 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             "tf-nightly",
             "tf-nightly-cpu",
             "tf-nightly-gpu",
+            "intel-tensorflow",
+            "tensorflow-rocm",
+            "tensorflow-macos",
         ]:
             try:
                 TF_VERSION = importlib_metadata.version(package)
@@ -83,6 +89,21 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             logger.info(f"TensorFlow version {TF_VERSION} available.")
 else:
     logger.info("Disabling Tensorflow because USE_TORCH is set")
+
+
+JAX_VERSION = "N/A"
+JAX_AVAILABLE = False
+
+if USE_JAX in ENV_VARS_TRUE_AND_AUTO_VALUES:
+    JAX_AVAILABLE = importlib.util.find_spec("jax") is not None
+    if JAX_AVAILABLE:
+        try:
+            JAX_VERSION = importlib_metadata.version("jax")
+            logger.info(f"JAX version {JAX_VERSION} available.")
+        except importlib_metadata.PackageNotFoundError:
+            pass
+else:
+    logger.info("Disabling JAX because USE_JAX is set to False")
 
 
 USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
@@ -128,6 +149,14 @@ HF_METRICS_CACHE = Path(os.getenv("HF_METRICS_CACHE", DEFAULT_HF_METRICS_CACHE))
 DEFAULT_HF_MODULES_CACHE = os.path.join(HF_CACHE_HOME, "modules")
 HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", DEFAULT_HF_MODULES_CACHE))
 
+DOWNLOADED_DATASETS_DIR = "downloads"
+DEFAULT_DOWNLOADED_DATASETS_PATH = os.path.join(HF_DATASETS_CACHE, DOWNLOADED_DATASETS_DIR)
+DOWNLOADED_DATASETS_PATH = Path(os.getenv("HF_DATASETS_DOWNLOADED_DATASETS_PATH", DEFAULT_DOWNLOADED_DATASETS_PATH))
+
+EXTRACTED_DATASETS_DIR = "extracted"
+DEFAULT_EXTRACTED_DATASETS_PATH = os.path.join(DEFAULT_DOWNLOADED_DATASETS_PATH, EXTRACTED_DATASETS_DIR)
+EXTRACTED_DATASETS_PATH = Path(os.getenv("HF_DATASETS_EXTRACTED_DATASETS_PATH", DEFAULT_EXTRACTED_DATASETS_PATH))
+
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
@@ -144,7 +173,8 @@ else:
     HF_DATASETS_OFFLINE = False
 
 # In-memory
-MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = 250 * 2 ** 20  # 250 MiB
+DEFAULT_IN_MEMORY_MAX_SIZE = 0  # Disabled
+IN_MEMORY_MAX_SIZE = float(os.environ.get("HF_DATASETS_IN_MEMORY_MAX_SIZE", DEFAULT_IN_MEMORY_MAX_SIZE))
 
 # File names
 DATASET_ARROW_FILENAME = "dataset.arrow"
@@ -154,5 +184,8 @@ DATASET_INFO_FILENAME = "dataset_info.json"
 DATASETDICT_INFOS_FILENAME = "dataset_infos.json"
 LICENSE_FILENAME = "LICENSE"
 METRIC_INFO_FILENAME = "metric_info.json"
+DATASETDICT_JSON_FILENAME = "dataset_dict.json"
+
+MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
 MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255

@@ -38,6 +38,7 @@ from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .metric import Metric
 from .packaged_modules import _PACKAGED_DATASETS_MODULES, hash_python_lines
 from .splits import Split
+from .tasks import TaskTemplate
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
     DownloadConfig,
@@ -58,10 +59,10 @@ from .utils.version import Version
 
 logger = get_logger(__name__)
 
-MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
-
-def init_dynamic_modules(name: str, hf_modules_cache: Optional[Union[Path, str]] = None):
+def init_dynamic_modules(
+    name: str = config.MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache: Optional[Union[Path, str]] = None
+):
     """
     Create a module with name `name` in which you can add dynamic modules
     such as metrics or datasets. The module can be imported using its name.
@@ -285,11 +286,7 @@ def prepare_module(
         return module_path, hash
 
     # otherwise the module is added to the dynamic modules
-    dynamic_modules_path = (
-        dynamic_modules_path
-        if dynamic_modules_path is not None
-        else init_dynamic_modules(MODULE_NAME_FOR_DYNAMIC_MODULES, hf_modules_cache=config.HF_MODULES_CACHE)
-    )
+    dynamic_modules_path = dynamic_modules_path if dynamic_modules_path else init_dynamic_modules()
     module_name_for_dynamic_modules = os.path.basename(dynamic_modules_path)
     datasets_modules_path = os.path.join(dynamic_modules_path, "datasets")
     datasets_modules_name = module_name_for_dynamic_modules + ".datasets"
@@ -579,15 +576,15 @@ def load_metric(
     Args:
 
         path (``str``):
-            path to the dataset processing script with the dataset builder. Can be either:
+            path to the metric processing script with the metric builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
-                    e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-                - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
-                    e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+                    e.g. ``'./metrics/rouge'`` or ``'./metrics/rogue/rouge.py'``
+                - a metric identifier on the HuggingFace datasets repo (list all available metrics with ``datasets.list_metrics()``)
+                    e.g. ``'rouge'`` or ``'bleu'``
         config_name (Optional ``str``): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
         process_id (Optional ``int``): for distributed evaluation: id of the process
         num_process (Optional ``int``): for distributed evaluation: total number of processes
-        cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.datasets/`)
+        cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.cache/metrics/`)
         experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         keep_in_memory (bool): Whether to store the temporary results in memory (defaults to False)
@@ -639,6 +636,7 @@ def load_dataset(
     save_infos: bool = False,
     script_version: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
+    task: Optional[Union[str, TaskTemplate]] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset]:
     """Load a dataset.
@@ -684,11 +682,9 @@ def load_dataset(
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, optional): Select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
         ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
-        keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
-            dataset will be copied in-memory if its size is smaller than
-            `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be disabled by
-            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case the dataset is not
-            loaded in memory.
+        keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
+            will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
+            nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.
         save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
@@ -698,6 +694,7 @@ def load_dataset(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
+        task (``str``): The task to prepare the dataset for during training and evaluation. Casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
         **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
 
     Returns:
@@ -756,6 +753,9 @@ def load_dataset(
         keep_in_memory if keep_in_memory is not None else is_small_dataset(builder_instance.info.dataset_size)
     )
     ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications, in_memory=keep_in_memory)
+    # Rename and cast features to match task schema
+    if task is not None:
+        ds = ds.prepare_for_task(task)
     if save_infos:
         builder_instance._save_infos()
 
@@ -772,11 +772,9 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
             loaded from.
         fs (:class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
             Instance of of the remote filesystem used to download the files from.
-        keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
-            dataset will be copied in-memory if its size is smaller than
-            `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be disabled by
-            setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and in this case the dataset is
-            not loaded in memory.
+        keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
+            will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
+            nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.
 
     Returns:
         ``datasets.Dataset`` or ``datasets.DatasetDict``
@@ -793,9 +791,9 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
 
     if not fs.exists(dest_dataset_path):
         raise FileNotFoundError("Directory {} not found".format(dataset_path))
-    if fs.isfile(Path(dest_dataset_path, "dataset_info.json").as_posix()):
+    if fs.isfile(Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()):
         return Dataset.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
-    elif fs.isfile(Path(dest_dataset_path, "dataset_dict.json").as_posix()):
+    elif fs.isfile(Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()):
         return DatasetDict.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     else:
         raise FileNotFoundError(

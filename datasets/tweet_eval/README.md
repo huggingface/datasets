@@ -1,105 +1,105 @@
 ---
 annotations_creators: []
 language_creators:
-  - found
+- found
 languages:
-  - en
+- en
 licenses:
-  - unknown
+- unknown
 multilinguality:
-  - monolingual
+- monolingual
 size_categories:
   emoji:
-    - 100K<n<1M
+  - 100K<n<1M
   emotion:
-    - 1K<n<10K
+  - 1K<n<10K
   hate:
-    - 10K<n<100K
+  - 10K<n<100K
   irony:
-    - 1K<n<10K
+  - 1K<n<10K
   offensive:
-    - 10K<n<100K
+  - 10K<n<100K
   sentiment:
-    - 10K<n<100K
+  - 10K<n<100K
   stance_abortion:
-    - n<1K
+  - n<1K
   stance_atheism:
-    - n<1K
+  - n<1K
   stance_climate:
-    - n<1K
+  - n<1K
   stance_feminist:
-    - n<1K
+  - n<1K
   stance_hillary:
-    - n<1K
+  - n<1K
 source_datasets:
   emoji:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
   emotion:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
   hate:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
   irony:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
   offensive:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
   sentiment:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
   stance_abortion:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
   stance_atheism:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
   stance_climate:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
   stance_feminist:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
   stance_hillary:
-    - extended|other-tweet-datasets
+  - extended|other-tweet-datasets
 task_categories:
-  - text-classification
+- text-classification
 task_ids:
   emoji:
-    - multi-class-classification
+  - multi-class-classification
   emotion:
-    - multi-class-classification
-    - sentiment-classification
+  - multi-class-classification
+  - sentiment-classification
   hate:
-    - intent-classification
+  - intent-classification
   irony:
-    - multi-class-classification
+  - multi-class-classification
   offensive:
-    - intent-classification
+  - intent-classification
   sentiment:
-    - multi-class-classification
-    - sentiment-classification
+  - multi-class-classification
+  - sentiment-classification
   stance_abortion:
-    - intent-classification
-    - multi-class-classification
+  - intent-classification
+  - multi-class-classification
   stance_atheism:
-    - intent-classification
-    - multi-class-classification
+  - intent-classification
+  - multi-class-classification
   stance_climate:
-    - intent-classification
-    - multi-class-classification
+  - intent-classification
+  - multi-class-classification
   stance_feminist:
-    - intent-classification
-    - multi-class-classification
+  - intent-classification
+  - multi-class-classification
   stance_hillary:
-    - intent-classification
-    - multi-class-classification
+  - intent-classification
+  - multi-class-classification
+paperswithcode_id: tweeteval
 ---
 
 # Dataset Card for tweet_eval
 
 ## Table of Contents
-
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -113,6 +113,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 

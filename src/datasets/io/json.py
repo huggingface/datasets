@@ -4,6 +4,7 @@ from typing import BinaryIO, Optional, Union
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
+from ..utils.tqdm_utils import tqdm
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -79,20 +80,28 @@ class JsonDatasetWriter:
             written = self._write(file_obj=self.path_or_buf, batch_size=batch_size, **self.to_json_kwargs)
         return written
 
-    def _write(self, file_obj: BinaryIO, batch_size: int, encoding: str = "utf-8", **to_json_kwargs) -> int:
-        """Writes the pyarrow table as JSON to a binary file handle.
+    def _write(
+        self,
+        file_obj: BinaryIO,
+        batch_size: int,
+        encoding: str = "utf-8",
+        orient="records",
+        lines=True,
+        **to_json_kwargs,
+    ) -> int:
+        """Writes the pyarrow table as JSON lines to a binary file handle.
 
         Caller is responsible for opening and closing the handle.
         """
         written = 0
         _ = to_json_kwargs.pop("path_or_buf", None)
 
-        for offset in range(0, len(self.dataset), batch_size):
+        for offset in tqdm(range(0, len(self.dataset), batch_size)):
             batch = query_table(
                 table=self.dataset.data,
                 key=slice(offset, offset + batch_size),
                 indices=self.dataset._indices if self.dataset._indices is not None else None,
             )
-            json_str = batch.to_pandas().to_json(path_or_buf=None, **to_json_kwargs)
+            json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
             written += file_obj.write(json_str.encode(encoding))
         return written

@@ -6,6 +6,7 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
+from datasets import config
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -220,9 +221,13 @@ def test_in_memory_table_from_buffer(in_memory_pa_table):
 def test_in_memory_table_from_pandas(in_memory_pa_table):
     df = in_memory_pa_table.to_pandas()
     with assert_arrow_memory_increases():
+        # with no schema it might infer another order of the fields in the schema
         table = InMemoryTable.from_pandas(df)
-        assert table.table == in_memory_pa_table
         assert isinstance(table, InMemoryTable)
+    # by specifying schema we get the same order of features, and so the exact same table
+    table = InMemoryTable.from_pandas(df, schema=in_memory_pa_table.schema)
+    assert table.table == in_memory_pa_table
+    assert isinstance(table, InMemoryTable)
 
 
 def test_in_memory_table_from_arrays(in_memory_pa_table):
@@ -741,8 +746,13 @@ def test_concatenation_table_cast(
             for k, v in zip(in_memory_pa_table.schema.names, in_memory_pa_table.schema.types)
         }
     )
-    with pytest.raises(pa.ArrowNotImplementedError):
-        ConcatenationTable.from_blocks(blocks).cast(schema)
+    if config.PYARROW_VERSION < "4":
+        with pytest.raises(pa.ArrowNotImplementedError):
+            ConcatenationTable.from_blocks(blocks).cast(schema)
+    else:
+        table = ConcatenationTable.from_blocks(blocks).cast(schema)
+        assert table.table == in_memory_pa_table.cast(schema)
+        assert isinstance(table, ConcatenationTable)
     schema = pa.schema(
         {
             k: v if v != pa.int64() else pa.int32()
