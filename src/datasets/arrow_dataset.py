@@ -2003,7 +2003,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     if not all(k in writer._features.keys() for k in task.features.keys()):
                         _ = info.task_templates.pop(idx)
             info.features = writer._features
-            print(info.features)
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
             else:
