@@ -122,6 +122,7 @@ class Drop(datasets.GeneratorBasedBuilder):
         # TODO(drop): Yields (key, example) tuples from the dataset
         with open(filepath, mode="r", encoding="utf-8") as f:
             data = json.load(f)
+            id_ = 0
             for i, (section_id, section) in enumerate(data.items()):
                 for j, qa in enumerate(section["qa_pairs"]):
 
@@ -139,7 +140,8 @@ class Drop(datasets.GeneratorBasedBuilder):
 
                     try:
                         example["answers_spans"] = self.build_answers(answers)
-                        yield example["query_id"], example
+                        yield id_, example
+                        id_ += 1
                     except AnswerParsingError:
                         # This is expected for 9 examples of train
                         # and 1 of validation.
