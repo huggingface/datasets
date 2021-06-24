@@ -272,7 +272,7 @@ def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir
     del dataset
     os.rename(cache_dir1, cache_dir2)
     caplog.clear()
-    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.INFO, logger="datasets")
     dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="train", cache_dir=cache_dir2)
     assert "Reusing dataset" in caplog.text
     assert dataset._fingerprint == fingerprint1, "for the caching mechanism to work, fingerprint should stay the same"
