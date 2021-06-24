@@ -40,14 +40,14 @@ from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
+from .utils import logging
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
-from .utils.logging import WARNING, get_logger
 
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class InvalidConfigName(ValueError):
@@ -1047,7 +1047,6 @@ class GeneratorBasedBuilder(DatasetBuilder):
         fpath = os.path.join(self._cache_dir, fname)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
 
         with ArrowWriter(
             features=self.info.features,
@@ -1058,7 +1057,11 @@ class GeneratorBasedBuilder(DatasetBuilder):
         ) as writer:
             try:
                 for key, record in utils.tqdm(
-                    generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
+                    generator,
+                    unit=" examples",
+                    total=split_info.num_examples,
+                    leave=False,
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
                 ):
                     example = self.info.features.encode_example(record)
                     writer.write(example, key)
@@ -1112,9 +1115,10 @@ class ArrowBasedBuilder(DatasetBuilder):
         fpath = os.path.join(self._cache_dir, fname)
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
+            for key, table in utils.tqdm(
+                generator, unit=" tables", leave=False, disable=bool(logging.get_verbosity() == logging.NOTSET)
+            ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
 

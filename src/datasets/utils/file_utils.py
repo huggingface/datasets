@@ -31,11 +31,11 @@ import requests
 from tqdm.auto import tqdm
 
 from .. import __version__, config
+from . import logging
 from .filelock import FileLock
-from .logging import WARNING, get_logger
 
 
-logger = get_logger(__name__)  # pylint: disable=invalid-name
+logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 INCOMPLETE_SUFFIX = ".incomplete"
 
@@ -492,14 +492,13 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
     progress = tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
         desc="Downloading",
-        disable=not_verbose,
+        disable=bool(logging.get_verbosity() == logging.NOTSET),
     )
     for chunk in response.iter_content(chunk_size=1024):
         if chunk:  # filter out keep-alive new chunks
