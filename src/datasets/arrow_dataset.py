@@ -1997,6 +1997,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if update_data:
             # Create new Dataset from buffer or file
             info = self.info.copy()
+            # Remove task templates if the required features have been removed
+            if info.task_templates:
+                info.task_templates = [
+                    template
+                    for template in info.task_templates
+                    if all(k in writer._features.keys() for k in template.features)
+                ]
             info.features = writer._features
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
