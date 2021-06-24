@@ -7,7 +7,6 @@ import os
 import datasets
 
 
-# TODO(drop): BibTeX citation
 _CITATION = """\
 @inproceedings{Dua2019DROP,
   author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},
@@ -17,7 +16,6 @@ _CITATION = """\
 }
 """
 
-# TODO(drop):
 _DESCRIPTION = """\
 DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs.
 . DROP is a crowdsourced, adversarially-created, 96k-question benchmark, in which a system must resolve references in a
@@ -25,7 +23,7 @@ question, perhaps to multiple input positions, and perform discrete operations o
  sorting). These operations require a much more comprehensive understanding of the content of paragraphs than what was
  necessary for prior datasets.
 """
-_URl = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"
+_URL = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"
 
 
 class AnswerParsingError(Exception):
@@ -102,7 +100,7 @@ class Drop(datasets.GeneratorBasedBuilder):
         # TODO(drop): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        dl_dir = dl_manager.download_and_extract(_URl)
+        dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "drop_dataset")
         return [
             datasets.SplitGenerator(
