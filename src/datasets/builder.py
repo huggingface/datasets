@@ -507,7 +507,7 @@ class DatasetBuilder:
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
             if data_exists and download_mode == GenerateMode.REUSE_DATASET_IF_EXISTS:
-                logger.warning("Reusing dataset %s (%s)", self.name, self._cache_dir)
+                logger.info("Reusing dataset %s (%s)", self.name, self._cache_dir)
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
