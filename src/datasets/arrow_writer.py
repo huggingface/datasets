@@ -423,7 +423,7 @@ class ArrowWriter:
         self.pa_writer.close()
         if close_stream:
             self.stream.close()
-        logger.info(
+        logger.debug(
             "Done writing %s %s in %s bytes %s.",
             self._num_examples,
             self.unit,
