@@ -272,7 +272,7 @@ class BaseFileLock:
                         self._acquire()
 
                 if self.is_locked:
-                    logger().info("Lock %s acquired on %s", lock_id, lock_filename)
+                    logger().debug("Lock %s acquired on %s", lock_id, lock_filename)
                     break
                 elif timeout >= 0 and time.time() - start_time > timeout:
                     logger().debug("Timeout on acquiring lock %s on %s", lock_id, lock_filename)
@@ -315,7 +315,7 @@ class BaseFileLock:
                     logger().debug("Attempting to release lock %s on %s", lock_id, lock_filename)
                     self._release()
                     self._lock_counter = 0
-                    logger().info("Lock %s released on %s", lock_id, lock_filename)
+                    logger().debug("Lock %s released on %s", lock_id, lock_filename)
 
         return None
 

@@ -1319,7 +1319,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._format_kwargs = format_kwargs
         self._format_columns = columns
         self._output_all_columns = output_all_columns
-        logger.info(
+        logger.debug(
             "Set __getitem__(key) output type to %s for %s columns "
             " (when key is int or slice) and %s output other (un-formatted) columns.",
             "python objects" if type is None else type,

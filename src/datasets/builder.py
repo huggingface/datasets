@@ -729,7 +729,7 @@ class DatasetBuilder:
                 % (self.name, self._cache_dir_root)
             )
 
-        logger.info(
+        logger.debug(
             "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
         )
 

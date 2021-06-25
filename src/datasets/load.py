@@ -171,7 +171,7 @@ def get_imports(file_path: str):
     with open(file_path, mode="r", encoding="utf-8") as f:
         lines.extend(f.readlines())
 
-    logger.info("Checking %s for additional imports.", file_path)
+    logger.debug("Checking %s for additional imports.", file_path)
     imports: List[Tuple[str, str, str, Optional[str]]] = []
     is_in_docstring = False
     for line in lines:
