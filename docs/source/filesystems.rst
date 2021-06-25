@@ -106,7 +106,7 @@ Saving ``encoded_dataset`` to a private s3 bucket using ``botocore.session.Sessi
       >>> s3_session = botocore.session.Session(profile='my_profile_name')
       >>>
       >>> # create S3FileSystem instance with s3_session
-      >>> s3 = S3FileSystem(sessions=s3_session)  # doctest: +SKIP
+      >>> s3 = S3FileSystem(session=s3_session)  # doctest: +SKIP
       >>>
       >>> # saves encoded_dataset to your s3 bucket
       >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
@@ -162,7 +162,7 @@ Loading ``encoded_dataset`` from a private s3 bucket using ``botocore.session.Se
       >>> s3_session = botocore.session.Session(profile='my_profile_name')
       >>>
       >>> # create S3FileSystem instance with s3_session
-      >>> s3 = S3FileSystem(sessions=s3_session)  
+      >>> s3 = S3FileSystem(session=s3_session)  
       >>>
       >>> # load encoded_dataset to from s3 bucket
       >>> dataset = load_from_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
