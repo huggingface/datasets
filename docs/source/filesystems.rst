@@ -44,13 +44,13 @@ Listing files from a private s3 bucket using ``aws_access_key_id`` and ``aws_sec
       >>> s3.ls('my-private-datasets/imdb/train')  # doctest: +SKIP
       ['dataset_info.json.json','dataset.arrow','state.json']
 
-Using ``S3Filesystem`` with ``botocore.session.Session`` and custom ``aws_profile``.
+Using ``S3Filesystem`` with ``botocore.session.Session`` and custom AWS ``profile``.
 
 .. code-block::
 
       >>> import botocore 
       >>> from datasets.filesystems import S3FileSystem
-      >>> s3_session = botocore.session.Session(profile_name='my_profile_name')
+      >>> s3_session = botocore.session.Session(profile='my_profile_name')
       >>> s3 = S3FileSystem(session=s3_session)  # doctest: +SKIP
 
 
@@ -95,15 +95,15 @@ Saving ``encoded_dataset`` to a private s3 bucket using ``aws_access_key_id`` an
       >>> # saves encoded_dataset to your s3 bucket
       >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
 
-Saving ``encoded_dataset`` to a private s3 bucket using ``botocore.session.Session`` and custom ``aws_profile``.
+Saving ``encoded_dataset`` to a private s3 bucket using ``botocore.session.Session`` and custom AWS ``profile``.
 
 .. code-block::
 
       >>> import botocore 
       >>> from datasets.filesystems import S3FileSystem
       >>>
-      >>> # creates a botocore session with the provided aws_profile
-      >>> s3_session = botocore.session.Session(profile_name='my_profile_name')
+      >>> # creates a botocore session with the provided AWS profile
+      >>> s3_session = botocore.session.Session(profile='my_profile_name')
       >>>
       >>> # create S3FileSystem instance with s3_session
       >>> s3 = S3FileSystem(sessions=s3_session)  # doctest: +SKIP
@@ -151,7 +151,7 @@ Loading ``encoded_dataset`` from a private s3 bucket using ``aws_access_key_id``
       >>> print(len(dataset))
       >>> # 25000
 
-Loading ``encoded_dataset`` from a private s3 bucket using ``botocore.session.Session`` and custom ``aws_profile``.
+Loading ``encoded_dataset`` from a private s3 bucket using ``botocore.session.Session`` and custom AWS ``profile``.
 
 .. code-block::
 
@@ -159,7 +159,7 @@ Loading ``encoded_dataset`` from a private s3 bucket using ``botocore.session.Se
       >>> from datasets.filesystems import S3FileSystem
       >>>
       >>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
-      >>> s3_session = botocore.session.Session(profile_name='my_profile_name')
+      >>> s3_session = botocore.session.Session(profile='my_profile_name')
       >>>
       >>> # create S3FileSystem instance with s3_session
       >>> s3 = S3FileSystem(sessions=s3_session)  
