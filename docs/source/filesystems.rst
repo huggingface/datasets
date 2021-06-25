@@ -44,7 +44,7 @@ Listing files from a private s3 bucket using ``aws_access_key_id`` and ``aws_sec
       >>> s3.ls('my-private-datasets/imdb/train')  # doctest: +SKIP
       ['dataset_info.json.json','dataset.arrow','state.json']
 
-Using ``S3Filesystem`` with ``botocore.session.Session`` and custom AWS ``profile``.
+Using ``S3FileSystem`` with ``botocore.session.Session`` and custom AWS ``profile``.
 
 .. code-block::
 
