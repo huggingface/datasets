@@ -20,7 +20,7 @@ from datasets.features import (
 )
 from datasets.info import DatasetInfo
 
-from ..utils import require_tf, require_torch
+from ..utils import require_jax, require_tf, require_torch
 
 
 class FeaturesTest(TestCase):
@@ -289,6 +289,18 @@ class CastToPythonObjectsTest(TestCase):
         obj = {
             "col_1": [{"vec": tf.constant(np.arange(1, 4)), "txt": "foo"}] * 3,
             "col_2": tf.constant(np.arange(1, 7).reshape(3, 2)),
+        }
+        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        casted_obj = cast_to_python_objects(obj)
+        self.assertDictEqual(casted_obj, expected_obj)
+
+    @require_jax
+    def test_cast_to_python_objects_jax(self):
+        import jax.numpy as jnp
+
+        obj = {
+            "col_1": [{"vec": jnp.array(np.arange(1, 4)), "txt": "foo"}] * 3,
+            "col_2": jnp.array(np.arange(1, 7).reshape(3, 2)),
         }
         expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
         casted_obj = cast_to_python_objects(obj)

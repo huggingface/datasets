@@ -208,3 +208,14 @@ def text_path(tmp_path_factory):
         for item in data:
             f.write(item + "\n")
     return path
+
+
+@pytest.fixture(scope="session")
+def text_gz_path(tmp_path_factory, text_path):
+    import gzip
+
+    path = str(tmp_path_factory.mktemp("data") / "dataset.txt.gz")
+    with open(text_path, "rb") as orig_file:
+        with gzip.open(path, "wb") as zipped_file:
+            zipped_file.writelines(orig_file)
+    return path

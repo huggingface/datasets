@@ -32,9 +32,10 @@ import fsspec
 from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
-from .dataset_dict import DatasetDict
+from .dataset_dict import DatasetDict, IterableDatasetDict
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .iterable_dataset import IterableDataset
 from .metric import Metric
 from .packaged_modules import _PACKAGED_DATASETS_MODULES, hash_python_lines
 from .splits import Split
@@ -55,6 +56,10 @@ from .utils.filelock import FileLock
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
 from .utils.version import Version
+
+
+if config.AIOHTTP_AVAILABLE:
+    from .streaming import extend_module_for_streaming
 
 
 logger = get_logger(__name__)
@@ -637,8 +642,9 @@ def load_dataset(
     script_version: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     task: Optional[Union[str, TaskTemplate]] = None,
+    streaming: bool = False,
     **config_kwargs,
-) -> Union[DatasetDict, Dataset]:
+) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset.
 
     This method does the following under the hood:
@@ -695,15 +701,31 @@ def load_dataset(
         use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
         task (``str``): The task to prepare the dataset for during training and evaluation. Casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
+        streaming (``bool``, default ``False``): If set to True, don't download the data files. Instead, it streams the data progressively while
+            iterating on the dataset. An IterableDataset or IterableDatasetDict is returned instead in this case.
+
+            Note that streaming works for datasets that use data formats that support being iterated over like txt, csv, jsonl for example.
+            Json files may be downloaded completely. Also streaming from remote zip or gzip files is supported but other compressed formats
+            like rar and xz are not yet supported. The tgz format doesn't allow streaming.
         **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
 
     Returns:
         :class:`Dataset` or :class:`DatasetDict`:
             if `split` is not None: the dataset requested,
             if `split` is None, a ``datasets.DatasetDict`` with each split.
+        or :class:`IterableDataset` or :class:`IterableDatasetDict` if streaming=True:
+            if `split` is not None: the dataset requested,
+            if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
 
     """
     ignore_verifications = ignore_verifications or save_infos
+    # Check streaming
+    if streaming:
+        if not config.AIOHTTP_AVAILABLE:
+            raise ImportError(
+                f"To be able to use dataset streaming, you need to install dependencies like aiohttp "
+                f"using 'pip install datasets[streaming]' or 'pip install aiohttp' for instance"
+            )
     # Download/copy dataset processing script
     module_path, hash, resolved_file_path = prepare_module(
         path,
@@ -733,6 +755,16 @@ def load_dataset(
         features=features,
         **config_kwargs,
     )
+
+    # Retturn iterable dataset in case of streaming
+    if streaming:
+        # this extends the open and os.path.join functions for data streaming
+        extend_module_for_streaming(module_path, use_auth_token=use_auth_token)
+        return builder_instance.as_streaming_dataset(
+            split=split,
+            base_path=base_path,
+            use_auth_token=use_auth_token,
+        )
 
     # Some datasets are already processed on the HF google storage
     # Don't try downloading from google storage for the packaged datasets as text, json, csv or pandas

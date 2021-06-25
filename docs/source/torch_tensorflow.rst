@@ -22,6 +22,7 @@ The format of a :class:`datasets.Dataset` instance can be set using the :func:`d
     - ``None``/``'python'`` (default): return python objects,
     - ``'torch'``/``'pytorch'``/``'pt'``: return PyTorch tensors,
     - ``'tensorflow'``/``'tf'``: return Tensorflow tensors,
+    - ``'jax'``: return JAX arrays,
     - ``'numpy'``/``'np'``: return Numpy arrays,
     - ``'pandas'``/``'pd'``: return Pandas DataFrames.
 
@@ -80,7 +81,7 @@ Here is how we can apply a format to a simple dataset using :func:`datasets.Data
 
 In this examples we filtered out the string columns `sentence1` and `sentence2` since they cannot be converted easily as tensors (at least in PyTorch). As detailed above, we could still output them as python object by setting ``output_all_columns=True``.
 
-We can also pass ``**kwargs`` to the respective convert functions like ``np.array``, ``torch.tensor`` or ``tensorflow.ragged.constant`` by adding keyword arguments to :func:`datasets.Dataset.set_format()`. For example, if we want the columns formatted as PyTorch CUDA tensors, we use the following:
+We can also pass ``**kwargs`` to the respective convert functions like ``np.array``, ``torch.tensor``, ``tensorflow.ragged.constant`` or ``jnp.array`` by adding keyword arguments to :func:`datasets.Dataset.set_format()`. For example, if we want the columns formatted as PyTorch CUDA tensors, we use the following:
 
 .. code-block::
 
