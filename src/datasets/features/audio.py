@@ -1,10 +1,13 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, ClassVar, Optional
 
 
 @dataclass
 class Audio:
     id: Optional[str] = None
+    # Automatically constructed
+    dtype: ClassVar[str] = "dict"
+    pa_type: ClassVar[Any] = None
     _type: str = field(default="Audio", init=False, repr=False)
 
     def encode_example(self, value):
