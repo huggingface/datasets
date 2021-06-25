@@ -155,6 +155,21 @@ def require_s3(test_case):
         return test_case
 
 
+def require_streaming(test_case):
+    """
+    Decorator marking a test that requires aiohttp.
+
+    These tests are skipped when aiohttp isn't installed.
+
+    """
+    try:
+        import aiohttp  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires aiohttp")(test_case)
+    else:
+        return test_case
+
+
 def slow(test_case):
     """
     Decorator marking a test as slow.

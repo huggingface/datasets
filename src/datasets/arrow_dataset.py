@@ -69,18 +69,17 @@ from .table import (
     list_table_cache_files,
 )
 from .tasks import TaskTemplate
-from .utils import map_nested
+from .utils import logging, map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
-from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 from .utils.typing import PathLike
 
 
 if TYPE_CHECKING:
     from .dataset_dict import DatasetDict
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 if int(config.PYARROW_VERSION.split(".")[0]) == 0:
     PYARROW_V0 = True
@@ -1763,11 +1762,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             not keep_in_memory or cache_file_name is None
         ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
 
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-
         # Reduce logging to keep things readable in multiprocessing with tqdm
-        if rank is not None and get_verbosity() < WARNING:
-            set_verbosity_warning()
+        if rank is not None and logging.get_verbosity() < logging.WARNING:
+            logging.set_verbosity_warning()
         # Print at least one thing to fix tqdm in notebooks in multiprocessing
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
         if rank is not None and "notebook" in tqdm.__name__:
@@ -1934,7 +1931,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
-                pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
+                pbar = tqdm(
+                    pbar_iterable,
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    position=rank,
+                    unit=pbar_unit,
+                    desc=pbar_desc,
+                )
                 if not batched:
                     for i, example in enumerate(pbar):
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)
@@ -1997,6 +2000,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if update_data:
             # Create new Dataset from buffer or file
             info = self.info.copy()
+            # Remove task templates if the required features have been removed
+            if info.task_templates:
+                info.task_templates = [
+                    template
+                    for template in info.task_templates
+                    if all(k in writer._features.keys() for k in template.features)
+                ]
             info.features = writer._features
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)

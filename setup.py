@@ -58,17 +58,6 @@ from setuptools import find_packages, setup
 DOCLINES = __doc__.split("\n")
 
 
-# Pin some dependencies for old python versions
-_deps = {
-    "fsspec": "fsspec"
-    if sys.version_info >= (3, 7)
-    else "fsspec<0.8.1",  # fsspec>=0.8.1 requires py>=3.7 for async stuff
-    "s3fs": "s3fs"
-    if sys.version_info >= (3, 7)
-    else "s3fs==0.4.2",  # later versions of s3fs have issues downloading directories recursively for py36
-}
-
-
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
@@ -93,7 +82,8 @@ REQUIRED_PKGS = [
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
-    _deps["fsspec"],
+    # minimum 2021.05.0 to have the AbstractArchiveFileSystem
+    "fsspec>=2021.05.0",
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
     # Utilities from PyPA to e.g., compare versions
@@ -122,7 +112,7 @@ TESTS_REQUIRE = [
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
-    _deps["s3fs"],
+    "s3fs",
     "tensorflow>=2.3",
     "torch",
     "transformers",
@@ -182,11 +172,12 @@ EXTRAS_REQUIRE = {
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
     "torch": ["torch"],
     "s3": [
-        _deps["fsspec"],
+        "fsspec",
         "boto3==1.16.43",
         "botocore==1.19.52",
-        _deps["s3fs"],
+        "s3fs",
     ],
+    "streaming": ["aiohttp"],
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
@@ -199,8 +190,8 @@ EXTRAS_REQUIRE = {
         "sphinx-rtd-theme==0.4.3",
         "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
-        _deps["fsspec"],
-        _deps["s3fs"],
+        "fsspec",
+        "s3fs",
     ],
 }
 

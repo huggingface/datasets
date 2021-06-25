@@ -34,7 +34,8 @@ from .arrow_dataset import Dataset, concatenate_datasets
 from .arrow_reader import ArrowReader, ReadInstruction
 from .arrow_writer import ArrowWriter
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
-from .dataset_dict import DatasetDict
+from .combine import interleave_datasets
+from .dataset_dict import DatasetDict, IterableDatasetDict
 from .features import (
     Array2D,
     Array3D,
@@ -57,6 +58,7 @@ from .inspect import (
     list_datasets,
     list_metrics,
 )
+from .iterable_dataset import IterableDataset
 from .keyhash import KeyHasher
 from .load import import_main_class, load_dataset, load_from_disk, load_metric, prepare_module
 from .metric import Metric

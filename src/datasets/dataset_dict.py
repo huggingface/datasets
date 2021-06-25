@@ -830,3 +830,7 @@ class DatasetDict(dict):
                 for k, dataset in self.items()
             }
         )
+
+
+class IterableDatasetDict(dict):
+    pass
