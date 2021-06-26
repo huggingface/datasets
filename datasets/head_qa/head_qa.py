@@ -117,16 +117,16 @@ class HeadQA(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
             head_qa = json.load(f)
-            for exam in head_qa["exams"]:
+            for exam_id, exam in enumerate(head_qa["exams"]):
                 content = head_qa["exams"][exam]
                 name = content["name"].strip()
                 year = content["year"].strip()
                 category = content["category"].strip()
                 for question in content["data"]:
-                    id_ = int(question["qid"].strip())
+                    qid = int(question["qid"].strip())
                     qtext = question["qtext"].strip()
                     ra = int(question["ra"].strip())
                     image = question["image"].strip()
@@ -135,11 +135,12 @@ class HeadQA(datasets.GeneratorBasedBuilder):
                     atexts = [answer["atext"].strip() for answer in question["answers"]]
                     answers = [{"aid": aid, "atext": atext} for aid, atext in zip(aids, atexts)]
 
+                    id_ = f"{exam_id}_{qid}"
                     yield id_, {
                         "name": name,
                         "year": year,
                         "category": category,
-                        "qid": id_,
+                        "qid": qid,
                         "qtext": qtext,
                         "ra": ra,
                         "image": image,

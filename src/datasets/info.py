@@ -36,19 +36,17 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import List, Optional, Union
 
+from datasets.tasks.text_classification import TextClassification
+
+from . import config
 from .features import Features, Value
 from .splits import SplitDict
+from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
 from .utils.logging import get_logger
 
 
 logger = get_logger(__name__)
-
-# Name of the file to output the DatasetInfo p rotobuf object.
-DATASET_INFO_FILENAME = "dataset_info.json"
-DATASET_INFOS_DICT_FILE_NAME = "dataset_infos.json"
-LICENSE_FILENAME = "LICENSE"
-METRIC_INFO_FILENAME = "metric_info.json"
 
 
 @dataclass
@@ -97,22 +95,24 @@ class DatasetInfo:
     Note: Not all fields are known on construction and may be updated later.
 
     Attributes:
-        description (str):
-        citation (str):
-        homepage (str):
-        license (str):
-        features (Features, optional):
-        post_processed (PostProcessedInfo, optional):
-        supervised_keys (SupervisedKeysData, optional):
-        builder_name (str, optional)
-        config_name (str, optional)
-        version (str or Version, optional):
-        splits (dict, optional):
-        download_checksums (dict, optional):
-        download_size (int, optional):
-        post_processing_size (int, optional):
-        dataset_size (int, optional):
-        size_in_bytes (int, optional):
+        description (str): A description of the dataset.
+        citation (str): A BibTeX citation of the dataset.
+        homepage (str): A URL to the official homepage for the dataset.
+        license (str): The dataset's license. It can be the name of the license or a paragraph containing the terms of the license.
+        features (Features, optional): The features used to specify the dataset's column types.
+        post_processed (PostProcessedInfo, optional): Information regarding the resources of a possible post-processing of a dataset. For example, it can contain the information of an index.
+        supervised_keys (SupervisedKeysData, optional): Specifies the input feature and the label for supervised learning if applicable for the dataset (legacy from TFDS).
+        builder_name (str, optional): The name of the :class:`GeneratorBasedBuilder` subclass used to create the dataset. Usually matched to the corresponding script name. It is also the snake_case version of the dataset builder class name.
+        config_name (str, optional): The name of the configuration derived from :class:`BuilderConfig`
+        version (str or Version, optional): The version of the dataset.
+        splits (dict, optional): The mapping between split name and metadata.
+        download_checksums (dict, optional): The mapping between the URL to download the dataset's checksums and corresponding metadata.
+        download_size (int, optional): The size of the files to download to generate the dataset, in bytes.
+        post_processing_size (int, optional): Size of the dataset in bytes after post-processing, if any.
+        dataset_size (int, optional): The combined size in bytes of the Arrow tables for all splits.
+        size_in_bytes (int, optional): The combined size in bytes of all files associated with the dataset (downloaded files + Arrow files).
+        task_templates (List[TaskTemplate], optional): The task templates to prepare the dataset for during training and evaluation. Each template casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
+        **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
     """
 
     # Set in the dataset scripts
@@ -123,6 +123,7 @@ class DatasetInfo:
     features: Optional[Features] = None
     post_processed: Optional[PostProcessedInfo] = None
     supervised_keys: Optional[SupervisedKeysData] = None
+    task_templates: Optional[List[TaskTemplate]] = None
 
     # Set later by the builder
     builder_name: Optional[str] = None
@@ -155,18 +156,43 @@ class DatasetInfo:
             else:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
 
+        # Parse and make a list of templates
+        if self.task_templates is not None:
+            if isinstance(self.task_templates, (list, tuple)):
+                templates = [
+                    template if isinstance(template, TaskTemplate) else task_template_from_dict(template)
+                    for template in self.task_templates
+                ]
+                self.task_templates = [template for template in templates if template is not None]
+            elif isinstance(self.task_templates, TaskTemplate):
+                self.task_templates = [self.task_templates]
+            else:
+                template = task_template_from_dict(self.task_templates)
+                self.task_templates = [template] if template is not None else []
+
+        # Insert labels and mappings for text classification
+        if self.task_templates is not None:
+            self.task_templates = list(self.task_templates)
+            if self.features is not None:
+                for idx, template in enumerate(self.task_templates):
+                    if isinstance(template, TextClassification):
+                        labels = self.features[template.label_column].names
+                        self.task_templates[idx] = TextClassification(
+                            text_column=template.text_column, label_column=template.label_column, labels=labels
+                        )
+
     def _license_path(self, dataset_info_dir):
-        return os.path.join(dataset_info_dir, LICENSE_FILENAME)
+        return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
 
     def write_to_directory(self, dataset_info_dir):
         """Write `DatasetInfo` as JSON to `dataset_info_dir`.
 
         Also save the license separately in LICENCE.
         """
-        with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "wb") as f:
+        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f)
 
-        with open(os.path.join(dataset_info_dir, LICENSE_FILENAME), "wb") as f:
+        with open(os.path.join(dataset_info_dir, config.LICENSE_FILENAME), "wb") as f:
             self._dump_license(f)
 
     def _dump_info(self, file):
@@ -193,6 +219,16 @@ class DatasetInfo:
         license = "\n\n".join(unique(info.license for info in dataset_infos))
         features = None
         supervised_keys = None
+        task_templates = None
+
+        # Find common task templates across all dataset infos
+        all_task_templates = [info.task_templates for info in dataset_infos if info.task_templates is not None]
+        if len(all_task_templates) > 1:
+            task_templates = list(set(all_task_templates[0]).intersection(*all_task_templates[1:]))
+        elif len(all_task_templates):
+            task_templates = list(set(all_task_templates[0]))
+        # If no common task templates found, replace empty list with None
+        task_templates = task_templates if task_templates else None
 
         return cls(
             description=description,
@@ -201,6 +237,7 @@ class DatasetInfo:
             license=license,
             features=features,
             supervised_keys=supervised_keys,
+            task_templates=task_templates,
         )
 
     @classmethod
@@ -220,7 +257,7 @@ class DatasetInfo:
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 
@@ -246,7 +283,7 @@ class DatasetInfo:
 class DatasetInfosDict(dict):
     def write_to_directory(self, dataset_infos_dir, overwrite=False):
         total_dataset_infos = {}
-        dataset_infos_path = os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME)
+        dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
         if os.path.exists(dataset_infos_path) and not overwrite:
             logger.info("Dataset Infos already exists in {}. Completing it with new infos.".format(dataset_infos_dir))
             total_dataset_infos = self.from_directory(dataset_infos_dir)
@@ -259,7 +296,7 @@ class DatasetInfosDict(dict):
     @classmethod
     def from_directory(cls, dataset_infos_dir):
         logger.info("Loading Dataset Infos from {}".format(dataset_infos_dir))
-        with open(os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), "r", encoding="utf-8") as f:
             dataset_infos_dict = {
                 config_name: DatasetInfo.from_dict(dataset_info_dict)
                 for config_name, dataset_info_dict in json.load(f).items()
@@ -308,10 +345,10 @@ class MetricInfo:
         """Write `MetricInfo` as JSON to `metric_info_dir`.
         Also save the license separately in LICENCE.
         """
-        with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
+        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
             json.dump(asdict(self), f)
 
-        with open(os.path.join(metric_info_dir, LICENSE_FILENAME), "w", encoding="utf-8") as f:
+        with open(os.path.join(metric_info_dir, config.LICENSE_FILENAME), "w", encoding="utf-8") as f:
             f.write(self.license)
 
     @classmethod
@@ -326,7 +363,7 @@ class MetricInfo:
         if not metric_info_dir:
             raise ValueError("Calling MetricInfo.from_directory() with undefined metric_info_dir.")
 
-        with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "r", encoding="utf-8") as f:
             metric_info_dict = json.load(f)
         return cls.from_dict(metric_info_dict)
 

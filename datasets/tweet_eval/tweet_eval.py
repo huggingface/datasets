@@ -239,7 +239,7 @@ class TweetEval(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, text_path, labels_path):
-        """ Yields examples. """
+        """Yields examples."""
 
         with open(text_path, encoding="utf-8") as f:
             texts = f.readlines()

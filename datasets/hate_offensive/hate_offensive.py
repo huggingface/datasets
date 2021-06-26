@@ -41,7 +41,7 @@ _URLs = "https://github.com/t-davidson/hate-speech-and-offensive-language/raw/ma
 
 
 class HateOffensive(datasets.GeneratorBasedBuilder):
-    """Automated Hate Speech Detection and the Problem of Offensive Language """
+    """Automated Hate Speech Detection and the Problem of Offensive Language"""
 
     VERSION = datasets.Version("1.1.0")
 
@@ -70,7 +70,7 @@ class HateOffensive(datasets.GeneratorBasedBuilder):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir)})]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
                 csv_file, lineterminator="\n", delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True

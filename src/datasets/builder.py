@@ -34,32 +34,20 @@ from . import config, utils
 from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs, ReadInstruction
 from .arrow_writer import ArrowWriter, BeamWriter
-from .dataset_dict import DatasetDict
+from .dataset_dict import DatasetDict, IterableDatasetDict
 from .fingerprint import Hasher
-from .info import (
-    DATASET_INFO_FILENAME,
-    DATASET_INFOS_DICT_FILE_NAME,
-    LICENSE_FILENAME,
-    DatasetInfo,
-    DatasetInfosDict,
-    PostProcessedInfo,
-)
+from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
+from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
+from .utils import logging
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
-from .utils.logging import WARNING, get_logger
 
 
-logger = get_logger(__name__)
-
-FORCE_REDOWNLOAD = GenerateMode.FORCE_REDOWNLOAD
-REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
-REUSE_DATASET_IF_EXISTS = GenerateMode.REUSE_DATASET_IF_EXISTS
-
-MAX_DIRECTORY_NAME_LENGTH = 255
+logger = logging.get_logger(__name__)
 
 
 class InvalidConfigName(ValueError):
@@ -175,7 +163,7 @@ class BuilderConfig:
 
         if suffix:
             config_id = self.name + "-" + suffix
-            if len(config_id) > MAX_DIRECTORY_NAME_LENGTH:
+            if len(config_id) > config.MAX_DATASET_CONFIG_ID_READABLE_LENGTH:
                 config_id = self.name + "-" + Hasher.hash(suffix)
             return config_id
         else:
@@ -264,6 +252,9 @@ class DatasetBuilder:
 
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or config.HF_DATASETS_CACHE)
+        self._cache_downloaded_dir = (
+            os.path.join(cache_dir, config.DOWNLOADED_DATASETS_DIR) if cache_dir else config.DOWNLOADED_DATASETS_PATH
+        )
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
@@ -297,7 +288,7 @@ class DatasetBuilder:
     @classmethod
     def get_all_exported_dataset_infos(cls) -> dict:
         """Empty dict if doesn't exist"""
-        dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), DATASET_INFOS_DICT_FILE_NAME)
+        dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), config.DATASETDICT_INFOS_FILENAME)
         if os.path.exists(dset_infos_file_path):
             return DatasetInfosDict.from_directory(cls.get_imported_module_dir())
         return {}
@@ -391,7 +382,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True, with_hash=True):
+    def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
@@ -495,8 +486,8 @@ class DatasetBuilder:
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
-                    cache_dir=os.path.join(self._cache_dir_root, "downloads"),
-                    force_download=bool(download_mode == FORCE_REDOWNLOAD),
+                    cache_dir=self._cache_downloaded_dir,
+                    force_download=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
                     use_etag=False,
                     use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
@@ -515,7 +506,7 @@ class DatasetBuilder:
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
-            if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
+            if data_exists and download_mode == GenerateMode.REUSE_DATASET_IF_EXISTS:
                 logger.warning("Reusing dataset %s (%s)", self.name, self._cache_dir)
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
@@ -738,7 +729,7 @@ class DatasetBuilder:
                 % (self.name, self._cache_dir_root)
             )
 
-        logger.info(
+        logger.debug(
             "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
         )
 
@@ -791,6 +782,11 @@ class DatasetBuilder:
             }
             post_processed = self._post_process(ds, resources_paths)
             if post_processed is not None:
+                del ds
+                # collect the gc to make sure the windows file lock on arrow files is gone
+                import gc
+
+                gc.collect()
                 ds = post_processed
                 recorded_checksums = {}
                 for resource_name, resource_path in resources_paths.items():
@@ -853,7 +849,64 @@ class DatasetBuilder:
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
         )
-        return Dataset(**dataset_kwargs)
+        fingerprint = self._get_dataset_fingerprint(split)
+        return Dataset(fingerprint=fingerprint, **dataset_kwargs)
+
+    def _get_dataset_fingerprint(self, split: Union[ReadInstruction, Split]) -> str:
+        """The dataset fingerprint is the hash of the relative directory dataset_name/config_name/version/hash, as well as the split specs."""
+        hasher = Hasher()
+        hasher.update(self._relative_data_dir().replace(os.sep, "/"))
+        hasher.update(str(split))  # for example: train, train+test, train[:10%], test[:33%](pct1_dropremainder)
+        fingerprint = hasher.hexdigest()
+        return fingerprint
+
+    def as_streaming_dataset(
+        self,
+        split: Optional[str] = None,
+        base_path: Optional[str] = None,
+        use_auth_token: Optional[str] = None,
+    ) -> Union[Dict[str, IterableDataset], IterableDataset]:
+        if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
+            raise ValueError(f"Builder {self.name} is not streamable.")
+        if not config.AIOHTTP_AVAILABLE:
+            raise ImportError(
+                f"To be able to use dataset streaming, you need to install dependencies like aiohttp "
+                f"using 'pip install datasets[streaming]' or 'pip install aiohttp' for instance"
+            )
+
+        from .utils.streaming_download_manager import StreamingDownloadManager
+
+        dl_manager = StreamingDownloadManager(
+            base_path=base_path,
+            download_config=DownloadConfig(use_auth_token=use_auth_token),
+            dataset_name=self.name,
+            data_dir=self.config.data_dir,
+        )
+        splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
+        # By default, return all splits
+        if split is None:
+            splits_generator = splits_generators
+        elif split in splits_generators:
+            splits_generator = splits_generators[split]
+        else:
+            raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
+
+        # Create a dataset for each of the given splits
+        datasets = utils.map_nested(
+            self._as_streaming_dataset_single,
+            splits_generator,
+            map_tuple=True,
+        )
+        if isinstance(datasets, dict):
+            datasets = IterableDatasetDict(datasets)
+        return datasets
+
+    def _as_streaming_dataset_single(
+        self,
+        splits_generator,
+    ) -> IterableDataset:
+        ex_iterable = self._get_examples_iterable_for_split(splits_generator)
+        return IterableDataset(ex_iterable, info=self.info, split=splits_generator.name)
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
@@ -925,6 +978,14 @@ class DatasetBuilder:
         """
         raise NotImplementedError()
 
+    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+        """Generate the examples on the fly.
+
+        Args:
+            split_generator: `SplitGenerator`, Split generator to process
+        """
+        raise NotImplementedError()
+
 
 class GeneratorBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on dict generators.
@@ -989,19 +1050,32 @@ class GeneratorBasedBuilder(DatasetBuilder):
         fpath = os.path.join(self._cache_dir, fname)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size) as writer:
+
+        with ArrowWriter(
+            features=self.info.features,
+            path=fpath,
+            writer_batch_size=self._writer_batch_size,
+            hash_salt=split_info.name,
+            check_duplicates=True,
+        ) as writer:
             try:
                 for key, record in utils.tqdm(
-                    generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
+                    generator,
+                    unit=" examples",
+                    total=split_info.num_examples,
+                    leave=False,
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
                 ):
                     example = self.info.features.encode_example(record)
-                    writer.write(example)
+                    writer.write(example, key)
             finally:
                 num_examples, num_bytes = writer.finalize()
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
+
+    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+        return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
 
 
 class ArrowBasedBuilder(DatasetBuilder):
@@ -1011,7 +1085,7 @@ class ArrowBasedBuilder(DatasetBuilder):
     test_dummy_data = True
 
     @abc.abstractmethod
-    def _generate_examples(self, **kwargs):
+    def _generate_tables(self, **kwargs):
         """Default function generating examples for each `SplitGenerator`.
 
         This function preprocess the examples from the raw data to the preprocessed
@@ -1034,9 +1108,8 @@ class ArrowBasedBuilder(DatasetBuilder):
                 The key will be hashed and sorted to shuffle examples deterministically,
                 such as generating the dataset multiple times keep examples in the
                 same order.
-            example: `dict<str feature_name, feature_value>`, a feature dictionary
-                ready to be encoded and written to disk. The example will be
-                encoded with `self.info.features.encode_example({...})`.
+            example: `pyarrow.Table`, a feature table
+                ready to be encoded and written to disk.
         """
         raise NotImplementedError()
 
@@ -1045,9 +1118,10 @@ class ArrowBasedBuilder(DatasetBuilder):
         fpath = os.path.join(self._cache_dir, fname)
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
+            for key, table in utils.tqdm(
+                generator, unit=" tables", leave=False, disable=bool(logging.get_verbosity() == logging.NOTSET)
+            ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
 
@@ -1055,6 +1129,11 @@ class ArrowBasedBuilder(DatasetBuilder):
         split_generator.split_info.num_bytes = num_bytes
         if self.info.features is None:
             self.info.features = writer._features
+
+    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+        return ExamplesIterable(
+            _generate_examples_from_tables_wrapper(self._generate_tables), kwargs=split_generator.gen_kwargs
+        )
 
 
 class MissingBeamOptions(ValueError):
@@ -1177,9 +1256,9 @@ class BeamBasedBuilder(DatasetBuilder):
             import apache_beam as beam
 
             fs = beam.io.filesystems.FileSystems
-            with fs.create(os.path.join(self._cache_dir, DATASET_INFO_FILENAME)) as f:
+            with fs.create(os.path.join(self._cache_dir, config.DATASET_INFO_FILENAME)) as f:
                 self.info._dump_info(f)
-            with fs.create(os.path.join(self._cache_dir, LICENSE_FILENAME)) as f:
+            with fs.create(os.path.join(self._cache_dir, config.LICENSE_FILENAME)) as f:
                 self.info._dump_license(f)
 
     def _prepare_split(self, split_generator, pipeline):

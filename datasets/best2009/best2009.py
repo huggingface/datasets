@@ -114,9 +114,9 @@ class Best2009(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        for fname in sorted(Path(filepath).rglob("*.txt")):
+        for file_idx, fname in enumerate(sorted(Path(filepath).rglob("*.txt"))):
             with open(fname, encoding="utf-8") as f:
-                for _id, line in enumerate(f):
+                for line_idx, line in enumerate(f):
                     chars = []
                     char_types = []
                     is_beginnings = []
@@ -130,7 +130,7 @@ class Best2009(datasets.GeneratorBasedBuilder):
                             char_types.append(self._CHAR_TYPE_FLATTEN.get(token[i], "o"))
                             is_beginning = 1 if i == 0 else 0
                             is_beginnings.append(is_beginning)
-                    yield _id, {
+                    yield f"{file_idx}_{line_idx}", {
                         "fname": fname.name,
                         "char": chars,
                         "char_type": char_types,

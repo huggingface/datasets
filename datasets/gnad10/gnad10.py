@@ -18,6 +18,7 @@
 import csv
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _DESCRIPTION = """\
@@ -64,6 +65,7 @@ class Gnad10(datasets.GeneratorBasedBuilder):
                 }
             ),
             homepage="https://tblock.github.io/10kGNAD/",
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):
@@ -77,7 +79,7 @@ class Gnad10(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """Generate German news articles examples. """
+        """Generate German news articles examples."""
 
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=";", quotechar="'", quoting=csv.QUOTE_ALL)

@@ -112,6 +112,18 @@ def require_tf(test_case):
     return test_case
 
 
+def require_jax(test_case):
+    """
+    Decorator marking a test that requires JAX.
+
+    These tests are skipped when JAX isn't installed.
+
+    """
+    if not config.JAX_AVAILABLE:
+        test_case = unittest.skip("test requires JAX")(test_case)
+    return test_case
+
+
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.
@@ -139,6 +151,21 @@ def require_s3(test_case):
         import s3fs  # noqa F401
     except ImportError:
         return unittest.skip("test requires s3fs and moto")(test_case)
+    else:
+        return test_case
+
+
+def require_streaming(test_case):
+    """
+    Decorator marking a test that requires aiohttp.
+
+    These tests are skipped when aiohttp isn't installed.
+
+    """
+    try:
+        import aiohttp  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires aiohttp")(test_case)
     else:
         return test_case
 

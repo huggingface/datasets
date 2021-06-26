@@ -71,7 +71,6 @@ class BaseReaderTest(TestCase):
                 self.assertEqual(str(test_dset.split), "test[:33%]")
                 del train_dset, test_dset
 
-
     def test_read_files(self):
         train_info = SplitInfo(name="train", num_examples=100)
         test_info = SplitInfo(name="test", num_examples=100)

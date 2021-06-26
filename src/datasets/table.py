@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.compute as pc
 
 from . import config
 from .utils.logging import get_logger
@@ -95,7 +96,23 @@ class IndexedTableMixin:
     def __init__(self, table: pa.Table):
         self._schema = table.schema
         self._batches = table.to_batches()
-        self._offsets = np.cumsum([0] + [len(b) for b in self._batches])
+        self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
+
+    def fast_gather(self, indices: Union[List[int], np.ndarray]) -> pa.Table:
+        """
+        Create a pa.Table by gathering the records at the records at the specified indices. Should be faster
+        than pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in indices) since NumPy can compute
+        the binary searches in parallel, highly optimized C
+        """
+        assert len(indices), "Indices must be non-empty"
+        batch_indices = np.searchsorted(self._offsets, indices, side="right") - 1
+        return pa.Table.from_batches(
+            [
+                self._batches[batch_idx].slice(i - self._offsets[batch_idx], 1)
+                for batch_idx, i in zip(batch_indices, indices)
+            ],
+            schema=self._schema,
+        )
 
     def fast_slice(self, offset=0, length=None) -> pa.Table:
         """
@@ -142,34 +159,35 @@ class Table(IndexedTableMixin):
         # moreover calling deepcopy on a pyarrow table seems to make pa.total_allocated_bytes() decrease for some reason
         # by adding it to the memo, self.table won't be copied
         memo[id(self.table)] = self.table
+        # same for the recordbatches used by the index
+        memo[id(self._batches)] = list(self._batches)
         return _deepcopy(self, memo)
 
     def __getstate__(self):
-        state = self.__dict__.copy()
         # We can't pickle objects that are bigger than 4GiB, or it causes OverflowError
         # So we write the table on disk instead
         if self.table.nbytes >= config.MAX_TABLE_NBYTES_FOR_PICKLING:
-            table = state.pop("table")
+            table = self.table
             with tempfile.NamedTemporaryFile("wb", delete=False, suffix=".arrow") as tmp_file:
                 filename = tmp_file.name
                 logger.debug(
                     f"Attempting to pickle a table bigger than 4GiB. Writing it on the disk instead at {filename}"
                 )
                 _write_table_to_file(table=table, filename=filename)
-                state["path"] = filename
-                return state
+                return {"path": filename}
         else:
-            return state
+            return {"table": self.table}
 
     def __setstate__(self, state):
-        state = state.copy()
         if "path" in state:
-            filename = state.pop("path")
+            filename = state["path"]
             logger.debug(f"Unpickling a big table from the disk at {filename}")
-            state["table"] = _in_memory_arrow_table_from_file(filename)
+            table = _in_memory_arrow_table_from_file(filename)
             logger.debug(f"Removing temporary table file at {filename}")
             os.remove(filename)
-        self.__dict__ = state
+        else:
+            table = state["table"]
+        Table.__init__(self, table)
 
     @inject_arrow_table_documentation(pa.Table.validate)
     def validate(self, *args, **kwargs):
@@ -434,16 +452,14 @@ class MemoryMappedTable(TableBlock):
         return cls(table, filename, replays)
 
     def __getstate__(self):
-        state = self.__dict__.copy()
-        state.pop("table")
-        return state
+        return {"path": self.path, "replays": self.replays}
 
     def __setstate__(self, state):
-        state = state.copy()
-        table = _memory_mapped_arrow_table_from_file(state["path"])
-        table = self._apply_replays(table, state["replays"])
-        state["table"] = table
-        self.__dict__ = state
+        path = state["path"]
+        replays = state["replays"]
+        table = _memory_mapped_arrow_table_from_file(path)
+        table = self._apply_replays(table, replays)
+        MemoryMappedTable.__init__(self, table, path=path, replays=replays)
 
     @staticmethod
     def _apply_replays(table: pa.Table, replays: Optional[List[Replay]] = None) -> pa.Table:
@@ -569,14 +585,12 @@ class ConcatenationTable(Table):
                     )
 
     def __getstate__(self):
-        state = self.__dict__.copy()
-        state.pop("table")
-        return state
+        return {"blocks": self.blocks}
 
     def __setstate__(self, state):
-        state = state.copy()
-        state["table"] = self._concat_blocks_horizontally_and_vertically(state["blocks"])
-        self.__dict__ = state
+        blocks = state["blocks"]
+        table = self._concat_blocks_horizontally_and_vertically(blocks)
+        ConcatenationTable.__init__(self, table, blocks=blocks)
 
     @staticmethod
     def _concat_blocks(blocks: List[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
@@ -857,3 +871,34 @@ def list_table_cache_files(table: Table) -> List[str]:
         return [table.path]
     else:
         return []
+
+
+def cast_with_sliced_list_support(pa_table: pa.Table, schema: pa.Schema) -> pa.Table:
+    """Same as pyarrow.Table.cast, except it works for sliced list arrays"""
+
+    def wrap_for_chunked_arrays(func):
+        """Apply the function on each chunk of a pyarrow.ChunkedArray, or on the array directly"""
+
+        def wrapper(array):
+            if isinstance(array, pa.ChunkedArray):
+                return pa.chunked_array([func(chunk) for chunk in array.chunks])
+            else:
+                return func(array)
+
+        return wrapper
+
+    @wrap_for_chunked_arrays
+    def reset_sliced_list_offset(array: pa.ListArray):
+        """Return the same pyarrow.ListArray but with array.offset == 0 for compatibility with cast"""
+        if array.offset == 0:
+            return array
+        elif len(array) == 0:
+            return array.values.slice(0, 0)
+        else:
+            values_offset = array.offsets[0]  # the relevant values start at this index
+            new_values = array.values.slice(values_offset.as_py())  # get the values to start at the right position
+            new_offsets = pc.subtract(array.offsets, values_offset)  # update the offsets accordingly
+            return pa.ListArray.from_arrays(new_offsets, new_values)
+
+    arrays = [reset_sliced_list_offset(array) if isinstance(array.type, pa.ListType) else array for array in pa_table]
+    return pa.Table.from_arrays(arrays, schema=schema)

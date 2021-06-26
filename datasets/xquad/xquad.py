@@ -4,6 +4,7 @@
 import json
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 _CITATION = """\
@@ -32,7 +33,7 @@ _LANG = ["ar", "de", "zh", "vi", "en", "es", "hi", "el", "th", "tr", "ru", "ro"]
 
 class XquadConfig(datasets.BuilderConfig):
 
-    """ BuilderConfig for Xquad"""
+    """BuilderConfig for Xquad"""
 
     def __init__(self, lang, **kwargs):
         """
@@ -81,6 +82,11 @@ class Xquad(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage="https://github.com/deepmind/xquad",
             citation=_CITATION,
+            task_templates=[
+                QuestionAnsweringExtractive(
+                    question_column="question", context_column="context", answers_column="answers"
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):

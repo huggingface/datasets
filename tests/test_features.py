@@ -7,7 +7,6 @@ import pandas as pd
 import pyarrow as pa
 import pytest
 
-from datasets import DatasetInfo
 from datasets.arrow_dataset import Dataset
 from datasets.features import (
     ClassLabel,
@@ -19,8 +18,9 @@ from datasets.features import (
     cast_to_python_objects,
     string_to_arrow,
 )
+from datasets.info import DatasetInfo
 
-from .utils import require_tf, require_torch
+from .utils import require_jax, require_tf, require_torch
 
 
 class FeaturesTest(TestCase):
@@ -75,6 +75,126 @@ class FeaturesTest(TestCase):
         ds_info = DatasetInfo(features=features)
         reloaded_features = Features.from_dict(asdict(ds_info)["features"])
         assert features == reloaded_features
+
+    def test_reorder_fields_as(self):
+        features = Features(
+            {
+                "id": Value("string"),
+                "document": {
+                    "title": Value("string"),
+                    "url": Value("string"),
+                    "html": Value("string"),
+                    "tokens": Sequence({"token": Value("string"), "is_html": Value("bool")}),
+                },
+                "question": {
+                    "text": Value("string"),
+                    "tokens": Sequence(Value("string")),
+                },
+                "annotations": Sequence(
+                    {
+                        "id": Value("string"),
+                        "long_answer": {
+                            "start_token": Value("int64"),
+                            "end_token": Value("int64"),
+                            "start_byte": Value("int64"),
+                            "end_byte": Value("int64"),
+                        },
+                        "short_answers": Sequence(
+                            {
+                                "start_token": Value("int64"),
+                                "end_token": Value("int64"),
+                                "start_byte": Value("int64"),
+                                "end_byte": Value("int64"),
+                                "text": Value("string"),
+                            }
+                        ),
+                        "yes_no_answer": ClassLabel(names=["NO", "YES"]),
+                    }
+                ),
+            }
+        )
+
+        other = Features(  # same but with [] instead of sequences, and with a shuffled fields order
+            {
+                "id": Value("string"),
+                "document": {
+                    "tokens": Sequence({"token": Value("string"), "is_html": Value("bool")}),
+                    "title": Value("string"),
+                    "url": Value("string"),
+                    "html": Value("string"),
+                },
+                "question": {
+                    "text": Value("string"),
+                    "tokens": [Value("string")],
+                },
+                "annotations": {
+                    "yes_no_answer": [ClassLabel(names=["NO", "YES"])],
+                    "id": [Value("string")],
+                    "long_answer": [
+                        {
+                            "end_byte": Value("int64"),
+                            "start_token": Value("int64"),
+                            "end_token": Value("int64"),
+                            "start_byte": Value("int64"),
+                        }
+                    ],
+                    "short_answers": [
+                        Sequence(
+                            {
+                                "text": Value("string"),
+                                "start_token": Value("int64"),
+                                "end_token": Value("int64"),
+                                "start_byte": Value("int64"),
+                                "end_byte": Value("int64"),
+                            }
+                        )
+                    ],
+                },
+            }
+        )
+
+        expected = Features(
+            {
+                "id": Value("string"),
+                "document": {
+                    "tokens": Sequence({"token": Value("string"), "is_html": Value("bool")}),
+                    "title": Value("string"),
+                    "url": Value("string"),
+                    "html": Value("string"),
+                },
+                "question": {
+                    "text": Value("string"),
+                    "tokens": Sequence(Value("string")),
+                },
+                "annotations": Sequence(
+                    {
+                        "yes_no_answer": ClassLabel(names=["NO", "YES"]),
+                        "id": Value("string"),
+                        "long_answer": {
+                            "end_byte": Value("int64"),
+                            "start_token": Value("int64"),
+                            "end_token": Value("int64"),
+                            "start_byte": Value("int64"),
+                        },
+                        "short_answers": Sequence(
+                            {
+                                "text": Value("string"),
+                                "start_token": Value("int64"),
+                                "end_token": Value("int64"),
+                                "start_byte": Value("int64"),
+                                "end_byte": Value("int64"),
+                            }
+                        ),
+                    }
+                ),
+            }
+        )
+
+        reordered_features = features.reorder_fields_as(other)
+        self.assertDictEqual(reordered_features, expected)
+        self.assertEqual(reordered_features.type, other.type)
+        self.assertEqual(reordered_features.type, expected.type)
+        self.assertNotEqual(reordered_features.type, features.type)
 
 
 def test_classlabel_init(tmp_path_factory):
@@ -169,6 +289,18 @@ class CastToPythonObjectsTest(TestCase):
         obj = {
             "col_1": [{"vec": tf.constant(np.arange(1, 4)), "txt": "foo"}] * 3,
             "col_2": tf.constant(np.arange(1, 7).reshape(3, 2)),
+        }
+        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        casted_obj = cast_to_python_objects(obj)
+        self.assertDictEqual(casted_obj, expected_obj)
+
+    @require_jax
+    def test_cast_to_python_objects_jax(self):
+        import jax.numpy as jnp
+
+        obj = {
+            "col_1": [{"vec": jnp.array(np.arange(1, 4)), "txt": "foo"}] * 3,
+            "col_2": jnp.array(np.arange(1, 7).reshape(3, 2)),
         }
         expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
         casted_obj = cast_to_python_objects(obj)

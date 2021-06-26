@@ -45,6 +45,7 @@ The documentation is organized in five parts:
     torch_tensorflow
     filesystems
     faiss_and_ea
+    dataset_streaming
 
 .. toctree::
     :maxdepth: 2
@@ -78,3 +79,4 @@ The documentation is organized in five parts:
     package_reference/builder_classes
     package_reference/table_classes
     package_reference/logging_methods
+    package_reference/task_templates

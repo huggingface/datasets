@@ -15,7 +15,9 @@
 
 # Lint as: python3
 """ This class handle features definition in datasets and some utilities to display table type."""
+import copy
 import re
+import sys
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields
 from typing import Any, ClassVar, Dict, List, Optional
@@ -157,18 +159,23 @@ def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
         has_changed (bool): True if the object has been changed, False if it is identical
     """
 
-    if config.TF_AVAILABLE:
+    if config.TF_AVAILABLE and "tensorflow" in sys.modules:
         import tensorflow as tf
 
-    if config.TORCH_AVAILABLE:
+    if config.TORCH_AVAILABLE and "torch" in sys.modules:
         import torch
+
+    if config.JAX_AVAILABLE and "jax" in sys.modules:
+        import jax.numpy as jnp
 
     if isinstance(obj, np.ndarray):
         return obj.tolist(), True
-    elif config.TORCH_AVAILABLE and isinstance(obj, torch.Tensor):
+    elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
         return obj.detach().cpu().numpy().tolist(), True
-    elif config.TF_AVAILABLE and isinstance(obj, tf.Tensor):
+    elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
         return obj.numpy().tolist(), True
+    elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
+        return obj.tolist(), True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
@@ -816,8 +823,8 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, Features):
         return pa.struct(
-            {key: get_nested_type(schema[key]) for key in sorted(schema)}
-        )  # sort to make the order of columns deterministic
+            {key: get_nested_type(schema[key]) for key in schema}
+        )  # Features is subclass of dict, and dict order is deterministic since Python 3.6
     elif isinstance(schema, dict):
         return pa.struct(
             {key: get_nested_type(schema[key]) for key in schema}
@@ -828,9 +835,9 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         return pa.list_(value_type)
     elif isinstance(schema, Sequence):
         value_type = get_nested_type(schema.feature)
-        # We allow to reverse list of dict => dict of list for compatiblity with tfds
+        # We allow to reverse list of dict => dict of list for compatibility with tfds
         if isinstance(value_type, pa.StructType):
-            return pa.struct(dict(sorted((f.name, pa.list_(f.type, schema.length)) for f in value_type)))
+            return pa.struct({f.name: pa.list_(f.type, schema.length) for f in value_type})
         return pa.list_(value_type, schema.length)
 
     # Other objects are callable which returns their data type (ClassLabel, Array2D, Translation, Arrow datatype creation methods)
@@ -877,15 +884,15 @@ def encode_nested_example(schema, obj):
 
 
 def generate_from_dict(obj: Any):
-    """Regenerate the nested feature object from a serialized dict.
+    """Regenerate the nested feature object from a deserialized dict.
     We use the '_type' fields to get the dataclass name to load.
 
     generate_from_dict is the recursive helper for Features.from_dict, and allows for a convenient constructor syntax
-        to define features from json dictionaries. This function is used in particular when deserializing
-        a DatasetInfo that was dumped to a json dictionary. This acts as an analogue to
-        Features.from_arrow_schema and handles the recursive field-by-field instantiation, but doesn't require any
-        mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive dtypes
-        that Value() automatically performs.
+    to define features from deserialized JSON dictionaries. This function is used in particular when deserializing
+    a :class:`DatasetInfo` that was dumped to a JSON object. This acts as an analogue to
+    :meth:`Features.from_arrow_schema` and handles the recursive field-by-field instantiation, but doesn't require any
+    mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive dtypes
+    that :class:`Value` automatically performs.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(obj, list):
@@ -935,23 +942,79 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
 class Features(dict):
     @property
     def type(self):
+        """
+        Features field types.
+
+        Returns:
+            :obj:`pyarrow.DataType`
+        """
         return get_nested_type(self)
 
     @classmethod
     def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
+        """
+        Construct Features from Arrow Schema.
+
+        Args:
+            pa_schema (:obj:`pyarrow.Schema`): Arrow Schema.
+
+        Returns:
+            :class:`Features`
+        """
         obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
         return cls(**obj)
 
     @classmethod
     def from_dict(cls, dic) -> "Features":
+        """
+        Construct Features from dict.
+
+        Regenerate the nested feature object from a deserialized dict.
+        We use the '_type' key to infer the dataclass name of the feature FieldType.
+
+        It allows for a convenient constructor syntax
+        to define features from deserialized JSON dictionaries. This function is used in particular when deserializing
+        a :class:`DatasetInfo` that was dumped to a JSON object. This acts as an analogue to
+        :meth:`Features.from_arrow_schema` and handles the recursive field-by-field instantiation, but doesn't require
+        any mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive
+        dtypes that :class:`Value` automatically performs.
+
+        Args:
+            dic (:obj:`dict[str, Any]`): Python dictionary.
+
+        Returns:
+            :class:`Features`
+
+        Examples:
+            >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
+            {'_type': Value(dtype='string', id=None)}
+        """
         obj = generate_from_dict(dic)
         return cls(**obj)
 
     def encode_example(self, example):
+        """
+        Encode example into a format for Arrow.
+
+        Args:
+            example (:obj:`dict[str, Any]`): Data in a Dataset row.
+
+        Returns:
+            :obj:`dict[str, Any]`
+        """
         example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
 
     def encode_batch(self, batch):
+        """
+        Encode batch into a format for Arrow.
+
+        Args:
+            batch (:obj:`dict[str, list[Any]]`): Data in a Dataset batch.
+
+        Returns:
+            :obj:`dict[str, list[Any]]`
+        """
         encoded_batch = {}
         if set(batch) != set(self):
             raise ValueError("Column mismatch between batch {} and features {}".format(set(batch), set(self)))
@@ -960,5 +1023,72 @@ class Features(dict):
             encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
         return encoded_batch
 
-    def copy(self):
-        return Features(super().copy())
+    def copy(self) -> "Features":
+        """
+        Make a deep copy of Features.
+
+        Returns:
+            :class:`Features`
+        """
+        return copy.deepcopy(self)
+
+    def reorder_fields_as(self, other: "Features") -> "Features":
+        """
+        Reorder Features fields to match the field order of other Features.
+
+        The order of the fields is important since it matters for the underlying arrow data.
+        Re-ordering the fields allows to make the underlying arrow data type match.
+
+        Args:
+            other (:class:`Features`): The other Features to align with.
+
+        Returns:
+            :class:`Features`
+
+        Examples:
+
+            >>> from datasets import Features, Sequence, Value
+            >>> # let's say we have to features with a different order of nested fields (for a and b for example)
+            >>> f1 = Features({"root": Sequence({"a": Value("string"), "b": Value("string")})})
+            >>> f2 = Features({"root": {"b": Sequence(Value("string")), "a": Sequence(Value("string"))}})
+            >>> assert f1.type != f2.type
+            >>> # re-ordering keeps the base structure (here Sequence is defined at the root level), but make the fields order match
+            >>> f1.reorder_fields_as(f2)
+            {'root': Sequence(feature={'b': Value(dtype='string', id=None), 'a': Value(dtype='string', id=None)}, length=-1, id=None)}
+            >>> assert f1.reorder_fields_as(f2).type == f2.type
+        """
+
+        def recursive_reorder(source, target, stack=""):
+            stack_position = " at " + stack[1:] if stack else ""
+            if isinstance(target, Sequence):
+                target = target.feature
+                if isinstance(target, dict):
+                    target = {k: [v] for k, v in target.items()}
+                else:
+                    target = [target]
+            if isinstance(source, Sequence):
+                source, id_, length = source.feature, source.id, source.length
+                if isinstance(source, dict):
+                    source = {k: [v] for k, v in source.items()}
+                    reordered = recursive_reorder(source, target, stack)
+                    return Sequence({k: v[0] for k, v in reordered.items()}, id=id_, length=length)
+                else:
+                    source = [source]
+                    reordered = recursive_reorder(source, target, stack)
+                    return Sequence(reordered[0], id=id_, length=length)
+            elif isinstance(source, dict):
+                if not isinstance(target, dict):
+                    raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
+                if sorted(source) != sorted(target):
+                    raise ValueError(f"Keys mismatch: between {source} and {target}" + stack_position)
+                return {key: recursive_reorder(source[key], target[key], stack + f".{key}") for key in target}
+            elif isinstance(source, list):
+                if not isinstance(target, list):
+                    raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
+                if len(source) != len(target):
+                    raise ValueError(f"Length mismatch: between {source} and {target}" + stack_position)
+                return [recursive_reorder(source[i], target[i], stack + f".<list>") for i in range(len(target))]
+            else:
+                return source
+
+        return Features(recursive_reorder(self, other))

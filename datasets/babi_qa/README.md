@@ -10,366 +10,361 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-   en-qa1:
-   - n<1K
-   en-qa2:
-   - n<1K
-   en-qa3:
-   - n<1K
-   en-qa4:
-   - 1K<n<10K
-   en-qa5:
-   - n<1K
-   en-qa6:
-   - n<1K
-   en-qa7:
-   - n<1K
-   en-qa8:
-   - n<1K
-   en-qa9:
-   - n<1K
-   en-qa10:
-   - n<1K
-   en-qa11:
-   - n<1K
-   en-qa12:
-   - n<1K
-   en-qa13:
-   - n<1K
-   en-qa14:
-   - n<1K
-   en-qa15:
-   - n<1K
-   en-qa16:
-   - 1K<n<10K
-   en-qa17:
-   - n<1K
-   en-qa18:
-   - n<1K
-   en-qa19:
-   - 1K<n<10K
-   en-qa20:
-   - n<1K
-   en-10k-qa1:
-   - 1K<n<10K
-   en-10k-qa2:
-   - 1K<n<10K
-   en-10k-qa3:
-   - 1K<n<10K
-   en-10k-qa4:
-   - 10K<n<100K
-   en-10k-qa5:
-   - 1K<n<10K
-   en-10k-qa6:
-   - 1K<n<10K
-   en-10k-qa7:
-   - 1K<n<10K
-   en-10k-qa8:
-   - 1K<n<10K
-   en-10k-qa9:
-   - 1K<n<10K
-   en-10k-qa10:
-   - 1K<n<10K
-   en-10k-qa11:
-   - 1K<n<10K
-   en-10k-qa12:
-   - 1K<n<10K
-   en-10k-qa13:
-   - 1K<n<10K
-   en-10k-qa14:
-   - 1K<n<10K
-   en-10k-qa15:
-   - 1K<n<10K
-   en-10k-qa16:
-   - 10K<n<100K
-   en-10k-qa17:
-   - 1K<n<10K
-   en-10k-qa18:
-   - 1K<n<10K
-   en-10k-qa19:
-   - 10K<n<100K
-   en-10k-qa20:
-   - 1K<n<10K
-   en-valid-qa1:
-   - n<1K
-   en-valid-qa2:
-   - n<1K
-   en-valid-qa3:
-   - n<1K
-   en-valid-qa4:
-   - 1K<n<10K
-   en-valid-qa5:
-   - n<1K
-   en-valid-qa6:
-   - n<1K
-   en-valid-qa7:
-   - n<1K
-   en-valid-qa8:
-   - n<1K
-   en-valid-qa9:
-   - n<1K
-   en-valid-qa10:
-   - n<1K
-   en-valid-qa11:
-   - n<1K
-   en-valid-qa12:
-   - n<1K
-   en-valid-qa13:
-   - n<1K
-   en-valid-qa14:
-   - n<1K
-   en-valid-qa15:
-   - n<1K
-   en-valid-qa16:
-   - 1K<n<10K
-   en-valid-qa17:
-   - n<1K
-   en-valid-qa18:
-   - n<1K
-   en-valid-qa19:
-   - 1K<n<10K
-   en-valid-qa20:
-   - n<1K
-   en-valid-10k-qa1:
-   - 1K<n<10K
-   en-valid-10k-qa2:
-   - 1K<n<10K
-   en-valid-10k-qa3:
-   - 1K<n<10K
-   en-valid-10k-qa4:
-   - 10K<n<100K
-   en-valid-10k-qa5:
-   - 1K<n<10K
-   en-valid-10k-qa6:
-   - 1K<n<10K
-   en-valid-10k-qa7:
-   - 1K<n<10K
-   en-valid-10k-qa8:
-   - 1K<n<10K
-   en-valid-10k-qa9:
-   - 1K<n<10K
-   en-valid-10k-qa10:
-   - 1K<n<10K
-   en-valid-10k-qa11:
-   - 1K<n<10K
-   en-valid-10k-qa12:
-   - 1K<n<10K
-   en-valid-10k-qa13:
-   - 1K<n<10K
-   en-valid-10k-qa14:
-   - 1K<n<10K
-   en-valid-10k-qa15:
-   - 1K<n<10K
-   en-valid-10k-qa16:
-   - 10K<n<100K
-   en-valid-10k-qa17:
-   - 1K<n<10K
-   en-valid-10k-qa18:
-   - 1K<n<10K
-   en-valid-10k-qa19:
-   - 10K<n<100K
-   en-valid-10k-qa20:
-   - 1K<n<10K
-   hn-qa1:
-   - n<1K
-   hn-qa2:
-   - n<1K
-   hn-qa3:
-   - n<1K
-   hn-qa4:
-   - 1K<n<10K
-   hn-qa5:
-   - n<1K
-   hn-qa6:
-   - n<1K
-   hn-qa7:
-   - n<1K
-   hn-qa8:
-   - n<1K
-   hn-qa9:
-   - n<1K
-   hn-qa10:
-   - n<1K
-   hn-qa11:
-   - n<1K
-   hn-qa12:
-   - n<1K
-   hn-qa13:
-   - n<1K
-   hn-qa14:
-   - n<1K
-   hn-qa15:
-   - n<1K
-   hn-qa16:
-   - 1K<n<10K
-   hn-qa17:
-   - n<1K
-   hn-qa18:
-   - n<1K
-   hn-qa19:
-   - 1K<n<10K
-   hn-qa20:
-   - n<1K
-   hn-10k-qa1:
-   - 1K<n<10K
-   hn-10k-qa2:
-   - 1K<n<10K
-   hn-10k-qa3:
-   - 1K<n<10K
-   hn-10k-qa4:
-   - 10K<n<100K
-   hn-10k-qa5:
-   - 1K<n<10K
-   hn-10k-qa6:
-   - 1K<n<10K
-   hn-10k-qa7:
-   - 1K<n<10K
-   hn-10k-qa8:
-   - 1K<n<10K
-   hn-10k-qa9:
-   - 1K<n<10K
-   hn-10k-qa10:
-   - 1K<n<10K
-   hn-10k-qa11:
-   - 1K<n<10K
-   hn-10k-qa12:
-   - 1K<n<10K
-   hn-10k-qa13:
-   - 1K<n<10K
-   hn-10k-qa14:
-   - 1K<n<10K
-   hn-10k-qa15:
-   - 1K<n<10K
-   hn-10k-qa16:
-   - 10K<n<100K
-   hn-10k-qa17:
-   - 1K<n<10K
-   hn-10k-qa18:
-   - 1K<n<10K
-   hn-10k-qa19:
-   - 10K<n<100K
-   hn-10k-qa20:
-   - 1K<n<10K
-   shuffled-qa1:
-   - n<1K
-   shuffled-qa2:
-   - n<1K
-   shuffled-qa3:
-   - n<1K
-   shuffled-qa4:
-   - 1K<n<10K
-   shuffled-qa5:
-   - n<1K
-   shuffled-qa6:
-   - n<1K
-   shuffled-qa7:
-   - n<1K
-   shuffled-qa8:
-   - n<1K
-   shuffled-qa9:
-   - n<1K
-   shuffled-qa10:
-   - n<1K
-   shuffled-qa11:
-   - n<1K
-   shuffled-qa12:
-   - n<1K
-   shuffled-qa13:
-   - n<1K
-   shuffled-qa14:
-   - n<1K
-   shuffled-qa15:
-   - n<1K
-   shuffled-qa16:
-   - 1K<n<10K
-   shuffled-qa17:
-   - n<1K
-   shuffled-qa18:
-   - n<1K
-   shuffled-qa19:
-   - 1K<n<10K
-   shuffled-qa20:
-   - n<1K
-   shuffled-10k-qa1:
-   - 1K<n<10K
-   shuffled-10k-qa2:
-   - 1K<n<10K
-   shuffled-10k-qa3:
-   - 1K<n<10K
-   shuffled-10k-qa4:
-   - 10K<n<100K
-   shuffled-10k-qa5:
-   - 1K<n<10K
-   shuffled-10k-qa6:
-   - 1K<n<10K
-   shuffled-10k-qa7:
-   - 1K<n<10K
-   shuffled-10k-qa8:
-   - 1K<n<10K
-   shuffled-10k-qa9:
-   - 1K<n<10K
-   shuffled-10k-qa10:
-   - 1K<n<10K
-   shuffled-10k-qa11:
-   - 1K<n<10K
-   shuffled-10k-qa12:
-   - 1K<n<10K
-   shuffled-10k-qa13:
-   - 1K<n<10K
-   shuffled-10k-qa14:
-   - 1K<n<10K
-   shuffled-10k-qa15:
-   - 1K<n<10K
-   shuffled-10k-qa16:
-   - 10K<n<100K
-   shuffled-10k-qa17:
-   - 1K<n<10K
-   shuffled-10k-qa18:
-   - 1K<n<10K
-   shuffled-10k-qa19:
-   - 10K<n<100K
-   shuffled-10k-qa20:
-   - 1K<n<10K
+  en-qa1:
+  - n<1K
+  en-qa2:
+  - n<1K
+  en-qa3:
+  - n<1K
+  en-qa4:
+  - 1K<n<10K
+  en-qa5:
+  - n<1K
+  en-qa6:
+  - n<1K
+  en-qa7:
+  - n<1K
+  en-qa8:
+  - n<1K
+  en-qa9:
+  - n<1K
+  en-qa10:
+  - n<1K
+  en-qa11:
+  - n<1K
+  en-qa12:
+  - n<1K
+  en-qa13:
+  - n<1K
+  en-qa14:
+  - n<1K
+  en-qa15:
+  - n<1K
+  en-qa16:
+  - 1K<n<10K
+  en-qa17:
+  - n<1K
+  en-qa18:
+  - n<1K
+  en-qa19:
+  - 1K<n<10K
+  en-qa20:
+  - n<1K
+  en-10k-qa1:
+  - 1K<n<10K
+  en-10k-qa2:
+  - 1K<n<10K
+  en-10k-qa3:
+  - 1K<n<10K
+  en-10k-qa4:
+  - 10K<n<100K
+  en-10k-qa5:
+  - 1K<n<10K
+  en-10k-qa6:
+  - 1K<n<10K
+  en-10k-qa7:
+  - 1K<n<10K
+  en-10k-qa8:
+  - 1K<n<10K
+  en-10k-qa9:
+  - 1K<n<10K
+  en-10k-qa10:
+  - 1K<n<10K
+  en-10k-qa11:
+  - 1K<n<10K
+  en-10k-qa12:
+  - 1K<n<10K
+  en-10k-qa13:
+  - 1K<n<10K
+  en-10k-qa14:
+  - 1K<n<10K
+  en-10k-qa15:
+  - 1K<n<10K
+  en-10k-qa16:
+  - 10K<n<100K
+  en-10k-qa17:
+  - 1K<n<10K
+  en-10k-qa18:
+  - 1K<n<10K
+  en-10k-qa19:
+  - 10K<n<100K
+  en-10k-qa20:
+  - 1K<n<10K
+  en-valid-qa1:
+  - n<1K
+  en-valid-qa2:
+  - n<1K
+  en-valid-qa3:
+  - n<1K
+  en-valid-qa4:
+  - 1K<n<10K
+  en-valid-qa5:
+  - n<1K
+  en-valid-qa6:
+  - n<1K
+  en-valid-qa7:
+  - n<1K
+  en-valid-qa8:
+  - n<1K
+  en-valid-qa9:
+  - n<1K
+  en-valid-qa10:
+  - n<1K
+  en-valid-qa11:
+  - n<1K
+  en-valid-qa12:
+  - n<1K
+  en-valid-qa13:
+  - n<1K
+  en-valid-qa14:
+  - n<1K
+  en-valid-qa15:
+  - n<1K
+  en-valid-qa16:
+  - 1K<n<10K
+  en-valid-qa17:
+  - n<1K
+  en-valid-qa18:
+  - n<1K
+  en-valid-qa19:
+  - 1K<n<10K
+  en-valid-qa20:
+  - n<1K
+  en-valid-10k-qa1:
+  - 1K<n<10K
+  en-valid-10k-qa2:
+  - 1K<n<10K
+  en-valid-10k-qa3:
+  - 1K<n<10K
+  en-valid-10k-qa4:
+  - 10K<n<100K
+  en-valid-10k-qa5:
+  - 1K<n<10K
+  en-valid-10k-qa6:
+  - 1K<n<10K
+  en-valid-10k-qa7:
+  - 1K<n<10K
+  en-valid-10k-qa8:
+  - 1K<n<10K
+  en-valid-10k-qa9:
+  - 1K<n<10K
+  en-valid-10k-qa10:
+  - 1K<n<10K
+  en-valid-10k-qa11:
+  - 1K<n<10K
+  en-valid-10k-qa12:
+  - 1K<n<10K
+  en-valid-10k-qa13:
+  - 1K<n<10K
+  en-valid-10k-qa14:
+  - 1K<n<10K
+  en-valid-10k-qa15:
+  - 1K<n<10K
+  en-valid-10k-qa16:
+  - 10K<n<100K
+  en-valid-10k-qa17:
+  - 1K<n<10K
+  en-valid-10k-qa18:
+  - 1K<n<10K
+  en-valid-10k-qa19:
+  - 10K<n<100K
+  en-valid-10k-qa20:
+  - 1K<n<10K
+  hn-qa1:
+  - n<1K
+  hn-qa2:
+  - n<1K
+  hn-qa3:
+  - n<1K
+  hn-qa4:
+  - 1K<n<10K
+  hn-qa5:
+  - n<1K
+  hn-qa6:
+  - n<1K
+  hn-qa7:
+  - n<1K
+  hn-qa8:
+  - n<1K
+  hn-qa9:
+  - n<1K
+  hn-qa10:
+  - n<1K
+  hn-qa11:
+  - n<1K
+  hn-qa12:
+  - n<1K
+  hn-qa13:
+  - n<1K
+  hn-qa14:
+  - n<1K
+  hn-qa15:
+  - n<1K
+  hn-qa16:
+  - 1K<n<10K
+  hn-qa17:
+  - n<1K
+  hn-qa18:
+  - n<1K
+  hn-qa19:
+  - 1K<n<10K
+  hn-qa20:
+  - n<1K
+  hn-10k-qa1:
+  - 1K<n<10K
+  hn-10k-qa2:
+  - 1K<n<10K
+  hn-10k-qa3:
+  - 1K<n<10K
+  hn-10k-qa4:
+  - 10K<n<100K
+  hn-10k-qa5:
+  - 1K<n<10K
+  hn-10k-qa6:
+  - 1K<n<10K
+  hn-10k-qa7:
+  - 1K<n<10K
+  hn-10k-qa8:
+  - 1K<n<10K
+  hn-10k-qa9:
+  - 1K<n<10K
+  hn-10k-qa10:
+  - 1K<n<10K
+  hn-10k-qa11:
+  - 1K<n<10K
+  hn-10k-qa12:
+  - 1K<n<10K
+  hn-10k-qa13:
+  - 1K<n<10K
+  hn-10k-qa14:
+  - 1K<n<10K
+  hn-10k-qa15:
+  - 1K<n<10K
+  hn-10k-qa16:
+  - 10K<n<100K
+  hn-10k-qa17:
+  - 1K<n<10K
+  hn-10k-qa18:
+  - 1K<n<10K
+  hn-10k-qa19:
+  - 10K<n<100K
+  hn-10k-qa20:
+  - 1K<n<10K
+  shuffled-qa1:
+  - n<1K
+  shuffled-qa2:
+  - n<1K
+  shuffled-qa3:
+  - n<1K
+  shuffled-qa4:
+  - 1K<n<10K
+  shuffled-qa5:
+  - n<1K
+  shuffled-qa6:
+  - n<1K
+  shuffled-qa7:
+  - n<1K
+  shuffled-qa8:
+  - n<1K
+  shuffled-qa9:
+  - n<1K
+  shuffled-qa10:
+  - n<1K
+  shuffled-qa11:
+  - n<1K
+  shuffled-qa12:
+  - n<1K
+  shuffled-qa13:
+  - n<1K
+  shuffled-qa14:
+  - n<1K
+  shuffled-qa15:
+  - n<1K
+  shuffled-qa16:
+  - 1K<n<10K
+  shuffled-qa17:
+  - n<1K
+  shuffled-qa18:
+  - n<1K
+  shuffled-qa19:
+  - 1K<n<10K
+  shuffled-qa20:
+  - n<1K
+  shuffled-10k-qa1:
+  - 1K<n<10K
+  shuffled-10k-qa2:
+  - 1K<n<10K
+  shuffled-10k-qa3:
+  - 1K<n<10K
+  shuffled-10k-qa4:
+  - 10K<n<100K
+  shuffled-10k-qa5:
+  - 1K<n<10K
+  shuffled-10k-qa6:
+  - 1K<n<10K
+  shuffled-10k-qa7:
+  - 1K<n<10K
+  shuffled-10k-qa8:
+  - 1K<n<10K
+  shuffled-10k-qa9:
+  - 1K<n<10K
+  shuffled-10k-qa10:
+  - 1K<n<10K
+  shuffled-10k-qa11:
+  - 1K<n<10K
+  shuffled-10k-qa12:
+  - 1K<n<10K
+  shuffled-10k-qa13:
+  - 1K<n<10K
+  shuffled-10k-qa14:
+  - 1K<n<10K
+  shuffled-10k-qa15:
+  - 1K<n<10K
+  shuffled-10k-qa16:
+  - 10K<n<100K
+  shuffled-10k-qa17:
+  - 1K<n<10K
+  shuffled-10k-qa18:
+  - 1K<n<10K
+  shuffled-10k-qa19:
+  - 10K<n<100K
+  shuffled-10k-qa20:
+  - 1K<n<10K
 source_datasets:
 - original
 task_categories:
 - question-answering
 task_ids:
 - question-answering-other-chained-qa
+paperswithcode_id: babi-1
 ---
 
 
 # Dataset Card for bAbi QA
 
 ## Table of Contents
-- [Dataset Card for bAbi QA](#dataset-card-for-dataset-name)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
-    - [Contributions](#contributions)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -424,7 +419,7 @@ The "types" are are:
 - `en-valid` and `en-valid-10k`
    - are the same as `en` and `en10k` except the train sets have been conveniently split into train and valid portions (90% and 10% split).
 
-To get a particular dataset, use `load_datasets('babi_qa',type=f'{type}',task_no=f'{task_no}')` where `type` is one of the types, and `task_no` is one of the task numbers. For example, `load_dataset('babi_qa', type='en', task_no='qa1')`.
+To get a particular dataset, use `load_dataset('babi_qa',type=f'{type}',task_no=f'{task_no}')` where `type` is one of the types, and `task_no` is one of the task numbers. For example, `load_dataset('babi_qa', type='en', task_no='qa1')`.
 ### Languages
 
 

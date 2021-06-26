@@ -62,7 +62,14 @@ except NameError:
 
 # Data
 # ------------------------------------------------
-__all__ = ["Timeout", "BaseFileLock", "WindowsFileLock", "UnixFileLock", "SoftFileLock", "FileLock"]
+__all__ = [
+    "Timeout",
+    "BaseFileLock",
+    "WindowsFileLock",
+    "UnixFileLock",
+    "SoftFileLock",
+    "FileLock",
+]
 
 __version__ = "3.0.12"
 
@@ -86,7 +93,7 @@ class Timeout(TimeoutError):
     """
 
     def __init__(self, lock_file):
-        """"""
+        """ """
         #: The path of the file lock.
         self.lock_file = lock_file
         return None
@@ -125,8 +132,10 @@ class BaseFileLock:
     Implements the base class of a file lock.
     """
 
-    def __init__(self, lock_file, timeout=-1):
-        """"""
+    def __init__(self, lock_file, timeout=-1, max_filename_length=255):
+        """ """
+        # Hash the filename if it's too long
+        lock_file = self.hash_filename_if_too_long(lock_file, max_filename_length)
         # The path to the lock file.
         self._lock_file = lock_file
 
@@ -173,7 +182,7 @@ class BaseFileLock:
 
     @timeout.setter
     def timeout(self, value):
-        """"""
+        """ """
         self._timeout = float(value)
         return None
 
@@ -263,7 +272,7 @@ class BaseFileLock:
                         self._acquire()
 
                 if self.is_locked:
-                    logger().info("Lock %s acquired on %s", lock_id, lock_filename)
+                    logger().debug("Lock %s acquired on %s", lock_id, lock_filename)
                     break
                 elif timeout >= 0 and time.time() - start_time > timeout:
                     logger().debug("Timeout on acquiring lock %s on %s", lock_id, lock_filename)
@@ -306,7 +315,7 @@ class BaseFileLock:
                     logger().debug("Attempting to release lock %s on %s", lock_id, lock_filename)
                     self._release()
                     self._lock_counter = 0
-                    logger().info("Lock %s released on %s", lock_id, lock_filename)
+                    logger().debug("Lock %s released on %s", lock_id, lock_filename)
 
         return None
 
@@ -321,6 +330,16 @@ class BaseFileLock:
     def __del__(self):
         self.release(force=True)
         return None
+
+    def hash_filename_if_too_long(self, path: str, max_length: int) -> str:
+        filename = os.path.basename(path)
+        if len(filename) > max_length and max_length > 0:
+            dirname = os.path.dirname(path)
+            hashed_filename = str(hash(filename))
+            new_filename = filename[: max_length - len(hashed_filename) - 8] + "..." + hashed_filename + ".lock"
+            return os.path.join(dirname, new_filename)
+        else:
+            return path
 
 
 # Windows locking mechanism

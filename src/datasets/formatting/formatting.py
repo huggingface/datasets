@@ -87,10 +87,11 @@ def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> 
     if isinstance(key, str):
         return table.table.drop([column for column in table.column_names if column != key])
     if isinstance(key, Iterable):
+        key = np.fromiter(key, np.int64)
         if len(key) == 0:
             return table.table.slice(0, 0)
         # don't use pyarrow.Table.take even for pyarrow >=1.0 (see https://issues.apache.org/jira/browse/ARROW-9773)
-        return pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in key)
+        return table.fast_gather(key % table.num_rows)
 
     _raise_bad_key_type(key)
 
@@ -165,10 +166,10 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
 
 class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFrame]):
     def extract_row(self, pa_table: pa.Table) -> pd.DataFrame:
-        return pa_table.to_pandas(types_mapper=pandas_types_mapper).head(1)
+        return pa_table.slice(length=1).to_pandas(types_mapper=pandas_types_mapper)
 
     def extract_column(self, pa_table: pa.Table) -> pd.Series:
-        return pa_table.to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
+        return pa_table.select([0]).to_pandas(types_mapper=pandas_types_mapper)[pa_table.column_names[0]]
 
     def extract_batch(self, pa_table: pa.Table) -> pd.DataFrame:
         return pa_table.to_pandas(types_mapper=pandas_types_mapper)
@@ -176,8 +177,8 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
-    A formatter is an object that extracts and formats data from pyarrow table.
-    It defines the formatting for rows, colums and batches.
+    A formatter is an object that extracts and formats data from pyarrow tables.
+    It defines the formatting for rows, columns and batches.
     """
 
     simple_arrow_extractor = SimpleArrowExtractor

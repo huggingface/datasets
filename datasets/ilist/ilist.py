@@ -16,6 +16,7 @@
 
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -56,6 +57,7 @@ class Ilist(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/kmi-linguistics/vardial2018",
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="language_id")],
         )
 
     def _split_generators(self, dl_manager):
@@ -92,7 +94,7 @@ class Ilist(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples. """
+        """Yields examples."""
         with open(filepath, "r", encoding="utf-8") as file:
             for idx, row in enumerate(file):
                 row = row.strip("\n").split("\t")

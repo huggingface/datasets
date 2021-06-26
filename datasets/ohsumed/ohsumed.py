@@ -146,7 +146,7 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples."""
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
@@ -188,7 +188,7 @@ class Ohsumed(datasets.GeneratorBasedBuilder):
                 if line.startswith(".I"):
                     tag = ".I"
                     if data["medline_ui"] != -1:
-                        id_ = data["seq_id"]
+                        id_ = data["seq_id"] + "_" + data["medline_ui"]
                         yield id_, {
                             "seq_id": data["seq_id"],
                             "medline_ui": data["medline_ui"],

@@ -18,6 +18,7 @@
 import csv
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -147,6 +148,7 @@ class Banking77(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):
@@ -159,7 +161,7 @@ class Banking77(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         with open(filepath, encoding="utf-8") as f:
             csv_reader = csv.reader(f, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True)
             # call next to skip header
