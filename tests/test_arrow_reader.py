@@ -9,7 +9,7 @@ import pytest
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_reader import ArrowReader, BaseReader, ReadInstruction
 from datasets.info import DatasetInfo
-from datasets.splits import NamedSplit, NamedSplitAll, Split, SplitDict, SplitInfo
+from datasets.splits import NamedSplit, Split, SplitDict, SplitInfo
 
 from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
