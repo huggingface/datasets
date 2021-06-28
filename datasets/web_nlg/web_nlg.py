@@ -239,7 +239,7 @@ class WebNlg(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filedirs": [
-                        os.path.join(data_dir, "webnlg-dataset-master", dir_suf) for dir_suf in dir_suffix_list
+                        os.path.join(data_dir, "webnlg-dataset-587fa698bec705efbefe72a235a6019c2b9b8b6c", dir_suf) for dir_suf in dir_suffix_list
                     ],
                 },
             )
