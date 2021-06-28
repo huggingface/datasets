@@ -11,6 +11,7 @@ class Audio:
     Args:
         coding_format (:obj:`str`, optional): Audio coding format. If `None`, this is inferred from file.
     """
+
     coding_format: str = None
     id: Optional[str] = None
     # Automatically constructed
@@ -36,8 +37,10 @@ class Audio:
         import soundfile as sf
 
         if self.coding_format and self.coding_format not in self._supported_coding_formats:
-            raise ValueError(f"Audio coding format {self.coding_format} is not supported. Audio coding format must be "
-                             f"one of: {self._supported_coding_formats}")
+            raise ValueError(
+                f"Audio coding format {self.coding_format} is not supported. Audio coding format must be "
+                f"one of: {self._supported_coding_formats}"
+            )
 
         with open(value, "rb") as f:
             array, sample_rate = sf.read(f, format=self.coding_format)
