@@ -372,9 +372,24 @@ class Array5DExtensionType(_ArrayXDExtensionType):
     ndims = 5
 
 
+def _is_zero_copy_only(pa_type: pa.DataType) -> bool:
+    """
+    When converting a pyarrow array to a numpy array, we must know whether this could be done in zero-copy or not.
+    This function returns the value of the ``zero_copy_only`` parameter to pass to ``.to_numpy()``, given the type of the pyarrow array.
+
+    # zero copy is available for all primitive types except booleans
+    # primitive types are types for which the physical representation in arrow and in numpy
+    # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
+    # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
+    # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
+    """
+    return is_primitive(pa_type) and not is_boolean(pa_type)
+
+
 class ArrayExtensionArray(pa.ExtensionArray):
     def __array__(self):
-        return self.to_numpy()
+        zero_copy_only = _is_zero_copy_only(self.storage.type)
+        return self.to_numpy(zero_copy_only=zero_copy_only)
 
     def __getitem__(self, i):
         return self.storage[i]
@@ -390,7 +405,8 @@ class ArrayExtensionArray(pa.ExtensionArray):
         return numpy_arr
 
     def to_pylist(self):
-        return self.to_numpy().tolist()
+        zero_copy_only = _is_zero_copy_only(self.storage.type)
+        return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
@@ -400,12 +416,7 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         self._value_type = value_type
 
     def __from_arrow__(self, array):
-        # zero copy is available for all primitive types except booleans
-        # primitive types are types for which the physical representation in arrow and in numpy
-        # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
-        # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
-        # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
-        zero_copy_only = is_primitive(array.type) and not is_boolean(array.type)
+        zero_copy_only = _is_zero_copy_only(array.type)
         if isinstance(array, pa.ChunkedArray):
             numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
         else:
