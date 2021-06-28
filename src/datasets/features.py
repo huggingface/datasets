@@ -385,12 +385,6 @@ class ArrayExtensionArray(pa.ExtensionArray):
         for i in range(self.type.ndims):
             size *= self.type.shape[i]
             storage = storage.flatten()
-        # zero copy is available for all primitive types except booleans
-        # primitive types are types for which the physical representation in arrow and in numpy
-        # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
-        # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
-        # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
-        zero_copy_only = zero_copy_only and is_primitive(storage.type) and not is_boolean(storage.type)
         numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
         numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr
@@ -406,10 +400,16 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         self._value_type = value_type
 
     def __from_arrow__(self, array):
+        # zero copy is available for all primitive types except booleans
+        # primitive types are types for which the physical representation in arrow and in numpy
+        # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
+        # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
+        # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
+        zero_copy_only = is_primitive(array.type) and not is_boolean(array.type)
         if isinstance(array, pa.ChunkedArray):
-            numpy_arr = np.vstack([chunk.to_numpy() for chunk in array.chunks])
+            numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
         else:
-            numpy_arr = array.to_numpy()
+            numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
         return PandasArrayExtensionArray(numpy_arr)
 
     @classmethod

@@ -19,6 +19,7 @@ from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping,
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+from pyarrow.types import is_boolean, is_primitive
 
 from ..features import pandas_types_mapper
 from ..table import Table
@@ -154,15 +155,21 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         return {col: self._arrow_array_to_numpy(pa_table[col]) for col in pa_table.column_names}
 
     def _arrow_array_to_numpy(self, pa_array: pa.Array) -> np.ndarray:
+        # zero copy is available for all primitive types except booleans
+        # primitive types are types for which the physical representation in arrow and in numpy
+        # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
+        # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
+        # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
+        zero_copy_only = is_primitive(pa_array.type) and not is_boolean(pa_array.type)
         if isinstance(pa_array, pa.ChunkedArray):
             # don't call to_numpy() directly or we end up with a np.array with dtype object
             # call to_numpy on the chunks instead
             array: List[np.ndarray] = [
-                row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=False)
+                row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
             ]
         else:
             # cast to list of arrays or we end up with a np.array with dtype object
-            array: List[np.ndarray] = pa_array.to_numpy().tolist()
+            array: List[np.ndarray] = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
         return np.array(array, copy=False, **self.np_array_kwargs)
 
 
