@@ -6,6 +6,11 @@ import pyarrow as pa
 
 @dataclass
 class Audio:
+    """Audio Feature to extract audio data from an audio file.
+
+    Args:
+        coding_format (:obj:`str`, optional): Audio coding format. If `None`, this is inferred from file.
+    """
     coding_format: str = None
     id: Optional[str] = None
     # Automatically constructed
@@ -20,6 +25,14 @@ class Audio:
         return pa.struct({"array": pa.array(), "sample_rate": pa.int32()})
 
     def encode_example(self, value):
+        """Encode example audio file into audio data.
+
+        Args:
+            value: Audio file path.
+
+        Returns:
+            dict
+        """
         import soundfile as sf
 
         if self.coding_format and self.coding_format not in self._supported_coding_formats:
