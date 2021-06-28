@@ -90,6 +90,10 @@ REQUIRED_PKGS = [
     "packaging",
 ]
 
+AUDIO_REQUIRE = [
+    "soundfile",
+]
+
 BENCHMARKS_REQUIRE = [
     "numpy==1.18.5",
     "tensorflow==2.3.0",
@@ -168,6 +172,7 @@ QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
+    "audio": AUDIO_REQUIRE,
     "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": ["tensorflow>=2.2.0"],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
