@@ -31,6 +31,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: codesearchnet
+pretty_name: CodeSearchNet
 ---
 
 # Dataset Card for CodeSearchNet corpus
