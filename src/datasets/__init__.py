@@ -62,7 +62,17 @@ from .iterable_dataset import IterableDataset
 from .keyhash import KeyHasher
 from .load import import_main_class, load_dataset, load_from_disk, load_metric, prepare_module
 from .metric import Metric
-from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
+from .splits import (
+    NamedSplit,
+    NamedSplitAll,
+    Split,
+    SplitBase,
+    SplitDict,
+    SplitGenerator,
+    SplitInfo,
+    SubSplitInfo,
+    percent,
+)
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar
 
