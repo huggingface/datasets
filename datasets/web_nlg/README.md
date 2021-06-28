@@ -70,6 +70,7 @@ task_ids:
   webnlg_challenge_2017:
   - other-stuctured-to-text
 paperswithcode_id: webnlg
+pretty_name: WebNLG
 ---
 
 # Dataset Card for WebNLG
