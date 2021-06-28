@@ -81,11 +81,11 @@ An example instance looks as follows:
 ### Data Fields
 
 Each instance in the dataset has:
-- an id
-- sequence of tokens
-- NER tags for each token (encoded as IOB)
+- `id`: an id as a string
+- `tokens`: sequence of tokens
+- `ner_tags`: NER tags for each token (encoded as IOB)
 
-NER tags can be: 'B-LOC', 'B-ORG', 'B-OTH', 'B-PER', 'I-LOC', 'I-ORG', 'I-OTH', 'I-PER', 'O'
+NER tags can be: 'B-LOC' (0), 'B-ORG' (1), 'B-OTH' (2), 'B-PER' (3), 'I-LOC' (4), 'I-ORG' (5), 'I-OTH' (6), 'I-PER' (7), 'O' (8)
 
 ### Data Splits
 
