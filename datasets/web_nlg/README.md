@@ -44,10 +44,8 @@ task_categories:
   - conditional-text-generation
   release_v3.0_en:
   - conditional-text-generation
-  - structure-prediction
   release_v3.0_ru:
   - conditional-text-generation
-  - structure-prediction
   webnlg_challenge_2017:
   - conditional-text-generation
 task_ids:
@@ -62,11 +60,9 @@ task_ids:
   release_v2_constrained:
   - other-stuctured-to-text
   release_v3.0_en:
-  - conditional-text-generation
-  - parsing
+  - other-stuctured-to-text
   release_v3.0_ru:
-  - conditional-text-generation
-  - parsing
+  - other-stuctured-to-text
   webnlg_challenge_2017:
   - other-stuctured-to-text
 paperswithcode_id: webnlg
@@ -125,7 +121,7 @@ aggregation (how to avoid repetitions) and surface realisation
 
 ### Supported Tasks and Leaderboards
 
-The dataset supports a `other-structured-to-text` task which requires a model takes a set of RDF (Resource Description Format) triples from a database (DBpedia) of the form (subject, property, object) as input and write out a natural language sentence expressing the information contained in the triples. The dataset has supportd two challenges: the [WebNLG2017](https://www.aclweb.org/anthology/W17-3518/) and [WebNLG2020](https://gerbil-nlg.dice-research.org/gerbil/webnlg2020results) challenge. Results were ordered by their [METEOR](https://huggingface.co/metrics/meteor) to the reference, but the leaderboards report a range of other metrics including [BLEU](https://huggingface.co/metrics/bleu), [BERTscore](https://huggingface.co/metrics/bertscore), and [BLEURT](https://huggingface.co/metrics/bleurt). The v3 release (`release_v3.0_en`, `release_v3.0_ru`) for the WebNLG2020 challenge also supports a semantic `parsing` task.
+The dataset supports a Structured to Text task which requires a model takes a set of RDF (Resource Description Format) triples from a database (DBpedia) of the form (subject, property, object) as input and write out a natural language sentence expressing the information contained in the triples. The dataset has supportd two challenges: the [WebNLG2017](https://www.aclweb.org/anthology/W17-3518/) and [WebNLG2020](https://gerbil-nlg.dice-research.org/gerbil/webnlg2020results) challenge. Results were ordered by their [METEOR](https://huggingface.co/metrics/meteor) to the reference, but the leaderboards report a range of other metrics including [BLEU](https://huggingface.co/metrics/bleu), [BERTscore](https://huggingface.co/metrics/bertscore), and [BLEURT](https://huggingface.co/metrics/bleurt). The v3 release (`release_v3.0_en`, `release_v3.0_ru`) for the WebNLG2020 challenge also supports a semantic `parsing` task.
 
 ### Languages
 
