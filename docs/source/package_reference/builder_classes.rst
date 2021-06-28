@@ -23,6 +23,8 @@ Two main classes are mostly used during the dataset building process.
 
 .. autoclass:: datasets.NamedSplit
 
+.. autoclass:: datasets.NamedSplitAll
+
 .. autoclass:: datasets.ReadInstruction
 
 .. autoclass:: datasets.utils::DownloadConfig
