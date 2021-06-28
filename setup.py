@@ -101,6 +101,7 @@ TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
     "pytest",
+    "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
     "apache-beam>=2.26.0",
