@@ -22,7 +22,7 @@ class Audio:
         self.coding_format = self.coding_format.upper() if self.coding_format else None
 
     def __call__(self):
-        return pa.struct({"array": pa.array(), "sample_rate": pa.int32()})
+        return pa.struct({"array": pa.list_(pa.float64()), "sample_rate": pa.int32()})
 
     def encode_example(self, value):
         """Encode example audio file into audio data.
