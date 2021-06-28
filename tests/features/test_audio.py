@@ -1,3 +1,7 @@
+import sys
+
+import pytest
+
 from datasets.features import Audio
 
 
@@ -9,6 +13,9 @@ def test_audio_instantiation():
     assert audio._type == "Audio"
 
 
+@pytest.mark.skipif(
+    sys.platform == "linux", reason="linux requires libsndfile installed using distribution package manager"
+)
 def test_audio_encode_example(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     audio = Audio()
