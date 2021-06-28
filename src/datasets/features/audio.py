@@ -22,6 +22,16 @@ class Audio:
     def encode_example(self, value):
         import soundfile as sf
 
+        if self.coding_format and self.coding_format not in self._supported_coding_formats:
+            raise ValueError(f"Audio coding format {self.coding_format} is not supported. Audio coding format must be "
+                             f"one of: {self._supported_coding_formats}")
+
         with open(value, "rb") as f:
             array, sample_rate = sf.read(f, format=self.coding_format)
         return {"array": array, "sample_rate": sample_rate}
+
+    @property
+    def _supported_coding_formats(self):
+        import soundfile as sf
+
+        return list(sf.available_formats().keys())
