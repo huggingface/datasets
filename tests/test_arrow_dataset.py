@@ -2243,6 +2243,15 @@ def test_dataset_from_json_features(features, jsonl_path, tmp_path):
     _check_json_dataset(dataset, expected_features)
 
 
+def test_dataset_from_json_with_class_label_feature(jsonl_str_path, tmp_path):
+    features = Features(
+        {"col_1": ClassLabel(names=["s0", "s1", "s2", "s3"]), "col_2": Value("int64"), "col_3": Value("float64")}
+    )
+    cache_dir = tmp_path / "cache"
+    dataset = Dataset.from_json(jsonl_str_path, features=features, cache_dir=cache_dir)
+    assert dataset.features["col_1"].dtype == "int64"
+
+
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 def test_dataset_from_json_split(split, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
