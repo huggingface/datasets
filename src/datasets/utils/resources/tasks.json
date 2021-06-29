@@ -77,6 +77,19 @@
             "other"
         ]
     },
+    "automatic-speech-recognition": {
+        "description": "recognising speech within audio and converting it to text",
+        "options": [
+            "speech-recognition",
+            "visual-speech-recognition",
+            "distant-speech-recognition",
+            "robust-speech-recognition",
+            "seq2seq-speech-recognition",
+            "accented-speech-recognition",
+            "noisy-speech-recognition",
+            "other"
+        ]
+    },
     "other": {
         "description": "other task family not mentioned here",
         "options": [
