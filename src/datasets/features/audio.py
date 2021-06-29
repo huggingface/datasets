@@ -44,7 +44,7 @@ class Audio:
 
         with open(value, "rb") as f:
             array, sample_rate = sf.read(f, format=self.coding_format)
-        return {"array": array, "sample_rate": sample_rate}
+        return {"array": array.reshape(-1), "sample_rate": sample_rate}
 
     @property
     def _supported_coding_formats(self):
