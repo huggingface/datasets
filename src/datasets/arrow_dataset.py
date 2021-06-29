@@ -1691,7 +1691,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             if num_proc > len(self):
                 num_proc = len(self)
-                logger.info(
+                logger.warning(
                     f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
                 )
 
