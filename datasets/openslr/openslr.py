@@ -21,7 +21,7 @@ import re
 from pathlib import Path
 
 import datasets
-
+from datasets.tasks import AutomaticSpeechRecognition
 
 _DATA_URL = "https://openslr.org/resources/{}"
 
@@ -547,6 +547,9 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[
+                AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="sentence")
+            ],
         )
 
     def _split_generators(self, dl_manager):
