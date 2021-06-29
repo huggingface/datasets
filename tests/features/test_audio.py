@@ -33,7 +33,7 @@ def test_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"file": [audio_path]}
     features = Features({"file": Audio()})
-    dset = Dataset.from_dict(data, features=features)
+    dset = Dataset.from_dict(data, features=features).map(features.decode_example)
     assert dset.shape == (1, 1)
     assert dset.column_names == ["file"]
     assert isinstance(dset[0]["file"], dict)
