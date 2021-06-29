@@ -287,7 +287,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self.info.features.type != inferred_features.type:
             raise ValueError(
                 "External features info don't match the dataset:\nGot\n{}\nwith type\n{}\n\nbut expected something like\n{}\nwith type\n{}".format(
-                    self.info.features, self.info.features.type, inferred_features, inferred_features.type
+                    self.info.features,
+                    self.info.features.type,
+                    inferred_features,
+                    inferred_features.type,
                 )
             )
 
@@ -446,7 +449,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             mapping = cast_to_python_objects(mapping)
         mapping = {
-            col: OptimizedTypedSequence(data, type=features.type[col].type if features is not None else None, col=col)
+            col: OptimizedTypedSequence(
+                data,
+                type=features.type[col].type if features is not None else None,
+                col=col,
+            )
             for col, data in mapping.items()
         }
         pa_table = InMemoryTable.from_pydict(mapping=mapping)
@@ -478,7 +485,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         from .io.csv import CsvDatasetReader
 
         return CsvDatasetReader(
-            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            **kwargs,
         ).read()
 
     @staticmethod
@@ -544,7 +556,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         from .io.text import TextDatasetReader
 
         return TextDatasetReader(
-            path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            **kwargs,
         ).read()
 
     def __del__(self):
@@ -643,11 +660,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     writer.write_table(self._indices)
                     writer.finalize()
         with fs.open(
-            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
+            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(),
+            "w",
+            encoding="utf-8",
         ) as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
         with fs.open(
-            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
+            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(),
+            "w",
+            encoding="utf-8",
         ) as dataset_info_file:
             # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
             sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
@@ -692,11 +713,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
         with open(
-            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
+            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(),
+            "r",
+            encoding="utf-8",
         ) as state_file:
             state = json.load(state_file)
         with open(
-            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8"
+            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(),
+            "r",
+            encoding="utf-8",
         ) as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
@@ -806,7 +831,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Stringify the column
         if src_feat.dtype != "string":
             dset = self.map(
-                lambda batch: {column: [str(sample) for sample in batch]}, input_columns=column, batched=True
+                lambda batch: {column: [str(sample) for sample in batch]},
+                input_columns=column,
+                batched=True,
             )
         else:
             dset = self
@@ -814,7 +841,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Create the new feature
         class_names = sorted(dset.unique(column))
         dst_feat = ClassLabel(names=class_names)
-        dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
+        dset = dset.map(
+            lambda batch: {column: dst_feat.str2int(batch)},
+            input_columns=column,
+            batched=True,
+        )
         dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = dset.features.copy()
@@ -1270,7 +1301,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             self.set_format(type, columns, output_all_columns, **format_kwargs)
             yield
         finally:
-            self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
+            self.set_format(
+                old_format_type,
+                old_format_columns,
+                old_output_all_columns,
+                **old_format_kwargs,
+            )
 
     @fingerprint_transform(inplace=True)
     def set_format(
@@ -1311,7 +1347,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if columns is not None and any(col not in self._data.column_names for col in columns):
             raise ValueError(
                 "Columns {} not in the dataset. Current columns in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, columns)), self._data.column_names
+                    list(filter(lambda col: col not in self._data.column_names, columns)),
+                    self._data.column_names,
                 )
             )
 
@@ -1353,7 +1390,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If set to True, then the other un-formatted columns are kept with the output of the transform.
 
         """
-        self.set_format("custom", columns=columns, output_all_columns=output_all_columns, transform=transform)
+        self.set_format(
+            "custom",
+            columns=columns,
+            output_all_columns=output_all_columns,
+            transform=transform,
+        )
 
     def with_format(
         self,
@@ -1379,7 +1421,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         dataset = copy.deepcopy(self)
-        dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
+        dataset.set_format(
+            type=type,
+            columns=columns,
+            output_all_columns=output_all_columns,
+            **format_kwargs,
+        )
         return dataset
 
     def with_transform(
@@ -1467,9 +1514,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         format_kwargs = format_kwargs if format_kwargs is not None else {}
         formatter = get_formatter(format_type, **format_kwargs)
-        pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
+        pa_subtable = query_table(
+            self._data,
+            key,
+            indices=self._indices if self._indices is not None else None,
+        )
         formatted_output = format_table(
-            pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
+            pa_subtable,
+            key,
+            formatter=formatter,
+            format_columns=format_columns,
+            output_all_columns=output_all_columns,
         )
         return formatted_output
 
@@ -1634,6 +1689,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 desc=desc,
             )
         else:
+            if num_proc > len(self):
+                num_proc = len(self)
+                logger.info(
+                    f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
+                )
 
             def format_cache_file_name(cache_file_name, rank):
                 sep = cache_file_name.rindex(".")
@@ -1659,7 +1719,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
                 os.environ = prev_env
                 shards = [
-                    self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
+                    self.shard(
+                        num_shards=num_proc,
+                        index=rank,
+                        contiguous=True,
+                        keep_in_memory=keep_in_memory,
+                    )
                     for rank in range(num_proc)
                 ]
                 kwds_per_shard = [
@@ -1774,7 +1839,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
             raise ValueError(
                 "Column to remove {} not in the dataset. Current columns in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, remove_columns)),
+                    list(
+                        filter(
+                            lambda col: col not in self._data.column_names,
+                            remove_columns,
+                        )
+                    ),
                     self._data.column_names,
                 )
             )
@@ -1836,7 +1906,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if all_dict_values_are_lists is False:
                     raise TypeError(
                         "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
-                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
+                            [type(x) for x in processed_inputs.values()],
+                            allowed_batch_return_types,
                         )
                     )
 
@@ -1920,7 +1991,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # Only load the columns we actually need
                 if input_columns:
                     input_dataset = self.with_format(
-                        self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
+                        self._format_type,
+                        columns=input_columns,
+                        output_all_columns=False,
+                        **self._format_kwargs,
                     )
                     if remove_columns:
                         remove_columns = list(set(remove_columns) & set(input_columns))
@@ -2220,14 +2294,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             buf_writer = pa.BufferOutputStream()
             tmp_file = None
             writer = ArrowWriter(
-                stream=buf_writer, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+                stream=buf_writer,
+                writer_batch_size=writer_batch_size,
+                fingerprint=new_fingerprint,
+                unit="indices",
             )
         else:
             buf_writer = None
             logger.info("Caching indices mapping at %s", indices_cache_file_name)
             tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(indices_cache_file_name), delete=False)
             writer = ArrowWriter(
-                path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+                path=tmp_file.name,
+                writer_batch_size=writer_batch_size,
+                fingerprint=new_fingerprint,
+                unit="indices",
             )
 
         indices_array = pa.array(indices, type=pa.uint64())
@@ -2258,7 +2338,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Return new Dataset object
         if buf_writer is None:
             return self._new_dataset_with_indices(
-                indices_cache_file_name=indices_cache_file_name, fingerprint=new_fingerprint
+                indices_cache_file_name=indices_cache_file_name,
+                fingerprint=new_fingerprint,
             )
         else:
             return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
@@ -2321,13 +2402,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.warning("Loading cached sorted indices for dataset at %s", indices_cache_file_name)
+                logger.warning(
+                    "Loading cached sorted indices for dataset at %s",
+                    indices_cache_file_name,
+                )
                 return self._new_dataset_with_indices(
-                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
+                    fingerprint=new_fingerprint,
+                    indices_cache_file_name=indices_cache_file_name,
                 )
 
         column_data = self._getitem(
-            column, format_type="numpy", format_columns=None, output_all_columns=False, format_kwargs=None
+            column,
+            format_type="numpy",
+            format_columns=None,
+            output_all_columns=False,
+            format_kwargs=None,
         )
         indices = np.argsort(column_data, kind=kind)
         if reverse:
@@ -2343,7 +2432,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @transmit_format
     @fingerprint_transform(
-        inplace=False, randomized_function=True, ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"]
+        inplace=False,
+        randomized_function=True,
+        ignore_kwargs=["load_from_cache_file", "indices_cache_file_name"],
     )
     def shuffle(
         self,
@@ -2404,9 +2495,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.warning("Loading cached shuffled indices for dataset at %s", indices_cache_file_name)
+                logger.warning(
+                    "Loading cached shuffled indices for dataset at %s",
+                    indices_cache_file_name,
+                )
                 return self._new_dataset_with_indices(
-                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
+                    fingerprint=new_fingerprint,
+                    indices_cache_file_name=indices_cache_file_name,
                 )
 
         permutation = generator.permutation(len(self))
@@ -2424,7 +2519,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         inplace=False,
         randomized_function=True,
         fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
-        ignore_kwargs=["load_from_cache_file", "train_indices_cache_file_name", "test_indices_cache_file_name"],
+        ignore_kwargs=[
+            "load_from_cache_file",
+            "train_indices_cache_file_name",
+            "test_indices_cache_file_name",
+        ],
     )
     def train_test_split(
         self,
@@ -2586,10 +2685,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return DatasetDict(
                     {
                         "train": self._new_dataset_with_indices(
-                            fingerprint=train_new_fingerprint, indices_cache_file_name=train_indices_cache_file_name
+                            fingerprint=train_new_fingerprint,
+                            indices_cache_file_name=train_indices_cache_file_name,
                         ),
                         "test": self._new_dataset_with_indices(
-                            fingerprint=test_new_fingerprint, indices_cache_file_name=test_indices_cache_file_name
+                            fingerprint=test_new_fingerprint,
+                            indices_cache_file_name=test_indices_cache_file_name,
                         ),
                     }
                 )
@@ -2893,7 +2994,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info = self.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
-        return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
+        return Dataset(
+            table,
+            info=info,
+            split=self.split,
+            indices_table=self._indices,
+            fingerprint=new_fingerprint,
+        )
 
     def add_faiss_index(
         self,
@@ -3232,7 +3339,9 @@ def concatenate_datasets(
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
-        "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}
+        "".join(dset._fingerprint for dset in dsets),
+        concatenate_datasets,
+        {"info": info, "split": split},
     )
 
     # Make final concatenated dataset
