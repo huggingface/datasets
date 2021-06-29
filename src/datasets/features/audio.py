@@ -25,8 +25,8 @@ class Audio:
     def __call__(self):
         return pa.struct({"array": pa.list_(pa.float64()), "sample_rate": pa.int32()})
 
-    def encode_example(self, value):
-        """Encode example audio file into audio data.
+    def decode_example(self, value):
+        """Decode example audio file into audio data.
 
         Args:
             value: Audio file path.
