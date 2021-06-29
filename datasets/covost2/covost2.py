@@ -21,7 +21,6 @@ import os
 import pandas as pd
 
 import datasets
-from datasets.tasks import AutomaticSpeechRecognition
 
 
 _VERSION = "1.0.0"
@@ -103,9 +102,6 @@ class Covost2(datasets.GeneratorBasedBuilder):
                 sentence=datasets.Value("string"),
                 translation=datasets.Value("string"),
                 id=datasets.Value("string"),
-                task_templates=[
-                    AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="sentence")
-                ],
             ),
             supervised_keys=("file", "translation"),
             homepage=_HOMEPAGE,
