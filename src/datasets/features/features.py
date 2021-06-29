@@ -778,10 +778,21 @@ def encode_nested_example(schema, obj):
         return [encode_nested_example(schema.feature, o) for o in obj]
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (Audio, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
         return schema.encode_example(obj)
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
+
+
+# TODO: implement more cases
+def decode_nested_example(feature, example):
+    if isinstance(feature, dict):
+        return {
+            col: decode_nested_example(col_feature, col_example)
+            for col, (col_feature, col_example) in utils.zip_dict(feature, example)
+        }
+    elif isinstance(feature, Audio):
+        return feature.decode_example(example)
 
 
 def generate_from_dict(obj: Any):
@@ -923,6 +934,10 @@ class Features(dict):
             column = cast_to_python_objects(column)
             encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
         return encoded_batch
+
+    def decode_example(self, example):
+        # TODO
+        return decode_nested_example(self, example)
 
     def copy(self) -> "Features":
         """
