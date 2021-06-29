@@ -23,7 +23,7 @@ class Audio:
         self.coding_format = self.coding_format.upper() if self.coding_format else None
 
     def __call__(self):
-        return pa.struct({"array": pa.list_(pa.float64()), "sample_rate": pa.int32()})
+        return pa.string()
 
     def decode_example(self, value):
         """Decode example audio file into audio data.
