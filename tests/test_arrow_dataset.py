@@ -14,22 +14,13 @@ from absl.testing import parameterized
 
 import datasets.arrow_dataset
 from datasets import concatenate_datasets, load_from_disk, temp_seed
-from datasets.arrow_dataset import (
-    Dataset,
-    transmit_format,
-    update_metadata_with_features,
-)
+from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
-from datasets.tasks import (
-    AutomaticSpeechRecognition,
-    QuestionAnsweringExtractive,
-    Summarization,
-    TextClassification,
-)
+from datasets.tasks import AutomaticSpeechRecognition, QuestionAnsweringExtractive, Summarization, TextClassification
 from datasets.utils.logging import WARNING
 
 from .conftest import s3_test_bucket_name
@@ -930,7 +921,7 @@ class BaseDatasetTest(TestCase):
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                 fingerprint = dset._fingerprint
-                with dset.select([0, 1]) as dset:
+                with dset.select([0, 1], keep_in_memory=True) as dset:
                     with dset.map(picklable_map_function, num_proc=5) as dset_test:
                         self.assertEqual(len(dset_test), 2)
                         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
