@@ -30,13 +30,13 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-BERTScore leverages the pre-trained contextual embeddings from BERT and matches words in candidate and reference 
+BERTScore leverages the pre-trained contextual embeddings from BERT and matches words in candidate and reference
 sentences by cosine similarity.
 It has been shown to correlate with human judgment on sentence-level and system-level evaluation.
-Moreover, BERTScore computes precision, recall, and F1 measure, which can be useful for evaluating different language 
+Moreover, BERTScore computes precision, recall, and F1 measure, which can be useful for evaluating different language
 generation tasks.
 
-See the `README.md` file at [https://github.com/Tiiiger/bert_score](https://github.com/Tiiiger/bert_score) for more 
+See the `README.md` file at [https://github.com/Tiiiger/bert_score](https://github.com/Tiiiger/bert_score) for more
 information.
 """
 
