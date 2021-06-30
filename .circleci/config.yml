@@ -116,8 +116,8 @@ workflows:
         jobs:
             - check_code_quality
             - run_dataset_script_tests_pyarrow_latest
-            - run_dataset_script_tests_pyarrow_3
+            - run_dataset_script_tests_pyarrow_1
             - run_dataset_script_tests_pyarrow_latest_WIN
-            - run_dataset_script_tests_pyarrow_3_WIN
+            - run_dataset_script_tests_pyarrow_1_WIN
             - build_doc
             - deploy_doc: *workflow_filters
