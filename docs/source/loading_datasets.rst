@@ -431,7 +431,7 @@ For example, run the following to skip integrity verifications when loading the 
 Loading datasets offline
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each dataset builder (e.g. "squad") is a python script that is downloaded and cached from either from the huggingface/datasets GitHub repository or from the `HuggingFace Hub <https://huggingface.co/datasets>`__.
+Each dataset builder (e.g. "squad") is a python script that is downloaded and cached from either from the 🤗Datasets GitHub repository or from the `HuggingFace Hub <https://huggingface.co/datasets>`__.
 Only the ``text``, ``csv``, ``json`` and ``pandas`` builders are included in ``datasets`` without requiring external downloads.
 
 Therefore if you don't have an internet connection you can't load a dataset that is not packaged with ``datasets``, unless the dataset is already cached.
