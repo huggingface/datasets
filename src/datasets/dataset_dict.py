@@ -748,7 +748,7 @@ class DatasetDict(dict):
         Args:
             path_or_paths (dict of path-like): Path(s) of the CSV file(s).
             features (:class:`Features`, optional): Dataset features.
-            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
 
@@ -775,7 +775,7 @@ class DatasetDict(dict):
         Args:
             path_or_paths (path-like or list of path-like): Path(s) of the JSON Lines file(s).
             features (:class:`Features`, optional): Dataset features.
-            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
 
@@ -803,12 +803,12 @@ class DatasetDict(dict):
         Args:
             path_or_paths (dict of path-like): Path(s) of the CSV file(s).
             features (:class:`Features`, optional): Dataset features.
-            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             columns (:obj:`List[str]`, optional): If not None, only these columns will be read from the file.
                 A column name may be a prefix of a nested field, e.g. 'a' will select
                 'a.b', 'a.c', and 'a.d.e'.
-            **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
+            **kwargs: Keyword arguments to be passed to :class:`ParquetConfig`.
 
         Returns:
             :class:`DatasetDict`
@@ -817,7 +817,12 @@ class DatasetDict(dict):
         from .io.parquet import ParquetDatasetReader
 
         return ParquetDatasetReader(
-            path_or_paths, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
+            path_or_paths,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            columns=columns,
+            **kwargs,
         ).read()
 
     @staticmethod
@@ -833,7 +838,7 @@ class DatasetDict(dict):
         Args:
             path_or_paths (dict of path-like): Path(s) of the text file(s).
             features (:class:`Features`, optional): Dataset features.
-            cache_dir (str, optional, default="~/datasets"): Directory to cache data.
+            cache_dir (str, optional, default="~/.cache/huggingface/datasets"): Directory to cache data.
             keep_in_memory (bool, default=False): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :class:`TextConfig`.
 

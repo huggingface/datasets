@@ -563,7 +563,6 @@ def test_datasetdict_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_pa
 )
 def test_datasetdict_from_json_features(features, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
@@ -619,7 +618,6 @@ def test_datasetdict_from_parquet_keep_in_memory(keep_in_memory, parquet_path, t
 )
 def test_datasetdict_from_parquet_features(features, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
@@ -674,7 +672,6 @@ def test_datasetdict_from_text_keep_in_memory(keep_in_memory, text_path, tmp_pat
 )
 def test_datasetdict_from_text_features(features, text_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"text": "string"}
     expected_features = features.copy() if features else default_expected_features
     features = (
