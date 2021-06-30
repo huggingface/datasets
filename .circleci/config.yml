@@ -18,7 +18,7 @@ jobs:
             - run: pip install pyarrow --upgrade
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
-    run_dataset_script_tests_pyarrow_3:
+    run_dataset_script_tests_pyarrow_1:
         working_directory: ~/datasets
         docker:
             - image: circleci/python:3.6
@@ -29,7 +29,7 @@ jobs:
             - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
-            - run: pip install pyarrow==3.0.0
+            - run: pip install pyarrow==1.0.0
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
     run_dataset_script_tests_pyarrow_latest_WIN:
@@ -50,7 +50,7 @@ jobs:
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
 
-    run_dataset_script_tests_pyarrow_3_WIN:
+    run_dataset_script_tests_pyarrow_1_WIN:
         working_directory: ~/datasets
         executor:
             name: win/default
@@ -64,7 +64,7 @@ jobs:
             - run: "& venv/Scripts/activate.ps1"
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
-            - run: pip install pyarrow==3.0.0
+            - run: pip install pyarrow==1.0.0
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
 

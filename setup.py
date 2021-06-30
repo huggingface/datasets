@@ -73,9 +73,9 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 3.0.0 to support mix of struct and list types in parquet format
+    # Minimum 3.0.0 to support mix of struct and list types in parquet, and batch iterators of parquet data
     # pyarrow 4.0.0 introduced segfault bug, see: https://github.com/huggingface/datasets/pull/2268
-    "pyarrow>=3.0.0,!=4.0.0",
+    "pyarrow>=1.0.0,!=4.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow

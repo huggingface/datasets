@@ -22,7 +22,9 @@ from multiprocessing import Pool
 from typing import List, Optional
 from unittest import TestCase
 
+import pyarrow as pa
 from absl.testing import parameterized
+from packaging import version
 
 from datasets import cached_path, import_main_class, load_dataset, prepare_module
 from datasets.builder import BuilderConfig, DatasetBuilder
@@ -270,7 +272,10 @@ class LocalDatasetTest(parameterized.TestCase):
 
 
 def get_packaged_dataset_names():
-    return [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
+    packaged_datasets = [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
+    if version.parse(pa.__version) < version.parse("3.0.0"):  # parquet is not supported for pyarrow<3.0.0
+        packaged_datasets = [pd for pd in packaged_datasets if pd["dataset_name"] != "parquet"]
+    return packaged_datasets
 
 
 @parameterized.named_parameters(get_packaged_dataset_names())

@@ -5,6 +5,7 @@ from typing import List, Optional
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+from packaging import version
 
 import datasets
 
@@ -25,6 +26,10 @@ class Parquet(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = ParquetConfig
 
     def _info(self):
+        if version.parse(pa.__version__) < version.parse("3.0.0"):
+            raise ImportError(
+                "PyArrow >= 3.0.0 is required to used the Parquet dataset builder: pip install --upgrade pyarrow"
+            )
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):

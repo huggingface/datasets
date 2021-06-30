@@ -16,6 +16,7 @@ from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_pyarrow_at_least_3,
     require_s3,
     require_tf,
     require_torch,
@@ -597,6 +598,7 @@ def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",
             assert dataset.features[feature].dtype == expected_dtype
 
 
+@require_pyarrow_at_least_3
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_datasetdict_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
@@ -606,6 +608,7 @@ def test_datasetdict_from_parquet_keep_in_memory(keep_in_memory, parquet_path, t
     _check_parquet_datasetdict(dataset, expected_features)
 
 
+@require_pyarrow_at_least_3
 @pytest.mark.parametrize(
     "features",
     [
@@ -627,6 +630,7 @@ def test_datasetdict_from_parquet_features(features, parquet_path, tmp_path):
     _check_parquet_datasetdict(dataset, expected_features)
 
 
+@require_pyarrow_at_least_3
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 def test_datasetdict_from_parquet_split(split, parquet_path, tmp_path):
     if split:
