@@ -25,16 +25,15 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         __getitem__, cleanup_cache_files,
         map, filter, select, sort, shuffle, train_test_split, shard, export,
         save_to_disk, load_from_disk, flatten_indices,
-        to_csv, to_pandas, to_dict,
+        to_csv, to_pandas, to_dict, to_json, to_parquet,
         add_faiss_index, add_faiss_index_from_external_arrays, save_faiss_index, load_faiss_index,
         add_elasticsearch_index, load_elasticsearch_index,
         list_indexes, get_index, drop_index, search, search_batch, get_nearest_examples, get_nearest_examples_batch,
         info, split, builder_name, citation, config_name, dataset_size,
         description, download_checksums, download_size, features, homepage,
         license, size_in_bytes, supervised_keys, version,
-        from_csv, from_json, from_text,
+        from_csv, from_json, from_parquet, from_text,
         prepare_for_task, align_labels_with_mapping,
-        to_json,
 
 .. autofunction:: datasets.concatenate_datasets
 
@@ -56,7 +55,7 @@ It also has dataset transform methods like map or filter, to process all the spl
         flatten_, cast_, remove_columns_, rename_column_,
         flatten, cast, remove_columns, rename_column, class_encode_column,
         save_to_disk, load_from_disk,
-        from_csv, from_json, from_text,
+        from_csv, from_json, from_parquet, from_text,
         prepare_for_task, align_labels_with_mapping
 
 .. _package_reference_features:
