@@ -12,9 +12,9 @@ from .text import text
 def hash_python_lines(lines: List[str]) -> str:
     filtered_lines = []
     for line in lines:
-        line.replace("\n", "")  # remove line breaks, white space and comments
-        line.replace(" ", "")
-        line.replace("\t", "")
+        line = line.replace("\n", "")  # remove line breaks, white space and comments
+        line = line.replace(" ", "")
+        line = line.replace("\t", "")
         line = re.sub(r"#.*", "", line)
         if line:
             filtered_lines.append(line)
