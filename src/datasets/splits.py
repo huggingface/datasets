@@ -377,7 +377,7 @@ class NamedSplitAll(NamedSplit):
         super(NamedSplitAll, self).__init__("all")
 
     def __repr__(self):
-        return f"NamedSplitAll({self._name!r})"
+        return "NamedSplitAll()"
 
     def get_read_instruction(self, split_dict):
         # Merge all dataset split together
@@ -398,6 +398,7 @@ class Split:
       model architecture, etc.).
     - `TEST`: the testing data. This is the data to report metrics on. Typically
       you do not want to use this during model iteration as you may overfit to it.
+    - `ALL`: the union of all defined dataset splits.
 
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
@@ -407,10 +408,11 @@ class Split:
     TRAIN = NamedSplit("train")
     TEST = NamedSplit("test")
     VALIDATION = NamedSplit("validation")
+    ALL = NamedSplitAll()
 
     def __new__(cls, name):
         """Create a custom split with datasets.Split('custom_name')."""
-        return NamedSplit(name)
+        return NamedSplitAll() if name == "all" else NamedSplit(name)
 
 
 # Similar to SplitInfo, but contain an additional slice info

@@ -61,17 +61,17 @@ This call to :func:`datasets.load_metric` does the following steps under the hoo
 
 1. Download and import the **GLUE metric python script** from the Hub if it's not already stored in the library.
 
-.. note::
+   .. note::
 
-    Metric scripts are small python scripts which define the API of the metrics and contain the meta-information on the metric (citation, homepage, etc).
-    Metric script sometime need to import additional packages. If these packages are not installed an explicit message with information on how to install the additional packages should be raised.
-    You can find the GLUE metric script `here <https://github.com/huggingface/datasets/tree/master/metrics/glue/glue.py>`__ for instance.
+      Metric scripts are small python scripts that define the metrics API and contain the meta-information on the metric (citation, homepage, etc).
+      Metric scripts sometime need to import additional packages. If these packages are not installed, an explicit message with information on how to install the additional packages should be raised.
+      You can find the GLUE metric script `here <https://github.com/huggingface/datasets/tree/master/metrics/glue/glue.py>`__ for instance.
 
-2. Run the python metric script which will **instantiate and return a :class:`datasets.Metric` object** which is in charge of storing predictions/references and computing the metric values.
+2. Run the python metric script which will **instantiate and return a** :class:`datasets.Metric` **object**, which is in charge of storing the predictions/references and computing the metric values.
 
-.. note::
+   .. note::
 
-    The :class:`datasets.Metric` object use Apache Arrow Tables as the internal storing format for predictions and references. It allows to store predictions and references directly on disk with memory-mapping and thus do lazy computation of the metrics, in particular to easily gather the predictions in a distributed setup. The default in 🤗Datasets is to always memory-map metrics data on drive.
+      The :class:`datasets.Metric` object uses Apache Arrow Tables as the internal storing format for predictions and references. It allows to store predictions and references directly on disk with memory-mapping and thus do lazy computation of the metrics, in particular to easily gather the predictions in a distributed setup. The default in 🤗Datasets is to always memory-map metrics data on drive.
 
 Using a custom metric script
 -----------------------------------------------------------
@@ -107,9 +107,9 @@ Some metrics comprise several :obj:`configurations`. A Configuration define a sp
 
 This is in particular useful for composite benchmarks like GLUE which comprise several sub-sets with different associated metrices.
 
-For instance the GLUE benchmark comprise 11 sub-sets and this metric was further extended with support for the adversarial `HANS dataset by McCoy et al. <https://www.aclweb.org/anthology/P19-1334>`__ so the GLUE metric is provided with 12 configurations coresponding to various sub-set of this Natural Language Inference benchmark: "sst2", "mnli", "mnli_mismatched", "mnli_matched", "cola", "stsb", "mrpc", "qqp", "qnli", "rte", "wnli", "hans".
+For instance the GLUE benchmark comprise 11 sub-sets and this metric was further extended with support for the adversarial `HANS dataset by McCoy et al. <https://www.aclweb.org/anthology/P19-1334>`__. Therefore, the GLUE metric is provided with 12 configurations coresponding to various sub-set of this Natural Language Inference benchmark: "sst2", "mnli", "mnli_mismatched", "mnli_matched", "cola", "stsb", "mrpc", "qqp", "qnli", "rte", "wnli", "hans".
 
-To select a specific configuration of a metric, just provide its name as the second argument to :func:`datasets.load_metric`.
+To select a specific configuration of a metric, just provide the configuration name as the second argument to :func:`datasets.load_metric`.
 
 .. code-block::
 
@@ -141,7 +141,7 @@ Here is how we can instantiate the metric in such a distributed script:
 
 And that's it, you can use the metric on each node as described in :doc:`using_metrics` without taking special care for the distributed setting. In particular, the predictions and references can be computed and provided to the metric separately on each process. By default, the final evaluation of the metric will be done on the first node (rank 0) only when calling :func:`datasets.Metric.compute` after gathering the predictions and references from all the nodes. Computing on other processes (rank > 0) returns ``None``.
 
-Under the hood :class:`datasets.Metric` uses an Apache Arrow table to store (temporarly) predictions and references for each node on the filesystem thereby not cluttering the GPU or CPU memory. Once the final metric evalution is requested with :func:`datasets.Metric.compute`, the first node gets access to all the nodes' temp files and reads them to compute the metric at once.
+Under the hood :class:`datasets.Metric` uses an Apache Arrow table to store (temporarily) predictions and references for each node on the filesystem, thereby not cluttering the GPU or CPU memory. Once the final metric evalution is requested with :func:`datasets.Metric.compute`, the first node gets access to all the nodes' temp files and reads them to compute the metric at once.
 
 This way it's possible to perform distributed predictions (which is important for evaluation speed in distributed setting) while allowing to use complex non-additive metrics and not wasting GPU/CPU memory with prediction data.
 
@@ -193,7 +193,7 @@ Here is an example:
     >>> from datasets import load_metric
     >>> metric = load_metric('glue', 'mrpc', cache_dir="MY/CACHE/DIRECTORY")
 
-Alternatively, it's possible to avoiding storing the predictions and references on the drive and keep them in CPU memory (RAM) by setting the ``keep_in_memory`` argument of :func:`datasets.load_metric` to ``True`` as shown here:
+Alternatively, it's possible to avoid storing the predictions and references on the drive and keep them in CPU memory (RAM) by setting the ``keep_in_memory`` argument of :func:`datasets.load_metric` to ``True`` as shown here:
 
 .. code-block::
 

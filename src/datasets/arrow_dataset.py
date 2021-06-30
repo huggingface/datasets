@@ -58,7 +58,7 @@ from .fingerprint import (
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
-from .splits import NamedSplit
+from .splits import NamedSplit, Split
 from .table import (
     ConcatenationTable,
     InMemoryTable,
@@ -69,18 +69,17 @@ from .table import (
     list_table_cache_files,
 )
 from .tasks import TaskTemplate
-from .utils import map_nested
+from .utils import logging, map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
-from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 from .utils.typing import PathLike
 
 
 if TYPE_CHECKING:
     from .dataset_dict import DatasetDict
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 if int(config.PYARROW_VERSION.split(".")[0]) == 0:
     PYARROW_V0 = True
@@ -719,7 +718,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table = None
 
         split = state["_split"]
-        split = NamedSplit(split) if split is not None else split
+        split = Split(split) if split is not None else split
 
         return Dataset(
             arrow_table=arrow_table,
@@ -1320,7 +1319,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._format_kwargs = format_kwargs
         self._format_columns = columns
         self._output_all_columns = output_all_columns
-        logger.info(
+        logger.debug(
             "Set __getitem__(key) output type to %s for %s columns "
             " (when key is int or slice) and %s output other (un-formatted) columns.",
             "python objects" if type is None else type,
@@ -1763,11 +1762,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             not keep_in_memory or cache_file_name is None
         ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
 
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-
         # Reduce logging to keep things readable in multiprocessing with tqdm
-        if rank is not None and get_verbosity() < WARNING:
-            set_verbosity_warning()
+        if rank is not None and logging.get_verbosity() < logging.WARNING:
+            logging.set_verbosity_warning()
         # Print at least one thing to fix tqdm in notebooks in multiprocessing
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
         if rank is not None and "notebook" in tqdm.__name__:
@@ -1934,7 +1931,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
-                pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
+                pbar = tqdm(
+                    pbar_iterable,
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    position=rank,
+                    unit=pbar_unit,
+                    desc=pbar_desc,
+                )
                 if not batched:
                     for i, example in enumerate(pbar):
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)
@@ -1997,6 +2000,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if update_data:
             # Create new Dataset from buffer or file
             info = self.info.copy()
+            # Remove task templates if the required features have been removed
+            if info.task_templates:
+                info.task_templates = [
+                    template
+                    for template in info.task_templates
+                    if all(k in writer._features.keys() for k in template.features)
+                ]
             info.features = writer._features
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
@@ -3111,6 +3121,42 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table=indices_table,
             fingerprint=new_fingerprint,
         )
+
+    def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "Dataset":
+        """Align the dataset's label ID and label name mapping to match an input :obj:`label2id` mapping.
+        This is useful when you want to ensure that a model's predicted labels are aligned with the dataset.
+        The alignment in done using the lowercase label names.
+
+        Args:
+            label2id (:obj:`dict`):
+                The label name to ID mapping to align the dataset with.
+            label_column (:obj:`str`):
+                The column name of labels to align on.
+
+        Example:
+            .. code-block:: python
+
+                # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+                ds = load_dataset("glue", "mnli", split="train")
+                # mapping to align with
+                label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
+                ds_aligned = ds.align_labels_with_mapping(label2id, "label")
+        """
+        features = self.features.copy()
+        int2str_function = features[label_column].int2str
+        # Sort input mapping by ID value to ensure the label names are aligned
+        label2id = dict(sorted(label2id.items(), key=lambda item: item[1]))
+        label_names = list(label2id.keys())
+        features[label_column] = ClassLabel(num_classes=len(label_names), names=label_names)
+        # Some label mappings use uppercase label names so we lowercase them during alignment
+        label2id = {k.lower(): v for k, v in label2id.items()}
+
+        def process_label_ids(batch):
+            dset_label_names = [int2str_function(label_id).lower() for label_id in batch[label_column]]
+            batch[label_column] = [label2id[label_name] for label_name in dset_label_names]
+            return batch
+
+        return self.map(process_label_ids, features=features, batched=True)
 
 
 def concatenate_datasets(

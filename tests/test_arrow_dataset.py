@@ -20,7 +20,7 @@ from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, 
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
-from datasets.tasks import QuestionAnsweringExtractive, TextClassification
+from datasets.tasks import AutomaticSpeechRecognition, QuestionAnsweringExtractive, Summarization, TextClassification
 from datasets.utils.logging import WARNING
 
 from .conftest import s3_test_bucket_name
@@ -704,172 +704,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_concat.cache_files), 1 if in_memory else 2 + 1)
                     self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
             del dset1, dset2, dset3
-
-    def test_concatenate_with_no_task_templates(self, in_memory):
-        info = DatasetInfo(task_templates=None)
-        data = {"text": ["i love transformers!"], "labels": [1]}
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
-                data, info=info
-            ) as dset2, Dataset.from_dict(data, info=info) as dset3:
-                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
-                    in_memory, tmp_dir, dset2
-                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
-                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
-                        self.assertEqual(dset_concat.info.task_templates, None)
-
-    def test_concatenate_with_equal_task_templates(self, in_memory):
-        labels = ["neg", "pos"]
-        task_template = TextClassification(text_column="text", label_column="labels", labels=labels)
-        info = DatasetInfo(
-            features=Features({"text": Value("string"), "labels": ClassLabel(names=labels)}),
-            # Label names are added in `DatasetInfo.__post_init__` so not included here
-            task_templates=TextClassification(text_column="text", label_column="labels"),
-        )
-        data = {"text": ["i love transformers!"], "labels": [1]}
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
-                data, info=info
-            ) as dset2, Dataset.from_dict(data, info=info) as dset3:
-                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
-                    in_memory, tmp_dir, dset2
-                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
-                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
-                        self.assertListEqual(dset_concat.info.task_templates, [task_template])
-
-    def test_concatenate_with_mixed_task_templates_in_common(self, in_memory):
-        tc_template = TextClassification(text_column="text", label_column="labels")
-        qa_template = QuestionAnsweringExtractive(
-            question_column="question", context_column="context", answers_column="answers"
-        )
-        info1 = DatasetInfo(
-            task_templates=[qa_template],
-            features=Features(
-                {
-                    "text": Value("string"),
-                    "labels": ClassLabel(names=["pos", "neg"]),
-                    "context": Value("string"),
-                    "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
-                }
-            ),
-        )
-        info2 = DatasetInfo(
-            task_templates=[qa_template, tc_template],
-            features=Features(
-                {
-                    "text": Value("string"),
-                    "labels": ClassLabel(names=["pos", "neg"]),
-                    "context": Value("string"),
-                    "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
-                }
-            ),
-        )
-        data = {
-            "text": ["i love transformers!"],
-            "labels": [1],
-            "context": ["huggingface is going to the moon!"],
-            "question": ["where is huggingface going?"],
-            "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
-        }
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(data, info=info1) as dset1, Dataset.from_dict(
-                data, info=info2
-            ) as dset2, Dataset.from_dict(data, info=info2) as dset3:
-                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
-                    in_memory, tmp_dir, dset2
-                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
-                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
-                        self.assertListEqual(dset_concat.info.task_templates, [qa_template])
-
-    def test_concatenate_with_no_mixed_task_templates_in_common(self, in_memory):
-        tc_template1 = TextClassification(text_column="text", label_column="labels")
-        tc_template2 = TextClassification(text_column="text", label_column="sentiment")
-        qa_template = QuestionAnsweringExtractive(
-            question_column="question", context_column="context", answers_column="answers"
-        )
-        info1 = DatasetInfo(
-            features=Features(
-                {
-                    "text": Value("string"),
-                    "labels": ClassLabel(names=["pos", "neg"]),
-                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
-                    "context": Value("string"),
-                    "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
-                }
-            ),
-            task_templates=[tc_template1],
-        )
-        info2 = DatasetInfo(
-            features=Features(
-                {
-                    "text": Value("string"),
-                    "labels": ClassLabel(names=["pos", "neg"]),
-                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
-                    "context": Value("string"),
-                    "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
-                }
-            ),
-            task_templates=[tc_template2],
-        )
-        info3 = DatasetInfo(
-            features=Features(
-                {
-                    "text": Value("string"),
-                    "labels": ClassLabel(names=["pos", "neg"]),
-                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
-                    "context": Value("string"),
-                    "question": Value("string"),
-                    "answers": Sequence(
-                        {
-                            "text": Value("string"),
-                            "answer_start": Value("int32"),
-                        }
-                    ),
-                }
-            ),
-            task_templates=[qa_template],
-        )
-        data = {
-            "text": ["i love transformers!"],
-            "labels": [1],
-            "sentiment": [0],
-            "context": ["huggingface is going to the moon!"],
-            "question": ["where is huggingface going?"],
-            "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
-        }
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with Dataset.from_dict(data, info=info1) as dset1, Dataset.from_dict(
-                data, info=info2
-            ) as dset2, Dataset.from_dict(data, info=info3) as dset3:
-                with self._to(in_memory, tmp_dir, dset1) as dset1, self._to(
-                    in_memory, tmp_dir, dset2
-                ) as dset2, self._to(in_memory, tmp_dir, dset3) as dset3:
-                    with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
-                        self.assertEqual(dset_concat.info.task_templates, None)
 
     def test_flatten(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2034,174 +1868,6 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset.format, dset2.format)
                     self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
 
-    def test_task_text_classification(self, in_memory):
-        labels = sorted(["pos", "neg"])
-        features_before_cast = Features(
-            {
-                "input_text": Value("string"),
-                "input_labels": ClassLabel(names=labels),
-            }
-        )
-        # Labels are cast to tuple during `TextClassification.__post_init_`, so we do the same here
-        features_after_cast = Features(
-            {
-                "text": Value("string"),
-                "labels": ClassLabel(names=tuple(labels)),
-            }
-        )
-        # Label names are added in `DatasetInfo.__post_init__` so not needed here
-        task_without_labels = TextClassification(text_column="input_text", label_column="input_labels")
-        info1 = DatasetInfo(
-            features=features_before_cast,
-            task_templates=task_without_labels,
-        )
-        # Label names are required when passing a TextClassification template directly to `Dataset.prepare_for_task`
-        # However they also can be used to define `DatasetInfo` so we include a test for this too
-        task_with_labels = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
-        info2 = DatasetInfo(
-            features=features_before_cast,
-            task_templates=task_with_labels,
-        )
-        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
-        # Test we can load from task name when label names not included in template (default behaviour)
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info1) as dset:
-            with self._to(in_memory, tmp_dir, dset) as dset:
-                self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
-                self.assertDictEqual(features_before_cast, dset.features)
-                with dset.prepare_for_task(task="text-classification") as dset:
-                    self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
-                    self.assertDictEqual(features_after_cast, dset.features)
-        # Test we can load from task name when label names included in template
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info2) as dset:
-            with self._to(in_memory, tmp_dir, dset) as dset:
-                self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
-                self.assertDictEqual(features_before_cast, dset.features)
-                with dset.prepare_for_task(task="text-classification") as dset:
-                    self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
-                    self.assertDictEqual(features_after_cast, dset.features)
-        # Test we can load from TextClassification template
-        info1.task_templates = None
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info1) as dset:
-            with dset.prepare_for_task(task=task_with_labels) as dset:
-                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
-                self.assertDictEqual(features_after_cast, dset.features)
-
-    def test_task_question_answering(self, in_memory):
-        features_before_cast = Features(
-            {
-                "input_context": Value("string"),
-                "input_question": Value("string"),
-                "input_answers": Sequence(
-                    {
-                        "text": Value("string"),
-                        "answer_start": Value("int32"),
-                    }
-                ),
-            }
-        )
-        features_after_cast = Features(
-            {
-                "context": Value("string"),
-                "question": Value("string"),
-                "answers": Sequence(
-                    {
-                        "text": Value("string"),
-                        "answer_start": Value("int32"),
-                    }
-                ),
-            }
-        )
-        task = QuestionAnsweringExtractive(
-            context_column="input_context", question_column="input_question", answers_column="input_answers"
-        )
-        info = DatasetInfo(features=features_before_cast, task_templates=task)
-        data = {
-            "input_context": ["huggingface is going to the moon!"],
-            "input_question": ["where is huggingface going?"],
-            "input_answers": [{"text": ["to the moon!"], "answer_start": [2]}],
-        }
-        # Test we can load from task name
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
-            with self._to(in_memory, tmp_dir, dset) as dset:
-                self.assertSetEqual(
-                    set(["input_context", "input_question", "input_answers.text", "input_answers.answer_start"]),
-                    set(dset.flatten().column_names),
-                )
-                self.assertDictEqual(features_before_cast, dset.features)
-                with dset.prepare_for_task(task="question-answering-extractive") as dset:
-                    self.assertSetEqual(
-                        set(["context", "question", "answers.text", "answers.answer_start"]),
-                        set(dset.flatten().column_names),
-                    )
-                    self.assertDictEqual(features_after_cast, dset.features)
-        # Test we can load from QuestionAnsweringExtractive template
-        info.task_templates = None
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
-            with dset.prepare_for_task(task=task) as dset:
-                self.assertSetEqual(
-                    set(["context", "question", "answers.text", "answers.answer_start"]),
-                    set(dset.flatten().column_names),
-                )
-                self.assertDictEqual(features_after_cast, dset.features)
-
-    def test_task_with_no_template(self, in_memory):
-        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data) as dset:
-            with self._to(in_memory, tmp_dir, dset) as dset:
-                with self.assertRaises(ValueError):
-                    dset.prepare_for_task("text-classification")
-
-    def test_task_with_incompatible_templates(self, in_memory):
-        labels = sorted(["pos", "neg"])
-        features = Features(
-            {
-                "input_text": Value("string"),
-                "input_labels": ClassLabel(names=labels),
-            }
-        )
-        task = TextClassification(text_column="input_text", label_column="input_labels")
-        info = DatasetInfo(
-            features=features,
-            task_templates=task,
-        )
-        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
-            with self._to(in_memory, tmp_dir, dset) as dset:
-                # Invalid task name
-                self.assertRaises(ValueError, dset.prepare_for_task, "this-task-does-not-exist")
-                # Invalid task templates with incompatible labels
-                task_with_wrong_labels = TextClassification(
-                    text_column="input_text", label_column="input_labels", labels=["neut"]
-                )
-                self.assertRaises(ValueError, dset.prepare_for_task, task_with_wrong_labels)
-                task_with_no_labels = TextClassification(
-                    text_column="input_text", label_column="input_labels", labels=None
-                )
-                self.assertRaises(ValueError, dset.prepare_for_task, task_with_no_labels)
-                # Duplicate task templates
-                dset.info.task_templates = [task, task]
-                self.assertRaises(ValueError, dset.prepare_for_task, "text-classification")
-                # Invalid task type
-                self.assertRaises(ValueError, dset.prepare_for_task, 1)
-
-    def test_task_templates_empty_after_preparation(self, in_memory):
-        features = Features(
-            {
-                "input_text": Value("string"),
-                "input_labels": ClassLabel(names=["pos", "neg"]),
-            }
-        )
-        task = TextClassification(text_column="input_text", label_column="input_labels")
-        info = DatasetInfo(
-            features=features,
-            task_templates=task,
-        )
-        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
-        with tempfile.TemporaryDirectory() as tmp_dir, Dataset.from_dict(data, info=info) as dset:
-            with self._to(in_memory, tmp_dir, dset) as dset:
-                with dset.prepare_for_task(task="text-classification") as dset:
-                    self.assertIsNone(dset.info.task_templates)
-
 
 class MiscellaneousDatasetTest(TestCase):
     def test_from_pandas(self):
@@ -2577,6 +2243,15 @@ def test_dataset_from_json_features(features, jsonl_path, tmp_path):
     _check_json_dataset(dataset, expected_features)
 
 
+def test_dataset_from_json_with_class_label_feature(jsonl_str_path, tmp_path):
+    features = Features(
+        {"col_1": ClassLabel(names=["s0", "s1", "s2", "s3"]), "col_2": Value("int64"), "col_3": Value("float64")}
+    )
+    cache_dir = tmp_path / "cache"
+    dataset = Dataset.from_json(jsonl_str_path, features=features, cache_dir=cache_dir)
+    assert dataset.features["col_1"].dtype == "int64"
+
+
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 def test_dataset_from_json_split(split, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
@@ -2744,3 +2419,423 @@ def test_dummy_dataset_serialize_s3(s3, dataset):
     assert dataset.features == features
     assert dataset[0]["id"] == 0
     assert dataset["id"][0] == 0
+
+
+class TaskTemplatesTest(TestCase):
+    def test_task_text_classification(self):
+        labels = sorted(["pos", "neg"])
+        features_before_cast = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(names=labels),
+            }
+        )
+        # Labels are cast to tuple during `TextClassification.__post_init_`, so we do the same here
+        features_after_cast = Features(
+            {
+                "text": Value("string"),
+                "labels": ClassLabel(names=tuple(labels)),
+            }
+        )
+        # Label names are added in `DatasetInfo.__post_init__` so not needed here
+        task_without_labels = TextClassification(text_column="input_text", label_column="input_labels")
+        info1 = DatasetInfo(
+            features=features_before_cast,
+            task_templates=task_without_labels,
+        )
+        # Label names are required when passing a TextClassification template directly to `Dataset.prepare_for_task`
+        # However they also can be used to define `DatasetInfo` so we include a test for this too
+        task_with_labels = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
+        info2 = DatasetInfo(
+            features=features_before_cast,
+            task_templates=task_with_labels,
+        )
+        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        # Test we can load from task name when label names not included in template (default behaviour)
+        with Dataset.from_dict(data, info=info1) as dset:
+            self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
+            self.assertDictEqual(features_before_cast, dset.features)
+            with dset.prepare_for_task(task="text-classification") as dset:
+                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from task name when label names included in template
+        with Dataset.from_dict(data, info=info2) as dset:
+            self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
+            self.assertDictEqual(features_before_cast, dset.features)
+            with dset.prepare_for_task(task="text-classification") as dset:
+                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from TextClassification template
+        info1.task_templates = None
+        with Dataset.from_dict(data, info=info1) as dset:
+            with dset.prepare_for_task(task=task_with_labels) as dset:
+                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                self.assertDictEqual(features_after_cast, dset.features)
+
+    def test_task_question_answering(self):
+        features_before_cast = Features(
+            {
+                "input_context": Value("string"),
+                "input_question": Value("string"),
+                "input_answers": Sequence(
+                    {
+                        "text": Value("string"),
+                        "answer_start": Value("int32"),
+                    }
+                ),
+            }
+        )
+        features_after_cast = Features(
+            {
+                "context": Value("string"),
+                "question": Value("string"),
+                "answers": Sequence(
+                    {
+                        "text": Value("string"),
+                        "answer_start": Value("int32"),
+                    }
+                ),
+            }
+        )
+        task = QuestionAnsweringExtractive(
+            context_column="input_context", question_column="input_question", answers_column="input_answers"
+        )
+        info = DatasetInfo(features=features_before_cast, task_templates=task)
+        data = {
+            "input_context": ["huggingface is going to the moon!"],
+            "input_question": ["where is huggingface going?"],
+            "input_answers": [{"text": ["to the moon!"], "answer_start": [2]}],
+        }
+        # Test we can load from task name
+        with Dataset.from_dict(data, info=info) as dset:
+            self.assertSetEqual(
+                set(["input_context", "input_question", "input_answers.text", "input_answers.answer_start"]),
+                set(dset.flatten().column_names),
+            )
+            self.assertDictEqual(features_before_cast, dset.features)
+            with dset.prepare_for_task(task="question-answering-extractive") as dset:
+                self.assertSetEqual(
+                    set(["context", "question", "answers.text", "answers.answer_start"]),
+                    set(dset.flatten().column_names),
+                )
+                self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from QuestionAnsweringExtractive template
+        info.task_templates = None
+        with Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task=task) as dset:
+                self.assertSetEqual(
+                    set(["context", "question", "answers.text", "answers.answer_start"]),
+                    set(dset.flatten().column_names),
+                )
+                self.assertDictEqual(features_after_cast, dset.features)
+
+    def test_task_summarization(self):
+        # Include a dummy extra column `dummy` to test we drop it correctly
+        features_before_cast = Features(
+            {"input_text": Value("string"), "input_summary": Value("string"), "dummy": Value("string")}
+        )
+        features_after_cast = Features({"text": Value("string"), "summary": Value("string")})
+        task = Summarization(text_column="input_text", summary_column="input_summary")
+        info = DatasetInfo(features=features_before_cast, task_templates=task)
+        data = {
+            "input_text": ["jack and jill took a taxi to attend a super duper party in the city."],
+            "input_summary": ["jack and jill attend party"],
+            "dummy": ["123456"],
+        }
+        # Test we can load from task name
+        with Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task="summarization") as dset:
+                self.assertSetEqual(
+                    set(["text", "summary"]),
+                    set(dset.column_names),
+                )
+                self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from Summarization template
+        info.task_templates = None
+        with Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task=task) as dset:
+                self.assertSetEqual(
+                    set(["text", "summary"]),
+                    set(dset.column_names),
+                )
+                self.assertDictEqual(features_after_cast, dset.features)
+
+    def test_task_automatic_speech_recognition(self):
+        # Include a dummy extra column `dummy` to test we drop it correctly
+        features_before_cast = Features(
+            {
+                "input_audio_file_path": Value("string"),
+                "input_transcription": Value("string"),
+                "dummy": Value("string"),
+            }
+        )
+        features_after_cast = Features({"audio_file_path": Value("string"), "transcription": Value("string")})
+        task = AutomaticSpeechRecognition(
+            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
+        )
+        info = DatasetInfo(features=features_before_cast, task_templates=task)
+        data = {
+            "input_audio_file_path": ["path/to/some/audio/file.wav"],
+            "input_transcription": ["hello, my name is bob!"],
+            "dummy": ["123456"],
+        }
+        # Test we can load from task name
+        with Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task="automatic-speech-recognition") as dset:
+                self.assertSetEqual(
+                    set(["audio_file_path", "transcription"]),
+                    set(dset.column_names),
+                )
+                self.assertDictEqual(features_after_cast, dset.features)
+        # Test we can load from Summarization template
+        info.task_templates = None
+        with Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task=task) as dset:
+                self.assertSetEqual(
+                    set(["audio_file_path", "transcription"]),
+                    set(dset.column_names),
+                )
+                self.assertDictEqual(features_after_cast, dset.features)
+
+    def test_task_with_no_template(self):
+        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        with Dataset.from_dict(data) as dset:
+            with self.assertRaises(ValueError):
+                dset.prepare_for_task("text-classification")
+
+    def test_task_with_incompatible_templates(self):
+        labels = sorted(["pos", "neg"])
+        features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(names=labels),
+            }
+        )
+        task = TextClassification(text_column="input_text", label_column="input_labels")
+        info = DatasetInfo(
+            features=features,
+            task_templates=task,
+        )
+        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        with Dataset.from_dict(data, info=info) as dset:
+            # Invalid task name
+            self.assertRaises(ValueError, dset.prepare_for_task, "this-task-does-not-exist")
+            # Invalid task templates with incompatible labels
+            task_with_wrong_labels = TextClassification(
+                text_column="input_text", label_column="input_labels", labels=["neut"]
+            )
+            self.assertRaises(ValueError, dset.prepare_for_task, task_with_wrong_labels)
+            task_with_no_labels = TextClassification(
+                text_column="input_text", label_column="input_labels", labels=None
+            )
+            self.assertRaises(ValueError, dset.prepare_for_task, task_with_no_labels)
+            # Duplicate task templates
+            dset.info.task_templates = [task, task]
+            self.assertRaises(ValueError, dset.prepare_for_task, "text-classification")
+            # Invalid task type
+            self.assertRaises(ValueError, dset.prepare_for_task, 1)
+
+    def test_task_templates_empty_after_preparation(self):
+        features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(names=["pos", "neg"]),
+            }
+        )
+        task = TextClassification(text_column="input_text", label_column="input_labels")
+        info = DatasetInfo(
+            features=features,
+            task_templates=task,
+        )
+        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        with Dataset.from_dict(data, info=info) as dset:
+            with dset.prepare_for_task(task="text-classification") as dset:
+                self.assertIsNone(dset.info.task_templates)
+
+    def test_align_labels_with_mapping(self):
+        features = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(num_classes=3, names=["entailment", "neutral", "contradiction"]),
+            }
+        )
+        data = {"input_text": ["a", "a", "b", "b", "c", "c"], "input_labels": [0, 0, 1, 1, 2, 2]}
+        label2id = {"CONTRADICTION": 0, "ENTAILMENT": 2, "NEUTRAL": 1}
+        id2label = {v: k for k, v in label2id.items()}
+        expected_labels = [2, 2, 1, 1, 0, 0]
+        expected_label_names = [id2label[idx] for idx in expected_labels]
+        with Dataset.from_dict(data, features=features) as dset:
+            with dset.align_labels_with_mapping(label2id, "input_labels") as dset:
+                self.assertListEqual(expected_labels, dset["input_labels"])
+                aligned_label_names = [dset.features["input_labels"].int2str(idx) for idx in dset["input_labels"]]
+                self.assertListEqual(expected_label_names, aligned_label_names)
+
+    def test_concatenate_with_no_task_templates(self):
+        info = DatasetInfo(task_templates=None)
+        data = {"text": ["i love transformers!"], "labels": [1]}
+        with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
+            data, info=info
+        ) as dset2, Dataset.from_dict(data, info=info) as dset3:
+            with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                self.assertEqual(dset_concat.info.task_templates, None)
+
+    def test_concatenate_with_equal_task_templates(self):
+        labels = ["neg", "pos"]
+        task_template = TextClassification(text_column="text", label_column="labels", labels=labels)
+        info = DatasetInfo(
+            features=Features({"text": Value("string"), "labels": ClassLabel(names=labels)}),
+            # Label names are added in `DatasetInfo.__post_init__` so not included here
+            task_templates=TextClassification(text_column="text", label_column="labels"),
+        )
+        data = {"text": ["i love transformers!"], "labels": [1]}
+        with Dataset.from_dict(data, info=info) as dset1, Dataset.from_dict(
+            data, info=info
+        ) as dset2, Dataset.from_dict(data, info=info) as dset3:
+            with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                self.assertListEqual(dset_concat.info.task_templates, [task_template])
+
+    def test_concatenate_with_mixed_task_templates_in_common(self):
+        tc_template = TextClassification(text_column="text", label_column="labels")
+        qa_template = QuestionAnsweringExtractive(
+            question_column="question", context_column="context", answers_column="answers"
+        )
+        info1 = DatasetInfo(
+            task_templates=[qa_template],
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+        )
+        info2 = DatasetInfo(
+            task_templates=[qa_template, tc_template],
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+        )
+        data = {
+            "text": ["i love transformers!"],
+            "labels": [1],
+            "context": ["huggingface is going to the moon!"],
+            "question": ["where is huggingface going?"],
+            "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
+        }
+        with Dataset.from_dict(data, info=info1) as dset1, Dataset.from_dict(
+            data, info=info2
+        ) as dset2, Dataset.from_dict(data, info=info2) as dset3:
+            with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                self.assertListEqual(dset_concat.info.task_templates, [qa_template])
+
+    def test_concatenate_with_no_mixed_task_templates_in_common(self):
+        tc_template1 = TextClassification(text_column="text", label_column="labels")
+        tc_template2 = TextClassification(text_column="text", label_column="sentiment")
+        qa_template = QuestionAnsweringExtractive(
+            question_column="question", context_column="context", answers_column="answers"
+        )
+        info1 = DatasetInfo(
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+            task_templates=[tc_template1],
+        )
+        info2 = DatasetInfo(
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+            task_templates=[tc_template2],
+        )
+        info3 = DatasetInfo(
+            features=Features(
+                {
+                    "text": Value("string"),
+                    "labels": ClassLabel(names=["pos", "neg"]),
+                    "sentiment": ClassLabel(names=["pos", "neg", "neutral"]),
+                    "context": Value("string"),
+                    "question": Value("string"),
+                    "answers": Sequence(
+                        {
+                            "text": Value("string"),
+                            "answer_start": Value("int32"),
+                        }
+                    ),
+                }
+            ),
+            task_templates=[qa_template],
+        )
+        data = {
+            "text": ["i love transformers!"],
+            "labels": [1],
+            "sentiment": [0],
+            "context": ["huggingface is going to the moon!"],
+            "question": ["where is huggingface going?"],
+            "answers": [{"text": ["to the moon!"], "answer_start": [2]}],
+        }
+        with Dataset.from_dict(data, info=info1) as dset1, Dataset.from_dict(
+            data, info=info2
+        ) as dset2, Dataset.from_dict(data, info=info3) as dset3:
+            with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
+                self.assertEqual(dset_concat.info.task_templates, None)
+
+    def test_task_text_classification_when_columns_removed(self):
+        labels = sorted(["pos", "neg"])
+        features_before_map = Features(
+            {
+                "input_text": Value("string"),
+                "input_labels": ClassLabel(names=labels),
+            }
+        )
+        features_after_map = Features({"new_column": Value("int64")})
+        # Label names are added in `DatasetInfo.__post_init__` so not needed here
+        task = TextClassification(text_column="input_text", label_column="input_labels")
+        info = DatasetInfo(
+            features=features_before_map,
+            task_templates=task,
+        )
+        data = {"input_text": ["i love transformers!"], "input_labels": [1]}
+        with Dataset.from_dict(data, info=info) as dset:
+            with dset.map(lambda x: {"new_column": 0}, remove_columns=dset.column_names) as dset:
+                self.assertDictEqual(dset.features, features_after_map)
