@@ -441,6 +441,23 @@ You can even set the environment variable `HF_DATASETS_OFFLINE` to ``1`` to tell
 This mode disables all the network calls of the library.
 This way, instead of waiting for a dataset builder download to time out, the library looks directly at the cache.
 
+.. _load_dataset_load_builder:
+
+Loading a dataset builder
+-----------------------------------------------------------
+
+You can use :func:`datasets.load_dataset_builder` to inspect metadata (cache directory, configs, dataset info, etc.) that is required to build a dataset without downloading the dataset itself.
+
+For example, run the following to get the path to the cache directory of the IMDB dataset:
+
+.. code-block::
+
+    >>> from datasets import load_dataset_builder
+    >>> dataset_builder = load_dataset_builder('imdb')
+    >>> print(dataset_builder.cache_dir)
+    /Users/thomwolf/.cache/huggingface/datasets/imdb/plain_text/1.0.0/fdc76b18d5506f14b0646729b8d371880ef1bc48a26d00835a7f3da44004b676
+
+
 .. _load_dataset_enhancing_performance:
 
 Enhancing performance
