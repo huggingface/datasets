@@ -16,6 +16,7 @@ from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
+from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import prepare_module
 
@@ -201,6 +202,8 @@ class LoadTest(TestCase):
 def test_load_dataset_builder(dataset_loading_script_dir, data_dir):
     builder = datasets.load_dataset_builder(dataset_loading_script_dir, data_dir=data_dir)
     assert isinstance(builder, DatasetBuilder)
+    assert builder.name == DATASET_LOADING_SCRIPT_NAME
+    assert builder.info.features == Features({"text": Value("string")})
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
