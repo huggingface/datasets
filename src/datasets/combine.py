@@ -23,8 +23,40 @@ def interleave_datasets(
     """
     Interleave several datasets (sources) into a single dataset.
     The new dataset is constructed by alternating between the sources to get the examples.
-    If `probabilities = None` (default) the new dataset is constructed by cycling between each source to get the examples.
-    If `probabilities` is not `None, the new dataset is constructed by getting examples from a random source at a time according to the provided probabilities.
+
+    You can use this function on a list of :class:`Dataset` objects, or on a list of :class:`IterableDataset` objects.
+
+    If ``probabilities`` is ``None`` (default) the new dataset is constructed by cycling between each source to get the examples.
+    If ``probabilities`` is not ``None``, the new dataset is constructed by getting examples from a random source at a time according to the provided probabilities.
+
+    The resulting dataset ends when one of the source datasets runs out of examples.
+
+    Examples:
+
+        For regular datasets (map-style):
+
+        >>> from datasets import Dataset, interleave_datasets
+        >>> d1 = Dataset.from_dict({"a": [0, 1, 2]})
+        >>> d2 = Dataset.from_dict({"a": [10, 11, 12]})
+        >>> d3 = Dataset.from_dict({"a": [20, 21, 22]})
+        >>> dataset = interleave_datasets([d1, d2, d3])
+        >>> dataset["a"]
+        [0, 10, 20, 1, 11, 21, 2, 12, 22]
+        >>> dataset = interleave_datasets([d1, d2, d3], probabilities=[0.7, 0.2, 0.1], seed=42)
+        >>> dataset["a"]
+        [10, 0, 11, 1, 2, 20, 12]
+
+        For datasets in streaming mode (iterable):
+
+        >>> from datasets import load_dataset, interleave_datasets
+        >>> d1 = load_dataset("oscar", "unshuffled_deduplicated_en", split="train", streaming=True)
+        >>> d2 = load_dataset("oscar", "unshuffled_deduplicated_fr", split="train", streaming=True)
+        >>> dataset = interleave_datasets([d1, d2])
+        >>> iterator = iter(dataset)
+        >>> next(iterator)
+        {'text': 'Mtendere Village was inspired by the vision...
+        >>> next(iterator)
+        {'text': "Média de débat d'idées, de culture...
 
     Args:
         datasets (:obj:`List[Dataset]` or :obj:`List[IterableDataset]`): list of datasets to interleave
@@ -117,12 +149,12 @@ def _interleave_map_style_datasets(
         current_index = [0] * len(datasets)
         indices = []
         for source_idx in iter_random_indices():
+            # we ran out of examples, let's stop
+            if current_index[source_idx] >= lengths[source_idx]:
+                break
             # let's add the example at the current index of the `source_idx`-th dataset
             indices.append(current_index[source_idx] + offsets[source_idx])
             current_index[source_idx] += 1
-            if current_index[source_idx] >= lengths[source_idx]:
-                # we ran out of examples, let's stop
-                break
     return concatenated_datasets.select(indices, **kwargs)
 
 
