@@ -44,11 +44,10 @@ languages:
 - mt
 - nl
 - or
-- pa-IN
+- pa
 - pl
 - pt
-- rm-sursilv
-- rm-vallader
+- rm
 - ro
 - ru
 - rw
@@ -62,9 +61,9 @@ languages:
 - uk
 - vi
 - vot
-- zh-CN
-- zh-HK
-- zh-TW
+- zh-Hans-CN
+- zh-Hans-HK
+- zh-Hant-TW
 licenses:
 - cc-by-nc-4.0
 multilinguality:

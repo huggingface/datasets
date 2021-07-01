@@ -39,15 +39,15 @@ languages:
   SLR69:
   - ca
   SLR70:
-  - ng
+  - en-NG
   SLR71:
-  - cl
+  - es-CL
   SLR72:
-  - co
+  - es-CO
   SLR73:
-  - pe
+  - es-PE
   SLR74:
-  - pr
+  - es-PR
   SLR75:
   - ve
   SLR76:

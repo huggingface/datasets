@@ -153,7 +153,14 @@ CC BY 4.0
 
 ### Citation Information
 
-[Needs More Information]
+```
+@phdthesis{halabi2016modern,
+  title={Modern standard Arabic phonetics for speech synthesis},
+  author={Halabi, Nawar},
+  year={2016},
+  school={University of Southampton}
+}
+```
 
 ### Contributions
 
