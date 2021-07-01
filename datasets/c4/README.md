@@ -138,4 +138,4 @@ A colossal, cleaned version of Common Crawl's web crawl corpus. Based on Common 
 
 ### Contributions
 
-Thanks to [@dirkgr](https://github.com/dirkgr)[@lhoestq](https://github.com/lhoestq) for adding this dataset.
+Thanks to [@dirkgr](https://github.com/dirkgr) and [@lhoestq](https://github.com/lhoestq) for adding this dataset.
