@@ -308,6 +308,7 @@ def cached_path(
             and not is_gzip(output_path)
             and not is_xz(output_path)
             and not is_rarfile(output_path)
+            and not ZstdExtractor.is_extractable(output_path)
         ):
             return output_path
 
@@ -361,6 +362,9 @@ def cached_path(
                     rf.close()
                 else:
                     raise EnvironmentError("Please pip install rarfile")
+            elif ZstdExtractor.is_extractable(output_path):
+                os.rmdir(output_path_extracted)
+                ZstdExtractor.extract(output_path, output_path_extracted)
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
