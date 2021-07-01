@@ -20,7 +20,6 @@ task_categories:
 - automatic-speech-recognition
 task_ids:
 - speech-recognition
-paperswithcode_id: acronym-identification
 ---
 
 # Dataset Card for librispeech_asr

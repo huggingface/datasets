@@ -10,7 +10,6 @@ licenses:
 - other-LDC-User-Agreement-for-Non-Members
 multilinguality:
 - monolingual
-paperswithcode_id: timit
 size_categories:
 - 1K<n<10K
 source_datasets:
