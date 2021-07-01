@@ -1,4 +1,5 @@
 ---
+pretty_name: TIMIT
 annotations_creators:
 - expert-generated
 language_creators:
@@ -9,14 +10,15 @@ licenses:
 - other-LDC-User-Agreement-for-Non-Members
 multilinguality:
 - monolingual
+paperswithcode_id: timit
 size_categories:
 - 1K<n<10K
 source_datasets:
 - original
 task_categories:
-- other
+- automatic-speech-recognition
 task_ids:
-- other-other-automatic speech recognition
+- speech-recognition
 paperswithcode_id: timit
 ---
 

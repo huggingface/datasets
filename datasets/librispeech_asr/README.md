@@ -1,4 +1,5 @@
 ---
+pretty_name: LibriSpeech
 annotations_creators:
 - expert-generated
 language_creators:
@@ -10,15 +11,16 @@ licenses:
 - cc-by-4.0
 multilinguality:
 - monolingual
+paperswithcode_id: librispeech-1
 size_categories:
 - 100K<n<1M
 source_datasets:
 - original
 task_categories:
-- other
+- automatic-speech-recognition
 task_ids:
-- other-other-automatic speech recognition
-paperswithcode_id: librispeech-1
+- speech-recognition
+paperswithcode_id: acronym-identification
 ---
 
 # Dataset Card for librispeech_asr

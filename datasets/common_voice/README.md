@@ -1,4 +1,5 @@
 ---
+pretty_name: Common Voice
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -190,11 +191,11 @@ size_categories:
   zh-TW:
   - 10K<n<100K
 source_datasets:
-- extended|other-common-voice
+- extended|common_voice
 task_categories:
-- other
+- automatic-speech-recognition
 task_ids:
-- other-other-automatic-speech-recognition
+- speech-recognition
 paperswithcode_id: common-voice
 ---
 

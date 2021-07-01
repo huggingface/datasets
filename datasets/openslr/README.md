@@ -1,4 +1,5 @@
 ---
+pretty_name: OpenSLR
 annotations_creators:
 - found
 language_creators:
@@ -70,9 +71,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- automatic-speech-recognition
 task_ids:
-- other-other-automatic-speech-recognition
+- speech-recognition
 paperswithcode_id: null
 ---
 
