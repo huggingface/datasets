@@ -86,7 +86,8 @@ def prepare_only_one_shard(dataset_builder: DatasetBuilder):
             # if there are many shards, only keep the first one
             for split_generator in split_generators:
                 split_generator.gen_kwargs = {
-                    k: v[:1] if v and isinstance(v, list) and isinstance(v[0], str) and "000-of-" in v[0] else v for k, v in split_generator.gen_kwargs.items()
+                    k: v[:1] if v and isinstance(v, list) and isinstance(v[0], str) and "000-of-" in v[0] else v
+                    for k, v in split_generator.gen_kwargs.items()
                 }
             return split_generators
 
