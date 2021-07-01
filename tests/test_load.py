@@ -114,7 +114,7 @@ class LoadTest(TestCase):
             )
             dummy_module = importlib.import_module(importable_module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "hello there")
-            self.assertEqual(module_hash, sha256(dummy_code.replace(" ", "").encode("utf-8")).hexdigest())
+            self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
             # prepare module from file path + check resolved_file_path
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
@@ -125,7 +125,7 @@ class LoadTest(TestCase):
             self.assertEqual(resolved_file_path, module_path)
             dummy_module = importlib.import_module(importable_module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
-            self.assertEqual(module_hash, sha256(dummy_code.replace(" ", "").encode("utf-8")).hexdigest())
+            self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
             # missing module
             for offline_simulation_mode in list(OfflineSimulationMode):
                 with offline(offline_simulation_mode):
