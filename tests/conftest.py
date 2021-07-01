@@ -3,6 +3,8 @@ import json
 import lzma
 import textwrap
 
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 
 from datasets.arrow_dataset import Dataset
@@ -168,6 +170,24 @@ def csv_path(tmp_path_factory):
         writer.writeheader()
         for item in DATA:
             writer.writerow(item)
+    return path
+
+
+@pytest.fixture(scope="session")
+def parquet_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.parquet")
+    schema = pa.schema(
+        {
+            "col_1": pa.string(),
+            "col_2": pa.int64(),
+            "col_3": pa.float64(),
+        }
+    )
+    with open(path, "wb") as f:
+        writer = pq.ParquetWriter(f, schema=schema)
+        pa_table = pa.Table.from_pydict({k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema)
+        writer.write_table(pa_table)
+        writer.close()
     return path
 
 
