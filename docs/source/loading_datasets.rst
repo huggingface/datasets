@@ -349,6 +349,28 @@ We provide more details on how to create your own dataset generation script on t
 
 .. _load_dataset_cache_management:
 
+
+Loading datasets in streaming mode
+-----------------------------------------------------------
+
+When a dataset is in streaming mode, you can iterate over it directly without having to download the entire dataset.
+The data are downloaded progressively as you iterate over the dataset.
+You can enable dataset streaming by passing ``streaming=True`` in the :func:`load_dataset` function to get an iterable dataset.
+
+For example, you can start iterating over big datasets like OSCAR without having to download terabytes of data using this code:
+
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
+    >>> print(next(iter(dataset)))
+    {'text': 'Mtendere Village was inspired by the vision of Chief Napoleon Dzombe, which he shared with John Blanchard during his first visit to Malawi. Chief Napoleon conveyed the desperate need for a program to intervene and care for the orphans and vulnerable children (OVC) in Malawi, and John committed to help...
+
+.. note::
+
+    A dataset in streaming mode is not a :class:`datasets.Dataset` object, but an :class:`datasets.IterableDataset` object. You can find more information about iterable datasets in the `dataset streaming documentation <dataset_streaming.html>`__
+
 Cache management and integrity verifications
 -----------------------------------------------------------
 
