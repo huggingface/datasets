@@ -16,7 +16,7 @@ size_categories:
   en.noblocklist:
   - 100M<n<1B
   en.noclean:
-  - 1B<10B
+  - 1B<n<10B
   realnewslike:
   - 10M<n<100M
 source_datasets:
