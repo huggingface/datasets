@@ -72,7 +72,7 @@ A colossal, cleaned version of Common Crawl's web crawl corpus. Based on Common 
 
 This is the version prepared by AllenAI, hosted at this address: https://huggingface.co/datasets/allenai/c4
 
-It comes in three variants:
+It comes in four variants:
 
 - `en`: 305GB in JSON format
 - `en.noblocklist`: 380GB in JSON format
