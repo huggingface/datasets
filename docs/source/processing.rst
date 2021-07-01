@@ -582,6 +582,8 @@ When you have several :obj:`datasets.Dataset` objects that share the same column
     >>> assert bookcorpus.features.type == wiki.features.type
     >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
 
+If you want to interleave the datasets instead of concatenating them, you can use :func:`datasets.interleave_datasets`.
+
 
 Saving a processed dataset on disk and reload it
 ------------------------------------------------

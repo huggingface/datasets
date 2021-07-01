@@ -1,4 +1,5 @@
 import copy
+import itertools
 import json
 import os
 import pickle
@@ -13,7 +14,7 @@ import pytest
 from absl.testing import parameterized
 
 import datasets.arrow_dataset
-from datasets import concatenate_datasets, load_from_disk, temp_seed
+from datasets import concatenate_datasets, interleave_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
@@ -2115,6 +2116,36 @@ def test_concatenate_datasets_duplicate_columns(dataset):
     with pytest.raises(ValueError) as excinfo:
         concatenate_datasets([dataset, dataset], axis=1)
     assert "duplicated" in str(excinfo.value)
+
+
+def test_interleave_datasets():
+    d1 = Dataset.from_dict({"a": [0, 1, 2]})
+    d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+    d3 = Dataset.from_dict({"a": [22, 21, 20]}).select([2, 1, 0])
+    dataset = interleave_datasets([d1, d2, d3])
+    expected_length = 3 * min(len(d1), len(d2), len(d3))
+    expected_values = [x["a"] for x in itertools.chain(*zip(d1, d2, d3))]
+    assert isinstance(dataset, Dataset)
+    assert len(dataset) == expected_length
+    assert dataset["a"] == expected_values
+    assert dataset._fingerprint == interleave_datasets([d1, d2, d3])._fingerprint
+
+
+def test_interleave_datasets_probabilities():
+    seed = 42
+    probabilities = [0.3, 0.5, 0.2]
+    d1 = Dataset.from_dict({"a": [0, 1, 2]})
+    d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+    d3 = Dataset.from_dict({"a": [22, 21, 20]}).select([2, 1, 0])
+    dataset = interleave_datasets([d1, d2, d3], probabilities=probabilities, seed=seed)
+    expected_length = 7  # hardcoded
+    expected_values = [10, 11, 20, 12, 0, 21, 13]  # hardcoded
+    assert isinstance(dataset, Dataset)
+    assert len(dataset) == expected_length
+    assert dataset["a"] == expected_values
+    assert (
+        dataset._fingerprint == interleave_datasets([d1, d2, d3], probabilities=probabilities, seed=seed)._fingerprint
+    )
 
 
 @pytest.mark.parametrize(
