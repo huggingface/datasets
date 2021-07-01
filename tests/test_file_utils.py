@@ -9,6 +9,7 @@ import pytest
 from datasets.utils.file_utils import (
     DownloadConfig,
     OfflineModeIsEnabled,
+    ZstdExtractor,
     cached_path,
     ftp_get,
     ftp_head,
@@ -70,6 +71,18 @@ class TempSeedTest(TestCase):
 
         np.testing.assert_equal(out1, out2)
         self.assertGreater(np.abs(out1 - out3).sum(), 0)
+
+
+def test_zstd_extractor(zstd_path, tmp_path, text_file):
+    input_path = zstd_path
+    assert ZstdExtractor.is_extractable(input_path)
+    output_path = str(tmp_path / "extracted.txt")
+    ZstdExtractor.extract(input_path, output_path)
+    with open(output_path) as f:
+        extracted_file_content = f.read()
+    with open(text_file) as f:
+        expected_file_content = f.read()
+    assert extracted_file_content == expected_file_content
 
 
 def test_cached_path_extract(xz_file, tmp_path, text_file):

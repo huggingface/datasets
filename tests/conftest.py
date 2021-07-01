@@ -6,6 +6,7 @@ import textwrap
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
+import zstandard as zstd
 
 from datasets.arrow_dataset import Dataset
 from datasets.features import ClassLabel, Features, Sequence, Value
@@ -85,6 +86,15 @@ def xz_file(tmp_path_factory):
     with lzma.open(filename, "wb") as f:
         f.write(data)
     return filename
+
+
+@pytest.fixture(scope="session")
+def zstd_path(tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "file.zstd"
+    data = bytes(FILE_CONTENT, "utf-8")
+    with zstd.open(path, "wb") as f:
+        f.write(data)
+    return path
 
 
 @pytest.fixture(scope="session")
