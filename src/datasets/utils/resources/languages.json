@@ -1,4 +1,5 @@
 {
+    "ab": "Abkhazian",
     "af": "Afrikaans",
     "af-NA": "Afrikaans (Namibia)",
     "af-ZA": "Afrikaans (South Africa)",
@@ -110,6 +111,7 @@
     "ckb": "Central Kurdish",
     "ckb-IQ": "Central Kurdish (Iraq)",
     "ckb-IR": "Central Kurdish (Iran)",
+    "cnh": "Hakha Chin",
     "co": "Corsican",
     "cs": "Czech",
     "cs-CZ": "Czech (Czechia)",
@@ -833,6 +835,7 @@
     "vi-VN": "Vietnamese (Vietnam)",
     "vo": "Volap\u00fck",
     "vo-001": "Volap\u00fck (World)",
+    "vot": "Votic",
     "vun": "Vunjo",
     "vun-TZ": "Vunjo (Tanzania)",
     "wa": "Walloon",
