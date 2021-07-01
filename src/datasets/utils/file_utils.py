@@ -11,6 +11,7 @@ import lzma
 import os
 import re
 import shutil
+import struct
 import sys
 import tarfile
 import tempfile
@@ -722,6 +723,32 @@ def is_rarfile(path: str) -> bool:
         return True
     else:
         return False
+
+
+class ZstdExtractor:
+    @staticmethod
+    def is_extractable(path: str) -> bool:
+        """https://datatracker.ietf.org/doc/html/rfc8878
+
+        Magic_Number:  4 bytes, little-endian format.  Value: 0xFD2FB528.
+        """
+        with open(path, "rb") as f:
+            try:
+                magic_number = f.read(4)
+            except OSError:
+                return False
+        return True if magic_number == struct.pack("<I", 0xFD2FB528) else False
+
+    @staticmethod
+    def extract(input_path: str, output_path: str):
+        if not config.ZSTANDARD_AVAILABLE:
+            raise EnvironmentError("Please pip install zstandard")
+        import zstandard as zstd
+
+        dctx = zstd.ZstdDecompressor()
+        with open(input_path, "rb") as ifh:
+            with open(output_path, "wb") as ofh:
+                dctx.copy_stream(ifh, ofh)
 
 
 def add_start_docstrings(*docstr):
