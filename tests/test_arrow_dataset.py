@@ -1,4 +1,5 @@
 import copy
+import itertools
 import json
 import os
 import pickle
@@ -13,7 +14,7 @@ import pytest
 from absl.testing import parameterized
 
 import datasets.arrow_dataset
-from datasets import concatenate_datasets, load_from_disk, temp_seed
+from datasets import concatenate_datasets, interleave_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
@@ -27,6 +28,7 @@ from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_pyarrow_at_least_3,
     require_s3,
     require_tf,
     require_torch,
@@ -830,6 +832,22 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
 
+        with tempfile.TemporaryDirectory() as tmp_dir:  # num_proc > num rows
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                fingerprint = dset._fingerprint
+                with dset.select([0, 1], keep_in_memory=True).map(picklable_map_function, num_proc=10) as dset_test:
+                    self.assertEqual(len(dset_test), 2)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"filename": Value("string"), "id": Value("int64")}),
+                    )
+                    self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
+                    self.assertListEqual(dset_test["id"], list(range(2)))
+                    self.assertNotEqual(dset_test._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+
         with tempfile.TemporaryDirectory() as tmp_dir:  # with_indices
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 fingerprint = dset._fingerprint
@@ -1526,6 +1544,59 @@ class BaseDatasetTest(TestCase):
                     for col_name in dset.column_names:
                         self.assertEqual(len(dset_to_pandas[col_name]), dset.num_rows)
 
+    @require_pyarrow_at_least_3
+    def test_to_parquet(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # File path argument
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.parquet")
+                dset.to_parquet(path_or_buf=file_path)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))  # because of compression, the number of bytes doesn't match
+                parquet_dset = pd.read_parquet(file_path)
+
+                self.assertEqual(parquet_dset.shape, dset.shape)
+                self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
+
+            # File buffer argument
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_buffer.parquet")
+                with open(file_path, "wb+") as buffer:
+                    dset.to_parquet(path_or_buf=buffer)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))  # because of compression, the number of bytes doesn't match
+                parquet_dset = pd.read_parquet(file_path)
+
+                self.assertEqual(parquet_dset.shape, dset.shape)
+                self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
+
+            # After a select/shuffle transform
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                dset = dset.select(range(0, len(dset), 2)).shuffle()
+                file_path = os.path.join(tmp_dir, "test_path.parquet")
+                dset.to_parquet(path_or_buf=file_path)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))  # because of compression, the number of bytes doesn't match
+                parquet_dset = pd.read_parquet(file_path)
+
+                self.assertEqual(parquet_dset.shape, dset.shape)
+                self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
+
+            # With array features
+            with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
+                file_path = os.path.join(tmp_dir, "test_path.parquet")
+                dset.to_parquet(path_or_buf=file_path)
+
+                self.assertTrue(os.path.isfile(file_path))
+                # self.assertEqual(bytes_written, os.path.getsize(file_path))  # because of compression, the number of bytes doesn't match
+                parquet_dset = pd.read_parquet(file_path)
+
+                self.assertEqual(parquet_dset.shape, dset.shape)
+                self.assertListEqual(list(parquet_dset.columns), list(dset.column_names))
+
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -2047,6 +2118,36 @@ def test_concatenate_datasets_duplicate_columns(dataset):
     assert "duplicated" in str(excinfo.value)
 
 
+def test_interleave_datasets():
+    d1 = Dataset.from_dict({"a": [0, 1, 2]})
+    d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+    d3 = Dataset.from_dict({"a": [22, 21, 20]}).select([2, 1, 0])
+    dataset = interleave_datasets([d1, d2, d3])
+    expected_length = 3 * min(len(d1), len(d2), len(d3))
+    expected_values = [x["a"] for x in itertools.chain(*zip(d1, d2, d3))]
+    assert isinstance(dataset, Dataset)
+    assert len(dataset) == expected_length
+    assert dataset["a"] == expected_values
+    assert dataset._fingerprint == interleave_datasets([d1, d2, d3])._fingerprint
+
+
+def test_interleave_datasets_probabilities():
+    seed = 42
+    probabilities = [0.3, 0.5, 0.2]
+    d1 = Dataset.from_dict({"a": [0, 1, 2]})
+    d2 = Dataset.from_dict({"a": [10, 11, 12, 13]})
+    d3 = Dataset.from_dict({"a": [22, 21, 20]}).select([2, 1, 0])
+    dataset = interleave_datasets([d1, d2, d3], probabilities=probabilities, seed=seed)
+    expected_length = 7  # hardcoded
+    expected_values = [10, 11, 20, 12, 0, 21, 13]  # hardcoded
+    assert isinstance(dataset, Dataset)
+    assert len(dataset) == expected_length
+    assert dataset["a"] == expected_values
+    assert (
+        dataset._fingerprint == interleave_datasets([d1, d2, d3], probabilities=probabilities, seed=seed)._fingerprint
+    )
+
+
 @pytest.mark.parametrize(
     "column, expected_dtype",
     [(["a", "b", "c", "d"], "string"), ([1, 2, 3, 4], "int64"), ([1.0, 2.0, 3.0, 4.0], "float64")],
@@ -2233,7 +2334,6 @@ def test_dataset_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_path):
 )
 def test_dataset_from_json_features(features, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
@@ -2241,6 +2341,15 @@ def test_dataset_from_json_features(features, jsonl_path, tmp_path):
     )
     dataset = Dataset.from_json(jsonl_path, features=features, cache_dir=cache_dir)
     _check_json_dataset(dataset, expected_features)
+
+
+def test_dataset_from_json_with_class_label_feature(jsonl_str_path, tmp_path):
+    features = Features(
+        {"col_1": ClassLabel(names=["s0", "s1", "s2", "s3"]), "col_2": Value("int64"), "col_3": Value("float64")}
+    )
+    cache_dir = tmp_path / "cache"
+    dataset = Dataset.from_json(jsonl_str_path, features=features, cache_dir=cache_dir)
+    assert dataset.features["col_1"].dtype == "int64"
 
 
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
@@ -2262,6 +2371,70 @@ def test_dataset_from_json_path_type(path_type, jsonl_path, tmp_path):
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     dataset = Dataset.from_json(path, cache_dir=cache_dir)
     _check_json_dataset(dataset, expected_features)
+
+
+def _check_parquet_dataset(dataset, expected_features):
+    assert isinstance(dataset, Dataset)
+    assert dataset.num_rows == 4
+    assert dataset.num_columns == 3
+    assert dataset.column_names == ["col_1", "col_2", "col_3"]
+    for feature, expected_dtype in expected_features.items():
+        assert dataset.features[feature].dtype == expected_dtype
+
+
+@require_pyarrow_at_least_3
+@pytest.mark.parametrize("keep_in_memory", [False, True])
+def test_dataset_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
+        dataset = Dataset.from_parquet(parquet_path, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+    _check_parquet_dataset(dataset, expected_features)
+
+
+@require_pyarrow_at_least_3
+@pytest.mark.parametrize(
+    "features",
+    [
+        None,
+        {"col_1": "string", "col_2": "int64", "col_3": "float64"},
+        {"col_1": "string", "col_2": "string", "col_3": "string"},
+        {"col_1": "int32", "col_2": "int32", "col_3": "int32"},
+        {"col_1": "float32", "col_2": "float32", "col_3": "float32"},
+    ],
+)
+def test_dataset_from_parquet_features(features, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    expected_features = features.copy() if features else default_expected_features
+    features = (
+        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+    )
+    dataset = Dataset.from_parquet(parquet_path, features=features, cache_dir=cache_dir)
+    _check_parquet_dataset(dataset, expected_features)
+
+
+@require_pyarrow_at_least_3
+@pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
+def test_dataset_from_parquet_split(split, parquet_path, tmp_path):
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_parquet(parquet_path, cache_dir=cache_dir, split=split)
+    _check_parquet_dataset(dataset, expected_features)
+    assert dataset.split == str(split) if split else "train"
+
+
+@require_pyarrow_at_least_3
+@pytest.mark.parametrize("path_type", [str, list])
+def test_dataset_from_parquet_path_type(path_type, parquet_path, tmp_path):
+    if issubclass(path_type, str):
+        path = parquet_path
+    elif issubclass(path_type, list):
+        path = [parquet_path]
+    cache_dir = tmp_path / "cache"
+    expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    dataset = Dataset.from_parquet(path, cache_dir=cache_dir)
+    _check_parquet_dataset(dataset, expected_features)
 
 
 def _check_text_dataset(dataset, expected_features):
@@ -2293,7 +2466,6 @@ def test_dataset_from_text_keep_in_memory(keep_in_memory, text_path, tmp_path):
 )
 def test_dataset_from_text_features(features, text_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    # CSV file loses col_1 string dtype information: default now is "int64" instead of "string"
     default_expected_features = {"text": "string"}
     expected_features = features.copy() if features else default_expected_features
     features = (
