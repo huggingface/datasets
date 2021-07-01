@@ -750,9 +750,8 @@ class ZstdExtractor:
         import zstandard as zstd
 
         dctx = zstd.ZstdDecompressor()
-        with open(input_path, "rb") as ifh:
-            with open(output_path, "wb") as ofh:
-                dctx.copy_stream(ifh, ofh)
+        with open(input_path, "rb") as ifh, open(output_path, "wb") as ofh:
+            dctx.copy_stream(ifh, ofh)
 
 
 def add_start_docstrings(*docstr):
