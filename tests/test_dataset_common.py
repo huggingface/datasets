@@ -76,27 +76,6 @@ def skip_if_not_compatible_with_windows(test_case):
         return test_case
 
 
-@contextmanager
-def prepare_only_one_shard(dataset_builder: DatasetBuilder):
-    old_split_generators = dataset_builder._split_generators
-    try:
-
-        def one_shard_split_generators(*args, **kwargs):
-            split_generators = old_split_generators(*args, **kwargs)
-            # if there are many shards, only keep the first one
-            for split_generator in split_generators:
-                split_generator.gen_kwargs = {
-                    k: v[:1] if v and isinstance(v, list) and isinstance(v[0], str) and "000-of-" in v[0] else v
-                    for k, v in split_generator.gen_kwargs.items()
-                }
-            return split_generators
-
-        dataset_builder._split_generators = one_shard_split_generators
-        yield
-    finally:
-        dataset_builder._split_generators = old_split_generators
-
-
 def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
     extensions = {"text": "txt", "json": "json", "pandas": "pkl", "csv": "csv", "parquet": "parquet"}
     return {
@@ -179,13 +158,12 @@ class DatasetTester:
                     dataset_builder.info.dataset_size = one_mega_byte
 
                 # generate examples from dummy data
-                with prepare_only_one_shard(dataset_builder):
-                    dataset_builder.download_and_prepare(
-                        dl_manager=mock_dl_manager,
-                        download_mode=GenerateMode.FORCE_REDOWNLOAD,
-                        ignore_verifications=True,
-                        try_from_hf_gcs=False,
-                    )
+                dataset_builder.download_and_prepare(
+                    dl_manager=mock_dl_manager,
+                    download_mode=GenerateMode.FORCE_REDOWNLOAD,
+                    ignore_verifications=True,
+                    try_from_hf_gcs=False,
+                )
 
                 # get dataset
                 dataset = dataset_builder.as_dataset(ignore_verifications=True)
