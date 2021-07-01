@@ -41,7 +41,7 @@ _N_SHARDS_PER_SPLIT = {
 }
 
 _DATA_URL = (
-    "https://huggingface.co/datasets/allenai/c4/resolve/main/{name}/c4-{split}.{index:05d}-of-{n_shards:05d}.json.gz"
+    "https://huggingface.co/datasets/allenai/c4/resolve/1ddc917116b730e1859edef32896ec5c16be51d0/{name}/c4-{split}.{index:05d}-of-{n_shards:05d}.json.gz"
 )
 
 
