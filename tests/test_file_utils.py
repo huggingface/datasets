@@ -85,12 +85,14 @@ def test_zstd_extractor(zstd_path, tmp_path, text_file):
     assert extracted_file_content == expected_file_content
 
 
-def test_cached_path_extract(xz_file, tmp_path, text_file):
-    filename = xz_file
+@pytest.mark.parametrize("compression_format", ["xz", "zstd"])
+def test_cached_path_extract(compression_format, xz_file, zstd_path, tmp_path, text_file):
+    path = {"xz": xz_file, "zstd": zstd_path}
+    input_path = path[compression_format]
     cache_dir = tmp_path / "cache"
     download_config = DownloadConfig(cache_dir=cache_dir, extract_compressed_file=True)
-    extracted_filename = cached_path(filename, download_config=download_config)
-    with open(extracted_filename) as f:
+    extracted_path = cached_path(input_path, download_config=download_config)
+    with open(extracted_path) as f:
         extracted_file_content = f.read()
     with open(text_file) as f:
         expected_file_content = f.read()
