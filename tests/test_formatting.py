@@ -9,7 +9,7 @@ from datasets.formatting import NumpyFormatter, PandasFormatter, PythonFormatter
 from datasets.formatting.formatting import NumpyArrowExtractor, PandasArrowExtractor, PythonArrowExtractor
 from datasets.table import InMemoryTable
 
-from .utils import require_tf, require_torch
+from .utils import require_jax, require_tf, require_torch
 
 
 _COL_A = [0, 1, 2]
@@ -194,6 +194,39 @@ class FormatterTest(TestCase):
         batch = formatter.format_batch(pa_table)
         self.assertEqual(batch["a"].dtype, tf.float16)
         self.assertEqual(batch["c"].dtype, tf.float16)
+
+    @require_jax
+    def test_jax_formatter(self):
+        import jax.numpy as jnp
+
+        from datasets.formatting import JaxFormatter
+
+        pa_table = self._create_dummy_table().drop(["b"])
+        formatter = JaxFormatter()
+        row = formatter.format_row(pa_table)
+        jnp.allclose(row["a"], jnp.array(_COL_A, dtype=jnp.int64)[0])
+        jnp.allclose(row["c"], jnp.array(_COL_C, dtype=jnp.float32)[0])
+        col = formatter.format_column(pa_table)
+        jnp.allclose(col, jnp.array(_COL_A, dtype=jnp.int64))
+        batch = formatter.format_batch(pa_table)
+        jnp.allclose(batch["a"], jnp.array(_COL_A, dtype=jnp.int64))
+        jnp.allclose(batch["c"], jnp.array(_COL_C, dtype=jnp.float32))
+
+    @require_jax
+    def test_jax_formatter_np_array_kwargs(self):
+        import jax.numpy as jnp
+
+        from datasets.formatting import JaxFormatter
+
+        pa_table = self._create_dummy_table().drop(["b"])
+        formatter = JaxFormatter(dtype=jnp.float16)
+        row = formatter.format_row(pa_table)
+        self.assertEqual(row["c"].dtype, jnp.float16)
+        col = formatter.format_column(pa_table)
+        self.assertEqual(col.dtype, jnp.float16)
+        batch = formatter.format_batch(pa_table)
+        self.assertEqual(batch["a"].dtype, jnp.float16)
+        self.assertEqual(batch["c"].dtype, jnp.float16)
 
 
 class QueryTest(TestCase):

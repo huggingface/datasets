@@ -27,11 +27,11 @@ from . import config
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
+from .utils import logging
 from .utils.file_utils import hash_url_to_filename
-from .utils.logging import WARNING, get_logger
 
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 type_ = type  # keep python's type function
 
@@ -423,7 +423,7 @@ class ArrowWriter:
         self.pa_writer.close()
         if close_stream:
             self.stream.close()
-        logger.info(
+        logger.debug(
             "Done writing %s %s in %s bytes %s.",
             self._num_examples,
             self.unit,
@@ -536,11 +536,11 @@ class BeamWriter:
 def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
-    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+    disable = bool(logging.get_verbosity() == logging.NOTSET)
     with ArrowWriter(path=destination, stream=stream) as writer:
-        for source in tqdm(sources, unit="sources", disable=not_verbose):
+        for source in tqdm(sources, unit="sources", disable=disable):
             pf = pa.parquet.ParquetFile(source)
-            for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
+            for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
                 df = pf.read_row_group(i).to_pandas()
                 for col in df.columns:
                     df[col] = df[col].apply(json.loads)

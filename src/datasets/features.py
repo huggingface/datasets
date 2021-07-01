@@ -17,6 +17,7 @@
 """ This class handle features definition in datasets and some utilities to display table type."""
 import copy
 import re
+import sys
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields
 from typing import Any, ClassVar, Dict, List, Optional
@@ -158,18 +159,23 @@ def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
         has_changed (bool): True if the object has been changed, False if it is identical
     """
 
-    if config.TF_AVAILABLE:
+    if config.TF_AVAILABLE and "tensorflow" in sys.modules:
         import tensorflow as tf
 
-    if config.TORCH_AVAILABLE:
+    if config.TORCH_AVAILABLE and "torch" in sys.modules:
         import torch
+
+    if config.JAX_AVAILABLE and "jax" in sys.modules:
+        import jax.numpy as jnp
 
     if isinstance(obj, np.ndarray):
         return obj.tolist(), True
-    elif config.TORCH_AVAILABLE and isinstance(obj, torch.Tensor):
+    elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
         return obj.detach().cpu().numpy().tolist(), True
-    elif config.TF_AVAILABLE and isinstance(obj, tf.Tensor):
+    elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
         return obj.numpy().tolist(), True
+    elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
+        return obj.tolist(), True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
@@ -372,31 +378,41 @@ class Array5DExtensionType(_ArrayXDExtensionType):
     ndims = 5
 
 
+def _is_zero_copy_only(pa_type: pa.DataType) -> bool:
+    """
+    When converting a pyarrow array to a numpy array, we must know whether this could be done in zero-copy or not.
+    This function returns the value of the ``zero_copy_only`` parameter to pass to ``.to_numpy()``, given the type of the pyarrow array.
+
+    # zero copy is available for all primitive types except booleans
+    # primitive types are types for which the physical representation in arrow and in numpy
+    # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
+    # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
+    # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
+    """
+    return is_primitive(pa_type) and not is_boolean(pa_type)
+
+
 class ArrayExtensionArray(pa.ExtensionArray):
     def __array__(self):
-        return self.to_numpy()
+        zero_copy_only = _is_zero_copy_only(self.storage.type)
+        return self.to_numpy(zero_copy_only=zero_copy_only)
 
     def __getitem__(self, i):
         return self.storage[i]
 
-    def to_numpy(self):
+    def to_numpy(self, zero_copy_only=True):
         storage: pa.ListArray = self.storage
         size = 1
         for i in range(self.type.ndims):
             size *= self.type.shape[i]
             storage = storage.flatten()
-        # zero copy is available for all primitive types except booleans
-        # primitive types are types for which the physical representation in arrow and in numpy
-        # https://github.com/wesm/arrow/blob/c07b9b48cf3e0bbbab493992a492ae47e5b04cad/python/pyarrow/types.pxi#L821
-        # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
-        # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
-        zero_copy_only = is_primitive(storage.type) and not is_boolean(storage.type)
         numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
         numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr
 
     def to_pylist(self):
-        return self.to_numpy().tolist()
+        zero_copy_only = _is_zero_copy_only(self.storage.type)
+        return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
@@ -406,10 +422,11 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         self._value_type = value_type
 
     def __from_arrow__(self, array):
+        zero_copy_only = _is_zero_copy_only(array.type)
         if isinstance(array, pa.ChunkedArray):
-            numpy_arr = np.vstack([chunk.to_numpy() for chunk in array.chunks])
+            numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
         else:
-            numpy_arr = array.to_numpy()
+            numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
         return PandasArrayExtensionArray(numpy_arr)
 
     @classmethod
@@ -604,7 +621,7 @@ class ClassLabel:
             if self._str2int:
                 # strip key if not in dict
                 if value not in self._str2int:
-                    value = value.strip()
+                    value = str(value).strip()
                 output.append(self._str2int[str(value)])
             else:
                 # No names provided, try to integerize
@@ -878,15 +895,15 @@ def encode_nested_example(schema, obj):
 
 
 def generate_from_dict(obj: Any):
-    """Regenerate the nested feature object from a serialized dict.
+    """Regenerate the nested feature object from a deserialized dict.
     We use the '_type' fields to get the dataclass name to load.
 
     generate_from_dict is the recursive helper for Features.from_dict, and allows for a convenient constructor syntax
-        to define features from json dictionaries. This function is used in particular when deserializing
-        a DatasetInfo that was dumped to a json dictionary. This acts as an analogue to
-        Features.from_arrow_schema and handles the recursive field-by-field instantiation, but doesn't require any
-        mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive dtypes
-        that Value() automatically performs.
+    to define features from deserialized JSON dictionaries. This function is used in particular when deserializing
+    a :class:`DatasetInfo` that was dumped to a JSON object. This acts as an analogue to
+    :meth:`Features.from_arrow_schema` and handles the recursive field-by-field instantiation, but doesn't require any
+    mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive dtypes
+    that :class:`Value` automatically performs.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(obj, list):
@@ -936,23 +953,79 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
 class Features(dict):
     @property
     def type(self):
+        """
+        Features field types.
+
+        Returns:
+            :obj:`pyarrow.DataType`
+        """
         return get_nested_type(self)
 
     @classmethod
     def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
+        """
+        Construct Features from Arrow Schema.
+
+        Args:
+            pa_schema (:obj:`pyarrow.Schema`): Arrow Schema.
+
+        Returns:
+            :class:`Features`
+        """
         obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
         return cls(**obj)
 
     @classmethod
     def from_dict(cls, dic) -> "Features":
+        """
+        Construct Features from dict.
+
+        Regenerate the nested feature object from a deserialized dict.
+        We use the '_type' key to infer the dataclass name of the feature FieldType.
+
+        It allows for a convenient constructor syntax
+        to define features from deserialized JSON dictionaries. This function is used in particular when deserializing
+        a :class:`DatasetInfo` that was dumped to a JSON object. This acts as an analogue to
+        :meth:`Features.from_arrow_schema` and handles the recursive field-by-field instantiation, but doesn't require
+        any mapping to/from pyarrow, except for the fact that it takes advantage of the mapping of pyarrow primitive
+        dtypes that :class:`Value` automatically performs.
+
+        Args:
+            dic (:obj:`dict[str, Any]`): Python dictionary.
+
+        Returns:
+            :class:`Features`
+
+        Examples:
+            >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
+            {'_type': Value(dtype='string', id=None)}
+        """
         obj = generate_from_dict(dic)
         return cls(**obj)
 
     def encode_example(self, example):
+        """
+        Encode example into a format for Arrow.
+
+        Args:
+            example (:obj:`dict[str, Any]`): Data in a Dataset row.
+
+        Returns:
+            :obj:`dict[str, Any]`
+        """
         example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
 
     def encode_batch(self, batch):
+        """
+        Encode batch into a format for Arrow.
+
+        Args:
+            batch (:obj:`dict[str, list[Any]]`): Data in a Dataset batch.
+
+        Returns:
+            :obj:`dict[str, list[Any]]`
+        """
         encoded_batch = {}
         if set(batch) != set(self):
             raise ValueError("Column mismatch between batch {} and features {}".format(set(batch), set(self)))
@@ -962,16 +1035,28 @@ class Features(dict):
         return encoded_batch
 
     def copy(self) -> "Features":
+        """
+        Make a deep copy of Features.
+
+        Returns:
+            :class:`Features`
+        """
         return copy.deepcopy(self)
 
     def reorder_fields_as(self, other: "Features") -> "Features":
         """
-        The order of the fields is important since it matters for the underlying arrow data.
-        This method is used to re-order your features to match the fields orders of other features.
+        Reorder Features fields to match the field order of other Features.
 
+        The order of the fields is important since it matters for the underlying arrow data.
         Re-ordering the fields allows to make the underlying arrow data type match.
 
-        Example::
+        Args:
+            other (:class:`Features`): The other Features to align with.
+
+        Returns:
+            :class:`Features`
+
+        Examples:
 
             >>> from datasets import Features, Sequence, Value
             >>> # let's say we have to features with a different order of nested fields (for a and b for example)
@@ -982,7 +1067,6 @@ class Features(dict):
             >>> f1.reorder_fields_as(f2)
             {'root': Sequence(feature={'b': Value(dtype='string', id=None), 'a': Value(dtype='string', id=None)}, length=-1, id=None)}
             >>> assert f1.reorder_fields_as(f2).type == f2.type
-
         """
 
         def recursive_reorder(source, target, stack=""):

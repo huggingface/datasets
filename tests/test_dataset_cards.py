@@ -19,6 +19,7 @@ from typing import List
 
 import pytest
 
+from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.utils.logging import get_logger
 from datasets.utils.metadata import DatasetMetadata
 from datasets.utils.readme import ReadMe
@@ -43,11 +44,12 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
         if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path))
     )
 
-    return sorted(changed_datasets)
+    return sorted(dataset_name for dataset_name in changed_datasets if dataset_name not in _PACKAGED_DATASETS_MODULES)
 
 
 def get_all_datasets(repo_path: Path) -> List[Path]:
-    return [path.parts[-1] for path in (repo_path / "datasets").iterdir()]
+    dataset_names = [path.parts[-1] for path in (repo_path / "datasets").iterdir()]
+    return [dataset_name for dataset_name in dataset_names if dataset_name not in _PACKAGED_DATASETS_MODULES]
 
 
 @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
