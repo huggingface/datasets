@@ -74,7 +74,7 @@ class C4(datasets.GeneratorBasedBuilder):
                 for index in range(n_shards)
             ]
         train_downloaded_files = dl_manager.download(data_urls["train"])
-        validation_downloaded_files = dl_manager.download(data_urls["train"])
+        validation_downloaded_files = dl_manager.download(data_urls["validation"])
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": train_downloaded_files}),
             datasets.SplitGenerator(
