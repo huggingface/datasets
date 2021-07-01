@@ -84,7 +84,6 @@
             "visual-speech-recognition",
             "distant-speech-recognition",
             "robust-speech-recognition",
-            "seq2seq-speech-recognition",
             "accented-speech-recognition",
             "noisy-speech-recognition",
             "other"
