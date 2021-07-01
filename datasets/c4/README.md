@@ -32,7 +32,7 @@ paperswithcode_id: c4
 
 ## Table of Contents
 
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
+- [Dataset Card for C4](#dataset-card-for-c4)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -70,7 +70,7 @@ paperswithcode_id: c4
 
 A colossal, cleaned version of Common Crawl's web crawl corpus. Based on Common Crawl dataset: "https://commoncrawl.org".
 
-This is the version prepared by allenai, hosted at this page: https://huggingface.co/datasets/allenai/c4
+This is the version prepared by AllenAI, hosted at this address: https://huggingface.co/datasets/allenai/c4
 
 It comes in three variants:
 
@@ -79,9 +79,7 @@ It comes in three variants:
 - `en.noclean`: 2.3TB in JSON format
 - `realnewslike`: 15GB in JSON format
 
-The en.noblocklist variant is exactly the same as the en variant, except we turned off the so-called "badwords filter", which removes all documents that contain words from the lists at https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words.
-
-The en.noblocklist variant is exactly the same as the en variant, except we turned off the so-called "badwords filter", which removes all documents that contain words from the lists at https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words.
+The `en.noblocklist` variant is exactly the same as the `en` variant, except we turned off the so-called "badwords filter", which removes all documents that contain words from the lists at https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words.
 
 ### Supported Tasks and Leaderboards
 
