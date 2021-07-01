@@ -1,4 +1,30 @@
 ---
+pretty_name: C4
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+languages:
+- en
+licenses:
+- odc-by-1.0
+multilinguality:
+- multilingual
+size_categories:
+  en:
+  - 100M<n<1B
+  en.noblocklist:
+  - 100M<n<1B
+  en.noclean:
+  - 1B<10B
+  realnewslike:
+  - 10M<n<100M
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- language-modeling
 paperswithcode_id: c4
 ---
 
@@ -37,37 +63,64 @@ paperswithcode_id: c4
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** https://huggingface.co/datasets/allenai/c4
+- **Paper:** https://arxiv.org/abs/1910.10683
 
 ### Dataset Summary
 
-A colossal, cleaned version of Common Crawl's web crawl corpus. Based on Common Crawl dataset: "https://commoncrawl.org"
+A colossal, cleaned version of Common Crawl's web crawl corpus. Based on Common Crawl dataset: "https://commoncrawl.org".
+
+This is the version prepared by allenai, hosted at this page: https://huggingface.co/datasets/allenai/c4
+
+It comes in three variants:
+
+- `en`: 305GB in JSON format
+- `en.noblocklist`: 380GB in JSON format
+- `en.noclean`: 2.3TB in JSON format
+- `realnewslike`: 15GB in JSON format
+
+The en.noblocklist variant is exactly the same as the en variant, except we turned off the so-called "badwords filter", which removes all documents that contain words from the lists at https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words.
+
+The en.noblocklist variant is exactly the same as the en variant, except we turned off the so-called "badwords filter", which removes all documents that contain words from the lists at https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+C4 is mainly intended to pretrain language models and word representations.
 
 ### Languages
 
-[More Information Needed]
+The dataset is in English.
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+An example form the `en` config is:
+
+```
+{
+  'url': 'https://klyq.com/beginners-bbq-class-taking-place-in-missoula/',
+  'text': 'Beginners BBQ Class Taking Place in Missoula!\nDo you want to get better at making delicious BBQ? You will have the opportunity, put this on your calendar now. Thursday, September 22nd join World Class BBQ Champion, Tony Balay from Lonestar Smoke Rangers. He will be teaching a beginner level class for everyone who wants to get better with their culinary skills.\nHe will teach you everything you need to know to compete in a KCBS BBQ competition, including techniques, recipes, timelines, meat selection and trimming, plus smoker and fire information.\nThe cost to be in the class is $35 per person, and for spectators it is free. Included in the cost will be either a t-shirt or apron and you will be tasting samples of each meat that is prepared.',
+  'timestamp': '2019-04-25T12:57:54Z'
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+The data have several fields:
+
+- `url`: url of the source as a string
+- `text`: text content as a string
+- `timestamp`: timestamp as a string
 
 ### Data Splits
 
-[More Information Needed]
+|      name      |  train  |validation|
+|----------------|--------:|---------:|
+| en             |364868892|         ?|
+| en.noclocklist |393391519|         ?|
+| en.noclean     |        ?|         ?|
+| realnewslike   | 13799838|         ?|
 
 ## Dataset Creation
 
@@ -121,7 +174,7 @@ A colossal, cleaned version of Common Crawl's web crawl corpus. Based on Common 
 
 ### Licensing Information
 
-[More Information Needed]
+AllenAI are releasing this dataset under the terms of ODC-BY. By using this, you are also bound by the Common Crawl terms of use in respect of the content contained in the dataset.
 
 ### Citation Information
 
