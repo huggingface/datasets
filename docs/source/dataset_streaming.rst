@@ -113,9 +113,10 @@ You can create new dataset with the first ``n`` examples using :func:`datasets.I
     >>> train_dataset = shuffled_dataset.skip(1000)
     >>> eval_dataset = shuffled_dataset.take(1000)
 
-.. note::
-    When you use :func:`datasets.IterableDataset.skip`, on a dataset, then iterating on the new dataset will take some time to start.
-    This is because under the hood it has to iterate over the skipped examples first.
+Some things to keep in mind:
+
+- When you use ``skip``, on a dataset, then iterating on the new dataset will take some time to start. This is because under the hood it has to iterate over the skipped examples first.
+- Using ``take`` (or ``skip``) prevents future calls to ``shuffle`` from shuffling the dataset shards order, otherwise the taken examples could come from other shards. In this case it only uses the shuffle buffer. Therefore it is advised to shuffle the dataset before splitting using ``take`` or ``skip``.
 
 
 Mix several iterable datasets together with ``interleave_datasets``

@@ -48,13 +48,11 @@ def dataset(generate_examples_fn):
     return IterableDataset(ex_iterable, info=DatasetInfo(description="dummy"), split="train")
 
 
-
 ################################
 #
 #   _BaseExampleIterable tests
 #
 ################################
-
 
 
 def test_examples_iterable(generate_examples_fn):
@@ -373,6 +371,7 @@ def test_iterable_dataset_take(dataset: IterableDataset):
     assert take_dataset._ex_iterable.n == n
     assert list(take_dataset) == list(dataset)[:n]
 
+
 @pytest.mark.parametrize("method", ["skip", "take"])
 def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, method):
     seed = 42
@@ -385,7 +384,6 @@ def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, metho
     # shuffling a skip/take dataset should keep the same examples and don't shuffle the shards
     key = lambda x: f"{x['filepath']}_{x['id']}"  # noqa: E731
     assert sorted(dataset, key=key) == sorted(shuffled_dataset, key=key)
-
 
 
 @pytest.mark.parametrize(

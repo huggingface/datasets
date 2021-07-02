@@ -88,7 +88,6 @@ class ExamplesIterable(_BaseExamplesIterable):
 
 
 class ShardShuffledExamplesIterable(ExamplesIterable):
-
     def __init__(self, generate_examples_fn: Callable, kwargs: dict, seed: Optional[int]):
         super().__init__(generate_examples_fn, kwargs)
         self.seed = seed
@@ -426,7 +425,9 @@ class IterableDataset(DatasetInfoMixin):
         """
         shuffling = ShuffingConfig(seed=seed)
         return iterable_dataset(
-            ex_iterable=BufferShuffledExamplesIterable(self._ex_iterable, buffer_size, seed=seed).shuffle_data_sources(seed=seed),
+            ex_iterable=BufferShuffledExamplesIterable(self._ex_iterable, buffer_size, seed=seed).shuffle_data_sources(
+                seed=seed
+            ),
             info=copy.deepcopy(self._info),
             split=self._split,
             format_type=self._format_type,
@@ -444,9 +445,7 @@ class IterableDataset(DatasetInfoMixin):
 
             n (:obj:`int`): number of elements to skip.
         """
-        ex_iterable = SkipExamplesIterable(
-            self._ex_iterable, n
-        )
+        ex_iterable = SkipExamplesIterable(self._ex_iterable, n)
         return iterable_dataset(
             ex_iterable=ex_iterable,
             info=copy.deepcopy(self._info),
@@ -463,9 +462,7 @@ class IterableDataset(DatasetInfoMixin):
 
             n (:obj:`int`): number of elements to take.
         """
-        ex_iterable = TakeExamplesIterable(
-            self._ex_iterable, n
-        )
+        ex_iterable = TakeExamplesIterable(self._ex_iterable, n)
         return iterable_dataset(
             ex_iterable=ex_iterable,
             info=copy.deepcopy(self._info),
