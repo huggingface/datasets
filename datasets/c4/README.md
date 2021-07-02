@@ -130,7 +130,9 @@ The data have several fields:
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+C4 dataset is a collection of about 750GB of English-language text sourced from the public Common Crawl web scrape. It includes heuristics to extract only natural language (as opposed to boilerplate and other gibberish) in addition to extensive deduplication. You can find the code that has been used to build this dataset in [c4.py](https://github.com/tensorflow/datasets/blob/5952d3d60d60e1727786fa7a9a23d24bb463d4d6/tensorflow_datasets/text/c4.py) by Tensorflow Datasets.
+
+The dataset was explicitly designed to be English only: any page that was not given a probability of at least 99% of being English by [langdetect](https://github.com/Mimino666/langdetect) was discarded.
 
 #### Who are the source language producers?
 
