@@ -179,7 +179,9 @@ A multilingual colossal, cleaned version of Common Crawl's web crawl corpus. Bas
 
 This is the version prepared by AllenAI, hosted at this address: https://huggingface.co/datasets/allenai/c4
 
-108 languages are available:
+108 languages are available and are reported in the table below.
+
+Note that the languages that end with "-Latn" are simply romanized variants, i.e. written using the Latin script.
 
 | language code   | language name        |
 |:----------------|:---------------------|
@@ -337,6 +339,8 @@ The data have several fields:
 - `timestamp`: timestamp as a string
 
 ### Data Splits
+
+To build mC4, the authors used [CLD3](https://github.com/google/cld3) to identify over 100 languages. The resulting mC4 subsets for each language are reported in this table:
 
 | config   | train   | validation   |
 |:---------|:--------|:-------------|
