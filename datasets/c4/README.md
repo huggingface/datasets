@@ -116,7 +116,7 @@ The data have several fields:
 |      name      |  train  |validation|
 |----------------|--------:|---------:|
 | en             |364868892|    364608|
-| en.noclocklist |393391519|    393226|
+| en.noblocklist |393391519|    393226|
 | en.noclean     |        ?|         ?|
 | realnewslike   | 13799838|     13863|
 
