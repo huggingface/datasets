@@ -47,6 +47,7 @@ class TarExtractor:
 
     @staticmethod
     def extract(input_path, output_path):
+        os.makedirs(output_path, exist_ok=True)
         tar_file = tarfile.open(input_path)
         tar_file.extractall(output_path)
         tar_file.close()
@@ -65,7 +66,6 @@ class GzipExtractor:
 
     @staticmethod
     def extract(input_path, output_path):
-        os.rmdir(output_path)
         with gzip.open(input_path, "rb") as gzip_file:
             with open(output_path, "wb") as extracted_file:
                 shutil.copyfileobj(gzip_file, extracted_file)
@@ -78,6 +78,7 @@ class ZipExtractor:
 
     @staticmethod
     def extract(input_path, output_path):
+        os.makedirs(output_path, exist_ok=True)
         with ZipFile(input_path, "r") as zip_file:
             zip_file.extractall(output_path)
             zip_file.close()
@@ -99,7 +100,6 @@ class XzExtractor:
 
     @staticmethod
     def extract(input_path, output_path):
-        os.rmdir(output_path)
         with lzma.open(input_path) as compressed_file:
             with open(output_path, "wb") as extracted_file:
                 shutil.copyfileobj(compressed_file, extracted_file)
@@ -121,14 +121,14 @@ class RarExtractor:
 
     @staticmethod
     def extract(input_path, output_path):
-        if config.RARFILE_AVAILABLE:
-            import rarfile
-
-            rf = rarfile.RarFile(input_path)
-            rf.extractall(output_path)
-            rf.close()
-        else:
+        if not config.RARFILE_AVAILABLE:
             raise EnvironmentError("Please pip install rarfile")
+        import rarfile
+
+        os.makedirs(output_path, exist_ok=True)
+        rf = rarfile.RarFile(input_path)
+        rf.extractall(output_path)
+        rf.close()
 
 
 class ZstdExtractor:
@@ -147,7 +147,6 @@ class ZstdExtractor:
 
     @staticmethod
     def extract(input_path: str, output_path: str):
-        os.rmdir(output_path)
         if not config.ZSTANDARD_AVAILABLE:
             raise EnvironmentError("Please pip install zstandard")
         import zstandard as zstd
@@ -173,7 +172,6 @@ class Extractor:
         lock_path = input_path + ".lock"
         with FileLock(lock_path):
             shutil.rmtree(output_path, ignore_errors=True)
-            os.makedirs(output_path, exist_ok=True)
             for extractor in cls.extractors:
                 if extractor.is_extractable(input_path):
                     extractor.extract(input_path, output_path)
