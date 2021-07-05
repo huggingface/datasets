@@ -32,12 +32,13 @@ class ExtractManager:
         )
 
     def extract(self, input_path, force_extract=False):
-        if not self.extractor.is_extractable(input_path):
+        is_extractable, extractor = self.extractor.is_extractable(input_path, return_extractor=True)
+        if not is_extractable:
             return input_path
         output_path = self._get_output_path(input_path)
         if self._do_extract(output_path, force_extract):
             try:
-                self.extractor.extract(input_path, output_path)
+                extractor.extract(input_path, output_path)
             except Exception:
                 raise EnvironmentError("Archive format of {} could not be identified".format(input_path))
         return output_path
@@ -164,16 +165,21 @@ class Extractor:
     extractors = [TarExtractor, GzipExtractor, ZipExtractor, XzExtractor, RarExtractor, ZstdExtractor]
 
     @classmethod
-    def is_extractable(cls, path):
-        return any(extractor.is_extractable(path) for extractor in cls.extractors)
+    def is_extractable(cls, path, return_extractor=False):
+        for extractor in cls.extractors:
+            if extractor.is_extractable(path):
+                return True if not return_extractor else (True, extractor)
+        return False if not return_extractor else (False, None)
 
     @classmethod
-    def extract(cls, input_path, output_path):
+    def extract(cls, input_path, output_path, extractor=None):
         # Prevent parallel extractions
         lock_path = input_path + ".lock"
         with FileLock(lock_path):
             shutil.rmtree(output_path, ignore_errors=True)
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            if extractor:
+                return extractor.extract(input_path, output_path)
             for extractor in cls.extractors:
                 if extractor.is_extractable(input_path):
                     extractor.extract(input_path, output_path)
