@@ -814,16 +814,16 @@ class OptionalSequence:
     _type: str = field(default="OptionalSequence", init=False, repr=False)
 
     def __post_init__(self):
-        self.pa_type = pa.list_(self.feature())
+        self.pa_type = self.feature()
 
     def __call__(self):
         return self.pa_type
 
     def encode_example(self, example):
         if isinstance(example, (list, tuple)):
+            self.pa_type = pa.list_(self.feature())
             return [self.feature.encode_example(item) for item in example]
         else:
-            self.pa_type = self.feature()
             return self.feature.encode_example(example)
 
 
