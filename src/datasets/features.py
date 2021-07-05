@@ -811,7 +811,6 @@ class Sequence:
 class OptionalSequence:
     feature: Any
     id: Optional[str] = None
-    pa_type: Any = field(init=False, repr=False)
     _type: str = field(default="OptionalSequence", init=False, repr=False)
 
     def __post_init__(self):
