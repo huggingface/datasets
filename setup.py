@@ -103,6 +103,7 @@ TESTS_REQUIRE = [
     "pytest",
     "pytest-xdist",
     # optional dependencies
+    "aiohttp",
     "apache-beam>=2.26.0",
     "elasticsearch",
     "aiobotocore==1.2.2",
