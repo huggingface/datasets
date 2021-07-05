@@ -356,16 +356,16 @@ def test_iterable_dataset_with_format(dataset: IterableDataset, format_type):
         assert isinstance(formatted_dataset, torch.utils.data.IterableDataset)
 
 
-def test_iterable_dataset_skip(dataset: IterableDataset):
-    n = 2
+@pytest.mark.parametrize("n", [0, 2, int(1e10)])
+def test_iterable_dataset_skip(dataset: IterableDataset, n):
     skip_dataset = dataset.skip(n)
     assert isinstance(skip_dataset._ex_iterable, SkipExamplesIterable)
     assert skip_dataset._ex_iterable.n == n
     assert list(skip_dataset) == list(dataset)[n:]
 
 
-def test_iterable_dataset_take(dataset: IterableDataset):
-    n = 2
+@pytest.mark.parametrize("n", [0, 2, int(1e10)])
+def test_iterable_dataset_take(dataset: IterableDataset, n):
     take_dataset = dataset.take(n)
     assert isinstance(take_dataset._ex_iterable, TakeExamplesIterable)
     assert take_dataset._ex_iterable.n == n
