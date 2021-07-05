@@ -87,8 +87,8 @@ class Recall(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Value("int32"),
-                    "references": datasets.Value("int32"),
+                    "predictions": datasets.OptionalSequence(datasets.Value("int32")),
+                    "references": datasets.OptionalSequence(datasets.Value("int32")),
                 }
             ),
             reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html"],
