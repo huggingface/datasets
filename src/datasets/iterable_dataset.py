@@ -46,7 +46,10 @@ class _BaseExamplesIterable:
         raise NotImplementedError()
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "_BaseExamplesIterable":
-        """Either shuffle the shards/sources of the dataset, or propagate the shuffling to the underlying iterable."""
+        """
+        Either shuffle the shards/sources of the dataset, or propagate the shuffling to the underlying iterable.
+        If the order of the shards must stay fixed (when using .skip or .take for example), then this method returns self.
+        """
         raise NotImplementedError()
 
     @property
@@ -76,15 +79,25 @@ class ExamplesIterable(_BaseExamplesIterable):
             yield key, example
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "ExamplesIterable":
-        """Shuffle the kwargs order to shuffle shards"""
-        rng = np.random.default_rng(seed)
-        kwargs = _shuffle_kwargs(rng, self.kwargs)
-        return ExamplesIterable(self.generate_examples_fn, kwargs)
+        return ShardShuffledExamplesIterable(self.generate_examples_fn, self.kwargs, seed)
 
     @property
     def n_shards(self) -> int:
         max_length = max([len(value) for value in self.kwargs.values() if isinstance(value, list)], default=0)
         return max(1, max_length)
+
+
+class ShardShuffledExamplesIterable(ExamplesIterable):
+    def __init__(self, generate_examples_fn: Callable, kwargs: dict, seed: Optional[int]):
+        super().__init__(generate_examples_fn, kwargs)
+        self.seed = seed
+
+    def __iter__(self):
+        """Shuffle the kwargs order to shuffle shards"""
+        rng = np.random.default_rng(self.seed)
+        kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
+        for key, example in self.generate_examples_fn(**kwargs_with_shuffled_shards):
+            yield key, example
 
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -228,6 +241,43 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
+class SkipExamplesIterable(_BaseExamplesIterable):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, n: int):
+        self.ex_iterable = ex_iterable
+        self.n = n
+
+    def __iter__(self):
+        ex_iterator = iter(self.ex_iterable)
+        for _ in islice(ex_iterator, self.n):
+            pass
+        yield from ex_iterator
+
+    def shuffle_data_sources(self, seed: Optional[int]) -> "SkipExamplesIterable":
+        """Doesn't shuffle the wrapped examples iterable since it would skip exampels from other shards instead."""
+        return self
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
+
+
+class TakeExamplesIterable(_BaseExamplesIterable):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, n: int):
+        self.ex_iterable = ex_iterable
+        self.n = n
+
+    def __iter__(self):
+        yield from islice(self.ex_iterable, self.n)
+
+    def shuffle_data_sources(self, seed: Optional[int]) -> "TakeExamplesIterable":
+        """Doesn't shuffle the wrapped examples iterable since it would take examples from other shards instead."""
+        return self
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
+
+
 def _generate_examples_from_tables_wrapper(generate_tables_fn):
     def wrapper(**kwargs):
         python_formatter = PythonFormatter()
@@ -364,14 +414,19 @@ class IterableDataset(DatasetInfoMixin):
         selected, its space in the buffer is replaced by the next (i.e. 1,001-st) element,
         maintaining the 1,000 element buffer.
 
-        Args:
+        If the dataset is made of several shards, it also does shuffle the order of the shards.
+        However if the order has been fixed by using :func:`datasets.IterableDataset.skip` or :func:`datasets.IterableDataset.take`
+        then the order of the shards is kept unchanged.
 
+        Args:
             buffer_size (:obj:`int`): size of the buffer.
             seed (:obj:`int`, optional, default None): random seed that will be used to create the distribution.
         """
         shuffling = ShuffingConfig(seed=seed)
         return iterable_dataset(
-            ex_iterable=BufferShuffledExamplesIterable(self._ex_iterable, buffer_size, seed=seed),
+            ex_iterable=BufferShuffledExamplesIterable(self._ex_iterable, buffer_size, seed=seed).shuffle_data_sources(
+                seed=seed
+            ),
             info=copy.deepcopy(self._info),
             split=self._split,
             format_type=self._format_type,
@@ -380,6 +435,38 @@ class IterableDataset(DatasetInfoMixin):
 
     def set_epoch(self, epoch: int):
         self._epoch = epoch
+
+    def skip(self, n) -> "IterableDataset":
+        """
+        Create a new IterableDataset that skips the first ``n`` elements.
+
+        Args:
+            n (:obj:`int`): number of elements to skip.
+        """
+        ex_iterable = SkipExamplesIterable(self._ex_iterable, n)
+        return iterable_dataset(
+            ex_iterable=ex_iterable,
+            info=copy.deepcopy(self._info),
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+        )
+
+    def take(self, n) -> "IterableDataset":
+        """
+        Create a new IterableDataset with only the first ``n`` elements.
+
+        Args:
+            n (:obj:`int`): number of elements to take.
+        """
+        ex_iterable = TakeExamplesIterable(self._ex_iterable, n)
+        return iterable_dataset(
+            ex_iterable=ex_iterable,
+            info=copy.deepcopy(self._info),
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+        )
 
 
 def iterable_dataset(
