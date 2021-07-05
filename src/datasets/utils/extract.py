@@ -2,6 +2,7 @@ import gzip
 import lzma
 import os
 import shutil
+import struct
 import tarfile
 from zipfile import ZipFile
 from zipfile import is_zipfile as _is_zipfile
@@ -128,9 +129,34 @@ class RarExtractor:
             raise EnvironmentError("Please pip install rarfile")
 
 
+class ZstdExtractor:
+    @staticmethod
+    def is_extractable(path: str) -> bool:
+        """https://datatracker.ietf.org/doc/html/rfc8878
+
+        Magic_Number:  4 bytes, little-endian format.  Value: 0xFD2FB528.
+        """
+        with open(path, "rb") as f:
+            try:
+                magic_number = f.read(4)
+            except OSError:
+                return False
+        return True if magic_number == struct.pack("<I", 0xFD2FB528) else False
+
+    @staticmethod
+    def extract(input_path: str, output_path: str):
+        if not config.ZSTANDARD_AVAILABLE:
+            raise EnvironmentError("Please pip install zstandard")
+        import zstandard as zstd
+
+        dctx = zstd.ZstdDecompressor()
+        with open(input_path, "rb") as ifh, open(output_path, "wb") as ofh:
+            dctx.copy_stream(ifh, ofh)
+
+
 class Extractor:
     #  Put zip file to the last, b/c it is possible wrongly detected as zip (I guess it means: as tar or gzip)
-    extractors = [TarExtractor, GzipExtractor, ZipExtractor, XzExtractor, RarExtractor]
+    extractors = [TarExtractor, GzipExtractor, ZipExtractor, XzExtractor, RarExtractor, ZstdExtractor]
 
     @classmethod
     def is_extractable(cls, path):

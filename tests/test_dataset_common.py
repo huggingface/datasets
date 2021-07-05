@@ -22,7 +22,9 @@ from multiprocessing import Pool
 from typing import List, Optional
 from unittest import TestCase
 
+import pyarrow as pa
 from absl.testing import parameterized
+from packaging import version
 
 from datasets import cached_path, import_main_class, load_dataset, prepare_module
 from datasets.builder import BuilderConfig, DatasetBuilder
@@ -74,7 +76,7 @@ def skip_if_not_compatible_with_windows(test_case):
 
 
 def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
-    extensions = {"text": "txt", "json": "json", "pandas": "pkl", "csv": "csv"}
+    extensions = {"text": "txt", "json": "json", "pandas": "pkl", "csv": "csv", "parquet": "parquet"}
     return {
         "train": os.path.join(path_to_dummy_data, "train." + extensions[dataset_name]),
         "test": os.path.join(path_to_dummy_data, "test." + extensions[dataset_name]),
@@ -170,6 +172,16 @@ class DatasetTester:
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.parent.assertTrue(len(dataset[split]) > 0)
+
+                # check that we can cast features for each task template
+                task_templates = dataset_builder.info.task_templates
+                if task_templates:
+                    for task in task_templates:
+                        task_features = {**task.input_schema, **task.label_schema}
+                        for split in dataset:
+                            casted_dataset = dataset[split].prepare_for_task(task)
+                            self.parent.assertDictEqual(task_features, casted_dataset.features)
+                            del casted_dataset
                 del dataset
 
 
@@ -260,7 +272,10 @@ class LocalDatasetTest(parameterized.TestCase):
 
 
 def get_packaged_dataset_names():
-    return [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
+    packaged_datasets = [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
+    if version.parse(pa.__version__) < version.parse("3.0.0"):  # parquet is not supported for pyarrow<3.0.0
+        packaged_datasets = [pd for pd in packaged_datasets if pd["dataset_name"] != "parquet"]
+    return packaged_datasets
 
 
 @parameterized.named_parameters(get_packaged_dataset_names())

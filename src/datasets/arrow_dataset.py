@@ -22,14 +22,14 @@ import json
 import os
 import shutil
 import tempfile
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Counter, Dict, Iterator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -38,6 +38,8 @@ import pyarrow as pa
 import pyarrow.compute as pc
 from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
+
+from datasets.tasks.text_classification import TextClassification
 
 from . import config
 from .arrow_reader import ArrowReader
@@ -50,27 +52,36 @@ from .fingerprint import (
     generate_random_fingerprint,
     get_temporary_cache_files_directory,
     is_caching_enabled,
+    maybe_register_dataset_for_temp_dir_deletion,
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
-from .splits import NamedSplit
-from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files
-from .utils import map_nested
+from .splits import NamedSplit, Split
+from .table import (
+    ConcatenationTable,
+    InMemoryTable,
+    MemoryMappedTable,
+    Table,
+    cast_with_sliced_list_support,
+    concat_tables,
+    list_table_cache_files,
+)
+from .tasks import TaskTemplate
+from .utils import logging, map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
-from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 from .utils.typing import PathLike
 
 
 if TYPE_CHECKING:
     from .dataset_dict import DatasetDict
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
-if int(pa.__version__.split(".")[0]) == 0:
+if int(config.PYARROW_VERSION.split(".")[0]) == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
@@ -238,6 +249,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         self._data: Table = _check_table(arrow_table)
         self._indices: Optional[Table] = _check_table(indices_table) if indices_table is not None else None
+        maybe_register_dataset_for_temp_dir_deletion(self)
 
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
@@ -260,6 +272,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
         if self.info.features is None:
             self.info.features = inferred_features
+        else:  # make sure the nested columns are in the right order
+            self.info.features = self.info.features.reorder_fields_as(inferred_features)
 
         # Infer fingerprint if None
 
@@ -453,7 +467,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
             split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
             features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/datasets"``): Directory to cache data.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
 
@@ -483,7 +497,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             path_or_paths (path-like or list of path-like): Path(s) of the JSON or JSON Lines file(s).
             split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
             features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/datasets"``): Directory to cache data.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             field (:obj:`str`, optional): Field name of the JSON file where the dataset is contained in.
             **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
@@ -505,6 +519,45 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ).read()
 
     @staticmethod
+    def from_parquet(
+        path_or_paths: Union[PathLike, List[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        columns: Optional[List[str]] = None,
+        **kwargs,
+    ):
+        """Create Dataset from Parquet file(s).
+
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the Parquet file(s).
+            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            columns (:obj:`List[str]`, optional): If not None, only these columns will be read from the file.
+                A column name may be a prefix of a nested field, e.g. 'a' will select
+                'a.b', 'a.c', and 'a.d.e'.
+            **kwargs: Keyword arguments to be passed to :class:`ParquetConfig`.
+
+        Returns:
+            :class:`Dataset`
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.parquet import ParquetDatasetReader
+
+        return ParquetDatasetReader(
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            columns=columns,
+            **kwargs,
+        ).read()
+
+    @staticmethod
     def from_text(
         path_or_paths: Union[PathLike, List[PathLike]],
         split: Optional[NamedSplit] = None,
@@ -519,7 +572,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             path_or_paths (path-like or list of path-like): Path(s) of the text file(s).
             split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
             features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/datasets"``): Directory to cache data.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :class:`TextConfig`.
 
@@ -550,6 +603,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         Saves a dataset to a dataset directory, or in a filesystem using either :class:`~filesystems.S3FileSystem` or
         any implementation of ``fsspec.spec.AbstractFileSystem``.
+
+
+        Note regarding sliced datasets:
+
+        If you sliced the dataset in some way (using shard, train_test_split or select for example), then an indices mapping
+        is added to avoid having to rewrite a new arrow Table (save time + disk/memory usage).
+        It maps the indices used by __getitem__ to the right rows if the arrow Table.
+        By default save_to_disk does save the full dataset table + the mapping.
+
+        If you want to only save the shard of the dataset instead of the original arrow file and the indices,
+        then you have to call :func:`datasets.Dataset.flatten_indices` before saving.
+        This will create a new arrow table by using the right rows of the original table.
 
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
@@ -623,14 +688,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         with fs.open(
             Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "w", encoding="utf-8"
         ) as dataset_info_file:
-            json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
+            # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
+            sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
+            json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
         logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
     def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
-        filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
+        filesystem using either :class:`~filesystems.S3FileSystem` or any implementation of
+        ``fsspec.spec.AbstractFileSystem``.
 
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`) of
@@ -638,10 +706,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
                 Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
-                dataset will be copied in-memory if its size is smaller than
-                `datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES` (default `250 MiB`). This behavior can be
-                disabled by setting ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES = None``, and
-                in this case the dataset is not loaded in memory.
+                dataset will not be copied in-memory unless explicitly enabled by setting
+                `datasets.config.IN_MEMORY_MAX_SIZE` to nonzero. See more details in the
+                :ref:`load_dataset_enhancing_performance` section.
 
         Returns:
             :class:`Dataset` or :class:`DatasetDict`.
@@ -649,6 +716,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 - if `dataset_path` is a path of a dataset dict directory: a :class:`DatasetDict` with each split.
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
+        fs = fsspec.filesystem("file") if fs is None else fs
+        dataset_dict_json_path = Path(dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()
+        dataset_info_path = Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix()
+        if not fs.isfile(dataset_info_path) and fs.isfile(dataset_dict_json_path):
+            raise FileNotFoundError(
+                f"No such file or directory: '{dataset_info_path}'. Expected to load a Dataset object, but got a DatasetDict. Please use datasets.load_from_disk instead."
+            )
+
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
             tmp_dir = tempfile.TemporaryDirectory()
@@ -682,7 +757,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table = None
 
         split = state["_split"]
-        split = NamedSplit(split) if split is not None else split
+        split = Split(split) if split is not None else split
 
         return Dataset(
             arrow_table=arrow_table,
@@ -781,7 +856,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
         dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
-        new_features = copy.deepcopy(dset.features)
+        new_features = dset.features.copy()
         new_features[column] = dst_feat
         dset = dset.cast(new_features)
 
@@ -898,7 +973,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema),
+            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -957,7 +1032,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         format = self.format
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema),
+            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1122,6 +1197,57 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
+    @fingerprint_transform(inplace=False)
+    def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint) -> "Dataset":
+        """
+        Rename several columns in the dataset, and move the features associated to the original columns under
+        the new column names.
+
+        Args:
+            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+
+        Returns:
+            :class:`Dataset`: A copy of the dataset with renamed columns
+        """
+        dataset = copy.deepcopy(self)
+
+        extra_columns = set(column_mapping.keys()) - set(dataset.column_names)
+        if extra_columns:
+            raise ValueError(
+                f"Original column names {extra_columns} not in the dataset. "
+                f"Current columns in the dataset: {dataset._data.column_names}"
+            )
+
+        number_of_duplicates_in_new_columns = len(column_mapping.values()) - len(set(column_mapping.values()))
+        if number_of_duplicates_in_new_columns != 0:
+            raise ValueError(
+                "New column names must all be different, but this column mapping "
+                f"has {number_of_duplicates_in_new_columns} duplicates"
+            )
+
+        empty_new_columns = [new_col for new_col in column_mapping.values() if not new_col]
+        if empty_new_columns:
+            raise ValueError(f"New column names {empty_new_columns} are empty.")
+
+        def rename(columns):
+            return [column_mapping[col] if col in column_mapping else col for col in columns]
+
+        new_column_names = rename(self._data.column_names)
+        if self._format_columns is not None:
+            dataset._format_columns = rename(self._format_columns)
+
+        dataset._info.features = Features(
+            {
+                column_mapping[col] if col in column_mapping else col: feature
+                for col, feature in (self._info.features or {}).items()
+            }
+        )
+
+        dataset._data = dataset._data.rename_columns(new_column_names)
+        dataset._data = update_metadata_with_features(dataset._data, self.features)
+        dataset._fingerprint = new_fingerprint
+        return dataset
+
     def __len__(self):
         """Number of rows in the dataset."""
         return self.num_rows
@@ -1232,7 +1358,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._format_kwargs = format_kwargs
         self._format_columns = columns
         self._output_all_columns = output_all_columns
-        logger.info(
+        logger.debug(
             "Set __getitem__(key) output type to %s for %s columns "
             " (when key is int or slice) and %s output other (un-formatted) columns.",
             "python objects" if type is None else type,
@@ -1321,6 +1447,52 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
         return dataset
 
+    def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
+        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
+
+        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema. Intended for single-use only, so all task templates are removed from :attr:`datasets.DatasetInfo.task_templates` after casting.
+
+        Args:
+            task (:obj:`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If :obj:`str`, supported tasks include:
+
+                - :obj:`"text-classification"`
+                - :obj:`"question-answering"`
+
+                If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
+        """
+        # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
+        if isinstance(task, str):
+            tasks = [template.task for template in (self.info.task_templates or [])]
+            compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
+            if not compatible_templates:
+                raise ValueError(f"Task {task} is not compatible with this dataset! Available tasks: {tasks}")
+
+            if len(compatible_templates) > 1:
+                raise ValueError(
+                    f"Expected 1 task template but found {len(compatible_templates)}! Please ensure that `datasets.DatasetInfo.task_templates` contains a unique set of task types."
+                )
+            template = compatible_templates[0]
+        elif isinstance(task, TaskTemplate):
+            template = task
+        else:
+            raise ValueError(
+                f"Expected a `str` or `datasets.tasks.TaskTemplate` object but got task {task} with type {type(task)}."
+            )
+        if isinstance(template, TextClassification) and self.info.features is not None:
+            dataset_labels = tuple(sorted(self.info.features[template.label_column].names))
+            if template.labels is None or template.labels != dataset_labels:
+                raise ValueError(
+                    f"Incompatible labels between the dataset and task template! Expected labels {dataset_labels} but got {template.labels}. Please ensure that `datasets.tasks.TextClassification.labels` matches the features of the dataset."
+                )
+        column_mapping = template.column_mapping
+        columns_to_drop = [column for column in self.column_names if column not in column_mapping]
+        dataset = self.remove_columns(columns_to_drop)
+        dataset = dataset.rename_columns(column_mapping)
+        # We found a template so now flush `DatasetInfo` to skip the template update in `DatasetInfo.__post_init__`
+        dataset.info.task_templates = None
+        dataset = dataset.cast(features=template.features)
+        return dataset
+
     def _getitem(
         self,
         key: Union[int, slice, str],
@@ -1407,6 +1579,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         num_proc: Optional[int] = None,
         suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
+        desc: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -1452,6 +1625,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 rank=1 and num_proc=4, the resulting file would be "processed_00001_of_00004.arrow" for the default suffix.
             new_fingerprint (`Optional[str]`, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         assert num_proc is None or num_proc > 0, "num_proc must be an integer > 0."
 
@@ -1496,8 +1670,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
+                desc=desc,
             )
         else:
+            if num_proc > len(self):
+                num_proc = len(self)
+                logger.warning(
+                    f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
+                )
 
             def format_cache_file_name(cache_file_name, rank):
                 sep = cache_file_name.rindex(".")
@@ -1547,6 +1727,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         fn_kwargs=fn_kwargs,
                         rank=rank,
                         offset=sum(len(s) for s in shards[:rank]),
+                        desc=desc,
                     )
                     for rank in range(num_proc)
                 ]
@@ -1560,7 +1741,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return result
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"])
     def _map_single(
         self,
         function: Optional[Callable] = None,
@@ -1580,6 +1761,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
+        desc: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -1618,16 +1800,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
             offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         assert (
             not keep_in_memory or cache_file_name is None
         ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
 
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-
         # Reduce logging to keep things readable in multiprocessing with tqdm
-        if rank is not None and get_verbosity() < WARNING:
-            set_verbosity_warning()
+        if rank is not None and logging.get_verbosity() < logging.WARNING:
+            logging.set_verbosity_warning()
         # Print at least one thing to fix tqdm in notebooks in multiprocessing
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
         if rank is not None and "notebook" in tqdm.__name__:
@@ -1793,8 +1974,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
                 pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
-                pbar_desc = "#" + str(rank) if rank is not None else None
-                pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
+                pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
+                pbar = tqdm(
+                    pbar_iterable,
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    position=rank,
+                    unit=pbar_unit,
+                    desc=pbar_desc,
+                )
                 if not batched:
                     for i, example in enumerate(pbar):
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)
@@ -1857,6 +2044,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if update_data:
             # Create new Dataset from buffer or file
             info = self.info.copy()
+            # Remove task templates if the required features have been removed
+            if info.task_templates:
+                info.task_templates = [
+                    template
+                    for template in info.task_templates
+                    if all(k in writer._features.keys() for k in template.features)
+                ]
             info.features = writer._features
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
@@ -2663,16 +2857,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         batch_size: Optional[int] = None,
         **to_json_kwargs,
     ) -> int:
-        """Exports the dataset to JSON.
+        """Export the dataset to JSON Lines or JSON.
 
         Args:
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
-            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-            to_json_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_json`
+            lines (:obj:`bool`, default ``True``): Whether output JSON lines format.
+                Only possible if ``orient="records"`. It will throw ValueError with ``orient`` different from
+                ``"records"``, since the others are not list-like.
+            orient (:obj:`str`, default ``"records"``): Format of the JSON:
+
+                - ``"records"``: list like ``[{column -> value}, … , {column -> value}]``
+                - ``"split"``: dict like ``{"index" -> [index], "columns" -> [columns], "data" -> [values]}``
+                - ``"index"``: dict like ``{index -> {column -> value}}``
+                - ``"columns"``: dict like ``{column -> {index -> value}}``
+                - ``"values"``: just the values array
+                - ``"table"``: dict like ``{"schema": {schema}, "data": {data}}``
+            **to_json_kwargs: Parameters to pass to pandas's `pandas.DataFrame.to_json
+                <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html>`_.
 
         Returns:
-            int: The number of characters or bytes written
+            int: The number of characters or bytes written.
         """
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetWriter
@@ -2710,6 +2916,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for offset in range(0, len(self), batch_size)
             )
 
+    def to_parquet(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        **parquet_writer_kwargs,
+    ) -> int:
+        """Exports the dataset to parquet
+
+        Args:
+            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
+            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            parquet_writer_kwargs: Parameters to pass to PyArrow's :class:`pyarrow.parquet.ParquetWriter`
+
+        Returns:
+            int: The number of characters or bytes written
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.parquet import ParquetDatasetWriter
+
+        return ParquetDatasetWriter(self, path_or_buf, batch_size=batch_size, **parquet_writer_kwargs).write()
+
     @transmit_format
     @fingerprint_transform(inplace=False)
     def add_column(self, name: str, column: Union[list, np.array], new_fingerprint: str):
@@ -2728,7 +2956,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Concatenate tables horizontally
         table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
         # Update features
-        info = copy.deepcopy(self.info)
+        info = self.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
         return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
@@ -2940,7 +3168,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Returns:
             :class:`Dataset`
         """
-        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        item_table = InMemoryTable.from_pydict({k: [item[k]] for k in self.features.keys() if k in item})
         # Cast item
         schema = pa.schema(self.features.type)
         item_table = item_table.cast(schema)
@@ -2954,11 +3182,47 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table = concat_tables([self._indices, item_indices_table])
         return Dataset(
             table,
-            info=copy.deepcopy(self.info),
+            info=self.info.copy(),
             split=self.split,
             indices_table=indices_table,
             fingerprint=new_fingerprint,
         )
+
+    def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "Dataset":
+        """Align the dataset's label ID and label name mapping to match an input :obj:`label2id` mapping.
+        This is useful when you want to ensure that a model's predicted labels are aligned with the dataset.
+        The alignment in done using the lowercase label names.
+
+        Args:
+            label2id (:obj:`dict`):
+                The label name to ID mapping to align the dataset with.
+            label_column (:obj:`str`):
+                The column name of labels to align on.
+
+        Example:
+            .. code-block:: python
+
+                # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+                ds = load_dataset("glue", "mnli", split="train")
+                # mapping to align with
+                label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
+                ds_aligned = ds.align_labels_with_mapping(label2id, "label")
+        """
+        features = self.features.copy()
+        int2str_function = features[label_column].int2str
+        # Sort input mapping by ID value to ensure the label names are aligned
+        label2id = dict(sorted(label2id.items(), key=lambda item: item[1]))
+        label_names = list(label2id.keys())
+        features[label_column] = ClassLabel(num_classes=len(label_names), names=label_names)
+        # Some label mappings use uppercase label names so we lowercase them during alignment
+        label2id = {k.lower(): v for k, v in label2id.items()}
+
+        def process_label_ids(batch):
+            dset_label_names = [int2str_function(label_id).lower() for label_id in batch[label_column]]
+            batch[label_column] = [label2id[label_name] for label_name in dset_label_names]
+            return batch
+
+        return self.map(process_label_ids, features=features, batched=True)
 
 
 def concatenate_datasets(

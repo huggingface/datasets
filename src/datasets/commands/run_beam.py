@@ -6,7 +6,7 @@ from typing import List
 
 from datasets import config
 from datasets.builder import DatasetBuilder
-from datasets.commands import BaseTransformersCLICommand
+from datasets.commands import BaseDatasetsCLICommand
 from datasets.load import import_main_class, prepare_module
 from datasets.utils.download_manager import DownloadConfig, GenerateMode
 
@@ -25,10 +25,10 @@ def run_beam_command_factory(args):
     )
 
 
-class RunBeamCommand(BaseTransformersCLICommand):
+class RunBeamCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        run_beam_parser = parser.add_parser("run_beam")
+        run_beam_parser = parser.add_parser("run_beam", help="Run a Beam dataset processing pipeline.")
         run_beam_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         run_beam_parser.add_argument(
             "--cache_dir",
@@ -116,7 +116,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
                 download_mode=GenerateMode.REUSE_CACHE_IF_EXISTS
                 if not self._force_redownload
                 else GenerateMode.FORCE_REDOWNLOAD,
-                download_config=DownloadConfig(cache_dir=os.path.join(config.HF_DATASETS_CACHE, "downloads")),
+                download_config=DownloadConfig(cache_dir=config.DOWNLOADED_DATASETS_PATH),
                 save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,

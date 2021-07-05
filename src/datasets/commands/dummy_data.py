@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional
 
 from datasets import config
-from datasets.commands import BaseTransformersCLICommand
+from datasets.commands import BaseDatasetsCLICommand
 from datasets.load import import_main_class, prepare_module
 from datasets.utils import MockDownloadManager
 from datasets.utils.download_manager import DownloadManager
@@ -212,10 +212,10 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         shutil.rmtree(base_name)
 
 
-class DummyDataCommand(BaseTransformersCLICommand):
+class DummyDataCommand(BaseDatasetsCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
-        test_parser = parser.add_parser("dummy_data")
+        test_parser = parser.add_parser("dummy_data", help="Generate dummy data.")
         test_parser.add_argument("--auto_generate", action="store_true", help="Automatically generate dummy data")
         test_parser.add_argument(
             "--n_lines", type=int, default=5, help="Number of lines or samples to keep when auto-generating dummy data"
@@ -330,7 +330,11 @@ class DummyDataCommand(BaseTransformersCLICommand):
                     print(f"Automatic dummy data generation failed for some configs of '{self._path_to_dataset}'")
 
     def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager, keep_uncompressed) -> Optional[bool]:
-        dl_cache_dir = os.path.join(self._cache_dir or config.HF_DATASETS_CACHE, "downloads")
+        dl_cache_dir = (
+            os.path.join(self._cache_dir, config.DOWNLOADED_DATASETS_DIR)
+            if self._cache_dir
+            else config.DOWNLOADED_DATASETS_PATH
+        )
         download_config = DownloadConfig(cache_dir=dl_cache_dir)
         dl_manager = DummyDataGeneratorDownloadManager(
             dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager, download_config=download_config

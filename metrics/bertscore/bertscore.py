@@ -14,9 +14,24 @@
 # limitations under the License.
 """ BERTScore metric. """
 
+from contextlib import contextmanager
+
 import bert_score
 
 import datasets
+
+
+@contextmanager
+def filter_logging_context():
+    def filter_log(record):
+        return False if "This IS expected if you are initializing" in record.msg else True
+
+    logger = datasets.utils.logging.get_logger("transformers.modeling_utils")
+    logger.addFilter(filter_log)
+    try:
+        yield
+    finally:
+        logger.removeFilter(filter_log)
 
 
 _CITATION = """\
@@ -30,40 +45,45 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-BERTScore leverages the pre-trained contextual embeddings from BERT and matches words in candidate and reference sentences by cosine similarity.
+BERTScore leverages the pre-trained contextual embeddings from BERT and matches words in candidate and reference
+sentences by cosine similarity.
 It has been shown to correlate with human judgment on sentence-level and system-level evaluation.
-Moreover, BERTScore computes precision, recall, and F1 measure, which can be useful for evaluating different language generation tasks.
+Moreover, BERTScore computes precision, recall, and F1 measure, which can be useful for evaluating different language
+generation tasks.
 
-See the [README.md] file at https://github.com/Tiiiger/bert_score for more information.
+See the `README.md` file at [https://github.com/Tiiiger/bert_score](https://github.com/Tiiiger/bert_score) for more
+information.
 """
 
 _KWARGS_DESCRIPTION = """
 BERTScore Metrics with the hashcode from a source against one or more references.
 
 Args:
-    `predictions` (list of str): prediction/candidate sentences
-    `references` (list of str or list of list of str): reference sentences
-    `lang` (str): language of the sentences; required (e.g. 'en')
-    `model_type` (str): bert specification, default using the suggested
-    model for the target language; has to specify at least one of
-    `model_type` or `lang`
-    `num_layers` (int): the layer of representation to use.
-    default using the number of layers tuned on WMT16 correlation data
-    `verbose` (bool): turn on intermediate status update
-    `idf` (bool or dict): use idf weighting, can also be a precomputed idf_dict
-    `device` (str): on which the contextual embedding model will be allocated on.
-    If this argument is None, the model lives on cuda:0 if cuda is available.
-    `nthreads` (int): number of threads
-    `batch_size` (int): bert score processing batch size
-    at least one of `model_type` or `lang`. `lang` needs to be
-    specified when `rescale_with_baseline` is True.
-    `rescale_with_baseline` (bool): rescale bertscore with pre-computed baseline
-    `baseline_path` (str): customized baseline file.
+    predictions (list of str): Prediction/candidate sentences.
+    references (list of str or list of list of str): Reference sentences.
+    lang (str): Language of the sentences; required (e.g. 'en').
+    model_type (str): Bert specification, default using the suggested
+        model for the target language; has to specify at least one of
+        `model_type` or `lang`.
+    num_layers (int): The layer of representation to use,
+        default using the number of layers tuned on WMT16 correlation data.
+    verbose (bool): Turn on intermediate status update.
+    idf (bool or dict): Use idf weighting; can also be a precomputed idf_dict.
+    device (str): On which the contextual embedding model will be allocated on.
+        If this argument is None, the model lives on cuda:0 if cuda is available.
+    nthreads (int): Number of threads.
+    batch_size (int): Bert score processing batch size,
+        at least one of `model_type` or `lang`. `lang` needs to be
+        specified when `rescale_with_baseline` is True.
+    rescale_with_baseline (bool): Rescale bertscore with pre-computed baseline.
+    baseline_path (str): Customized baseline file.
+
 Returns:
-    'precision': Precision,
-    'recall': Recall,
-    'f1', F1 score,
-    'hashcode': Hashcode of the library,
+    precision: Precision.
+    recall: Recall.
+    f1: F1 score.
+    hashcode: Hashcode of the library.
+
 Examples:
 
     >>> predictions = ["hello there", "general kenobi"]
@@ -127,19 +147,20 @@ class BERTScore(datasets.Metric):
             use_custom_baseline=baseline_path is not None,
         )
 
-        if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
-            self.cached_bertscorer = bert_score.BERTScorer(
-                model_type=model_type,
-                num_layers=num_layers,
-                batch_size=batch_size,
-                nthreads=nthreads,
-                all_layers=all_layers,
-                idf=idf,
-                device=device,
-                lang=lang,
-                rescale_with_baseline=rescale_with_baseline,
-                baseline_path=baseline_path,
-            )
+        with filter_logging_context():
+            if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
+                self.cached_bertscorer = bert_score.BERTScorer(
+                    model_type=model_type,
+                    num_layers=num_layers,
+                    batch_size=batch_size,
+                    nthreads=nthreads,
+                    all_layers=all_layers,
+                    idf=idf,
+                    device=device,
+                    lang=lang,
+                    rescale_with_baseline=rescale_with_baseline,
+                    baseline_path=baseline_path,
+                )
 
         (P, R, F) = self.cached_bertscorer.score(
             cands=predictions,

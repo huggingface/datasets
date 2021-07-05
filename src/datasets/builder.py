@@ -34,19 +34,20 @@ from . import config, utils
 from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs, ReadInstruction
 from .arrow_writer import ArrowWriter, BeamWriter
-from .dataset_dict import DatasetDict
+from .dataset_dict import DatasetDict, IterableDatasetDict
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
+from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
+from .utils import logging
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
-from .utils.logging import WARNING, get_logger
 
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class InvalidConfigName(ValueError):
@@ -203,6 +204,7 @@ class DatasetBuilder:
         cache_dir: Optional[str] = None,
         name: Optional[str] = None,
         hash: Optional[str] = None,
+        base_path: Optional[str] = None,
         features: Optional[Features] = None,
         **config_kwargs,
     ):
@@ -216,8 +218,9 @@ class DatasetBuilder:
                 `builder_config`s will have their own subdirectories and versions.
                 If not provided, uses the first configuration in self.BUILDER_CONFIGS
             hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
-                script code is udpated (to avoid reusing old data).
+                script code is updated (to avoid reusing old data).
                 The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
+            base_path: `str`, base path for relative paths that are used to download files. This can be a remote url.
             features: `Features`, optional features that will be used to read/write the dataset
                 It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
             config_kwargs: will override the defaults kwargs in config
@@ -226,6 +229,7 @@ class DatasetBuilder:
         # DatasetBuilder name
         self.name: str = camelcase_to_snakecase(self.__class__.__name__)
         self.hash: Optional[str] = hash
+        self.base_path = base_path
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = {key: value for key, value in config_kwargs.items() if value is not None}
@@ -251,6 +255,9 @@ class DatasetBuilder:
 
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or config.HF_DATASETS_CACHE)
+        self._cache_downloaded_dir = (
+            os.path.join(cache_dir, config.DOWNLOADED_DATASETS_DIR) if cache_dir else config.DOWNLOADED_DATASETS_PATH
+        )
         self._cache_dir = self._build_cache_dir()
         if not is_remote_url(self._cache_dir_root):
             os.makedirs(self._cache_dir_root, exist_ok=True)
@@ -378,7 +385,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True, with_hash=True):
+    def _relative_data_dir(self, with_version=True, with_hash=True) -> str:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
@@ -471,18 +478,20 @@ class DatasetBuilder:
             save_infos (bool): Save the dataset information (checksums/size/splits/...)
             try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
             dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
-            base_path: ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
+            base_path ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
+                If not specified, the value of the ``base_path`` attribute (``self.base_path``) will be used instead.
             use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
 
         """
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
+        base_path = base_path if base_path is not None else self.base_path
 
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
-                    cache_dir=os.path.join(self._cache_dir_root, "downloads"),
+                    cache_dir=self._cache_downloaded_dir,
                     force_download=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
                     use_etag=False,
                     use_auth_token=use_auth_token,
@@ -725,7 +734,7 @@ class DatasetBuilder:
                 % (self.name, self._cache_dir_root)
             )
 
-        logger.info(
+        logger.debug(
             "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
         )
 
@@ -757,7 +766,10 @@ class DatasetBuilder:
     ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
-        if isinstance(split, str):
+        if not isinstance(split, ReadInstruction):
+            split = str(split)
+            if split == "all":
+                split = "+".join(self.info.splits.keys())
             split = Split(split)
 
         # Build base dataset
@@ -775,6 +787,11 @@ class DatasetBuilder:
             }
             post_processed = self._post_process(ds, resources_paths)
             if post_processed is not None:
+                del ds
+                # collect the gc to make sure the windows file lock on arrow files is gone
+                import gc
+
+                gc.collect()
                 ds = post_processed
                 recorded_checksums = {}
                 for resource_name, resource_path in resources_paths.items():
@@ -837,7 +854,64 @@ class DatasetBuilder:
             split_infos=self.info.splits.values(),
             in_memory=in_memory,
         )
-        return Dataset(**dataset_kwargs)
+        fingerprint = self._get_dataset_fingerprint(split)
+        return Dataset(fingerprint=fingerprint, **dataset_kwargs)
+
+    def _get_dataset_fingerprint(self, split: Union[ReadInstruction, Split]) -> str:
+        """The dataset fingerprint is the hash of the relative directory dataset_name/config_name/version/hash, as well as the split specs."""
+        hasher = Hasher()
+        hasher.update(self._relative_data_dir().replace(os.sep, "/"))
+        hasher.update(str(split))  # for example: train, train+test, train[:10%], test[:33%](pct1_dropremainder)
+        fingerprint = hasher.hexdigest()
+        return fingerprint
+
+    def as_streaming_dataset(
+        self,
+        split: Optional[str] = None,
+        base_path: Optional[str] = None,
+        use_auth_token: Optional[str] = None,
+    ) -> Union[Dict[str, IterableDataset], IterableDataset]:
+        if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
+            raise ValueError(f"Builder {self.name} is not streamable.")
+        if not config.AIOHTTP_AVAILABLE:
+            raise ImportError(
+                f"To be able to use dataset streaming, you need to install dependencies like aiohttp "
+                f"using 'pip install datasets[streaming]' or 'pip install aiohttp' for instance"
+            )
+
+        from .utils.streaming_download_manager import StreamingDownloadManager
+
+        dl_manager = StreamingDownloadManager(
+            base_path=base_path,
+            download_config=DownloadConfig(use_auth_token=use_auth_token),
+            dataset_name=self.name,
+            data_dir=self.config.data_dir,
+        )
+        splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
+        # By default, return all splits
+        if split is None:
+            splits_generator = splits_generators
+        elif split in splits_generators:
+            splits_generator = splits_generators[split]
+        else:
+            raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
+
+        # Create a dataset for each of the given splits
+        datasets = utils.map_nested(
+            self._as_streaming_dataset_single,
+            splits_generator,
+            map_tuple=True,
+        )
+        if isinstance(datasets, dict):
+            datasets = IterableDatasetDict(datasets)
+        return datasets
+
+    def _as_streaming_dataset_single(
+        self,
+        splits_generator,
+    ) -> IterableDataset:
+        ex_iterable = self._get_examples_iterable_for_split(splits_generator)
+        return IterableDataset(ex_iterable, info=self.info, split=splits_generator.name)
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
@@ -861,7 +935,7 @@ class DatasetBuilder:
 
         Example:
 
-            return[
+            return [
                     datasets.SplitGenerator(
                             name=datasets.Split.TRAIN,
                             gen_kwargs={'file': 'train_data.zip'},
@@ -906,6 +980,14 @@ class DatasetBuilder:
             split_generator: `SplitGenerator`, Split generator to process
             **kwargs: Additional kwargs forwarded from _download_and_prepare (ex:
                 beam pipeline)
+        """
+        raise NotImplementedError()
+
+    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+        """Generate the examples on the fly.
+
+        Args:
+            split_generator: `SplitGenerator`, Split generator to process
         """
         raise NotImplementedError()
 
@@ -973,19 +1055,32 @@ class GeneratorBasedBuilder(DatasetBuilder):
         fpath = os.path.join(self._cache_dir, fname)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        with ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size) as writer:
+
+        with ArrowWriter(
+            features=self.info.features,
+            path=fpath,
+            writer_batch_size=self._writer_batch_size,
+            hash_salt=split_info.name,
+            check_duplicates=True,
+        ) as writer:
             try:
                 for key, record in utils.tqdm(
-                    generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
+                    generator,
+                    unit=" examples",
+                    total=split_info.num_examples,
+                    leave=False,
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
                 ):
                     example = self.info.features.encode_example(record)
-                    writer.write(example)
+                    writer.write(example, key)
             finally:
                 num_examples, num_bytes = writer.finalize()
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
+
+    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+        return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
 
 
 class ArrowBasedBuilder(DatasetBuilder):
@@ -995,7 +1090,7 @@ class ArrowBasedBuilder(DatasetBuilder):
     test_dummy_data = True
 
     @abc.abstractmethod
-    def _generate_examples(self, **kwargs):
+    def _generate_tables(self, **kwargs):
         """Default function generating examples for each `SplitGenerator`.
 
         This function preprocess the examples from the raw data to the preprocessed
@@ -1018,9 +1113,8 @@ class ArrowBasedBuilder(DatasetBuilder):
                 The key will be hashed and sorted to shuffle examples deterministically,
                 such as generating the dataset multiple times keep examples in the
                 same order.
-            example: `dict<str feature_name, feature_value>`, a feature dictionary
-                ready to be encoded and written to disk. The example will be
-                encoded with `self.info.features.encode_example({...})`.
+            example: `pyarrow.Table`, a feature table
+                ready to be encoded and written to disk.
         """
         raise NotImplementedError()
 
@@ -1029,9 +1123,10 @@ class ArrowBasedBuilder(DatasetBuilder):
         fpath = os.path.join(self._cache_dir, fname)
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
+            for key, table in utils.tqdm(
+                generator, unit=" tables", leave=False, disable=bool(logging.get_verbosity() == logging.NOTSET)
+            ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
 
@@ -1039,6 +1134,11 @@ class ArrowBasedBuilder(DatasetBuilder):
         split_generator.split_info.num_bytes = num_bytes
         if self.info.features is None:
             self.info.features = writer._features
+
+    def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
+        return ExamplesIterable(
+            _generate_examples_from_tables_wrapper(self._generate_tables), kwargs=split_generator.gen_kwargs
+        )
 
 
 class MissingBeamOptions(ValueError):

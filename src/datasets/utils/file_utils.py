@@ -23,17 +23,16 @@ from urllib.parse import urlparse
 
 import numpy as np
 import posixpath
-import pyarrow as pa
 import requests
 from tqdm.auto import tqdm
 
 from .. import __version__, config
+from . import logging
 from .extract import ExtractManager
 from .filelock import FileLock
-from .logging import WARNING, get_logger
 
 
-logger = get_logger(__name__)  # pylint: disable=invalid-name
+logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 INCOMPLETE_SUFFIX = ".incomplete"
 
@@ -267,7 +266,7 @@ def cached_path(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
-    cache_dir = download_config.cache_dir or os.path.join(config.HF_DATASETS_CACHE, "downloads")
+    cache_dir = download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
@@ -310,11 +309,13 @@ def cached_path(
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
     ua = "datasets/{}; python/{}".format(__version__, config.PY_VERSION)
-    ua += "; pyarrow/{}".format(pa.__version__)
+    ua += "; pyarrow/{}".format(config.PYARROW_VERSION)
     if config.TORCH_AVAILABLE:
         ua += "; torch/{}".format(config.TORCH_VERSION)
     if config.TF_AVAILABLE:
         ua += "; tensorflow/{}".format(config.TF_VERSION)
+    if config.JAX_AVAILABLE:
+        ua += "; jax/{}".format(config.JAX_VERSION)
     if config.BEAM_AVAILABLE:
         ua += "; apache_beam/{}".format(config.BEAM_VERSION)
     if isinstance(user_agent, dict):
@@ -430,14 +431,13 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
     progress = tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
         desc="Downloading",
-        disable=not_verbose,
+        disable=bool(logging.get_verbosity() == logging.NOTSET),
     )
     for chunk in response.iter_content(chunk_size=1024):
         if chunk:  # filter out keep-alive new chunks

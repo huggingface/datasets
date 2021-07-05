@@ -131,7 +131,7 @@ class GreatCode(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath, datatype):
-        for dp in datapath:
+        for file_idx, dp in enumerate(datapath):
             with open(dp, "r", encoding="utf-8") as json_file:
                 json_list = list(json_file)
 
@@ -159,4 +159,4 @@ class GreatCode(datasets.GeneratorBasedBuilder):
                     ],
                     "provenances": result["provenances"],
                 }
-                yield example_counter, response
+                yield f"{file_idx}_{example_counter}", response

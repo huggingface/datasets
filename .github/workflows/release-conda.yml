@@ -25,6 +25,7 @@ jobs:
           auto-update-conda: true
           auto-activate-base: false
           activate-environment: "build-datasets"
+          python-version: 3.8
           channels: huggingface,conda-forge
 
       - name: Setup conda env

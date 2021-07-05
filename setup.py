@@ -42,8 +42,8 @@ To create the package for pypi.
 7. Fill release notes in the tag in github once everything is looking hunky-dory.
 
 8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed
-   Update the version mapping in docs/source/_static/js/custom.js,
-   and set version to X.X.X.dev0 in setup.py and __init__.py
+   Update the version mapping in docs/source/_static/js/custom.js with utils/release.py,
+   and set version to X.X.X+1.dev0 (e.g. 1.8.0 -> 1.8.1.dev0) in setup.py and __init__.py
 
 """
 
@@ -58,23 +58,13 @@ from setuptools import find_packages, setup
 DOCLINES = __doc__.split("\n")
 
 
-# Pin some dependencies for old python versions
-_deps = {
-    "fsspec": "fsspec"
-    if sys.version_info >= (3, 7)
-    else "fsspec<0.8.1",  # fsspec>=0.8.1 requires py>=3.7 for async stuff
-    "s3fs": "s3fs"
-    if sys.version_info >= (3, 7)
-    else "s3fs==0.4.2",  # later versions of s3fs have issues downloading directories recursively for py36
-}
-
-
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 1.0.0 to avoid permission errors on windows when using the compute layer on memory mapped data
-    "pyarrow>=1.0.0<4.0.0",
+    # Minimum 3.0.0 to support mix of struct and list types in parquet, and batch iterators of parquet data
+    # pyarrow 4.0.0 introduced segfault bug, see: https://github.com/huggingface/datasets/pull/2268
+    "pyarrow>=1.0.0,!=4.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -82,9 +72,7 @@ REQUIRED_PKGS = [
     # for downloading datasets over HTTPS
     "requests>=2.19.0",
     # progress bars in download and scripts
-    # tqdm 4.50.0 introduced permission errors on windows
-    # see https://app.circleci.com/pipelines/github/huggingface/datasets/235/workflows/cfb6a39f-68eb-4802-8b17-2cd5e8ea7369/jobs/1111
-    "tqdm>=4.27,<4.50.0",
+    "tqdm>=4.27",
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
     # for fast hashing
@@ -94,7 +82,8 @@ REQUIRED_PKGS = [
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
-    _deps["fsspec"],
+    # minimum 2021.05.0 to have the AbstractArchiveFileSystem
+    "fsspec>=2021.05.0",
     # To get datasets from the Datasets Hub on huggingface.co
     "huggingface_hub<0.1.0",
     # Utilities from PyPA to e.g., compare versions
@@ -114,6 +103,7 @@ TESTS_REQUIRE = [
     "pytest",
     "pytest-xdist",
     # optional dependencies
+    "aiohttp",
     "apache-beam>=2.26.0",
     "elasticsearch",
     "aiobotocore==1.2.2",
@@ -123,7 +113,7 @@ TESTS_REQUIRE = [
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
-    _deps["s3fs"],
+    "s3fs",
     "tensorflow>=2.3",
     "torch",
     "transformers",
@@ -144,7 +134,7 @@ TESTS_REQUIRE = [
     "sacrebleu",
     "scipy",
     "seqeval",
-    "sklearn",
+    "scikit-learn",
     "jiwer",
     "sentencepiece",  # for bleurt
     # to speed up pip backtracking
@@ -153,6 +143,7 @@ TESTS_REQUIRE = [
     "tldextract>=3.1.0",
     "texttable>=1.6.3",
     "Werkzeug>=1.0.1",
+    "six~=1.15.0",
     # metadata validation
     "importlib_resources;python_version<'3.7'",
 ]
@@ -182,11 +173,12 @@ EXTRAS_REQUIRE = {
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
     "torch": ["torch"],
     "s3": [
-        _deps["fsspec"],
+        "fsspec",
         "boto3==1.16.43",
         "botocore==1.19.52",
-        _deps["s3fs"],
+        "s3fs",
     ],
+    "streaming": ["aiohttp"],
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
@@ -199,14 +191,14 @@ EXTRAS_REQUIRE = {
         "sphinx-rtd-theme==0.4.3",
         "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
-        _deps["fsspec"],
-        _deps["s3fs"],
+        "fsspec",
+        "s3fs",
     ],
 }
 
 setup(
     name="datasets",
-    version="1.6.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.8.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",
@@ -216,7 +208,7 @@ setup(
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    package_data={"datasets": ["scripts/templates/*"], "datasets.utils.resources": ["*.json"]},
+    package_data={"datasets": ["py.typed", "scripts/templates/*"], "datasets.utils.resources": ["*.json", "*.yaml"]},
     entry_points={"console_scripts": ["datasets-cli=datasets.commands.datasets_cli:main"]},
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
@@ -233,4 +225,5 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     keywords="datasets machine learning datasets metrics",
+    zip_safe=False,  # Required for mypy to find the py.typed file
 )

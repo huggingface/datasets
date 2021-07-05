@@ -158,3 +158,4 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
                     "article": article,
                 }
                 yield id_, example
+                questions_counter += 1
