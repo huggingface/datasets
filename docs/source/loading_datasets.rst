@@ -456,6 +456,12 @@ For example, run the following to get the path to the cache directory of the IMD
     >>> dataset_builder = load_dataset_builder('imdb')
     >>> print(dataset_builder.cache_dir)
     /Users/thomwolf/.cache/huggingface/datasets/imdb/plain_text/1.0.0/fdc76b18d5506f14b0646729b8d371880ef1bc48a26d00835a7f3da44004b676
+    >>> print(dataset_builder.info.features)            
+    {'text': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None)}
+    >>> print(dataset_builder.info.splits)              
+    {'train': SplitInfo(name='train', num_bytes=33432835, num_examples=25000, dataset_name='imdb'), 'test': SplitInfo(name='test', num_bytes=32650697, num_examples=25000, dataset_name='imdb'), 'unsupervised': SplitInfo(name='unsupervised', num_bytes=67106814, num_examples=50000, dataset_name='imdb')}
+
+You can see all the attributes of ``dataset_builder.info`` in the documentation of :class:`datasets.DatasetInfo`
 
 
 .. _load_dataset_enhancing_performance:
