@@ -300,7 +300,7 @@ def cached_path(
         return output_path
 
     if download_config.extract_compressed_file:
-        output_path = ExtractManager(cache_dir=cache_dir).extract(
+        output_path = ExtractManager(cache_dir=download_config.cache_dir).extract(
             output_path, force_extract=download_config.force_extract
         )
 

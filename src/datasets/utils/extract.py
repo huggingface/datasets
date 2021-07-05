@@ -13,7 +13,9 @@ from datasets.utils.filelock import FileLock
 
 class ExtractManager:
     def __init__(self, cache_dir=None):
-        self.cache_dir = cache_dir
+        self.extract_dir = (
+            os.path.join(cache_dir, config.EXTRACTED_DATASETS_DIR) if cache_dir else config.EXTRACTED_DATASETS_PATH
+        )
         self.extractor = Extractor
 
     def _get_output_path(self, path):
@@ -22,7 +24,7 @@ class ExtractManager:
         # Path where we extract compressed archives
         # We extract in the cache dir, and get the extracted path name by hashing the original path"
         abs_path = os.path.abspath(path)
-        return os.path.join(self.cache_dir, "extracted", hash_url_to_filename(abs_path))
+        return os.path.join(self.extract_dir, hash_url_to_filename(abs_path))
 
     def _do_extract(self, output_path, force_extract):
         return force_extract or (
@@ -145,6 +147,7 @@ class ZstdExtractor:
 
     @staticmethod
     def extract(input_path: str, output_path: str):
+        os.rmdir(output_path)
         if not config.ZSTANDARD_AVAILABLE:
             raise EnvironmentError("Please pip install zstandard")
         import zstandard as zstd
