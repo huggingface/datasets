@@ -32,11 +32,14 @@ class ExtractManager:
         )
 
     def extract(self, input_path, force_extract=False):
-        output_path = input_path
-        if self.extractor.is_extractable(input_path):
-            output_path = self._get_output_path(input_path)
-            if self._do_extract(output_path, force_extract):
+        if not self.extractor.is_extractable(input_path):
+            return input_path
+        output_path = self._get_output_path(input_path)
+        if self._do_extract(output_path, force_extract):
+            try:
                 self.extractor.extract(input_path, output_path)
+            except Exception:
+                raise EnvironmentError("Archive format of {} could not be identified".format(input_path))
         return output_path
 
 
@@ -166,8 +169,6 @@ class Extractor:
 
     @classmethod
     def extract(cls, input_path, output_path):
-        if not cls.is_extractable(input_path):
-            raise EnvironmentError("Archive format of {} could not be identified".format(input_path))
         # Prevent parallel extractions
         lock_path = input_path + ".lock"
         with FileLock(lock_path):
