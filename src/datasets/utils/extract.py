@@ -172,6 +172,7 @@ class Extractor:
         lock_path = input_path + ".lock"
         with FileLock(lock_path):
             shutil.rmtree(output_path, ignore_errors=True)
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             for extractor in cls.extractors:
                 if extractor.is_extractable(input_path):
                     extractor.extract(input_path, output_path)
