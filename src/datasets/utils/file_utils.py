@@ -11,6 +11,7 @@ import lzma
 import os
 import re
 import shutil
+import struct
 import sys
 import tarfile
 import tempfile
@@ -307,6 +308,7 @@ def cached_path(
             and not is_gzip(output_path)
             and not is_xz(output_path)
             and not is_rarfile(output_path)
+            and not ZstdExtractor.is_extractable(output_path)
         ):
             return output_path
 
@@ -360,6 +362,9 @@ def cached_path(
                     rf.close()
                 else:
                     raise EnvironmentError("Please pip install rarfile")
+            elif ZstdExtractor.is_extractable(output_path):
+                os.rmdir(output_path_extracted)
+                ZstdExtractor.extract(output_path, output_path_extracted)
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
@@ -722,6 +727,31 @@ def is_rarfile(path: str) -> bool:
         return True
     else:
         return False
+
+
+class ZstdExtractor:
+    @staticmethod
+    def is_extractable(path: str) -> bool:
+        """https://datatracker.ietf.org/doc/html/rfc8878
+
+        Magic_Number:  4 bytes, little-endian format.  Value: 0xFD2FB528.
+        """
+        with open(path, "rb") as f:
+            try:
+                magic_number = f.read(4)
+            except OSError:
+                return False
+        return True if magic_number == struct.pack("<I", 0xFD2FB528) else False
+
+    @staticmethod
+    def extract(input_path: str, output_path: str):
+        if not config.ZSTANDARD_AVAILABLE:
+            raise EnvironmentError("Please pip install zstandard")
+        import zstandard as zstd
+
+        dctx = zstd.ZstdDecompressor()
+        with open(input_path, "rb") as ifh, open(output_path, "wb") as ofh:
+            dctx.copy_stream(ifh, ofh)
 
 
 def add_start_docstrings(*docstr):

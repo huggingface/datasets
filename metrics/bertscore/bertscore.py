@@ -14,9 +14,24 @@
 # limitations under the License.
 """ BERTScore metric. """
 
+from contextlib import contextmanager
+
 import bert_score
 
 import datasets
+
+
+@contextmanager
+def filter_logging_context():
+    def filter_log(record):
+        return False if "This IS expected if you are initializing" in record.msg else True
+
+    logger = datasets.utils.logging.get_logger("transformers.modeling_utils")
+    logger.addFilter(filter_log)
+    try:
+        yield
+    finally:
+        logger.removeFilter(filter_log)
 
 
 _CITATION = """\
@@ -132,19 +147,20 @@ class BERTScore(datasets.Metric):
             use_custom_baseline=baseline_path is not None,
         )
 
-        if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
-            self.cached_bertscorer = bert_score.BERTScorer(
-                model_type=model_type,
-                num_layers=num_layers,
-                batch_size=batch_size,
-                nthreads=nthreads,
-                all_layers=all_layers,
-                idf=idf,
-                device=device,
-                lang=lang,
-                rescale_with_baseline=rescale_with_baseline,
-                baseline_path=baseline_path,
-            )
+        with filter_logging_context():
+            if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
+                self.cached_bertscorer = bert_score.BERTScorer(
+                    model_type=model_type,
+                    num_layers=num_layers,
+                    batch_size=batch_size,
+                    nthreads=nthreads,
+                    all_layers=all_layers,
+                    idf=idf,
+                    device=device,
+                    lang=lang,
+                    rescale_with_baseline=rescale_with_baseline,
+                    baseline_path=baseline_path,
+                )
 
         (P, R, F) = self.cached_bertscorer.score(
             cands=predictions,

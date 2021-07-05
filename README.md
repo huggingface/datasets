@@ -156,6 +156,7 @@ If you want to cite this framework you can use this:
                   Thomas Wolf and
                   Albert Villanova del Moral and
                   Yacine Jernite and
+                  Abhishek Thakur and
                   Suraj Patil and
                   Mariama Drame and
                   Julien Chaumond and

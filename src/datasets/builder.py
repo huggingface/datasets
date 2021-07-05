@@ -204,6 +204,7 @@ class DatasetBuilder:
         cache_dir: Optional[str] = None,
         name: Optional[str] = None,
         hash: Optional[str] = None,
+        base_path: Optional[str] = None,
         features: Optional[Features] = None,
         **config_kwargs,
     ):
@@ -217,8 +218,9 @@ class DatasetBuilder:
                 `builder_config`s will have their own subdirectories and versions.
                 If not provided, uses the first configuration in self.BUILDER_CONFIGS
             hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
-                script code is udpated (to avoid reusing old data).
+                script code is updated (to avoid reusing old data).
                 The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
+            base_path: `str`, base path for relative paths that are used to download files. This can be a remote url.
             features: `Features`, optional features that will be used to read/write the dataset
                 It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
             config_kwargs: will override the defaults kwargs in config
@@ -227,6 +229,7 @@ class DatasetBuilder:
         # DatasetBuilder name
         self.name: str = camelcase_to_snakecase(self.__class__.__name__)
         self.hash: Optional[str] = hash
+        self.base_path = base_path
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = {key: value for key, value in config_kwargs.items() if value is not None}
@@ -475,13 +478,15 @@ class DatasetBuilder:
             save_infos (bool): Save the dataset information (checksums/size/splits/...)
             try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
             dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
-            base_path: ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
+            base_path ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
+                If not specified, the value of the ``base_path`` attribute (``self.base_path``) will be used instead.
             use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
 
         """
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
+        base_path = base_path if base_path is not None else self.base_path
 
         if dl_manager is None:
             if download_config is None:
@@ -930,7 +935,7 @@ class DatasetBuilder:
 
         Example:
 
-            return[
+            return [
                     datasets.SplitGenerator(
                             name=datasets.Split.TRAIN,
                             gen_kwargs={'file': 'train_data.zip'},
