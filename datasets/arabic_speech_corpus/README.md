@@ -1,4 +1,5 @@
 ---
+pretty_name: Arabic Speech Corpus
 annotations_creators:
 - expert-generated
 language_creators:
@@ -9,15 +10,15 @@ licenses:
 - cc-by-4.0
 multilinguality:
 - monolingual
+paperswithcode_id: arabic-speech-corpus
 size_categories:
 - 1K<n<10K
 source_datasets:
 - original
 task_categories:
-- other
+- automatic-speech-recognition
 task_ids:
-- other-other-automatic speech recognition
-paperswithcode_id: arabic-speech-corpus
+- speech-recognition
 ---
 
 # Dataset Card for Arabic Speech Corpus
@@ -152,7 +153,14 @@ CC BY 4.0
 
 ### Citation Information
 
-[Needs More Information]
+```
+@phdthesis{halabi2016modern,
+  title={Modern standard Arabic phonetics for speech synthesis},
+  author={Halabi, Nawar},
+  year={2016},
+  school={University of Southampton}
+}
+```
 
 ### Contributions
 
