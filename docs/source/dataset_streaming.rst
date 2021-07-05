@@ -23,6 +23,7 @@ Even though the dataset is 1.2 terabytes of data, you can start using it right a
     The dataset that is returned is a :class:`datasets.IterableDataset`, not the classic map-style :class:`datasets.Dataset`. To get examples from an iterable dataset, you have to iterate over it using a for loop for example. To get the very last example of the dataset, you first have to iterate on all the previous examples.
     Therefore iterable datasets are mostly useful for iterative jobs like training a model, but not for jobs that require random access of examples.
 
+.. _iterable-dataset-shuffling:
 
 Shuffling the dataset: ``shuffle``
 --------------------------------------------------
@@ -101,11 +102,12 @@ Split your dataset with ``take`` and ``skip``
 
 You can split your dataset by taking or skipping the first ``n`` examples.
 
-You can create new dataset with the first ``n`` examples using :func:`datasets.IterableDataset.take`, or you can get a dataset with the rest of the examples by skipping the first ``n`` examples with :func:`datasets.IterableDataset.skip`:
+You can create a new dataset with the first ``n`` examples by using :func:`datasets.IterableDataset.take`, or you can create a dataset with the rest of the examples by skipping the first ``n`` examples with :func:`datasets.IterableDataset.skip`:
 
 
 .. code-block::
 
+    >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
     >>> dataset_head = dataset.take(2)
     >>> list(dataset_head)
     [{'id': 0, 'text': 'Mtendere Village was...'}, '{id': 1, 'text': 'Lily James cannot fight the music...'}]
@@ -115,8 +117,8 @@ You can create new dataset with the first ``n`` examples using :func:`datasets.I
 
 Some things to keep in mind:
 
-- When you use ``skip``, on a dataset, then iterating on the new dataset will take some time to start. This is because under the hood it has to iterate over the skipped examples first.
-- Using ``take`` (or ``skip``) prevents future calls to ``shuffle`` from shuffling the dataset shards order, otherwise the taken examples could come from other shards. In this case it only uses the shuffle buffer. Therefore it is advised to shuffle the dataset before splitting using ``take`` or ``skip``.
+- When you apply ``skip`` to a dataset, iterating on the new dataset will take some time to start. This is because under the hood it has to iterate over the skipped examples first.
+- Using ``take`` (or ``skip``) prevents future calls to ``shuffle`` from shuffling the dataset shards order, otherwise the taken examples could come from other shards. In this case it only uses the shuffle buffer. Therefore it is advised to shuffle the dataset before splitting using ``take`` or ``skip``. See more details in the :ref:`iterable-dataset-shuffling` section.
 
 
 Mix several iterable datasets together with ``interleave_datasets``

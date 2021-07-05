@@ -419,7 +419,6 @@ class IterableDataset(DatasetInfoMixin):
         then the order of the shards is kept unchanged.
 
         Args:
-
             buffer_size (:obj:`int`): size of the buffer.
             seed (:obj:`int`, optional, default None): random seed that will be used to create the distribution.
         """
@@ -442,7 +441,6 @@ class IterableDataset(DatasetInfoMixin):
         Create a new IterableDataset that skips the first ``n`` elements.
 
         Args:
-
             n (:obj:`int`): number of elements to skip.
         """
         ex_iterable = SkipExamplesIterable(self._ex_iterable, n)
@@ -459,7 +457,6 @@ class IterableDataset(DatasetInfoMixin):
         Create a new IterableDataset with only the first ``n`` elements.
 
         Args:
-
             n (:obj:`int`): number of elements to take.
         """
         ex_iterable = TakeExamplesIterable(self._ex_iterable, n)
