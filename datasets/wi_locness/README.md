@@ -58,7 +58,7 @@ pretty_name:
 - **Homepage:** https://www.cl.cam.ac.uk/research/nl/bea2019st/#data
 - **Repository:**
 - **Paper:** https://www.aclweb.org/anthology/W19-4406/
-- **Leaderboard:** https://www.cl.cam.ac.uk/research/nl/bea2019st/#results
+- **Leaderboard:** https://competitions.codalab.org/competitions/20228#results
 - **Point of Contact:**
 
 ### Dataset Summary
@@ -71,9 +71,9 @@ The LOCNESS corpus (Granger, 1998) consists of essays written by native English 
 
 Grammatical error correction (GEC) is the task of automatically correcting grammatical errors in text; e.g. [I follows his advices -> I followed his advice]. It can be used to not only help language learners improve their writing skills, but also alert native speakers to accidental mistakes or typos.
 
-This aim of the task of this dataset is to correct all types of errors in written text. This includes grammatical, lexical and orthographical errors.
+The aim of the task of this dataset is to correct all types of errors in written text. This includes grammatical, lexical and orthographical errors.
 
-A leaderboard is accessible at https://www.cl.cam.ac.uk/research/nl/bea2019st/#results
+The following Codalab competition contains the latest leaderboard, along with information on how to submit to the withheld W&I+LOCNESS test set: https://competitions.codalab.org/competitions/20228
 
 ### Languages
 
