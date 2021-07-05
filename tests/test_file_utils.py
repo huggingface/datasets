@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
+import zstandard as zstd
 
 from datasets.utils.file_utils import (
     DownloadConfig,
@@ -19,6 +20,20 @@ from datasets.utils.file_utils import (
 )
 
 from .utils import require_tf, require_torch
+
+
+FILE_CONTENT = """\
+    Text data.
+    Second line of data."""
+
+
+@pytest.fixture(scope="session")
+def zstd_path(tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "file.zstd"
+    data = bytes(FILE_CONTENT, "utf-8")
+    with zstd.open(path, "wb") as f:
+        f.write(data)
+    return path
 
 
 class TempSeedTest(TestCase):
