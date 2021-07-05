@@ -11,6 +11,9 @@ import datasets
 
 logger = datasets.utils.logging.get_logger(__name__)
 
+_PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
+_PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
+
 
 @dataclass
 class CsvConfig(datasets.BuilderConfig):
@@ -60,6 +63,51 @@ class CsvConfig(datasets.BuilderConfig):
         if self.column_names is not None:
             self.names = self.column_names
 
+    @property
+    def read_csv_kwargs(self):
+        read_csv_kwargs = dict(
+            sep=self.sep,
+            header=self.header,
+            names=self.names,
+            index_col=self.index_col,
+            usecols=self.usecols,
+            prefix=self.prefix,
+            mangle_dupe_cols=self.mangle_dupe_cols,
+            engine=self.engine,
+            true_values=self.true_values,
+            false_values=self.false_values,
+            skipinitialspace=self.skipinitialspace,
+            skiprows=self.skiprows,
+            nrows=self.nrows,
+            na_values=self.na_values,
+            keep_default_na=self.keep_default_na,
+            na_filter=self.na_filter,
+            verbose=self.verbose,
+            skip_blank_lines=self.skip_blank_lines,
+            thousands=self.thousands,
+            decimal=self.decimal,
+            lineterminator=self.lineterminator,
+            quotechar=self.quotechar,
+            quoting=self.quoting,
+            escapechar=self.escapechar,
+            comment=self.comment,
+            encoding=self.encoding,
+            dialect=self.dialect,
+            error_bad_lines=self.error_bad_lines,
+            warn_bad_lines=self.warn_bad_lines,
+            skipfooter=self.skipfooter,
+            doublequote=self.doublequote,
+            memory_map=self.memory_map,
+            float_precision=self.float_precision,
+            chunksize=self.chunksize,
+        )
+        # some kwargs must not be passed if they don't have a default value
+        # some others are deprecated and we can also not pass them if they are the default value
+        for read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
+            if read_csv_kwargs[read_csv_parameter] == getattr(CsvConfig(), read_csv_parameter):
+                del read_csv_kwargs[read_csv_parameter]
+        return read_csv_kwargs
+
 
 class Csv(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = CsvConfig
@@ -89,45 +137,7 @@ class Csv(datasets.ArrowBasedBuilder):
         # dtype allows reading an int column as str
         dtype = {name: dtype.to_pandas_dtype() for name, dtype in zip(schema.names, schema.types)} if schema else None
         for file_idx, file in enumerate(files):
-            csv_file_reader = pd.read_csv(
-                file,
-                iterator=True,
-                dtype=dtype,
-                sep=self.config.sep,
-                header=self.config.header,
-                names=self.config.names,
-                index_col=self.config.index_col,
-                usecols=self.config.usecols,
-                prefix=self.config.prefix,
-                mangle_dupe_cols=self.config.mangle_dupe_cols,
-                engine=self.config.engine,
-                true_values=self.config.true_values,
-                false_values=self.config.false_values,
-                skipinitialspace=self.config.skipinitialspace,
-                skiprows=self.config.skiprows,
-                nrows=self.config.nrows,
-                na_values=self.config.na_values,
-                keep_default_na=self.config.keep_default_na,
-                na_filter=self.config.na_filter,
-                verbose=self.config.verbose,
-                skip_blank_lines=self.config.skip_blank_lines,
-                thousands=self.config.thousands,
-                decimal=self.config.decimal,
-                lineterminator=self.config.lineterminator,
-                quotechar=self.config.quotechar,
-                quoting=self.config.quoting,
-                escapechar=self.config.escapechar,
-                comment=self.config.comment,
-                encoding=self.config.encoding,
-                dialect=self.config.dialect,
-                error_bad_lines=self.config.error_bad_lines,
-                warn_bad_lines=self.config.warn_bad_lines,
-                skipfooter=self.config.skipfooter,
-                doublequote=self.config.doublequote,
-                memory_map=self.config.memory_map,
-                float_precision=self.config.float_precision,
-                chunksize=self.config.chunksize,
-            )
+            csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.read_csv_kwargs)
 
             try:
                 for batch_idx, df in enumerate(csv_file_reader):
