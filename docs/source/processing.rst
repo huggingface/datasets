@@ -608,7 +608,7 @@ Furthermore it is also possible to save :obj:`datasets.Dataset` and :obj:`datase
 and :func:`datasets.DatasetDict.save_to_disk` and providing a ``Filesystem`` as input ``fs``. To learn more about saving your ``datasets`` to other filesystem take a look at :doc:`filesystems`.
 
 Exporting a dataset to other disk formats, or to python objects
-------------------------------------------------
+------------------------------------------------------------------------
 
 In order to use your dataset in other applications, you can save your dataset in non-arrow formats. Currently natively supported are:
 
@@ -618,7 +618,7 @@ In order to use your dataset in other applications, you can save your dataset in
 
 To get python objects directly, you can use :func:`datasets.Dataset.to_pandas` or :func:`datasets.Dataset.to_dict` to export the dataset as a pandas DataFrame or a python dict.
 
-Controling the cache behavior
+Controlling the cache behavior
 -----------------------------------
 
 When applying transforms on a dataset, the data are stored in cache files.
