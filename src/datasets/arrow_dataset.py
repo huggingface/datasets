@@ -1652,7 +1652,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         if fn_kwargs is None:
             fn_kwargs = {}
-            
+
         if num_proc > len(self):
             num_proc = len(self)
             logger.warning(
@@ -1679,6 +1679,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 desc=desc,
             )
         else:
+
             def format_cache_file_name(cache_file_name, rank):
                 sep = cache_file_name.rindex(".")
                 base_name, extension = cache_file_name[:sep], cache_file_name[sep:]
