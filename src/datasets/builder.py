@@ -882,7 +882,7 @@ class DatasetBuilder:
         from .utils.streaming_download_manager import StreamingDownloadManager
 
         dl_manager = StreamingDownloadManager(
-            base_path=base_path,
+            base_path=base_path or self.base_path,
             download_config=DownloadConfig(use_auth_token=use_auth_token),
             dataset_name=self.name,
             data_dir=self.config.data_dir,

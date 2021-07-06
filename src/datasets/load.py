@@ -830,7 +830,6 @@ def load_dataset(
         extend_module_for_streaming(builder_instance.__module__, use_auth_token=use_auth_token)
         return builder_instance.as_streaming_dataset(
             split=split,
-            base_path=builder_instance.base_path,
             use_auth_token=use_auth_token,
         )
 
