@@ -3256,7 +3256,11 @@ def concatenate_datasets(
         logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
     # Concatenate tables
-    table = concat_tables([dset._data for dset in dsets if len(dset._data) > 0], axis=axis)
+    tables_to_concat = [dset._data for dset in dsets if len(dset._data) > 0]
+    # There might be no table with data left hence return first empty table
+    if not tables_to_concat:
+        return dsets[0]
+    table = concat_tables(tables_to_concat, axis=axis)
     if axis == 1:
         table = update_metadata_with_features(table, None)
 
