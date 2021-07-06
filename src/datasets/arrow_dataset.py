@@ -1653,7 +1653,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if fn_kwargs is None:
             fn_kwargs = {}
 
-        if num_proc > len(self):
+        if num_proc is not None and num_proc > len(self):
             num_proc = len(self)
             logger.warning(
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
