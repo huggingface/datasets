@@ -607,14 +607,18 @@ Both :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` objects can be save
 Furthermore it is also possible to save :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` to other filesystems and cloud storages such as S3 by using respectively :func:`datasets.Dataset.save_to_disk` 
 and :func:`datasets.DatasetDict.save_to_disk` and providing a ``Filesystem`` as input ``fs``. To learn more about saving your ``datasets`` to other filesystem take a look at :doc:`filesystems`.
 
-Exporting a dataset to csv, or to python objects
-------------------------------------------------
+Exporting a dataset to csv/json/parquet, or to python objects
+------------------------------------------------------------------------
 
-You can save your dataset in csv format using :func:`datasets.Dataset.to_csv`, so that you can use your dataset in other applications if you want to.
+In order to use your dataset in other applications, you can save your dataset in non-arrow formats. Currently natively supported are:
 
-To get directly python objects, you can use :func:`datasets.Dataset.to_pandas` or :func:`datasets.Dataset.to_dict` to export the dataset as a pandas DataFrame or a python dict.
+* CSV: :func:`datasets.Dataset.to_csv`
+* JSON/JSON Lines: :func:`datasets.Dataset.to_json` (JSON Lines by default, JSON with ``lines=False``)
+* Parquet: :func:`datasets.Dataset.to_parquet`
 
-Controling the cache behavior
+To get python objects directly, you can use :func:`datasets.Dataset.to_pandas` or :func:`datasets.Dataset.to_dict` to export the dataset as a pandas DataFrame or a python dict.
+
+Controlling the cache behavior
 -----------------------------------
 
 When applying transforms on a dataset, the data are stored in cache files.
