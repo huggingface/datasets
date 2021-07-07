@@ -85,8 +85,13 @@ class F1(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.OptionalSequence(datasets.Value("int32")),
-                    "references": datasets.OptionalSequence(datasets.Value("int32")),
+                    "predictions": datasets.Sequence(datasets.Value("int32")),
+                    "references": datasets.Sequence(datasets.Value("int32")),
+                }
+                if self.config_name == "multilabel"
+                else {
+                    "predictions": datasets.Value("int32"),
+                    "references": datasets.Value("int32"),
                 }
             ),
             reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html"],
