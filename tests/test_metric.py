@@ -7,7 +7,7 @@ from unittest import TestCase
 
 import pytest
 
-from datasets.features import Features, OptionalSequence, Value
+from datasets.features import Features, Sequence, Value
 from datasets.metric import Metric, MetricInfo
 
 from .utils import require_tf, require_torch
@@ -479,7 +479,9 @@ class MockOptionalSequenceMetric(Metric):
             description="dummy metric for tests",
             citation="insert citation here",
             features=Features(
-                {"predictions": OptionalSequence(Value("int64")), "references": OptionalSequence(Value("int64"))}
+                {"predictions": Sequence(Value("int64")), "references": Sequence(Value("int64"))}
+                if self.config_name == "multilabel"
+                else {"predictions": Value("int64"), "references": Value("int64")}
             ),
         )
 
@@ -494,18 +496,19 @@ class MockOptionalSequenceMetric(Metric):
 
 
 @pytest.mark.parametrize(
-    "predictions, references, expected",
+    "config_name, predictions, references, expected",
     [
-        ([1, 2, 3, 4], [1, 2, 4, 3], 0.5),  # Multiclass: Value("int64")
+        (None, [1, 2, 3, 4], [1, 2, 4, 3], 0.5),  # Multiclass: Value("int64")
         (
+            "multilabel",
             [[1, 0], [1, 0], [1, 0], [1, 0]],
             [[1, 0], [0, 1], [1, 1], [0, 0]],
             0.25,
         ),  # Multilabel: Sequence(Value("int64"))
     ],
 )
-def test_metric_with_optional_sequence(predictions, references, expected, tmp_path):
+def test_metric_with_multilabel(config_name, predictions, references, expected, tmp_path):
     cache_dir = tmp_path / "cache"
-    metric = MockOptionalSequenceMetric(cache_dir=cache_dir)
+    metric = MockOptionalSequenceMetric(config_name, cache_dir=cache_dir)
     results = metric.compute(predictions=predictions, references=references)
     assert results["accuracy"] == expected
