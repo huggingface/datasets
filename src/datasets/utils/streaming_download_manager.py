@@ -5,7 +5,7 @@ from typing import Optional
 
 import fsspec
 import posixpath
-from aiohttp.client_exceptions import ServerDisconnectedError
+from aiohttp.client_exceptions import ClientError
 
 from .. import config
 from .download_manager import DownloadConfig, map_nested
@@ -53,7 +53,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except ServerDisconnectedError:
+            except ClientError:
                 logger.warning(
                     f"Got diconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
                 )
