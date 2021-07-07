@@ -808,20 +808,6 @@ def load_dataset(
                 f"using 'pip install datasets[streaming]' or 'pip install aiohttp' for instance"
             )
     # Download/copy dataset processing script
-    module_path, hash, resolved_file_path = prepare_module(
-        path,
-        script_version=script_version,
-        download_config=download_config,
-        download_mode=download_mode,
-        dataset=True,
-        return_resolved_file_path=True,
-        use_auth_token=use_auth_token,
-    )
-    # Set the base path for downloads as the parent of the script location
-    if resolved_file_path is not None:
-        base_path = url_or_path_parent(resolved_file_path)
-    else:
-        base_path = None
 
     # Create a dataset builder
     builder_instance = load_dataset_builder(
@@ -841,10 +827,9 @@ def load_dataset(
     # Retturn iterable dataset in case of streaming
     if streaming:
         # this extends the open and os.path.join functions for data streaming
-        extend_module_for_streaming(module_path, use_auth_token=use_auth_token)
+        extend_module_for_streaming(builder_instance.__module__, use_auth_token=use_auth_token)
         return builder_instance.as_streaming_dataset(
             split=split,
-            base_path=base_path,
             use_auth_token=use_auth_token,
         )
 
