@@ -77,7 +77,7 @@ class Json(datasets.ArrowBasedBuilder):
                     pa_table = pa.Table.from_pydict(mapping=dataset)
             else:
                 try:
-                    with open(file, "b") as f:
+                    with open(file, "rb") as f:
                         pa_table = paj.read_json(
                             f, read_options=self.config.pa_read_options, parse_options=self.config.pa_parse_options
                         )
