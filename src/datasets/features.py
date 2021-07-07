@@ -807,26 +807,6 @@ class Sequence:
     _type: str = field(default="Sequence", init=False, repr=False)
 
 
-@dataclass
-class OptionalSequence:
-    feature: Any
-    id: Optional[str] = None
-    _type: str = field(default="OptionalSequence", init=False, repr=False)
-
-    def __post_init__(self):
-        self.pa_type = self.feature()
-
-    def __call__(self):
-        return self.pa_type
-
-    def encode_example(self, example):
-        if isinstance(example, (list, tuple)):
-            self.pa_type = pa.list_(self.feature())
-            return [self.feature.encode_example(item) for item in example]
-        else:
-            return self.feature.encode_example(example)
-
-
 FeatureType = Union[
     dict,
     list,
@@ -836,7 +816,6 @@ FeatureType = Union[
     Translation,
     TranslationVariableLanguages,
     Sequence,
-    OptionalSequence,
     Array2D,
     Array3D,
     Array4D,
@@ -909,7 +888,7 @@ def encode_nested_example(schema, obj):
         return [encode_nested_example(schema.feature, o) for o in obj]
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (ClassLabel, OptionalSequence, TranslationVariableLanguages, Value, _ArrayXD)):
+    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
         return schema.encode_example(obj)
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj

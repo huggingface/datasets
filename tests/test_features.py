@@ -11,7 +11,6 @@ from datasets.arrow_dataset import Dataset
 from datasets.features import (
     ClassLabel,
     Features,
-    OptionalSequence,
     Sequence,
     Value,
     _arrow_to_datasets_dtype,
@@ -235,14 +234,6 @@ def test_classlabel_int2str():
         assert classlabel.int2str(i) == names[i]
     with pytest.raises(ValueError):
         classlabel.int2str(len(names))
-
-
-@pytest.mark.parametrize("predictions", [[1] * 5, [[1, 0]] * 5])
-def test_optional_sequence_feature(predictions):
-    data = {"predictions": predictions}
-    features = Features({"predictions": OptionalSequence(Value("int32"))})
-    dset = Dataset.from_dict(data, features=features)
-    assert dset["predictions"] == predictions
 
 
 class CastToPythonObjectsTest(TestCase):

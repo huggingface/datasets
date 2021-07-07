@@ -43,7 +43,6 @@ from .features import (
     Array5D,
     ClassLabel,
     Features,
-    OptionalSequence,
     Sequence,
     Translation,
     TranslationVariableLanguages,
