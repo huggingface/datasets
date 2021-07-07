@@ -37,10 +37,7 @@ class ExtractManager:
             return input_path
         output_path = self._get_output_path(input_path)
         if self._do_extract(output_path, force_extract):
-            try:
-                self.extractor.extract(input_path, output_path, extractor=extractor)
-            except Exception:
-                raise EnvironmentError("Archive format of {} could not be identified".format(input_path))
+            self.extractor.extract(input_path, output_path, extractor=extractor)
         return output_path
 
 
@@ -182,5 +179,4 @@ class Extractor:
                 return extractor.extract(input_path, output_path)
             for extractor in cls.extractors:
                 if extractor.is_extractable(input_path):
-                    extractor.extract(input_path, output_path)
-                    break
+                    return extractor.extract(input_path, output_path)

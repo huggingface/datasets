@@ -87,22 +87,16 @@ class TempSeedTest(TestCase):
         self.assertGreater(np.abs(out1 - out3).sum(), 0)
 
 
-@pytest.mark.parametrize(
-    "compression_format, expected_text_path_name", [("gzip", "text_path"), ("xz", "text_file"), ("zstd", "text_file")]
-)
-def test_cached_path_extract(
-    compression_format, expected_text_path_name, text_gz_path, xz_file, zstd_path, tmp_path, text_file, text_path
-):
-    input_paths = {"gzip": text_gz_path, "xz": xz_file, "zstd": zstd_path}
+@pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
+def test_cached_path_extract(compression_format, gz_path, xz_file, zstd_path, tmp_path, text_file):
+    input_paths = {"gzip": gz_path, "xz": xz_file, "zstd": zstd_path}
     input_path = str(input_paths[compression_format])
     cache_dir = tmp_path / "cache"
     download_config = DownloadConfig(cache_dir=cache_dir, extract_compressed_file=True)
     extracted_path = cached_path(input_path, download_config=download_config)
     with open(extracted_path) as f:
         extracted_file_content = f.read()
-    expected_text_paths = {"text_file": text_file, "text_path": text_path}
-    expected_text_path = str(expected_text_paths[expected_text_path_name])
-    with open(expected_text_path) as f:
+    with open(text_file) as f:
         expected_file_content = f.read()
     assert extracted_file_content == expected_file_content
 

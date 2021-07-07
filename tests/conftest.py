@@ -88,6 +88,17 @@ def xz_file(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def gz_path(tmp_path_factory, text_path):
+    import gzip
+
+    path = str(tmp_path_factory.mktemp("data") / "file.gz")
+    data = bytes(FILE_CONTENT, "utf-8")
+    with gzip.open(path, "wb") as f:
+        f.write(data)
+    return path
+
+
+@pytest.fixture(scope="session")
 def xml_file(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.xml"
     data = textwrap.dedent(
