@@ -1,4 +1,5 @@
 ---
+pretty_name: One Million Posts
 annotations_creators:
 - expert-generated
 language_creators:
