@@ -78,7 +78,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     They rare replaced by `xopen` and `xjoin` defined to work with the StreamingDownloadManager.
 
     We use fsspec to extend `open` to be able to read remote files.
-    To join paths and naviguate in remote compressed archives, we use the "::" separator.
+    To join paths and navigate in remote compressed archives, we use the "::" separator.
     """
 
     module = importlib.import_module(module_path)
