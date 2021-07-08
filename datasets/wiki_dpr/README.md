@@ -1,4 +1,16 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc-by-nc-4.0
+multilinguality:
+- monolingual
+source_datasets:
+- original
 paperswithcode_id: null
 pretty_name: Wikipedia Dense Passage Retrieval
 ---
