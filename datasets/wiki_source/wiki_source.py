@@ -111,11 +111,7 @@ class WikiSource(datasets.GeneratorBasedBuilder):
             for sentence_counter, (x, y) in enumerate(zip(f1, f2)):
                 x = x.strip()
                 y = y.strip()
-                result = (
-                    sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "translation": {l1: x, l2: y},
-                    },
-                )
-                yield result
+                yield sentence_counter, {
+                    "id": str(sentence_counter),
+                    "translation": {l1: x, l2: y},
+                },

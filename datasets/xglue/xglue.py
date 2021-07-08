@@ -513,12 +513,12 @@ Portuguese. BLEU-4 score should be used as the metric.
         if self.config.name == "mlqa":
             with open(data_file, encoding="utf-8") as f:
                 data = json.load(f)
+            id_ = 0
             for examples in data["data"]:
                 for example in examples["paragraphs"]:
                     context = example["context"]
                     for qa in example["qas"]:
                         question = qa["question"]
-                        id_ = qa["id"]
                         answers = qa["answers"]
                         answers_start = [answer["answer_start"] for answer in answers]
                         answers_text = [answer["text"] for answer in answers]
@@ -527,10 +527,11 @@ Portuguese. BLEU-4 score should be used as the metric.
                             "question": question,
                             "answers": {"answer_start": answers_start, "text": answers_text},
                         }
+                        id_ += 1
         elif self.config.name in ["ner", "pos"]:
             words = []
             result = []
-            idx = -1
+            idx = 0
             with open(data_file, encoding="utf-8") as f:
                 for line in f:
                     if line.strip() == "":
@@ -538,8 +539,8 @@ Portuguese. BLEU-4 score should be used as the metric.
                             out_dict = {keys[0]: words, keys[1]: result}
                             words = []
                             result = []
-                            idx += 1
                             yield idx, out_dict
+                            idx += 1
                     else:
                         splits = line.strip().split(" ")
                         words.append(splits[0])

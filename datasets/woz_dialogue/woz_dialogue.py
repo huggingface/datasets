@@ -121,7 +121,7 @@ class WozDialogue(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         with open(filepath, encoding="utf-8") as f:
             examples = json.load(f)
-            for i, example in enumerate(examples):
+            for key, example in enumerate(examples):
                 for dialogue in example["dialogue"]:
                     # exclude the second element which is same for every instance and is of type int
                     dialogue["asr"] = [asr[:1] for asr in dialogue["asr"]]
@@ -131,4 +131,4 @@ class WozDialogue(datasets.GeneratorBasedBuilder):
                         [act] if isinstance(act, str) else act for act in dialogue["system_acts"]
                     ]
 
-                yield example["dialogue_idx"], example
+                yield key, example

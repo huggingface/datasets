@@ -199,9 +199,9 @@ submissions and assigned them a CEFR level."""
         else:
             assert False
 
-        for level in levels:
+        for level_id, level in enumerate(levels):
             with open(filepath / f"{level}.{split}.json", "r", encoding="utf-8") as fp:
-                for line in fp:
+                for line_id, line in enumerate(fp):
                     o = json.loads(line)
 
                     edits = []
@@ -218,4 +218,4 @@ submissions and assigned them a CEFR level."""
                     if self.config.name == "wi":
                         out["userid"] = o.get("userid", "")
 
-                    yield o["id"], out
+                    yield f"{level_id}_{line_id}", out

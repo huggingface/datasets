@@ -122,7 +122,7 @@ class Wikicorpus(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, dirpath):
-        for filepath in sorted(Path(dirpath).iterdir()):
+        for filepath_id, filepath in enumerate(sorted(Path(dirpath).iterdir())):
             with open(filepath, encoding="latin-1") as f:
                 example = {}
                 # raw
@@ -132,7 +132,7 @@ class Wikicorpus(datasets.GeneratorBasedBuilder):
                 lemmas = []
                 pos_tags = []
                 wordnet_senses = []
-                for id_, row in enumerate(f):
+                for row_id, row in enumerate(f):
                     if self.config.form == "raw":
                         if row.startswith("<doc id"):
                             metadata_match = METADATA_PATTERN.match(row)
@@ -141,7 +141,7 @@ class Wikicorpus(datasets.GeneratorBasedBuilder):
                         elif row.startswith("</doc>"):
                             pass
                         elif row.startswith("ENDOFARTICLE"):
-                            yield id_, {
+                            yield f"{filepath_id}_{row_id}", {
                                 "id": example["id"],
                                 "title": example["title"],
                                 "text": "\n".join(text).strip(),
@@ -159,7 +159,7 @@ class Wikicorpus(datasets.GeneratorBasedBuilder):
                             pass
                         elif row.startswith("ENDOFARTICLE") or row.startswith("\n"):
                             if len(words) > 1:  # some content besides only (. . Fp 0)
-                                yield id_, {
+                                yield f"{filepath_id}_{row_id}", {
                                     "id": example["id"],
                                     "title": example["title"],
                                     "sentence": words,

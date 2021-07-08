@@ -829,14 +829,13 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name == "tydiqa" or self.config.name.startswith("MLQA") or self.config.name == "SQuAD":
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
+                id_ = 0
                 for article in data["data"]:
                     title = article.get("title", "").strip()
                     for paragraph in article["paragraphs"]:
                         context = paragraph["context"].strip()
                         for qa in paragraph["qas"]:
                             question = qa["question"].strip()
-                            id_ = qa["id"]
-
                             answer_starts = [answer["answer_start"] for answer in qa["answers"]]
                             answers = [answer["text"].strip() for answer in qa["answers"]]
 
@@ -846,12 +845,13 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                                 "title": title,
                                 "context": context,
                                 "question": question,
-                                "id": id_,
+                                "id": qa["id"],
                                 "answers": {
                                     "answer_start": answer_starts,
                                     "text": answers,
                                 },
                             }
+                            id_ += 1
         if self.config.name == "XNLI":
             with open(filepath, encoding="utf-8") as f:
                 data = csv.DictReader(f, delimiter="\t")
@@ -876,13 +876,12 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("XQuAD"):
             with open(filepath, encoding="utf-8") as f:
                 xquad = json.load(f)
+                id_ = 0
                 for article in xquad["data"]:
                     for paragraph in article["paragraphs"]:
                         context = paragraph["context"].strip()
                         for qa in paragraph["qas"]:
                             question = qa["question"].strip()
-                            id_ = qa["id"]
-
                             answer_starts = [answer["answer_start"] for answer in qa["answers"]]
                             answers = [answer["text"].strip() for answer in qa["answers"]]
 
@@ -891,12 +890,13 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                             yield id_, {
                                 "context": context,
                                 "question": question,
-                                "id": id_,
+                                "id": qa["id"],
                                 "answers": {
                                     "answer_start": answer_starts,
                                     "text": answers,
                                 },
                             }
+                            id_ += 1
         if self.config.name.startswith("bucc18"):
             files = sorted(os.listdir(filepath))
             target_file = "/"
@@ -968,7 +968,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                             tokens.append(row[1])
                             pos_tags.append(row[3])
                         if len(row) == 0 and len(tokens) > 0:
-                            yield str(id_file) + "_" + str(id_row), {
+                            yield f"{id_file}_{id_row}", {
                                 "tokens": tokens,
                                 "pos_tags": pos_tags,
                             }
