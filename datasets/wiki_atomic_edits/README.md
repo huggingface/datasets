@@ -25,9 +25,9 @@ languages:
   italian_deletions:
   - it
   japanese_insertions:
-  - jp
+  - ja
   japanese_deletions:
-  - jp
+  - ja
   russian_insertions:
   - ru
   russian_deletions:
