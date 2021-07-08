@@ -36,7 +36,7 @@ paperswithcode_id: wizard-of-oz
 pretty_name: WozDialogue
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WozDialogue
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

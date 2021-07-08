@@ -21,7 +21,7 @@ paperswithcode_id: null
 pretty_name: Yahoo Non-Factoid Question
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Yahoo Non-Factoid Question
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

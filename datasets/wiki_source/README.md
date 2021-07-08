@@ -22,7 +22,7 @@ paperswithcode_id: null
 pretty_name: WikiSource
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WikiSource
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

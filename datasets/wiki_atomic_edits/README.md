@@ -84,7 +84,7 @@ paperswithcode_id: wikiatomicedits
 pretty_name: WikiAtomicEdits
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for WikiAtomicEdits
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
