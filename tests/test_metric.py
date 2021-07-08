@@ -473,7 +473,7 @@ class TestMetric(TestCase):
         del metric
 
 
-class MockOptionalSequenceMetric(Metric):
+class MetricWithMultiLabel(Metric):
     def _info(self):
         return MetricInfo(
             description="dummy metric for tests",
@@ -509,6 +509,6 @@ class MockOptionalSequenceMetric(Metric):
 )
 def test_metric_with_multilabel(config_name, predictions, references, expected, tmp_path):
     cache_dir = tmp_path / "cache"
-    metric = MockOptionalSequenceMetric(config_name, cache_dir=cache_dir)
+    metric = MetricWithMultiLabel(config_name, cache_dir=cache_dir)
     results = metric.compute(predictions=predictions, references=references)
     assert results["accuracy"] == expected
