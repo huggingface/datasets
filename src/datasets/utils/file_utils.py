@@ -5,15 +5,11 @@ Copyright by the AllenNLP authors.
 """
 
 import copy
-import gzip
 import json
-import lzma
 import os
 import re
 import shutil
-import struct
 import sys
-import tarfile
 import tempfile
 import time
 import urllib
@@ -24,7 +20,6 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Dict, Optional, Union
 from urllib.parse import urlparse
-from zipfile import ZipFile, is_zipfile
 
 import numpy as np
 import posixpath
@@ -33,6 +28,7 @@ from tqdm.auto import tqdm
 
 from .. import __version__, config
 from . import logging
+from .extract import ExtractManager
 from .filelock import FileLock
 
 
@@ -300,75 +296,13 @@ def cached_path(
         # Something unknown
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
-    if download_config.extract_compressed_file and output_path is not None:
+    if output_path is None:
+        return output_path
 
-        if (
-            not is_zipfile(output_path)
-            and not tarfile.is_tarfile(output_path)
-            and not is_gzip(output_path)
-            and not is_xz(output_path)
-            and not is_rarfile(output_path)
-            and not ZstdExtractor.is_extractable(output_path)
-        ):
-            return output_path
-
-        # Path where we extract compressed archives
-        # We extract in the cache dir, and get the extracted path name by hashing the original path
-        abs_output_path = os.path.abspath(output_path)
-        output_path_extracted = (
-            os.path.join(
-                download_config.cache_dir, config.EXTRACTED_DATASETS_DIR, hash_url_to_filename(abs_output_path)
-            )
-            if download_config.cache_dir
-            else os.path.join(config.EXTRACTED_DATASETS_PATH, hash_url_to_filename(abs_output_path))
+    if download_config.extract_compressed_file:
+        output_path = ExtractManager(cache_dir=download_config.cache_dir).extract(
+            output_path, force_extract=download_config.force_extract
         )
-
-        if (
-            os.path.isdir(output_path_extracted)
-            and os.listdir(output_path_extracted)
-            and not download_config.force_extract
-        ) or (os.path.isfile(output_path_extracted) and not download_config.force_extract):
-            return output_path_extracted
-
-        # Prevent parallel extractions
-        lock_path = output_path + ".lock"
-        with FileLock(lock_path):
-            shutil.rmtree(output_path_extracted, ignore_errors=True)
-            os.makedirs(output_path_extracted, exist_ok=True)
-            if tarfile.is_tarfile(output_path):
-                tar_file = tarfile.open(output_path)
-                tar_file.extractall(output_path_extracted)
-                tar_file.close()
-            elif is_gzip(output_path):
-                os.rmdir(output_path_extracted)
-                with gzip.open(output_path, "rb") as gzip_file:
-                    with open(output_path_extracted, "wb") as extracted_file:
-                        shutil.copyfileobj(gzip_file, extracted_file)
-            elif is_zipfile(output_path):  # put zip file to the last, b/c it is possible wrongly detected as zip
-                with ZipFile(output_path, "r") as zip_file:
-                    zip_file.extractall(output_path_extracted)
-                    zip_file.close()
-            elif is_xz(output_path):
-                os.rmdir(output_path_extracted)
-                with lzma.open(output_path) as compressed_file:
-                    with open(output_path_extracted, "wb") as extracted_file:
-                        shutil.copyfileobj(compressed_file, extracted_file)
-            elif is_rarfile(output_path):
-                if config.RARFILE_AVAILABLE:
-                    import rarfile
-
-                    rf = rarfile.RarFile(output_path)
-                    rf.extractall(output_path_extracted)
-                    rf.close()
-                else:
-                    raise EnvironmentError("Please pip install rarfile")
-            elif ZstdExtractor.is_extractable(output_path):
-                os.rmdir(output_path_extracted)
-                ZstdExtractor.extract(output_path, output_path_extracted)
-            else:
-                raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
-
-        return output_path_extracted
 
     return output_path
 
@@ -691,67 +625,6 @@ def get_from_cache(
             json.dump(meta, meta_file)
 
     return cache_path
-
-
-def is_gzip(path: str) -> bool:
-    """from https://stackoverflow.com/a/60634210"""
-    with gzip.open(path, "r") as fh:
-        try:
-            fh.read(1)
-            return True
-        except OSError:
-            return False
-
-
-def is_xz(path: str) -> bool:
-    """https://tukaani.org/xz/xz-file-format-1.0.4.txt"""
-    with open(path, "rb") as f:
-        try:
-            header_magic_bytes = f.read(6)
-        except OSError:
-            return False
-        if header_magic_bytes == b"\xfd7zXZ\x00":
-            return True
-        else:
-            return False
-
-
-def is_rarfile(path: str) -> bool:
-    """https://github.com/markokr/rarfile/blob/master/rarfile.py"""
-    RAR_ID = b"Rar!\x1a\x07\x00"
-    RAR5_ID = b"Rar!\x1a\x07\x01\x00"
-
-    with open(path, "rb", 1024) as fd:
-        buf = fd.read(len(RAR5_ID))
-    if buf.startswith(RAR_ID) or buf.startswith(RAR5_ID):
-        return True
-    else:
-        return False
-
-
-class ZstdExtractor:
-    @staticmethod
-    def is_extractable(path: str) -> bool:
-        """https://datatracker.ietf.org/doc/html/rfc8878
-
-        Magic_Number:  4 bytes, little-endian format.  Value: 0xFD2FB528.
-        """
-        with open(path, "rb") as f:
-            try:
-                magic_number = f.read(4)
-            except OSError:
-                return False
-        return True if magic_number == struct.pack("<I", 0xFD2FB528) else False
-
-    @staticmethod
-    def extract(input_path: str, output_path: str):
-        if not config.ZSTANDARD_AVAILABLE:
-            raise EnvironmentError("Please pip install zstandard")
-        import zstandard as zstd
-
-        dctx = zstd.ZstdDecompressor()
-        with open(input_path, "rb") as ifh, open(output_path, "wb") as ofh:
-            dctx.copy_stream(ifh, ofh)
 
 
 def add_start_docstrings(*docstr):
