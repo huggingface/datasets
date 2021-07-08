@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: null
+pretty_name: Wikipedia Dense Passage Retrieval
 ---
 
 # Dataset Card for "wiki_dpr"

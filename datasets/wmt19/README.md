@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: null
+pretty_name: WMT19
 ---
 
 # Dataset Card for "wmt19"

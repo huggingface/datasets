@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: xtreme
+pretty_name: XTREME
 ---
 
 # Dataset Card for "xtreme"

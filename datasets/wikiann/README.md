@@ -369,6 +369,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: wikiann-1
+pretty_name: WikiANN
 ---
 
 # Dataset Card for WikiANN

@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: wmt-2018
+pretty_name: WMT18
 ---
 
 # Dataset Card for "wmt18"

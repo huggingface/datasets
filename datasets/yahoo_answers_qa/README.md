@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: null
+pretty_name: Yahoo Non-Factoid Question
 ---
 
 # Dataset Card Creation Guide

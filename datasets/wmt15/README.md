@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: wmt-2015
+pretty_name: WMT15
 ---
 
 # Dataset Card for "wmt15"
