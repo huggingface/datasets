@@ -88,6 +88,17 @@ def xz_file(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def gz_path(tmp_path_factory, text_path):
+    import gzip
+
+    path = str(tmp_path_factory.mktemp("data") / "file.gz")
+    data = bytes(FILE_CONTENT, "utf-8")
+    with gzip.open(path, "wb") as f:
+        f.write(data)
+    return path
+
+
+@pytest.fixture(scope="session")
 def xml_file(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.xml"
     data = textwrap.dedent(
@@ -214,7 +225,7 @@ def jsonl_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.jsonl")
     with open(path, "w") as f:
         for item in DATA:
-            f.write(json.dumps(item))
+            f.write(json.dumps(item) + "\n")
     return path
 
 
@@ -252,6 +263,17 @@ def text_gz_path(tmp_path_factory, text_path):
 
     path = str(tmp_path_factory.mktemp("data") / "dataset.txt.gz")
     with open(text_path, "rb") as orig_file:
+        with gzip.open(path, "wb") as zipped_file:
+            zipped_file.writelines(orig_file)
+    return path
+
+
+@pytest.fixture(scope="session")
+def jsonl_gz_path(tmp_path_factory, jsonl_path):
+    import gzip
+
+    path = str(tmp_path_factory.mktemp("data") / "dataset.jsonl.gz")
+    with open(jsonl_path, "rb") as orig_file:
         with gzip.open(path, "wb") as zipped_file:
             zipped_file.writelines(orig_file)
     return path

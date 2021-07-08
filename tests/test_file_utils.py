@@ -10,7 +10,6 @@ import zstandard as zstd
 from datasets.utils.file_utils import (
     DownloadConfig,
     OfflineModeIsEnabled,
-    ZstdExtractor,
     cached_path,
     ftp_get,
     ftp_head,
@@ -88,22 +87,10 @@ class TempSeedTest(TestCase):
         self.assertGreater(np.abs(out1 - out3).sum(), 0)
 
 
-def test_zstd_extractor(zstd_path, tmp_path, text_file):
-    input_path = zstd_path
-    assert ZstdExtractor.is_extractable(input_path)
-    output_path = str(tmp_path / "extracted.txt")
-    ZstdExtractor.extract(input_path, output_path)
-    with open(output_path) as f:
-        extracted_file_content = f.read()
-    with open(text_file) as f:
-        expected_file_content = f.read()
-    assert extracted_file_content == expected_file_content
-
-
-@pytest.mark.parametrize("compression_format", ["xz", "zstd"])
-def test_cached_path_extract(compression_format, xz_file, zstd_path, tmp_path, text_file):
-    path = {"xz": xz_file, "zstd": zstd_path}
-    input_path = path[compression_format]
+@pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
+def test_cached_path_extract(compression_format, gz_path, xz_file, zstd_path, tmp_path, text_file):
+    input_paths = {"gzip": gz_path, "xz": xz_file, "zstd": zstd_path}
+    input_path = str(input_paths[compression_format])
     cache_dir = tmp_path / "cache"
     download_config = DownloadConfig(cache_dir=cache_dir, extract_compressed_file=True)
     extracted_path = cached_path(input_path, download_config=download_config)
