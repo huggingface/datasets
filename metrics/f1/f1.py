@@ -106,5 +106,5 @@ class F1(datasets.Metric):
                 pos_label=pos_label,
                 average=average,
                 sample_weight=sample_weight,
-            ),
+            ).tolist(),
         }
