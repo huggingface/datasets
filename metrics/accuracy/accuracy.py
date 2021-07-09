@@ -85,5 +85,5 @@ class Accuracy(datasets.Metric):
         return {
             "accuracy": accuracy_score(
                 references, predictions, normalize=normalize, sample_weight=sample_weight
-            ).tolist(),
+            ).item(),
         }

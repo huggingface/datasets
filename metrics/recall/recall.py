@@ -108,5 +108,5 @@ class Recall(datasets.Metric):
                 pos_label=pos_label,
                 average=average,
                 sample_weight=sample_weight,
-            ).tolist(),
+            ).item(),
         }
