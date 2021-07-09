@@ -46,7 +46,7 @@
 - Lightweight and fast with a transparent and pythonic API (multi-processing/caching/memory-mapping).
 - Built-in interoperability with NumPy, pandas, PyTorch, Tensorflow 2 and JAX.
 
-🤗 Datasets originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section [Main differences between 🤗 Datasets and `tfds`](#main-differences-between-datasets-and-tfds).
+🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section [Main differences between 🤗 Datasets and `tfds`](#main-differences-between-datasets-and-tfds).
 
 # Installation
 
@@ -134,7 +134,7 @@ You can also have your own repository for your dataset on the Hub under your or 
 
 # Main differences between 🤗 Datasets and `tfds`
 
-If you are familiar with the great `Tensorflow Datasets`, here are the main differences between 🤗 Datasets and `tfds`:
+If you are familiar with the great TensorFlow Datasets, here are the main differences between 🤗 Datasets and `tfds`:
 - the scripts in 🤗 Datasets are not provided within the library but are queried, downloaded/cached and dynamically loaded upon request
 - 🤗 Datasets also provides evaluation metrics in a similar fashion to the datasets, i.e. as dynamically installed scripts with a unified API. This gives access to the pair of a benchmark dataset and a benchmark metric for instance for benchmarks like [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/) or [GLUE](https://gluebenchmark.com/).
 - the backend serialization of 🤗 Datasets is based on [Apache Arrow](https://arrow.apache.org/) instead of TF Records and leverage python dataclasses for info and features with some diverging features (we mostly don't do encoding and store the raw data as much as possible in the backend serialization cache).
@@ -142,7 +142,7 @@ If you are familiar with the great `Tensorflow Datasets`, here are the main diff
 
 # Disclaimers
 
-Similar to `TensorFlow Datasets`, 🤗 Datasets is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
+Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
 
 If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/datasets/issues/new). Thanks for your contribution to the ML community!
 
