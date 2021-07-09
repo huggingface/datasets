@@ -12,7 +12,7 @@ In this section we study each option.
 From the HuggingFace Hub
 -------------------------------------------------
 
-Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗Datasets viewer <https://huggingface.co/datasets/viewer>`__.
+Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗 Datasets viewer <https://huggingface.co/datasets/viewer>`__.
 
 .. note::
 
@@ -61,12 +61,12 @@ This call to :func:`datasets.load_dataset` does the following steps under the ho
 
 .. note::
 
-    An Apache Arrow Table is the internal storing format for 🤗Datasets. It allows to store arbitrarily long dataframe,
+    An Apache Arrow Table is the internal storing format for 🤗 Datasets. It allows to store arbitrarily long dataframe,
     typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you
     to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use
     memory-mapping and pay effectively zero cost with O(1) random access. Alternatively, you can copy it in CPU memory
     (RAM) by setting the ``keep_in_memory`` argument of :func:`datasets.load_dataset` to ``True``.
-    The default in 🤗Datasets is to memory-map the dataset on disk unless you set ``datasets.config.IN_MEMORY_MAX_SIZE``
+    The default in 🤗 Datasets is to memory-map the dataset on disk unless you set ``datasets.config.IN_MEMORY_MAX_SIZE``
     different from ``0`` bytes (default). In that case, the dataset will be copied in-memory if its size is smaller than
     ``datasets.config.IN_MEMORY_MAX_SIZE`` bytes, and memory-mapped otherwise. This behavior can be enabled by setting
     either the configuration option ``datasets.config.IN_MEMORY_MAX_SIZE`` (higher precedence) or the environment
@@ -187,7 +187,7 @@ Let's see an example of all the various ways you can provide files to :func:`dat
 CSV files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🤗Datasets can read a dataset made of on or several CSV files.
+🤗 Datasets can read a dataset made of on or several CSV files.
 
 All the CSV files in the dataset should have the same organization and in particular the same datatypes for the columns.
 
@@ -224,7 +224,7 @@ If you want more control, the ``csv`` script provide full control on reading, pa
 JSON files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🤗Datasets supports building a dataset from JSON files in various format.
+🤗 Datasets supports building a dataset from JSON files in various format.
 
 The most efficient format is to have JSON files consisting of multiple JSON objects, one per line, representing individual data rows:
 
@@ -268,7 +268,7 @@ In this case you will need to specify which field contains the dataset using the
 Text files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🤗Datasets also supports building a dataset from text files read line by line (each line will be a row in the dataset).
+🤗 Datasets also supports building a dataset from text files read line by line (each line will be a row in the dataset).
 
 This is simply done using the ``text`` loading script which will generate a dataset with a single column called ``text`` containing all the text lines of the input files as strings.
 
@@ -430,7 +430,7 @@ For example, you can run the following if you want to force the re-download of t
 Integrity verifications
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When downloading a dataset from the 🤗 dataset hub, the :func:`datasets.load_dataset` function performs by default a number of verifications on the downloaded files. These verifications include:
+When downloading a dataset from the 🤗 Datasets Hub, the :func:`datasets.load_dataset` function performs by default a number of verifications on the downloaded files. These verifications include:
 
 - Verifying the list of downloaded files
 - Verifying the number of bytes of the downloaded files
@@ -453,7 +453,7 @@ For example, run the following to skip integrity verifications when loading the 
 Loading datasets offline
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each dataset builder (e.g. "squad") is a python script that is downloaded and cached from either from the 🤗Datasets GitHub repository or from the `HuggingFace Hub <https://huggingface.co/datasets>`__.
+Each dataset builder (e.g. "squad") is a python script that is downloaded and cached from either from the 🤗 Datasets GitHub repository or from the `HuggingFace Hub <https://huggingface.co/datasets>`__.
 Only the ``text``, ``csv``, ``json`` and ``pandas`` builders are included in ``datasets`` without requiring external downloads.
 
 Therefore if you don't have an internet connection you can't load a dataset that is not packaged with ``datasets``, unless the dataset is already cached.

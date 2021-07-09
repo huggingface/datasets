@@ -190,7 +190,7 @@ Up to now, the rows/batches/columns returned when querying the elements of the d
 
 Sometimes we would like to have more sophisticated objects returned by our dataset, for instance NumPy arrays or PyTorch tensors instead of python lists.
 
-🤗Datasets provides a way to do that through what is called a ``format``.
+🤗 Datasets provides a way to do that through what is called a ``format``.
 
 While the internal storage of the dataset is always the Apache Arrow format, by setting a specific format on a dataset, you can filter some columns and cast the output of :func:`datasets.Dataset.__getitem__` in NumPy/pandas/PyTorch/TensorFlow, on-the-fly.
 

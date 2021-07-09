@@ -71,7 +71,7 @@ This call to :func:`datasets.load_metric` does the following steps under the hoo
 
    .. note::
 
-      The :class:`datasets.Metric` object uses Apache Arrow Tables as the internal storing format for predictions and references. It allows to store predictions and references directly on disk with memory-mapping and thus do lazy computation of the metrics, in particular to easily gather the predictions in a distributed setup. The default in 🤗Datasets is to always memory-map metrics data on drive.
+      The :class:`datasets.Metric` object uses Apache Arrow Tables as the internal storing format for predictions and references. It allows to store predictions and references directly on disk with memory-mapping and thus do lazy computation of the metrics, in particular to easily gather the predictions in a distributed setup. The default in 🤗 Datasets is to always memory-map metrics data on drive.
 
 Using a custom metric script
 -----------------------------------------------------------
