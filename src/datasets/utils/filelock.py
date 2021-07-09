@@ -356,7 +356,7 @@ class WindowsFileLock(BaseFileLock):
         open_mode = os.O_RDWR | os.O_CREAT | os.O_TRUNC
 
         try:
-            fd = os.open(self._lock_file, open_mode)
+            fd = os.open("\\\\?\\" + self._lock_file, open_mode)
         except FileNotFoundError:
             raise
         except OSError:
