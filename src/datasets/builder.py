@@ -99,8 +99,8 @@ class BuilderConfig:
         """
         The config id is used to build the cache directory.
         By default it is equal to the config name.
-        However the name of a config is not sufficent to have a unique identifier for the dataset being generated since
-        it doesn't take into account:
+        However the name of a config is not sufficient to have a unique identifier for the dataset being generated
+        since it doesn't take into account:
         - the config kwargs that can be used to overwrite attributes
         - the custom features used to write the dataset
         - the data_files for json/text/csv/pandas datasets
@@ -150,8 +150,11 @@ class BuilderConfig:
             for key in sorted(data_files.keys()):
                 m.update(key)
                 for data_file in data_files[key]:
-                    m.update(os.path.abspath(data_file))
-                    m.update(str(os.path.getmtime(data_file)))
+                    if is_remote_url(data_file):
+                        m.update(data_file)
+                    else:
+                        m.update(os.path.abspath(data_file))
+                        m.update(str(os.path.getmtime(data_file)))
             suffix = m.hexdigest()
 
         if custom_features is not None:
