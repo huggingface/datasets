@@ -238,7 +238,7 @@ To access these reduced versions of the dataset, you can use the configs `bokmaa
 
 NorNE was created as a collaboration between [Schibsted Media Group](https://schibsted.com/), [Språkbanken](https://www.nb.no/forskning/sprakbanken/) at the [National Library of Norway](https://www.nb.no) and the [Language Technology Group](https://www.mn.uio.no/ifi/english/research/groups/ltg/) at the University of Oslo.
 
-NorNE was added to HuggingFace Datasets by the AI-Lab at the National Library of Norway.
+NorNE was added to 🤗 Datasets by the AI-Lab at the National Library of Norway.
 
 ### Licensing Information
 
