@@ -496,6 +496,15 @@ class DatasetBuilder:
                     use_etag=False,
                     use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
+            else:
+                if not download_config.cache_dir:
+                    download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
+                if not download_config._is_force_download_set_by_user:
+                    download_config.force_download = bool(download_mode == GenerateMode.FORCE_REDOWNLOAD)
+                if not download_config._is_use_etag_set_by_user:
+                    download_config.use_etag = False
+                if download_config.use_auth_token is None:
+                    download_config.use_auth_token = use_auth_token
 
             dl_manager = DownloadManager(
                 dataset_name=self.name,
@@ -636,7 +645,19 @@ class DatasetBuilder:
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
-        split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        try:
+            split_generators = self._split_generators(
+                dl_manager, splits=dl_manager._download_config.splits, **split_generators_kwargs
+            )
+        except TypeError:
+            split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        # For downloaded splits not filtered by self._split_generators, filter now to avoid caching at least
+        if dl_manager._download_config.splits:
+            split_generators = [
+                split_generator
+                for split_generator in split_generators
+                if split_generator.name in dl_manager._download_config.splits
+            ]
 
         # Checksums verification
         if verify_infos:
