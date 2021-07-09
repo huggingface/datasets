@@ -74,12 +74,12 @@ Examples:
 
 
 def simple_accuracy(preds, labels):
-    return (preds == labels).mean().tolist()
+    return (preds == labels).mean().item()
 
 
 def acc_and_f1(preds, labels):
     acc = simple_accuracy(preds, labels)
-    f1 = f1_score(y_true=labels, y_pred=preds).tolist()
+    f1 = f1_score(y_true=labels, y_pred=preds).item()
     return {
         "accuracy": acc,
         "f1": f1,
@@ -99,7 +99,7 @@ def precision_at_10(en_sentvecs, in_sentvecs):
     actual = np.array(range(n))
     preds = sim.argsort(axis=1)[:, :10]
     matches = np.any(preds == actual[:, None], axis=1)
-    return matches.mean().tolist()
+    return matches.mean().item()
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
