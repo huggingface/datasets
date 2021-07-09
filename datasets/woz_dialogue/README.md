@@ -33,10 +33,9 @@ task_ids:
 - multi-class-classification
 - parsing
 paperswithcode_id: wizard-of-oz
-pretty_name: WozDialogue
 ---
 
-# Dataset Card for WozDialogue
+# Dataset Card Creation Guide
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

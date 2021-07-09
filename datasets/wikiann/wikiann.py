@@ -365,15 +365,17 @@ class Wikiann(datasets.GeneratorBasedBuilder):
         Returns:
             Examples with the format listed above.
         """
+        guid_index = 1
         with open(filepath, encoding="utf-8") as f:
             tokens = []
             ner_tags = []
             langs = []
-            for line_id, line in enumerate(f):
+            for line in f:
                 if line == "" or line == "\n":
                     if tokens:
                         spans = self._get_spans(tokens, ner_tags)
-                        yield line_id, {"tokens": tokens, "ner_tags": ner_tags, "langs": langs, "spans": spans}
+                        yield guid_index, {"tokens": tokens, "ner_tags": ner_tags, "langs": langs, "spans": spans}
+                        guid_index += 1
                         tokens = []
                         ner_tags = []
                         langs = []

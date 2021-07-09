@@ -231,25 +231,25 @@ languages:
   os:
   - os
   other-bat-smg:
-  - sgs
+  - other-bat-smg
   other-be-x-old:
-  - be-tarask
+  - other-be-x-old
   other-cbk-zam:
-  - cbk
+  - other-cbk-zam
   other-eml:
-  - eml
+  - other-eml
   other-fiu-vro:
-  - vro
+  - other-fiu-vro
   other-map-bms:
-  - jv-x-bms
+  - other-map-bms
   other-simple:
-  - en-basiceng
+  - other-simple
   other-zh-classical:
-  - lzh
+  - other-zh-classical
   other-zh-min-nan:
-  - nan
+  - other-zh-min-nan
   other-zh-yue:
-  - yue
+  - other-zh-yue
   pa:
   - pa
   pdc:
@@ -369,7 +369,6 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: wikiann-1
-pretty_name: WikiANN
 ---
 
 # Dataset Card for WikiANN

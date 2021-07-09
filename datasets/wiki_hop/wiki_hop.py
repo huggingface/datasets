@@ -111,9 +111,9 @@ class WikiHop(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         with open(filepath, encoding="utf-8") as f:
             examples = json.load(f)
-            for key, example in enumerate(examples):
+            for i, example in enumerate(examples):
                 # there are no annotations for train split, setting it to empty list
                 if split == "train":
                     example["annotations"] = []
                 example["question"] = example.pop("query")
-                yield key, example
+                yield example["id"], example

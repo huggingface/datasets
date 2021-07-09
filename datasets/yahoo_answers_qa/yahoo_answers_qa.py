@@ -68,5 +68,5 @@ class YahooAnswersQa(datasets.GeneratorBasedBuilder):
             filepath = os.path.join(filepath, "nfL6.json")
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
-            for idx, example in enumerate(data):
-                yield idx, example
+            for example in data:
+                yield example["id"], example

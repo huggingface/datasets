@@ -143,28 +143,28 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
         vecs = []
         lines = open(data_file, "r", encoding="utf-8")
         next(lines)  # skip headers
-        for line_id, line in enumerate(lines):
-            if self.config.dummy and line_id == 10000:
+        for i, line in enumerate(lines):
+            if self.config.dummy and i == 10000:
                 break
-            if line_id == 21015300:
+            if i == 21015300:
                 break  # ignore the last 24 examples for which the embeddings are missing.
-            idx, text, title = line.strip().split("\t")
+            id, text, title = line.strip().split("\t")
             text = text[1:-1]  # remove " symbol at the beginning and the end
             text = text.replace('""', '"')  # replace double quotes by simple quotes
             if self.config.with_embeddings:
                 if vec_idx >= len(vecs):
                     if len(vectors_files) == 0:
-                        logger.warning("Ran out of vector files at index {}".format(line_id))
+                        logger.warning("Ran out of vector files at index {}".format(i))
                         break
                     vecs = np.load(open(vectors_files.pop(0), "rb"), allow_pickle=True)
                     vec_idx = 0
                 vec_id, vec = vecs[vec_idx]
-                assert int(idx) == int(vec_id), "ID mismatch between lines {} and vector {}".format(idx, vec_id)
-                yield line_id, {"id": idx, "text": text, "title": title, "embeddings": vec}
+                assert int(id) == int(vec_id), "ID mismatch between lines {} and vector {}".format(id, vec_id)
+                yield id, {"id": id, "text": text, "title": title, "embeddings": vec}
                 vec_idx += 1
             else:
-                yield line_id, {
-                    "id": idx,
+                yield id, {
+                    "id": id,
                     "text": text,
                     "title": title,
                 }

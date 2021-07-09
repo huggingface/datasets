@@ -1,6 +1,5 @@
 ---
 paperswithcode_id: null
-pretty_name: WMT T2T
 ---
 
 # Dataset Card for "wmt_t2t"

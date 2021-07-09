@@ -25,9 +25,9 @@ languages:
   italian_deletions:
   - it
   japanese_insertions:
-  - ja
+  - jp
   japanese_deletions:
-  - ja
+  - jp
   russian_insertions:
   - ru
   russian_deletions:
@@ -81,10 +81,9 @@ task_ids:
 - explanation-generation
 - summarization
 paperswithcode_id: wikiatomicedits
-pretty_name: WikiAtomicEdits
 ---
 
-# Dataset Card for WikiAtomicEdits
+# Dataset Card Creation Guide
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

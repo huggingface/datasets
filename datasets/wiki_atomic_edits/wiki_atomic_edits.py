@@ -141,9 +141,10 @@ class WikiAtomicEdits(datasets.GeneratorBasedBuilder):
             next(data_file)
             for sentence_counter, sent in enumerate(data_file):
                 sent = sent.split("\t")
-                yield sentence_counter, {
+                res = {
                     "id": sentence_counter,
                     "base_sentence": sent[0],
                     "phrase": sent[1],
                     "edited_sentence": sent[2],
                 }
+                yield sentence_counter, res

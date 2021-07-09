@@ -118,12 +118,13 @@ class XquadR(datasets.GeneratorBasedBuilder):
         # TODO(xquad-r): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
-            id_ = 0
             for article in data["data"]:
                 for paragraph in article["paragraphs"]:
                     context = paragraph["context"].strip()
                     for qa in paragraph["qas"]:
                         question = qa["question"].strip()
+                        id_ = qa["id"]
+
                         answer_starts = [answer["answer_start"] for answer in qa["answers"]]
                         answers = [answer["text"].strip() for answer in qa["answers"]]
 
@@ -132,10 +133,9 @@ class XquadR(datasets.GeneratorBasedBuilder):
                         yield id_, {
                             "context": context,
                             "question": question,
-                            "id": qa["id"],
+                            "id": id_,
                             "answers": {
                                 "answer_start": answer_starts,
                                 "text": answers,
                             },
                         }
-                        id_ += 1

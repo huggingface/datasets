@@ -835,9 +835,10 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
                     continue
                 # TODO(adarob): Add subset feature.
                 # ex["subset"] = subset
+                key = "{}/{}".format(ss_name, sub_key)
                 if with_translation is True:
                     ex = {"translation": ex}
-                yield f"{ss_name}/{sub_key}", ex
+                yield key, ex
 
 
 def _parse_parallel_sentences(f1, f2):
@@ -903,7 +904,8 @@ def _parse_parallel_sentences(f1, f2):
         )
 
         for line_id, (s1, s2) in enumerate(zip(l1_sentences, l2_sentences)):
-            yield f"{f_id}/{line_id}", {l1: s1, l2: s2}
+            key = "{}/{}".format(f_id, line_id)
+            yield key, {l1: s1, l2: s2}
 
 
 def _parse_frde_bitext(fr_path, de_path):
@@ -982,9 +984,10 @@ def _parse_czeng(*paths, **kwargs):
             bad_blocks = {blk for blk in re.search(r"qw{([\s\d]*)}", f.read()).groups()[0].split()}
         logger.info("Loaded %d bad blocks to filter from CzEng v1.6 to make v1.7.", len(bad_blocks))
 
-    for path_id, path in enumerate(paths):
-        for gz_path_id, gz_path in enumerate(sorted(glob.glob(path))):
+    for path in paths:
+        for gz_path in sorted(glob.glob(path)):
             with open(gz_path, "rb") as g, gzip.GzipFile(fileobj=g) as f:
+                filename = os.path.basename(gz_path)
                 for line_id, line in enumerate(f):
                     line = line.decode("utf-8")  # required for py3
                     if not line.strip():
@@ -994,7 +997,8 @@ def _parse_czeng(*paths, **kwargs):
                         block_match = re.match(re_block, id_)
                         if block_match and block_match.groups()[0] in bad_blocks:
                             continue
-                    yield f"{path_id}/{gz_path_id}/{line_id}", {
+                    sub_key = "{}/{}".format(filename, line_id)
+                    yield sub_key, {
                         "cs": cs.strip(),
                         "en": en.strip(),
                     }

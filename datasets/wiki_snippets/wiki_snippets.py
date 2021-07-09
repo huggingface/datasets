@@ -199,12 +199,11 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
         logger.info(
             "generating examples from = {} {}".format(self.config.wikipedia_name, self.config.wikipedia_version_name)
         )
-        for split_id, split in enumerate(wikipedia):
+        for split in wikipedia:
             dset = wikipedia[split]
             split_function = _SPLIT_FUCNTION_MAP[self.config.wikipedia_name]
-            for doc_id, doc in enumerate(
-                generate_snippets(
-                    dset, split_function, passage_len=self.config.snippets_length, overlap=self.config.snippets_overlap
-                )
+            for doc in generate_snippets(
+                dset, split_function, passage_len=self.config.snippets_length, overlap=self.config.snippets_overlap
             ):
-                yield f"{split_id}_{doc_id}", doc
+                id_ = doc["_id"]
+                yield id_, doc

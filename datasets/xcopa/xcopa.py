@@ -118,6 +118,7 @@ class Xcopa(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(xcopa): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
-            for key, row in enumerate(f):
+            for row in f:
                 data = json.loads(row)
-                yield key, data
+                idx = data["idx"]
+                yield idx, data

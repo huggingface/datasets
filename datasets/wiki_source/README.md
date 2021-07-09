@@ -19,10 +19,9 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
-pretty_name: WikiSource
 ---
 
-# Dataset Card for WikiSource
+# Dataset Card Creation Guide
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

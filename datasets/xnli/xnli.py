@@ -179,10 +179,10 @@ class Xnli(datasets.GeneratorBasedBuilder):
                         for row in reader:
                             rows_per_pair_id[row["pairID"]].append(row)
 
-                for key, rows in rows_per_pair_id.items():
+                for rows in rows_per_pair_id.values():
                     premise = {row["language"]: row["sentence1"] for row in rows}
                     hypothesis = {row["language"]: row["sentence2"] for row in rows}
-                    yield key, {
+                    yield rows[0]["pairID"], {
                         "premise": premise,
                         "hypothesis": hypothesis,
                         "label": rows[0]["gold_label"],
@@ -190,24 +190,23 @@ class Xnli(datasets.GeneratorBasedBuilder):
         else:
             if data_format == "XNLI-MT":
                 for file_idx, filepath in enumerate(filepaths):
-                    with open(filepath, encoding="utf-8") as file:
-                        reader = csv.DictReader(file, delimiter="\t", quoting=csv.QUOTE_NONE)
-                        for row_idx, row in enumerate(reader):
-                            yield f"{file_idx}_{row_idx}", {
-                                "premise": row["premise"],
-                                "hypothesis": row["hypo"],
-                                "label": row["label"].replace("contradictory", "contradiction"),
-                            }
+                    file = open(filepath, encoding="utf-8")
+                    reader = csv.DictReader(file, delimiter="\t", quoting=csv.QUOTE_NONE)
+                    for row_idx, row in enumerate(reader):
+                        key = str(file_idx) + "_" + str(row_idx)
+                        yield key, {
+                            "premise": row["premise"],
+                            "hypothesis": row["hypo"],
+                            "label": row["label"].replace("contradictory", "contradiction"),
+                        }
             else:
-                id_ = 0
                 for filepath in filepaths:
                     with open(filepath, encoding="utf-8") as f:
                         reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                         for row in reader:
                             if row["language"] == self.config.language:
-                                yield id_, {
+                                yield row["pairID"], {
                                     "premise": row["sentence1"],
                                     "hypothesis": row["sentence2"],
                                     "label": row["gold_label"],
                                 }
-                                id_ += 1

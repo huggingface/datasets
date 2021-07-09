@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: wnut-2017-emerging-and-rare-entity
-pretty_name: WNUT 17
 ---
 
 # Dataset Card for "wnut_17"
