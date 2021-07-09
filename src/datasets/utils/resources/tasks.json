@@ -77,7 +77,7 @@
             "other"
         ]
     },
-    "speech-prcoessing": {
+    "speech-processing": {
         "description": "tasks related to the analysis and representations of speech signals",
         "options": [
             "automatic-speech-recognition",
