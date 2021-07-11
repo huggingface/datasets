@@ -92,6 +92,8 @@ REQUIRED_PKGS = [
     "dataclasses;python_version<'3.7'",
     # for fast hashing
     "xxhash",
+    # murmur3 hashing
+    "mmh3==3.0.0",
     # for better multiprocessing
     "multiprocess",
     # to get metadata of optional dependencies such as torch or tensorflow for Python versions that don't have it
