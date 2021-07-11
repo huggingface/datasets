@@ -3,6 +3,7 @@ import os
 import tempfile
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
+import mmh3
 
 import numpy as np
 
@@ -139,20 +140,31 @@ class ElasticSearchIndex(BaseIndex):
         """
         index_name = self.es_index_name
         index_config = self.es_index_config
-        self.es_client.indices.create(index=index_name, body=index_config)
+
+        if self.es_client.indices.exists(index=index_name):
+            logger.info(f"The index {index_name} already exists:")
+            existing_index = self.es_client.indices.get(index=index_name)
+            logger.info(f"{existing_index}")
+        else:
+            logger.info(f"Creating index {index_name}")
+            self.es_client.indices.create(index=index_name, body=index_config)
+
         number_of_docs = len(documents)
         progress = utils.tqdm(
             unit="docs", total=number_of_docs, disable=bool(logging.get_verbosity() == logging.NOTSET)
         )
         successes = 0
 
+        # absolutely not the right place to put this constant used in hashing
+        hash_seed = 42
+
         def passage_generator():
             if column is not None:
                 for i, example in enumerate(documents):
-                    yield {"text": example[column], "_id": i}
+                    yield {"text": example[column], "_id": str(mmh3.hash128(example[column], hash_seed))}
             else:
                 for i, example in enumerate(documents):
-                    yield {"text": example, "_id": i}
+                    yield {"text": example, "_id": str(mmh3.hash128(example[column], hash_seed))}
 
         # create the ES index
         import elasticsearch as es
