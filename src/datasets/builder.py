@@ -210,6 +210,7 @@ class DatasetBuilder:
         hash: Optional[str] = None,
         base_path: Optional[str] = None,
         features: Optional[Features] = None,
+        use_auth_token: Optional[Union[bool, str]] = None,
         **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
@@ -227,6 +228,8 @@ class DatasetBuilder:
             base_path: `str`, base path for relative paths that are used to download files. This can be a remote url.
             features: `Features`, optional features that will be used to read/write the dataset
                 It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
+            use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
+                for remote files on the Datasets Hub. If True, will get token from ``"~/.huggingface"``.
             config_kwargs: will override the defaults kwargs in config
 
         """
@@ -234,6 +237,7 @@ class DatasetBuilder:
         self.name: str = camelcase_to_snakecase(self.__class__.__name__)
         self.hash: Optional[str] = hash
         self.base_path = base_path
+        self.use_auth_token = use_auth_token
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = {key: value for key, value in config_kwargs.items() if value is not None}
