@@ -45,6 +45,7 @@ from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
+from .utils.patching import extend_module_for_deleting_file_on_close
 
 
 logger = logging.get_logger(__name__)
@@ -1124,10 +1125,12 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in utils.tqdm(
-                generator, unit=" tables", leave=False, disable=bool(logging.get_verbosity() == logging.NOTSET)
-            ):
-                writer.write_table(table)
+            with extend_module_for_deleting_file_on_close(self.__module__):
+                for key, table in utils.tqdm(
+                    generator, unit=" tables", leave=False, disable=bool(logging.get_verbosity() == logging.NOTSET)
+                ):
+
+                    writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
 
         split_generator.split_info.num_examples = num_examples
