@@ -6,6 +6,7 @@ import pytest
 
 from datasets.packaged_modules.csv.csv import Csv
 from datasets.packaged_modules.text.text import Text
+from datasets.packaged_modules.elasticsearch.elasticsearch import ElasticsearchBuilder
 
 
 @pytest.fixture
@@ -76,3 +77,25 @@ def test_text_linebreaks(text_file, keep_linebreaks):
     generator = text._generate_tables([text_file])
     generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
     assert generated_content == expected_content
+
+
+def test_elasticsearch_builder():
+    es_index_config = \
+        {
+            "settings": {
+                "number_of_shards": 1,
+                "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_catalan_"}}},
+            },
+            "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
+        }
+
+    elasticsearch_builder = ElasticsearchBuilder(
+        host="localhost",
+        port="9200",
+        es_index_name="big_science_oscar_unshuffled_original_ca",
+        es_index_config=es_index_config,
+    )
+
+    print(f"\n{elasticsearch_builder.config}")
+
+    assert elasticsearch_builder.config.host == "localhost"
