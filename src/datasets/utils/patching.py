@@ -1,3 +1,7 @@
+import importlib
+import os
+from contextlib import contextmanager
+
 from .logging import get_logger
 
 
@@ -65,3 +69,23 @@ class patch_submodule:
             return None
 
         return self.__exit__()
+
+
+@contextmanager
+def extend_module_for_deleting_file_on_close(module_path):
+    @contextmanager
+    def open_and_delete_on_close(file, *args, **kwargs):
+        f = open(file, *args, **kwargs)
+        try:
+            yield f
+        finally:
+            f.close()
+            os.remove(file)
+
+    module = importlib.import_module(module_path)
+    patch = patch_submodule(module, "open", open_and_delete_on_close)
+    patch.start()
+    try:
+        yield patch
+    finally:
+        patch.stop()
