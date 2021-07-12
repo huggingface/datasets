@@ -64,6 +64,7 @@ Returns:
     sari: sari score
     sacrebleu: sacrebleu score
     exact: exact score
+
 Examples:
     >>> sources=["About 95 species are currently accepted ."]
     >>> predictions=["About 95 you now get in ."]
