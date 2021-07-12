@@ -94,15 +94,173 @@ The language data in SUPERB is in English (BCP-47 `en`)
 
 ### Data Instances
 
-[More Information Needed]
+#### pr
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### asr
+
+An example from each split looks like:
+
+```json
+{'chapter_id': 1240,
+ 'file': 'path/to/file.flac',
+ 'id': '103-1240-0000',
+ 'speaker_id': 103,
+ 'text': 'CHAPTER ONE MISSUS RACHEL LYNDE IS SURPRISED MISSUS RACHEL LYNDE '
+         'LIVED JUST WHERE THE AVONLEA MAIN ROAD DIPPED DOWN INTO A LITTLE '
+         'HOLLOW FRINGED WITH ALDERS AND LADIES EARDROPS AND TRAVERSED BY A '
+         'BROOK'}
+```
+
+#### ks
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### qbe
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### ic
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### sf
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### si
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### asv
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### sd
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### er
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+
 
 ### Data Fields
 
-[More Information Needed]
+#### pr
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### asr
+
+- `file`: a `string` feature.
+- `text`: a `string` feature.
+- `speaker_id`: a `int64` feature
+- `chapter_id`: a `int64` feature
+- `id`: a `string` feature 
+
+#### ks
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### qbe
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### ic
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### sf
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### si
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### asv
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### sd
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### er
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Data Splits
 
-[More Information Needed]
+#### pr
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### asr
+
+|     | train | validation | test |
+|-----|------:|-----------:|-----:|
+| asr | 28539 |       2703 | 2620 |
+
+#### ks
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### qbe
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### ic
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### sf
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### si
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### asv
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### sd
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+
+#### er
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ## Dataset Creation
 
@@ -160,7 +318,43 @@ The language data in SUPERB is in English (BCP-47 `en`)
 
 ### Citation Information
 
-[More Information Needed]
+```
+@article{DBLP:journals/corr/abs-2105-01051,
+  author    = {Shu{-}Wen Yang and
+               Po{-}Han Chi and
+               Yung{-}Sung Chuang and
+               Cheng{-}I Jeff Lai and
+               Kushal Lakhotia and
+               Yist Y. Lin and
+               Andy T. Liu and
+               Jiatong Shi and
+               Xuankai Chang and
+               Guan{-}Ting Lin and
+               Tzu{-}Hsien Huang and
+               Wei{-}Cheng Tseng and
+               Ko{-}tik Lee and
+               Da{-}Rong Liu and
+               Zili Huang and
+               Shuyan Dong and
+               Shang{-}Wen Li and
+               Shinji Watanabe and
+               Abdelrahman Mohamed and
+               Hung{-}yi Lee},
+  title     = {{SUPERB:} Speech processing Universal PERformance Benchmark},
+  journal   = {CoRR},
+  volume    = {abs/2105.01051},
+  year      = {2021},
+  url       = {https://arxiv.org/abs/2105.01051},
+  archivePrefix = {arXiv},
+  eprint    = {2105.01051},
+  timestamp = {Thu, 01 Jul 2021 13:30:22 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-2105-01051.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+Note that each SUPERB dataset has its own citation. Please see the source to see
+the correct citation for each contained dataset.
+```
 
 ### Contributions
 
