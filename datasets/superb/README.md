@@ -1,9 +1,9 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+- tbd
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for SUPERB
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -32,23 +32,63 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [http://superbbenchmark.org](http://superbbenchmark.org)
+- **Repository:** [https://github.com/s3prl/s3prl](https://github.com/s3prl/s3prl)
+- **Paper:** [SUPERB: Speech processing Universal PERformance Benchmark](https://arxiv.org/abs/2105.01051)
+- **Leaderboard:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Point of Contact:** [Lewis Tunstall](mailto:lewis@huggingface.co) and [Albert Villanova](mailto:albert@huggingface.co)
 
 ### Dataset Summary
 
-[More Information Needed]
+SUPERB is a leaderboard to benchmark the performance of a shared model across a wide range of speech processing tasks with minimal architecture changes and labeled data.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+The SUPERB leaderboard can be found here **ADD LINK WHEN LIVE** and consists of the following tasks:
+
+#### pr
+
+Phoneme Recognition (PR) transcribes an utterance into the smallest content units. This task includes alignment modeling to avoid potentially inaccurate forced alignment. [LibriSpeech](https://huggingface.co/datasets/librispeech_asr) train-clean-100/dev-clean/test-clean subsets are adopted in SUPERB for training/validation/testing. Phoneme transcriptions are obtained from the LibriSpeech official g2p-model-5 and the conversion script in Kaldi librispeech s5 recipe. The evaluation metric is phone error rate (PER).
+
+#### asr
+
+Automatic Speech Recognition (ASR) transcribes utterances into words. While PR analyzes the improvement in modeling phonetics, ASR reflects the significance of the improvement in a real-world scenario. [LibriSpeech](https://huggingface.co/datasets/librispeech_asr) train-clean-100/devclean/test-clean subsets are used for training/validation/testing. The evaluation metric is word error rate (WER).
+
+#### ks
+
+Keyword Spotting (KS) detects preregistered keywords by classifying utterances into a predefined set of words. The task is usually performed on-device for the fast response time. Thus, accuracy, model size, and inference time are all crucial. SUPERB uses the widely used [Speech Commands dataset v1.0](https://www.tensorflow.org/datasets/catalog/speech_commands) for the task. The dataset consists of ten classes of keywords, a class for silence, and an unknown class to include the false positive. The evaluation metric is accuracy (ACC)
+
+#### qbe
+
+Query by Example Spoken Term Detection (QbE) detects a spoken term (query) in an audio database (documents) by binary discriminating a given pair of query and document into a match or not. The English subset in [QUESST 2014 challenge](https://github.com/s3prl/s3prl/tree/master/downstream#qbe-query-by-example-spoken-term-detection) is adopted since we focus on investigating English as the first step. The evaluation metric is maximum term weighted value (MTWV) which balances misses and false alarms.
+
+#### ic
+
+Intent Classification (IC) classifies utterances into predefined classes to determine the intent of speakers. SUPERB uses the [Fluent Speech Commands dataset](https://github.com/s3prl/s3prl/tree/master/downstream#ic-intent-classification---fluent-speech-commands), where each utterance is tagged with three intent labels: action, object, and location. The evaluation metric is accuracy (ACC).
+
+#### sf
+
+Slot Filling (SF) predicts a sequence of semantic slot-types from an utterance, like a slot-type FromLocation for a spoken word Taipei, which is known as a slot-value. Both slot-types and slot-values are essential for an SLU system to function. The evaluation metrics thus include slot-type F1 score and slotvalue CER. [Audio SNIPS](https://github.com/s3prl/s3prl/tree/master/downstream#sf-end-to-end-slot-filling) is adopted, which synthesized multi-speaker utterances for SNIPS. Following the standard split in SNIPS, US-accent speakers are further selected for training, and others are for validation/testing.
+
+#### si
+Speaker Identification (SI) classifies each utterance for its speaker identity as a multi-class classification, where speakers are in the same predefined set for both training and testing. The widely used [VoxCeleb1 dataset](https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox1.html) is adopted, and the evaluation metric is accuracy (ACC).
+
+#### asv
+
+Automatic Speaker Verification (ASV) verifies whether the speakers of a pair of utterances match as a binary classification, and speakers in the testing set may not appear in the training set. Thus, ASV is more challenging than SID. VoxCeleb1 is used without VoxCeleb2 training data and noise augmentation. The evaluation metric is equal error rate (EER).
+
+#### sd
+
+Speaker Diarization (SD) predicts who is speaking when for each timestamp, and multiple speakers can speak simultaneously. The model has to encode rich speaker characteristics for each frame and should be able to represent mixtures of signals. [LibriMix](https://github.com/s3prl/s3prl/tree/master/downstream#sd-speaker-diarization) is adopted where LibriSpeech train-clean-100/dev-clean/test-clean are used to generate mixtures for training/validation/testing. We focus on the two-speaker scenario as the first step. The time-coded speaker labels were generated using alignments from Kaldi LibriSpeech ASR model. The evaluation metric is diarization error rate (DER).
+
+#### er
+
+Emotion Recognition (ER) predicts an emotion class for each utterance. The most widely used ER dataset [IEMOCAP](https://github.com/s3prl/s3prl/tree/master/downstream#er-emotion-recognition) is adopted, and we follow the conventional evaluation protocol: we drop the unbalance emotion classes to leave the final four classes with a similar amount of data points and cross-validates on five folds of the standard splits. The evaluation metric is accuracy (ACC).
 
 ### Languages
 
-[More Information Needed]
+The language data in SUPERB is in English (BCP-47 `en`)
+
 
 ## Dataset Structure
 
@@ -124,4 +164,4 @@ YAML tags:
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+Thanks to [@lewtun](https://github.com/lewtun)  and [@albertvillanova](https://github.com/albertvillanova) for adding this dataset.
