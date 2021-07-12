@@ -119,9 +119,9 @@ class Superb(datasets.GeneratorBasedBuilder):
             name="asr",
             description=textwrap.dedent(
                 """\
-            ASR transcribes utter- ances into words. While PR analyzes the
-            improvement in mod- eling phonetics, ASR reflects the significance
-            of the improve- ment in a real-world scenario. LibriSpeech
+            ASR transcribes utterances into words. While PR analyzes the
+            improvement in modeling phonetics, ASR reflects the significance of
+            the improvement in a real-world scenario. LibriSpeech
             train-clean-100/dev-clean/test-clean subsets are used for
             training/validation/testing. The evaluation metric is word error
             rate (WER)."""
