@@ -49,13 +49,13 @@ _CITATION = """
 
 _DESCRIPTION = """\
 WIKI_SPLIT is the combination of three metrics SARI, EXACT and SACREBLEU
-It can be used for evaluate performance performance of generated sentences
+It can be used to evaluate the quality of machine-generated texts.
 """
 
 
 _KWARGS_DESCRIPTION = """
 Calculates sari score (between 0 and 100) given a list of source and predicted
-sentences, and a list of lists of reference sentences.
+sentences, and a list of lists of reference sentences. It also computes the BLEU score as well as the exact match score.
 Args:
     sources: list of source sentences where each sentence should be a string.
     predictions: list of predicted sentences where each sentence should be a string.
