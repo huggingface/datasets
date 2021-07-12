@@ -42,7 +42,7 @@ from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
 from .utils.download_manager import DownloadManager, GenerateMode
-from .utils.file_utils import DownloadConfig, is_remote_url
+from .utils.file_utils import DownloadConfig, is_remote_url, request_etag
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 
@@ -152,6 +152,7 @@ class BuilderConfig:
                 for data_file in data_files[key]:
                     if is_remote_url(data_file):
                         m.update(data_file)
+                        m.update(str(request_etag(data_file, use_auth_token=self.use_auth_token)))
                     else:
                         m.update(os.path.abspath(data_file))
                         m.update(str(os.path.getmtime(data_file)))
