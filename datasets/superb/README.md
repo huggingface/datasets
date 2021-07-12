@@ -1,6 +1,33 @@
 ---
-YAML tags:
-- tbd
+annotations_creators:
+- other
+language_creators:
+- other
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: SUPERB
+size_categories:
+- unknown
+source_datasets:
+- original
+- extended|librispeech_asr
+task_categories:
+- speech-processing
+task_ids:
+- automatic-speech-recognition
+- phoneme-recognition
+- keyword-spotting
+- query-by-example-spoken-term-detection
+- speaker-identification
+- automatic-speaker-verification
+- speaker-diarization
+- intent-classification
+- slot-filling
+- emotion-recognition
 ---
 
 # Dataset Card for SUPERB
