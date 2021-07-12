@@ -77,16 +77,19 @@
             "other"
         ]
     },
-    "automatic-speech-recognition": {
-        "description": "recognising speech within audio and converting it to text",
+    "speech-processing": {
+        "description": "tasks related to the analysis and representations of speech signals",
         "options": [
-            "speech-recognition",
-            "visual-speech-recognition",
-            "distant-speech-recognition",
-            "robust-speech-recognition",
-            "accented-speech-recognition",
-            "noisy-speech-recognition",
-            "other"
+            "automatic-speech-recognition",
+            "phoneme-recognition",
+            "keyword-spotting",
+            "query-by-example-spoken-term-detection",
+            "speaker-identification",
+            "automatic-speaker-verification",
+            "speaker-diarization",
+            "intent-classification",
+            "slot-filling",
+            "emotion-recognition"
         ]
     },
     "other": {

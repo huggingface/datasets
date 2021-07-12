@@ -94,5 +94,5 @@ class Pearsonr(datasets.Metric):
 
     def _compute(self, predictions, references):
         return {
-            "pearsonr": pearsonr(references, predictions)[0],
+            "pearsonr": pearsonr(references, predictions)[0].item(),
         }

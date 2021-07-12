@@ -701,6 +701,7 @@ def load_dataset_builder(
         hash=hash,
         base_path=base_path,
         features=features,
+        use_auth_token=use_auth_token,
         **config_kwargs,
     )
 
