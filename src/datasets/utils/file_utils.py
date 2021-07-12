@@ -464,6 +464,13 @@ def http_head(
     return response
 
 
+def request_etag(url: str, use_auth_token: Optional[Union[str, bool]] = None):
+    headers = get_authentication_headers_for_url(url, use_auth_token=use_auth_token)
+    response = http_head(url, headers=headers)
+    etag = response.headers.get("ETag") if response.ok else None
+    return etag
+
+
 def get_from_cache(
     url,
     cache_dir=None,

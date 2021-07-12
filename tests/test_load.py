@@ -337,6 +337,16 @@ def test_load_from_disk_with_default_in_memory(
         _ = load_from_disk(dataset_path)
 
 
+def test_remote_data_files():
+    repo_id = "albertvillanova/tests-raw-jsonl"
+    filename = "wikiann-bn-validation.jsonl"
+    data_files = f"https://huggingface.co/datasets/{repo_id}/resolve/main/{filename}"
+    ds = load_dataset("json", split="train", data_files=data_files, streaming=True)
+    assert isinstance(ds, IterableDataset)
+    ds_item = next(iter(ds))
+    assert ds_item.keys() == {"langs", "ner_tags", "spans", "tokens"}
+
+
 def test_load_dataset_deletes_extracted_files(jsonl_gz_path, tmp_path):
     data_files = jsonl_gz_path
     cache_dir = tmp_path / "cache"
