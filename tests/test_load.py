@@ -335,3 +335,11 @@ def test_load_from_disk_with_default_in_memory(
 
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
         _ = load_from_disk(dataset_path)
+
+
+def test_load_dataset_deletes_extracted_files(jsonl_gz_path, tmp_path):
+    data_files = jsonl_gz_path
+    cache_dir = tmp_path / "cache"
+    ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
+    assert ds[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+    assert sorted((cache_dir / "downloads" / "extracted").iterdir()) == []
