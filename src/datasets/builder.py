@@ -95,7 +95,12 @@ class BuilderConfig:
             return False
         return all((k, getattr(self, k)) == (k, getattr(o, k)) for k in self.__dict__.keys())
 
-    def create_config_id(self, config_kwargs: dict, custom_features: Optional[Features] = None) -> str:
+    def create_config_id(
+        self,
+        config_kwargs: dict,
+        custom_features: Optional[Features] = None,
+        use_auth_token: Optional[Union[bool, str]] = None,
+    ) -> str:
         """
         The config id is used to build the cache directory.
         By default it is equal to the config name.
@@ -152,7 +157,7 @@ class BuilderConfig:
                 for data_file in data_files[key]:
                     if is_remote_url(data_file):
                         m.update(data_file)
-                        m.update(str(request_etag(data_file, use_auth_token=self.use_auth_token)))
+                        m.update(str(request_etag(data_file, use_auth_token=use_auth_token)))
                     else:
                         m.update(os.path.abspath(data_file))
                         m.update(str(os.path.getmtime(data_file)))
@@ -360,7 +365,9 @@ class DatasetBuilder:
             raise ValueError("BuilderConfig must have a name, got %s" % builder_config.name)
 
         # compute the config id that is going to be used for caching
-        config_id = builder_config.create_config_id(config_kwargs, custom_features=custom_features)
+        config_id = builder_config.create_config_id(
+            config_kwargs, custom_features=custom_features, use_auth_token=self.use_auth_token
+        )
         is_custom = config_id not in self.builder_configs
         if is_custom:
             logger.warning("Using custom data configuration %s", config_id)
