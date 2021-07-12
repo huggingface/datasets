@@ -1,7 +1,13 @@
 from unittest.case import TestCase
 
 from datasets.features import ClassLabel, Features, Sequence, Value
-from datasets.tasks import AutomaticSpeechRecognition, QuestionAnsweringExtractive, Summarization, TextClassification
+from datasets.tasks import (
+    AutomaticSpeechRecognition,
+    ImageClassification,
+    QuestionAnsweringExtractive,
+    Summarization,
+    TextClassification,
+)
 
 
 class TextClassificationTest(TestCase):
@@ -88,5 +94,27 @@ class AutomaticSpeechRecognitionTest(TestCase):
         }
         task = AutomaticSpeechRecognition.from_dict(template_dict)
         self.assertEqual("automatic-speech-recognition", task.task)
+        self.assertEqual(input_schema, task.input_schema)
+        self.assertEqual(label_schema, task.label_schema)
+
+
+class ImageClassificationTest(TestCase):
+    def setUp(self):
+        self.labels = sorted(["pos", "neg"])
+
+    def test_column_mapping(self):
+        task = ImageClassification(image_file_path_column="file_paths", label_column="input_label")
+        self.assertDictEqual({"file_paths": "image_file_path", "input_label": "labels"}, task.column_mapping)
+
+    def test_from_dict(self):
+        input_schema = Features({"image_file_path": Value("string")})
+        label_schema = Features({"labels": ClassLabel(names=tuple(self.labels))})
+        template_dict = {
+            "image_file_path_column": "input_image_file_path",
+            "label_column": "input_label",
+            "labels": self.labels,
+        }
+        task = ImageClassification.from_dict(template_dict)
+        self.assertEqual("image-classification", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
