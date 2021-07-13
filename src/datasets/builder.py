@@ -682,7 +682,7 @@ class DatasetBuilder:
                     + str(e)
                 )
 
-            dl_manager.delete_extracted_paths()
+            dl_manager.delete_extracted_files()
 
         if verify_infos:
             verify_splits(self.info.splits, split_dict)

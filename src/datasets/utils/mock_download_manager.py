@@ -202,5 +202,5 @@ class MockDownloadManager:
             # the downloaded file.
             return path_to_dummy_data
 
-    def delete_extracted_paths(self):
+    def delete_extracted_files(self):
         pass
