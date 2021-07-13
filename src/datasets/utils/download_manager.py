@@ -290,3 +290,10 @@ class DownloadManager:
 
     def get_recorded_sizes_checksums(self):
         return self._recorded_sizes_checksums.copy()
+
+    def delete_extracted_paths(self):
+        paths_to_delete = set(self.extracted_paths.values()) - set(self.downloaded_paths.values())
+        for key, path in list(self.extracted_paths.items()):
+            if path in paths_to_delete:
+                os.remove(path)
+                del self.extracted_paths[key]
