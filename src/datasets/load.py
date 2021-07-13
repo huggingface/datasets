@@ -825,7 +825,7 @@ def load_dataset(
         **config_kwargs,
     )
 
-    # Retturn iterable dataset in case of streaming
+    # Return iterable dataset in case of streaming
     if streaming:
         # this extends the open and os.path.join functions for data streaming
         extend_module_for_streaming(builder_instance.__module__, use_auth_token=use_auth_token)
@@ -863,11 +863,13 @@ def load_dataset(
 
 def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> Union[Dataset, DatasetDict]:
     """
-    Loads a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)`` from a dataset directory, or from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of ``fsspec.spec.AbstractFileSystem``.
+    Loads a dataset that was previously saved using :meth:`Dataset.save_to_disk` from a dataset directory, or
+    from a filesystem using either :class:`datasets.filesystems.S3FileSystem` or any implementation of
+    ``fsspec.spec.AbstractFileSystem``.
 
     Args:
-        dataset_path (:obj:`str`): Path (e.g. ``"dataset/train"``) or remote uri (e.g.
-            ``"s3://my-bucket/dataset/train"``) of the Dataset or DatasetDict directory where the dataset will be
+        dataset_path (:obj:`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
+            `"s3://my-bucket/dataset/train"`) of the Dataset or DatasetDict directory where the dataset will be
             loaded from.
         fs (:class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
             Instance of of the remote filesystem used to download the files from.
@@ -876,10 +878,9 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
             nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.
 
     Returns:
-        ``datasets.Dataset`` or ``datasets.DatasetDict``
-            if `dataset_path` is a path of a dataset directory: the dataset requested,
-            if `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
-            keep_in_memory (``bool``, default False): Whether to copy the data in-memory.
+        :class:`Dataset` or :class:`DatasetDict`:
+        - If `dataset_path` is a path of a dataset directory: the dataset requested.
+        - If `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
     """
     # gets filesystem from dataset, either s3:// or file:// and adjusted dataset_path
     if is_remote_filesystem(fs):

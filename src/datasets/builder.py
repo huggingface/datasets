@@ -939,7 +939,8 @@ class DatasetBuilder:
     def _download_post_processing_resources(
         self, split: str, resource_name: str, dl_manager: DownloadManager
     ) -> Optional[str]:
-        """Download the resource using the download manager and return the downloaded path"""
+        """Download the resource using the download manager and return the downloaded path."""
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def _split_generators(self, dl_manager: DownloadManager):

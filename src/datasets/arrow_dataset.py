@@ -701,8 +701,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`) of
-                the dataset directory where the dataset will be loaded from.
+            dataset_path (:obj:`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
+                `"s3//my-bucket/dataset/train"`) of the dataset directory where the dataset will be loaded from.
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
                 Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
@@ -711,9 +711,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 :ref:`load_dataset_enhancing_performance` section.
 
         Returns:
-            :class:`Dataset` or :class:`DatasetDict`.
-                - if `dataset_path` is a path of a dataset directory: the :class:`Dataset` requested,
-                - if `dataset_path` is a path of a dataset dict directory: a :class:`DatasetDict` with each split.
+            :class:`Dataset` or :class:`DatasetDict`:
+            - If `dataset_path` is a path of a dataset directory: the dataset requested.
+            - If `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
         fs = fsspec.filesystem("file") if fs is None else fs
