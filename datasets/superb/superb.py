@@ -98,7 +98,6 @@ dataset = dataset.map(map_to_array, remove_columns=["file"])
 """
 
 
-
 class SuperbConfig(datasets.BuilderConfig):
     """BuilderConfig for Superb."""
 
