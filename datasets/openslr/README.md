@@ -71,9 +71,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- automatic-speech-recognition
+- speech-processing
 task_ids:
-- speech-recognition
+- automatic-speech-recognition
 paperswithcode_id: null
 ---
 
