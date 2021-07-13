@@ -1,3 +1,4 @@
+import os
 import textwrap
 
 import pyarrow as pa
@@ -62,7 +63,7 @@ def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed
     assert any(
         record.levelname == "ERROR"
         and f"Failed to read file" in record.message
-        and malformed_csv_file in record.message
+        and os.path.basename(malformed_csv_file) in record.message
         for record in caplog.records
     )
 
