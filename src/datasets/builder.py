@@ -1144,7 +1144,6 @@ class ArrowBasedBuilder(DatasetBuilder):
             for key, table in utils.tqdm(
                 generator, unit=" tables", leave=False, disable=bool(logging.get_verbosity() == logging.NOTSET)
             ):
-
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
 
