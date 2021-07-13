@@ -39,9 +39,8 @@ class Json(datasets.ArrowBasedBuilder):
             logger.warning(
                 "The JSON loader parameter `use_threads` is deprecated and doesn't have any effect anymore."
             )
-            self.config.chunksize = self.config.block_size
         if self.config.newlines_in_values is not None:
-            logger.warning("The JSON loader parameter `newlines_in_values` is no longer supported")
+            raise ValueError("The JSON loader parameter `newlines_in_values` is no longer supported")
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
@@ -97,7 +96,7 @@ class Json(datasets.ArrowBasedBuilder):
 
             # If the file has one json object per line
             else:
-                with open(file, "rb") as f:
+                with open(file, "r", encoding="utf-8") as f:
                     batch_idx = 0
                     while True:
                         batch = f.read(self.config.chunksize)
@@ -124,5 +123,5 @@ class Json(datasets.ArrowBasedBuilder):
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), pa_table
+                        yield (file_idx, batch_idx), self._cast_classlabels(pa_table)
                         batch_idx += 1
