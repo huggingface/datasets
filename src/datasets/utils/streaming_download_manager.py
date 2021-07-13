@@ -108,7 +108,7 @@ class StreamingDownloadManager(object):
         return url_or_urls
 
     def _download(self, url_or_filename):
-        if is_relative_path(url_or_filename):
+        if is_relative_path(str(url_or_filename)):
             # append the relative path to the base_path
             url_or_filename = url_or_path_join(self._base_path, url_or_filename)
         return url_or_filename

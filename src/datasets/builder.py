@@ -42,7 +42,7 @@ from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
 from .utils.download_manager import DownloadManager, GenerateMode
-from .utils.file_utils import DownloadConfig, is_remote_url, request_etag
+from .utils.file_utils import DownloadConfig, is_relative_path, is_remote_url, url_or_path_join
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 
@@ -100,6 +100,7 @@ class BuilderConfig:
         config_kwargs: dict,
         custom_features: Optional[Features] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
+        base_path: Optional[Union[bool, str]] = None,
     ) -> str:
         """
         The config id is used to build the cache directory.
@@ -155,9 +156,14 @@ class BuilderConfig:
             for key in sorted(data_files.keys()):
                 m.update(key)
                 for data_file in data_files[key]:
+                    data_file = str(data_file)
+                    if is_relative_path(data_file):
+                        # append the relative path to the base_path
+                        base_path = base_path or os.path.abspath(".")
+                        data_file = url_or_path_join(base_path, data_file)
                     if is_remote_url(data_file):
                         m.update(data_file)
-                        m.update(str(request_etag(data_file, use_auth_token=use_auth_token)))
+                        # m.update(str(request_etag(data_file, use_auth_token=use_auth_token)))
                     else:
                         m.update(os.path.abspath(data_file))
                         m.update(str(os.path.getmtime(data_file)))
@@ -366,7 +372,10 @@ class DatasetBuilder:
 
         # compute the config id that is going to be used for caching
         config_id = builder_config.create_config_id(
-            config_kwargs, custom_features=custom_features, use_auth_token=self.use_auth_token
+            config_kwargs,
+            custom_features=custom_features,
+            use_auth_token=self.use_auth_token,
+            base_path=self.base_path,
         )
         is_custom = config_id not in self.builder_configs
         if is_custom:
@@ -565,12 +574,17 @@ class DatasetBuilder:
             # Print is intentional: we want this to always go to stdout so user has
             # information needed to cancel download/preparation if needed.
             # This comes right before the progress bar.
-            print(
-                f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
-                f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
-                f"post-processed: {utils.size_str(self.info.post_processing_size)}, "
-                f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
-            )
+            if self.info.size_in_bytes:
+                print(
+                    f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
+                    f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
+                    f"post-processed: {utils.size_str(self.info.post_processing_size)}, "
+                    f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
+                )
+            else:
+                print(
+                    f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} to {self._cache_dir}..."
+                )
 
             if self.manual_download_instructions is not None:
                 assert (
