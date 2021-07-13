@@ -31,7 +31,7 @@ import fsspec
 import huggingface_hub
 from huggingface_hub import HfApi
 
-from build.lib.datasets.naming import camelcase_to_snakecase
+from datasets.naming import camelcase_to_snakecase
 from datasets.utils.py_utils import NestedDataStructure
 
 from . import config
