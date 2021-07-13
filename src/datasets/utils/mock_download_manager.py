@@ -201,3 +201,6 @@ class MockDownloadManager:
             # while now we expected the dummy_data.zip file to be a directory containing
             # the downloaded file.
             return path_to_dummy_data
+
+    def delete_extracted_paths(self):
+        pass
