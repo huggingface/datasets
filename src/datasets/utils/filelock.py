@@ -356,7 +356,7 @@ class WindowsFileLock(BaseFileLock):
         open_mode = os.O_RDWR | os.O_CREAT | os.O_TRUNC
 
         try:
-            fd = os.open("\\\\?\\" + self._lock_file if os.path.isabs(self._lock_file) else self._lock_file, open_mode)
+            fd = os.open("\\\\?\\" + os.path.abspath(self._lock_file), open_mode)
         except OSError:
             pass
         else:
@@ -375,7 +375,7 @@ class WindowsFileLock(BaseFileLock):
         os.close(fd)
 
         try:
-            os.remove(self._lock_file)
+            os.remove("\\\\?\\" + os.path.abspath(self._lock_file))
         # Probably another instance of the application
         # that acquired the file lock.
         except OSError:
