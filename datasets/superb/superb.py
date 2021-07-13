@@ -22,6 +22,7 @@ import os
 import textwrap
 
 import datasets
+from datasets.tasks import AutomaticSpeechRecognition
 
 
 _CITATION = """\
@@ -96,6 +97,8 @@ dataset = dataset.map(map_to_array, remove_columns=["file"])
 ```
 """
 
+TASK2TEMPLATE = {"asr": AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")}
+
 
 class SuperbConfig(datasets.BuilderConfig):
     """BuilderConfig for Superb."""
@@ -146,6 +149,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=self.config.url,
             citation=_CITATION,
+            task_templates=[TASK2TEMPLATE[self.config.name]],
         )
 
     def _split_generators(self, dl_manager):
