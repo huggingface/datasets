@@ -297,3 +297,7 @@ class DownloadManager:
             if path in paths_to_delete:
                 os.remove(path)
                 del self.extracted_paths[key]
+
+    def manage_extracted_files(self):
+        if not self._download_config.keep_extracted:
+            self.delete_extracted_files()

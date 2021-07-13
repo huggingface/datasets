@@ -204,3 +204,6 @@ class MockDownloadManager:
 
     def delete_extracted_files(self):
         pass
+
+    def manage_extracted_files(self):
+        pass
