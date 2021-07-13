@@ -97,7 +97,6 @@ dataset = dataset.map(map_to_array, remove_columns=["file"])
 ```
 """
 
-TASK2TEMPLATE = {"asr": AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")}
 
 
 class SuperbConfig(datasets.BuilderConfig):
@@ -107,11 +106,13 @@ class SuperbConfig(datasets.BuilderConfig):
         self,
         data_url,
         url,
+        task_templates=None,
         **kwargs,
     ):
         super(SuperbConfig, self).__init__(version=datasets.Version("1.9.0", ""), **kwargs)
         self.data_url = data_url
         self.url = url
+        self.task_templates = task_templates
 
 
 class Superb(datasets.GeneratorBasedBuilder):
@@ -131,6 +132,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             ),
             url="http://www.openslr.org/12",
             data_url="http://www.openslr.org/resources/12/",
+            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
         )
     ]
 
@@ -149,7 +151,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=self.config.url,
             citation=_CITATION,
-            task_templates=[TASK2TEMPLATE[self.config.name]],
+            task_templates=self.config.task_templates,
         )
 
     def _split_generators(self, dl_manager):
