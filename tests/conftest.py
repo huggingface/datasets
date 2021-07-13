@@ -234,7 +234,7 @@ def jsonl_312_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset_312.jsonl")
     with open(path, "w") as f:
         for item in DATA_312:
-            f.write(json.dumps(item))
+            f.write(json.dumps(item) + "\n")
     return path
 
 
@@ -243,7 +243,7 @@ def jsonl_str_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset-str.jsonl")
     with open(path, "w") as f:
         for item in DATA_STR:
-            f.write(json.dumps(item))
+            f.write(json.dumps(item) + "\n")
     return path
 
 
