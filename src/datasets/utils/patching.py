@@ -5,7 +5,7 @@ logger = get_logger(__name__)
 
 
 class _PatchedModuleObj:
-    """Set all the modules components as attributes of the _PatchedModuleObj object"""
+    """Set all the modules components as attributes of the _PatchedModuleObj object."""
 
     def __init__(self, module):
         if module is not None:
@@ -18,7 +18,7 @@ class patch_submodule:
     """
     Patch a submodule attribute of an object, by keeping all other submodules intact at all levels.
 
-    Example::
+    Examples:
 
         >>> import importlib
         >>> from datasets.load import prepare_module
