@@ -118,15 +118,15 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             citation="",
             url="https://russiansuperglue.com/tasks/task_info/LiDiRus",
         ),
-        # RussianSuperGlueConfig(
-        #     name="rcb",
-        #     description=_RCB_DESCRIPTION,
-        #     features=["premise", "hypothesis"],
-        #     label_classes=["entailment", "contradiction", "neutral"],
-        #     data_url="https://russiansuperglue.com/tasks/download/RCB",
-        #     citation=_RUSSIAN_SUPER_GLUE_CITATION,
-        #     url="https://russiansuperglue.com/tasks/task_info/RCB",
-        # ),
+        RussianSuperGlueConfig(
+            name="rcb",
+            description=_RCB_DESCRIPTION,
+            features=["premise", "hypothesis", "verb", "negation"],
+            label_classes=["entailment", "contradiction", "neutral"],
+            data_url="https://russiansuperglue.com/tasks/download/RCB",
+            citation=_RUSSIAN_SUPER_GLUE_CITATION,
+            url="https://russiansuperglue.com/tasks/task_info/RCB",
+        ),
         # RussianSuperGlueConfig(
         #     name="parus",
         #     description=_PARUS_DESCRIPTION,
@@ -204,7 +204,7 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             for line in file:
                 row = json.loads(line)
 
-                if self.config.name == "lidirus":
+                if self.config.name in ("lidirus", "rcb"):
                     # features may be missing
                     example = {feature: row.get(feature, "") for feature in self.config.features}
                 else:
