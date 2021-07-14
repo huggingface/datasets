@@ -135,12 +135,12 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
         # ),
         RussianSuperGlueConfig(
             name="terra",
-            description=_LIDIRUS_DESCRIPTION,
+            description=_TERRA_DESCRIPTION,
             features=["premise", "hypothesis"],
             label_classes=["entailment", "not_entailment"],
-            data_url="https://russiansuperglue.com/tasks/download/LiDiRus",
+            data_url="https://russiansuperglue.com/tasks/download/TERRa",
             citation="",
-            url="https://russiansuperglue.com/tasks/task_info/LiDiRus",
+            url="https://russiansuperglue.com/tasks/task_info/TERRa",
         ),
     ]
 
@@ -148,6 +148,7 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
         features = {feature: datasets.Value("string") for feature in self.config.features}
 
         features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
+        features["idx"] = datasets.Value("int32")
 
         return datasets.DatasetInfo(
             description=_RUSSIAN_SUPER_GLUE_DESCRIPTION + self.config.description,
