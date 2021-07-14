@@ -181,7 +181,17 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             citation="",
             url="https://russiansuperglue.com/tasks/task_info/DaNetQA",
         ),
-
+        RussianSuperGlueConfig(
+            name="rucos",
+            description=_RUCOS_DESCRIPTION,
+            # Note that entities and answers will be a sequences of strings. Query
+            # will contain @placeholder as a substring, which represents the word
+            # to be substituted in.
+            features=["passage", "query", "entities", "answers"],
+            data_url="https://russiansuperglue.com/tasks/download/RuCoS",
+            citation="",
+            url="https://russiansuperglue.com/tasks/task_info/RuCoS",
+        ),
     ]
 
     def _info(self):
@@ -210,17 +220,23 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
                     "answer": datasets.Value("int32"),
                 }
             )
-        # elif self.config.name == "record":
-        #     features["idx"] = dict(
-        #         {
-        #             "passage": datasets.Value("int32"),
-        #             "query": datasets.Value("int32"),
-        #         }
-        #     )
+        elif self.config.name == "rucos":
+            features["idx"] = dict(
+                {
+                    "passage": datasets.Value("int32"),
+                    "query": datasets.Value("int32"),
+                }
+            )
         else:
             features["idx"] = datasets.Value("int32")
 
-        features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
+        if self.config.name == "rucos":
+            # Entities are the set of possible choices for the placeholder.
+            features["entities"] = datasets.features.Sequence(datasets.Value("string"))
+            # Answers are the subset of entities that are correct.
+            features["answers"] = datasets.features.Sequence(datasets.Value("string"))
+        else:
+            features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
 
         return datasets.DatasetInfo(
             description=_RUSSIAN_SUPER_GLUE_DESCRIPTION + self.config.description,
@@ -287,6 +303,17 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
                                 "label": -1 if label is None else _cast_label(bool(label)),
                                 "idx": {"paragraph": row["idx"], "question": question["idx"], "answer": answer["idx"]},
                             }
+
+                elif self.config.name == "rucos":
+                    passage = row["passage"]
+                    for qa in row["qas"]:
+                        yield qa["idx"], {
+                            "passage": passage["text"],
+                            "query": qa["query"],
+                            "entities": _get_rucos_entities(passage),
+                            "answers": _get_rucos_answers(qa),
+                            "idx": {"passage": row["idx"], "query": qa["idx"]},
+                        }
                 else:
                     if self.config.name in ("lidirus", "rcb"):
                         # features may be missing
@@ -334,3 +361,22 @@ def _cast_label(label):
         return str(label)
     else:
         raise ValueError("Invalid label format.")
+
+
+def _get_rucos_entities(passage):
+    """Returns the unique set of entities."""
+    text = passage["text"]
+    entities = set()
+    for entity in passage["entities"]:
+        entities.add(text[entity["start"] : entity["end"] + 1])
+    return sorted(entities)
+
+
+def _get_rucos_answers(qa):
+    """Returns the unique set of answers."""
+    if "answers" not in qa:
+        return []
+    answers = set()
+    for answer in qa["answers"]:
+        answers.add(answer["text"])
+    return sorted(answers)
