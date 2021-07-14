@@ -23,6 +23,10 @@ scratch for the Russian language. We provide baselines, human level evaluation, 
 models and an overall leaderboard of transformer models for the Russian language.
 """
 
+_HOMEPAGE = "https://russiansuperglue.com/"
+
+_LICENSE = "MIT License"
+
 _LIDIRUS_DESCRIPTION = """"\
 Linguistic Diagnostic for Russian
 LiDiRus is a diagnostic dataset that covers a large volume of linguistic phenomena, while allowing you to evaluate
@@ -75,6 +79,8 @@ RuCoS
 class RussianSuperGlueConfig(datasets.BuilderConfig):
     """BuilderConfig for Russian SuperGLUE."""
 
+    VERSION = datasets.Version("0.0.1")
+
     def __init__(self, features, data_url, citation, url, label_classes=("False", "True"), **kwargs):
         """BuilderConfig for Russian SuperGLUE.
 
@@ -90,7 +96,7 @@ class RussianSuperGlueConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # 0.0.1: Initial version.
-        super(RussianSuperGlueConfig, self).__init__(version=datasets.Version("0.0.1"), **kwargs)
+        super(RussianSuperGlueConfig, self).__init__(version=self.VERSION, **kwargs)
         self.features = features
         self.label_classes = label_classes
         self.data_url = data_url
@@ -101,41 +107,126 @@ class RussianSuperGlueConfig(datasets.BuilderConfig):
 class SuperGlue(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
+        # RussianSuperGlueConfig(
+        #     name="lidirus",
+        #     description=_LIDIRUS_DESCRIPTION,
+        #     features=["sentence1", "sentence2"],
+        #     data_url="https://russiansuperglue.com/tasks/download/LiDiRus",
+        #     citation="",
+        #     url="https://russiansuperglue.com/tasks/task_info/LiDiRus",
+        # ),
+        # RussianSuperGlueConfig(
+        #     name="rcb",
+        #     description=_RCB_DESCRIPTION,
+        #     features=["premise", "hypothesis"],
+        #     label_classes=["entailment", "contradiction", "neutral"],
+        #     data_url="https://russiansuperglue.com/tasks/download/RCB",
+        #     citation=_RUSSIAN_SUPER_GLUE_CITATION,
+        #     url="https://russiansuperglue.com/tasks/task_info/RCB",
+        # ),
+        # RussianSuperGlueConfig(
+        #     name="parus",
+        #     description=_PARUS_DESCRIPTION,
+        #     label_classes=["choice1", "choice2"],
+        #     features=["premise", "choice1", "choice2", "question"],
+        #     data_url="https://russiansuperglue.com/tasks/download/PARus",
+        #     citation=_RUSSIAN_SUPER_GLUE_CITATION,
+        #     url="https://russiansuperglue.com/tasks/task_info/PARus",
+        # ),
         RussianSuperGlueConfig(
-            name="lidirus",
+            name="terra",
             description=_LIDIRUS_DESCRIPTION,
-            features=["sentence1", "sentence2"],
-            data_url="https://russiansuperglue.com/tasks/download/LiDiRus",
-            citation=_RUSSIAN_SUPER_GLUE_CITATION,
-            url="https://russiansuperglue.com/tasks/task_info/LiDiRus",
-        ),
-        RussianSuperGlueConfig(
-            name="rcb",
-            description=_RCB_DESCRIPTION,
             features=["premise", "hypothesis"],
-            label_classes=["entailment", "contradiction", "neutral"],
-            data_url="https://russiansuperglue.com/tasks/download/RCB",
-            citation=_RUSSIAN_SUPER_GLUE_CITATION,
-            url="https://russiansuperglue.com/tasks/task_info/RCB",
-        ),
-        RussianSuperGlueConfig(
-            name="parus",
-            description=_PARUS_DESCRIPTION,
-            label_classes=["choice1", "choice2"],
-            features=["premise", "choice1", "choice2", "question"],
-            data_url="https://russiansuperglue.com/tasks/download/PARus",
-            citation=_RUSSIAN_SUPER_GLUE_CITATION,
-            url="https://russiansuperglue.com/tasks/task_info/PARus",
+            label_classes=["entailment", "not_entailment"],
+            data_url="https://russiansuperglue.com/tasks/download/LiDiRus",
+            citation="",
+            url="https://russiansuperglue.com/tasks/task_info/LiDiRus",
         ),
     ]
 
     def _info(self):
         features = {feature: datasets.Value("string") for feature in self.config.features}
-        ...
 
-    def _split_generators(self, dl_manager):
-        ...
+        features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
 
-    def _generate_examples(self, data_file, split):
-        ...
+        return datasets.DatasetInfo(
+            description=_RUSSIAN_SUPER_GLUE_DESCRIPTION + self.config.description,
+            features=datasets.Features(features),
+            homepage=self.config.url,
+            citation=self.config.citation + "\n" + _RUSSIAN_SUPER_GLUE_CITATION,
+        )
 
+    def _split_generators(self, dl_manager: datasets.DownloadManager):
+        dl_dir = dl_manager.download_and_extract(self.config.data_url) or ""
+        task_name = _get_task_name_from_data_url(self.config.data_url)
+        dl_dir = os.path.join(dl_dir, task_name)
+        if self.config.name == "lidirus":
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "data_file": os.path.join(dl_dir, f"{task_name}.jsonl"),
+                        "split": datasets.Split.TEST,
+                    },
+                ),
+            ]
+        else:
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "data_file": os.path.join(dl_dir, "train.jsonl"),
+                        "split": datasets.Split.TRAIN,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "data_file": os.path.join(dl_dir, "val.jsonl"),
+                        "split": datasets.Split.VALIDATION,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "data_file": os.path.join(dl_dir, "test.jsonl"),
+                        "split": datasets.Split.TEST,
+                    },
+                ),
+            ]
+
+    def _generate_examples(self, data_file: str, split: datasets.Split):
+        with open(data_file, encoding="utf-8") as file:
+            for line in file:
+                row = json.loads(line)
+
+                if self.config.name == "lidirus":
+                    pass
+                else:
+                    example = {feature: row[feature] for feature in self.config.features}
+                    example["idx"] = row["idx"]
+
+                    if "label" in row:
+                        example["label"] = _cast_label(row["label"])
+                    else:
+                        assert split == datasets.Split.TEST, row
+                        example["label"] = -1
+
+                yield example["idx"], example
+
+
+def _get_task_name_from_data_url(data_url: str) -> str:
+    return data_url.split("/")[-1]
+
+
+def _cast_label(label):
+    """Converts the label into the appropriate string version."""
+    if isinstance(label, str):
+        return label
+    elif isinstance(label, bool):
+        return "True" if label else "False"
+    elif isinstance(label, int):
+        assert label in (0, 1)
+        return str(label)
+    else:
+        raise ValueError("Invalid label format.")
