@@ -104,17 +104,20 @@ class RussianSuperGlueConfig(datasets.BuilderConfig):
         self.url = url
 
 
-class SuperGlue(datasets.GeneratorBasedBuilder):
+class RussianSuperGlue(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        # RussianSuperGlueConfig(
-        #     name="lidirus",
-        #     description=_LIDIRUS_DESCRIPTION,
-        #     features=["sentence1", "sentence2"],
-        #     data_url="https://russiansuperglue.com/tasks/download/LiDiRus",
-        #     citation="",
-        #     url="https://russiansuperglue.com/tasks/task_info/LiDiRus",
-        # ),
+        RussianSuperGlueConfig(
+            name="lidirus",
+            description=_LIDIRUS_DESCRIPTION,
+            features=[
+                "sentence1", "sentence2", "knowledge", "lexical-semantics", "logic", "predicate-argument-structure"
+            ],
+            label_classes=["entailment", "not_entailment"],
+            data_url="https://russiansuperglue.com/tasks/download/LiDiRus",
+            citation="",
+            url="https://russiansuperglue.com/tasks/task_info/LiDiRus",
+        ),
         # RussianSuperGlueConfig(
         #     name="rcb",
         #     description=_RCB_DESCRIPTION,
@@ -202,16 +205,18 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
                 row = json.loads(line)
 
                 if self.config.name == "lidirus":
-                    pass
+                    # features may be missing
+                    example = {feature: row.get(feature, "") for feature in self.config.features}
                 else:
                     example = {feature: row[feature] for feature in self.config.features}
-                    example["idx"] = row["idx"]
 
-                    if "label" in row:
-                        example["label"] = _cast_label(row["label"])
-                    else:
-                        assert split == datasets.Split.TEST, row
-                        example["label"] = -1
+                example["idx"] = row["idx"]
+
+                if "label" in row:
+                    example["label"] = _cast_label(row["label"])
+                else:
+                    assert split == datasets.Split.TEST, row
+                    example["label"] = -1
 
                 yield example["idx"], example
 
