@@ -137,6 +137,14 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             url="https://russiansuperglue.com/tasks/task_info/PARus",
         ),
         RussianSuperGlueConfig(
+            name="muserc",
+            description=_MUSERC_DESCRIPTION,
+            features=["paragraph", "question", "answer"],
+            data_url="https://russiansuperglue.com/tasks/download/MuSeRC",
+            citation="",
+            url="https://russiansuperglue.com/tasks/task_info/MuSeRC",
+        ),
+        RussianSuperGlueConfig(
             name="terra",
             description=_TERRA_DESCRIPTION,
             features=["premise", "hypothesis"],
@@ -146,17 +154,36 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             url="https://russiansuperglue.com/tasks/task_info/TERRa",
         ),
         RussianSuperGlueConfig(
-            name="muserc",
-            description=_TERRA_DESCRIPTION,
-            features=["paragraph", "question", "answer"],
-            data_url="https://russiansuperglue.com/tasks/download/MuSeRC",
+            name="russe",
+            description=_RUSSE_DESCRIPTION,
+            features=[
+                "word", "sentence1", "sentence2", "start1", "start2", "end1", "end2", "gold_sense1", "gold_sense2"
+            ],
+            data_url="https://russiansuperglue.com/tasks/download/RUSSE",
             citation="",
-            url="https://russiansuperglue.com/tasks/task_info/MuSeRC",
+            url="https://russiansuperglue.com/tasks/task_info/RUSSE",
         ),
     ]
 
     def _info(self):
-        features = {feature: datasets.Value("string") for feature in self.config.features}
+
+
+        # if self.config.name.startswith("wsc"):
+        #     features["span1_index"] = datasets.Value("int32")
+        #     features["span2_index"] = datasets.Value("int32")
+
+        if self.config.name == "russe":
+
+            features = {feature: datasets.Value("string") for feature in ("word", "sentence1", "sentence2")}
+            features["start1"] = datasets.Value("int32")
+            features["start2"] = datasets.Value("int32")
+            features["end1"] = datasets.Value("int32")
+            features["end2"] = datasets.Value("int32")
+            features["gold_sense1"] = datasets.Value("int32")
+            features["gold_sense2"] = datasets.Value("int32")
+
+        else:
+            features = {feature: datasets.Value("string") for feature in self.config.features}
 
         if self.config.name == "muserc":
             features["idx"] = dict(
@@ -166,6 +193,13 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
                     "answer": datasets.Value("int32"),
                 }
             )
+        # elif self.config.name == "record":
+        #     features["idx"] = dict(
+        #         {
+        #             "passage": datasets.Value("int32"),
+        #             "query": datasets.Value("int32"),
+        #         }
+        #     )
         else:
             features["idx"] = datasets.Value("int32")
 
@@ -240,6 +274,14 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
                     if self.config.name in ("lidirus", "rcb"):
                         # features may be missing
                         example = {feature: row.get(feature, "") for feature in self.config.features}
+                    elif self.config.name == "russe" and split == datasets.Split.TEST:
+                        # gold senses are not available in `test` split
+                        example = {
+                            feature: row[feature] for feature in self.config.features
+                            if feature not in ("gold_sense1", "gold_sense2")
+                        }
+                        example["gold_sense1"] = -1
+                        example["gold_sense2"] = -1
                     else:
                         example = {feature: row[feature] for feature in self.config.features}
 
