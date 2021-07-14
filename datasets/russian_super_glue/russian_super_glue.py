@@ -163,17 +163,21 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             citation="",
             url="https://russiansuperglue.com/tasks/task_info/RUSSE",
         ),
+        RussianSuperGlueConfig(
+            name="rwsd",
+            description=_RWSD_DESCRIPTION,
+            # Note that span1_index and span2_index will be integers stored as
+            # datasets.Value('int32').
+            features=["text", "span1_index", "span2_index", "span1_text", "span2_text"],
+            data_url="https://russiansuperglue.com/tasks/download/RWSD",
+            citation="",
+            url="https://russiansuperglue.com/tasks/task_info/RWSD",
+        ),
     ]
 
     def _info(self):
 
-
-        # if self.config.name.startswith("wsc"):
-        #     features["span1_index"] = datasets.Value("int32")
-        #     features["span2_index"] = datasets.Value("int32")
-
         if self.config.name == "russe":
-
             features = {feature: datasets.Value("string") for feature in ("word", "sentence1", "sentence2")}
             features["start1"] = datasets.Value("int32")
             features["start2"] = datasets.Value("int32")
@@ -184,6 +188,10 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
 
         else:
             features = {feature: datasets.Value("string") for feature in self.config.features}
+
+        if self.config.name == "rwsd":
+            features["span1_index"] = datasets.Value("int32")
+            features["span2_index"] = datasets.Value("int32")
 
         if self.config.name == "muserc":
             features["idx"] = dict(
@@ -283,6 +291,9 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
                         example["gold_sense1"] = -1
                         example["gold_sense2"] = -1
                     else:
+                        if self.config.name == "rwsd":
+                            row.update(row["target"])
+
                         example = {feature: row[feature] for feature in self.config.features}
 
                     example["idx"] = row["idx"]
