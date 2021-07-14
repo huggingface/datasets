@@ -145,13 +145,31 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             citation="",
             url="https://russiansuperglue.com/tasks/task_info/TERRa",
         ),
+        RussianSuperGlueConfig(
+            name="muserc",
+            description=_TERRA_DESCRIPTION,
+            features=["paragraph", "question", "answer"],
+            data_url="https://russiansuperglue.com/tasks/download/MuSeRC",
+            citation="",
+            url="https://russiansuperglue.com/tasks/task_info/MuSeRC",
+        ),
     ]
 
     def _info(self):
         features = {feature: datasets.Value("string") for feature in self.config.features}
 
+        if self.config.name == "muserc":
+            features["idx"] = dict(
+                {
+                    "paragraph": datasets.Value("int32"),
+                    "question": datasets.Value("int32"),
+                    "answer": datasets.Value("int32"),
+                }
+            )
+        else:
+            features["idx"] = datasets.Value("int32")
+
         features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
-        features["idx"] = datasets.Value("int32")
 
         return datasets.DatasetInfo(
             description=_RUSSIAN_SUPER_GLUE_DESCRIPTION + self.config.description,
@@ -204,24 +222,39 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             for line in file:
                 row = json.loads(line)
 
-                if self.config.name in ("lidirus", "rcb"):
-                    # features may be missing
-                    example = {feature: row.get(feature, "") for feature in self.config.features}
+                if self.config.name == "muserc":
+
+                    paragraph = row["passage"]
+                    for question in paragraph["questions"]:
+                        for answer in question["answers"]:
+                            label = answer.get("label")
+                            key = "%s_%s_%s" % (row["idx"], question["idx"], answer["idx"])
+                            yield key, {
+                                "paragraph": paragraph["text"],
+                                "question": question["question"],
+                                "answer": answer["text"],
+                                "label": -1 if label is None else _cast_label(bool(label)),
+                                "idx": {"paragraph": row["idx"], "question": question["idx"], "answer": answer["idx"]},
+                            }
                 else:
-                    example = {feature: row[feature] for feature in self.config.features}
-
-                example["idx"] = row["idx"]
-
-                if "label" in row:
-                    if self.config.name == "parus":
-                        example["label"] = "choice2" if row["label"] else "choice1"
+                    if self.config.name in ("lidirus", "rcb"):
+                        # features may be missing
+                        example = {feature: row.get(feature, "") for feature in self.config.features}
                     else:
-                        example["label"] = _cast_label(row["label"])
-                else:
-                    assert split == datasets.Split.TEST, row
-                    example["label"] = -1
+                        example = {feature: row[feature] for feature in self.config.features}
 
-                yield example["idx"], example
+                    example["idx"] = row["idx"]
+
+                    if "label" in row:
+                        if self.config.name == "parus":
+                            example["label"] = "choice2" if row["label"] else "choice1"
+                        else:
+                            example["label"] = _cast_label(row["label"])
+                    else:
+                        assert split == datasets.Split.TEST, row
+                        example["label"] = -1
+
+                    yield example["idx"], example
 
 
 def _get_task_name_from_data_url(data_url: str) -> str:
