@@ -181,7 +181,7 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             citation="",
             url="https://russiansuperglue.com/tasks/task_info/DaNetQA",
         ),
-        
+
     ]
 
     def _info(self):
