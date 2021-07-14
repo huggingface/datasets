@@ -173,6 +173,15 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             citation="",
             url="https://russiansuperglue.com/tasks/task_info/RWSD",
         ),
+        RussianSuperGlueConfig(
+            name="danetqa",
+            description=_DANETQA_DESCRIPTION,
+            features=["question", "passage"],
+            data_url="https://russiansuperglue.com/tasks/download/DaNetQA",
+            citation="",
+            url="https://russiansuperglue.com/tasks/task_info/DaNetQA",
+        ),
+        
     ]
 
     def _info(self):
