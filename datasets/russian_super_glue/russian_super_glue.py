@@ -127,15 +127,15 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             citation=_RUSSIAN_SUPER_GLUE_CITATION,
             url="https://russiansuperglue.com/tasks/task_info/RCB",
         ),
-        # RussianSuperGlueConfig(
-        #     name="parus",
-        #     description=_PARUS_DESCRIPTION,
-        #     label_classes=["choice1", "choice2"],
-        #     features=["premise", "choice1", "choice2", "question"],
-        #     data_url="https://russiansuperglue.com/tasks/download/PARus",
-        #     citation=_RUSSIAN_SUPER_GLUE_CITATION,
-        #     url="https://russiansuperglue.com/tasks/task_info/PARus",
-        # ),
+        RussianSuperGlueConfig(
+            name="parus",
+            description=_PARUS_DESCRIPTION,
+            label_classes=["choice1", "choice2"],
+            features=["premise", "choice1", "choice2", "question"],
+            data_url="https://russiansuperglue.com/tasks/download/PARus",
+            citation=_RUSSIAN_SUPER_GLUE_CITATION,
+            url="https://russiansuperglue.com/tasks/task_info/PARus",
+        ),
         RussianSuperGlueConfig(
             name="terra",
             description=_TERRA_DESCRIPTION,
@@ -213,7 +213,10 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
                 example["idx"] = row["idx"]
 
                 if "label" in row:
-                    example["label"] = _cast_label(row["label"])
+                    if self.config.name == "parus":
+                        example["label"] = "choice2" if row["label"] else "choice1"
+                    else:
+                        example["label"] = _cast_label(row["label"])
                 else:
                     assert split == datasets.Split.TEST, row
                     example["label"] = -1
