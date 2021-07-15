@@ -19,7 +19,7 @@ _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 class CsvConfig(datasets.BuilderConfig):
     """BuilderConfig for CSV."""
 
-    sep: str = ","
+    sep: Optional[str] = None
     delimiter: Optional[str] = None
     header: Optional[Union[int, List[int], str]] = "infer"
     names: Optional[List[str]] = None
