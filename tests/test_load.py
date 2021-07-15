@@ -19,6 +19,7 @@ from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import prepare_module
+from datasets.utils.file_utils import DownloadConfig
 
 from .utils import (
     OfflineSimulationMode,
@@ -347,9 +348,16 @@ def test_remote_data_files():
     assert ds_item.keys() == {"langs", "ner_tags", "spans", "tokens"}
 
 
-def test_load_dataset_deletes_extracted_files(jsonl_gz_path, tmp_path):
+@pytest.mark.parametrize("deleted", [True, False])
+def test_load_dataset_deletes_extracted_files(deleted, jsonl_gz_path, tmp_path):
     data_files = jsonl_gz_path
     cache_dir = tmp_path / "cache"
-    ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
+    if deleted:
+        ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
+    else:
+        download_config = DownloadConfig(keep_extracted=True, cache_dir=cache_dir / "downloads")
+        ds = load_dataset(
+            "json", split="train", data_files=data_files, cache_dir=cache_dir, download_config=download_config
+        )
     assert ds[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
-    assert sorted((cache_dir / "downloads" / "extracted").iterdir()) == []
+    assert (sorted((cache_dir / "downloads" / "extracted").iterdir()) == []) is deleted
