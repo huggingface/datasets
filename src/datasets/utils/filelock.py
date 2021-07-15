@@ -352,11 +352,15 @@ class WindowsFileLock(BaseFileLock):
     windows systems.
     """
 
+    def __init__(self, lock_file, timeout=-1, max_filename_length=255):
+        super().__init__(lock_file, timeout=timeout, max_filename_length=max_filename_length)
+        self._lock_file = "\\\\?\\" + os.path.abspath(os.path.expanduser(os.path.expandvars(self._lock_file)))
+
     def _acquire(self):
         open_mode = os.O_RDWR | os.O_CREAT | os.O_TRUNC
 
         try:
-            fd = os.open("\\\\?\\" + os.path.abspath(self._lock_file), open_mode)
+            fd = os.open(self._lock_file, open_mode)
         except OSError:
             pass
         else:
@@ -375,7 +379,7 @@ class WindowsFileLock(BaseFileLock):
         os.close(fd)
 
         try:
-            os.remove("\\\\?\\" + os.path.abspath(self._lock_file))
+            os.remove(self._lock_file)
         # Probably another instance of the application
         # that acquired the file lock.
         except OSError:
