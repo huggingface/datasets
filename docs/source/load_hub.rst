@@ -1,0 +1,55 @@
+Datasets Hub
+=============
+
+Now that you are all setup, the first step is to load a dataset. The easiest way to load a dataset is from the `Datasets Hub <https://huggingface.co/datasets.>`_. There are already over 900 datasets in over 100 languages in the Hub. Choose a dataset to use in a wide category of NLP tasks like question answering, summarization, machine translation, and language modeling. For a more in-depth look inside a dataset, use the live `Datasets Viewer <https://huggingface.co/datasets/viewer/>`_.
+
+You can load a dataset in a single line of code with :func:`datasets.load_dataset`:
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('glue', 'mrpc', split='train')
+
+Select a split
+--------------
+
+A split is a specific subset of the dataset like ``train`` and ``test``. Make sure you always select a split when you load a dataset. If you don't supply a ``split`` argument, Datasets will return a dictionary containing the subsets of the dataset.
+
+    >>> from datasets import load_dataset
+    >>> datasets = load_dataset('glue', 'mrpc')
+    >>> print(datasets)
+    {train: Dataset({
+        features: ['idx', 'label', 'sentence1', 'sentence2'],
+        num_rows: 3668
+    })
+    validation: Dataset({
+        features: ['idx', 'label', 'sentence1', 'sentence2'],
+        num_rows: 408
+    })
+    test: Dataset({
+        features: ['idx', 'label', 'sentence1', 'sentence2'],
+        num_rows: 1725
+    })
+    }
+
+Select a configuration
+----------------------
+
+Some datasets, like the `General Language Understanding Evaluation (GLUE) <https://huggingface.co/datasets/glue>`_ benchmark, are made up of several datasets. These sub-datasets are called **configurations**, and you must explicitly select one when you load the dataset. If you don't name a configuration, Datasets will raise a ``ValueError`` and remind you to select a configuration.
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('glue')
+    ValueError: Config name is missing.
+    Please pick one among the available configs: ['cola', 'sst2', 'mrpc', 'qqp', 'stsb', 'mnli', 'mnli_mismatched', 'mnli_matched', 'qnli', 'rte', 'wnli', 'ax']
+    Example of usage:
+            `load_dataset('glue', 'cola')`
+
+This is the correct way to load a configuration:
+
+    >>> dataset = load_dataset('glue', 'sst2')
+    Downloading and preparing dataset glue/sst2 (download: 7.09 MiB, generated: 4.81 MiB, total: 11.90 MiB) to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0...
+    Downloading: 100%|██████████████████████████████████████████████████████████████| 7.44M/7.44M [00:01<00:00, 7.03MB/s]
+    Dataset glue downloaded and prepared to /Users/huggignface/.cache/huggingface/datasets/glue/sst2/1.0.0. Subsequent calls will reuse this data.
+    >>> print(dataset)
+    {'train': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 67349),
+     'validation': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 872),
+     'test': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 1821)
+    }

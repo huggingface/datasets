@@ -37,11 +37,12 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
     "sphinx.ext.napoleon",
-    "recommonmark",
     "sphinx.ext.viewcode",
     "sphinx_markdown_tables",
     "sphinx_copybutton",
     "sphinxext.opengraph",
+    "sphinx_panels",
+    "myst_parser"
 ]
 
 
