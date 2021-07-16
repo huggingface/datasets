@@ -189,7 +189,7 @@ CSV files
 
 🤗 Datasets can read a dataset made of on or several CSV files.
 
-All the CSV files in the dataset should have the same organization and in particular the same datatypes for the columns.
+All the CSV files in the dataset should have the same structure and in particular the same datatypes for the columns.
 
 A few interesting features are provided out-of-the-box by the Apache Arrow backend:
 
@@ -210,7 +210,7 @@ The ``csv`` loading script provides a few simple access options to control parsi
 
     - :obj:`skiprows` (int) - Number of first rows in the file to skip (default is 0)
     - :obj:`column_names` (list, optional) – The column names of the target table. If empty, fall back on autogenerate_column_names (default: empty).
-    - :obj:`delimiter` (1-character string) – The character delimiting individual cells in the CSV data (default ``','``).
+    - :obj:`delimiter` (1-character string) – The character delimiting individual cells in the CSV data (default ``','``). You can also pass ``None`` to auto-detect the delimiter, but it can hurt the performance.
     - :obj:`quotechar` (1-character string) – The character used optionally for quoting CSV values (default '"').
     - :obj:`quoting` (bool) – Control quoting behavior (default 0, setting this to 3 disables quoting, refer to pandas.read_csv documentation for more details).
 
