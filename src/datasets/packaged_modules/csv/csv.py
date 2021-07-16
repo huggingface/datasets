@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Type
 
 import pandas as pd
 import pyarrow as pa
@@ -14,14 +14,17 @@ logger = datasets.utils.logging.get_logger(__name__)
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 
+# Sentinel object to allow usersd to specify None parameters
+_default = object()
+
 
 @dataclass
 class CsvConfig(datasets.BuilderConfig):
     """BuilderConfig for CSV."""
 
-    sep: Optional[str] = None
-    delimiter: Optional[str] = None
-    header: Optional[Union[int, List[int], str]] = "infer"
+    sep: Union[str, None, object] = _default  # ","
+    delimiter: Union[str, None, object] = _default
+    header: Union[int, List[int], str, object] = _default  # "infer"
     names: Optional[List[str]] = None
     column_names: Optional[List[str]] = None
     index_col: Optional[Union[int, str, List[int], List[str]]] = None
@@ -58,10 +61,15 @@ class CsvConfig(datasets.BuilderConfig):
     features: Optional[datasets.Features] = None
 
     def __post_init__(self):
-        if self.delimiter is not None:
+        if self.delimiter is not _default:
             self.sep = self.delimiter
         if self.column_names is not None:
             self.names = self.column_names
+
+        if self.sep is _default:
+            self.sep = ","
+        if self.header is _default:
+            self.header = "infer"
 
     @property
     def read_csv_kwargs(self):
