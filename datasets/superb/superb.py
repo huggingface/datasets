@@ -183,6 +183,22 @@ class Superb(datasets.GeneratorBasedBuilder):
                 ),
                 datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_path["test"]}),
             ]
+        elif self.config.name == "sd":
+            splits = ["train", "dev", "test"]
+            _DL_URLS = {
+                split: [
+                    self.config.data_url.format(split=split, filename=filename)
+                    for filename in ["reco2dur", "rttm", "segments", "spk2utt", "utt2spk", "wav.scp"]
+                ]
+                for split in splits
+            }
+            archive_path = dl_manager.download_and_extract(_DL_URLS)
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.NamedSplit(split), gen_kwargs={"archive_path": archive_path[split]}
+                )
+                for split in splits
+            ]
 
     def _generate_examples(self, archive_path):
         """Generate examples."""
