@@ -2,9 +2,11 @@
 
 import json
 from dataclasses import dataclass
+from io import BytesIO
 from typing import Optional
 
 import pyarrow as pa
+import pyarrow.json as paj
 
 import datasets
 
@@ -96,7 +98,7 @@ class Json(datasets.ArrowBasedBuilder):
 
             # If the file has one json object per line
             else:
-                with open(file, "r", encoding="utf-8") as f:
+                with open(file, "rb") as f:
                     batch_idx = 0
                     while True:
                         batch = f.read(self.config.chunksize)
@@ -104,7 +106,7 @@ class Json(datasets.ArrowBasedBuilder):
                             break
                         batch += f.readline()  # finish current line
                         try:
-                            batch = [json.loads(line) for line in batch.splitlines(keepends=False)]
+                            pa_table = paj.read_json(BytesIO(batch))
                         except json.JSONDecodeError as e:
                             logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                             try:
@@ -118,8 +120,6 @@ class Json(datasets.ArrowBasedBuilder):
                                 f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
                                 f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
                             )
-                        mapping = {col: [batch[i][col] for i in range(len(batch))] for col in batch[0]}
-                        pa_table = pa.Table.from_pydict(mapping=mapping)
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
