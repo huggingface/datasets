@@ -186,7 +186,7 @@ class LoadTest(TestCase):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("lhoestq/_dummy")
         self.assertIn(
-            "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
+            "lhoestq/_dummy",
             str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
@@ -194,7 +194,7 @@ class LoadTest(TestCase):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("lhoestq/_dummy")
                 self.assertIn(
-                    "https://huggingface.co/datasets/lhoestq/_dummy/resolve/main/_dummy.py",
+                    "lhoestq/_dummy",
                     str(context.exception),
                 )
 

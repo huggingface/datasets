@@ -508,7 +508,7 @@ def prepare_module(
                             file_path = json.load(cache_metadata)["original file path"]
                         output += (file_path,)
                     if return_associated_base_path:
-                        output += url_or_path_parent(file_path)
+                        output += (url_or_path_parent(file_path),)
                     return output
             raise
 
