@@ -132,7 +132,21 @@ class Superb(datasets.GeneratorBasedBuilder):
             url="http://www.openslr.org/12",
             data_url="http://www.openslr.org/resources/12/",
             task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
-        )
+        ),
+        SuperbConfig(
+            name="sd",
+            description=textwrap.dedent(
+                """\
+            Speaker Diarization (SD) predicts `who is speaking when` for each timestamp, and multiple speakers can
+            speak simultaneously. The model has to encode rich speaker characteristics for each frame and should be
+            able to represent mixtures of signals. [LibriMix] is adopted where LibriSpeech
+            train-clean-100/dev-clean/test-clean are used to generate mixtures for training/validation/testing.
+            We focus on the two-speaker scenario as the first step. The time-coded speaker labels were generated using
+            alignments from Kaldi LibriSpeech ASR model. The evaluation metric is diarization error rate (DER)."""
+            ),
+            url="https://github.com/ftshijt/LibriMix",
+            data_url="https://huggingface.co/datasets/superb/superb-data/resolve/main/sd/{split}/{filename}",
+        ),
     ]
 
     def _info(self):
