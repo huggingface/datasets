@@ -4,6 +4,7 @@ import tempfile
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 import mmh3
+import datetime
 
 import numpy as np
 
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 
     try:
         from elasticsearch import Elasticsearch  # noqa: F401
+        from elasticsearch.exceptions import RequestError
 
     except ImportError:
         pass
@@ -138,6 +140,8 @@ class ElasticSearchIndex(BaseIndex):
         Add documents to the index.
         If the documents are inside a certain column, you can specify it using the `column` argument.
         """
+        from elasticsearch.exceptions import RequestError, ElasticsearchException  # noqa: F811
+
         index_name = self.es_index_name
         index_config = self.es_index_config
 
@@ -146,8 +150,14 @@ class ElasticSearchIndex(BaseIndex):
             existing_index = self.es_client.indices.get(index=index_name)
             logger.info(f"{existing_index}")
         else:
-            logger.info(f"Creating index {index_name}")
-            self.es_client.indices.create(index=index_name, body=index_config)
+            try:
+                logger.info(f"Creating index {index_name}")
+                self.es_client.indices.create(index=index_name, body=index_config)
+            except ElasticsearchException as create_error:
+                if isinstance(create_error, RequestError) and create_error.status_code == 400:
+                    logger.info(f"The index {index_name} already exists:")
+                else:
+                    raise RuntimeError(create_error)
 
         number_of_docs = len(documents)
         progress = utils.tqdm(
@@ -159,12 +169,21 @@ class ElasticSearchIndex(BaseIndex):
         hash_seed = 42
 
         def passage_generator():
+            now = datetime.datetime.now().isoformat()
             if column is not None:
                 for i, example in enumerate(documents):
-                    yield {"text": example[column], "_id": str(mmh3.hash128(example[column], hash_seed))}
+                    yield {
+                        "text": example[column],
+                        "_id": str(mmh3.hash128(example[column], hash_seed)),
+                        "indexing_time": now
+                    }
             else:
                 for i, example in enumerate(documents):
-                    yield {"text": example, "_id": str(mmh3.hash128(example[column], hash_seed))}
+                    yield {
+                        "text": example,
+                        "_id": str(mmh3.hash128(example[column], hash_seed)),
+                        "indexing_time": now
+                    }
 
         # create the ES index
         import elasticsearch as es

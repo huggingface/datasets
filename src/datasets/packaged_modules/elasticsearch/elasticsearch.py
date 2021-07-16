@@ -3,6 +3,7 @@
 import importlib.util
 
 from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import ConnectionError
 from dataclasses import dataclass
 from typing import Optional
 
@@ -44,9 +45,15 @@ class ElasticsearchBuilder(datasets.ArrowBasedBuilder):
         # init the elasticsearch client and test connection
         self.es_client = Elasticsearch([{"host": self.config.host, "port": str(self.config.port)}])
 
-        logger.info(f"Testing connection to elasticsearch at {self.config.host}:{self.config.port}")
-        print(self.es_client.indices.exists(index=self.config.es_index_name))
-        logger.info("Connection successful")
+        try:
+            logger.info(f"Testing connection to elasticsearch at {self.config.host}:{self.config.port}")
+            if not self.es_client.indices.exists(index=self.config.es_index_name):
+                raise ResourceWarning(f"Index {self.config.es_index_name} is not available.")
+            logger.info("Connection successful")
+        except ConnectionError:
+            msg = f"Connection error: is the elasticsearch instance really at {self.config.host}:{self.config.port}?"
+            logger.critical(msg)
+            raise Exception(msg)
 
         # TODO load index mapping to set self.config.feature
 
@@ -56,5 +63,13 @@ class ElasticsearchBuilder(datasets.ArrowBasedBuilder):
     def _split_generators(self, dl_manager):
         pass
 
-    def _generate_tables(self, **kwargs):
-        pass
+    def _generate_tables(self, query: str):
+        k = 10
+        response = self.es_client.search(
+            index=self.config.es_index_name,
+            body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
+        )
+        hits = response["hits"]["hits"]
+
+        for hit in hits:
+            yield f"biscience://{self.config.es_index_name}/{hit['_id']}", hit
