@@ -120,15 +120,15 @@ class Squad(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             squad = json.load(f)
             for article in squad["data"]:
-                title = article.get("title", "").strip()
+                title = article.get("title", "")
                 for paragraph in article["paragraphs"]:
-                    context = paragraph["context"].strip()
+                    context = paragraph["context"]  # do not strip leading blank spaces GH-2585
                     for qa in paragraph["qas"]:
-                        question = qa["question"].strip()
+                        question = qa["question"]
                         id_ = qa["id"]
 
                         answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-                        answers = [answer["text"].strip() for answer in qa["answers"]]
+                        answers = [answer["text"] for answer in qa["answers"]]
 
                         # Features currently used are "context", "question", and "answers".
                         # Others are extracted here for the ease of future expansions.

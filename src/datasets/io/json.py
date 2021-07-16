@@ -103,5 +103,7 @@ class JsonDatasetWriter:
                 indices=self.dataset._indices if self.dataset._indices is not None else None,
             )
             json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+            if not json_str.endswith("\n"):
+                json_str += "\n"
             written += file_obj.write(json_str.encode(encoding))
         return written

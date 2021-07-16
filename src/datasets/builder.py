@@ -42,7 +42,7 @@ from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
 from .utils.download_manager import DownloadManager, GenerateMode
-from .utils.file_utils import DownloadConfig, is_remote_url
+from .utils.file_utils import DownloadConfig, is_remote_url, request_etag
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 
@@ -95,12 +95,17 @@ class BuilderConfig:
             return False
         return all((k, getattr(self, k)) == (k, getattr(o, k)) for k in self.__dict__.keys())
 
-    def create_config_id(self, config_kwargs: dict, custom_features: Optional[Features] = None) -> str:
+    def create_config_id(
+        self,
+        config_kwargs: dict,
+        custom_features: Optional[Features] = None,
+        use_auth_token: Optional[Union[bool, str]] = None,
+    ) -> str:
         """
         The config id is used to build the cache directory.
         By default it is equal to the config name.
-        However the name of a config is not sufficent to have a unique identifier for the dataset being generated since
-        it doesn't take into account:
+        However the name of a config is not sufficient to have a unique identifier for the dataset being generated
+        since it doesn't take into account:
         - the config kwargs that can be used to overwrite attributes
         - the custom features used to write the dataset
         - the data_files for json/text/csv/pandas datasets
@@ -150,8 +155,12 @@ class BuilderConfig:
             for key in sorted(data_files.keys()):
                 m.update(key)
                 for data_file in data_files[key]:
-                    m.update(os.path.abspath(data_file))
-                    m.update(str(os.path.getmtime(data_file)))
+                    if is_remote_url(data_file):
+                        m.update(data_file)
+                        m.update(str(request_etag(data_file, use_auth_token=use_auth_token)))
+                    else:
+                        m.update(os.path.abspath(data_file))
+                        m.update(str(os.path.getmtime(data_file)))
             suffix = m.hexdigest()
 
         if custom_features is not None:
@@ -204,7 +213,9 @@ class DatasetBuilder:
         cache_dir: Optional[str] = None,
         name: Optional[str] = None,
         hash: Optional[str] = None,
+        base_path: Optional[str] = None,
         features: Optional[Features] = None,
+        use_auth_token: Optional[Union[bool, str]] = None,
         **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
@@ -217,19 +228,23 @@ class DatasetBuilder:
                 `builder_config`s will have their own subdirectories and versions.
                 If not provided, uses the first configuration in self.BUILDER_CONFIGS
             hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
-                script code is udpated (to avoid reusing old data).
+                script code is updated (to avoid reusing old data).
                 The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
+            base_path: `str`, base path for relative paths that are used to download files. This can be a remote url.
             features: `Features`, optional features that will be used to read/write the dataset
                 It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
+            use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
+                for remote files on the Datasets Hub. If True, will get token from ``"~/.huggingface"``.
             config_kwargs: will override the defaults kwargs in config
 
         """
         # DatasetBuilder name
         self.name: str = camelcase_to_snakecase(self.__class__.__name__)
         self.hash: Optional[str] = hash
+        self.base_path = base_path
+        self.use_auth_token = use_auth_token
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
-        config_kwargs = {key: value for key, value in config_kwargs.items() if value is not None}
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
         self.config, self.config_id = self._create_builder_config(
@@ -349,7 +364,9 @@ class DatasetBuilder:
             raise ValueError("BuilderConfig must have a name, got %s" % builder_config.name)
 
         # compute the config id that is going to be used for caching
-        config_id = builder_config.create_config_id(config_kwargs, custom_features=custom_features)
+        config_id = builder_config.create_config_id(
+            config_kwargs, custom_features=custom_features, use_auth_token=self.use_auth_token
+        )
         is_custom = config_id not in self.builder_configs
         if is_custom:
             logger.warning("Using custom data configuration %s", config_id)
@@ -475,13 +492,15 @@ class DatasetBuilder:
             save_infos (bool): Save the dataset information (checksums/size/splits/...)
             try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
             dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
-            base_path: ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
+            base_path ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
+                If not specified, the value of the ``base_path`` attribute (``self.base_path``) will be used instead.
             use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
 
         """
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
+        base_path = base_path if base_path is not None else self.base_path
 
         if dl_manager is None:
             if download_config is None:
@@ -877,7 +896,7 @@ class DatasetBuilder:
         from .utils.streaming_download_manager import StreamingDownloadManager
 
         dl_manager = StreamingDownloadManager(
-            base_path=base_path,
+            base_path=base_path or self.base_path,
             download_config=DownloadConfig(use_auth_token=use_auth_token),
             dataset_name=self.name,
             data_dir=self.config.data_dir,
@@ -919,7 +938,8 @@ class DatasetBuilder:
     def _download_post_processing_resources(
         self, split: str, resource_name: str, dl_manager: DownloadManager
     ) -> Optional[str]:
-        """Download the resource using the download manager and return the downloaded path"""
+        """Download the resource using the download manager and return the downloaded path."""
+        return None
 
     @abc.abstractmethod
     def _split_generators(self, dl_manager: DownloadManager):
@@ -930,7 +950,7 @@ class DatasetBuilder:
 
         Example:
 
-            return[
+            return [
                     datasets.SplitGenerator(
                             name=datasets.Split.TRAIN,
                             gen_kwargs={'file': 'train_data.zip'},

@@ -62,7 +62,7 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 1.0.0 to avoid permission errors on windows when using the compute layer on memory mapped data
+    # Minimum 3.0.0 to support mix of struct and list types in parquet, and batch iterators of parquet data
     # pyarrow 4.0.0 introduced segfault bug, see: https://github.com/huggingface/datasets/pull/2268
     "pyarrow>=1.0.0,!=4.0.0",
     # For smart caching dataset processing
@@ -103,6 +103,7 @@ TESTS_REQUIRE = [
     "pytest",
     "pytest-xdist",
     # optional dependencies
+    "aiohttp",
     "apache-beam>=2.26.0",
     "elasticsearch",
     "aiobotocore==1.2.2",
@@ -197,7 +198,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.8.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.9.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",

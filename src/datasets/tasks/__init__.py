@@ -3,6 +3,7 @@ from typing import Optional
 from ..utils.logging import get_logger
 from .automatic_speech_recognition import AutomaticSpeechRecognition
 from .base import TaskTemplate
+from .image_classification import ImageClassification
 from .question_answering import QuestionAnsweringExtractive
 from .summarization import Summarization
 from .text_classification import TextClassification
@@ -14,6 +15,7 @@ __all__ = [
     "TextClassification",
     "Summarization",
     "AutomaticSpeechRecognition",
+    "ImageClassification",
 ]
 
 logger = get_logger(__name__)
@@ -24,6 +26,7 @@ NAME2TEMPLATE = {
     TextClassification.task: TextClassification,
     AutomaticSpeechRecognition.task: AutomaticSpeechRecognition,
     Summarization.task: Summarization,
+    ImageClassification.task: ImageClassification,
 }
 
 
