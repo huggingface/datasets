@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 
 import numpy as np
@@ -7,6 +8,7 @@ from datasets.utils.py_utils import (
     NestedDataStructure,
     flatten_nest_dict,
     map_nested,
+    rel_to_abs_path,
     temporary_assignment,
     zip_dict,
     zip_nested,
