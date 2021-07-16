@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from dataclasses import dataclass
-from typing import List, Optional, Union, Type
+from typing import List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -18,6 +18,7 @@ _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 _default = object()
 _sep_default = ","
 _header_default = "infer"
+
 
 @dataclass
 class CsvConfig(datasets.BuilderConfig):
