@@ -16,17 +16,16 @@ _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 
 # Sentinel object to allow usersd to specify None parameters
 _default = object()
-_sep_default = ","
-_header_default = "infer"
+
 
 
 @dataclass
 class CsvConfig(datasets.BuilderConfig):
     """BuilderConfig for CSV."""
 
-    sep: Union[str, None, object] = _default
+    sep: Union[str, None, object] = _default  # ","
     delimiter: Union[str, None, object] = _default
-    header: Union[int, List[int], str, object] = _default
+    header: Union[int, List[int], str, object] = _default  # "infer"
     names: Optional[List[str]] = None
     column_names: Optional[List[str]] = None
     index_col: Optional[Union[int, str, List[int], List[str]]] = None
@@ -69,9 +68,9 @@ class CsvConfig(datasets.BuilderConfig):
             self.names = self.column_names
 
         if self.sep is _default:
-            self.sep = _sep_default
+            self.sep = ","
         if self.header is _default:
-            self.header = _header_default
+            self.header = "infer"
 
     @property
     def read_csv_kwargs(self):
