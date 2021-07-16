@@ -1650,7 +1650,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             input_column, self._data.column_names
                         )
                     )
-        
+
         if isinstance(remove_columns, str):
             remove_columns = [remove_columns]
 
