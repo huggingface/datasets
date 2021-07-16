@@ -1,6 +1,27 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- crowdsourced
+- expert-generated
+language_creators:
+- crowdsourced
+- expert-generated
+languages:
+- ru-RU
+licenses:
+- mit
+multilinguality:
+- monolingual
+pretty_name: Russian SuperGLUE
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
+- multi-class-classification
 ---
 
 # Dataset Card for [Russian SuperGLUE]
@@ -40,13 +61,19 @@ YAML tags:
 
 ### Dataset Summary
 
-Modern universal language models and transformers such as BERT, ELMo, XLNet, RoBERTa and others need to be properly compared and evaluated. In the last year, new models and methods for pretraining and transfer learning have driven striking performance improvements across a range of language understanding tasks.
+Modern universal language models and transformers such as BERT, ELMo, XLNet, RoBERTa and others need to be properly
+compared and evaluated. In the last year, new models and methods for pretraining and transfer learning have driven 
+striking performance improvements across a range of language understanding tasks.
 
 
-We offer testing methodology based on tasks, typically proposed for “strong AI” — logic, commonsense, reasoning. Adhering to the GLUE and SuperGLUE methodology, we present a set of test tasks for general language understanding and leaderboard models.
+We offer testing methodology based on tasks, typically proposed for “strong AI” — logic, commonsense, reasoning.
+Adhering to the GLUE and SuperGLUE methodology, we present a set of test tasks for general language understanding
+and leaderboard models.
 
 
-For the first time a complete test for Russian language was developed, which is similar to its English analog. Many datasets were composed for the first time, and a leaderboard of models for the Russian language with comparable results is also presented.
+For the first time a complete test for Russian language was developed, which is similar to its English analog.
+Many datasets were composed for the first time, and a leaderboard of models for the Russian language with comparable
+results is also presented.
 
 ### Supported Tasks and Leaderboards
 
@@ -68,7 +95,63 @@ For the first time a complete test for Russian language was developed, which is 
 
 ### Data Splits
 
-[More Information Needed]
+#### 	LiDiRus
+|   |test|
+|---|---:|
+|LiDiRus|1104|
+
+#### RCB
+
+| |train|validation|test|
+|----|---:|----:|---:|
+|RCB|438|220|438|
+
+#### PARus
+
+| |train|validation|test|
+|----|---:|----:|---:|
+|PARus|400|100|500|
+
+#### MuSeRC
+
+| |train|validation|test|
+|----|---:|----:|---:|
+|MuSeRC|500|100|322|
+
+
+#### TERRa
+
+| |train|validation|test|
+|----|---:|----:|---:|
+|TERRa|2616|307|3198|
+
+
+#### RUSSE
+
+| |train|validation|test|
+|----|---:|----:|---:|
+|RUSSE|19845|8508|18892|
+
+
+#### RWSD
+
+| |train|validation|test|
+|----|---:|----:|---:|
+|RWSD|606|204|154|
+
+
+#### DaNetQA
+
+| |train|validation|test|
+|----|---:|----:|---:|
+|DaNetQA|1749|821|805|
+
+
+#### RuCoS
+
+| |train|validation|test|
+|----|---:|----:|---:|
+|RuCoS|72193|7577|7257|
 
 ## Dataset Creation
 
