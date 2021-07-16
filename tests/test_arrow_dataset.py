@@ -1115,8 +1115,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_filter_first_ten), 10)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
-                    # only one cache file since the there is only 10 examples from the 1 processed shard
-                    self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 1)
+                    self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 2)
                     self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
 
     def test_keep_features_after_transform_specified(self, in_memory):
