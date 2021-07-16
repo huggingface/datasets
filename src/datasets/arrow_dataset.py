@@ -2143,7 +2143,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             new_fingerprint=new_fingerprint,
         )
         new_dataset = copy.deepcopy(self)
-        new_dataset._indices = indices.data.table
+        new_dataset._indices = indices.data
         new_dataset._fingerprint = new_fingerprint
         return new_dataset
 
