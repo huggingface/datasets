@@ -2130,7 +2130,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             function=partial(get_indices_from_mask_function, function, batched, with_indices),
             with_indices=True,
             features=Features({"indices": Value("uint64")}),
-            batched=batched,
+            batched=True,
             batch_size=batch_size,
             remove_columns=self.column_names,
             keep_in_memory=keep_in_memory,
@@ -2144,6 +2144,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
         new_dataset = copy.deepcopy(self)
         new_dataset._indices = indices.data.table
+        new_dataset._fingerprint = new_fingerprint
         return new_dataset
 
     @transmit_format
@@ -3309,10 +3310,15 @@ def concatenate_datasets(
 # This is outside Dataset.filter as it needs to be picklable for multiprocessing
 
 
-def get_indices_from_mask_function(function: Callable, batched: bool, with_indices: bool, batch, indices=None):
-    mask = function(batch, indices) if with_indices else function(batch)
-    if not batched:
-        mask, indices = [mask], [indices]
+def get_indices_from_mask_function(function: Callable, batched: bool, with_indices: bool, batch, indices):
+    if batched:
+        mask = function(batch, indices) if with_indices else function(batch)
+    else:
+        num_examples = len(batch[next(iter(batch.keys()))])
+        mask = []
+        for i in range(num_examples):
+            example = {key: batch[key][i] for key in batch}
+            mask.append(function(example, indices[i]) if with_indices else function(example))
     return {"indices": [i for i, to_keep in zip(indices, mask) if to_keep]}
 
 
