@@ -172,20 +172,21 @@ class Superb(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, archive_path):
         """Generate examples."""
-        transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
-        for transcript_file in sorted(glob.glob(transcripts_glob)):
-            path = os.path.dirname(transcript_file)
-            with open(os.path.join(path, transcript_file), "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    key, transcript = line.split(" ", 1)
-                    audio_file = f"{key}.flac"
-                    speaker_id, chapter_id = [int(el) for el in key.split("-")[:2]]
-                    example = {
-                        "id": key,
-                        "speaker_id": speaker_id,
-                        "chapter_id": chapter_id,
-                        "file": os.path.join(path, audio_file),
-                        "text": transcript,
-                    }
-                    yield key, example
+        if self.config.name == "asr":
+            transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
+            for transcript_file in sorted(glob.glob(transcripts_glob)):
+                path = os.path.dirname(transcript_file)
+                with open(os.path.join(path, transcript_file), "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        key, transcript = line.split(" ", 1)
+                        audio_file = f"{key}.flac"
+                        speaker_id, chapter_id = [int(el) for el in key.split("-")[:2]]
+                        example = {
+                            "id": key,
+                            "speaker_id": speaker_id,
+                            "chapter_id": chapter_id,
+                            "file": os.path.join(path, audio_file),
+                            "text": transcript,
+                        }
+                        yield key, example
