@@ -18,7 +18,6 @@ _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 _default = object()
 
 
-
 @dataclass
 class CsvConfig(datasets.BuilderConfig):
     """BuilderConfig for CSV."""
