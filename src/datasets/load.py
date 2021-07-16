@@ -282,8 +282,7 @@ def prepare_module(
 
     module_type = "dataset" if dataset else "metric"
     module_filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
-    if not module_filename.endswith(".py"):
-        module_filename = module_filename + ".py"
+    module_filename = module_filename if module_filename.endswith(".py") else module_filename + ".py"
 
     # Short name is name without the '.py' at the end (for the module)
     module_name = module_filename[:-3]
@@ -549,9 +548,8 @@ def _find_module_in_github_or_s3(
             local_path = cached_path(file_path, download_config=download_config)
         except FileNotFoundError:
             raise FileNotFoundError(
-                "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
-                    combined_path, file_path, module_type
-                )
+                f"Couldn't find file locally at {combined_path}, or remotely at {file_path}. Please provide a valid "
+                f"{module_type} name"
             )
     else:
         raise FileNotFoundError(
