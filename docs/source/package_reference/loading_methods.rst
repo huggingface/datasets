@@ -12,6 +12,8 @@ Datasets
 
 .. autofunction:: datasets.load_from_disk
 
+.. autofunction:: datasets.load_dataset_builder
+
 Metrics
 ~~~~~~~~~~~~~~~~~~~~~
 

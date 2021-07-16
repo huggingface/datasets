@@ -3,6 +3,8 @@ import json
 import lzma
 import textwrap
 
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 
 from datasets.arrow_dataset import Dataset
@@ -86,6 +88,17 @@ def xz_file(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def gz_path(tmp_path_factory, text_path):
+    import gzip
+
+    path = str(tmp_path_factory.mktemp("data") / "file.gz")
+    data = bytes(FILE_CONTENT, "utf-8")
+    with gzip.open(path, "wb") as f:
+        f.write(data)
+    return path
+
+
+@pytest.fixture(scope="session")
 def xml_file(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.xml"
     data = textwrap.dedent(
@@ -139,6 +152,13 @@ DATA_312 = [
     {"col_3": 1.0, "col_1": "1", "col_2": 1},
 ]
 
+DATA_STR = [
+    {"col_1": "s0", "col_2": 0, "col_3": 0.0},
+    {"col_1": "s1", "col_2": 1, "col_3": 1.0},
+    {"col_1": "s2", "col_2": 2, "col_3": 2.0},
+    {"col_1": "s3", "col_2": 3, "col_3": 3.0},
+]
+
 
 @pytest.fixture(scope="session")
 def dataset_dict():
@@ -165,6 +185,24 @@ def csv_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def parquet_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.parquet")
+    schema = pa.schema(
+        {
+            "col_1": pa.string(),
+            "col_2": pa.int64(),
+            "col_3": pa.float64(),
+        }
+    )
+    with open(path, "wb") as f:
+        writer = pq.ParquetWriter(f, schema=schema)
+        pa_table = pa.Table.from_pydict({k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema)
+        writer.write_table(pa_table)
+        writer.close()
+    return path
+
+
+@pytest.fixture(scope="session")
 def json_list_of_dicts_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.json")
     data = {"data": DATA}
@@ -187,7 +225,7 @@ def jsonl_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.jsonl")
     with open(path, "w") as f:
         for item in DATA:
-            f.write(json.dumps(item))
+            f.write(json.dumps(item) + "\n")
     return path
 
 
@@ -201,10 +239,41 @@ def jsonl_312_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def jsonl_str_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset-str.jsonl")
+    with open(path, "w") as f:
+        for item in DATA_STR:
+            f.write(json.dumps(item))
+    return path
+
+
+@pytest.fixture(scope="session")
 def text_path(tmp_path_factory):
     data = ["0", "1", "2", "3"]
     path = str(tmp_path_factory.mktemp("data") / "dataset.txt")
     with open(path, "w") as f:
         for item in data:
             f.write(item + "\n")
+    return path
+
+
+@pytest.fixture(scope="session")
+def text_gz_path(tmp_path_factory, text_path):
+    import gzip
+
+    path = str(tmp_path_factory.mktemp("data") / "dataset.txt.gz")
+    with open(text_path, "rb") as orig_file:
+        with gzip.open(path, "wb") as zipped_file:
+            zipped_file.writelines(orig_file)
+    return path
+
+
+@pytest.fixture(scope="session")
+def jsonl_gz_path(tmp_path_factory, jsonl_path):
+    import gzip
+
+    path = str(tmp_path_factory.mktemp("data") / "dataset.jsonl.gz")
+    with open(jsonl_path, "rb") as orig_file:
+        with gzip.open(path, "wb") as zipped_file:
+            zipped_file.writelines(orig_file)
     return path

@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 import time
+from functools import partial
 from hashlib import sha256
 from unittest import TestCase
 from unittest.mock import patch
@@ -12,8 +13,20 @@ import requests
 
 import datasets
 from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
+from datasets.arrow_dataset import Dataset
+from datasets.builder import DatasetBuilder
+from datasets.dataset_dict import DatasetDict, IterableDatasetDict
+from datasets.features import Features, Value
+from datasets.iterable_dataset import IterableDataset
+from datasets.load import prepare_module
 
-from .utils import OfflineSimulationMode, assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, offline
+from .utils import (
+    OfflineSimulationMode,
+    assert_arrow_memory_doesnt_increase,
+    assert_arrow_memory_increases,
+    offline,
+    require_streaming,
+)
 
 
 DATASET_LOADING_SCRIPT_NAME = "__dummy_dataset1__"
@@ -186,11 +199,21 @@ class LoadTest(TestCase):
                 )
 
 
+def test_load_dataset_builder(dataset_loading_script_dir, data_dir):
+    builder = datasets.load_dataset_builder(dataset_loading_script_dir, data_dir=data_dir)
+    assert isinstance(builder, DatasetBuilder)
+    assert builder.name == DATASET_LOADING_SCRIPT_NAME
+    assert builder.info.features == Features({"text": Value("string")})
+
+
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory, caplog):
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
         dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, keep_in_memory=keep_in_memory)
+    assert isinstance(dataset, DatasetDict)
+    assert all(isinstance(d, Dataset) for d in dataset.values())
     assert len(dataset) == 2
+    assert isinstance(next(iter(dataset["train"])), dict)
     for offline_simulation_mode in list(OfflineSimulationMode):
         with offline(offline_simulation_mode):
             caplog.clear()
@@ -203,11 +226,29 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
     assert "at " + os.path.join("_dummy", "_dummy.py") in str(exc_info.value)
 
 
+@require_streaming
+def test_load_dataset_streaming(dataset_loading_script_dir, data_dir):
+    dataset = load_dataset(dataset_loading_script_dir, streaming=True, data_dir=data_dir)
+    assert isinstance(dataset, IterableDatasetDict)
+    assert all(isinstance(d, IterableDataset) for d in dataset.values())
+    assert len(dataset) == 2
+    assert isinstance(next(iter(dataset["train"])), dict)
+
+
+@require_streaming
+def test_load_dataset_streaming_gz_json(jsonl_gz_path):
+    data_files = jsonl_gz_path
+    ds = load_dataset("json", split="train", data_files=data_files, streaming=True)
+    assert isinstance(ds, IterableDataset)
+    ds_item = next(iter(ds))
+    assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+
+
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
         dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
-        assert len(dataset["train"]), 2
-        assert len(dataset["validation"]), 3
+        assert len(dataset["train"]) == 2
+        assert len(dataset["validation"]) == 3
         del dataset
 
 
@@ -225,6 +266,34 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
                 with pytest.raises(ConnectionError):
                     load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
         mock_head.assert_called()
+
+
+@require_streaming
+def test_loaded_streaming_dataset_has_use_auth_token(dataset_loading_script_dir, data_dir):
+    from datasets.utils.streaming_download_manager import xopen
+
+    use_auth_token = "foo"
+    load_dataset(dataset_loading_script_dir, streaming=True, data_dir=data_dir, use_auth_token=use_auth_token)
+    module_path, _ = prepare_module(dataset_loading_script_dir)
+    module = importlib.import_module(module_path)
+    assert isinstance(module.open, partial)
+    assert module.open.func is xopen
+    assert module.open.keywords == {"use_auth_token": use_auth_token}
+
+
+def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir, tmp_path, caplog):
+    cache_dir1 = tmp_path / "cache1"
+    cache_dir2 = tmp_path / "cache2"
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="train", cache_dir=cache_dir1)
+    fingerprint1 = dataset._fingerprint
+    del dataset
+    os.rename(cache_dir1, cache_dir2)
+    caplog.clear()
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="train", cache_dir=cache_dir2)
+    assert "Reusing dataset" in caplog.text
+    assert dataset._fingerprint == fingerprint1, "for the caching mechanism to work, fingerprint should stay the same"
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="test", cache_dir=cache_dir2)
+    assert dataset._fingerprint != fingerprint1
 
 
 @pytest.mark.parametrize("max_in_memory_dataset_size", ["default", 0, 50, 500])
@@ -266,3 +335,13 @@ def test_load_from_disk_with_default_in_memory(
 
     with assert_arrow_memory_increases() if expected_in_memory else assert_arrow_memory_doesnt_increase():
         _ = load_from_disk(dataset_path)
+
+
+def test_remote_data_files():
+    repo_id = "albertvillanova/tests-raw-jsonl"
+    filename = "wikiann-bn-validation.jsonl"
+    data_files = f"https://huggingface.co/datasets/{repo_id}/resolve/main/{filename}"
+    ds = load_dataset("json", split="train", data_files=data_files, streaming=True)
+    assert isinstance(ds, IterableDataset)
+    ds_item = next(iter(ds))
+    assert ds_item.keys() == {"langs", "ner_tags", "spans", "tokens"}

@@ -183,14 +183,14 @@ In particular, you can easily select a specific column in batches, and also natu
     True
 
 
-Working with NumPy, pandas, PyTorch, TensorFlow and on-the-fly formatting transforms
-------------------------------------------------------------------------------------
+Working with NumPy, pandas, PyTorch, TensorFlow, JAX and on-the-fly formatting transforms
+-----------------------------------------------------------------------------------------------------
 
 Up to now, the rows/batches/columns returned when querying the elements of the dataset were python objects.
 
 Sometimes we would like to have more sophisticated objects returned by our dataset, for instance NumPy arrays or PyTorch tensors instead of python lists.
 
-🤗Datasets provides a way to do that through what is called a ``format``.
+🤗 Datasets provides a way to do that through what is called a ``format``.
 
 While the internal storage of the dataset is always the Apache Arrow format, by setting a specific format on a dataset, you can filter some columns and cast the output of :func:`datasets.Dataset.__getitem__` in NumPy/pandas/PyTorch/TensorFlow, on-the-fly.
 
@@ -198,10 +198,10 @@ A specific format can be activated with :func:`datasets.Dataset.set_format`.
 
 :func:`datasets.Dataset.set_format` accepts those inputs to control the format of the dataset:
 
-- :obj:`type` (``Union[None, str]``, default to ``None``) defines the return type for the dataset :obj:`__getitem__` method and is one of ``[None, 'numpy', 'pandas', 'torch', 'tensorflow']`` (``None`` means return python objects),
+- :obj:`type` (``Union[None, str]``, default to ``None``) defines the return type for the dataset :obj:`__getitem__` method and is one of ``[None, 'numpy', 'pandas', 'torch', 'tensorflow', 'jax']`` (``None`` means return python objects),
 - :obj:`columns` (``Union[None, str, List[str]]``, default to ``None``) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (``None`` means return all columns),
 - :obj:`output_all_columns` (``bool``, default to ``False``) controls whether the columns which cannot be formatted (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
-- :obj:`format_kwargs` can be used to provide additional keywords arguments that will be forwarded to the convertiong function like ``np.array``, ``torch.tensor`` or ``tensorflow.ragged.constant``. For instance, to create ``torch.Tensor`` directly on the GPU you can specify ``device='cuda'``.
+- :obj:`format_kwargs` can be used to provide additional keywords arguments that will be forwarded to the convertiong function like ``np.array``, ``torch.tensor``, ``tensorflow.ragged.constant`` or ``jnp.array``. For instance, to create ``torch.Tensor`` directly on the GPU you can specify ``device='cuda'``.
 
 .. note::
 

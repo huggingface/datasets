@@ -31,7 +31,7 @@ The most important attributes to specify are:
 - :attr:`datasets.MetricInfo.description`: a :obj:`str` describing the metric,
 - :attr:`datasets.MetricInfo.citation`: a :obj:`str` containing the citation for the metric in a BibTex format for inclusion in communications citing the metric,
 - :attr:`datasets.MetricInfo.homepage`: a :obj:`str` containing an URL to an original homepage of the metric.
-- :attr:`datasets.MetricInfo.format`: an optional :obj:`str` to tell what is the format of the predictions and the references passed to the :func:`datasets.DatasetBuilder._compute` method. It can be set to "numpy", "torch", "tensorflow" or "pandas".
+- :attr:`datasets.MetricInfo.format`: an optional :obj:`str` to tell what is the format of the predictions and the references passed to the :func:`datasets.DatasetBuilder._compute` method. It can be set to "numpy", "torch", "tensorflow", "jax" or "pandas".
 
 Here is for instance the :func:`datasets.Metric._info` for the Sacrebleu metric, which is taken from the `sacrebleu metric loading script <https://github.com/huggingface/datasets/tree/master/metrics/sacrebleu/sacrebleu.py>`__:
 

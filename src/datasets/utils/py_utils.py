@@ -316,11 +316,8 @@ def dump(obj, file):
 @contextlib.contextmanager
 def _no_cache_fields(obj):
     try:
-        import transformers as tr
-
         if (
-            hasattr(tr, "PreTrainedTokenizerBase")
-            and isinstance(obj, tr.PreTrainedTokenizerBase)
+            "PreTrainedTokenizerBase" in [base_class.__name__ for base_class in type(obj).__mro__]
             and hasattr(obj, "cache")
             and isinstance(obj.cache, dict)
         ):

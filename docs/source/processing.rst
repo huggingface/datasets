@@ -1,7 +1,7 @@
 Processing data in a Dataset
 ==============================================================
 
-🤗Datasets provides many methods to modify a Dataset, be it to reorder, split or shuffle the dataset or to apply data processing functions or evaluation functions to its elements.
+🤗 Datasets provides many methods to modify a Dataset, be it to reorder, split or shuffle the dataset or to apply data processing functions or evaluation functions to its elements.
 
 We'll start by presenting the methods which change the order or number of elements before presenting methods which access and can change the content of the elements themselves.
 
@@ -22,7 +22,7 @@ As always, let's start by loading a small dataset for our demonstrations:
 
     A subsequent call to any of the methods detailed here (like :func:`datasets.Dataset.sort`, :func:`datasets.Dataset.map`, etc) will thus **reuse the cached file instead of recomputing the operation** (even in another python session).
 
-    This usually makes it very efficient to process data with 🤗Datasets.
+    This usually makes it very efficient to process data with 🤗 Datasets.
 
     If the disk space is critical, these methods can be called with arguments to avoid this behavior (see the last section), or the cache files can be cleaned using the method :func:`datasets.Dataset.cleanup_cache_files`.
 
@@ -391,7 +391,7 @@ To operate on batch of example, just set :obj:`batched=True` when calling :func:
 
 In other words, the mapped function should accept an input with the format of a slice of the dataset: :obj:`function(dataset[:10])`.
 
-Let's take an example with a fast tokenizer of the 🤗Transformers library.
+Let's take an example with a fast tokenizer of the 🤗 Transformers library.
 
 First install this library if you haven't already done it:
 
@@ -406,9 +406,9 @@ Then we will import a fast tokenizer, for instance the tokenizer of the Bert mod
     >>> from transformers import BertTokenizerFast
     >>> tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
 
-Now let's batch tokenize the ``sentence1`` fields of our dataset. The tokenizers of the 🤗Transformers library can accept lists of texts as inputs and tokenize them efficiently in batch (for the fast tokenizers in particular).
+Now let's batch tokenize the ``sentence1`` fields of our dataset. The tokenizers of the 🤗 Transformers library can accept lists of texts as inputs and tokenize them efficiently in batch (for the fast tokenizers in particular).
 
-For more details on the tokenizers of the 🤗Transformers library please refer to its `guide on processing data <https://huggingface.co/transformers/preprocessing.html>`__.
+For more details on the tokenizers of the 🤗 Transformers library please refer to its `guide on processing data <https://huggingface.co/transformers/preprocessing.html>`__.
 
 This tokenizer will output a dictionary-like object with three fields: ``input_ids``, ``token_type_ids``, ``attention_mask`` corresponding to Bert model's required inputs. Each field contains a list (batch) of samples.
 
@@ -496,7 +496,7 @@ As we can see, our dataset is now much longer (10470 row) and contains a single 
 
 Now let's finish with the other example and try to do some data augmentation. We will use a Roberta model to sample some masked tokens.
 
-Here we can use the `FillMaskPipeline of 🤗Transformers <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.FillMaskPipeline>`__ to generate options for a masked token in a sentence.
+Here we can use the `FillMaskPipeline of 🤗 Transformers <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.FillMaskPipeline>`__ to generate options for a masked token in a sentence.
 
 We will randomly select a word to mask in the sentence and return the original sentence plus the two top replacements by Roberta.
 
@@ -564,7 +564,7 @@ You can directly call map, filter, shuffle, and sort directly on a :obj:`dataset
      'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
 
-This concludes our chapter on data processing with 🤗Datasets (and 🤗Transformers).
+This concludes our chapter on data processing with 🤗 Datasets (and 🤗 Transformers).
 
 Concatenate several datasets
 ----------------------------
@@ -581,6 +581,8 @@ When you have several :obj:`datasets.Dataset` objects that share the same column
     >>>
     >>> assert bookcorpus.features.type == wiki.features.type
     >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
+
+If you want to interleave the datasets instead of concatenating them, you can use :func:`datasets.interleave_datasets`.
 
 
 Saving a processed dataset on disk and reload it
@@ -605,14 +607,18 @@ Both :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` objects can be save
 Furthermore it is also possible to save :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` to other filesystems and cloud storages such as S3 by using respectively :func:`datasets.Dataset.save_to_disk` 
 and :func:`datasets.DatasetDict.save_to_disk` and providing a ``Filesystem`` as input ``fs``. To learn more about saving your ``datasets`` to other filesystem take a look at :doc:`filesystems`.
 
-Exporting a dataset to csv, or to python objects
-------------------------------------------------
+Exporting a dataset to csv/json/parquet, or to python objects
+------------------------------------------------------------------------
 
-You can save your dataset in csv format using :func:`datasets.Dataset.to_csv`, so that you can use your dataset in other applications if you want to.
+In order to use your dataset in other applications, you can save your dataset in non-arrow formats. Currently natively supported are:
 
-To get directly python objects, you can use :func:`datasets.Dataset.to_pandas` or :func:`datasets.Dataset.to_dict` to export the dataset as a pandas DataFrame or a python dict.
+* CSV: :func:`datasets.Dataset.to_csv`
+* JSON/JSON Lines: :func:`datasets.Dataset.to_json` (JSON Lines by default, JSON with ``lines=False``)
+* Parquet: :func:`datasets.Dataset.to_parquet`
 
-Controling the cache behavior
+To get python objects directly, you can use :func:`datasets.Dataset.to_pandas` or :func:`datasets.Dataset.to_dict` to export the dataset as a pandas DataFrame or a python dict.
+
+Controlling the cache behavior
 -----------------------------------
 
 When applying transforms on a dataset, the data are stored in cache files.

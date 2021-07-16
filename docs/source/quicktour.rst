@@ -1,13 +1,13 @@
 Quick tour
 ==========
 
-Let's have a quick look at the 🤗Datasets library. This library has three main features:
+Let's have a quick look at the 🤗 Datasets library. This library has three main features:
 
 - It provides a very **efficient way to load and process data** from raw files (CSV/JSON/text) or in-memory data (python dict, pandas dataframe) with a special focus on memory efficiency and speed. As a matter of example, loading a 18GB dataset like English Wikipedia allocate 9 MB in RAM and you can iterate over the dataset at 1-2 GBit/s in python.
 - It provides a very **simple way to access and share datasets** with the research and practitioner communities (over 130 NLP datasets are already accessible in one line with the library as we'll see below).
 - It was designed with a particular focus on interoperabilty with frameworks like **pandas, NumPy, PyTorch and TensorFlow**.
 
-🤗Datasets provides datasets for many NLP tasks like text classification, question answering, language modeling, etc., and obviously these datasets can always be used for other tasks than their originally assigned task. Let's list all the currently provided datasets using :func:`datasets.list_datasets`:
+🤗 Datasets provides datasets for many NLP tasks like text classification, question answering, language modeling, etc., and obviously these datasets can always be used for other tasks than their originally assigned task. Let's list all the currently provided datasets using :func:`datasets.list_datasets`:
 
 .. code-block::
 
@@ -28,7 +28,7 @@ Let's have a quick look at the 🤗Datasets library. This library has three main
     wikihow, wikipedia, wikisql, wikitext, winogrande, wiqa, wmt14, wmt15, wmt16, wmt17, wmt18, wmt19, wmt_t2t, wnut_17, x_stance, xcopa, xnli, 
     xquad, xsum, xtreme, yelp_polarity
 
-All these datasets can also be browsed on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗Datasets viewer <https://huggingface.co/datasets/viewer/>`__.
+All these datasets can also be browsed on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗 Datasets viewer <https://huggingface.co/datasets/viewer/>`__.
 
 Loading a dataset
 --------------------
@@ -107,7 +107,7 @@ We can print one example of each class using :func:`datasets.Dataset.filter` and
 
 Now our goal will be to train a model which can predict the correct label (``not_equivalent`` or ``equivalent``) from a pair of sentences.
 
-Let's import a pretrained Bert model and its tokenizer using 🤗Transformers.
+Let's import a pretrained Bert model and its tokenizer using 🤗 Transformers.
 
 .. code-block::
 
@@ -130,8 +130,8 @@ Let's import a pretrained Bert model and its tokenizer using 🤗Transformers.
     You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
     >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
-🤗Transformers warns us that we should probably train this model on a downstream task before using it which is exactly what we are going to do.
-If you want more details on the models and tokenizers of 🤗Transformers, you should refer to the documentation and tutorials of this library `which are available here <https://huggingface.co/transformers/>`__.
+🤗 Transformers warns us that we should probably train this model on a downstream task before using it which is exactly what we are going to do.
+If you want more details on the models and tokenizers of 🤗 Transformers, you should refer to the documentation and tutorials of this library `which are available here <https://huggingface.co/transformers/>`__.
 
 Tokenizing the dataset
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -148,7 +148,7 @@ The first step is to tokenize our sentences in order to build sequences of integ
     >>> tokenizer.decode(tokenizer(dataset[0]['sentence1'], dataset[0]['sentence2'])['input_ids'])
     '[CLS] Amrozi accused his brother, whom he called " the witness ", of deliberately distorting his evidence. [SEP] Referring to him as only " the witness ", Amrozi accused his brother of deliberately distorting his evidence. [SEP]'
 
-As you can see, the tokenizer has merged the pair of sequences in a single input separating them by some special tokens ``[CLS]`` and ``[SEP]`` expected by Bert. For more details on this, you can refer to `🤗Transformers's documentation on data processing <https://huggingface.co/transformers/preprocessing.html#preprocessing-pairs-of-sentences>`__.
+As you can see, the tokenizer has merged the pair of sequences in a single input separating them by some special tokens ``[CLS]`` and ``[SEP]`` expected by Bert. For more details on this, you can refer to `🤗 Transformers's documentation on data processing <https://huggingface.co/transformers/preprocessing.html#preprocessing-pairs-of-sentences>`__.
 
 In our case, we want to tokenize our full dataset, so we will use a method called :func:`datasets.Dataset.map` to apply the encoding process to the whole dataset.
 To be sure we can easily build tensor batches for our model, we will truncate and pad the inputs to the max length of our model.
@@ -183,12 +183,12 @@ Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`
 To be able to train our model with this dataset and PyTorch, we will need to do three modifications:
 
 - rename our ``label`` column in ``labels`` which is the expected input name for labels in `BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#transformers.BertForSequenceClassification.forward>`__ or `TFBertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#tfbertforsequenceclassification>`__,
-- get pytorch (or tensorflow) tensors out of our :class:`datasets.Dataset`, instead of python objects, and
+- get pytorch (or tensorflow, or jax) tensors out of our :class:`datasets.Dataset`, instead of python objects, and
 - filter the columns to return only the subset of the columns that we need for our model inputs (``input_ids``, ``token_type_ids`` and ``attention_mask``).
 
 .. note::
 
-    We don't want the columns `sentence1` or `sentence2` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model. 🤗Datasets let you control the output format of :func:`datasets.Dataset.__getitem__` to just mask them as detailed in :doc:`exploring <./exploring>`.
+    We don't want the columns `sentence1` or `sentence2` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model. 🤗 Datasets let you control the output format of :func:`datasets.Dataset.__getitem__` to just mask them as detailed in :doc:`exploring <./exploring>`.
 
 The first modification is just a matter of renaming the column as follows (we could have done it during the tokenization process as well):
 

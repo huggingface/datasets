@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 import numpy as np
 from tqdm.auto import tqdm
 
-from .utils.logging import WARNING, get_logger
+from .utils import logging
 
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ _has_elasticsearch = importlib.util.find_spec("elasticsearch") is not None
 _has_faiss = importlib.util.find_spec("faiss") is not None
 
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 
 class MissingIndex(Exception):
@@ -141,8 +141,7 @@ class ElasticSearchIndex(BaseIndex):
         index_config = self.es_index_config
         self.es_client.indices.create(index=index_name, body=index_config)
         number_of_docs = len(documents)
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        progress = tqdm(unit="docs", total=number_of_docs, disable=not_verbose)
+        progress = tqdm(unit="docs", total=number_of_docs, disable=bool(logging.get_verbosity() == logging.NOTSET))
         successes = 0
 
         def passage_generator():
@@ -186,6 +185,19 @@ class ElasticSearchIndex(BaseIndex):
         )
         hits = response["hits"]["hits"]
         return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
+
+    def search_batch(self, queries, k: int = 10, max_workers=10) -> BatchedSearchResults:
+        import concurrent.futures
+
+        total_scores, total_indices = [None] * len(queries), [None] * len(queries)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_index = {executor.submit(self.search, query, k): i for i, query in enumerate(queries)}
+            for future in concurrent.futures.as_completed(future_to_index):
+                index = future_to_index[future]
+                results: SearchResults = future.result()
+                total_scores[index] = results.scores
+                total_indices[index] = results.indices
+        return BatchedSearchResults(total_indices=total_indices, total_scores=total_scores)
 
 
 class FaissIndex(BaseIndex):
@@ -275,8 +287,7 @@ class FaissIndex(BaseIndex):
 
         # Add vectors
         logger.info("Adding {} vectors to the faiss index".format(len(vectors)))
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        for i in tqdm(range(0, len(vectors), batch_size), disable=not_verbose):
+        for i in tqdm(range(0, len(vectors), batch_size), disable=bool(logging.get_verbosity() == logging.NOTSET)):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
 

@@ -3,7 +3,7 @@ Using a Dataset with PyTorch/Tensorflow
 
 Once your dataset is processed, you often want to use it with a framework such as PyTorch, Tensorflow, Numpy or Pandas. For instance we may want to use our dataset in a ``torch.Dataloader`` or a ``tf.data.Dataset`` and train a model with it.
 
-🤗Datasets provides a simple way to do this through what is called the format of a dataset.
+🤗 Datasets provides a simple way to do this through what is called the format of a dataset.
 
 The format of a :class:`datasets.Dataset` instance defines which columns of the dataset are returned by the :func:`datasets.Dataset.__getitem__` method and cast them in PyTorch, Tensorflow, Numpy or Pandas types.
 
@@ -22,6 +22,7 @@ The format of a :class:`datasets.Dataset` instance can be set using the :func:`d
     - ``None``/``'python'`` (default): return python objects,
     - ``'torch'``/``'pytorch'``/``'pt'``: return PyTorch tensors,
     - ``'tensorflow'``/``'tf'``: return Tensorflow tensors,
+    - ``'jax'``: return JAX arrays,
     - ``'numpy'``/``'np'``: return Numpy arrays,
     - ``'pandas'``/``'pd'``: return Pandas DataFrames.
 
@@ -80,7 +81,7 @@ Here is how we can apply a format to a simple dataset using :func:`datasets.Data
 
 In this examples we filtered out the string columns `sentence1` and `sentence2` since they cannot be converted easily as tensors (at least in PyTorch). As detailed above, we could still output them as python object by setting ``output_all_columns=True``.
 
-We can also pass ``**kwargs`` to the respective convert functions like ``np.array``, ``torch.tensor`` or ``tensorflow.ragged.constant`` by adding keyword arguments to :func:`datasets.Dataset.set_format()`. For example, if we want the columns formatted as PyTorch CUDA tensors, we use the following:
+We can also pass ``**kwargs`` to the respective convert functions like ``np.array``, ``torch.tensor``, ``tensorflow.ragged.constant`` or ``jnp.array`` by adding keyword arguments to :func:`datasets.Dataset.set_format()`. For example, if we want the columns formatted as PyTorch CUDA tensors, we use the following:
 
 .. code-block::
 

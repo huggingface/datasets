@@ -5,7 +5,9 @@ import time
 from multiprocessing import Pool
 from unittest import TestCase
 
-from datasets.features import Features, Value
+import pytest
+
+from datasets.features import Features, Sequence, Value
 from datasets.metric import Metric, MetricInfo
 
 from .utils import require_tf, require_torch
@@ -469,3 +471,44 @@ class TestMetric(TestCase):
             metric.add(prediction=pred, reference=ref)
         self.assertDictEqual(expected_results, metric.compute())
         del metric
+
+
+class MetricWithMultiLabel(Metric):
+    def _info(self):
+        return MetricInfo(
+            description="dummy metric for tests",
+            citation="insert citation here",
+            features=Features(
+                {"predictions": Sequence(Value("int64")), "references": Sequence(Value("int64"))}
+                if self.config_name == "multilabel"
+                else {"predictions": Value("int64"), "references": Value("int64")}
+            ),
+        )
+
+    def _compute(self, predictions=None, references=None):
+        return (
+            {
+                "accuracy": sum(i == j for i, j in zip(predictions, references)) / len(predictions),
+            }
+            if predictions
+            else {}
+        )
+
+
+@pytest.mark.parametrize(
+    "config_name, predictions, references, expected",
+    [
+        (None, [1, 2, 3, 4], [1, 2, 4, 3], 0.5),  # Multiclass: Value("int64")
+        (
+            "multilabel",
+            [[1, 0], [1, 0], [1, 0], [1, 0]],
+            [[1, 0], [0, 1], [1, 1], [0, 0]],
+            0.25,
+        ),  # Multilabel: Sequence(Value("int64"))
+    ],
+)
+def test_metric_with_multilabel(config_name, predictions, references, expected, tmp_path):
+    cache_dir = tmp_path / "cache"
+    metric = MetricWithMultiLabel(config_name, cache_dir=cache_dir)
+    results = metric.compute(predictions=predictions, references=references)
+    assert results["accuracy"] == expected

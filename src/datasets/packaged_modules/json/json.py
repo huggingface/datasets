@@ -77,11 +77,10 @@ class Json(datasets.ArrowBasedBuilder):
                     pa_table = pa.Table.from_pydict(mapping=dataset)
             else:
                 try:
-                    pa_table = paj.read_json(
-                        file,
-                        read_options=self.config.pa_read_options,
-                        parse_options=self.config.pa_parse_options,
-                    )
+                    with open(file, "rb") as f:
+                        pa_table = paj.read_json(
+                            f, read_options=self.config.pa_read_options, parse_options=self.config.pa_parse_options
+                        )
                 except pa.ArrowInvalid:
                     with open(file, encoding="utf-8") as f:
                         dataset = json.load(f)
@@ -91,7 +90,16 @@ class Json(datasets.ArrowBasedBuilder):
                         f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
                         f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
                     )
-            if self.config.schema:
+            if self.config.features:
+                # Encode column if ClassLabel
+                for i, col in enumerate(self.config.features.keys()):
+                    if isinstance(self.config.features[col], datasets.ClassLabel):
+                        pa_table = pa_table.set_column(
+                            i, self.config.schema.field(col), [self.config.features[col].str2int(pa_table[col])]
+                        )
                 # Cast allows str <-> int/float, while parse_option explicit_schema does NOT
-                pa_table = pa_table.cast(self.config.schema)
+                # Before casting, rearrange JSON field names to match passed features schema field names order
+                pa_table = pa.Table.from_arrays(
+                    [pa_table[name] for name in self.config.features], schema=self.config.schema
+                )
             yield i, pa_table

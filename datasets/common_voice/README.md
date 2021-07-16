@@ -1,4 +1,5 @@
 ---
+pretty_name: Common Voice
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -190,11 +191,11 @@ size_categories:
   zh-TW:
   - 10K<n<100K
 source_datasets:
-- extended|other-common-voice
+- extended|common_voice
 task_categories:
-- other
+- speech-processing
 task_ids:
-- other-other-automatic-speech-recognition
+- automatic-speech-recognition
 paperswithcode_id: common-voice
 ---
 
@@ -358,3 +359,7 @@ The dataset consists of people who have donated their voice online.  You agree t
   year = 2020
 }
 ```
+
+### Contributions
+
+Thanks to [@BirgerMoell](https://github.com/BirgerMoell) for adding this dataset.
