@@ -94,11 +94,23 @@ results is also presented.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+Supported tasks, barring a few additions, are equivalent to the original SuperGLUE tasks.
+
+|Task Name|Equiv. to|
+|----|---:|
+|Linguistic Diagnostic for Russian|Broadcoverage Diagnostics (AX-b)|
+|Russian Commitment Bank (RCB)|CommitmentBank (CB)|
+|Choice of Plausible Alternatives for Russian language (PARus)|Choice of Plausible Alternatives (COPA)|
+|Russian Multi-Sentence Reading Comprehension (MuSeRC)|Multi-Sentence Reading Comprehension (MultiRC)|
+|Textual Entailment Recognition for Russian (TERRa)|Recognizing Textual Entailment (RTE)|
+|Russian Words in Context (based on RUSSE)|Words in Context (WiC)|
+|The Winograd Schema Challenge (Russian)|The Winograd Schema Challenge (WSC)|
+|Yes/no Question Answering Dataset for the Russian (DaNetQA)|BoolQ|
+|Russian Reading Comprehension with Commonsense Reasoning (RuCoS)|Reading Comprehension with Commonsense Reasoning (ReCoRD)|
 
 ### Languages
 
-[More Information Needed]
+All tasks are in Russian.
 
 ## Dataset Structure
 
