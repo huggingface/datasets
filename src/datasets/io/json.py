@@ -1,5 +1,4 @@
 import os
-from logging import disable
 from typing import BinaryIO, Optional, Union
 
 from .. import Dataset, Features, NamedSplit, config, utils
