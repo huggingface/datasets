@@ -245,7 +245,6 @@ class DatasetBuilder:
         self.use_auth_token = use_auth_token
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
-        config_kwargs = {key: value for key, value in config_kwargs.items() if value is not None}
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
         self.config, self.config_id = self._create_builder_config(
@@ -939,7 +938,8 @@ class DatasetBuilder:
     def _download_post_processing_resources(
         self, split: str, resource_name: str, dl_manager: DownloadManager
     ) -> Optional[str]:
-        """Download the resource using the download manager and return the downloaded path"""
+        """Download the resource using the download manager and return the downloaded path."""
+        return None
 
     @abc.abstractmethod
     def _split_generators(self, dl_manager: DownloadManager):

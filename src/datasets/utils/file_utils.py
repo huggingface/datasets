@@ -367,13 +367,13 @@ def _request_with_retry(
     Note that if the environment variable HF_DATASETS_OFFLINE is set to 1, then a OfflineModeIsEnabled error is raised.
 
     Args:
-        method (str): HTTP method, such as 'GET' or 'HEAD'
-        url (str): The URL of the ressource to fetch
-        max_retries (int): Maximum number of retries, defaults to 0 (no retries)
+        method (str): HTTP method, such as 'GET' or 'HEAD'.
+        url (str): The URL of the resource to fetch.
+        max_retries (int): Maximum number of retries, defaults to 0 (no retries).
         base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
             retries then grows exponentially, capped by max_wait_time.
-        max_wait_time (float): Maximum amount of time between two retries, in seconds
-        **params: Params to pass to `requests.request`
+        max_wait_time (float): Maximum amount of time between two retries, in seconds.
+        **params: Params to pass to :obj:`requests.request`.
     """
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     tries, success = 0, False

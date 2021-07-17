@@ -31,6 +31,19 @@ def interleave_datasets(
 
     The resulting dataset ends when one of the source datasets runs out of examples.
 
+    Args:
+        datasets (:obj:`List[Dataset]` or :obj:`List[IterableDataset]`): list of datasets to interleave
+        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructued by sampling
+            examples from one source at a time according to these probabilities.
+        seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
+        **kwargs: For map-style datasets:
+            Keyword arguments to be passed to :meth:`Dataset.select` when selecting the indices used to interleave the datasets.
+
+    Returns:
+        :class:`Dataset` or :class:`IterableDataset`: Return type depends on the input `datasets`
+        parameter. `Dataset` if the input is a list of `Dataset`, `IterableDataset` if the input is a list of
+        `IterableDataset`.
+
     Examples:
 
         For regular datasets (map-style):
@@ -57,18 +70,6 @@ def interleave_datasets(
         {'text': 'Mtendere Village was inspired by the vision...
         >>> next(iterator)
         {'text': "Média de débat d'idées, de culture...
-
-    Args:
-        datasets (:obj:`List[Dataset]` or :obj:`List[IterableDataset]`): list of datasets to interleave
-        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructued by sampling
-            examples from one source at a time according to these probabilities.
-        seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
-        **kwargs: For map-style datasets:
-            Keyword arguments to be passed to :meth:`datasets.Datasets.select` when selecting the indices used to interleave the datasets.
-
-    Output:
-        :class:`datasets.Dataset` if the input is a list of :class:`datasets.Dataset`
-        or :class:`datasets.IterableDataset` if the input is a list of :class:`datasets.IterableDataset`
     """
     from .arrow_dataset import Dataset
     from .iterable_dataset import IterableDataset
