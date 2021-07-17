@@ -116,7 +116,44 @@ All tasks are in Russian.
 
 ### Data Instances
 
-[More Information Needed]
+#### LiDiRus
+
+- **Size of downloaded dataset files:** 0.047 MB
+
+#### RCB
+
+- **Size of downloaded dataset files:** 0.134 MB
+
+
+#### PARus
+
+- **Size of downloaded dataset files:** 0.057 MB
+
+#### MuSeRC
+
+- **Size of downloaded dataset files:** 1.2 MB
+
+#### TERRa
+
+- **Size of downloaded dataset files:** 0.887 MB
+
+#### RUSSE
+
+- **Size of downloaded dataset files:** 3.7 MB
+
+
+#### RWSD
+
+- **Size of downloaded dataset files:** 0.04 MB
+
+#### DaNetQA
+
+- **Size of downloaded dataset files:** 1.3 MB
+
+#### RuCoS
+
+- **Size of downloaded dataset files:** 54 MB
+
 
 ### Data Fields
 
