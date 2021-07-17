@@ -119,43 +119,141 @@ All tasks are in Russian.
 #### LiDiRus
 
 - **Size of downloaded dataset files:** 0.047 MB
+- **Size of the generated dataset:** 0.47 MB
+- **Total amount of disk used:** 0.517 MB
 
 #### RCB
 
 - **Size of downloaded dataset files:** 0.134 MB
-
+- **Size of the generated dataset:** 0.504 MB
+- **Total amount of disk used:** 0.641 MB
 
 #### PARus
 
 - **Size of downloaded dataset files:** 0.057 MB
+- **Size of the generated dataset:** 0.187 MB
+- **Total amount of disk used:**  0.245 MB
 
 #### MuSeRC
 
 - **Size of downloaded dataset files:** 1.2 MB
+- **Size of the generated dataset:** 57 MB
+- **Total amount of disk used:** 59 MB
 
 #### TERRa
 
 - **Size of downloaded dataset files:** 0.887 MB
+- **Size of the generated dataset:** 3.28 MB
+- **Total amount of disk used:** 4.19 MB
 
 #### RUSSE
 
 - **Size of downloaded dataset files:** 3.7 MB
-
+- **Size of the generated dataset:** 20 MB
+- **Total amount of disk used:** 24 MB
 
 #### RWSD
 
 - **Size of downloaded dataset files:** 0.04 MB
+- **Size of the generated dataset:** 0.279 MB
+- **Total amount of disk used:**  0.320 MB
 
 #### DaNetQA
 
 - **Size of downloaded dataset files:** 1.3 MB
+- **Size of the generated dataset:** 4.6 MB
+- **Total amount of disk used:**  5.9 MB
 
 #### RuCoS
 
 - **Size of downloaded dataset files:** 54 MB
-
+- **Size of the generated dataset:** 193 MB
+- **Total amount of disk used:** 249 MB
 
 ### Data Fields
+
+#### LiDiRus
+
+- `idx`: an `int32` feature
+- `label`: a classification label, with possible values `entailment` (0), `not_entailment` (1)
+- `sentence1`: a `string` feature
+- `sentence2`: a `string` feature
+- `knowledge`: a `string` feature with possible values `''`, `'World knowledge'`, `'Common sense'`
+- `lexical-semantics`: a `string` feature
+- `logic`: a `string` feature
+- `predicate-argument-structure`: a `string` feature
+
+
+#### RCB
+
+- `idx`: an `int32` feature
+- `label`: a classification label, with possible values `entailment` (0), `contraditction` (1), `neutral` (2)
+- `premise`: a `string` feature
+- `hypothesis`: a `string` feature
+- `verb`: a `string` feature
+- `negation`: a `string` feature with possible values `'no_negation'`, `'negation'`, `''`, `'double_negation'`
+
+#### PARus
+
+- `idx`: an `int32` feature
+  - `label`: a classification label, with possible values `choice1` (0), `choice2` (1)
+- `premise`: a `string` feature
+- `choice1`: a `string` feature
+- `choice2`: a `string` feature
+- `question`: a `string` feature with possible values `'cause'`, `'effect'`
+
+#### MuSeRC
+- `idx`: an `int32` feature
+- `label` : a classification label, with possible values `0`, `1`
+- `paragraph`: a `string` feature
+- `question`: a `string` feature
+- `answer`: a `string` feature
+
+
+#### TERRa
+- `idx`: an `int32` feature
+- `label`: a classification label, with possible values `entailment` (0), `not_entailment` (1)
+- `premise`: a `string` feature
+- `hypothesis`: a `string` feature
+
+#### RUSSE
+- `idx`: an `int32` feature
+- `label` : a classification label, with possible values `0`, `1`
+- `word`: a `string` feature
+- `sentence1`: a `string` feature
+- `sentence2`: a `string` feature
+- `gold_sense1`: an `int32` feature
+- `gold_sense2`: an `int32` feature
+- `start1`: an `int32` feature
+- `start2`: an `int32` feature
+- `end1`: an `int32` feature
+- `end2`: an `int32` feature
+
+#### RWSD
+
+- `idx`: an `int32` feature
+- `label` : a classification label, with possible values `0`, `1`
+- `text`: a `string` feature
+- `span1_index`: an `int32` feature
+- `span2_index`: an `int32` feature
+- `span1_text`: a `string` feature
+- `span2_text`: a `string` feature
+
+
+#### DaNetQA
+- `idx`: an `int32` feature
+- `label` : a classification label, with possible values `false` (0), `true` (1)
+- `question`: a `string` feature
+- `passage`: a `string` feature
+
+#### RuCoS
+
+- `idx`: an `int32` feature
+- `passage`: a `string` feature
+- `query`: a `string` feature
+- `entities`: a `list of strings` feature
+- `answers`: a `list of strings` feature
+
 
 [More Information Needed]
 
