@@ -33,9 +33,10 @@ from typing import Callable, ClassVar, Generic, Optional, Tuple, Union
 
 import dill
 import numpy as np
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
-from .logging import INFO, WARNING, get_logger, get_verbosity, set_verbosity_warning
+from .. import utils
+from . import logging
 
 
 try:  # pragma: no branch
@@ -45,7 +46,7 @@ except ImportError:
     _typing_extensions = Literal = Final = None
 
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 
 # NOTE: When used on an instance method, the cache is shared across all
@@ -142,17 +143,17 @@ def _single_map_nested(args):
         return function(data_struct)
 
     # Reduce logging to keep things readable in multiprocessing with tqdm
-    if rank is not None and get_verbosity() < WARNING:
-        set_verbosity_warning()
+    if rank is not None and logging.get_verbosity() < logging.WARNING:
+        logging.set_verbosity_warning()
     # Print at least one thing to fix tqdm in notebooks in multiprocessing
     # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-    if rank is not None and "notebook" in tqdm.__name__:
+    if rank is not None and utils.is_progress_bar_enabled() and "notebook" in tqdm.__name__:
         print(" ", end="", flush=True)
 
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
     pbar_desc = "#" + str(rank) if rank is not None else None
-    pbar = tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
+    pbar = utils.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
 
     if isinstance(data_struct, dict):
         return {k: _single_map_nested((function, v, types, None, True)) for k, v in pbar}
@@ -194,14 +195,15 @@ def map_nested(
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
         return function(data_struct)
 
-    disable_tqdm = bool(logger.getEffectiveLevel() > INFO)
+    disable_tqdm = bool(logging.get_verbosity() == logging.NOTSET)
     iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
 
     if num_proc is None:
         num_proc = 1
     if num_proc <= 1 or len(iterable) <= num_proc:
         mapped = [
-            _single_map_nested((function, obj, types, None, True)) for obj in tqdm(iterable, disable=disable_tqdm)
+            _single_map_nested((function, obj, types, None, True))
+            for obj in utils.tqdm(iterable, disable=disable_tqdm)
         ]
     else:
         split_kwds = []  # We organize the splits ourselve (contiguous splits)
@@ -221,7 +223,10 @@ def map_nested(
                 num_proc, len(iterable), [len(i[1]) for i in split_kwds]
             )
         )
-        with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
+        initargs, initializer = None, None
+        if utils.is_progress_bar_enabled():
+            initargs, initializer = (RLock(),), tqdm.set_lock
+        with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
             mapped = pool.map(_single_map_nested, split_kwds)
         logger.info("Finished {} processes".format(num_proc))
         mapped = [obj for proc_res in mapped for obj in proc_res]

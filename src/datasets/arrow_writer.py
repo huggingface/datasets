@@ -21,9 +21,8 @@ from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pyarrow as pa
-from tqdm.auto import tqdm
 
-from . import config
+from . import config, utils
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
@@ -538,9 +537,9 @@ def parquet_to_arrow(sources, destination):
     stream = None if isinstance(destination, str) else destination
     disable = bool(logging.get_verbosity() == logging.NOTSET)
     with ArrowWriter(path=destination, stream=stream) as writer:
-        for source in tqdm(sources, unit="sources", disable=disable):
+        for source in utils.tqdm(sources, unit="sources", disable=disable):
             pf = pa.parquet.ParquetFile(source)
-            for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
+            for i in utils.tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
                 df = pf.read_row_group(i).to_pandas()
                 for col in df.columns:
                     df[col] = df[col].apply(json.loads)

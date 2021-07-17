@@ -1,10 +1,11 @@
 import os
+from logging import disable
 from typing import BinaryIO, Optional, Union
 
-from .. import Dataset, Features, NamedSplit, config
+from .. import Dataset, Features, NamedSplit, config, utils
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
-from ..utils.tqdm_utils import tqdm
+from ..utils import logging
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -96,7 +97,9 @@ class JsonDatasetWriter:
         written = 0
         _ = to_json_kwargs.pop("path_or_buf", None)
 
-        for offset in tqdm(range(0, len(self.dataset), batch_size)):
+        for offset in utils.tqdm(
+            range(0, len(self.dataset), batch_size), unit="ba", disable=bool(logging.get_verbosity() == logging.NOTSET)
+        ):
             batch = query_table(
                 table=self.dataset.data,
                 key=slice(offset, offset + batch_size),
