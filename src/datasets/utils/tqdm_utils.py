@@ -19,7 +19,7 @@
 
 import contextlib
 
-from tqdm import autonotebook as tqdm_lib
+from tqdm import auto as tqdm_lib
 
 
 class EmptyTqdm:
