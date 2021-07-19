@@ -21,6 +21,7 @@ import glob
 import os
 
 import datasets
+from datasets.tasks import AutomaticSpeechRecognition
 
 
 _CITATION = """\
@@ -112,6 +113,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=_URL,
             citation=_CITATION,
+            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):

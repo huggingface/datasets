@@ -1,4 +1,22 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- ar-SA
+licenses:
+- mit
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
 paperswithcode_id: arcd
 ---
 
@@ -90,9 +108,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|   name   |train|validation|
-|----------|----:|---------:|
-|plain_text|  693|       702|
+| name       | train | validation |
+| ---------- | ----: | ---------: |
+| plain_text |   693 |        702 |
 
 ## Dataset Creation
 

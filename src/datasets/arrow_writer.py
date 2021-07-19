@@ -27,11 +27,11 @@ from . import config
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
+from .utils import logging
 from .utils.file_utils import hash_url_to_filename
-from .utils.logging import WARNING, get_logger
 
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 type_ = type  # keep python's type function
 
@@ -272,7 +272,12 @@ class ArrowWriter:
             return
 
         # Since current_examples contains (example, key) tuples
-        cols = sorted(self.current_examples[0][0].keys())
+        cols = (
+            [col for col in self._schema.names if col in self.current_examples[0][0]]
+            + [col for col in self.current_examples[0][0].keys() if col not in self._schema.names]
+            if self._schema
+            else self.current_examples[0][0].keys()
+        )
 
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
@@ -418,7 +423,7 @@ class ArrowWriter:
         self.pa_writer.close()
         if close_stream:
             self.stream.close()
-        logger.info(
+        logger.debug(
             "Done writing %s %s in %s bytes %s.",
             self._num_examples,
             self.unit,
@@ -531,14 +536,20 @@ class BeamWriter:
 def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
-    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+    disable = bool(logging.get_verbosity() == logging.NOTSET)
     with ArrowWriter(path=destination, stream=stream) as writer:
-        for source in tqdm(sources, unit="sources", disable=not_verbose):
+        for source in tqdm(sources, unit="sources", disable=disable):
             pf = pa.parquet.ParquetFile(source)
-            for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
+            for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
                 df = pf.read_row_group(i).to_pandas()
                 for col in df.columns:
                     df[col] = df[col].apply(json.loads)
                 reconstructed_table = pa.Table.from_pandas(df)
                 writer.write_table(reconstructed_table)
+    # Collect the gc or the tqdm progress bar keeps references to the open files
+    # and it causes permission errors on windows
+    # see https://app.circleci.com/pipelines/github/huggingface/datasets/6365/workflows/24f7c960-3176-43a5-9652-7830a23a981e/jobs/39232
+    import gc
+
+    gc.collect()
     return destination

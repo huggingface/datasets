@@ -12,7 +12,7 @@ In this section we study each option.
 From the HuggingFace Hub
 -------------------------------------------------
 
-Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗Datasets viewer <https://huggingface.co/datasets/viewer>`__.
+Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗 Datasets viewer <https://huggingface.co/datasets/viewer>`__.
 
 .. note::
 
@@ -61,16 +61,16 @@ This call to :func:`datasets.load_dataset` does the following steps under the ho
 
 .. note::
 
-    An Apache Arrow Table is the internal storing format for 🤗Datasets. It allows to store arbitrarily long dataframe,
+    An Apache Arrow Table is the internal storing format for 🤗 Datasets. It allows to store arbitrarily long dataframe,
     typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you
     to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use
     memory-mapping and pay effectively zero cost with O(1) random access. Alternatively, you can copy it in CPU memory
-    (RAM) by setting the ``keep_in_memory`` argument of :func:`datasets.load_datasets` to ``True``.
-    The default in 🤗Datasets is to memory-map the dataset on drive if its size is larger than
-    ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (default ``250`` MiB); otherwise, the dataset is copied
-    in-memory. This behavior can be disabled (i.e., the dataset will not be loaded in memory) by setting to ``0`` either
-    the configuration option ``datasets.config.MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (higher precedence) or the
-    environment variable ``MAX_IN_MEMORY_DATASET_SIZE_IN_BYTES`` (lower precedence).
+    (RAM) by setting the ``keep_in_memory`` argument of :func:`datasets.load_dataset` to ``True``.
+    The default in 🤗 Datasets is to memory-map the dataset on disk unless you set ``datasets.config.IN_MEMORY_MAX_SIZE``
+    different from ``0`` bytes (default). In that case, the dataset will be copied in-memory if its size is smaller than
+    ``datasets.config.IN_MEMORY_MAX_SIZE`` bytes, and memory-mapped otherwise. This behavior can be enabled by setting
+    either the configuration option ``datasets.config.IN_MEMORY_MAX_SIZE`` (higher precedence) or the environment
+    variable ``HF_DATASETS_IN_MEMORY_MAX_SIZE`` (lower precedence) to nonzero.
 
 3. Return a **dataset built from the splits** asked by the user (default: all); in the above example we create a dataset with the train split.
 
@@ -187,7 +187,7 @@ Let's see an example of all the various ways you can provide files to :func:`dat
 CSV files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🤗Datasets can read a dataset made of on or several CSV files.
+🤗 Datasets can read a dataset made of on or several CSV files.
 
 All the CSV files in the dataset should have the same organization and in particular the same datatypes for the columns.
 
@@ -224,7 +224,7 @@ If you want more control, the ``csv`` script provide full control on reading, pa
 JSON files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🤗Datasets supports building a dataset from JSON files in various format.
+🤗 Datasets supports building a dataset from JSON files in various format.
 
 The most efficient format is to have JSON files consisting of multiple JSON objects, one per line, representing individual data rows:
 
@@ -268,7 +268,7 @@ In this case you will need to specify which field contains the dataset using the
 Text files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🤗Datasets also supports building a dataset from text files read line by line (each line will be a row in the dataset).
+🤗 Datasets also supports building a dataset from text files read line by line (each line will be a row in the dataset).
 
 This is simply done using the ``text`` loading script which will generate a dataset with a single column called ``text`` containing all the text lines of the input files as strings.
 
@@ -281,11 +281,11 @@ This is simply done using the ``text`` loading script which will generate a data
 Specifying the features of the dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When you create a dataset from local files, the :class:`datasets.Feature` of the dataset are automatically guessed using an automatic type inference system based on `Apache Arrow Automatic Type Inference <https://arrow.apache.org/docs/python/json.html#automatic-type-inference>`__.
+When you create a dataset from local files, the :class:`datasets.Features` of the dataset are automatically guessed using an automatic type inference system based on `Apache Arrow Automatic Type Inference <https://arrow.apache.org/docs/python/json.html#automatic-type-inference>`__.
 
 However sometime you may want to define yourself the features of the dataset, for instance to control the names and indices of labels using a :class:`datasets.ClassLabel`.
 
-In this case you can use the :obj:`feature` arguments to :func:`datasets.load_dataset` to supply a :class:`datasets.Features` instance definining the features of your dataset and overriding the default pre-computed features.
+In this case you can use the :obj:`features` arguments to :func:`datasets.load_dataset` to supply a :class:`datasets.Features` instance definining the features of your dataset and overriding the default pre-computed features.
 
 From in-memory data
 -----------------------------------------------------------
@@ -331,7 +331,7 @@ You can similarly instantiate a Dataset object from a ``pandas`` DataFrame:
 
     Be aware that Series of the `object` dtype don't carry enough information to always lead to a meaningful Arrow type. In the case that we cannot infer a type, e.g. because the DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to null. This behavior can be avoided by constructing an explicit schema and passing it to this function.
 
-To be sure that the schema and type of the instantiated :class:`datasets.Dataset` are as intended, you can explicitely provide the features of the dataset as a :class:`datasets.Feature` object to the ``from_dict`` and ``from_pandas`` methods.
+To be sure that the schema and type of the instantiated :class:`datasets.Dataset` are as intended, you can explicitely provide the features of the dataset as a :class:`datasets.Features` object to the ``from_dict`` and ``from_pandas`` methods.
 
 Using a custom dataset loading script
 -----------------------------------------------------------
@@ -348,6 +348,28 @@ You can use a local loading script just by providing its path instead of the usu
 We provide more details on how to create your own dataset generation script on the :doc:`add_dataset` page and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__.
 
 .. _load_dataset_cache_management:
+
+
+Loading datasets in streaming mode
+-----------------------------------------------------------
+
+When a dataset is in streaming mode, you can iterate over it directly without having to download the entire dataset.
+The data are downloaded progressively as you iterate over the dataset.
+You can enable dataset streaming by passing ``streaming=True`` in the :func:`load_dataset` function to get an iterable dataset.
+
+For example, you can start iterating over big datasets like OSCAR without having to download terabytes of data using this code:
+
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
+    >>> print(next(iter(dataset)))
+    {'text': 'Mtendere Village was inspired by the vision of Chief Napoleon Dzombe, which he shared with John Blanchard during his first visit to Malawi. Chief Napoleon conveyed the desperate need for a program to intervene and care for the orphans and vulnerable children (OVC) in Malawi, and John committed to help...
+
+.. note::
+
+    A dataset in streaming mode is not a :class:`datasets.Dataset` object, but an :class:`datasets.IterableDataset` object. You can find more information about iterable datasets in the `dataset streaming documentation <dataset_streaming.html>`__
 
 Cache management and integrity verifications
 -----------------------------------------------------------
@@ -408,7 +430,7 @@ For example, you can run the following if you want to force the re-download of t
 Integrity verifications
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When downloading a dataset from the 🤗 dataset hub, the :func:`datasets.load_dataset` function performs by default a number of verifications on the downloaded files. These verifications include:
+When downloading a dataset from the 🤗 Datasets Hub, the :func:`datasets.load_dataset` function performs by default a number of verifications on the downloaded files. These verifications include:
 
 - Verifying the list of downloaded files
 - Verifying the number of bytes of the downloaded files
@@ -431,7 +453,7 @@ For example, run the following to skip integrity verifications when loading the 
 Loading datasets offline
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each dataset builder (e.g. "squad") is a python script that is downloaded and cached from either from the huggingface/datasets GitHub repository or from the `HuggingFace Hub <https://huggingface.co/datasets>`__.
+Each dataset builder (e.g. "squad") is a python script that is downloaded and cached from either from the 🤗 Datasets GitHub repository or from the `HuggingFace Hub <https://huggingface.co/datasets>`__.
 Only the ``text``, ``csv``, ``json`` and ``pandas`` builders are included in ``datasets`` without requiring external downloads.
 
 Therefore if you don't have an internet connection you can't load a dataset that is not packaged with ``datasets``, unless the dataset is already cached.
@@ -440,3 +462,38 @@ Indeed, if you've already loaded the dataset once before (when you had an intern
 You can even set the environment variable `HF_DATASETS_OFFLINE` to ``1`` to tell ``datasets`` to run in full offline mode.
 This mode disables all the network calls of the library.
 This way, instead of waiting for a dataset builder download to time out, the library looks directly at the cache.
+
+.. _load_dataset_load_builder:
+
+Loading a dataset builder
+-----------------------------------------------------------
+
+You can use :func:`datasets.load_dataset_builder` to inspect metadata (cache directory, configs, dataset info, etc.) that is required to build a dataset without downloading the dataset itself.
+
+For example, run the following to get the path to the cache directory of the IMDB dataset:
+
+.. code-block::
+
+    >>> from datasets import load_dataset_builder
+    >>> dataset_builder = load_dataset_builder('imdb')
+    >>> print(dataset_builder.cache_dir)
+    /Users/thomwolf/.cache/huggingface/datasets/imdb/plain_text/1.0.0/fdc76b18d5506f14b0646729b8d371880ef1bc48a26d00835a7f3da44004b676
+    >>> print(dataset_builder.info.features)            
+    {'text': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None)}
+    >>> print(dataset_builder.info.splits)              
+    {'train': SplitInfo(name='train', num_bytes=33432835, num_examples=25000, dataset_name='imdb'), 'test': SplitInfo(name='test', num_bytes=32650697, num_examples=25000, dataset_name='imdb'), 'unsupervised': SplitInfo(name='unsupervised', num_bytes=67106814, num_examples=50000, dataset_name='imdb')}
+
+You can see all the attributes of ``dataset_builder.info`` in the documentation of :class:`datasets.DatasetInfo`
+
+
+.. _load_dataset_enhancing_performance:
+
+Enhancing performance
+-----------------------------------------------------------
+
+If you would like to speed up dataset operations, you can disable caching and copy the dataset in-memory by setting
+``datasets.config.IN_MEMORY_MAX_SIZE`` to a nonzero size (in bytes) that fits in your RAM memory. In that case, the
+dataset will be copied in-memory if its size is smaller than ``datasets.config.IN_MEMORY_MAX_SIZE`` bytes, and
+memory-mapped otherwise. This behavior can be enabled by setting either the configuration option
+``datasets.config.IN_MEMORY_MAX_SIZE`` (higher precedence) or the environment variable
+``HF_DATASETS_IN_MEMORY_MAX_SIZE`` (lower precedence) to nonzero.

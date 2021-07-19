@@ -29,5 +29,6 @@ class Pandas(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         for i, file in enumerate(files):
-            pa_table = pa.Table.from_pandas(pd.read_pickle(file))
-            yield i, pa_table
+            with open(file, "rb") as f:
+                pa_table = pa.Table.from_pandas(pd.read_pickle(f))
+                yield i, pa_table

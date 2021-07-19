@@ -11,7 +11,8 @@ T = TypeVar("T", bound="TaskTemplate")
 
 @dataclass(frozen=True)
 class TaskTemplate(abc.ABC):
-    task: ClassVar[str]
+    # `task` is not a ClassVar since we want it to be part of the `asdict` output for JSON serialization
+    task: str
     input_schema: ClassVar[Features]
     label_schema: ClassVar[Features]
 

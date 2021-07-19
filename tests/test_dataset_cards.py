@@ -19,6 +19,7 @@ from typing import List
 
 import pytest
 
+from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.utils.logging import get_logger
 from datasets.utils.metadata import DatasetMetadata
 from datasets.utils.readme import ReadMe
@@ -43,11 +44,12 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
         if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path))
     )
 
-    return sorted(changed_datasets)
+    return sorted(dataset_name for dataset_name in changed_datasets if dataset_name not in _PACKAGED_DATASETS_MODULES)
 
 
 def get_all_datasets(repo_path: Path) -> List[Path]:
-    return [path.parts[-1] for path in (repo_path / "datasets").iterdir()]
+    dataset_names = [path.parts[-1] for path in (repo_path / "datasets").iterdir()]
+    return [dataset_name for dataset_name in dataset_names if dataset_name not in _PACKAGED_DATASETS_MODULES]
 
 
 @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))
@@ -56,11 +58,21 @@ def test_changed_dataset_card(dataset_name):
     assert card_path.exists()
     error_messages = []
     try:
-        ReadMe.from_readme(card_path)
-    except Exception as readme_error:
-        error_messages.append(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
+        readme = ReadMe.from_readme(card_path)
+    except Exception as readme_parsing_error:
+        error_messages.append(
+            f"The following issues have been found in the dataset cards:\nREADME Parsing:\n{readme_parsing_error}"
+        )
     try:
-        DatasetMetadata.from_readme(card_path)
+        readme = ReadMe.from_readme(card_path, suppress_parsing_errors=True)
+        readme.validate()
+    except Exception as readme_validation_error:
+        error_messages.append(
+            f"The following issues have been found in the dataset cards:\nREADME Validation:\n{readme_validation_error}"
+        )
+    try:
+        metadata = DatasetMetadata.from_readme(card_path)
+        metadata.validate()
     except Exception as metadata_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
@@ -77,11 +89,21 @@ def test_dataset_card(dataset_name):
     assert card_path.exists()
     error_messages = []
     try:
-        ReadMe.from_readme(card_path)
-    except Exception as readme_error:
-        error_messages.append(f"The following issues have been found in the dataset cards:\nREADME:\n{readme_error}")
+        readme = ReadMe.from_readme(card_path)
+    except Exception as readme_parsing_error:
+        error_messages.append(
+            f"The following issues have been found in the dataset cards:\nREADME Parsing:\n{readme_parsing_error}"
+        )
     try:
-        DatasetMetadata.from_readme(card_path)
+        readme = ReadMe.from_readme(card_path, suppress_parsing_errors=True)
+        readme.validate()
+    except Exception as readme_validation_error:
+        error_messages.append(
+            f"The following issues have been found in the dataset cards:\nREADME Validation:\n{readme_validation_error}"
+        )
+    try:
+        metadata = DatasetMetadata.from_readme(card_path)
+        metadata.validate()
     except Exception as metadata_error:
         error_messages.append(
             f"The following issues have been found in the dataset cards:\nYAML tags:\n{metadata_error}"
