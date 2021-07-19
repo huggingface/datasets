@@ -135,7 +135,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, archive_path):
-        """Generate examples from a Librispeech archive_path."""
+        """Generate examples from a LibriSpeech archive_path."""
         transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
         key = 0
         for transcript_path in sorted(glob.glob(transcripts_glob)):
