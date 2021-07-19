@@ -138,7 +138,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
         """Generate examples from a Librispeech archive_path."""
         transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
         for transcript_path in sorted(glob.glob(transcripts_glob)):
-            path = os.path.dirname(transcript_path)
+            transcript_dir_path = os.path.dirname(transcript_path)
             with open(transcript_path, "r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
@@ -149,7 +149,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
                         "id": key,
                         "speaker_id": speaker_id,
                         "chapter_id": chapter_id,
-                        "file": os.path.join(path, audio_file),
+                        "file": os.path.join(transcript_dir_path, audio_file),
                         "text": transcript,
                     }
                     yield key, example
