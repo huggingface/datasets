@@ -192,7 +192,7 @@ class Superb(datasets.GeneratorBasedBuilder):
                 ]
                 for split in splits
             }
-            archive_path = dl_manager.download_and_extract(_DL_URLS)
+            archive_path = dl_manager.download(_DL_URLS)
             return [
                 datasets.SplitGenerator(
                     name=datasets.NamedSplit(split), gen_kwargs={"archive_path": archive_path[split]}
