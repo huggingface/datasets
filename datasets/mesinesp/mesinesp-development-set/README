@@ -1,0 +1,31 @@
+MESINESP: Medical Semantic Indexing in Spanish - Development dataset
+
+Introduction
+First, we performed a web crawling against https://pesquisa.bvsalud.org/ (IBECS and LILACS) to obtain 1.1 million articles, extracting the title and the abstract (not the full text) among other article data such as journal and date of publication.
+Then, 1500 articles, published from 2018 onwards, were selected and annotated by 7 experts in the field of clinical text indexing with DeCS codes. Those articles have been distributed in a way that each article is annotated, at least, by two different annotators. The first phase consisted in adding DeCS codes to each document, and the second phase was about validating those DeCS codes viewing suggestions from both machine-generated and the codes added by other annotators on that same document.
+Next, these annotations have been analyzed, resulting in an agreement using the Jaccard index.
+
+Zip structure
+The zip file contains two different development sets:
+- Official development set, which has the union of the annotations, with an agreement of macro = 0.6568 and micro = 0.6819. This set is composed by all the different (unique) DeCS codes that have been added by any annotator for each document; and
+- Core-descriptors development set, which has the intersection of the annotations, with an agreement of macro = 1.0 and micro = 1.0. This set is composed of the common DeCS codes that have been added by two or more annotators for each document.
+
+Corpus format
+The format of each set is a json object as follows:
+{
+  "articles": [
+    {
+      "id": "Id of the article",
+      "title": "Title of the article",
+      "abstractText": "Content of the abstract",
+      "journal": "Name of the journal",
+      "year": 2018,
+      "db": "Name of the database",
+      "decsCodes": [
+        "code1",
+        "code2",
+        "code3"
+      ]
+    }
+  ]
+}
