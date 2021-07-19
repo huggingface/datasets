@@ -173,4 +173,4 @@ This repository is under the GPL-3.0 license.
 
 ### Contributions
 
-Thanks to [@ncoops](https://github.com/ncoops), [arampacha](https://github.com/arampacha), @shpotes[https://github.com/<pls-fill-in>] and [more to come] for adding this dataset.
+Thanks to [@ncoop57](https://github.com/ncoop57), [arampacha](https://github.com/arampacha), @shpotes[https://github.com/<pls-fill-in>] and [more to come] for adding this dataset.
