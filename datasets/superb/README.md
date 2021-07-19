@@ -106,7 +106,7 @@ Automatic Speaker Verification (ASV) verifies whether the speakers of a pair of 
 
 #### sd
 
-Speaker Diarization (SD) predicts who is speaking when for each timestamp, and multiple speakers can speak simultaneously. The model has to encode rich speaker characteristics for each frame and should be able to represent mixtures of signals. [LibriMix](https://github.com/s3prl/s3prl/tree/master/downstream#sd-speaker-diarization) is adopted where LibriSpeech train-clean-100/dev-clean/test-clean are used to generate mixtures for training/validation/testing. We focus on the two-speaker scenario as the first step. The time-coded speaker labels were generated using alignments from Kaldi LibriSpeech ASR model. The evaluation metric is diarization error rate (DER).
+Speaker Diarization (SD) predicts *who is speaking when* for each timestamp, and multiple speakers can speak simultaneously. The model has to encode rich speaker characteristics for each frame and should be able to represent mixtures of signals. [LibriMix](https://github.com/s3prl/s3prl/tree/master/downstream#sd-speaker-diarization) is adopted where LibriSpeech train-clean-100/dev-clean/test-clean are used to generate mixtures for training/validation/testing. We focus on the two-speaker scenario as the first step. The time-coded speaker labels were generated using alignments from Kaldi LibriSpeech ASR model. The evaluation metric is diarization error rate (DER).
 
 #### er
 
@@ -130,7 +130,7 @@ The language data in SUPERB is in English (BCP-47 `en`)
 
 An example from each split looks like:
 
-```json
+```python
 {'chapter_id': 1240,
  'file': 'path/to/file.flac',
  'id': '103-1240-0000',
@@ -194,9 +194,9 @@ An example from each split looks like:
 
 - `file`: a `string` feature.
 - `text`: a `string` feature.
-- `speaker_id`: a `int64` feature
-- `chapter_id`: a `int64` feature
-- `id`: a `string` feature 
+- `speaker_id`: a `int64` feature.
+- `chapter_id`: a `int64` feature.
+- `id`: a `string` feature.
 
 #### ks
 
