@@ -299,5 +299,5 @@ class DownloadManager:
                 del self.extracted_paths[key]
 
     def manage_extracted_files(self):
-        if not self._download_config.keep_extracted:
+        if self._download_config.delete_extracted:
             self.delete_extracted_files()
