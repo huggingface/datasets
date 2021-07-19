@@ -208,6 +208,12 @@ For example ``sacrebleu`` accepts the following additional arguments:
 - ``lowercase``: Lowercase the data. If True, enables case-insensitivity. (Default: False).
 - ``force``: Insist that your tokenized input is actually detokenized.
 
+To use `"floor"` smooth method with floor value 0.2, pass these arguments to :func:`datasets.Metric.compute`:
+
+.. code-block::
+
+    score = metric.compute(smooth_method="floor", smooth_value=0.2)
+
 You can list these arguments with ``print(metric)`` or ``print(metric.inputs_description)`` as we saw in the previous section and have more details on the official ``sacrebleu`` homepage and publication (accessible with ``print(metric.homepage)`` and ``print(metric.citation)``):
 
 .. code-block::
