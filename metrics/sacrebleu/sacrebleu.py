@@ -51,7 +51,7 @@ Args:
     references: A list of one or more reference streams (each a sequence of segments).
     smooth_method: The smoothing method to use. (Default: 'exp').
     smooth_value: The smoothing value. Only valid for 'floor' and 'add-k'. (Defaults: floor: 0.1, add-k: 1).
-    tokenize: Tokenization method to use for BLEU. If not provided, defaults to 'zh' for Chinese, 'ja-mecab' for 
+    tokenize: Tokenization method to use for BLEU. If not provided, defaults to 'zh' for Chinese, 'ja-mecab' for
         Japanese and '13a' (mteval) otherwise.
     lowercase: Lowercase the data. If True, enables case-insensitivity. (Default: False).
     force: Insist that your tokenized input is actually detokenized.
