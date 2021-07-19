@@ -41,7 +41,7 @@ from tqdm.auto import tqdm
 
 from datasets.tasks.text_classification import TextClassification
 
-from . import config
+from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import ClassLabel, Features, Value, cast_to_python_objects
@@ -1701,7 +1701,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             ):
                 logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
-            with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
+            initargs, initializer = None, None
+            if utils.is_progress_bar_enabled():
+                initargs, initializer = (RLock(),), tqdm.set_lock
+            with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
                 os.environ = prev_env
                 shards = [
                     self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
@@ -1812,7 +1815,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             logging.set_verbosity_warning()
         # Print at least one thing to fix tqdm in notebooks in multiprocessing
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-        if rank is not None and "notebook" in tqdm.__name__:
+        if rank is not None and utils.is_progress_bar_enabled() and "notebook" in tqdm.__name__:
             print(" ", end="", flush=True)
 
         # Select the columns (arrow columns) to process
@@ -1976,7 +1979,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
-                pbar = tqdm(
+                pbar = utils.tqdm(
                     pbar_iterable,
                     disable=bool(logging.get_verbosity() == logging.NOTSET),
                     position=rank,

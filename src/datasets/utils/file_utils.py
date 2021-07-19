@@ -26,7 +26,7 @@ import posixpath
 import requests
 from tqdm.contrib.concurrent import thread_map
 
-from .. import __version__, config
+from .. import __version__, config, utils
 from . import logging
 from .extract import ExtractManager
 from .filelock import FileLock
@@ -434,7 +434,7 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    progress = tqdm(
+    progress = utils.tqdm(
         unit="B",
         unit_scale=True,
         total=total,

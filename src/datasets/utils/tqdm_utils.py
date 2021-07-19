@@ -76,8 +76,13 @@ def async_tqdm(*args, **kwargs):
         return EmptyTqdm(*args, **kwargs)
 
 
+def is_progress_bar_enabled():
+    global _active
+    return bool(_active)
+
+
 def disable_progress_bar():
-    """Disabled Tqdm progress bar.
+    """Disable tqdm progress bar.
 
     Usage:
 
@@ -116,7 +121,7 @@ def _async_tqdm(*args, **kwargs):
 
 
 class _TqdmPbarAsync:
-    """Wrapper around Tqdm pbar which be shared between thread."""
+    """Wrapper around Tqdm pbar which can be shared between thread."""
 
     _tqdm_bars = []
 
