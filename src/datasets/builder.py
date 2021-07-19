@@ -681,6 +681,8 @@ class DatasetBuilder:
                     + str(e)
                 )
 
+            dl_manager.manage_extracted_files()
+
         if verify_infos:
             verify_splits(self.info.splits, split_dict)
 

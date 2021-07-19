@@ -217,6 +217,7 @@ class DownloadConfig:
             extract the compressed file in a folder along the archive.
         force_extract (:obj:`bool`, default ``False``): If True when extract_compressed_file is True and the archive
             was already extracted, re-extract the archive and override the folder where it was extracted.
+        delete_extracted (:obj:`bool`, default ``False``): Whether to delete (or keep) the extracted files.
         use_etag (:obj:`bool`, default ``True``):
         num_proc (:obj:`int`, optional):
         max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
@@ -232,6 +233,7 @@ class DownloadConfig:
     user_agent: Optional[str] = None
     extract_compressed_file: bool = False
     force_extract: bool = False
+    delete_extracted: bool = False
     use_etag: bool = True
     num_proc: Optional[int] = None
     max_retries: int = 1
