@@ -74,7 +74,6 @@ from .splits import (
     percent,
 )
 from .utils import *
-from .utils.tqdm_utils import disable_progress_bar
 
 
 SCRIPTS_VERSION = "master" if __version__.split(".")[-1].startswith("dev") else __version__
