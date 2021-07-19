@@ -55,7 +55,10 @@ Here is for instance the :func:`datasets.Dataset._info` for the SQuAD dataset fo
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                 }
             ),
@@ -95,11 +98,11 @@ These features should be mostly self-explanatory given the above introduction. O
     answer_starts = [answer["answer_start"] for answer in qa["answers"]]
     answers = [answer["text"].strip() for answer in qa["answers"]]
 
-    yield id_, {
+    yield key, {
         "title": title,
         "context": context,
-        "question": question,
-        "id": id_,
+        "question": qa["question"],
+        "id": qa["id"],
         "answers": {"answer_start": answer_starts, "text": answers,},
     }
 
@@ -154,18 +157,16 @@ Let's have a look at a simple example of a :func:`datasets.DatasetBuilder._split
 
 .. code-block::
 
+    _URLS = {
+        "train": _URL + "train-v1.1.json",
+        "dev": _URL + "dev-v1.1.json",
+    }
+
     class Squad(datasets.GeneratorBasedBuilder):
         """SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
 
-        _URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
-        _URLS = {
-            "train": _URL + "train-v1.1.json",
-            "dev": _URL + "dev-v1.1.json",
-        }
-
         def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
-            urls_to_download = self._URLS
-            downloaded_files = dl_manager.download_and_extract(urls_to_download)
+            downloaded_files = dl_manager.download_and_extract(_URLS)
 
             return [
                 datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
@@ -202,28 +203,26 @@ Here again, let's take the simple example of the `squad dataset loading script <
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
         logger.info("generating examples from = %s", filepath)
+        key = 0
         with open(filepath) as f:
             squad = json.load(f)
             for article in squad["data"]:
-                title = article.get("title", "").strip()
+                title = article.get("title", "")
                 for paragraph in article["paragraphs"]:
-                    context = paragraph["context"].strip()
+                    context = paragraph["context"]
                     for qa in paragraph["qas"]:
-                        question = qa["question"].strip()
-                        id_ = qa["id"]
-
                         answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-                        answers = [answer["text"].strip() for answer in qa["answers"]]
-
+                        answers = [answer["text"] for answer in qa["answers"]]
                         # Features currently used are "context", "question", and "answers".
                         # Others are extracted here for the ease of future expansions.
-                        yield id_, {
+                        yield key, {
                             "title": title,
                             "context": context,
-                            "question": question,
-                            "id": id_,
+                            "question": qa["question"],
+                            "id": qa["id"],
                             "answers": {"answer_start": answer_starts, "text": answers,},
                         }
+                        key += 1
 
 The input argument is the ``filepath`` provided in the :obj:`gen_kwargs` of each :class:`datasets.SplitGenerator` returned by the :func:`datasets.DatasetBuilder._split_generator` method.
 
