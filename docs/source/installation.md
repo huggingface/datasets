@@ -1,12 +1,39 @@
 # Installation
 
-Before you start, you will need to setup your environment and install the appropriate packages. Datasets is tested on **Python 3.6+**. You should install Datasets in a [virtual environment](https://docs.python.org/3/library/venv.html) to keep everything neat and tidy. If you're unfamiliar with Python virtual environments, check out the setup guide from our [Hugging Face Course](https://huggingface.co/course/chapter0?fw=pt) to learn how to create and activate a virtual environment.
+Before you start, you will need to setup your environment and install the appropriate packages. Datasets is tested on **Python 3.6+**.
 
-Once you have created your virtual environment, you can install Datasets.
-
-```{note}
+```{seealso}
 If you want to use Datasets with TensorFlow or PyTorch, you will need to install these separately. Please refer to the [TensorFlow](https://www.tensorflow.org/install/pip#tensorflow-2.0-rc-is-available) or the [PyTorch installation page](https://pytorch.org/get-started/locally/#start-locally) for the specific install command for your framework.
 ```
+
+## Virtual environment
+
+You should install Datasets in a [virtual environment](https://docs.python.org/3/library/venv.html) to keep everything neat and tidy.
+
+1. Create and navigate to your project directory:
+
+    ```bash
+    mkdir ~/my-project
+    cd ~/my-project
+    ```
+
+2. Start a virtual environment inside the directory:
+
+    ```bash
+    python -m venv .env
+    ```
+
+3. Activate and deactivate the virtual environment with the following commands:
+
+    ```bash
+    # Activate the virtual environment
+    source .env/bin/activate
+
+    # Deactivate the virtual environment
+    source .env/bin/deactivate
+    ```
+
+Once you have created your virtual environment, you can install Datasets in it.
 
 ## pip
 

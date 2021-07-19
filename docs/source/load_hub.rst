@@ -3,7 +3,20 @@ Datasets Hub
 
 Now that you are all setup, the first step is to load a dataset. The easiest way to load a dataset is from the `Datasets Hub <https://huggingface.co/datasets.>`_. There are already over 900 datasets in over 100 languages in the Hub. Choose a dataset to use in a wide category of NLP tasks like question answering, summarization, machine translation, and language modeling. For a more in-depth look inside a dataset, use the live `Datasets Viewer <https://huggingface.co/datasets/viewer/>`_.
 
-You can load a dataset in a single line of code with :func:`datasets.load_dataset`:
+Before you take the time to download a dataset, it is often helpful to quickly get all the relevant information about a dataset. The :func:`datasets.load_dataset_builder` method allows you to inspect the attributes of a dataset:
+
+    >>> from datasets import load_dataset_builder
+    >>> dataset_builder = load_dataset_builder('imdb')
+    >>> print(dataset_builder.cache_dir)
+    /Users/thomwolf/.cache/huggingface/datasets/imdb/plain_text/1.0.0/fdc76b18d5506f14b0646729b8d371880ef1bc48a26d00835a7f3da44004b676
+    >>>print(dataset_builder.info.features)
+    {'text': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None)}
+    >>> print(dataset_builder.info.splits)
+    {'train': SplitInfo(name='train', num_bytes=33432835, num_examples=25000, dataset_name='imdb'), 'test': SplitInfo(name='test', num_bytes=32650697, num_examples=25000, dataset_name='imdb'), 'unsupervised': SplitInfo(name='unsupervised', num_bytes=67106814, num_examples=50000, dataset_name='imdb')}
+
+Take a look at the reference for a full list of attributes you can use with ``dataset_builder.info``.
+
+Once you are happy with the dataset you want, you can load it in a single line of code with :func:`datasets.load_dataset`:
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')

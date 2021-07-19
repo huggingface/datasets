@@ -1,3 +1,6 @@
+Datasets
+========
+
 .. image:: /imgs/datasets.png
    :align: center
 

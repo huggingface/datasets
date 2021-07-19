@@ -345,3 +345,5 @@ Each dataset should be accompanied with a Dataset card to promote responsible us
         cp ./templates/README.md ./datasets/<your_dataset_name>/README.md
 
 2. Next, you need to generate the structured tags. These help users discover your dataset on the Hub. Create the tags with the `online tagging app <https://huggingface.co/datasets/tagging/>`_, or you can clone and install the `Dataset tagging app <https://github.com/huggingface/datasets-tagging>`_ locally.
+
+3. Select the appropriate tags for your dataset from the dropdown menus. 
