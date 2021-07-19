@@ -29,8 +29,6 @@ from urllib.parse import urlparse
 
 import fsspec
 
-from datasets.utils.py_utils import rel_to_abs_path
-
 from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
@@ -51,6 +49,7 @@ from .utils.file_utils import (
     hf_github_url,
     hf_hub_url,
     init_hf_modules,
+    relative_to_absolute_path,
     url_or_path_join,
     url_or_path_parent,
 )
@@ -311,9 +310,6 @@ def prepare_module(
     # - otherwise we assume path/name is a path to our S3 bucket
     combined_path = os.path.join(path, name)
 
-    combined_path_abs = rel_to_abs_path(combined_path)
-    path_abs = rel_to_abs_path(path)
-
     if os.path.isfile(combined_path):
         file_path = combined_path
         local_path = combined_path
@@ -322,6 +318,9 @@ def prepare_module(
         local_path = path
     else:
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
+
+        combined_path_abs = relative_to_absolute_path(combined_path)
+        path_abs = relative_to_absolute_path(path)
         try:
             head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
             script_version = str(script_version) if script_version is not None else None
@@ -332,10 +331,10 @@ def prepare_module(
                 except FileNotFoundError:
                     if script_version is not None:
                         raise FileNotFoundError(
-                            "Couldn't find remote file with version {} at {}. Please provide a valid version and a valid {} name".format(
+                            "Couldn't find remote file with version {} at {}. Please provide a valid version and a valid {} name.".format(
                                 script_version, file_path, "dataset" if dataset else "metric"
                             )
-                        )
+                        ) from None
                     else:
                         github_file_path = file_path
                         file_path = hf_github_url(path=path, name=name, dataset=dataset, version="master")
@@ -363,13 +362,13 @@ def prepare_module(
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
                     raise FileNotFoundError(
-                        "Couldn't find file locally at {} or at {}, or remotely at {}. Please provide a valid {} name".format(
+                        "Couldn't find file locally at {} or at {}, or remotely at {}. Please provide a valid {} name.".format(
                             combined_path_abs, path_abs, file_path, "dataset" if dataset else "metric"
                         )
                     ) from None
             else:
                 raise FileNotFoundError(
-                    "Couldn't find file locally at {} or at {}. Please provide a valid {} name".format(
+                    "Couldn't find file locally at {} or at {}. Please provide a valid {} name.".format(
                         combined_path_abs, path_abs, "dataset" if dataset else "metric"
                     )
                 )

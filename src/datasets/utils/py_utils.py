@@ -27,16 +27,13 @@ import sys
 import types
 from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
-from pathlib import Path
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Callable, ClassVar, Generic, Optional, Tuple, TypeVar, Union
+from typing import Callable, ClassVar, Generic, Optional, Tuple, Union
 
 import dill
 import numpy as np
 from tqdm import tqdm
-
-from datasets.utils.typing import PathLike
 
 from .logging import INFO, WARNING, get_logger, get_verbosity, set_verbosity_warning
 
@@ -81,12 +78,6 @@ def size_str(size_in_bytes):
         if value >= 1.0:
             return "{:.2f} {}".format(value, name)
     return "{} {}".format(int(size_in_bytes), "bytes")
-
-
-def rel_to_abs_path(path: PathLike) -> PathLike:
-    """Convert relative path to absolute path."""
-    abs_path_str = os.path.abspath(os.path.expanduser(os.path.expandvars(str(path))))
-    return type(path)(abs_path_str)
 
 
 @contextlib.contextmanager
