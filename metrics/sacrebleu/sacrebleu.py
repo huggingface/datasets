@@ -49,7 +49,7 @@ from a source against one or more references.
 Args:
     predictions: The system stream (a sequence of segments)
     references: A list of one or more reference streams (each a sequence of segments)
-    smooth: The smoothing method to use
+    smooth_method: The smoothing method to use
     smooth_value: For 'floor' smoothing, the floor to use
     force: Ignore data that looks already tokenized
     lowercase: Lowercase the data
