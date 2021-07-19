@@ -49,11 +49,23 @@ class EmptyTqdm:
 _active = True
 
 
-def tqdm(*args, **kwargs):
-    if _active:
-        return tqdm_lib.tqdm(*args, **kwargs)
-    else:
-        return EmptyTqdm(*args, **kwargs)
+class _tqdm_cls:
+    def __call__(self, *args, **kwargs):
+        if _active:
+            return tqdm_lib.tqdm(*args, **kwargs)
+        else:
+            return EmptyTqdm(*args, **kwargs)
+
+    def set_lock(self, *args, **kwargs):
+        if _active:
+            return tqdm_lib.tqdm.set_lock(*args, **kwargs)
+
+    def get_lock(self):
+        if _active:
+            return tqdm_lib.tqdm.get_lock()
+
+
+tqdm = _tqdm_cls()
 
 
 def async_tqdm(*args, **kwargs):
