@@ -47,13 +47,15 @@ Produces BLEU scores along with its sufficient statistics
 from a source against one or more references.
 
 Args:
-    predictions: The system stream (a sequence of segments)
-    references: A list of one or more reference streams (each a sequence of segments)
-    smooth: The smoothing method to use
-    smooth_value: For 'floor' smoothing, the floor to use
-    force: Ignore data that looks already tokenized
-    lowercase: Lowercase the data
-    tokenize: The tokenizer to use
+    predictions: The system stream (a sequence of segments).
+    references: A list of one or more reference streams (each a sequence of segments).
+    smooth_method: The smoothing method to use. (Default: 'exp').
+    smooth_value: The smoothing value. Only valid for 'floor' and 'add-k'. (Defaults: floor: 0.1, add-k: 1).
+    tokenize: Tokenization method to use for BLEU. If not provided, defaults to 'zh' for Chinese, 'ja-mecab' for
+        Japanese and '13a' (mteval) otherwise.
+    lowercase: Lowercase the data. If True, enables case-insensitivity. (Default: False).
+    force: Insist that your tokenized input is actually detokenized.
+
 Returns:
     'score': BLEU score,
     'counts': Counts,
@@ -62,6 +64,7 @@ Returns:
     'bp': Brevity penalty,
     'sys_len': predictions length,
     'ref_len': reference length,
+
 Examples:
 
     >>> predictions = ["hello there general kenobi", "foo bar foobar"]
