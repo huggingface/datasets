@@ -41,33 +41,14 @@ _URL = "https://u.cs.biu.ac.il/~koppel/BlogCorpus.htm"
 _DATA_URL = "http://www.cs.biu.ac.il/~koppel/blogs/blogs.zip"
 
 
-class BlogAuthorshipCorpusConfig(datasets.BuilderConfig):
-    """BuilderConfig for BlogAuthorship."""
-
-    def __init__(self, data_url, **kwargs):
-        """BuilderConfig for BlogAuthorship
-
-        Args:
-          data_url: `string`, url to the dataset (word or raw level)
-          **kwargs: keyword arguments forwarded to super.
-        """
-        super(BlogAuthorshipCorpusConfig, self).__init__(
-            version=datasets.Version(
-                "1.0.0",
-            ),
-            **kwargs,
-        )
-        self.data_url = data_url
-
-
 class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
     """TODO(BlogAuthorship): Short description of my dataset."""
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        BlogAuthorshipCorpusConfig(
-            name="blog-authorship-corpus",
-            data_url=_DATA_URL,
+        datasets.BuilderConfig(
+            name="blog_authorship_corpus",
+            version=VERSION,
             description="word level dataset. No processing is needed other than replacing newlines with <eos> tokens.",
         ),
     ]
@@ -99,7 +80,7 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         if self.config.name == "blog-authorship-corpus":
-            data = dl_manager.download_and_extract(self.config.data_url)
+            data = dl_manager.download_and_extract(_DATA_URL)
             data_dir = os.path.join(data, "blogs")
             files = sorted(glob.glob(os.path.join(data_dir, "*.xml")))
             train_files = []
