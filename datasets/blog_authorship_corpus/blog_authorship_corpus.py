@@ -63,7 +63,7 @@ class BlogAuthorshipCorpusConfig(datasets.BuilderConfig):
 class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
     """TODO(BlogAuthorship): Short description of my dataset."""
 
-    VERSION = datasets.Version("0.1.0")
+    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
         BlogAuthorshipCorpusConfig(
             name="blog-authorship-corpus",
