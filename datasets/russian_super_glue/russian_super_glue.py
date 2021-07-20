@@ -18,9 +18,10 @@
 
 import json
 import os
-from typing import Union, List
+from typing import List, Union
 
 import datasets
+
 
 _RUSSIAN_SUPER_GLUE_CITATION = """\
 @article{shavrina2020russiansuperglue,
@@ -208,13 +209,15 @@ class RussianSuperGlueConfig(datasets.BuilderConfig):
 
     VERSION = datasets.Version("0.0.1")
 
-    def __init__(self,
-                 features: List[str],
-                 data_url: str,
-                 citation: str,
-                 url: str,
-                 label_classes: List[str] = ("False", "True"),
-                 **kwargs):
+    def __init__(
+        self,
+        features: List[str],
+        data_url: str,
+        citation: str,
+        url: str,
+        label_classes: List[str] = ("False", "True"),
+        **kwargs,
+    ):
         """BuilderConfig for the Russian SuperGLUE.
 
         Args:
@@ -244,7 +247,12 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             name="lidirus",
             description=_LIDIRUS_DESCRIPTION,
             features=[
-                "sentence1", "sentence2", "knowledge", "lexical-semantics", "logic", "predicate-argument-structure"
+                "sentence1",
+                "sentence2",
+                "knowledge",
+                "lexical-semantics",
+                "logic",
+                "predicate-argument-structure",
             ],
             label_classes=["entailment", "not_entailment"],
             data_url="https://russiansuperglue.com/tasks/download/LiDiRus",
@@ -290,7 +298,15 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             name="russe",
             description=_RUSSE_DESCRIPTION,
             features=[
-                "word", "sentence1", "sentence2", "start1", "start2", "end1", "end2", "gold_sense1", "gold_sense2"
+                "word",
+                "sentence1",
+                "sentence2",
+                "start1",
+                "start2",
+                "end1",
+                "end2",
+                "gold_sense1",
+                "gold_sense2",
             ],
             data_url="https://russiansuperglue.com/tasks/download/RUSSE",
             citation=_RUSSE_CITATION,
@@ -449,7 +465,8 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
                     elif self.config.name == "russe" and split == datasets.Split.TEST:
                         # gold senses are not available in `test` split
                         example = {
-                            feature: row[feature] for feature in self.config.features
+                            feature: row[feature]
+                            for feature in self.config.features
                             if feature not in ("gold_sense1", "gold_sense2")
                         }
                         example["gold_sense1"] = -1
@@ -496,7 +513,7 @@ def _get_rucos_entities(passage: dict) -> List[str]:
     text = passage["text"]
     entities = set()
     for entity in passage["entities"]:
-        entities.add(text[entity["start"]: entity["end"] + 1])
+        entities.add(text[entity["start"] : entity["end"] + 1])
     return sorted(entities)
 
 
