@@ -196,7 +196,7 @@ All tasks are in Russian.
 #### PARus
 
 - `idx`: an `int32` feature
-  - `label`: a classification label, with possible values `choice1` (0), `choice2` (1)
+- `label`: a classification label, with possible values `choice1` (0), `choice2` (1)
 - `premise`: a `string` feature
 - `choice1`: a `string` feature
 - `choice2`: a `string` feature
