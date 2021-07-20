@@ -175,22 +175,26 @@ class ElasticSearchIndex(BaseIndex):
         index_name = self.es_index_name
         index_config = self.es_index_config
 
+        # add metadata from dataset info to the index mapping
+        index_config["mappings"]["_meta"] = {
+            "description": documents.info.description,
+            "citation": documents.info.citation,
+            "homepage": documents.info.homepage,
+            "license": documents.info.license,
+        }
+
+        index_config["settings"]["max_ngram_diff"] = 5
+
         if self.es_client.indices.exists(index=index_name):
             logger.info(f"The index {index_name} already exists:")
             existing_index = self.es_client.indices.get(index=index_name)
             logger.info(f"{existing_index}")
+
+            # TODO compare index_config with existing_index['oscar_unshuffled_deduplicated']
+            # check if mappings and settings are exactly the same
         else:
             try:
                 logger.info(f"Creating index {index_name}")
-
-                # add metadata from dataset info to the index mapping
-                index_config["mappings"]["_meta"] = {
-                    "description": documents.info.description,
-                    "citation": documents.info.citation,
-                    "homepage": documents.info.homepage,
-                    "license": documents.info.license,
-                }
-
                 self.es_client.indices.create(index=index_name, body=index_config)
 
             except ElasticsearchException as create_error:
