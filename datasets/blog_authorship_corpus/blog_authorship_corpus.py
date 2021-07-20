@@ -79,32 +79,29 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        if self.config.name == "blog-authorship-corpus":
-            data = dl_manager.download_and_extract(_DATA_URL)
-            data_dir = os.path.join(data, "blogs")
-            files = sorted(glob.glob(os.path.join(data_dir, "*.xml")))
-            train_files = []
-            validation_files = []
+        data = dl_manager.download_and_extract(_DATA_URL)
+        data_dir = os.path.join(data, "blogs")
+        files = sorted(glob.glob(os.path.join(data_dir, "*.xml")))
+        train_files = []
+        validation_files = []
 
-            for i, file_path in enumerate(files):
-                # 95% / 5% (train / val) split
-                if i % 20 == 0:
-                    validation_files.append(file_path)
-                else:
-                    train_files.append(file_path)
+        for i, file_path in enumerate(files):
+            # 95% / 5% (train / val) split
+            if i % 20 == 0:
+                validation_files.append(file_path)
+            else:
+                train_files.append(file_path)
 
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={"files": train_files, "split": "train"},
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={"files": validation_files, "split": "validation"},
-                ),
-            ]
-        else:
-            raise ValueError("{} does not exist".format(self.config.name))
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"files": train_files, "split": "train"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"files": validation_files, "split": "validation"},
+            ),
+        ]
 
     def _generate_examples(self, files, split):
         def parse_date(line):
