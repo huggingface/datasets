@@ -1,42 +1,24 @@
 ---
-YAML tags:
-
+pretty_name: Russian SuperGLUE
 annotations_creators:
-
 - crowdsourced
 - expert-generated
-
 language_creators:
-  
 - crowdsourced
 - expert-generated
-
 languages:
-
 - ru-RU
-
 licenses:
 - mit
-
 multilinguality:
 - monolingual
-
-pretty_name: Russian SuperGLUE
-
 size_categories:
-
 - unknown
-
 source_datasets:
-
 - original
-
 task_categories:
-
 - text-classification
-
 task_ids:
-
 - natural-language-inference
 - multi-class-classification
 ---
