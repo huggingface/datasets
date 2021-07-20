@@ -11,14 +11,7 @@ licenses:
 multilinguality:
 - multilingual
 size_categories:
-  en:
-  - 100M<n<1B
-  en.noblocklist:
-  - 100M<n<1B
-  en.noclean:
-  - 1B<n<10B
-  realnewslike:
-  - 10M<n<100M
+- 100M<n<1B
 source_datasets:
 - original
 task_categories:
