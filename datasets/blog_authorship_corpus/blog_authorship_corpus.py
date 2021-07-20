@@ -117,30 +117,26 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
             # Note: import xml.etree.ElementTree as etree does not work. File cannot be parsed
             # use open instead
             with open(file_path, encoding="latin_1") as f:
-                # some files are corrupted, so have to work with python`s try here
-                try:
-                    date = ""
-                    for line in f:
-                        line = line.strip()
-                        if "<date>" in line:
-                            date = parse_date(line)
-                        elif line != "" and not line.startswith("<"):
-                            # need sub_id to be certain that no tf_records is identical
-                            sub_id = counter
-                            counter += 1
-                            if date == "":
-                                logger.warning("Date missing for {} in {}".format(line, file_name))
-                            assert date is not None, "Date is missing before {}".format(line)
-                            blog = {
-                                "text": line,
-                                "date": date,
-                                "gender": gender,
-                                "age": int(age),
-                                "job": job,
-                                "horoscope": horoscope,
-                            }
-                            yield "{}_{}_{}".format(file_id, sub_id, date), blog
-                        else:
-                            continue
-                except UnicodeDecodeError as e:
-                    logger.warning("{} cannot be loaded. Error message: {}".format(file_path, e))
+                date = ""
+                for line in f:
+                    line = line.strip()
+                    if "<date>" in line:
+                        date = parse_date(line)
+                    elif line != "" and not line.startswith("<"):
+                        # need sub_id to be certain that no tf_records is identical
+                        sub_id = counter
+                        counter += 1
+                        if date == "":
+                            logger.warning("Date missing for {} in {}".format(line, file_name))
+                        assert date is not None, "Date is missing before {}".format(line)
+                        blog = {
+                            "text": line,
+                            "date": date,
+                            "gender": gender,
+                            "age": int(age),
+                            "job": job,
+                            "horoscope": horoscope,
+                        }
+                        yield "{}_{}_{}".format(file_id, sub_id, date), blog
+                    else:
+                        continue
