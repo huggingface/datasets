@@ -355,4 +355,4 @@ Here is a list of datasets of reference. Feel free to reuse parts of their code 
 - summarization: `billsum <https://github.com/huggingface/datasets/blob/master/datasets/billsum/billsum.py>`__ (original data are in json files)
 - benchmark: `glue <https://github.com/huggingface/datasets/blob/master/datasets/glue/glue.py>`__ (original data are various formats)
 - multilingual: `xquad <https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py>`__ (original data are in json)
-- multitask: `matinf <https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py>`__ (original data need to be downloaded by the user because it requires authentificaition)
+- multitask: `matinf <https://github.com/huggingface/datasets/blob/master/datasets/matinf/matinf.py>`__ (original data need to be downloaded by the user because it requires authentificaition)
