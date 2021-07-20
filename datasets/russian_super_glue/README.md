@@ -14,7 +14,7 @@ multilinguality:
 - monolingual
 size_categories:
 - 100K<n<1M
-- 1M<n<10M  
+- 1M<n<10M
 - 10M<n<100M
 - 100M<n<1B
 source_datasets:
