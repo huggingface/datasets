@@ -334,7 +334,7 @@ def prepare_module(
                             "Couldn't find remote file with version {} at {}. Please provide a valid version and a valid {} name.".format(
                                 script_version, file_path, "dataset" if dataset else "metric"
                             )
-                        ) from None
+                        )
                     else:
                         github_file_path = file_path
                         file_path = hf_github_url(path=path, name=name, dataset=dataset, version="master")
@@ -352,7 +352,7 @@ def prepare_module(
                                 "The file is also not present on the master branch on github.".format(
                                     combined_path_abs, path_abs, github_file_path
                                 )
-                            ) from None
+                            )
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
                 if dataset:
                     file_path = hf_hub_url(path=path, name=name, version=script_version)
@@ -365,7 +365,7 @@ def prepare_module(
                         "Couldn't find file locally at {} or at {}, or remotely at {}. Please provide a valid {} name.".format(
                             combined_path_abs, path_abs, file_path, "dataset" if dataset else "metric"
                         )
-                    ) from None
+                    )
             else:
                 raise FileNotFoundError(
                     "Couldn't find file locally at {} or at {}. Please provide a valid {} name.".format(
