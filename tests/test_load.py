@@ -1,5 +1,6 @@
 import importlib
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -224,7 +225,10 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset("_dummy")
-    assert "at " + os.path.join("_dummy", "_dummy.py") in str(exc_info.value)
+    m_combined_path = re.search(fr"\S*{re.escape(os.path.join('_dummy', '_dummy.py'))}\b", str(exc_info.value))
+    assert m_combined_path is not None and os.path.isabs(m_combined_path.group())
+    m_path = re.search(r"\S*_dummy\b", str(exc_info.value))
+    assert m_path is not None and os.path.isabs(m_path.group())
 
 
 @require_streaming
