@@ -116,7 +116,7 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
 
             # Note: import xml.etree.ElementTree as etree does not work. File cannot be parsed
             # use open instead
-            with open(file_path, encoding="utf-8") as f:
+            with open(file_path, encoding="latin_1") as f:
                 # some files are corrupted, so have to work with python`s try here
                 try:
                     date = ""
