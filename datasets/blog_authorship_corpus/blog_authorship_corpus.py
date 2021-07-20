@@ -108,11 +108,12 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
             # parse line to date
             return line.strip().split("<date>")[-1].split("</date>")[0]
 
+        key = 0
         for file_path in files:
-            counter = 0
             file_name = os.path.basename(file_path)
             logger.info("generating examples from = %s", file_path)
             file_id, gender, age, job, horoscope = tuple(file_name.split(".")[:-1])
+            # TODO: yield also file_id?
 
             # Note: import xml.etree.ElementTree as etree does not work. File cannot be parsed
             # use open instead
@@ -123,13 +124,10 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
                     if "<date>" in line:
                         date = parse_date(line)
                     elif line != "" and not line.startswith("<"):
-                        # need sub_id to be certain that no tf_records is identical
-                        sub_id = counter
-                        counter += 1
                         if date == "":
                             logger.warning("Date missing for {} in {}".format(line, file_name))
                         assert date is not None, "Date is missing before {}".format(line)
-                        blog = {
+                        yield key, {
                             "text": line,
                             "date": date,
                             "gender": gender,
@@ -137,6 +135,6 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
                             "job": job,
                             "horoscope": horoscope,
                         }
-                        yield "{}_{}_{}".format(file_id, sub_id, date), blog
+                        key += 1
                     else:
                         continue
