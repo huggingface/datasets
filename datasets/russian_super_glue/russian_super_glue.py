@@ -109,9 +109,9 @@ abstract="DaNetQA, a new question-answering corpus, follows BoolQ [2] design: i
 Each question is paired with a paragraph from Wikipedia and an answer, derived from the paragraph. The task is to take
 both the question and a paragraph as input and come up with a yes/no answer, i.e. to produce a binary output. In this
 paper, we present a reproducible approach to DaNetQA creation and investigate transfer learning methods for task and
-language transferring. For task transferring we leverage three similar sentence modelling tasks: 1) a corpus of 
+language transferring. For task transferring we leverage three similar sentence modelling tasks: 1) a corpus of
 paraphrases, Paraphraser, 2) an NLI task, for which we use the Russian part of XNLI, 3) another question answering task,
-SberQUAD. For language transferring we use English to Russian translation together 
+SberQUAD. For language transferring we use English to Russian translation together
 with multilingual language fine-tuning.",
 isbn="978-3-030-72610-2"
 }
@@ -186,13 +186,13 @@ and difficult, in that it is far beyond the current state of the art.
 """
 
 _DANETQA_DESCRIPTION = """\
-DaNetQA is a question answering dataset for yes/no questions. These questions are naturally occurring -- they are 
+DaNetQA is a question answering dataset for yes/no questions. These questions are naturally occurring -- they are
 generated in unprompted and unconstrained settings.
 
 Each example is a triplet of (question, passage, answer), with the title of the page as optional additional context.
 The text-pair classification setup is similar to existing natural language inference tasks.
 
-By sampling questions from a distribution of information-seeking queries (rather than prompting annotators for 
+By sampling questions from a distribution of information-seeking queries (rather than prompting annotators for
 text pairs), we observe significantly more challenging examples compared to existing NLI datasets.
 """
 
