@@ -103,14 +103,18 @@ class SuperbConfig(datasets.BuilderConfig):
 
     def __init__(
         self,
+        features,
         data_url,
         url,
+        supervised_keys=None,
         task_templates=None,
         **kwargs,
     ):
-        super(SuperbConfig, self).__init__(version=datasets.Version("1.9.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.9.0", ""), **kwargs)
+        self.features = features
         self.data_url = data_url
         self.url = url
+        self.supervised_keys = supervised_keys
         self.task_templates = task_templates
 
 
@@ -129,6 +133,16 @@ class Superb(datasets.GeneratorBasedBuilder):
             training/validation/testing. The evaluation metric is word error
             rate (WER)."""
             ),
+            features=datasets.Features(
+                {
+                    "file": datasets.Value("string"),
+                    "text": datasets.Value("string"),
+                    "speaker_id": datasets.Value("int64"),
+                    "chapter_id": datasets.Value("int64"),
+                    "id": datasets.Value("string"),
+                }
+            ),
+            supervised_keys=("file", "text"),
             url="http://www.openslr.org/12",
             data_url="http://www.openslr.org/resources/12/",
             task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
@@ -144,6 +158,12 @@ class Superb(datasets.GeneratorBasedBuilder):
             We focus on the two-speaker scenario as the first step. The time-coded speaker labels were generated using
             alignments from Kaldi LibriSpeech ASR model. The evaluation metric is diarization error rate (DER)."""
             ),
+            features=datasets.Features(
+                {
+                    "file": datasets.Value("string"),
+                }
+            ),  # TODO
+            supervised_keys=None,  # TODO
             url="https://github.com/ftshijt/LibriMix",
             data_url="https://huggingface.co/datasets/superb/superb-data/resolve/main/sd/{split}/{filename}",
         ),
@@ -152,16 +172,8 @@ class Superb(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "file": datasets.Value("string"),
-                    "text": datasets.Value("string"),
-                    "speaker_id": datasets.Value("int64"),
-                    "chapter_id": datasets.Value("int64"),
-                    "id": datasets.Value("string"),
-                }
-            ),
-            supervised_keys=("file", "text"),
+            features=self.config.features,
+            supervised_keys=self.config.supervised_keys,
             homepage=self.config.url,
             citation=_CITATION,
             task_templates=self.config.task_templates,
