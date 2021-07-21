@@ -233,3 +233,50 @@ class Superb(datasets.GeneratorBasedBuilder):
                             "text": transcript,
                         }
                         key += 1
+
+
+class SdData:
+    def __init__(self, data_dir):
+        """Load sd data."""
+        self.segments = self._load_segments_rechash(data_dir["segments"])
+        self.utt2spk = self._load_utt2spk(data_dir["utt2spk"])
+        self.wavs = self._load_wav_zip(data_dir["wav.zip"])
+        self.reco2dur = self._load_reco2dur(data_dir["reco2dur"])
+        # self.spk2utt = self._load_spk2utt(data_dir["spk2utt"])
+
+    def _load_segments_rechash(self, segments_file):
+        """Load segments file as dict with recid index."""
+        ret = {}
+        if not os.path.exists(segments_file):
+            return None
+        for line in open(segments_file):
+            utt, rec, st, et = line.strip().split()
+            if rec not in ret:
+                ret[rec] = []
+            ret[rec].append({"utt": utt, "st": float(st), "et": float(et)})
+        return ret
+
+    def _load_wav_zip(self, wav_dir):
+        """Return dictionary { rec: wav_rxfilename }."""
+        return {
+            os.path.splitext(filename)[0]: os.path.join(wav_dir, filename) for filename in sorted(os.listdir(wav_dir))
+        }
+
+    def _load_utt2spk(self, utt2spk_file):
+        """Returns dictionary { uttid: spkid }."""
+        lines = [line.strip().split(None, 1) for line in open(utt2spk_file)]
+        return {x[0]: x[1] for x in lines}
+
+    def _load_spk2utt(self, spk2utt_file):
+        """Returns dictionary { spkid: list of uttids }."""
+        if not os.path.exists(spk2utt_file):
+            return None
+        lines = [line.strip().split() for line in open(spk2utt_file)]
+        return {x[0]: x[1:] for x in lines}
+
+    def _load_reco2dur(self, reco2dur_file):
+        """Returns dictionary { recid: duration }."""
+        if not os.path.exists(reco2dur_file):
+            return None
+        lines = [line.strip().split(None, 1) for line in open(reco2dur_file)]
+        return {x[0]: float(x[1]) for x in lines}
