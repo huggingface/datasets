@@ -38,6 +38,7 @@ languages:
 - gu
 - ha
 - haw
+- he
 - hi
 - hi-Latn
 - hmn
