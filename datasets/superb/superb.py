@@ -200,7 +200,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             _DL_URLS = {
                 split: {
                     filename: self.config.data_url.format(split=split, filename=filename)
-                    for filename in ["reco2dur", "rttm", "segments", "spk2utt", "utt2spk", "wav.scp", "wav.zip"]
+                    for filename in ["reco2dur", "rttm", "segments", "spk2utt", "utt2spk", "wav.zip"]
                 }
                 for split in splits
             }
