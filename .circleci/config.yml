@@ -16,7 +16,6 @@ jobs:
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow --upgrade
-            - run: pip install git+https://github.com/huggingface/huggingface_hub.git
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
     run_dataset_script_tests_pyarrow_1:
@@ -31,7 +30,6 @@ jobs:
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==1.0.0
-            - run: pip install git+https://github.com/huggingface/huggingface_hub.git
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
     run_dataset_script_tests_pyarrow_latest_WIN:
@@ -49,7 +47,6 @@ jobs:
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow --upgrade
-            - run: pip install git+https://github.com/huggingface/huggingface_hub.git
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
 
@@ -68,7 +65,6 @@ jobs:
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==1.0.0
-            - run: pip install git+https://github.com/huggingface/huggingface_hub.git
             - run: $env:HF_SCRIPTS_VERSION="master"
             - run: python -m pytest -sv ./tests/
 
