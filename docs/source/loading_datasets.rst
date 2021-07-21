@@ -16,7 +16,7 @@ Over 1,000 datasets for many NLP tasks like text classification, question answer
 
 .. note::
 
-    You can also add new dataset to the Hub to share with the community as detailed in the guide on :doc:`adding a new dataset </add_dataset>`.
+    You can also add a new dataset to the Hub to share with the community as detailed in the guide on :doc:`adding a new dataset </add_dataset>`.
 
 All the datasets currently available on the `Hub <https://huggingface.co/datasets>`__ can be listed using :func:`datasets.list_datasets`:
 
