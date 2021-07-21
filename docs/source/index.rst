@@ -20,11 +20,12 @@ Compatible with NumPy, Pandas, PyTorch and TensorFlow
 Contents
 ---------------------------------
 
-The documentation is organized in five parts:
+The documentation is organized in six parts:
 
 - **GET STARTED** contains a quick tour and the installation instructions.
 - **USING DATASETS** contains general tutorials on how to use and contribute to the datasets in the library.
 - **USING METRICS** contains general tutorials on how to use and contribute to the metrics in the library.
+- **ADDING NEW DATASETS/METRICS** explains how to create your own dataset or metric loading script.
 - **ADVANCED GUIDES** contains more advanced guides that are more specific to a part of the library.
 - **PACKAGE REFERENCE** contains the documentation of each public class and function.
 
