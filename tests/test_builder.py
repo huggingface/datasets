@@ -1,6 +1,7 @@
 import os
 import tempfile
 import types
+from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
@@ -517,6 +518,12 @@ class BuilderTest(TestCase):
                     os.path.join(tmp_dir, "dummy_generator_based_builder", "dummy", "0.0.0", "dataset_info.json")
                 )
             )
+
+    def test_cache_dir_no_args(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dummy_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy", data_dir=None, data_files=None)
+            relative_cache_dir_parts = Path(dummy_builder._relative_data_dir()).parts
+            self.assertEqual(relative_cache_dir_parts, ("dummy_generator_based_builder", "dummy", "0.0.0"))
 
     def test_cache_dir_for_data_files(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

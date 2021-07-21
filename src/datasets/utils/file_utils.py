@@ -18,18 +18,19 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 import numpy as np
 import posixpath
 import requests
-from tqdm.auto import tqdm
+from tqdm.contrib.concurrent import thread_map
 
-from .. import __version__, config
+from .. import __version__, config, utils
 from . import logging
 from .extract import ExtractManager
 from .filelock import FileLock
+from .tqdm_utils import tqdm
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
@@ -217,6 +218,7 @@ class DownloadConfig:
             extract the compressed file in a folder along the archive.
         force_extract (:obj:`bool`, default ``False``): If True when extract_compressed_file is True and the archive
             was already extracted, re-extract the archive and override the folder where it was extracted.
+        delete_extracted (:obj:`bool`, default ``False``): Whether to delete (or keep) the extracted files.
         use_etag (:obj:`bool`, default ``True``):
         num_proc (:obj:`int`, optional):
         max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
@@ -232,6 +234,7 @@ class DownloadConfig:
     user_agent: Optional[str] = None
     extract_compressed_file: bool = False
     force_extract: bool = False
+    delete_extracted: bool = False
     use_etag: bool = True
     num_proc: Optional[int] = None
     max_retries: int = 1
@@ -382,7 +385,7 @@ def _request_with_retry(
         try:
             response = requests.request(method=method.upper(), url=url, timeout=timeout, **params)
             success = True
-        except requests.exceptions.ConnectTimeout as err:
+        except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
             if tries > max_retries:
                 raise err
             else:
@@ -431,7 +434,7 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    progress = tqdm(
+    progress = utils.tqdm(
         unit="B",
         unit_scale=True,
         total=total,
@@ -464,11 +467,30 @@ def http_head(
     return response
 
 
-def request_etag(url: str, use_auth_token: Optional[Union[str, bool]] = None):
+def request_etag(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
     headers = get_authentication_headers_for_url(url, use_auth_token=use_auth_token)
-    response = http_head(url, headers=headers)
+    response = http_head(url, headers=headers, max_retries=3)
+    response.raise_for_status()
     etag = response.headers.get("ETag") if response.ok else None
     return etag
+
+
+def request_etags(
+    urls: List[str],
+    use_auth_token: Optional[Union[str, bool]] = None,
+    max_workers=64,
+    tqdm_kwargs: Optional[dict] = None,
+) -> List[Optional[str]]:
+    tqdm_kwargs = tqdm_kwargs if tqdm_kwargs is not None else {}
+    tqdm_kwargs["desc"] = tqdm_kwargs.get("desc", "Get ETags")
+    tqdm_kwargs["disable"] = tqdm_kwargs.get("disable", len(urls) <= 16 or logging.get_verbosity() == logging.NOTSET)
+    return thread_map(
+        partial(request_etag, use_auth_token=use_auth_token),
+        urls,
+        max_workers=max_workers,
+        tqdm_class=tqdm,
+        **tqdm_kwargs,
+    )
 
 
 def get_from_cache(

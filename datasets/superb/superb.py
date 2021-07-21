@@ -173,19 +173,20 @@ class Superb(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, archive_path):
         """Generate examples."""
         transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
-        for transcript_file in sorted(glob.glob(transcripts_glob)):
-            path = os.path.dirname(transcript_file)
-            with open(os.path.join(path, transcript_file), "r", encoding="utf-8") as f:
+        key = 0
+        for transcript_path in sorted(glob.glob(transcripts_glob)):
+            transcript_dir_path = os.path.dirname(transcript_path)
+            with open(transcript_path, "r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
-                    key, transcript = line.split(" ", 1)
-                    audio_file = f"{key}.flac"
-                    speaker_id, chapter_id = [int(el) for el in key.split("-")[:2]]
-                    example = {
-                        "id": key,
+                    id_, transcript = line.split(" ", 1)
+                    audio_file = f"{id_}.flac"
+                    speaker_id, chapter_id = [int(el) for el in id_.split("-")[:2]]
+                    yield key, {
+                        "id": id_,
                         "speaker_id": speaker_id,
                         "chapter_id": chapter_id,
-                        "file": os.path.join(path, audio_file),
+                        "file": os.path.join(transcript_dir_path, audio_file),
                         "text": transcript,
                     }
-                    yield key, example
+                    key += 1
