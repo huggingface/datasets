@@ -1,7 +1,7 @@
 Loading a Dataset
 ==============================================================
 
-A :class:`datasets.Dataset` can be created from various source of data:
+A :class:`datasets.Dataset` can be created from various sources of data:
 
 - from the `HuggingFace Hub <https://huggingface.co/datasets>`__,
 - from local files, e.g. CSV/JSON/text/pandas files, or
