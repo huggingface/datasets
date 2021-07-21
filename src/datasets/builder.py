@@ -29,6 +29,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from datasets.features import Features
 from datasets.utils.mock_download_manager import MockDownloadManager
+from datasets.utils.py_utils import map_nested
 
 from . import config, utils
 from .arrow_dataset import Dataset
@@ -155,6 +156,12 @@ class BuilderConfig:
                 }
             else:
                 raise ValueError("Please provide a valid `data_files` in `DatasetBuilder`")
+
+            def abspath(data_file: str) -> str:
+                return url_or_path_join(base_path, data_file) if is_relative_path(data_file) else data_file
+
+            data_files: Dict[str, List[str]] = map_nested(str, data_files)
+            data_files: Dict[str, List[str]] = map_nested(abspath, data_files)
             remote_urls = [
                 data_file for key in data_files for data_file in data_files[key] if is_remote_url(data_file)
             ]
@@ -162,11 +169,6 @@ class BuilderConfig:
             for key in sorted(data_files.keys()):
                 m.update(key)
                 for data_file in data_files[key]:
-                    data_file = str(data_file)
-                    if is_relative_path(data_file):
-                        # append the relative path to the base_path
-                        base_path = base_path or os.path.abspath(".")
-                        data_file = url_or_path_join(base_path, data_file)
                     if is_remote_url(data_file):
                         m.update(data_file)
                         m.update(etags[data_file])
