@@ -372,10 +372,14 @@ class ArrowWriter:
         writer_batch_size: Optional[int] = None,
     ):
         """Write a batch of Example to file.
+        Ignores the batch if it appears to be empty,
+        preventing a potential schema update of unknown types.
 
         Args:
             example: the Example to add.
         """
+        if len(next(iter(batch_examples.values()))) == 0:
+            return
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
         typed_sequence_examples = {}
