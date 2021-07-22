@@ -807,7 +807,7 @@ def load_dataset(
         if not config.AIOHTTP_AVAILABLE:
             raise ImportError(
                 f"To be able to use dataset streaming, you need to install dependencies like aiohttp "
-                f"using 'pip install datasets[streaming]' or 'pip install aiohttp' for instance"
+                f'using "pip install \'datasets[streaming]\'" or "pip install aiohttp" for instance'
             )
     # Download/copy dataset processing script
 
