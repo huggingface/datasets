@@ -237,6 +237,7 @@ class Superb(datasets.GeneratorBasedBuilder):
         elif self.config.name == "sd":
             data = SdData(archive_path)
             args = SdArgs()
+            chunk_indices = _generate_chunk_indices(data, args)
 
 
 class SdData:
