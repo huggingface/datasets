@@ -295,3 +295,38 @@ class SdArgs:
     num_speakers: int = 2
     rate: int = 16000
     use_last_samples: bool = True
+
+
+def _generate_chunk_indices(data, args):
+    chunk_indices = []
+    # make chunk indices: filepath, start_frame, end_frame
+    for rec in data.wavs:
+        data_len = int(data.reco2dur[rec] * args.rate / args.frame_shift)
+        data_len = int(data_len / args.subsampling)
+        # TODO: if mode == "test":
+        for st, ed in _gen_frame_indices(
+                data_len,
+                args.chunk_size,
+                args.chunk_size,
+                args.use_last_samples,
+                label_delay=args.label_delay,
+                subsampling=args.subsampling,
+        ):
+            chunk_indices.append(
+                (rec, st * args.subsampling, ed * args.subsampling)
+            )
+    return chunk_indices
+
+
+def _gen_frame_indices(data_length, size=2000, step=2000, use_last_samples=False, label_delay=0, subsampling=1):
+    i = -1
+    for i in range(_count_frames(data_length, size, step)):
+        yield i * step, i * step + size
+    if use_last_samples and i * step + size < data_length:
+        if data_length - (i + 1) * step - subsampling * label_delay > 0:
+            yield (i + 1) * step, data_length
+
+
+def _count_frames(data_len, size, step):
+    # no padding at edges, last remaining samples are ignored
+    return int((data_len - size + step) / step)
