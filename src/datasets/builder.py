@@ -253,6 +253,11 @@ class DatasetBuilder:
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
+        # Discard default config parameters
+        if "data_files" in config_kwargs and config_kwargs["data_files"] is None:
+            del config_kwargs["data_files"]
+        if "data_dir" in config_kwargs and config_kwargs["data_dir"] is None:
+            del config_kwargs["data_dir"]
         self.config, self.config_id = self._create_builder_config(
             name,
             custom_features=features,
