@@ -20,6 +20,7 @@
 import glob
 import os
 import textwrap
+from dataclasses import dataclass
 
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
@@ -280,3 +281,14 @@ class SdData:
             return None
         lines = [line.strip().split(None, 1) for line in open(reco2dur_file)]
         return {x[0]: float(x[1]) for x in lines}
+
+
+@dataclass
+class SdArgs:
+    chunk_size: int = 2000
+    frame_shift: int = 160
+    subsampling: int = 1
+    label_delay: int = 0
+    num_speakers: int = 2
+    rate: int = 16000
+    use_last_samples: bool = True
