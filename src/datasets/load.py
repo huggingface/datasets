@@ -249,7 +249,8 @@ def prepare_module(
             - it is set to the local version fo the lib.
             - it will also try to load it from the master branch if it's not available at the local version fo the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
-        download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
+        download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         dataset (bool): True if the script to load is a dataset, False if the script is a metric.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
             Used to inspect or modify the script folder.
