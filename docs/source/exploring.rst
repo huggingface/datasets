@@ -9,11 +9,11 @@ The :class:`datasets.Dataset` object that you get when you execute for instance 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
 
-behaves like a normal python container. You can query its length, get rows, columns and also lot of metadata on the dataset (description, citation, split sizes, etc).
+behaves like a normal python container. You can query its length, get rows, columns and also a lot of metadata on the dataset (description, citation, split sizes, etc).
 
 In this guide we will detail what's in this object and how to access all the information.
 
-An :class:`datasets.Dataset` is a python container with a length coresponding to the number of examples in the dataset. You can access a single example by its index. Let's query the first sample in the dataset:
+A :class:`datasets.Dataset` is a python container with a length corresponding to the number of examples in the dataset. You can access a single example by its index. Let's query the first sample in the dataset:
 
 .. code-block::
 
@@ -76,9 +76,9 @@ More details on the ``features`` can be found in the guide on :doc:`features` an
 Metadata
 ------------------------------------------------------
 
-The :class:`datasets.Dataset` object also host many important metadata on the dataset which are all stored in ``dataset.info``. Many of these metadata are also accessible on the lower level, i.e. directly as attributes of the Dataset for shorter access (e.g. ``dataset.info.features`` is also available as ``dataset.features``).
+The :class:`datasets.Dataset` object also hosts many important metadata on the dataset which are all stored in ``dataset.info``. Many of these metadata are also accessible on the lower level, i.e. directly as attributes of the Dataset for shorter access (e.g. ``dataset.info.features`` is also available as ``dataset.features``).
 
-All these attributes are listed in the package reference on :class:`datasets.DatasetInfo`. The most important metadata are ``split``, ``description``, ``citation``, ``homepage`` (and ``licence`` when this one is available).
+All these attributes are listed in the package reference on :class:`datasets.DatasetInfo`. The most important metadata are ``split``, ``description``, ``citation``, ``homepage`` (and ``license`` when this one is available).
 
 .. code-block::
 
