@@ -239,6 +239,7 @@ Here is an example to tokenize and pad tokens on-the-fly when accessing the samp
     >>> tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
     >>> def encode(batch):
     >>>     return tokenizer(batch["sentence1"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
+    >>>
     >>> dataset.set_transform(encode)
     >>> dataset.format
     {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
