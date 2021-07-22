@@ -92,11 +92,11 @@ You can filter rows according to a list of indices (:func:`datasets.Dataset.sele
      'Artists are worried the plan would harm those who need help most - performers who have a difficult time lining up shows .'
     ]
 
-:func:`datasets.Dataset.filter` expects a function which can accept a single example of the dataset, i.e. the python dictionary returned by :obj:`dataset[i]` and returns a boolean value. It's also possible to use the indice of each example in the function by setting :obj:`with_indices=True` in :func:`datasets.Dataset.filter`. In this case, the signature of the function given to :func:`datasets.Dataset.filter` should be :obj:`function(example: dict, indice: int) -> bool`:
+:func:`datasets.Dataset.filter` expects a function which can accept a single example of the dataset, i.e. the python dictionary returned by :obj:`dataset[i]` and returns a boolean value. It's also possible to use the index of each example in the function by setting :obj:`with_indices=True` in :func:`datasets.Dataset.filter`. In this case, the signature of the function given to :func:`datasets.Dataset.filter` should be :obj:`function(example: dict, index: int) -> bool`:
 
 .. code-block::
 
-    >>> even_dataset = dataset.filter(lambda example, indice: indice % 2 == 0, with_indices=True)
+    >>> even_dataset = dataset.filter(lambda example, index: index % 2 == 0, with_indices=True)
     >>> len(even_dataset)
     1834
     >>> len(dataset) / 2
@@ -365,7 +365,7 @@ Here is an example removing the ``sentence1`` column while adding a ``new_senten
 Using row indices
 ^^^^^^^^^^^^^^^^^^^^^^
 
-When the argument :obj:`with_indices` is set to :obj:`True`, the indices of the rows (from ``0`` to ``len(dataset)``) will be provided to the mapped function. This function must then have the following signature: :obj:`function(example: dict, indice: int) -> Union[None, dict]`.
+When the argument :obj:`with_indices` is set to :obj:`True`, the indices of the rows (from ``0`` to ``len(dataset)``) will be provided to the mapped function. This function must then have the following signature: :obj:`function(example: dict, index: int) -> Union[None, dict]`.
 
 In the following example, we add the index of the example as a prefix to the ``sentence2`` field of each example:
 
@@ -538,7 +538,7 @@ Since the Roberta model is quite large to run on a small laptop CPU, we will res
 
 Here we have now multiplied the size of our dataset by ``4`` by adding three alternatives generated with Roberta to each example. We can see that the word ``distorting`` in the first example was augmented with other possibilities by the Roberta model: ``withholding``, ``suppressing``, ``destroying``, while in the second sentence, it was the ``'s`` token which was randomly sampled and replaced by ``Stores`` and ``Pizza``.
 
-Obviously this is a very simple example for data augmentation and it could be improved in several ways, the most interesting take-away is probably how this can be written in roughtly ten lines of code without any loss in flexibility.
+Obviously this is a very simple example for data augmentation and it could be improved in several ways, the most interesting take-away is probably how this can be written in roughly ten lines of code without any loss in flexibility.
 
 Processing several splits at once
 -----------------------------------
@@ -593,7 +593,7 @@ Saving a dataset creates a directory with various files:
 
 - arrow files: they contain your dataset's data
 - dataset_info.json: contains the description, citations, etc. of the dataset
-- state.json: contains the list of the arrow files and other informations like the dataset format type, if any (torch or tensorflow for example)
+- state.json: contains the list of the arrow files and other information like the dataset format type, if any (torch or tensorflow for example)
 
 .. code-block::
 
