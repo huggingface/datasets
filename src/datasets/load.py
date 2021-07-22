@@ -308,7 +308,7 @@ def prepare_module(
     # - if os.path.join(path, name) is a file or a remote url
     # - if path is a file or a remote url
     # - otherwise we assume path/name is a path to our S3 bucket
-    combined_path = os.path.join(path, name)
+    combined_path = path if path.endswith(name) else os.path.join(path, name)
 
     if os.path.isfile(combined_path):
         file_path = combined_path
@@ -320,7 +320,6 @@ def prepare_module(
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
 
         combined_path_abs = relative_to_absolute_path(combined_path)
-        path_abs = relative_to_absolute_path(path)
         try:
             head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
             script_version = str(script_version) if script_version is not None else None
@@ -341,16 +340,16 @@ def prepare_module(
                         try:
                             local_path = cached_path(file_path, download_config=download_config)
                             logger.warning(
-                                "Couldn't find file locally at {} or at {}, or remotely at {}.\n"
+                                "Couldn't find file locally at {}, or remotely at {}.\n"
                                 "The file was picked from the master branch on github instead at {}.".format(
-                                    combined_path_abs, path_abs, github_file_path, file_path
+                                    combined_path_abs, github_file_path, file_path
                                 )
                             )
                         except FileNotFoundError:
                             raise FileNotFoundError(
-                                "Couldn't find file locally at {} or at {}, or remotely at {}.\n"
+                                "Couldn't find file locally at {}, or remotely at {}.\n"
                                 "The file is also not present on the master branch on github.".format(
-                                    combined_path_abs, path_abs, github_file_path
+                                    combined_path_abs, github_file_path
                                 )
                             )
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
@@ -362,14 +361,14 @@ def prepare_module(
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
                     raise FileNotFoundError(
-                        "Couldn't find file locally at {} or at {}, or remotely at {}. Please provide a valid {} name.".format(
-                            combined_path_abs, path_abs, file_path, "dataset" if dataset else "metric"
+                        "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name.".format(
+                            combined_path_abs, file_path, "dataset" if dataset else "metric"
                         )
                     )
             else:
                 raise FileNotFoundError(
-                    "Couldn't find file locally at {} or at {}. Please provide a valid {} name.".format(
-                        combined_path_abs, path_abs, "dataset" if dataset else "metric"
+                    "Couldn't find file locally at {}. Please provide a valid {} name.".format(
+                        combined_path_abs, "dataset" if dataset else "metric"
                     )
                 )
         except Exception as e:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
@@ -387,7 +386,7 @@ def prepare_module(
                     logger.warning(
                         f"Using the latest cached version of the module from {os.path.join(main_folder_path, hash)} "
                         f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
-                        f"couldn't be found locally at {combined_path_abs} or at {path_abs}, or remotely ({type(e).__name__})."
+                        f"couldn't be found locally at {combined_path_abs}, or remotely ({type(e).__name__})."
                     )
                     if return_resolved_file_path:
                         with open(os.path.join(main_folder_path, hash, short_name + ".json")) as cache_metadata:
