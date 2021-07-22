@@ -659,7 +659,7 @@ def load_dataset_builder(
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, optional): Select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
@@ -769,7 +769,7 @@ def load_dataset(
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, optional): Select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
