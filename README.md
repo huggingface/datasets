@@ -150,7 +150,7 @@ If you're a dataset owner and wish to update any part of it (description, citati
 If you want to cite this framework you can use this:
 
 ```bibtex
-@software{quentin_lhoest_2021_5119388,
+@software{quentin_lhoest_2021_5121285,
   author       = {Quentin Lhoest and
                   Patrick von Platen and
                   Albert Villanova del Moral and
@@ -177,12 +177,12 @@ If you want to cite this framework you can use this:
                   Lysandre Debut and
                   Stas Bekman and
                   François Lagunas},
-  title        = {huggingface/datasets: 1.10.0},
+  title        = {huggingface/datasets: 1.10.1},
   month        = jul,
   year         = 2021,
   publisher    = {Zenodo},
-  version      = {1.10.0},
-  doi          = {10.5281/zenodo.5119388},
-  url          = {https://doi.org/10.5281/zenodo.5119388}
+  version      = {1.10.1},
+  doi          = {10.5281/zenodo.5121285},
+  url          = {https://doi.org/10.5281/zenodo.5121285}
 }
 ```
