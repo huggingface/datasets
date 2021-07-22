@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, TypeVar, Union
 from urllib.parse import urlparse
 
 import numpy as np
@@ -36,6 +36,8 @@ from .tqdm_utils import tqdm
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 INCOMPLETE_SUFFIX = ".incomplete"
+
+T = TypeVar("T", str, Path)
 
 
 def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
@@ -125,6 +127,12 @@ def is_local_path(url_or_filename: str) -> bool:
 
 def is_relative_path(url_or_filename: str) -> bool:
     return urlparse(url_or_filename).scheme == "" and not os.path.isabs(url_or_filename)
+
+
+def relative_to_absolute_path(path: T) -> T:
+    """Convert relative path to absolute path."""
+    abs_path_str = os.path.abspath(os.path.expanduser(os.path.expandvars(str(path))))
+    return Path(abs_path_str) if isinstance(path, Path) else abs_path_str
 
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
