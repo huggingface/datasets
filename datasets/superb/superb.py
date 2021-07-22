@@ -234,6 +234,9 @@ class Superb(datasets.GeneratorBasedBuilder):
                             "text": transcript,
                         }
                         key += 1
+        elif self.config.name == "sd":
+            data = SdData(archive_path)
+            args = SdArgs()
 
 
 class SdData:
