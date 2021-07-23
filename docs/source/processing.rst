@@ -302,7 +302,7 @@ Let's add a prefix ``'My sentence: '`` to each ``sentence1`` value in our small 
     >>> def add_prefix(example):
     ...     example['sentence1'] = 'My sentence: ' + example['sentence1']
     ...     return example
-    ... 
+    ...
     >>> updated_dataset = small_dataset.map(add_prefix)
     >>> updated_dataset['sentence1'][:5]
     ['My sentence: Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
