@@ -14,11 +14,11 @@ As always, let's start by loading a small dataset for our demonstrations:
 
 .. note::
 
-    **No in-place policy** All the methods in this chapter return a new :class:`datasets.Dataset`. No modification is done in-place and it's the thus responsibility of the user to decide to override the previous dataset with the newly returned one.
+    **No in-place policy** All the methods in this chapter return a new :class:`datasets.Dataset`. No modification is done in-place and it's thus responsibility of the user to decide to override the previous dataset with the newly returned one.
 
 .. note::
 
-    **Caching policy** All the methods in this chapter store the updated dataset in a cache file indexed by a hash of current state and all the argument used to call the method.
+    **Caching policy** All the methods in this chapter store the updated dataset in a cache file indexed by a hash of current state and all the arguments used to call the method.
 
     A subsequent call to any of the methods detailed here (like :func:`datasets.Dataset.sort`, :func:`datasets.Dataset.map`, etc) will thus **reuse the cached file instead of recomputing the operation** (even in another python session).
 
