@@ -1,7 +1,7 @@
 Use Datasets
 ============
 
-So far, you loaded a dataset from the Hub and learned how to access the information stored inside the dataset. For the final part of the tutorial, you will tokenize and use your dataset with a framework such as PyTorch or TensorFlow. By default, all Dataset columns are returned as Python objects. But you can bridge this gap by setting the format of a dataset. Formatting casts the columns into compatible PyTorch or TensorFlow types.
+So far, you loaded a dataset from the Hub and learned how to access the information stored inside the dataset. Now you will tokenize and use your dataset with a framework such as PyTorch or TensorFlow. By default, all Dataset columns are returned as Python objects. But you can bridge this gap by setting the format of a dataset. Formatting casts the columns into compatible PyTorch or TensorFlow types.
 
 .. note::
     
@@ -96,12 +96,3 @@ After you set the format, wrap the dataset in a ``torch.utils.data.DataLoader`` 
         [1, 1, 1, ..., 0, 0, 0]], dtype=int32)>}, <tf.Tensor: shape=(32,), dtype=int64, numpy=
    array([1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1,
         0, 1, 1, 1, 0, 0, 1, 1, 1, 0])>)
-
-What's next?
-------------
-
-Congratulations, you have completed your first Datasets tutorial! 🤗 
-
-Over the course of this tutorial, you learned the basic steps of using Datasets. You loaded a dataset from the Hub, and learned how to access the information stored inside the dataset. Next, you tokenized the dataset into sequences of integers, and formatted it so you can use it with PyTorch or TensorFlow. This is really all you need to get started with Datasets! 
-
-Now that you have a solid grasp of what Datasets can do, you can begin formulating your own questions about how you can use it with your custom dataset. Please take a look at our how-to guides for more practical help on solving common use-cases, or read our conceptual guides to deepen your understanding about Datasets.

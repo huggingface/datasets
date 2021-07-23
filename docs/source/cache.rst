@@ -17,6 +17,11 @@ When you load a dataset, you also have the option to control where the data is c
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('LOADING_SCRIPT', cache_dir="PATH/TO/MY/CACHE/DIR")
 
+Similarly, you can control where the metric is cached with the ``cache_dir`` parameter:
+
+    >>> from datasets import load_metric
+    >>> metric = load_metric('glue', 'mrpc', cache_dir="MY/CACHE/DIRECTORY")
+
 Download mode
 ^^^^^^^^^^^^^
 
@@ -57,3 +62,12 @@ When you disable caching, Datasets will no longer reload cached files when apply
 .. hint::
 
     If you want to regenerate a dataset from scratch, try using the ``download_mode`` parameter in :func:`datasets.load_dataset` instead. Disabling caching may decrease Datasets effficiency.
+
+You can also avoid caching your metric entirely, and keep it in CPU memory instead.
+
+    >>> from datasets import load_metric
+    >>> metric = load_metric('glue', 'mrpc', keep_in_memory=True)
+
+.. caution::
+
+    Keeping the predictions in-memory is not possible in a distributed setting since the CPU memory spaces of the various processes are not shared.

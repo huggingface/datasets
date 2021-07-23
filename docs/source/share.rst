@@ -3,14 +3,19 @@ Share
 
 At Hugging Face, we are on a mission to democratize NLP and we believe in the significance of open source. That's why we designed Datasets so that anyone can share a dataset with the greater NLP community. There are currently over 900 datasets in over 100 languages, and the Hugging Face team always welcomes new submissions! 🤗
 
-This guide will show you how to add a dataset that can be easily accessed by anyone in the community. The guide includes instructions for:
+This guide will show you how to add a dataset or metric that can be easily accessed by anyone in the community. The guide includes instructions for:
 
-* how to add dataset metadata
+* how to add dataset and metric metadata
 * how to download data files
 * how to generate samples
+* how to compute a metric
 * how to upload a dataset to the Hub
 
 Open the `SQuAD dataset loading script <https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py>`_ template to follow along on how to share a dataset.
+
+.. tip::
+
+    To help you get started, try beginning with the `dataset loading script template <https://github.com/huggingface/datasets/blob/master/templates/new_dataset_script.py>`_.
 
 Add dataset attributes
 ----------------------
@@ -19,7 +24,7 @@ The first step is to add some information, or attributes, about your dataset wit
 
 1. :obj:`datasets.DatasetInfo.description` provides a concise description of your dataset that informs the user what's in the dataset, how it was collected, and how it can be used for a NLP task.
 
-2. :obj:`datasets.DatasetInfo.features` defines the name and type of each column in your dataset. This will also provide the structure for each example, so you can create nested subfields in each column if you want. Take a look at the `reference <>`_ for a full list of feature types you can use.
+2. :obj:`datasets.DatasetInfo.features` defines the name and type of each column in your dataset. This will also provide the structure for each example, so you can create nested subfields in each column if you want. Take a look at the `reference <https://huggingface.co/docs/datasets/package_reference/main_classes.html#datasets.DatasetInfo>`_ for a full list of feature types you can use.
 
     .. code-block::
 
@@ -346,4 +351,312 @@ Each dataset should be accompanied with a Dataset card to promote responsible us
 
 2. Next, you need to generate the structured tags. These help users discover your dataset on the Hub. Create the tags with the `online tagging app <https://huggingface.co/datasets/tagging/>`_, or you can clone and install the `Dataset tagging app <https://github.com/huggingface/datasets-tagging>`_ locally.
 
-3. Select the appropriate tags for your dataset from the dropdown menus. 
+3. Select the appropriate tags for your dataset from the dropdown menus, and save the file once you are done.
+
+4. Expand the **Show YAML output aggregating the tags** section on the right, copy the YAML tags, and paste it under the matching section on the online form. Paste the tags into your ``README.md`` file if you manually created your Dataset card.
+
+5. Expand the **Show Markdown Data Fields** section, paste it into the **Data Fields** section under **Data Structure** on the online form (or your local ``README.md``). Modify the descriptions as needed, and briefly describe each of the fields.
+
+6. Fill out the Dataset card to the best of your ability. Refer to the `Dataset Card Creation Guide <https://github.com/huggingface/datasets/blob/master/templates/README_guide.md>`_ for more detailed information about each section of the card. For fields you are unable to complete, you can write **[More Information Needed]**.
+
+7. Once you are done filling out the card with the online form, click the **Export** button to download the Dataset card. Place it in the same folder as your dataset.
+
+Upload
+------
+
+The final step is to upload your dataset! There are two types of datasets based on your sharing workflow: canonical and community datasets. The main differences between the two are highlighted in the table below:
+
+.. list-table::
+    :header-rows: 1
+
+    * - Canonical datasets
+      - Community datasets
+    * - Faster to share, no review process.
+      - Slower to add, needs to be reviewed.
+    * - Data files can be stored on the Hub.
+      - Data files are typically retrieved from the original URLs.
+    * - Identified by a user or organization namespace like `thomwolf/my_dataset` or `huggingface/our_dataset`.
+      - Identified by a root namepsace, need to select a short name that is available.
+    * - Flagged as `unsafe` because the dataset contains executable code.
+      - Flagged as `safe` because the dataset has been reviewed.
+
+.. important::
+
+    The distinction between a canonical and community dataset is based solely on the selected sharing workflow. It does not involve any ranking, decisioning, or opinion regarding the contents of the dataset itself.
+
+Canonical dataset
+^^^^^^^^^^^^^^^^^
+
+To share a canonical dataset:
+
+1. Fork the `Datasets repository <https://github.com/huggingface/datasets>`_ by clicking on the **Fork** button.
+
+2. Clone your fork to your local disk, and add the base repository as a remote:
+
+    .. code-block::
+
+        git clone https://github.com/<your_Github_handle>/datasets
+        cd datasets
+        git remote add upstream https://github.com/huggingface/datasets.git
+
+3. Create a new branch to hold your changes. You can name the new branch using the short name of your dataset:
+
+    .. code-block::
+
+        git checkout -b my-new-dataset
+
+4. Set up a development environment by running the following command in a virtual environment:
+
+    .. code-block::
+
+        pip install -e ".[dev]"
+
+5. Create a new folder with the dataset name inside ``huggingface/datasets``, and add the dataset loading script you just created.
+
+6. Run `Black <https://black.readthedocs.io/en/stable/index.html>`_ and `isort <https://pycqa.github.io/isort/>`_ to tidy up your code and files:
+
+    .. code-block::
+
+        make style
+        make quality
+
+7. Add your changes, and make a commit to record your changes locally. Then you can push the changes to your account:
+
+    .. code-block::
+
+        git add datasets/<my-new-dataset>
+        git commit
+        git push -u origin my-new-dataset
+
+8. Go back to your fork on Github, and click on **Pull request** to open a pull request on the main repository for review.
+
+Community dataset
+^^^^^^^^^^^^^^^^^
+
+Sharing a community dataset will require you to create an account on `hf.co <https://huggingface.co/join>`_ if you don't already have one. You can directly create a `new dataset repository <https://huggingface.co/new-dataset>`_ from your account on the Datasets Hub, but this guide will show you how to upload a dataset from the terminal.
+
+1. Make sure you are in the virtual environment where you installed Datasets, and run the following command:
+
+    .. code-block::
+
+        huggingface-cli login
+
+2. Login using your Datasets Hub credentials, and create a new dataset repository:
+
+    .. code-block::
+
+        huggingface-cli repo create your_dataset_name --type dataset
+
+    If you want to create a repository under a specific organization, add the ``-organization`` flag:
+
+    .. code-block::
+
+        huggingface-cli repo create your_dataset_name --type dataset --organization your-org-name
+
+3. Install `Git LFS <https://git-lfs.github.com/>`_ and clone your repository:
+
+    .. code-block::
+
+        # Make sure you have git-lfs installed
+        # (https://git-lfs.github.com/)
+        git lfs install
+
+        git clone https://huggingface.co/datasets/username/your_dataset_name
+
+4. Now is a good time to check your directory to ensure the only files you are uploading to the Hub are:
+
+    * ``README.md`` is a Dataset card that describes the datasets contents, creation, and usage.
+
+    * ``your_dataset_name.py`` is your dataset loading script.
+
+    * ``dataset_infos.json`` contains the metadata about the dataset.
+
+    * ``dummy_data`` holds a small subset of data from the dataset for tests and preview.
+
+    * Raw files of the dataset.
+
+5. It is important to add the large data files first with ``git lfs track`` or else you will encounter an error later when you push your files:
+
+    .. code-block::
+
+        cp /somewhere/data/*.json .
+        git lfs track *.json
+        git add .gitattributes
+        git add *.json
+        git commit -m "add json files"
+
+6. Add the dataset loading script and metadata file:
+
+    .. code-block::
+
+        cp /somewhere/data/dataset_infos.json .
+        cp /somewhere/data/load_script.py .
+        git add --all
+
+7. Verify the files have been correctly staged, then you can commit and push your files:
+
+    .. code-block::
+
+        git status
+        git commit -m "First version of the your_dataset_name dataset."
+        git push
+
+
+Congratulations, your dataset has now been uploaded to the Datasets Hub where anyone can load it with a single line of code! 🤗
+
+.. code-block::
+
+    dataset = load_dataset("namespace/your_dataset_name")
+
+Metric
+------
+
+Just like datasets, you can share your own custom metric or a new metric with the community. To help you get started, open the `SQuAD metric loading script <https://github.com/huggingface/datasets/blob/master/metrics/squad/squad.py>`_ and follow along.
+
+.. tip::
+
+    To help you get started, try beginning with the `metric loading script template <https://github.com/huggingface/datasets/blob/master/templates/new_metric_script.py>`_.
+
+Add metric attributes
+^^^^^^^^^^^^^^^^^^^^^
+
+Start by adding some information about your metric with :func:`datasets.Metric._info`. The most important attributes you should specify are:
+
+1. :attr:`datasets.MetricInfo.description` provides a brief description about your metric.
+
+2. :attr:`datasets.MetricInfo.citation` contains a BibTex citation for the metric.
+
+3. :attr:`datasets.MetricInfo.inputs_description` describes the expected inputs and outputs. It may also provide some example usage of the metric.
+
+4. :attr:`datasets.MetricInfo.features` defines the name and type of the predictions and references.
+
+After you've filled out all these fields in the template, it should look like the following example from the SQuAD metric script:
+
+.. code-block::
+
+    class Squad(datasets.Metric):
+    def _info(self):
+        return datasets.MetricInfo(
+            description=_DESCRIPTION,
+            citation=_CITATION,
+            inputs_description=_KWARGS_DESCRIPTION,
+            features=datasets.Features(
+                {
+                    "predictions": {"id": datasets.Value("string"), "prediction_text": datasets.Value("string")},
+                    "references": {
+                        "id": datasets.Value("string"),
+                        "answers": datasets.features.Sequence(
+                            {
+                                "text": datasets.Value("string"),
+                                "answer_start": datasets.Value("int32"),
+                            }
+                        ),
+                    },
+                }
+            ),
+            codebase_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
+            reference_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
+        )
+
+Download metric files
+^^^^^^^^^^^^^^^^^^^^^
+
+If your metric needs to download, or retrieve local files, you will need to use the :func:`datasets.Metric._download_and_prepare` method. For this example, let's examine the `BLEURT metric loading script <https://github.com/huggingface/datasets/blob/master/metrics/bleurt/bleurt.py>`_. 
+
+1. You should provide a dictionary of URLs that point to the metric files:
+
+    .. code-block::
+
+        CHECKPOINT_URLS = {
+        "bleurt-tiny-128": "https://storage.googleapis.com/bleurt-oss/bleurt-tiny-128.zip",
+        "bleurt-tiny-512": "https://storage.googleapis.com/bleurt-oss/bleurt-tiny-512.zip",
+        "bleurt-base-128": "https://storage.googleapis.com/bleurt-oss/bleurt-base-128.zip",
+        "bleurt-base-512": "https://storage.googleapis.com/bleurt-oss/bleurt-base-512.zip",
+        "bleurt-large-128": "https://storage.googleapis.com/bleurt-oss/bleurt-large-128.zip",
+        "bleurt-large-512": "https://storage.googleapis.com/bleurt-oss/bleurt-large-512.zip",
+        }
+        
+.. hint::
+
+    If the files are stored locally, provide a dictionary of path(s) instead of URLs.
+
+2. The :func:`datasets.Metric._download_and_prepare` method will take the URLs and download the metric file specified:
+
+    .. code-block::
+
+        def _download_and_prepare(self, dl_manager):
+
+            # check that config name specifies a valid BLEURT model
+            if self.config_name == "default":
+                logger.warning(
+                    "Using default BLEURT-Base checkpoint for sequence maximum length 128. "
+                    "You can use a bigger model for better results with e.g.: datasets.load_metric('bleurt', 'bleurt-large-512')."
+                )
+                self.config_name = "bleurt-base-128"
+            if self.config_name not in CHECKPOINT_URLS.keys():
+                raise KeyError(
+                    f"{self.config_name} model not found. You should supply the name of a model checkpoint for bleurt in {CHECKPOINT_URLS.keys()}"
+                )
+
+            # download the model checkpoint specified by self.config_name and set up the scorer
+            model_path = dl_manager.download_and_extract(CHECKPOINT_URLS[self.config_name])
+            self.scorer = score.BleurtScorer(os.path.join(model_path, self.config_name))
+
+
+Compute score
+^^^^^^^^^^^^^
+
+The :func:`datasets.DatasetBuilder._compute` method defines how to compute a metric given the predictions and references. Now let's return to the SQuAD metric loading script.
+
+1. Provide a method(s) for :func:`datasets.DatasetBuilder._compute` to calculate your metric:
+
+    .. code-block::
+
+        def simple_accuracy(preds, labels):
+        return (preds == labels).mean().item()
+        ...
+        ...
+        def acc_and_f1(preds, labels):
+            acc = simple_accuracy(preds, labels)
+            f1 = f1_score(y_true=labels, y_pred=preds).item()
+            return {
+                "accuracy": acc,
+                "f1": f1,
+            }
+        ...
+        ...
+        def pearson_and_spearman(preds, labels):
+            pearson_corr = pearsonr(preds, labels)[0].item()
+            spearman_corr = spearmanr(preds, labels)[0].item()
+            return {
+                "pearson": pearson_corr,
+                "spearmanr": spearman_corr,
+            }
+
+2. Create :func:`datasets.DatasetBuilder._compute` with instructions for what metric to calculate for each configuration:
+
+    .. code-block::
+
+        def _compute(self, predictions, references):
+            if self.config_name == "cola":
+                return {"matthews_correlation": matthews_corrcoef(references, predictions)}
+            elif self.config_name == "stsb":
+                return pearson_and_spearman(predictions, references)
+            elif self.config_name in ["mrpc", "qqp"]:
+                return acc_and_f1(predictions, references)
+            elif self.config_name in ["sst2", "mnli", "mnli_mismatched", "mnli_matched", "qnli", "rte", "wnli", "hans"]:
+                return {"accuracy": simple_accuracy(predictions, references)}
+            else:
+                raise KeyError(
+                    "You should supply a configuration name selected in "
+                    '["sst2", "mnli", "mnli_mismatched", "mnli_matched", '
+                    '"cola", "stsb", "mrpc", "qqp", "qnli", "rte", "wnli", "hans"]'
+                )
+
+Test
+^^^^
+
+Once you're finished with your metric loading script, try to load it locally:
+
+    >>> from datasets import load_metric
+    >>> metric = load_metric('PATH/TO/MY/SCRIPT.py')

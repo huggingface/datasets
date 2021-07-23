@@ -3,6 +3,9 @@ Datasets Hub
 
 Now that you are all setup, the first step is to load a dataset. The easiest way to load a dataset is from the `Datasets Hub <https://huggingface.co/datasets.>`_. There are already over 900 datasets in over 100 languages in the Hub. Choose a dataset to use in a wide category of NLP tasks like question answering, summarization, machine translation, and language modeling. For a more in-depth look inside a dataset, use the live `Datasets Viewer <https://huggingface.co/datasets/viewer/>`_.
 
+Load a dataset
+--------------
+
 Before you take the time to download a dataset, it is often helpful to quickly get all the relevant information about a dataset. The :func:`datasets.load_dataset_builder` method allows you to inspect the attributes of a dataset:
 
     >>> from datasets import load_dataset_builder

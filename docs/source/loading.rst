@@ -222,3 +222,27 @@ Now when you look at the features of your dataset, you can see that it uses the 
     >>> dataset['train'].features
     {'text': Value(dtype='string', id=None),
     'label': ClassLabel(num_classes=6, names=['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'], names_file=None, id=None)}
+
+Metrics
+-------
+
+When the metric you want to use is not supported by Datasets, you can write and use your own metric script. Load it by providing the path to your local metric script:
+
+    >>> from datasets import load_metric
+    >>> metric = load_metric('PATH/TO/MY/METRIC/SCRIPT')
+    >>>
+    >>> # Example of typical usage
+    >>> for batch in dataset:
+    >>>     inputs, references = batch
+    >>>     predictions = model(inputs)
+    >>>     metric.add_batch(predictions=predictions, references=references)
+    >>> score = metric.compute()
+
+Load configurations
+^^^^^^^^^^^^^^^^^^^
+
+It is possible to specify different configurations for a metric. The different configurations are stored in the :attr:`datasets.Metric.config_name` attribute. When you load a metric, provide the configuration name as shown in the following:
+
+    >>> from datasets import load_metric
+    >>> metric = load_metric('bleurt', name='bleurt-base-128')
+    >>> metric = load_metric('bleurt', name='bleurt-base-512')

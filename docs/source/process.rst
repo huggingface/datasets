@@ -371,3 +371,126 @@ Many datasets have splits that we can process simultaneously with :func:`dataset
     'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
+
+:class:`IterableDataset`
+------------------------
+
+An :class:`IterableDataset` is a unique instance of the classic :class:`datasets.Dataset`. The iterable Dataset results from when a dataset is loaded in streaming mode. This type of dataset has it's own set of processing methods shown below:
+
+.. note::
+
+    This type of Dataset is useful for iterative jobs such as training a model. You shouldn't use an iterable Dataset for jobs that require random access to examples.
+
+Shuffle
+^^^^^^^
+
+As with a regular Dataset object, you can also shuffle an iterable Dataset with :func:`datasets.IterableDataset.shuffle`. The ``buffer_size`` argument controls the size of the buffer to randomly sample examples from. For example, if your dataset has one million examples and you set the ``buffer_size`` to ten thousand, :func:`datasets.IterableDataset.shuffle` will randomly select examples from the first ten thousand examples in the buffer. Selected examples in the buffer are replaced by new examples.
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
+    >>> shuffled_dataset = dataset.shuffle(buffer_size=10_000, seed=42)
+
+.. tip::
+
+    For datasets that are sharded into multiple files, :func:`datasets.IterableDataset.shuffle` will also shuffle the order of the shards.
+
+Reshuffle
+^^^^^^^^^
+
+Sometimes you may want to reshuffle the dataset after each epoch, so you will need to set a different seed. Use ``set_epoch()`` in between epochs to tell the dataset what epoch you're on. This way, the data will be shuffled using a seed of ``initial seed + current epoch``:
+
+    >>> for epoch in range(epochs):
+    ...     shuffled_dataset.set_epoch(epoch)
+    ...     for example in shuffled_dataset:
+    ...         ...
+
+Split dataset
+^^^^^^^^^^^^^
+
+You can split your dataset one of two ways: :func:`datasets.IterableDataset.take`, or :func:`datasets.IterableDataset.skip`.
+
+1. :func:`datasets.IterableDataset.take` returns the first ``n`` examples in a dataset:
+
+    >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
+    >>> dataset_head = dataset.take(2)
+    >>> list(dataset_head)
+    [{'id': 0, 'text': 'Mtendere Village was...'}, '{id': 1, 'text': 'Lily James cannot fight the music...'}]
+
+2. :func:`datasets.IterableDataset.skip` omits the first ``n`` examples in a dataset and returns the remaining examples:
+
+    >>> train_dataset = shuffled_dataset.skip(1000)
+
+.. important::
+
+    ``take`` and ``skip`` prevents future calls to ``shuffle`` because they lock in the order of the shards. You should ``shuffle`` your dataset before splitting it.
+
+Mix
+^^^
+
+Iterable Datasets can also be mixed together with :func:`datasets.interleave_datasets`. The mixed dataset returns alternating examples from each of the original datasets. 
+
+    >>> from datasets import interleave_datasets
+    >>> from itertools import islice
+    >>> en_dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
+    >>> fr_dataset = load_dataset('oscar', "unshuffled_deduplicated_fr", split='train', streaming=True)
+    >>>
+    >>> multilingual_dataset = interleave_datasets([en_dataset, fr_dataset])
+    >>> print(list(islice(multilingual_dataset, 2)))
+    [{'text': 'Mtendere Village was inspired by the vision...}, {'text': "Média de débat d'idées, de culture et de littérature....}]
+
+For more control over how each of the original datasets are sampled and mixed, define sampling probabilities for each of the original datasets. In the following example, 80% of the final mixed dataset is in English and 20% is in French:
+
+    >>> multilingual_dataset_with_oversampling = interleave_datasets([en_dataset, fr_dataset], probabilities=[0.8, 0.2], seed=42)
+    >>> print(list(islice(multilingual_dataset_with_oversampling, 2)))
+    [{'text': 'Mtendere Village was inspired by the vision...}, {'text': 'Lily James cannot fight the music...}]
+
+Save and export
+---------------
+
+Once you are done processing your dataset, you can save and reuse it later. The following table shows which save method you should use depending on your Dataset object:
+
+.. list-table::
+    :header-rows: 1
+
+    * - Object type
+      - Save method
+    * - :obj:`datasets.Dataset`
+      - :func:`datasets.Dataset.save_to_disk`
+    * - :obj:`datasets.DatasetDict`
+      - :func:`datasets.DatasetDict.save_to_disk`
+
+Save your dataset by providing the path to the directory you wish to save it to:
+
+    >>> encoded_dataset.save_to_disk("path/of/my/dataset/directory")
+
+When you want to use it again, use :func:`load_from_disk` to reload the dataset:
+
+    >>> from datasets import load_from_disk
+    >>> reloaded_encoded_dataset = load_from_disk("path/of/my/dataset/directory")
+
+.. note::
+
+    Want to save your dataset to a cloud storage provider? Read our :doc:`Cloud Storage <./fss>` guide on how to save your dataset to AWS or Google Cloud Storage!
+
+Export
+^^^^^^
+
+Datasets supports exporting so you can work with your dataset in other applications. The following table shows currently supported file formats you can export as:
+
+.. list-table::
+    :header-rows: 1
+
+    * - File type
+      - Export method
+    * - CSV
+      - :func:`datasets.Dataset.to_csv`
+    * - JSON
+      - :func:`datasets.Dataset.to_json`
+    * - Parquet
+      - :func:`datasets.Dataset.to_parquet`
+    * - Python object
+      - :func:`datasets.Dataset.to_pandas` or :func:`datasets.Dataset.to_dict`
+
+For example, you can export your dataset to a CSV like this:
+
+    >>> encoded_dataset.to_csv("path/of/my/dataset/directory")

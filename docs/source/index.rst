@@ -1,7 +1,7 @@
 Datasets
 ========
 
-.. image:: /imgs/datasets.png
+.. image:: /imgs/datasets_logo.png
    :align: center
 
 Datasets is a library for easily accessing and sharing datasets, and evaluation metrics for Natural Language Processing (NLP). 
@@ -54,6 +54,7 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
     load_hub
     access
     use_dataset
+    metrics
     
 .. toctree::
     :hidden:
@@ -62,8 +63,11 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
     how-to
     loading
     process
+    how_to_metrics
     share
     cache
+    fss
+    faiss_es
 
 .. toctree::
     :hidden:
