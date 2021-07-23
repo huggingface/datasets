@@ -7,7 +7,7 @@ Once your dataset is processed, you often want to use it with a framework such a
 
 The format of a :class:`datasets.Dataset` instance defines which columns of the dataset are returned by the :func:`datasets.Dataset.__getitem__` method and cast them in PyTorch, Tensorflow, Numpy or Pandas types.
 
-By default, all the columns of the dataset are returned as python object. Setting a specific format allow to cast dataset examples as PyTorch/Tensorflow/Numpy/Pandas tensors, arrays or DataFrames and to filter out some columns. A typical examples is columns with strings which are usually not used to train a model and cannot be converted in PyTorch tensors. We may still want to keep them in the dataset though, for instance for the evaluation of the model so it's interesting to just "mask" them during model training.
+By default, all the columns of the dataset are returned as a python object. Setting a specific format allows to cast dataset examples as PyTorch/Tensorflow/Numpy/Pandas tensors, arrays or DataFrames and to filter out some columns. A typical examples is columns with strings which are usually not used to train a model and cannot be converted in PyTorch tensors. We may still want to keep them in the dataset though, for instance for the evaluation of the model so it's interesting to just "mask" them during model training.
 
 .. note::
     The format of the dataset has no effect on the internal table storing the data, it just dynamically change the view of the dataset and examples which is returned when calling :func:`datasets.Dataset.__getitem__`.
@@ -79,7 +79,7 @@ Here is how we can apply a format to a simple dataset using :func:`datasets.Data
     array([1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1,
            0, 1, 1, 1, 0, 0, 1, 1, 1, 0])>)
 
-In this examples we filtered out the string columns `sentence1` and `sentence2` since they cannot be converted easily as tensors (at least in PyTorch). As detailed above, we could still output them as python object by setting ``output_all_columns=True``.
+In this example we filtered out the string columns `sentence1` and `sentence2` since they cannot be converted easily as tensors (at least in PyTorch). As detailed above, we could still output them as python object by setting ``output_all_columns=True``.
 
 We can also pass ``**kwargs`` to the respective convert functions like ``np.array``, ``torch.tensor``, ``tensorflow.ragged.constant`` or ``jnp.array`` by adding keyword arguments to :func:`datasets.Dataset.set_format()`. For example, if we want the columns formatted as PyTorch CUDA tensors, we use the following:
 
@@ -97,6 +97,6 @@ Resetting the format to the default behavior (returning all columns as python ob
 Accessing the format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The current format of the dataset can be queried by accessing the :obj:`datasets.Dataset.format` property which return a dictionnary with the current values of the ``type``, ``columns`` and ``output_all_columns`` values.
+The current format of the dataset can be queried by accessing the :obj:`datasets.Dataset.format` property which returns a dictionary with the current values of the ``type``, ``columns`` and ``output_all_columns`` values.
 
 This dict can be stored and used as named argument inputs for :func:`datasets.Dataset.set_format` if necessary (``dataset.set_format(**dataset.format)``).
