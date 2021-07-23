@@ -259,6 +259,8 @@ Let's print the length of the ``sentence1`` value for each sample in our dataset
 
 .. code-block::
 
+    >>> from datasets.utils import disable_progress_bar
+    >>> disable_progress_bar()
     >>> small_dataset = dataset.select(range(10))
     >>> small_dataset
     Dataset(schema: {'sentence1': 'string', 'sentence2': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 10)
