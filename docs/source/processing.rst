@@ -128,12 +128,19 @@ The :func:`datasets.Dataset.train_test_split` has many ways to select the relati
 Sharding the dataset: ``shard``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Eventually, it's possible to "shard" the dataset, i.e. divide it in a deterministic list of dataset of (almost) the same size.
+Eventually, it's possible to "shard" the dataset, i.e. divide it in a deterministic list of datasets of (almost) the same size.
 
 The :func:`datasets.Dataset.shard` takes as arguments the total number of shards (:obj:`num_shards`) and the index of the currently requested shard (:obj:`index`)  and return a :class:`datasets.Dataset` instance constituted by the requested shard.
 
 This method can be used to slice a very large dataset in a predefined number of chunks.
 
+.. code-block::
+
+    >>> dataset_shard = dataset.shard(num_shards=40, index=3)
+    >>> print(dataset_shard.num_rows)
+    92
+    >>> print(dataset.num_rows /40)
+    91.7
 
 Renaming, removing, casting and flattening columns
 --------------------------------------------------
