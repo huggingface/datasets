@@ -262,7 +262,7 @@ Let's print the length of the ``sentence1`` value for each sample in our dataset
     >>> small_dataset = dataset.select(range(10))
     >>> small_dataset
     Dataset(schema: {'sentence1': 'string', 'sentence2': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 10)
-    >>> small_dataset.map(lambda example: print(len(example['sentence1'])), verbose=False)
+    >>> small_dataset.map(lambda example: print(len(example['sentence1'])))
     103
     89
     105
