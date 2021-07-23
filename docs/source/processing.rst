@@ -362,7 +362,7 @@ To this aim, the :obj:`remove_columns=List[str]` argument can be used and provid
 
 Columns to remove are removed **after** the example has been provided to the mapped function so that the mapped function can use the content of these columns before they are removed.
 
-Here is an example removing the ``sentence1`` column while adding a ``new_sentence`` column with the content of the ``new_sentence``. Said more simply, we are renaming the ``sentence1`` column as ``new_sentence``:
+Here is an example removing the ``sentence1`` column while adding a ``new_sentence`` column with the content of the ``sentence1``. Said more simply, we are renaming the ``sentence1`` column as ``new_sentence``:
 
 .. code-block::
 
@@ -396,7 +396,7 @@ Processing data in batches
 
 This is particularly interesting if you have a mapped function which can efficiently handle batches of inputs like the tokenizers of the fast `HuggingFace tokenizers library <https://github.com/huggingface/tokenizers>`__.
 
-To operate on batch of example, just set :obj:`batched=True` when calling :func:`datasets.Dataset.map` and provide a function with the following signature: :obj:`function(examples: Dict[List]) -> Dict[List]` or, if you use indices (:obj:`with_indices=True`): :obj:`function(examples: Dict[List], indices: List[int]) -> Dict[List])`.
+To operate on batch of examples, just set :obj:`batched=True` when calling :func:`datasets.Dataset.map` and provide a function with the following signature: :obj:`function(examples: Dict[List]) -> Dict[List]` or, if you use indices (:obj:`with_indices=True`): :obj:`function(examples: Dict[List], indices: List[int]) -> Dict[List])`.
 
 In other words, the mapped function should accept an input with the format of a slice of the dataset: :obj:`function(dataset[:10])`.
 
@@ -531,11 +531,11 @@ Since the Roberta model is quite large to run on a small laptop CPU, we will res
     ...         outputs += [sentence] + augmented_sequences
     ...     
     ...     return {'data': outputs}
-    ... 
+    
     >>> augmented_dataset = smaller_dataset.map(augment_data, batched=True, remove_columns=dataset.column_names, batch_size=8)
     >>> len(augmented_dataset)
     400
-    >>> augmented_dataset[:9]['data']
+    >>> augmented_dataset[:8]['data']
     ['Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
      'Amrozi accused his brother, whom he called " the witness ", of deliberately withholding his evidence.',
      'Amrozi accused his brother, whom he called " the witness ", of deliberately suppressing his evidence.',
@@ -572,8 +572,6 @@ You can directly call map, filter, shuffle, and sort directly on a :obj:`dataset
      'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
      'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
-
-This concludes our chapter on data processing with 🤗 Datasets (and 🤗 Transformers).
 
 Concatenate several datasets
 ----------------------------
@@ -641,8 +639,7 @@ This is possible thanks to a custom hashing function that works with most python
 Fingerprinting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The fingerprint of a dataset in a given state is an internal value computed by combining the fingerprint of the previous state and a hash of the latest transform that was applied. (Transforms are all the processing method for transforming a dataset that we listed in this chapter (:func:`datasets.Dataset.map`, :func:`datasets.Dataset.shuffle`, etc)
-The initial fingerprint is computed using a hash of the arrow table, or a hash of the arrow files if the dataset lives on disk.
+The fingerprint of a dataset in a given state is an internal value computed by combining the fingerprint of the previous state and a hash of the latest transform that was applied (transforms are all the processing methods for transforming a dataset that we listed in this chapter: :func:`datasets.Dataset.map`, :func:`datasets.Dataset.shuffle`, etc). The initial fingerprint is computed using a hash of the arrow table, or a hash of the arrow files if the dataset lives on disk.
 
 For example:
 
@@ -654,7 +651,7 @@ For example:
     >>> print(dataset1._fingerprint, dataset2._fingerprint)
     d19493523d95e2dc 5b86abacd4b42434
 
-The new fingerprint is a combination of the previous fingerprint and the hash of the given transform. For a transform to be hashable, it needs to be picklable using dill or pickle. In particular for :func:`datasets.Dataset.map`, you need to provide a picklable processing method to apply on the dataset so that a determinist fingerprint can be computed by hashing the full state of the provided method (the fingerprint is computed taking into account all the dependencies of the method you provide). 
+The new fingerprint is a combination of the previous fingerprint and the hash of the given transform. For a transform to be hashable, it needs to be pickleable using `dill <https://dill.readthedocs.io/en/latest/>`_ or `pickle <https://docs.python.org/3/library/pickle.html>`_. In particular for :func:`datasets.Dataset.map`, you need to provide a pickleable processing method to apply on the dataset so that a determinist fingerprint can be computed by hashing the full state of the provided method (the fingerprint is computed taking into account all the dependencies of the method you provide).
 For non-hashable transform, a random fingerprint is used and a warning is raised.
 Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work.
 If you reuse a non-hashable transform, the caching mechanism will consider it to be different from the previous calls and recompute everything.
@@ -669,12 +666,12 @@ It is also possible to disable caching globally with :func:`datasets.set_caching
 
 If the caching is disabled, the library will no longer reload cached dataset files when applying transforms to the datasets.
 More precisely, if the caching is disabled:
+
 - cache files are always recreated
 - cache files are written to a temporary directory that is deleted when session closes
 - cache files are named using a random hash instead of the dataset fingerprint
 - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
-- caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
-the ``download_mode`` parameter in :func:`datasets.load_dataset`.
+- caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use the ``download_mode`` parameter in :func:`datasets.load_dataset`.
 
 To disable caching you can run:
 
