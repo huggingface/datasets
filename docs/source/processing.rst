@@ -304,7 +304,7 @@ Let's add a prefix ``'My sentence: '`` to each ``sentence1`` value in our small 
     >>> def add_prefix(example):
     ...     example['sentence1'] = 'My sentence: ' + example['sentence1']
     ...     return example
-    ...
+    
     >>> updated_dataset = small_dataset.map(add_prefix)
     >>> updated_dataset['sentence1'][:5]
     ['My sentence: Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
@@ -485,7 +485,7 @@ We will also remove all the columns of the dataset and only keep the chunks in o
     ...     for sentence in examples['sentence1']:
     ...         chunks += [sentence[i:i + 50] for i in range(0, len(sentence), 50)]
     ...     return {'chunks': chunks}
-    ... 
+    
     >>> chunked_dataset = dataset.map(chunk_examples, batched=True, remove_columns=dataset.column_names)
     >>> chunked_dataset
     Dataset(schema: {'chunks': 'string'}, num_rows: 10470)
@@ -607,7 +607,6 @@ Saving a dataset creates a directory with various files:
 .. code-block::
 
     >>> encoded_dataset.save_to_disk("path/of/my/dataset/directory")
-    >>> ...
     >>> from datasets import load_from_disk
     >>> reloaded_encoded_dataset = load_from_disk("path/of/my/dataset/directory")
 
@@ -695,17 +694,18 @@ In a distributed setting, you may use caching and a :func:`torch.distributed.bar
 
     >>> from datasets import Dataset
     >>> import torch.distributed
-    >>> 
+    
     >>> dataset1 = Dataset.from_dict({"a": [0, 1, 2]})
-    >>> 
+    
     >>> if training_args.local_rank > 0:
     ...     print("Waiting for main process to perform the mapping")
     ...     torch.distributed.barrier()
-    >>> 
+    
     >>> dataset2 = dataset1.map(lambda x: {"a": x["a"] + 1})
     >>> 
     >>> if training_args.local_rank == 0:
     ...     print("Loading results from main process")
     ...     torch.distributed.barrier()
+    
 
 When it encounters a barrier, each process will stop until all other processes have reached the barrier. The non-main processes reach the barrier first, before the mapping, and wait there. The main processes creates the cache for the processed dataset. It then reaches the barrier, at which point the other processes resume, and load the cache instead of performing the processing themselves.
