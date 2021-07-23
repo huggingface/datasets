@@ -231,25 +231,25 @@ languages:
   os:
   - os
   other-bat-smg:
-  - other-bat-smg
+  - sgs
   other-be-x-old:
-  - other-be-x-old
+  - be-tarask
   other-cbk-zam:
-  - other-cbk-zam
+  - cbk
   other-eml:
-  - other-eml
+  - eml
   other-fiu-vro:
-  - other-fiu-vro
+  - vro
   other-map-bms:
-  - other-map-bms
+  - jv-x-bms
   other-simple:
-  - other-simple
+  - en-basiceng
   other-zh-classical:
-  - other-zh-classical
+  - lzh
   other-zh-min-nan:
-  - other-zh-min-nan
+  - nan
   other-zh-yue:
-  - other-zh-yue
+  - yue
   pa:
   - pa
   pdc:
