@@ -105,7 +105,7 @@ You can filter rows according to a list of indices (:func:`datasets.Dataset.sele
 Splitting the dataset in train and test split: ``train_test_split``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This method is adapted from scikit-learn celebrated :obj:`train_test_split` method with the omission of the stratified options.
+This method is adapted from scikit-learn celebrated: obj:`train_test_split` `method <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html>` with the omission of the stratified options.
 
 You can select the test and train sizes as relative proportions or absolute number of samples.
 
