@@ -13,7 +13,7 @@ Compatible with NumPy, Pandas, PyTorch and TensorFlow
 - Lightweight and fast with a transparent and pythonic API
 - Strive on large datasets: 🤗 Datasets naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
 - Smart caching: never wait for your data to process several times
-- 🤗 Datasets currently provides access to ~1,000 datasets and ~30 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the live `🤗 Datasets viewer <https://huggingface.co/datasets/viewer/>`.
+- 🤗 Datasets currently provides access to ~1,000 datasets and ~30 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the live `🤗 Datasets viewer <https://huggingface.co/datasets/viewer/>`_.
 
 🤗 Datasets originated from a fork of the awesome TensorFlow Datasets and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section Main differences between 🤗 Datasets and `tfds`.
 
