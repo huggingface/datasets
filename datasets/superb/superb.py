@@ -287,11 +287,12 @@ class SdData:
         ret = {}
         if not os.path.exists(segments_file):
             return None
-        for line in open(segments_file):
-            utt, rec, st, et = line.strip().split()
-            if rec not in ret:
-                ret[rec] = []
-            ret[rec].append({"utt": utt, "st": float(st), "et": float(et)})
+        with open(segments_file, encoding="utf-8") as f:
+            for line in f:
+                utt, rec, st, et = line.strip().split()
+                if rec not in ret:
+                    ret[rec] = []
+                ret[rec].append({"utt": utt, "st": float(st), "et": float(et)})
         return ret
 
     def _load_wav_zip(self, wav_dir):
@@ -302,21 +303,24 @@ class SdData:
 
     def _load_utt2spk(self, utt2spk_file):
         """Returns dictionary { uttid: spkid }."""
-        lines = [line.strip().split(None, 1) for line in open(utt2spk_file)]
+        with open(utt2spk_file, encoding="utf-8") as f:
+            lines = [line.strip().split(None, 1) for line in f]
         return {x[0]: x[1] for x in lines}
 
     def _load_spk2utt(self, spk2utt_file):
         """Returns dictionary { spkid: list of uttids }."""
         if not os.path.exists(spk2utt_file):
             return None
-        lines = [line.strip().split() for line in open(spk2utt_file)]
+        with open(spk2utt_file, encoding="utf-8") as f:
+            lines = [line.strip().split() for line in f]
         return {x[0]: x[1:] for x in lines}
 
     def _load_reco2dur(self, reco2dur_file):
         """Returns dictionary { recid: duration }."""
         if not os.path.exists(reco2dur_file):
             return None
-        lines = [line.strip().split(None, 1) for line in open(reco2dur_file)]
+        with open(reco2dur_file, encoding="utf-8") as f:
+            lines = [line.strip().split(None, 1) for line in f]
         return {x[0]: float(x[1]) for x in lines}
 
 
