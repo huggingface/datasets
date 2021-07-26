@@ -316,16 +316,14 @@ def _generate_chunk_indices(data, args):
         data_len = int(data_len / args.subsampling)
         # TODO: if mode == "test":
         for st, ed in _gen_frame_indices(
-                data_len,
-                args.chunk_size,
-                args.chunk_size,
-                args.use_last_samples,
-                label_delay=args.label_delay,
-                subsampling=args.subsampling,
+            data_len,
+            args.chunk_size,
+            args.chunk_size,
+            args.use_last_samples,
+            label_delay=args.label_delay,
+            subsampling=args.subsampling,
         ):
-            chunk_indices.append(
-                (rec, st * args.subsampling, ed * args.subsampling)
-            )
+            chunk_indices.append((rec, st * args.subsampling, ed * args.subsampling))
     return chunk_indices
 
 
