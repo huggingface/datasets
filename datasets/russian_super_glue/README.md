@@ -506,7 +506,8 @@ An example of 'test' looks as follows
 
 #### RUSSE
 - `idx`: an `int32` feature
-- `label` : a classification label, with possible values `0`, `1`
+- `label` : a classification label, with possible values `False` (0), `True` (1) (whether a given `word` used in the
+  same sense in both sentences)
 - `word`: a `string` feature
 - `sentence1`: a `string` feature
 - `sentence2`: a `string` feature

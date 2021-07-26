@@ -310,6 +310,7 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             ],
             data_url="https://russiansuperglue.com/tasks/download/RUSSE",
             citation=_RUSSE_CITATION,
+            label_classes=["False", "True"],
             url="https://russiansuperglue.com/tasks/task_info/RUSSE",
         ),
         RussianSuperGlueConfig(
