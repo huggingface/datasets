@@ -327,6 +327,11 @@ def _generate_chunk_indices(data, args):
     return chunk_indices
 
 
+def _count_frames(data_len, size, step):
+    # no padding at edges, last remaining samples are ignored
+    return int((data_len - size + step) / step)
+
+
 def _gen_frame_indices(data_length, size=2000, step=2000, use_last_samples=False, label_delay=0, subsampling=1):
     i = -1
     for i in range(_count_frames(data_length, size, step)):
@@ -336,9 +341,13 @@ def _gen_frame_indices(data_length, size=2000, step=2000, use_last_samples=False
             yield (i + 1) * step, data_length
 
 
-def _count_frames(data_len, size, step):
-    # no padding at edges, last remaining samples are ignored
-    return int((data_len - size + step) / step)
+def _gen_chunk_indices(data_len, chunk_size):
+    step = chunk_size
+    start = 0
+    while start < data_len:
+        end = min(data_len, start + chunk_size)
+        yield start, end
+        start += step
 
 
 def _get_speakers(rec, data):
