@@ -331,3 +331,10 @@ def _gen_frame_indices(data_length, size=2000, step=2000, use_last_samples=False
 def _count_frames(data_len, size, step):
     # no padding at edges, last remaining samples are ignored
     return int((data_len - size + step) / step)
+
+
+def _get_speakers(rec, data):
+    return [
+        {"start": segment["st"], "end": segment["et"], "speaker_id": data.utt2spk[segment["utt"]]}
+        for segment in data.segments[rec]
+    ]
