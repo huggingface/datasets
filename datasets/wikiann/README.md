@@ -422,7 +422,15 @@ WikiANN (sometimes called PAN-X) is a multilingual named entity recognition data
 
 ### Data Instances
 
-[More Information Needed]
+This is an example in the "train" split of the "af" (Afrikaans language) configuration subset:
+```python
+{
+  'tokens': ['Sy', 'ander', 'seun', ',', 'Swjatopolk', ',', 'was', 'die', 'resultaat', 'van', '’n', 'buite-egtelike', 'verhouding', '.'],
+  'ner_tags': [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  'langs': ['af', 'af', 'af', 'af', 'af', 'af', 'af', 'af', 'af', 'af', 'af', 'af', 'af', 'af'],
+  'spans': ['PER: Swjatopolk']
+}
+```
 
 ### Data Fields
 
