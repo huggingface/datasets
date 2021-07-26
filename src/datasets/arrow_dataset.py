@@ -3543,6 +3543,47 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         return self
 
+    def update_elasticsearch_documents(
+        self,
+        body: Optional[dict] = None,
+        host: str = "localhost",
+        port: int = 9200,
+        es_client: Optional["elasticsearch.Elasticsearch"] = None,  # noqa: F821
+        es_index_name: str = "_all",
+        **kwargs,
+    ):
+        """Update documents matching a query for a given index.
+
+        The `kwargs` are the parameters for [`update_by_query`](https://elasticsearch-py.readthedocs.io/en/master/api.html#elasticsearch.Elasticsearch.update_by_query)
+        (excluding `body`).
+
+        Args:
+            body (:obj:`dict`):
+                The DSL query used for the update.
+            host (Optional :obj:`str`, defaults to localhost):
+                host of where ElasticSearch is running.
+            port (Optional :obj:`str`, defaults to 9200):
+                port of where ElasticSearch is running.
+            es_client (Optional :obj:`elasticsearch.Elasticsearch`):
+                The elasticsearch client used to update the documents.
+                If None, host and port will be used.
+            es_index_name (:obj:`str`):
+                The index_name/identifier of the index.
+                Pass `_all` or comma-separated names for multiple.
+                Defaults to `_all`, use all indexes.
+
+        Example:
+            .. code-block:: python
+
+                es_client = elasticsearch.Elasticsearch()
+                ds = datasets.load_dataset('crime_and_punish', split='train')
+                ds.update_elasticsearch_documents(body={}, es_client=es_client)
+        """
+        super().update_elasticsearch_documents(
+            body=body, host=host, port=port, es_client=es_client, es_index_name=es_index_name, **kwargs
+        )
+        return self
+
     @transmit_format
     @fingerprint_transform(inplace=False)
     def add_item(self, item: dict, new_fingerprint: str):

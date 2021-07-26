@@ -4,11 +4,11 @@ from hashlib import sha256
 from typing import List
 
 from .csv import csv
+from .elasticsearch import elasticsearch
 from .json import json
 from .pandas import pandas
 from .parquet import parquet
 from .text import text
-from .elasticsearch import elasticsearch
 
 
 def hash_python_lines(lines: List[str]) -> str:

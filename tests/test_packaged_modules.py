@@ -5,8 +5,8 @@ import pyarrow as pa
 import pytest
 
 from datasets.packaged_modules.csv.csv import Csv
-from datasets.packaged_modules.text.text import Text
 from datasets.packaged_modules.elasticsearch.elasticsearch import ElasticsearchBuilder
+from datasets.packaged_modules.text.text import Text
 
 
 @pytest.fixture
@@ -80,14 +80,13 @@ def test_text_linebreaks(text_file, keep_linebreaks):
 
 
 def test_elasticsearch_builder():
-    es_index_config = \
-        {
-            "settings": {
-                "number_of_shards": 1,
-                "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_catalan_"}}},
-            },
-            "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
-        }
+    es_index_config = {
+        "settings": {
+            "number_of_shards": 1,
+            "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_catalan_"}}},
+        },
+        "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
+    }
 
     elasticsearch_builder = ElasticsearchBuilder(
         host="localhost",
