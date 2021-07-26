@@ -319,6 +319,7 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             features=["text", "span1_index", "span2_index", "span1_text", "span2_text"],
             data_url="https://russiansuperglue.com/tasks/download/RWSD",
             citation="",
+            label_classes=["False", "True"],
             url="https://russiansuperglue.com/tasks/task_info/RWSD",
         ),
         RussianSuperGlueConfig(
@@ -327,6 +328,7 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             features=["question", "passage"],
             data_url="https://russiansuperglue.com/tasks/download/DaNetQA",
             citation=_DANETQA_CITATION,
+            label_classes=["False", "True"],
             url="https://russiansuperglue.com/tasks/task_info/DaNetQA",
         ),
         RussianSuperGlueConfig(

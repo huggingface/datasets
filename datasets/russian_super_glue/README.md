@@ -506,7 +506,7 @@ An example of 'test' looks as follows
 
 #### RUSSE
 - `idx`: an `int32` feature
-- `label` : a classification label, with possible values `False` (0), `True` (1) (whether a given `word` used in the
+- `label` : a classification label, with possible values `false` (0), `true` (1) (whether the given `word` used in the
   same sense in both sentences)
 - `word`: a `string` feature
 - `sentence1`: a `string` feature
@@ -521,7 +521,8 @@ An example of 'test' looks as follows
 #### RWSD
 
 - `idx`: an `int32` feature
-- `label` : a classification label, with possible values `0`, `1`
+- `label` : a classification label, with possible values `false` (0), `true` (1) (whether the given spans are
+  coreferential)
 - `text`: a `string` feature
 - `span1_index`: an `int32` feature
 - `span2_index`: an `int32` feature
@@ -531,7 +532,8 @@ An example of 'test' looks as follows
 
 #### DaNetQA
 - `idx`: an `int32` feature
-- `label` : a classification label, with possible values `false` (0), `true` (1)
+- `label` : a classification label, with possible values `false` (0), `true` (1) (yes/no answer to the `question` found
+  in the `passage`)
 - `question`: a `string` feature
 - `passage`: a `string` feature
 
