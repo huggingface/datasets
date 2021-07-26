@@ -200,6 +200,24 @@ The **answers** field contains two subfields: **text** and **answer_start**. Aft
         num_rows: 87599
     })
 
+Concatenate
+------------
+
+Separate datasets can be concatenated if they share the same column types. Concatenate datasets with :func:`datasets.concatenate_datasets`:
+
+   >>> from datasets import concatenate_datasets, load_dataset
+   >>>
+   >>> bookcorpus = load_dataset("bookcorpus", split="train")
+   >>> wiki = load_dataset("wikipedia", "20200501.en", split="train")
+   >>> wiki = wiki.remove_columns("title")  # only keep the text
+   >>>
+   >>> assert bookcorpus.features.type == wiki.features.type
+   >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
+
+.. seealso::
+
+    You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving datasets, and you can use it with :func:`datasets.interleave_datasets`.  See the ``IterableDataset`` section for an example of how it's used.
+
 ``map``
 -------
 
@@ -372,6 +390,26 @@ Many datasets have splits that we can process simultaneously with :func:`dataset
     'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
 
+Distributed usage
+^^^^^^^^^^^^^^^^^
+
+When you use :func:`datasets.Dataset.map` in a distributed setting, you should also use `torch.distributed.barrier <https://pytorch.org/docs/stable/distributed.html?highlight=barrier#torch.distributed.barrier>`_. This ensures the main process perform the mapping, while the other processes load the results, thereby avoiding duplicate work. The following example shows how you can use ``torch.distributed.barrier`` to synchronize the processes:
+
+   >>> from datasets import Dataset
+   >>> import torch.distributed
+   >>>
+   >>> dataset1 = Dataset.from_dict({"a": [0, 1, 2]})
+   >>>
+   >>> if training_args.local_rank > 0:
+   ...     print("Waiting for main process to perform the mapping")
+   ...     torch.distributed.barrier()
+   >>>
+   >>> dataset2 = dataset1.map(lambda x: {"a": x["a"] + 1})
+   >>>
+   >>> if training_args.local_rank == 0:
+   ...     print("Loading results from main process")
+   ...     torch.distributed.barrier()
+
 :class:`IterableDataset`
 ------------------------
 
@@ -409,14 +447,14 @@ Split dataset
 
 You can split your dataset one of two ways: :func:`datasets.IterableDataset.take`, or :func:`datasets.IterableDataset.skip`.
 
-1. :func:`datasets.IterableDataset.take` returns the first ``n`` examples in a dataset:
+* :func:`datasets.IterableDataset.take` returns the first ``n`` examples in a dataset:
 
     >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
     >>> dataset_head = dataset.take(2)
     >>> list(dataset_head)
     [{'id': 0, 'text': 'Mtendere Village was...'}, '{id': 1, 'text': 'Lily James cannot fight the music...'}]
 
-2. :func:`datasets.IterableDataset.skip` omits the first ``n`` examples in a dataset and returns the remaining examples:
+* :func:`datasets.IterableDataset.skip` omits the first ``n`` examples in a dataset and returns the remaining examples:
 
     >>> train_dataset = shuffled_dataset.skip(1000)
 
@@ -424,6 +462,7 @@ You can split your dataset one of two ways: :func:`datasets.IterableDataset.take
 
     ``take`` and ``skip`` prevents future calls to ``shuffle`` because they lock in the order of the shards. You should ``shuffle`` your dataset before splitting it.
 
+.. _mix_label:
 Mix
 ^^^
 
@@ -443,6 +482,37 @@ For more control over how each of the original datasets are sampled and mixed, d
     >>> multilingual_dataset_with_oversampling = interleave_datasets([en_dataset, fr_dataset], probabilities=[0.8, 0.2], seed=42)
     >>> print(list(islice(multilingual_dataset_with_oversampling, 2)))
     [{'text': 'Mtendere Village was inspired by the vision...}, {'text': 'Lily James cannot fight the music...}]
+
+Format
+------
+
+Another way to set the format is with :func:`datasets.Dataset.with_format`. This will return a new Dataset object with your specified format.
+
+    >>> dataset.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+
+If you need to reset the dataset to the original format, use :func:`datasets.Dataset.reset_format`:
+
+    >>> dataset.format
+    {'type': 'torch', 'format_kwargs': {}, 'columns': ['label'], 'output_all_columns': False}
+    >>> dataset.reset_format()
+    >>> dataset.format
+    {'type': 'python', 'format_kwargs': {}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
+
+Format transform
+^^^^^^^^^^^^^^^^
+
+You can also use :func:`datasets.Dataset.set_transform` to apply a custom formatting transform on-the-fly. This will replace any previously specified format. For example, you can use this method to tokenize and pad tokens on-the-fly:
+
+    >>> from transformers import BertTokenizer
+    >>> tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+    >>> def encode(batch):
+    >>>     return tokenizer(batch["sentence1"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
+    >>> dataset.set_transform(encode)
+    >>> dataset.format
+    {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
+    >>> dataset[:2]
+    {'input_ids': tensor([[  101,  2572,  3217, ... 102]]), 'token_type_ids': tensor([[0, 0, 0, ... 0]]), 'attention_mask': tensor([[1, 1, 1, ... 1]])}
+
 
 Save and export
 ---------------

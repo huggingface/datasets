@@ -26,22 +26,22 @@ The first step is to add some information, or attributes, about your dataset wit
 
 2. :obj:`datasets.DatasetInfo.features` defines the name and type of each column in your dataset. This will also provide the structure for each example, so you can create nested subfields in each column if you want. Take a look at the `reference <https://huggingface.co/docs/datasets/package_reference/main_classes.html#datasets.DatasetInfo>`_ for a full list of feature types you can use.
 
-    .. code-block::
+   .. code-block::
 
-        datasets.Features(
-            {
-                "id": datasets.Value("string"),
-                "title": datasets.Value("string"),
-                "context": datasets.Value("string"),
-                "question": datasets.Value("string"),
-                "answers": datasets.Sequence(
-                    {
-                        "text": datasets.Value("string"),
-                        "answer_start": datasets.Value("int32"),
-                    }
-                ),
-            }
-        )
+    datasets.Features(
+        {
+            "id": datasets.Value("string"),
+            "title": datasets.Value("string"),
+            "context": datasets.Value("string"),
+            "question": datasets.Value("string"),
+            "answers": datasets.Sequence(
+                {
+                    "text": datasets.Value("string"),
+                    "answer_start": datasets.Value("int32"),
+                }
+            ),
+        }
+    )
 
 3. :obj:`datasets.DatasetInfo.homepage` contains a URL to the datasets homepage so users can find more about detailed information about it.
 
@@ -81,7 +81,7 @@ Let's study the `SuperGLUE loading script <https://github.com/huggingface/datase
 
 1. Create a :class:`datasets.BuilderConfig` class with attributes about your dataset. These attributes can be the features of your dataset, label classes, and a URL to the data files.
 
-    .. code-block::
+   .. code-block::
 
         class SuperGlueConfig(datasets.BuilderConfig):
             """BuilderConfig for SuperGLUE."""
@@ -115,7 +115,7 @@ Let's study the `SuperGLUE loading script <https://github.com/huggingface/datase
 
 2. Add additional attributes to a configuration by sub-classing the base :class:`datasets.BuilderConfig`. This provides more flexibility for specifying the name and description of each configuration. These sub-classes should be listed under :obj:`datasets.DatasetBuilder.BUILDER_CONFIGS`:
 
-    .. code-block::
+   .. code-block::
 
         class SuperGlue(datasets.GeneratorBasedBuilder):
             """The SuperGLUE benchmark."""
@@ -144,7 +144,7 @@ Let's study the `SuperGLUE loading script <https://github.com/huggingface/datase
 
 3. Now, users can load a specific configuration of the dataset with the configuration ``name``:
 
-    .. code-block::
+   .. code-block::
 
         from datasets import load_dataset
         dataset = load_dataset('super_glue', 'boolq')
@@ -179,7 +179,7 @@ After you've defined the metadata of your dataset, the next step is to download 
 
 1. Create a dictionary of URLs in the loading script that point to the original SQuAD data files:
 
-    .. code-block::
+   .. code-block::
 
         _URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
             _URLS = {
@@ -261,7 +261,7 @@ Dataset metadata
 
 1. Run the following command to create the metadata file, ``dataset_infos.json``. This will also make sure your new dataset loading script works correctly.
 
-    .. code-block::
+   .. code-block::
 
         datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 
@@ -345,7 +345,7 @@ Each dataset should be accompanied with a Dataset card to promote responsible us
 
 1. Create a new Dataset card by opening the `online card creator <https://huggingface.co/datasets/card-creator/>`_, or manually copying the template:
 
-    .. code-block::
+   .. code-block::
 
         cp ./templates/README.md ./datasets/<your_dataset_name>/README.md
 
@@ -393,7 +393,7 @@ To share a canonical dataset:
 
 2. Clone your fork to your local disk, and add the base repository as a remote:
 
-    .. code-block::
+   .. code-block::
 
         git clone https://github.com/<your_Github_handle>/datasets
         cd datasets
@@ -401,13 +401,13 @@ To share a canonical dataset:
 
 3. Create a new branch to hold your changes. You can name the new branch using the short name of your dataset:
 
-    .. code-block::
+   .. code-block::
 
         git checkout -b my-new-dataset
 
 4. Set up a development environment by running the following command in a virtual environment:
 
-    .. code-block::
+   .. code-block::
 
         pip install -e ".[dev]"
 
@@ -415,14 +415,14 @@ To share a canonical dataset:
 
 6. Run `Black <https://black.readthedocs.io/en/stable/index.html>`_ and `isort <https://pycqa.github.io/isort/>`_ to tidy up your code and files:
 
-    .. code-block::
+   .. code-block::
 
         make style
         make quality
 
 7. Add your changes, and make a commit to record your changes locally. Then you can push the changes to your account:
 
-    .. code-block::
+   .. code-block::
 
         git add datasets/<my-new-dataset>
         git commit
@@ -437,25 +437,25 @@ Sharing a community dataset will require you to create an account on `hf.co <htt
 
 1. Make sure you are in the virtual environment where you installed Datasets, and run the following command:
 
-    .. code-block::
+   .. code-block::
 
         huggingface-cli login
 
 2. Login using your Datasets Hub credentials, and create a new dataset repository:
 
-    .. code-block::
+   .. code-block::
 
         huggingface-cli repo create your_dataset_name --type dataset
 
     If you want to create a repository under a specific organization, add the ``-organization`` flag:
 
-    .. code-block::
+   .. code-block::
 
         huggingface-cli repo create your_dataset_name --type dataset --organization your-org-name
 
 3. Install `Git LFS <https://git-lfs.github.com/>`_ and clone your repository:
 
-    .. code-block::
+   .. code-block::
 
         # Make sure you have git-lfs installed
         # (https://git-lfs.github.com/)
@@ -465,19 +465,19 @@ Sharing a community dataset will require you to create an account on `hf.co <htt
 
 4. Now is a good time to check your directory to ensure the only files you are uploading to the Hub are:
 
-    * ``README.md`` is a Dataset card that describes the datasets contents, creation, and usage.
+   * ``README.md`` is a Dataset card that describes the datasets contents, creation, and usage.
 
-    * ``your_dataset_name.py`` is your dataset loading script.
+   * ``your_dataset_name.py`` is your dataset loading script.
 
-    * ``dataset_infos.json`` contains the metadata about the dataset.
+   * ``dataset_infos.json`` contains the metadata about the dataset.
 
-    * ``dummy_data`` holds a small subset of data from the dataset for tests and preview.
+   * ``dummy_data`` holds a small subset of data from the dataset for tests and preview.
 
-    * Raw files of the dataset.
+   * Raw files of the dataset.
 
 5. It is important to add the large data files first with ``git lfs track`` or else you will encounter an error later when you push your files:
 
-    .. code-block::
+   .. code-block::
 
         cp /somewhere/data/*.json .
         git lfs track *.json
@@ -487,7 +487,7 @@ Sharing a community dataset will require you to create an account on `hf.co <htt
 
 6. Add the dataset loading script and metadata file:
 
-    .. code-block::
+   .. code-block::
 
         cp /somewhere/data/dataset_infos.json .
         cp /somewhere/data/load_script.py .
@@ -495,7 +495,7 @@ Sharing a community dataset will require you to create an account on `hf.co <htt
 
 7. Verify the files have been correctly staged, then you can commit and push your files:
 
-    .. code-block::
+   .. code-block::
 
         git status
         git commit -m "First version of the your_dataset_name dataset."
@@ -565,7 +565,7 @@ If your metric needs to download, or retrieve local files, you will need to use 
 
 1. You should provide a dictionary of URLs that point to the metric files:
 
-    .. code-block::
+   .. code-block::
 
         CHECKPOINT_URLS = {
         "bleurt-tiny-128": "https://storage.googleapis.com/bleurt-oss/bleurt-tiny-128.zip",
@@ -582,7 +582,7 @@ If your metric needs to download, or retrieve local files, you will need to use 
 
 2. The :func:`datasets.Metric._download_and_prepare` method will take the URLs and download the metric file specified:
 
-    .. code-block::
+   .. code-block::
 
         def _download_and_prepare(self, dl_manager):
 
@@ -610,7 +610,7 @@ The :func:`datasets.DatasetBuilder._compute` method defines how to compute a met
 
 1. Provide a method(s) for :func:`datasets.DatasetBuilder._compute` to calculate your metric:
 
-    .. code-block::
+   .. code-block::
 
         def simple_accuracy(preds, labels):
         return (preds == labels).mean().item()
@@ -635,7 +635,7 @@ The :func:`datasets.DatasetBuilder._compute` method defines how to compute a met
 
 2. Create :func:`datasets.DatasetBuilder._compute` with instructions for what metric to calculate for each configuration:
 
-    .. code-block::
+   .. code-block::
 
         def _compute(self, predictions, references):
             if self.config_name == "cola":

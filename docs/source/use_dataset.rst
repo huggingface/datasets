@@ -51,7 +51,8 @@ The format is set with :func:`datasets.Datasets.set_format()` which accepts thre
 
 After you set the format, wrap the dataset in a ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``.
 
-   >>> ## PYTORCH CODE
+.. tab:: PyTorch
+
    >>> import torch
    >>> from datasets import load_dataset
    >>> from transformers import AutoTokenizer
@@ -72,7 +73,9 @@ After you set the format, wrap the dataset in a ``torch.utils.data.DataLoader`` 
    'token_type_ids': tensor([[0, 0, 0,  ..., 0, 0, 0],
                            ...,
                            [0, 0, 0,  ..., 0, 0, 0]])}
-   >>> ## TENSORFLOW CODE
+
+.. tab:: TensorFlow
+
    >>> import tensorflow as tf
    >>> from datasets import load_dataset
    >>> from transformers import AutoTokenizer

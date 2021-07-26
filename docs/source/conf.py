@@ -42,7 +42,8 @@ extensions = [
     "sphinx_copybutton",
     "sphinxext.opengraph",
     "sphinx_panels",
-    "myst_parser"
+    "myst_parser",
+    "sphinx_inline_tabs"
 ]
 
 

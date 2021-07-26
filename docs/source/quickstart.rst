@@ -17,9 +17,8 @@ Begin by loading the `Microsoft Research Paraphrase Corpus (MRPC) <https://huggi
 
 Then import the pre-trained `BERT <https://huggingface.co/bert-base-cased>`_ model and its tokenizer from the `Transformers <https://huggingface.co/transformers/>`_ library.
 
-.. code-block::
+.. tab:: PyTorch
 
-    >>> ## PYTORCH CODE
     >>> from transformers import AutoModelForSequenceClassification, AutoTokenizer
     >>> model = AutoModelForSequenceClassification.from_pretrained('bert-base-cased')
     Some weights of the model checkpoint at bert-base-cased were not used when initializing BertForSequenceClassification: ['cls.predictions.bias', 'cls.predictions.transform.dense.weight', 'cls.predictions.transform.dense.bias', 'cls.predictions.decoder.weight', 'cls.seq_relationship.weight', 'cls.seq_relationship.bias', 'cls.predictions.transform.LayerNorm.weight', 'cls.predictions.transform.LayerNorm.bias']
@@ -28,7 +27,9 @@ Then import the pre-trained `BERT <https://huggingface.co/bert-base-cased>`_ mod
     Some weights of BertForSequenceClassification were not initialized from the model checkpoint at bert-base-cased and are newly initialized: ['classifier.weight', 'classifier.bias']
     You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
     >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
-    >>> ## TENSORFLOW CODE
+
+.. tab:: TensorFlow
+
     >>> from transformers import TFAutoModelForSequenceClassification, AutoTokenizer
     >>> model = TFAutoModelForSequenceClassification.from_pretrained("bert-base-cased")
     Some weights of the model checkpoint at bert-base-cased were not used when initializing TFBertForSequenceClassification: ['nsp___cls', 'mlm___cls']
@@ -77,9 +78,8 @@ Depending on whether you are using PyTorch or TensorFlow, you need to format the
    
 The last two steps are completed on the fly with :func:`datasets.Dataset.set_format`. After you set the format, wrap the dataset in ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``.
 
-.. code-block::
+.. tab:: PyTorch
 
-   >>> ## PYTORCH CODE
    >>> import torch
    >>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
    >>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
@@ -106,7 +106,9 @@ The last two steps are completed on the fly with :func:`datasets.Dataset.set_for
                         [0, 0, 0,  ..., 0, 0, 0],
                         [0, 0, 0,  ..., 0, 0, 0],
                         [0, 0, 0,  ..., 0, 0, 0]])}
-   >>> ## TENSORFLOW CODE
+
+.. tab:: TensorFlow
+
    >>> import tensorflow as tf
    >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
    >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
@@ -142,9 +144,8 @@ Train the model
 
 Lastly, create a training loop and begin training.
 
-.. code-block::
+.. tab:: PyTorch
 
-   >>> ## PYTORCH CODE
    >>> from tqdm import tqdm
    >>> device = 'cuda' if torch.cuda.is_available() else 'cpu' 
    >>> model.train().to(device)
@@ -159,7 +160,9 @@ Lastly, create a training loop and begin training.
    >>>         optimizer.zero_grad()
    >>>         if i % 10 == 0:
    >>>             print(f"loss: {loss}")
-   >>> ## TENSORFLOW CODE
+
+.. tab:: TensorFlow
+  
    >>> loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE, from_logits=True)
    >>> opt = tf.keras.optimizers.Adam(learning_rate=3e-5)
    >>> model.compile(optimizer=opt, loss=loss_fn, metrics=["accuracy"])

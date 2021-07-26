@@ -27,7 +27,7 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
     Practical guides to help you get the most out of Datasets for your use-case. Take a look at these guides for a demonstration on how to complete a specific task.
 
     ---
-    .. link-button:: cache
+    .. link-button:: arrow
         :type: ref
         :text: Conceptual guides
         :classes: btn-primary btn-block
@@ -63,11 +63,18 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
     how-to
     loading
     process
+    beam
     how_to_metrics
     share
     cache
     fss
     faiss_es
+
+.. toctree::
+    :hidden:
+    :caption: Conceptual guides
+
+    arrow
 
 .. toctree::
     :hidden:

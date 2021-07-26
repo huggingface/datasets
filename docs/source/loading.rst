@@ -117,47 +117,74 @@ Slice splits
 
 You already know how to load a specific split of a dataset. But if you want even more control over how to load a split, you can load a specific slice of your split. There are two options for slicing a split: using strings or ``ReadInstruction``. Strings are more compact and readable for simple cases, while ``ReadInstruction`` is easier to use with variable slicing parameters.
 
-Strings
-^^^^^^^
-
 Concatenate the ``train`` and ``test`` split by:
+
+.. tab:: String API
 
     >>> train_test_ds = datasets.load_dataset('bookcorpus', split='train+test')
 
+.. tab:: ReadInstruction
+
+    >>> ri = datasets.ReadInstruction('train') + datasets.ReadInstruction('test')
+    >>> train_test_ds = datasets.load_dataset('bookcorpus', split=ri)
+
 Select specific rows of the ``train`` split:
+
+.. tab:: String API
 
     >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split='train[10:20]')
 
+.. tab:: ReadInstruction
+
+    >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', from_=10, to=20, unit='abs'))
+
 Or select a percentage of the split with:
+
+.. tab:: String API
 
     >>> train_10pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]')
 
+.. tab:: ReadInstruction
+
+    >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', to=10, unit='%'))
+
 You can even select a combination of percentages of a split as shown in the following:
+
+.. tab:: String API
 
     >>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]+train[-80%:]')
 
+.. tab:: ReadInstruction
+
+    >>> ri = (datasets.ReadInstruction('train', to=10, unit='%') + datasets.ReadInstruction('train', from_=-80, unit='%'))
+    >>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split=ri)
+
 Datasets also supports creating cross-validated dataset splits:
 
-.. code-block::
+.. tab:: String API
 
-    # 10-fold cross-validation (see also next section on rounding behavior):
-    # The validation datasets are each going to be 10%:
-    # [0%:10%], [10%:20%], ..., [90%:100%].
-    # And the training datasets are each going to be the complementary 90%:
-    # [10%:100%] (for a corresponding validation set of [0%:10%]),
-    # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
-    # [0%:90%] (for a validation set of [90%:100%]).
-    >>> vals_ds = datasets.load_dataset('bookcorpus', split=[
-        f'train[{k}%:{k+10}%]' for k in range(0, 100, 10)
-    ])
-    >>> trains_ds = datasets.load_dataset('bookcorpus', split=[
-        f'train[:{k}%]+train[{k+10}%:]' for k in range(0, 100, 10)
-    ])
+    >>> # 10-fold cross-validation (see also next section on rounding behavior):
+    >>> # The validation datasets are each going to be 10%:
+    >>> # [0%:10%], [10%:20%], ..., [90%:100%].
+    >>> # And the training datasets are each going to be the complementary 90%:
+    >>> # [10%:100%] (for a corresponding validation set of [0%:10%]),
+    >>> # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
+    >>> # [0%:90%] (for a validation set of [90%:100%]).
+    >>> vals_ds = datasets.load_dataset('bookcorpus', split=[f'train[{k}%:{k+10}%]' for k in range(0, 100, 10)])
+    >>> trains_ds = datasets.load_dataset('bookcorpus', split=[f'train[:{k}%]+train[{k+10}%:]' for k in range(0, 100, 10)])
 
-``ReadInstruction``
-^^^^^^^^^^^^^^^^^^^
+.. tab:: ReadInstruction
 
-Can we do code tabs here with the String API?
+    >>> # 10-fold cross-validation (see also next section on rounding behavior):
+    >>> # The validation datasets are each going to be 10%:
+    >>> # [0%:10%], [10%:20%], ..., [90%:100%].
+    >>> # And the training datasets are each going to be the complementary 90%:
+    >>> # [10%:100%] (for a corresponding validation set of [0%:10%]),
+    >>> # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
+    >>> # [0%:90%] (for a validation set of [90%:100%]).
+    >>> vals_ds = datasets.load_dataset('bookcorpus', [datasets.ReadInstruction('train', from_=k, to=k+10, unit='%') for k in range(0, 100, 10)])
+    >>> trains_ds = datasets.load_dataset('bookcorpus', [(datasets.ReadInstruction('train', to=k, unit='%') + datasets.ReadInstruction('train', from_=k+10, unit='%')) for k in range(0, 100, 10)])
+
 
 Percent slicing and rounding
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -246,3 +273,28 @@ It is possible to specify different configurations for a metric. The different c
     >>> from datasets import load_metric
     >>> metric = load_metric('bleurt', name='bleurt-base-128')
     >>> metric = load_metric('bleurt', name='bleurt-base-512')
+
+Distributed setup
+^^^^^^^^^^^^^^^^^
+
+When you work in a distributed or parallel processing environment, loading and computing a metric can be tricky because these processes are executed on separate subsets of the data. Datasets supports distributed usage with a few additional arguments when you load a metric.
+
+For example, imagine you are training and evaluating eight parallel processes. Here's how you would load a metric in this distributed setting:
+
+1. Define the total numner of processes with the ``num_process`` argument.
+
+2. Set the process ``rank`` as an integer between 0 and ``num_process - 1``. 
+
+3. Load your metric with :func:`datasets.load_metric` with these arguments:
+
+   >>> from datasets import load_metric
+   >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=rank)
+
+.. tip::
+
+    Once you've loaded a metric for distributed usage, you can compute the metric as usual. Behind the scenes, :func:`datasets.Metric.compute` gathers all the predictions and references from the nodes, and computes the final metric.
+
+In some instances, you may have be simulatenously running multiple independent distributed evaluations on the same server and files. To avoid any conflicts, it is important to provide an ``experiment_id`` to distinguish the separate evaluations:
+
+   >>> from datasets import load_metric
+   >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=process_id,experiment_id="My_experiment_10")

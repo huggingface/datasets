@@ -4,7 +4,7 @@ Cache management
 When you download a dataset, the processing scripts and data are stored locally. This avoids having to download the whole dataset every time you use it.
 
 Cache directory
-^^^^^^^^^^^^^^^
+---------------
 
 The default cache directory is ``~/.cache/huggingface/datasets``. You can change the cache location by setting the shell environment variavle, ``HF_DATASETS_CACHE`` to another directory:
 
@@ -23,7 +23,7 @@ Similarly, you can control where the metric is cached with the ``cache_dir`` par
     >>> metric = load_metric('glue', 'mrpc', cache_dir="MY/CACHE/DIRECTORY")
 
 Download mode
-^^^^^^^^^^^^^
+-------------
 
 After you download a dataset, control how it is loaded by :func:`datasets.load_dataset` by setting the :obj:`download_mode` parameter. By default, Datasets will reuse a dataset if it exists. But if you need to use a fresh dataset, you can re-download the files:
 
@@ -33,7 +33,7 @@ After you download a dataset, control how it is loaded by :func:`datasets.load_d
 Refer to the `reference <https://huggingface.co/docs/datasets/package_reference/builder_classes.html#datasets.GenerateMode>`_ for a full list of download modes.
 
 Cache files
-^^^^^^^^^^^
+-----------
  
 You can clean up the cache files in the directory with :func:`datasets.Dataset.cleanup_cache_files`:
 
@@ -44,7 +44,7 @@ You can clean up the cache files in the directory with :func:`datasets.Dataset.c
     2
 
 Enable or disable caching
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 If you're using a cached file locally, it will automatically reload the dataset with any previous computations you applied to the dataset. You can disable this by setting the argument ``load_from_cache=False`` in :func:`datasets.Dataset.map`:
 
