@@ -308,22 +308,29 @@ class SdArgs:
     use_last_samples: bool = True
 
 
-def _generate_chunk_indices(data, args):
-    chunk_indices = []
+def _generate_chunk_indices(data, args, split=None):
+    chunk_indices = [] if split != "test" else {}
     # make chunk indices: filepath, start_frame, end_frame
     for rec in data.wavs:
         data_len = int(data.reco2dur[rec] * args.rate / args.frame_shift)
         data_len = int(data_len / args.subsampling)
-        # TODO: if mode == "test":
-        for st, ed in _gen_frame_indices(
-            data_len,
-            args.chunk_size,
-            args.chunk_size,
-            args.use_last_samples,
-            label_delay=args.label_delay,
-            subsampling=args.subsampling,
-        ):
-            chunk_indices.append((rec, st * args.subsampling, ed * args.subsampling))
+        if split == "test":
+            chunk_indices[rec] = []
+        if split != "test":
+            for st, ed in _gen_frame_indices(
+                data_len,
+                args.chunk_size,
+                args.chunk_size,
+                args.use_last_samples,
+                label_delay=args.label_delay,
+                subsampling=args.subsampling,
+            ):
+                chunk_indices.append((rec, st * args.subsampling, ed * args.subsampling))
+        else:
+            for st, ed in _gen_chunk_indices(data_len, args.chunk_size):
+                chunk_indices[rec].append(
+                    (rec, st * args.subsampling, ed * args.subsampling)
+                )
     return chunk_indices
 
 
