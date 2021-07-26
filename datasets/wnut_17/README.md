@@ -83,12 +83,23 @@ An example of 'train' looks as follows.
 
 ### Data Fields
 
-The data fields are the same among all splits.
-
-#### wnut_17
-- `id`: a `string` feature.
-- `tokens`: a `list` of `string` features.
-- `ner_tags`: a `list` of classification labels, with possible values including `O` (0), `B-corporation` (1), `I-corporation` (2), `B-creative-work` (3), `I-creative-work` (4).
+The data fields are the same among all splits:
+- `id` (`string`): ID of the example.
+- `tokens` (`list` of `string`): Tokens of the example text.
+- `ner_tags` (`list` of class labels): NER tags of the tokens (using IOB2 format), with possible values:
+  - 0: `O`
+  - 1: `B-corporation`
+  - 2: `I-corporation`
+  - 3: `B-creative-work`
+  - 4: `I-creative-work`
+  - 5: `B-group`
+  - 6: `I-group`
+  - 7: `B-location`
+  - 8: `I-location`
+  - 9: `B-person`
+  - 10: `I-person`
+  - 11: `B-product`
+  - 12: `I-product`
 
 ### Data Splits
 
