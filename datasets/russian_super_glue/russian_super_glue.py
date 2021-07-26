@@ -283,6 +283,7 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
             features=["paragraph", "question", "answer"],
             data_url="https://russiansuperglue.com/tasks/download/MuSeRC",
             citation=_MUSERC_CITATION,
+            label_classes=["False", "True"],
             url="https://russiansuperglue.com/tasks/task_info/MuSeRC",
         ),
         RussianSuperGlueConfig(

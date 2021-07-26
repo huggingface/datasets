@@ -498,7 +498,8 @@ An example of 'test' looks as follows
 
 #### MuSeRC
 - `idx`: an `int32` feature
-- `label` : a classification label, with possible values `0`, `1`
+- `label` : a classification label, with possible values `false` (0) , `true` (1) (does the provided `answer` contain 
+  a factual response to the `question`)
 - `paragraph`: a `string` feature
 - `question`: a `string` feature
 - `answer`: a `string` feature
