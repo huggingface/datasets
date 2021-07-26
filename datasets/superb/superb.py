@@ -370,6 +370,6 @@ def _gen_chunk_indices(data_len, chunk_size):
 
 def _get_speakers(rec, data):
     return [
-        {"start": segment["st"], "end": segment["et"], "speaker_id": data.utt2spk[segment["utt"]]}
+        {"speaker_id": data.utt2spk[segment["utt"]], "start": segment["st"], "end": segment["et"]}
         for segment in data.segments[rec]
     ]
