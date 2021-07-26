@@ -238,6 +238,16 @@ class Superb(datasets.GeneratorBasedBuilder):
             data = SdData(archive_path)
             args = SdArgs()
             chunk_indices = _generate_chunk_indices(data, args)
+            # TODO: if self.mode != "test":
+            for key, (rec, st, ed) in enumerate(chunk_indices):
+                speakers = _get_speakers(rec, data)
+                yield key, {
+                    "record_id": rec,
+                    "file": data.wavs[rec],
+                    "start": st,
+                    "end": ed,
+                    "speakers": speakers,
+                }
 
 
 class SdData:
