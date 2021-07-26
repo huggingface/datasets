@@ -475,7 +475,7 @@ An example of 'test' looks as follows
 #### RCB
 
 - `idx`: an `int32` feature
-- `label`: a classification label, with possible values `entailment` (0), `contraditction` (1), `neutral` (2)
+- `label`: a classification label, with possible values `entailment` (0), `contradiction` (1), `neutral` (2)
 - `premise`: a `string` feature
 - `hypothesis`: a `string` feature
 - `verb`: a `string` feature
