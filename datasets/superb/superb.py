@@ -208,12 +208,12 @@ class Superb(datasets.GeneratorBasedBuilder):
             archive_path = dl_manager.download_and_extract(_DL_URLS)
             return [
                 datasets.SplitGenerator(
-                    name=datasets.NamedSplit(split), gen_kwargs={"archive_path": archive_path[split]}
+                    name=datasets.NamedSplit(split), gen_kwargs={"archive_path": archive_path[split], "split": split}
                 )
                 for split in splits
             ]
 
-    def _generate_examples(self, archive_path):
+    def _generate_examples(self, archive_path, split=None):
         """Generate examples."""
         if self.config.name == "asr":
             transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
@@ -237,17 +237,30 @@ class Superb(datasets.GeneratorBasedBuilder):
         elif self.config.name == "sd":
             data = SdData(archive_path)
             args = SdArgs()
-            chunk_indices = _generate_chunk_indices(data, args)
-            # TODO: if self.mode != "test":
-            for key, (rec, st, ed) in enumerate(chunk_indices):
-                speakers = _get_speakers(rec, data)
-                yield key, {
-                    "record_id": rec,
-                    "file": data.wavs[rec],
-                    "start": st,
-                    "end": ed,
-                    "speakers": speakers,
-                }
+            chunk_indices = _generate_chunk_indices(data, args, split=split)
+            if split != "test":
+                for key, (rec, st, ed) in enumerate(chunk_indices):
+                    speakers = _get_speakers(rec, data)
+                    yield key, {
+                        "record_id": rec,
+                        "file": data.wavs[rec],
+                        "start": st,
+                        "end": ed,
+                        "speakers": speakers,
+                    }
+            else:
+                key = 0
+                for rec in chunk_indices:
+                    for rec, st, ed in chunk_indices[rec]:
+                        speakers = _get_speakers(rec, data)
+                        yield key, {
+                            "record_id": rec,
+                            "file": data.wavs[rec],
+                            "start": st,
+                            "end": ed,
+                            "speakers": speakers,
+                        }
+                        key += 1
 
 
 class SdData:
