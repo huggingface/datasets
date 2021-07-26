@@ -15,6 +15,7 @@ from .logging import get_logger
 
 logger = get_logger(__name__)
 BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll"]
+UNSUPPORTED_ARCHIVE_EXTENSIONS_FOR_STREAMING = ["tar", "xz", "rar", "zst"]
 
 
 def xjoin(a, *p):
@@ -108,7 +109,8 @@ class StreamingDownloadManager(object):
         return url_or_urls
 
     def _download(self, url_or_filename):
-        if is_relative_path(str(url_or_filename)):
+        url_or_filename = str(url_or_filename)
+        if is_relative_path(url_or_filename):
             # append the relative path to the base_path
             url_or_filename = url_or_path_join(self._base_path, url_or_filename)
         return url_or_filename
@@ -118,6 +120,7 @@ class StreamingDownloadManager(object):
         return urlpaths
 
     def _extract(self, urlpath):
+        urlpath = str(urlpath)
         protocol = self._get_extraction_protocol(urlpath)
         if protocol is None:
             # no extraction
@@ -129,14 +132,16 @@ class StreamingDownloadManager(object):
             return f"{protocol}://::{urlpath}"
 
     def _get_extraction_protocol(self, urlpath) -> Optional[str]:
-        path = urlpath.split("::")[0]
+        path = str(urlpath).split("::")[0]
         if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS:
             return None
         elif path.endswith(".gz") and not path.endswith(".tar.gz"):
             return "gzip"
         elif path.endswith(".zip"):
             return "zip"
-        raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
+        elif any(ext in path.split(".") for ext in UNSUPPORTED_ARCHIVE_EXTENSIONS_FOR_STREAMING):
+            raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
+        return None
 
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))

@@ -382,7 +382,7 @@ class DatasetBuilder:
             config_kwargs,
             custom_features=custom_features,
             use_auth_token=self.use_auth_token,
-            base_path=self.base_path,
+            base_path=self.base_path if self.base_path is not None else "",
         )
         is_custom = config_id not in self.builder_configs
         if is_custom:
@@ -913,8 +913,8 @@ class DatasetBuilder:
             raise ValueError(f"Builder {self.name} is not streamable.")
         if not config.AIOHTTP_AVAILABLE:
             raise ImportError(
-                f"To be able to use dataset streaming, you need to install dependencies like aiohttp "
-                f"using 'pip install datasets[streaming]' or 'pip install aiohttp' for instance"
+                "To be able to use dataset streaming, you need to install dependencies like aiohttp "
+                "using 'pip install datasets[streaming]' or 'pip install aiohttp' for instance"
             )
 
         from .utils.streaming_download_manager import StreamingDownloadManager

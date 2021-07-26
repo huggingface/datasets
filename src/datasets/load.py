@@ -16,6 +16,7 @@
 # Lint as: python3
 """Access datasets."""
 import filecmp
+import glob
 import importlib
 import inspect
 import json
@@ -54,6 +55,8 @@ from .utils.file_utils import (
     hf_github_url,
     hf_hub_url,
     init_hf_modules,
+    is_relative_path,
+    is_remote_url,
     url_or_path_join,
     url_or_path_parent,
 )
@@ -225,51 +228,110 @@ def get_imports(file_path: str):
     return imports
 
 
-def _resolve_data_files_in_directory(
-    path: str, patterns: Union[str, List[str], Dict], allowed_extensions: Optional[list] = _EXTENSION_TO_MODULE.keys()
-) -> Union[List[PurePath], Dict]:
+def _resolve_data_files_locally_or_by_urls(
+    base_path: str, patterns: Union[str, List[str], Dict], allowed_extensions: Optional[list] = None
+) -> Union[List[Path], Dict]:
+    """
+    Return the absolute paths to all the files that match the given patterns.
+    It also supports absolute paths in patterns.
+    If an URL is passed, it is returned as is."""
     data_files_ignore = ["README.md", "config.json"]
     if isinstance(patterns, str):
-        out = [
-            filepath
-            for filepath in Path(path).glob(patterns)
-            for suffix in filepath.suffixes
-            if filepath.name not in data_files_ignore and suffix[1:] in allowed_extensions
-            if filepath.match(patterns)
+        if is_remote_url(patterns):
+            return [patterns]
+        if is_relative_path(patterns):
+            glob_iter = list(Path(base_path).rglob(patterns))
+        else:
+            glob_iter = [Path(filepath) for filepath in glob.glob(patterns)]
+
+        matched_paths = [
+            filepath.resolve()
+            for filepath in glob_iter
+            if filepath.name not in data_files_ignore and not filepath.name.startswith(".") and filepath.is_file()
         ]
-        if all(special_character not in patterns for special_character in "?*[]") and not out:
-            raise FileNotFoundError(f"Unable to resolve data_file {patterns} at {path}")
+        if allowed_extensions is not None:
+            out = [
+                filepath
+                for filepath in matched_paths
+                if any(suffix[1:] in allowed_extensions for suffix in filepath.suffixes)
+            ]
+            if len(out) < len(matched_paths):
+                invalid_matched_files = list(set(matched_paths) - set(out))
+                logger.info(
+                    f"Some files matched the pattern '{patterns}' at {Path(base_path).resolve()} but don't have valid data file extensions: {invalid_matched_files}"
+                )
+        else:
+            out = matched_paths
+        if not out:
+            error_msg = f"Unable to resolve any data file that matches '{patterns}' at {Path(base_path).resolve()}"
+            if allowed_extensions is not None:
+                error_msg += f" with any supported extension {list(allowed_extensions)}"
+            raise FileNotFoundError(error_msg)
         return out
     elif isinstance(patterns, dict):
-        return {k: _resolve_data_files_in_directory(path, v) for k, v in patterns.items()}
+        return {
+            k: _resolve_data_files_locally_or_by_urls(base_path, v, allowed_extensions=allowed_extensions)
+            for k, v in patterns.items()
+        }
     else:
-        return sum([_resolve_data_files_in_directory(path, pattern) for pattern in patterns], [])
+        return sum(
+            [
+                _resolve_data_files_locally_or_by_urls(base_path, pattern, allowed_extensions=allowed_extensions)
+                for pattern in patterns
+            ],
+            [],
+        )
 
 
 def _resolve_data_files_in_dataset_repository(
     dataset_info: huggingface_hub.hf_api.DatasetInfo,
     patterns: Union[str, List[str], Dict],
-    allowed_extensions: Optional[list] = _EXTENSION_TO_MODULE.keys(),
+    allowed_extensions: Optional[list] = None,
 ) -> Union[List[PurePath], Dict]:
     data_files_ignore = ["README.md", "config.json"]
-    all_data_files = [
-        PurePath("/" + dataset_file.rfilename) for dataset_file in dataset_info.siblings
-    ]  # add a / at the beginning to make the pattern **/* match files at the root
     if isinstance(patterns, str):
-        out = [
+        all_data_files = [
+            PurePath("/" + dataset_file.rfilename) for dataset_file in dataset_info.siblings
+        ]  # add a / at the beginning to make the pattern **/* match files at the root
+        matched_paths = [
             filepath.relative_to("/")
             for filepath in all_data_files
-            for suffix in filepath.suffixes
-            if filepath.name not in data_files_ignore and suffix[1:] in allowed_extensions
-            if filepath.match(patterns)
+            if filepath.name not in data_files_ignore
+            and not filepath.name.startswith(".")
+            and filepath.match(patterns)
         ]
-        if all(special_character not in patterns for special_character in "?*[]") and not out:
-            raise FileNotFoundError(f"Unable to resolve data_file {patterns} in dataset repository {dataset_info.id}")
+        if allowed_extensions is not None:
+            out = [
+                filepath
+                for filepath in matched_paths
+                if any(suffix[1:] in allowed_extensions for suffix in filepath.suffixes)
+            ]
+            if len(out) < len(matched_paths):
+                invalid_matched_files = list(set(matched_paths) - set(out))
+                logger.info(
+                    f"Some files matched the pattern {patterns} in dataset repository {dataset_info.id} but don't have valid data file extensions: {invalid_matched_files}"
+                )
+        else:
+            out = matched_paths
+        if not out:
+            error_msg = f"Unable to resolve data_file {patterns} in dataset repository {dataset_info.id}"
+            if allowed_extensions is not None:
+                error_msg += f" with any supported extension {list(allowed_extensions)}"
+            raise FileNotFoundError(error_msg)
         return out
     elif isinstance(patterns, dict):
-        return {k: _resolve_data_files_in_dataset_repository(dataset_info, v) for k, v in patterns.items()}
+        return {
+            k: _resolve_data_files_in_dataset_repository(dataset_info, v, allowed_extensions=allowed_extensions)
+            for k, v in patterns.items()
+        }
     else:
-        return sum([_resolve_data_files_in_dataset_repository(dataset_info, pattern) for pattern in patterns], [])
+        return sum(
+            [
+                _resolve_data_files_in_dataset_repository(dataset_info, pattern, allowed_extensions=allowed_extensions)
+                for pattern in patterns
+            ],
+            [],
+        )
 
 
 def _infer_module_for_data_files(data_files: Union[PurePath, List[PurePath], Dict]) -> Optional[str]:
@@ -395,7 +457,9 @@ def prepare_module(
         local_path = path
         base_path = os.path.dirname(path)
     elif os.path.isdir(path):
-        resolved_data_files = _resolve_data_files_in_directory(path, data_files or "**/*")
+        resolved_data_files = _resolve_data_files_locally_or_by_urls(
+            path, data_files or "*", allowed_extensions=_EXTENSION_TO_MODULE.keys()
+        )
         infered_module_name = _infer_module_for_data_files(resolved_data_files)
         if not infered_module_name:
             raise FileNotFoundError(f"No data files found in local directory {path}")
@@ -460,7 +524,9 @@ def prepare_module(
                                 )
                             )
                         resolved_data_files = _resolve_data_files_in_dataset_repository(
-                            dataset_info, data_files if data_files is not None else "**/*"
+                            dataset_info,
+                            data_files if data_files is not None else "*",
+                            allowed_extensions=_EXTENSION_TO_MODULE.keys(),
                         )
                         infered_module_name = _infer_module_for_data_files(resolved_data_files)
                         if not infered_module_name:
@@ -811,7 +877,7 @@ def load_dataset_builder(
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)
 
-    # For packaged builder used to load data from a dataset repository
+    # For packaged builder used to load data from a dataset repository or dataset directory (no dataset script)
     if module_path.startswith("datasets.") and path not in _PACKAGED_DATASETS_MODULES:
         # Add a nice name to the configuratiom
         if name is None:
@@ -822,14 +888,18 @@ def load_dataset_builder(
             for extension in _EXTENSION_TO_MODULE
             if _EXTENSION_TO_MODULE[extension] == camelcase_to_snakecase(builder_cls.__name__)
         ]
-        data_files = data_files if data_files is not None else "**/*"
+        data_files = data_files if data_files is not None else "*"
         if base_path.startswith(config.HF_ENDPOINT):
             dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(path, revision=script_version, token=use_auth_token)
             data_files = _resolve_data_files_in_dataset_repository(
                 dataset_info, data_files, allowed_extensions=allowed_extensions
             )
         else:  # local dir
-            data_files = _resolve_data_files_in_directory(path, data_files, allowed_extensions=allowed_extensions)
+            data_files = _resolve_data_files_locally_or_by_urls(
+                path, data_files, allowed_extensions=allowed_extensions
+            )
+    elif path in _PACKAGED_DATASETS_MODULES:
+        data_files = _resolve_data_files_locally_or_by_urls(".", data_files)
 
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
