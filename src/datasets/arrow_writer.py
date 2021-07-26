@@ -376,9 +376,9 @@ class ArrowWriter:
         preventing a potential schema update of unknown types.
 
         Args:
-            example: the Example to add.
+            batch_examples: the batch of examples to add.
         """
-        if len(next(iter(batch_examples.values()))) == 0:
+        if batch_examples and len(next(iter(batch_examples.values()))) == 0:
             return
         schema = None if self.pa_writer is None and self.update_features else self._schema
         try_schema = self._schema if self.pa_writer is None and self.update_features else None
