@@ -62,11 +62,7 @@ The goal of this task is to provide a definition of emerging and of rare entitie
 
 ## Dataset Structure
 
-We show detailed information for up to 5 configurations of the dataset.
-
 ### Data Instances
-
-#### wnut_17
 
 - **Size of downloaded dataset files:** 0.76 MB
 - **Size of the generated dataset:** 1.66 MB
@@ -103,9 +99,9 @@ The data fields are the same among all splits:
 
 ### Data Splits
 
-| name  |train|validation|test|
-|-------|----:|---------:|---:|
-|wnut_17| 3394|      1009|1287|
+|train|validation|test|
+|----:|---------:|---:|
+| 3394|      1009|1287|
 
 ## Dataset Creation
 
