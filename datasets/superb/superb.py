@@ -341,9 +341,7 @@ def _generate_chunk_indices(data, args, split=None):
                 chunk_indices.append((rec, st * args.subsampling, ed * args.subsampling))
         else:
             for st, ed in _gen_chunk_indices(data_len, args.chunk_size):
-                chunk_indices[rec].append(
-                    (rec, st * args.subsampling, ed * args.subsampling)
-                )
+                chunk_indices[rec].append((rec, st * args.subsampling, ed * args.subsampling))
     return chunk_indices
 
 
