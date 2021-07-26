@@ -1,7 +1,24 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
 languages:
 - en
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
 paperswithcode_id: wnut-2017-emerging-and-rare-entity
+pretty_name: WNUT 17
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- structure-prediction
+task_ids:
+- named-entity-recognition
 ---
 
 # Dataset Card for "wnut_17"
