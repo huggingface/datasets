@@ -161,7 +161,17 @@ class Superb(datasets.GeneratorBasedBuilder):
             ),
             features=datasets.Features(
                 {
+                    "record_id": datasets.Value("string"),
                     "file": datasets.Value("string"),
+                    "start": datasets.Value("int64"),
+                    "end": datasets.Value("int64"),
+                    "speakers": [
+                        {
+                            "speaker_id": datasets.Value("string"),
+                            "start": datasets.Value("int64"),
+                            "end": datasets.Value("int64"),
+                        }
+                    ],
                 }
             ),  # TODO
             supervised_keys=None,  # TODO
