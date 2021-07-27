@@ -445,9 +445,9 @@ def prepare_module(
     #   -> use a packaged module (csv, text etc.) based on content of the directory
     # - if path has no "/" and is a module on github (in /datasets or in /metrics)
     #   -> use the module from the python file on github
-    # - if path has one "/" and is a module in a dataset repository on the HF hub with a python file
+    # - if path has one "/" and is dataset repository on the HF hub with a python file
     #   -> the module from the python file in the dataset repository
-    # - if path has one "/" and is a module in a dataset repository on the HF hub without a python file
+    # - if path has one "/" and is dataset repository on the HF hub without a python file
     #   -> use a packaged module (csv, text etc.) based on content of the repository
     combined_path = path if path.endswith(name) else os.path.join(path, name)
     if os.path.isfile(combined_path):
@@ -472,7 +472,7 @@ def prepare_module(
             output += (path,)
         return output
     else:
-        # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
+        # Try github (canonical datasets/metrics) and then HF Hub (community datasets)
 
         combined_path_abs = relative_to_absolute_path(combined_path)
         try:
@@ -508,10 +508,14 @@ def prepare_module(
                                 )
                             )
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
-                if dataset:
-                    file_path = hf_hub_url(path=path, name=name, version=script_version)
-                else:
-                    file_path = hf_bucket_url(path, filename=name, dataset=False)
+                file_path = hf_hub_url(path=path, name=name, version=script_version)
+                if not dataset:
+                    # We don't have community metrics on the HF Hub
+                    raise FileNotFoundError(
+                        "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
+                            combined_path_abs, file_path, "dataset" if dataset else "metric"
+                        )
+                    )
                 try:
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
@@ -885,7 +889,7 @@ def load_dataset_builder(
     if module_path.startswith("datasets.") and path not in _PACKAGED_DATASETS_MODULES:
         # Add a nice name to the configuratiom
         if name is None:
-            name = path.replace("/", "-").replace(os.sep, "-")
+            name = path.split("/")[-1].split(os.sep)[-1]
         # Resolve the data files
         allowed_extensions = [
             extension
@@ -903,6 +907,14 @@ def load_dataset_builder(
                 path, data_files, allowed_extensions=allowed_extensions
             )
     elif path in _PACKAGED_DATASETS_MODULES:
+        if data_files is None:
+            error_msg = f"Please specify the data files to load for the {path} dataset builder."
+            example_extensions = [
+                extension for extension in _EXTENSION_TO_MODULE if _EXTENSION_TO_MODULE[extension] == path
+            ]
+            if example_extensions:
+                error_msg += f'\nFor example `data_files={{"train": "path/to/data/train/*.{example_extensions[0]}"}}`'
+            raise ValueError(error_msg)
         data_files = _resolve_data_files_locally_or_by_urls(".", data_files)
 
     # Instantiate the dataset builder
