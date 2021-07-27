@@ -26,7 +26,7 @@ from datasets.load import (
     _resolve_data_files_locally_or_by_urls,
     prepare_module,
 )
-from datasets.utils.file_utils import DownloadConfig
+from datasets.utils.file_utils import DownloadConfig, is_remote_url
 
 from .utils import (
     OfflineSimulationMode,
@@ -34,7 +34,7 @@ from .utils import (
     assert_arrow_memory_increases,
     offline,
     require_streaming,
-    set_current_working_directory_to_temp_dir
+    set_current_working_directory_to_temp_dir,
 )
 
 
@@ -67,6 +67,7 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
 SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"
 SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
+SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
 
 
 @pytest.fixture
@@ -107,7 +108,7 @@ def dataset_loading_script_dir(tmp_path):
     return str(script_dir)
 
 
-class LoadTest:
+class LoadTest(TestCase):
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
         self._caplog = caplog
@@ -243,7 +244,9 @@ def test_load_dataset_builder_for_relative_script_dir(dataset_loading_script_dir
 
 
 def test_load_dataset_builder_for_script_path(dataset_loading_script_dir, data_dir):
-    builder = datasets.load_dataset_builder(os.path.join(dataset_loading_script_dir, DATASET_LOADING_SCRIPT_NAME + ".py"), data_dir=data_dir)
+    builder = datasets.load_dataset_builder(
+        os.path.join(dataset_loading_script_dir, DATASET_LOADING_SCRIPT_NAME + ".py"), data_dir=data_dir
+    )
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == DATASET_LOADING_SCRIPT_NAME
     assert builder.info.features == Features({"text": Value("string")})
@@ -307,11 +310,10 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             assert len(dataset) == 2
             assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
-        datasets.load_dataset("_dummy")
-    m_combined_path = re.search(fr"\S*{re.escape(os.path.join('_dummy', '_dummy.py'))}\b", str(exc_info.value))
-    assert m_combined_path is not None and os.path.isabs(m_combined_path.group())
-    m_path = re.search(r"\S*_dummy\b", str(exc_info.value))
-    assert m_path is not None and os.path.isabs(m_path.group())
+        datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
+    m_combined_path = re.search(fr"http\S*{re.escape(os.path.join(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST, SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py'))}\b", str(exc_info.value))
+    assert m_combined_path is not None and is_remote_url(m_combined_path.group())
+    assert os.path.abspath(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST) in str(exc_info.value)
 
 
 @require_streaming

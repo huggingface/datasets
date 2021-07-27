@@ -448,8 +448,16 @@ def prepare_module(
     #   -> the module from the python file in the dataset repository
     # - if path has one "/" and is dataset repository on the HF hub without a python file
     #   -> use a packaged module (csv, text etc.) based on content of the repository
-    combined_path = path if path.endswith(name) else os.path.join(path, name)
-    if os.path.isfile(combined_path):
+    resource_type = "dataset" if dataset else "metric"
+    combined_path = os.path.join(path, name)
+    if path.endswith(name):
+        if os.path.isfile(path):
+            file_path = path
+            local_path = path
+            base_path = os.path.dirname(path)
+        else:
+            raise FileNotFoundError(f"Couldn't find a {resource_type} script at {relative_to_absolute_path(path)}")
+    elif os.path.isfile(combined_path):
         file_path = combined_path
         local_path = combined_path
         base_path = path
@@ -463,7 +471,7 @@ def prepare_module(
         )
         infered_module_name = _infer_module_for_data_files(resolved_data_files)
         if not infered_module_name:
-            raise FileNotFoundError(f"No data files found in local directory {path}")
+            raise FileNotFoundError(f"No data files or {resource_type} script found in local directory {path}")
         output = prepare_packaged_module(infered_module_name)
         if return_resolved_file_path:
             output += (None,)
@@ -474,6 +482,7 @@ def prepare_module(
         # Try github (canonical datasets/metrics) and then HF Hub (community datasets)
 
         combined_path_abs = relative_to_absolute_path(combined_path)
+        expected_dir_for_combined_path_abs = os.path.dirname(combined_path_abs)
         try:
             head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
             script_version = str(script_version) if script_version is not None else None
@@ -484,9 +493,8 @@ def prepare_module(
                 except FileNotFoundError:
                     if script_version is not None:
                         raise FileNotFoundError(
-                            "Couldn't find remote file with version {} at {}. Please provide a valid version and a valid {} name.".format(
-                                script_version, file_path, "dataset" if dataset else "metric"
-                            )
+                            f"Couldn't find a directory or a {resource_type} named '{path}' using version {script_version}. "
+                            f"It doesn't exist locally at {expected_dir_for_combined_path_abs} or remotely at {file_path}"
                         )
                     else:
                         github_file_path = file_path
@@ -494,69 +502,55 @@ def prepare_module(
                         try:
                             local_path = cached_path(file_path, download_config=download_config)
                             logger.warning(
-                                "Couldn't find file locally at {}, or remotely at {}.\n"
-                                "The file was picked from the master branch on github instead at {}.".format(
-                                    combined_path_abs, github_file_path, file_path
-                                )
+                                f"Couldn't find a directory or a {resource_type} named '{path}'. "
+                                f"It was picked from the master branch on github instead at {file_path}"
                             )
                         except FileNotFoundError:
                             raise FileNotFoundError(
-                                "Couldn't find file locally at {}, or remotely at {}.\n"
-                                "The file is also not present on the master branch on github.".format(
-                                    combined_path_abs, github_file_path
-                                )
+                                f"Couldn't find a directory or a {resource_type} named '{path}'. "
+                                f"It doesn't exist locally at {expected_dir_for_combined_path_abs} or remotely at {github_file_path}"
                             )
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
                 file_path = hf_hub_url(path=path, name=name, version=script_version)
                 if not dataset:
                     # We don't have community metrics on the HF Hub
                     raise FileNotFoundError(
-                        "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
-                            combined_path_abs, file_path, "dataset" if dataset else "metric"
-                        )
+                        f"Couldn't find a {resource_type} in a directory at '{path}'. "
+                        f"It doesn't exist locally at {combined_path_abs}"
                     )
                 try:
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
-                    if dataset:
-                        hf_api = HfApi(config.HF_ENDPOINT)
-                        try:
-                            dataset_info = hf_api.dataset_info(
-                                repo_id=path, revision=script_version, token=download_config.use_auth_token
-                            )
-                        except Exception:
-                            raise FileNotFoundError(
-                                "Couldn't find a local directory at {} or a dataset repository {} on {}. Please provide a valid dataset path or repository name".format(
-                                    path, path, hf_api.endpoint
-                                )
-                            )
-                        resolved_data_files = _resolve_data_files_in_dataset_repository(
-                            dataset_info,
-                            data_files if data_files is not None else "*",
-                            allowed_extensions=_EXTENSION_TO_MODULE.keys(),
+                    hf_api = HfApi(config.HF_ENDPOINT)
+                    try:
+                        dataset_info = hf_api.dataset_info(
+                            repo_id=path, revision=script_version, token=download_config.use_auth_token
                         )
-                        infered_module_name = _infer_module_for_data_files(resolved_data_files)
-                        if not infered_module_name:
-                            raise FileNotFoundError(
-                                f"No data files found in dataset repository {path}. Local directory at {path} doesn't exist either."
-                            )
-                        output = prepare_packaged_module(infered_module_name)
-                        if return_resolved_file_path:
-                            output += (None,)
-                        if return_associated_base_path:
-                            output += (url_or_path_parent(file_path),)
-                        return output
-                    else:
+                    except Exception:
                         raise FileNotFoundError(
-                            "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
-                                combined_path_abs, file_path, "dataset" if dataset else "metric"
-                            )
+                            f"Couldn't find a directory or a {resource_type} named '{path}'. "
+                            f"It doesn't exist locally at {expected_dir_for_combined_path_abs} or remotely on {hf_api.endpoint}/datasets"
                         )
+                    resolved_data_files = _resolve_data_files_in_dataset_repository(
+                        dataset_info,
+                        data_files if data_files is not None else "*",
+                        allowed_extensions=_EXTENSION_TO_MODULE.keys(),
+                    )
+                    infered_module_name = _infer_module_for_data_files(resolved_data_files)
+                    if not infered_module_name:
+                        raise FileNotFoundError(
+                            f"No data files found in dataset repository '{path}'. Local directory at {expected_dir_for_combined_path_abs} doesn't exist either."
+                        )
+                    output = prepare_packaged_module(infered_module_name)
+                    if return_resolved_file_path:
+                        output += (None,)
+                    if return_associated_base_path:
+                        output += (url_or_path_parent(file_path),)
+                    return output
             else:
                 raise FileNotFoundError(
-                    "Couldn't find file locally at {}. Please provide a valid {} name.".format(
-                        combined_path_abs, "dataset" if dataset else "metric"
-                    )
+                    f"Couldn't find a {resource_type} directory at '{path}'. "
+                    f"It doesn't exist locally at {expected_dir_for_combined_path_abs}"
                 )
         except Exception as e:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
             if os.path.isdir(main_folder_path):
@@ -843,12 +837,31 @@ def load_dataset_builder(
 
     Args:
 
-        path (:obj:`str`): Path to the dataset processing script with the dataset builder. Can be either:
+        path (:obj:`str`): Path or name of the dataset.
+            Depending on ``path``, the dataset builder that is returned id either generic dataset builder (csv, json, text etc.) or a dataset builder defined defined a dataset script (a python file).
 
-            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
+            For local datasets:
+
+            - if ``path`` is a local directory (but doesn't contain a dataset script)
+              -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
+              e.g. ``'./path/to/directory/with/my/csv/data'``.
+            - if ``path`` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory):
+              -> load the dataset builder from the dataset script
               e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
-            - a dataset identifier in the HuggingFace Datasets Hub (list all available datasets and ids with ``datasets.list_datasets()``)
-              e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``.
+
+            For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+
+            - if ``path`` is a canonical dataset on the HF Hub (ex: `glue`, `squad`)
+              -> load the dataset builder from the dataset script in the github repository at huggingface/datasets
+              e.g. ``'squad'`` or ``'glue'``.
+            - if ``path`` is a dataset repository on the HF hub (without a dataset script)
+              -> load a generic dataset builder (csv, text etc.) based on the content of the repository
+              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing your data files.
+            - if ``path`` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
+              -> load the dataset builder from the dataset script in the dataset repository
+              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
+
+
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
