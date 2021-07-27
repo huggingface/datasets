@@ -643,6 +643,11 @@ class BuilderTest(TestCase):
 
     def test_config_names(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
+
+            with self.assertRaises(ValueError) as error_context:
+                DummyBuilderWithMultipleConfigs(cache_dir=tmp_dir, data_files=None, data_dir=None)
+            self.assertIn("Please pick one among the available configs", str(error_context.exception))
+
             dummy_builder = DummyBuilderWithMultipleConfigs(cache_dir=tmp_dir, name="a")
             self.assertEqual(dummy_builder.config.name, "a")
 

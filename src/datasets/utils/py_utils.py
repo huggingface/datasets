@@ -147,7 +147,7 @@ def _single_map_nested(args):
         logging.set_verbosity_warning()
     # Print at least one thing to fix tqdm in notebooks in multiprocessing
     # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-    if rank is not None and utils.is_progress_bar_enabled() and "notebook" in tqdm.__name__:
+    if rank is not None and not disable_tqdm and "notebook" in tqdm.__name__:
         print(" ", end="", flush=True)
 
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
@@ -195,7 +195,7 @@ def map_nested(
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
         return function(data_struct)
 
-    disable_tqdm = bool(logger.getEffectiveLevel() > logging.INFO)
+    disable_tqdm = bool(logger.getEffectiveLevel() > logging.INFO) or not utils.is_progress_bar_enabled()
     iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
 
     if num_proc is None:
@@ -224,7 +224,7 @@ def map_nested(
             )
         )
         initargs, initializer = None, None
-        if utils.is_progress_bar_enabled():
+        if not disable_tqdm:
             initargs, initializer = (RLock(),), tqdm.set_lock
         with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
             mapped = pool.map(_single_map_nested, split_kwds)

@@ -353,8 +353,10 @@ class WindowsFileLock(BaseFileLock):
     """
 
     def __init__(self, lock_file, timeout=-1, max_filename_length=255):
+        from .file_utils import relative_to_absolute_path
+
         super().__init__(lock_file, timeout=timeout, max_filename_length=max_filename_length)
-        self._lock_file = "\\\\?\\" + os.path.abspath(os.path.expanduser(os.path.expandvars(self._lock_file)))
+        self._lock_file = "\\\\?\\" + relative_to_absolute_path(self.lock_file)
 
     def _acquire(self):
         open_mode = os.O_RDWR | os.O_CREAT | os.O_TRUNC

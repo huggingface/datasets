@@ -72,7 +72,7 @@ REQUIRED_PKGS = [
     # for downloading datasets over HTTPS
     "requests>=2.19.0",
     # progress bars in download and scripts
-    "tqdm>=4.27",
+    "tqdm>=4.42",  # tqdm.contrib.concurrent
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
     # for fast hashing
@@ -198,7 +198,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.9.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.10.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     author="HuggingFace Inc.",
