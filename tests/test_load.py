@@ -20,7 +20,7 @@ from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import prepare_module
-from datasets.utils.file_utils import DownloadConfig, is_remote_url
+from datasets.utils.file_utils import DownloadConfig
 
 from .utils import (
     OfflineSimulationMode,
