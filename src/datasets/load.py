@@ -51,7 +51,6 @@ from .utils.file_utils import (
     DownloadConfig,
     cached_path,
     head_hf_s3,
-    hf_bucket_url,
     hf_github_url,
     hf_hub_url,
     init_hf_modules,
