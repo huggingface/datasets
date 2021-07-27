@@ -34,6 +34,7 @@ from .utils import (
     assert_arrow_memory_increases,
     offline,
     require_streaming,
+    set_current_working_directory_to_temp_dir
 )
 
 
@@ -106,7 +107,7 @@ def dataset_loading_script_dir(tmp_path):
     return str(script_dir)
 
 
-class LoadTest(TestCase):
+class LoadTest:
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
         self._caplog = caplog
@@ -224,11 +225,70 @@ class LoadTest(TestCase):
                 )
 
 
-def test_load_dataset_builder(dataset_loading_script_dir, data_dir):
+def test_load_dataset_builder_for_absolute_script_dir(dataset_loading_script_dir, data_dir):
     builder = datasets.load_dataset_builder(dataset_loading_script_dir, data_dir=data_dir)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == DATASET_LOADING_SCRIPT_NAME
     assert builder.info.features == Features({"text": Value("string")})
+
+
+def test_load_dataset_builder_for_relative_script_dir(dataset_loading_script_dir, data_dir):
+    with set_current_working_directory_to_temp_dir():
+        relative_script_dir = DATASET_LOADING_SCRIPT_NAME
+        shutil.copytree(dataset_loading_script_dir, relative_script_dir)
+        builder = datasets.load_dataset_builder(relative_script_dir, data_dir=data_dir)
+        assert isinstance(builder, DatasetBuilder)
+        assert builder.name == DATASET_LOADING_SCRIPT_NAME
+        assert builder.info.features == Features({"text": Value("string")})
+
+
+def test_load_dataset_builder_for_script_path(dataset_loading_script_dir, data_dir):
+    builder = datasets.load_dataset_builder(os.path.join(dataset_loading_script_dir, DATASET_LOADING_SCRIPT_NAME + ".py"), data_dir=data_dir)
+    assert isinstance(builder, DatasetBuilder)
+    assert builder.name == DATASET_LOADING_SCRIPT_NAME
+    assert builder.info.features == Features({"text": Value("string")})
+
+
+def test_load_dataset_builder_for_absolute_data_dir(complex_data_dir):
+    builder = datasets.load_dataset_builder(complex_data_dir)
+    assert isinstance(builder, DatasetBuilder)
+    assert builder.name == "text"
+    assert builder.config.name == Path(complex_data_dir).name
+    assert isinstance(builder.config.data_files, list)
+    assert len(builder.config.data_files) > 0
+
+
+def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
+    with set_current_working_directory_to_temp_dir():
+        relative_data_dir = "relative_data_dir"
+        shutil.copytree(complex_data_dir, relative_data_dir)
+        builder = datasets.load_dataset_builder(relative_data_dir)
+        assert isinstance(builder, DatasetBuilder)
+        assert builder.name == "text"
+        assert builder.config.name == relative_data_dir
+        assert isinstance(builder.config.data_files, list)
+        assert len(builder.config.data_files) > 0
+
+
+def test_load_dataset_builder_for_community_dataset_with_script():
+    builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER)
+    assert isinstance(builder, DatasetBuilder)
+    assert builder.name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
+    assert builder.info.features == Features({"text": Value("string")})
+
+
+def test_load_dataset_builder_for_community_dataset_without_script():
+    builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2)
+    assert isinstance(builder, DatasetBuilder)
+    assert builder.name == "text"
+    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.split("/")[-1]
+    assert isinstance(builder.config.data_files, list)
+    assert len(builder.config.data_files) > 0
+
+
+def test_load_dataset_builder_fail():
+    with pytest.raises(FileNotFoundError):
+        datasets.load_dataset_builder("blabla")
 
 
 @pytest.mark.parametrize("keep_in_memory", [False, True])
