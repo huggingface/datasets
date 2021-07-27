@@ -34,7 +34,7 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
     High-level discussions about Datasets. Read these to build a better understanding about key topics in Datasets.
     
     ---
-    .. link-button:: cache
+    .. link-button:: package_reference/main_classes
         :type: ref
         :text: Reference
         :classes: btn-primary btn-block
@@ -75,6 +75,8 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
     :caption: Conceptual guides
 
     arrow
+    dataset_features
+    dataset_build
 
 .. toctree::
     :hidden:
