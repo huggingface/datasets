@@ -751,7 +751,7 @@ def load_dataset(
             * Process and cache the dataset in typed Arrow tables for caching.
 
                 Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
-                They can be directly access from drive, loaded in RAM or even streamed over the web.
+                They can be directly accessed from drive, loaded in RAM or even streamed over the web.
 
         3. Return a dataset built from the requested splits in ``split`` (default: all).
 

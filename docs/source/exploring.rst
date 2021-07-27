@@ -9,11 +9,11 @@ The :class:`datasets.Dataset` object that you get when you execute for instance 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
 
-behaves like a normal python container. You can query its length, get rows, columns and also lot of metadata on the dataset (description, citation, split sizes, etc).
+behaves like a normal python container. You can query its length, get rows, columns and also a lot of metadata on the dataset (description, citation, split sizes, etc).
 
 In this guide we will detail what's in this object and how to access all the information.
 
-An :class:`datasets.Dataset` is a python container with a length coresponding to the number of examples in the dataset. You can access a single example by its index. Let's query the first sample in the dataset:
+A :class:`datasets.Dataset` is a python container with a length corresponding to the number of examples in the dataset. You can access a single example by its index. Let's query the first sample in the dataset:
 
 .. code-block::
 
@@ -76,9 +76,9 @@ More details on the ``features`` can be found in the guide on :doc:`features` an
 Metadata
 ------------------------------------------------------
 
-The :class:`datasets.Dataset` object also host many important metadata on the dataset which are all stored in ``dataset.info``. Many of these metadata are also accessible on the lower level, i.e. directly as attributes of the Dataset for shorter access (e.g. ``dataset.info.features`` is also available as ``dataset.features``).
+The :class:`datasets.Dataset` object also hosts many important metadata on the dataset which are all stored in ``dataset.info``. Many of these metadata are also accessible on the lower level, i.e. directly as attributes of the Dataset for shorter access (e.g. ``dataset.info.features`` is also available as ``dataset.features``).
 
-All these attributes are listed in the package reference on :class:`datasets.DatasetInfo`. The most important metadata are ``split``, ``description``, ``citation``, ``homepage`` (and ``licence`` when this one is available).
+All these attributes are listed in the package reference on :class:`datasets.DatasetInfo`. The most important metadata are ``split``, ``description``, ``citation``, ``homepage`` (and ``license`` when this one is available).
 
 .. code-block::
 
@@ -168,7 +168,7 @@ You can also get a full column by querying its name as a string. This will retur
 As you can see depending on the object queried (single row, batch of rows or column), the returned object is different:
 
 - a single row like ``dataset[0]`` will be returned as a python dictionary of values,
-- a batch like ``dataset[5:10]``) will be returned as a python dictionary of lists of values,
+- a batch like ``dataset[5:10]`` will be returned as a python dictionary of lists of values,
 - a column like ``dataset['sentence1']`` will be returned as a python lists of values.
 
 This may seems surprising at first but in our experiments it's actually easier to use these various format for data processing than returning the same format for each of these views on the dataset.
@@ -201,12 +201,12 @@ A specific format can be activated with :func:`datasets.Dataset.set_format`.
 - :obj:`type` (``Union[None, str]``, default to ``None``) defines the return type for the dataset :obj:`__getitem__` method and is one of ``[None, 'numpy', 'pandas', 'torch', 'tensorflow', 'jax']`` (``None`` means return python objects),
 - :obj:`columns` (``Union[None, str, List[str]]``, default to ``None``) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (``None`` means return all columns),
 - :obj:`output_all_columns` (``bool``, default to ``False``) controls whether the columns which cannot be formatted (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
-- :obj:`format_kwargs` can be used to provide additional keywords arguments that will be forwarded to the convertiong function like ``np.array``, ``torch.tensor``, ``tensorflow.ragged.constant`` or ``jnp.array``. For instance, to create ``torch.Tensor`` directly on the GPU you can specify ``device='cuda'``.
+- :obj:`format_kwargs` can be used to provide additional keywords arguments that will be forwarded to the converting function like ``np.array``, ``torch.tensor``, ``tensorflow.ragged.constant`` or ``jnp.array``. For instance, to create ``torch.Tensor`` directly on the GPU you can specify ``device='cuda'``.
 
 .. note::
 
     The format is only applied to a single row or batches of rows (i.e. when querying :obj:`dataset[0]` or :obj:`dataset[10:20]`). Querying a column (e.g. :obj:`dataset['sentence1']`) will return the column even if it's filtered by the format. In this case the un-formatted column is returned.
-    This design choice was made because it's quite rare to use column-only access when working with deep-learning frameworks and it's quite usefull to be able to access column even when they are masked by the format.
+    This design choice was made because it's quite rare to use column-only access when working with deep-learning frameworks and it's quite useful to be able to access column even when they are masked by the format.
 
 Here is an example:
 
@@ -239,6 +239,7 @@ Here is an example to tokenize and pad tokens on-the-fly when accessing the samp
     >>> tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
     >>> def encode(batch):
     >>>     return tokenizer(batch["sentence1"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
+    >>>
     >>> dataset.set_transform(encode)
     >>> dataset.format
     {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
