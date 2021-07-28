@@ -363,10 +363,30 @@ def prepare_module(
 
     Args:
 
-        path (str):
-            path to the dataset or metric script, can be either:
-                - a path to a local directory containing the dataset processing python script
-                - an url to a github or S3 directory with a dataset processing python script
+        path (str): Path or name of the dataset, or path to a metric script.
+            Depending on ``path``, the module that is returned id either generic moduler (csv, json, text etc.) or a module defined defined a dataset or metric script (a python file).
+
+            For local datasets:
+
+            - if ``path`` is a local directory (but doesn't contain a dataset script)
+              -> load a generic module (csv, json, text etc.) based on the content of the directory
+              e.g. ``'./path/to/directory/with/my/csv/data'``.
+            - if ``path`` is a local dataset or metric script or a directory containing a local dataset script (if the script has the same name as the directory):
+              -> load the module from the dataset or metric script
+              e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
+
+            For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+
+            - if ``path`` is a canonical dataset or metric on the HF Hub (ex: `glue`, `squad`)
+              -> load the module from the dataset or metric script in the github repository at huggingface/datasets
+              e.g. ``'squad'`` or ``'glue'`` or ``accuracy``.
+            - if ``path`` is a dataset repository on the HF hub (without a dataset script)
+              -> load a generic module (csv, text etc.) based on the content of the repository
+              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing your data files.
+            - if ``path`` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
+              -> load the module from the dataset script in the dataset repository
+              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
+
         script_version (Optional ``Union[str, datasets.Version]``):
             If specified, the module will be loaded from the datasets repository at this version.
             By default:
@@ -986,15 +1006,36 @@ def load_dataset(
                 They can be directly accessed from drive, loaded in RAM or even streamed over the web.
 
         3. Return a dataset built from the requested splits in ``split`` (default: all).
+    
+    It also allows to load a dataset from a local directory or a dataset repository on the Hugging Face Hub without dataset script.
+    In this case, it automatically loads all the data files from the directory or the dataset repository.
 
     Args:
 
-        path (:obj:`str`): Path to the dataset processing script with the dataset builder. Can be either:
+        path (:obj:`str`): Path or name of the dataset.
+            Depending on ``path``, the dataset builder that is returned id either generic dataset builder (csv, json, text etc.) or a dataset builder defined defined a dataset script (a python file).
 
-            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
+            For local datasets:
+
+            - if ``path`` is a local directory (but doesn't contain a dataset script)
+              -> load a generic dataset builder (csv, json, text etc.) based on the content of the directory
+              e.g. ``'./path/to/directory/with/my/csv/data'``.
+            - if ``path`` is a local dataset script or a directory containing a local dataset script (if the script has the same name as the directory):
+              -> load the dataset builder from the dataset script
               e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
-            - a dataset identifier in the HuggingFace Datasets Hub (list all available datasets and ids with ``datasets.list_datasets()``)
-              e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``.
+
+            For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+
+            - if ``path`` is a canonical dataset on the HF Hub (ex: `glue`, `squad`)
+              -> load the dataset builder from the dataset script in the github repository at huggingface/datasets
+              e.g. ``'squad'`` or ``'glue'``.
+            - if ``path`` is a dataset repository on the HF hub (without a dataset script)
+              -> load a generic dataset builder (csv, text etc.) based on the content of the repository
+              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing your data files.
+            - if ``path`` is a dataset repository on the HF hub with a dataset script (if the script has the same name as the directory)
+              -> load the dataset builder from the dataset script in the dataset repository
+              e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
+
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.

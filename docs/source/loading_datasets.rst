@@ -3,16 +3,16 @@ Loading a Dataset
 
 A :class:`datasets.Dataset` can be created from various sources of data:
 
-- from the `HuggingFace Hub <https://huggingface.co/datasets>`__,
-- from local files, e.g. CSV/JSON/text/pandas files, or
+- from the `Hugging Face Hub <https://huggingface.co/datasets>`__,
+- from local or remote files, e.g. CSV/JSON/text/parquet/pandas files, or
 - from in-memory data like python dict or a pandas dataframe.
 
 In this section we study each option.
 
-From the HuggingFace Hub
+From the Hugging Face Hub
 -------------------------------------------------
 
-Over 1,000 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗 Datasets viewer <https://huggingface.co/datasets/viewer>`__.
+Over 1,000 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `Hugging Face Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗 Datasets viewer <https://huggingface.co/datasets/viewer>`__.
 
 .. note::
 
@@ -25,7 +25,7 @@ All the datasets currently available on the `Hub <https://huggingface.co/dataset
     >>> from datasets import list_datasets
     >>> datasets_list = list_datasets()
     >>> len(datasets_list)
-    1067
+    1103
     >>> print(', '.join(dataset for dataset in datasets_list))
     acronym_identification, ade_corpus_v2, adversarial_qa, aeslc, afrikaans_ner_corpus, ag_news, ai2_arc, air_dialogue, ajgt_twitter_ar,
     allegro_reviews, allocine, alt, amazon_polarity, amazon_reviews_multi, amazon_us_reviews, ambig_qa, amttl, anli, app_reviews, aqua_rat,
@@ -46,7 +46,7 @@ Let's load the **SQuAD dataset for Question Answering**. You can explore this da
 
 This call to :func:`datasets.load_dataset` does the following steps under the hood:
 
-1. Download and import in the library the **SQuAD python processing script** from HuggingFace github repository or AWS bucket if it's not already stored in the library.
+1. Download and import in the library the **SQuAD python processing script** from Hugging Face github repository or AWS bucket if it's not already stored in the library.
 
 .. note::
 
@@ -158,22 +158,52 @@ Apart from :obj:`name` and :obj:`split`, the :func:`datasets.load_dataset` metho
 
 The use of these arguments is discussed in the :ref:`load_dataset_cache_management` section below. You can also find the full details on these arguments on the package reference page for :func:`datasets.load_dataset`.
 
+From a community dataset on the Hugging Face Hub
+-----------------------------------------------------------
+
+The community shares hundreds of datasets on the Hugging Face Hub using **dataset repositories**.
+A dataset repository is a versioned repository of data files.
+Everyone can create a dataset repository on the Hugging Face Hub and upload their data.
+
+For example we have created a demo dataset at https://huggingface.co/datasets/lhoestq/demo1.
+In this dataset repository we uploaded some csv files, and you can load the dataset with:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('lhoestq/demo1')
+
+You can even choose which files to use in a dataset repository.
+For example you can load a subset of the **C4 dataset for language modeling**, hosted by AllenAI on the Hub.
+You can browse the dataset repository at https://huggingface.co/datasets/allenai/c4
+
+In the following example we specify which subset of the files to use with the ``data_files`` parameter:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> c4_subset = load_dataset('allenai/c4', data_files='en/c4-train.0000*-of-01024.json.gz')
+
+It will use all the files that match the pattern passed in ``data_files``.
+If you don't specify which data files to use, it will use all the data files (here all C4 is about 13TB of data).
+
 
 .. _loading-from-local-files:
 
-From local files
+From local or remote files
 -----------------------------------------------------------
 
-It's also possible to create a dataset from local files.
+It's also possible to create a dataset from your own local or remote files.
 
 Generic loading scripts are provided for:
 
 - CSV files (with the :obj:`csv` script),
 - JSON files (with the :obj:`json` script),
 - text files (read as a line-by-line dataset with the :obj:`text` script),
+- parquet files (with the :obj:`parquet` script).
 - pandas pickled dataframe (with the :obj:`pandas` script).
 
-If you want to control better how your files are loaded, or if you have a file format exactly reproducing the file format for one of the datasets provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__, it can be more flexible and simpler to create **your own loading script**, from scratch or by adapting one of the provided loading scripts. In this case, please go check the :doc:`add_dataset` chapter.
+If you want to control better how your files are loaded, or if you have a file format exactly reproducing the file format for one of the datasets provided on the `Hugging Face Hub <https://huggingface.co/datasets>`__, it can be more flexible and simpler to create **your own loading script**, from scratch or by adapting one of the provided loading scripts. In this case, please go check the :doc:`add_dataset` chapter.
 
 The :obj:`data_files` argument in :func:`datasets.load_dataset` is used to provide paths to one or several files. This argument currently accepts three types of inputs:
 
@@ -190,6 +220,8 @@ Let's see an example of all the various ways you can provide files to :func:`dat
     >>> dataset = load_dataset('csv', data_files=['my_file_1.csv', 'my_file_2.csv', 'my_file_3.csv'])
     >>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'],
                                                   'test': 'my_test_file.csv'})
+    >>> base_url = 'https://huggingface.co/datasets/lhoestq/demo1/resolve/main/data/'
+    >>> dataset = load_dataset('csv', data_files={'train': base_url + 'train.csv', 'test': base_url + 'test.csv'})
 
 .. note::
 
@@ -218,6 +250,13 @@ Here is an example loading two CSV file to create a ``train`` split (default spl
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('csv', data_files=['my_file_1.csv', 'my_file_2.csv'])
 
+You can also provide the URLs of remote csv files:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('csv', data_files="https://huggingface.co/datasets/lhoestq/demo1/resolve/main/data/train.csv")
+
 The ``csv`` loading script provides a few simple access options to control parsing and reading the CSV files:
 
     - :obj:`skiprows` (int) - Number of first rows in the file to skip (default is 0)
@@ -225,12 +264,6 @@ The ``csv`` loading script provides a few simple access options to control parsi
     - :obj:`delimiter` (1-character string) – The character delimiting individual cells in the CSV data (default ``,``).
     - :obj:`quotechar` (1-character string) – The character used optionally for quoting CSV values (default ``"``).
     - :obj:`quoting` (int) – Control quoting behavior (default 0, setting this to 3 disables quoting, refer to `pandas.read_csv documentation <https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html>` for more details).
-
-If you want more control, the ``csv`` script provides full control on reading, parsing and converting through the Apache Arrow `pyarrow.csv.ReadOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ReadOptions.html>`__, `pyarrow.csv.ParseOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ParseOptions.html>`__ and `pyarrow.csv.ConvertOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ConvertOptions.html>`__
-
-    - :obj:`read_options` — Can be provided with a `pyarrow.csv.ReadOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ReadOptions.html>`__ to control all the reading options. If :obj:`skiprows`, :obj:`column_names` or :obj:`autogenerate_column_names` are also provided (see above), they will take priority over the attributes in :obj:`read_options`.
-    - :obj:`parse_options` — Can be provided with a `pyarrow.csv.ParseOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ParseOptions.html>`__ to control all the parsing options. If :obj:`delimiter` or :obj:`quote_char` are also provided (see above), they will take priority over the attributes in :obj:`parse_options`.
-    - :obj:`convert_options` — Can be provided with a `pyarrow.csv.ConvertOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ConvertOptions.html>`__ to control all the conversion options.
 
 
 JSON files
@@ -257,6 +290,13 @@ You can load such a dataset direcly with:
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('json', data_files='my_file.json')
+
+You can also provide the URLs of remote JSON files:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('json', data_files='https://huggingface.co/datasets/allenai/c4/resolve/main/en/c4-train.00000-of-01024.json.gz')
 
 In real-life though, JSON files can have diverse format and the ``json`` script will accordingly fallback on using python JSON loading methods to handle various JSON file format.
 
@@ -288,6 +328,13 @@ This is simply done using the ``text`` loading script which will generate a data
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('text', data_files={'train': ['my_text_1.txt', 'my_text_2.txt'], 'test': 'my_test_file.txt'})
+
+You can also provide the URLs of remote text files:
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('text', data_files={'train': 'https://huggingface.co/datasets/lhoestq/test/resolve/main/some_text.txt'})
 
 
 Specifying the features of the dataset
@@ -465,8 +512,8 @@ For example, run the following to skip integrity verifications when loading the 
 Loading datasets offline
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each dataset builder (e.g. "squad") is a python script that is downloaded and cached either from the 🤗 Datasets GitHub repository or from the `HuggingFace Hub <https://huggingface.co/datasets>`__.
-Only the ``text``, ``csv``, ``json`` and ``pandas`` builders are included in ``datasets`` without requiring external downloads.
+Each dataset builder (e.g. "squad") is a python script that is downloaded and cached either from the 🤗 Datasets GitHub repository or from the `Hugging Face Hub <https://huggingface.co/datasets>`__.
+Only the ``text``, ``csv``, ``json``, ``parquet`` and ``pandas`` builders are included in ``datasets`` without requiring external downloads.
 
 Therefore if you don't have an internet connection you can't load a dataset that is not packaged with ``datasets``, unless the dataset is already cached.
 Indeed, if you've already loaded the dataset once before (when you had an internet connection), then the dataset is reloaded from the cache and you can use it offline.
