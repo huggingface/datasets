@@ -1006,7 +1006,7 @@ def load_dataset(
                 They can be directly accessed from drive, loaded in RAM or even streamed over the web.
 
         3. Return a dataset built from the requested splits in ``split`` (default: all).
-    
+
     It also allows to load a dataset from a local directory or a dataset repository on the Hugging Face Hub without dataset script.
     In this case, it automatically loads all the data files from the directory or the dataset repository.
 
