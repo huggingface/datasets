@@ -15,6 +15,10 @@ Load the MRPC dataset to follow our examples 🤗 :
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
 
+.. attention::
+
+    All the processing methods in this guide returns a new :class:`datasets.Dataset`. Modification is not done in-place. Be careful about overriding your previous dataset!
+
 Sort, shuffle, select, and split
 --------------------------------
 

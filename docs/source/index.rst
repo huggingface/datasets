@@ -74,9 +74,11 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
     :hidden:
     :caption: Conceptual guides
 
-    arrow
-    dataset_features
-    dataset_build
+    about_arrow
+    about_dataset_features
+    about_dataset_load
+    about_cache
+    about_map_batch
 
 .. toctree::
     :hidden:

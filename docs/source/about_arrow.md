@@ -12,13 +12,13 @@ Arrow enables large amounts of data to be processed and moved quickly. It is a s
 * Arrow is language-agnostic so it supports different programming languages.
 * Arrow is column-oriented so it is faster at querying and processing data.
 
-### Performance
+## Performance
 
 TO DO:
 
 Discussion on Arrow's speed and performance, especially as it relates to Datasets. In particular, this [tweet] from Thom is worth explaining how Datasets can iterate over such a massive dataset so quickly.
 
-### Memory
+## Memory
 
 TO DO:
 

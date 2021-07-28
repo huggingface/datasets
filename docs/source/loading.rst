@@ -93,6 +93,10 @@ Likewise, datasets in Pandas DataFrames can be instantiated by:
     >>> df = pd.DataFrame({"a": [1, 2, 3]})
     >>> dataset = Dataset.from_pandas(df)
 
+.. important::
+
+    An object data type in pandas.Series doesn't always carry enough information for Arrow to automatically infer a type. Avoid this by constructing an explicit schema with :class:`datasets.Features` using the ``from_dict`` or ``from_pandas`` methods. See the Troubleshooting guide below for more details on how to specify a feature.
+
 Streaming
 --------------
 
