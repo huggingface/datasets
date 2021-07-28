@@ -18,6 +18,7 @@
 import json
 
 import datasets
+from datasets.tasks import QuestionAnsweringExtractive
 
 
 _CITATION = """\
@@ -93,6 +94,11 @@ class DisflQA(datasets.GeneratorBasedBuilder):
             license=_LICENSE,
             # Citation for the dataset
             citation=_CITATION,
+            task_templates=[
+                QuestionAnsweringExtractive(
+                    question_column="disfluent question", context_column="context", answers_column="answers"
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):
