@@ -15,6 +15,7 @@ size_categories:
 source_datasets:
 - original
 - extended|librispeech_asr
+- extended|other-librimix
 task_categories:
 - speech-processing
 task_ids:
@@ -173,7 +174,19 @@ An example from each split looks like:
 
 #### sd
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+An example from each split looks like:
+```python
+{
+  'record_id': '1578-6379-0038_6415-111615-0009',
+  'file': 'path/to/file.wav',
+  'start': 0,
+  'end': 1590,
+  'speakers': [
+    {'speaker_id': '1578', 'start': 28, 'end': 657},
+    {'speaker_id': '6415', 'start': 28, 'end': 1576}
+  ]
+}
+```
 
 
 #### er
@@ -230,8 +243,15 @@ An example from each split looks like:
 
 #### sd
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+The data fields in all splits are:
+- `record_id` (`string`): ID of the record.
+- `file` (`string`): Path to the WAV audio file.
+- `start` (`integer`): Start frame of the audio.
+- `end` (`integer`): End frame of the audio.
+- `speakers` (`list` of `dict`): List of speakers in the audio. Each item contains the fields:
+  - `speaker_id` (`string`): ID of the speaker.
+  - `start` (`integer`): Frame when the speaker starts speaking.
+  - `end` (`integer`): Frame when the speaker stops speaking.
 
 #### er
 
@@ -282,8 +302,11 @@ An example from each split looks like:
 
 #### sd
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The data is split into "train", "dev" and "test" sets, each containing the following number of examples:
 
+|    | train |  dev | test |
+|----|------:|-----:|-----:|
+| sd | 13901 | 3014 | 3002 |
 
 #### er
 
