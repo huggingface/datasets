@@ -211,7 +211,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             _DL_URLS = {
                 split: {
                     filename: self.config.data_url.format(split=split, filename=filename)
-                    for filename in ["reco2dur", "rttm", "segments", "spk2utt", "utt2spk", "wav.zip"]
+                    for filename in ["reco2dur", "segments", "utt2spk", "wav.zip"]
                 }
                 for split in splits
             }
@@ -307,13 +307,13 @@ class SdData:
             lines = [line.strip().split(None, 1) for line in f]
         return {x[0]: x[1] for x in lines}
 
-    def _load_spk2utt(self, spk2utt_file):
-        """Returns dictionary { spkid: list of uttids }."""
-        if not os.path.exists(spk2utt_file):
-            return None
-        with open(spk2utt_file, encoding="utf-8") as f:
-            lines = [line.strip().split() for line in f]
-        return {x[0]: x[1:] for x in lines}
+    # def _load_spk2utt(self, spk2utt_file):
+    #     """Returns dictionary { spkid: list of uttids }."""
+    #     if not os.path.exists(spk2utt_file):
+    #         return None
+    #     with open(spk2utt_file, encoding="utf-8") as f:
+    #         lines = [line.strip().split() for line in f]
+    #     return {x[0]: x[1:] for x in lines}
 
     def _load_reco2dur(self, reco2dur_file):
         """Returns dictionary { recid: duration }."""
