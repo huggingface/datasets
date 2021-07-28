@@ -311,7 +311,10 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
-    m_combined_path = re.search(fr"http\S*{re.escape(os.path.join(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST, SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py'))}\b", str(exc_info.value))
+    m_combined_path = re.search(
+        fr"http\S*{re.escape(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '/' + SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py')}\b",
+        str(exc_info.value),
+    )
     assert m_combined_path is not None and is_remote_url(m_combined_path.group())
     assert os.path.abspath(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST) in str(exc_info.value)
 
