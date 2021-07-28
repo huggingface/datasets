@@ -22,14 +22,14 @@ import json
 import os
 import shutil
 import tempfile
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Counter, Dict, Iterator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
@@ -41,7 +41,7 @@ from tqdm.auto import tqdm
 
 from datasets.tasks.text_classification import TextClassification
 
-from . import config
+from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import ClassLabel, Features, Value, cast_to_python_objects
@@ -58,7 +58,7 @@ from .fingerprint import (
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
-from .splits import NamedSplit
+from .splits import NamedSplit, Split
 from .table import (
     ConcatenationTable,
     InMemoryTable,
@@ -69,18 +69,17 @@ from .table import (
     list_table_cache_files,
 )
 from .tasks import TaskTemplate
-from .utils import map_nested
+from .utils import logging, map_nested
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
-from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 from .utils.typing import PathLike
 
 
 if TYPE_CHECKING:
     from .dataset_dict import DatasetDict
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 if int(config.PYARROW_VERSION.split(".")[0]) == 0:
     PYARROW_V0 = True
@@ -468,7 +467,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             path_or_paths (path-like or list of path-like): Path(s) of the CSV file(s).
             split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
             features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/datasets"``): Directory to cache data.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :meth:`pandas.read_csv`.
 
@@ -498,7 +497,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             path_or_paths (path-like or list of path-like): Path(s) of the JSON or JSON Lines file(s).
             split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
             features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/datasets"``): Directory to cache data.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             field (:obj:`str`, optional): Field name of the JSON file where the dataset is contained in.
             **kwargs: Keyword arguments to be passed to :class:`JsonConfig`.
@@ -520,6 +519,45 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ).read()
 
     @staticmethod
+    def from_parquet(
+        path_or_paths: Union[PathLike, List[PathLike]],
+        split: Optional[NamedSplit] = None,
+        features: Optional[Features] = None,
+        cache_dir: str = None,
+        keep_in_memory: bool = False,
+        columns: Optional[List[str]] = None,
+        **kwargs,
+    ):
+        """Create Dataset from Parquet file(s).
+
+        Args:
+            path_or_paths (path-like or list of path-like): Path(s) of the Parquet file(s).
+            split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
+            features (:class:`Features`, optional): Dataset features.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
+            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
+            columns (:obj:`List[str]`, optional): If not None, only these columns will be read from the file.
+                A column name may be a prefix of a nested field, e.g. 'a' will select
+                'a.b', 'a.c', and 'a.d.e'.
+            **kwargs: Keyword arguments to be passed to :class:`ParquetConfig`.
+
+        Returns:
+            :class:`Dataset`
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.parquet import ParquetDatasetReader
+
+        return ParquetDatasetReader(
+            path_or_paths,
+            split=split,
+            features=features,
+            cache_dir=cache_dir,
+            keep_in_memory=keep_in_memory,
+            columns=columns,
+            **kwargs,
+        ).read()
+
+    @staticmethod
     def from_text(
         path_or_paths: Union[PathLike, List[PathLike]],
         split: Optional[NamedSplit] = None,
@@ -534,7 +572,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             path_or_paths (path-like or list of path-like): Path(s) of the text file(s).
             split (:class:`NamedSplit`, optional): Split name to be assigned to the dataset.
             features (:class:`Features`, optional): Dataset features.
-            cache_dir (:obj:`str`, optional, default ``"~/datasets"``): Directory to cache data.
+            cache_dir (:obj:`str`, optional, default ``"~/.cache/huggingface/datasets"``): Directory to cache data.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             **kwargs: Keyword arguments to be passed to :class:`TextConfig`.
 
@@ -663,8 +701,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ``fsspec.spec.AbstractFileSystem``.
 
         Args:
-            dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3//my-bucket/dataset/train`) of
-                the dataset directory where the dataset will be loaded from.
+            dataset_path (:obj:`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
+                `"s3//my-bucket/dataset/train"`) of the dataset directory where the dataset will be loaded from.
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
                 Instance of the remote filesystem used to download the files from.
             keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the
@@ -673,9 +711,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 :ref:`load_dataset_enhancing_performance` section.
 
         Returns:
-            :class:`Dataset` or :class:`DatasetDict`.
-                - if `dataset_path` is a path of a dataset directory: the :class:`Dataset` requested,
-                - if `dataset_path` is a path of a dataset dict directory: a :class:`DatasetDict` with each split.
+            :class:`Dataset` or :class:`DatasetDict`:
+            - If `dataset_path` is a path of a dataset directory: the dataset requested.
+            - If `dataset_path` is a path of a dataset dict directory: a ``datasets.DatasetDict`` with each split.
         """
         # copies file from filesystem if it is remote filesystem to local filesystem and modifies dataset_path to temp directory containing local copies
         fs = fsspec.filesystem("file") if fs is None else fs
@@ -719,7 +757,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table = None
 
         split = state["_split"]
-        split = NamedSplit(split) if split is not None else split
+        split = Split(split) if split is not None else split
 
         return Dataset(
             arrow_table=arrow_table,
@@ -1320,7 +1358,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._format_kwargs = format_kwargs
         self._format_columns = columns
         self._output_all_columns = output_all_columns
-        logger.info(
+        logger.debug(
             "Set __getitem__(key) output type to %s for %s columns "
             " (when key is int or slice) and %s output other (un-formatted) columns.",
             "python objects" if type is None else type,
@@ -1615,6 +1653,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if fn_kwargs is None:
             fn_kwargs = {}
 
+        if num_proc is not None and num_proc > len(self):
+            num_proc = len(self)
+            logger.warning(
+                f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
+            )
+
+        disable_tqdm = bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
+
         if num_proc is None or num_proc == 1:
             return self._map_single(
                 function=function,
@@ -1632,6 +1678,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
+                disable_tqdm=disable_tqdm,
                 desc=desc,
             )
         else:
@@ -1657,7 +1704,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             ):
                 logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
-            with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
+            initargs, initializer = None, None
+            if not disable_tqdm:
+                initargs, initializer = (RLock(),), tqdm.set_lock
+            with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
                 os.environ = prev_env
                 shards = [
                     self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
@@ -1684,6 +1734,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         fn_kwargs=fn_kwargs,
                         rank=rank,
                         offset=sum(len(s) for s in shards[:rank]),
+                        disable_tqdm=disable_tqdm,
                         desc=desc,
                     )
                     for rank in range(num_proc)
@@ -1718,6 +1769,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
+        disable_tqdm: bool = False,
         desc: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
@@ -1756,21 +1808,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
-            offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`
+            offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
+            disable_tqdm (:obj:`bool`, defaults to `False`): Whether to silence tqdm's output.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         assert (
             not keep_in_memory or cache_file_name is None
         ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
 
-        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-
         # Reduce logging to keep things readable in multiprocessing with tqdm
-        if rank is not None and get_verbosity() < WARNING:
-            set_verbosity_warning()
+        if rank is not None and logging.get_verbosity() < logging.WARNING:
+            logging.set_verbosity_warning()
         # Print at least one thing to fix tqdm in notebooks in multiprocessing
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-        if rank is not None and "notebook" in tqdm.__name__:
+        if rank is not None and not disable_tqdm and "notebook" in tqdm.__name__:
             print(" ", end="", flush=True)
 
         # Select the columns (arrow columns) to process
@@ -1934,7 +1985,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
-                pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
+                pbar = utils.tqdm(
+                    pbar_iterable,
+                    disable=disable_tqdm,
+                    position=rank,
+                    unit=pbar_unit,
+                    desc=pbar_desc,
+                )
                 if not batched:
                     for i, example in enumerate(pbar):
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)
@@ -1997,6 +2054,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if update_data:
             # Create new Dataset from buffer or file
             info = self.info.copy()
+            # Remove task templates if the required features have been removed
+            if info.task_templates:
+                info.task_templates = [
+                    template
+                    for template in info.task_templates
+                    if all(k in writer._features.keys() for k in template.features)
+                ]
             info.features = writer._features
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
@@ -2862,6 +2926,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for offset in range(0, len(self), batch_size)
             )
 
+    def to_parquet(
+        self,
+        path_or_buf: Union[PathLike, BinaryIO],
+        batch_size: Optional[int] = None,
+        **parquet_writer_kwargs,
+    ) -> int:
+        """Exports the dataset to parquet
+
+        Args:
+            path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
+            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+                Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            parquet_writer_kwargs: Parameters to pass to PyArrow's :class:`pyarrow.parquet.ParquetWriter`
+
+        Returns:
+            int: The number of characters or bytes written
+        """
+        # Dynamic import to avoid circular dependency
+        from .io.parquet import ParquetDatasetWriter
+
+        return ParquetDatasetWriter(self, path_or_buf, batch_size=batch_size, **parquet_writer_kwargs).write()
+
     @transmit_format
     @fingerprint_transform(inplace=False)
     def add_column(self, name: str, column: Union[list, np.array], new_fingerprint: str):
@@ -3180,7 +3266,11 @@ def concatenate_datasets(
         logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
     # Concatenate tables
-    table = concat_tables([dset._data for dset in dsets if len(dset._data) > 0], axis=axis)
+    tables_to_concat = [dset._data for dset in dsets if len(dset._data) > 0]
+    # There might be no table with data left hence return first empty table
+    if not tables_to_concat:
+        return dsets[0]
+    table = concat_tables(tables_to_concat, axis=axis)
     if axis == 1:
         table = update_metadata_with_features(table, None)
 

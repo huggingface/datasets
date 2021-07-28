@@ -69,6 +69,11 @@ class Accuracy(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "predictions": datasets.Sequence(datasets.Value("int32")),
+                    "references": datasets.Sequence(datasets.Value("int32")),
+                }
+                if self.config_name == "multilabel"
+                else {
                     "predictions": datasets.Value("int32"),
                     "references": datasets.Value("int32"),
                 }
@@ -78,5 +83,7 @@ class Accuracy(datasets.Metric):
 
     def _compute(self, predictions, references, normalize=True, sample_weight=None):
         return {
-            "accuracy": accuracy_score(references, predictions, normalize=normalize, sample_weight=sample_weight),
+            "accuracy": accuracy_score(
+                references, predictions, normalize=normalize, sample_weight=sample_weight
+            ).item(),
         }

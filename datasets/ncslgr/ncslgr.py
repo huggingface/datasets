@@ -19,8 +19,6 @@ import os
 import re
 from dataclasses import dataclass
 
-from tqdm import tqdm
-
 import datasets
 
 
@@ -128,7 +126,7 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, eaf_path: str, videos_path: str):
         """Yields examples."""
 
-        for i, eaf_file in enumerate(tqdm(os.listdir(eaf_path))):
+        for i, eaf_file in enumerate(os.listdir(eaf_path)):
             eaf_file_path = os.path.join(eaf_path, eaf_file)
             videos = []
             with open(eaf_file_path, "r", encoding="utf-8") as f:

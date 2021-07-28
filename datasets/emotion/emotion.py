@@ -1,6 +1,7 @@
 import csv
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 _CITATION = """\
@@ -44,6 +45,7 @@ class Emotion(datasets.GeneratorBasedBuilder):
             supervised_keys=("text", "label"),
             homepage=_URL,
             citation=_CITATION,
+            task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

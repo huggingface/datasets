@@ -408,7 +408,7 @@ _DATA_URLS = {
     "tatoeba": "https://github.com/facebookresearch/LASER/raw/master/data/tatoeba/v1",
     "udpos": "https://lindat.mff.cuni.cz/repository/xmlui/bitstream/handle/11234/1-3105/ud-treebanks-v2.5.tgz",
     "SQuAD": "https://rajpurkar.github.io/SQuAD-explorer/dataset/",
-    "PAN-X": "https://www.dropbox.com/s/12h3qqog6q4bjve/panx_dataset.tar?dl=1",
+    "PAN-X": "https://s3.amazonaws.com/datasets.huggingface.co/wikiann/1.1.0/panx_dataset.zip",
 }
 
 _URLS = {

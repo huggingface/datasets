@@ -1,4 +1,5 @@
 ---
+pretty_name: SQuAD
 annotations_creators:
 - crowdsourced
 language_creators:

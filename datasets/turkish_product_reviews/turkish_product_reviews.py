@@ -55,7 +55,7 @@ class TurkishProductReviews(datasets.GeneratorBasedBuilder):
         logger.info("⏳ Generating examples from = %s", filepath)
         for file_idx, f in enumerate(sorted(filenames)):
             filename, file_extension = os.path.splitext(f)
-            label = "negative" if file_extension == "neg" else "positive"
+            label = "negative" if file_extension == ".neg" else "positive"
 
             file_fullpath = os.path.join(filepath, f)
             with open(file_fullpath, encoding="utf-8") as f:

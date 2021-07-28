@@ -41,6 +41,7 @@ PYARROW_VERSION = importlib_metadata.version("pyarrow")
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
+USE_JAX = os.environ.get("USE_JAX", "AUTO").upper()
 
 TORCH_VERSION = "N/A"
 TORCH_AVAILABLE = False
@@ -90,6 +91,21 @@ else:
     logger.info("Disabling Tensorflow because USE_TORCH is set")
 
 
+JAX_VERSION = "N/A"
+JAX_AVAILABLE = False
+
+if USE_JAX in ENV_VARS_TRUE_AND_AUTO_VALUES:
+    JAX_AVAILABLE = importlib.util.find_spec("jax") is not None
+    if JAX_AVAILABLE:
+        try:
+            JAX_VERSION = importlib_metadata.version("jax")
+            logger.info(f"JAX version {JAX_VERSION} available.")
+        except importlib_metadata.PackageNotFoundError:
+            pass
+else:
+    logger.info("Disabling JAX because USE_JAX is set to False")
+
+
 USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
 BEAM_VERSION = "N/A"
 BEAM_AVAILABLE = False
@@ -116,6 +132,9 @@ if USE_RAR in ("1", "ON", "YES", "AUTO"):
         pass
 else:
     logger.info("Disabling rarfile because USE_RAR is set to False")
+
+
+ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
 
 
 # Cache location
@@ -173,3 +192,9 @@ DATASETDICT_JSON_FILENAME = "dataset_dict.json"
 MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 
 MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255
+
+# Streaming
+
+AIOHTTP_AVAILABLE = importlib.util.find_spec("aiohttp") is not None
+STREAMING_READ_MAX_RETRIES = 3
+STREAMING_READ_RETRY_INTERVAL = 1

@@ -1,34 +1,29 @@
 Quick tour
 ==========
 
-Let's have a quick look at the 🤗Datasets library. This library has three main features:
+Let's have a quick look at the 🤗 Datasets library. This library has three main features:
 
 - It provides a very **efficient way to load and process data** from raw files (CSV/JSON/text) or in-memory data (python dict, pandas dataframe) with a special focus on memory efficiency and speed. As a matter of example, loading a 18GB dataset like English Wikipedia allocate 9 MB in RAM and you can iterate over the dataset at 1-2 GBit/s in python.
-- It provides a very **simple way to access and share datasets** with the research and practitioner communities (over 130 NLP datasets are already accessible in one line with the library as we'll see below).
+- It provides a very **simple way to access and share datasets** with the research and practitioner communities (over 1,000 datasets are already accessible in one line with the library as we'll see below).
 - It was designed with a particular focus on interoperabilty with frameworks like **pandas, NumPy, PyTorch and TensorFlow**.
 
-🤗Datasets provides datasets for many NLP tasks like text classification, question answering, language modeling, etc., and obviously these datasets can always be used for other tasks than their originally assigned task. Let's list all the currently provided datasets using :func:`datasets.list_datasets`:
+🤗 Datasets provides datasets for many NLP tasks like text classification, question answering, language modeling, etc., and obviously these datasets can always be used for other tasks than their originally assigned task. Let's list all the currently provided datasets using :func:`datasets.list_datasets`:
 
 .. code-block::
 
     >>> from datasets import list_datasets
     >>> datasets_list = list_datasets()
     >>> len(datasets_list)
-    656
+    1067
     >>> print(', '.join(dataset for dataset in datasets_list))
-    aeslc, ag_news, ai2_arc, allocine, anli, arcd, art, billsum, blended_skill_talk, blimp, blog_authorship_corpus, bookcorpus, boolq, break_data,
-    c4, cfq, civil_comments, cmrc2018, cnn_dailymail, coarse_discourse, com_qa, commonsense_qa, compguesswhat, coqa, cornell_movie_dialog, cos_e, 
-    cosmos_qa, crime_and_punish, csv, definite_pronoun_resolution, discofuse, docred, drop, eli5, empathetic_dialogues, eraser_multi_rc, esnli, 
-    event2Mind, fever, flores, fquad, gap, germeval_14, ghomasHudson/cqc, gigaword, glue, hansards, hellaswag, hyperpartisan_news_detection, 
-    imdb, jeopardy, json, k-halid/ar, kor_nli, lc_quad, lhoestq/c4, librispeech_lm, lm1b, math_dataset, math_qa, mlqa, movie_rationales, 
-    multi_news, multi_nli, multi_nli_mismatch, mwsc, natural_questions, newsroom, openbookqa, opinosis, pandas, para_crawl, pg19, piaf, qa4mre, 
-    qa_zre, qangaroo, qanta, qasc, quarel, quartz, quoref, race, reclor, reddit, reddit_tifu, rotten_tomatoes, scan, scicite, scientific_papers, 
-    scifact, sciq, scitail, sentiment140, snli, social_i_qa, squad, squad_es, squad_it, squad_v1_pt, squad_v2, squadshifts, super_glue, ted_hrlr, 
-    ted_multi, tiny_shakespeare, trivia_qa, tydiqa, ubuntu_dialogs_corpus, webis/tl_dr, wiki40b, wiki_dpr, wiki_qa, wiki_snippets, wiki_split, 
-    wikihow, wikipedia, wikisql, wikitext, winogrande, wiqa, wmt14, wmt15, wmt16, wmt17, wmt18, wmt19, wmt_t2t, wnut_17, x_stance, xcopa, xnli, 
-    xquad, xsum, xtreme, yelp_polarity
+    acronym_identification, ade_corpus_v2, adversarial_qa, aeslc, afrikaans_ner_corpus, ag_news, ai2_arc, air_dialogue, ajgt_twitter_ar,
+    allegro_reviews, allocine, alt, amazon_polarity, amazon_reviews_multi, amazon_us_reviews, ambig_qa, amttl, anli, app_reviews, aqua_rat,
+    aquamuse, ar_cov19, ar_res_reviews, ar_sarcasm, arabic_billion_words, arabic_pos_dialect, arabic_speech_corpus, arcd, arsentd_lev, art,
+    arxiv_dataset, ascent_kb, aslg_pc12, asnq, asset, assin, assin2, atomic, autshumato, babi_qa, banking77, bbaw_egyptian, bbc_hindi_nli,
+    bc2gm_corpus, best2009, bianet, bible_para, big_patent, billsum, bing_coronavirus_query_set, biomrc, blended_skill_talk, blimp,
+    blog_authorship_corpus, bn_hate_speech [...]
 
-All these datasets can also be browsed on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗Datasets viewer <https://huggingface.co/datasets/viewer/>`__.
+All these datasets can also be browsed on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗 Datasets viewer <https://huggingface.co/datasets/viewer/>`__.
 
 Loading a dataset
 --------------------
@@ -107,7 +102,7 @@ We can print one example of each class using :func:`datasets.Dataset.filter` and
 
 Now our goal will be to train a model which can predict the correct label (``not_equivalent`` or ``equivalent``) from a pair of sentences.
 
-Let's import a pretrained Bert model and its tokenizer using 🤗Transformers.
+Let's import a pretrained Bert model and its tokenizer using 🤗 Transformers.
 
 .. code-block::
 
@@ -130,8 +125,8 @@ Let's import a pretrained Bert model and its tokenizer using 🤗Transformers.
     You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
     >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
-🤗Transformers warns us that we should probably train this model on a downstream task before using it which is exactly what we are going to do.
-If you want more details on the models and tokenizers of 🤗Transformers, you should refer to the documentation and tutorials of this library `which are available here <https://huggingface.co/transformers/>`__.
+🤗 Transformers warns us that we should probably train this model on a downstream task before using it which is exactly what we are going to do.
+If you want more details on the models and tokenizers of 🤗 Transformers, you should refer to the documentation and tutorials of this library `which are available here <https://huggingface.co/transformers/>`__.
 
 Tokenizing the dataset
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -148,7 +143,7 @@ The first step is to tokenize our sentences in order to build sequences of integ
     >>> tokenizer.decode(tokenizer(dataset[0]['sentence1'], dataset[0]['sentence2'])['input_ids'])
     '[CLS] Amrozi accused his brother, whom he called " the witness ", of deliberately distorting his evidence. [SEP] Referring to him as only " the witness ", Amrozi accused his brother of deliberately distorting his evidence. [SEP]'
 
-As you can see, the tokenizer has merged the pair of sequences in a single input separating them by some special tokens ``[CLS]`` and ``[SEP]`` expected by Bert. For more details on this, you can refer to `🤗Transformers's documentation on data processing <https://huggingface.co/transformers/preprocessing.html#preprocessing-pairs-of-sentences>`__.
+As you can see, the tokenizer has merged the pair of sequences in a single input separating them by some special tokens ``[CLS]`` and ``[SEP]`` expected by Bert. For more details on this, you can refer to `🤗 Transformers's documentation on data processing <https://huggingface.co/transformers/preprocessing.html#preprocessing-pairs-of-sentences>`__.
 
 In our case, we want to tokenize our full dataset, so we will use a method called :func:`datasets.Dataset.map` to apply the encoding process to the whole dataset.
 To be sure we can easily build tensor batches for our model, we will truncate and pad the inputs to the max length of our model.
@@ -183,12 +178,12 @@ Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`
 To be able to train our model with this dataset and PyTorch, we will need to do three modifications:
 
 - rename our ``label`` column in ``labels`` which is the expected input name for labels in `BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#transformers.BertForSequenceClassification.forward>`__ or `TFBertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#tfbertforsequenceclassification>`__,
-- get pytorch (or tensorflow) tensors out of our :class:`datasets.Dataset`, instead of python objects, and
+- get pytorch (or tensorflow, or jax) tensors out of our :class:`datasets.Dataset`, instead of python objects, and
 - filter the columns to return only the subset of the columns that we need for our model inputs (``input_ids``, ``token_type_ids`` and ``attention_mask``).
 
 .. note::
 
-    We don't want the columns `sentence1` or `sentence2` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model. 🤗Datasets let you control the output format of :func:`datasets.Dataset.__getitem__` to just mask them as detailed in :doc:`exploring <./exploring>`.
+    We don't want the columns `sentence1` or `sentence2` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model. 🤗 Datasets let you control the output format of :func:`datasets.Dataset.__getitem__` to just mask them as detailed in :doc:`exploring <./exploring>`.
 
 The first modification is just a matter of renaming the column as follows (we could have done it during the tokenization process as well):
 
