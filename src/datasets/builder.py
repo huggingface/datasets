@@ -21,6 +21,7 @@ import contextlib
 import copy
 import inspect
 import os
+from pathlib import PurePath
 import shutil
 import urllib
 from dataclasses import dataclass
@@ -157,10 +158,10 @@ class BuilderConfig:
             else:
                 raise ValueError("Please provide a valid `data_files` in `DatasetBuilder`")
 
-            def abspath(data_file: str) -> str:
+            def abspath(data_file) -> str:
+                data_file = data_file.as_posix() if isinstance(data_file, PurePath) else str(data_file)
                 return url_or_path_join(base_path, data_file) if is_relative_path(data_file) else data_file
 
-            data_files: Dict[str, List[str]] = map_nested(str, data_files)
             data_files: Dict[str, List[str]] = map_nested(abspath, data_files)
             remote_urls = [
                 data_file for key in data_files for data_file in data_files[key] if is_remote_url(data_file)
