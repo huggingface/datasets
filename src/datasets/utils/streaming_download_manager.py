@@ -56,7 +56,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
                 break
             except ClientError:
                 logger.warning(
-                    f"Got diconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
+                    f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
                 )
                 time.sleep(config.STREAMING_READ_RETRY_INTERVAL)
         else:
@@ -82,7 +82,7 @@ def xopen(file, mode="r", *args, **kwargs):
 
 class StreamingDownloadManager(object):
     """
-    Download manager that uses the "::" separator to naviguate through (possibly remote) compressed archives.
+    Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
     Contrary to the regular DownloadManager, the `download` and `extract` methods don't actually download nor extract
     data, but they rather return the path or url that could be opened using the `xopen` function which extends the
     builtin `open` function to stream data from remote files.
