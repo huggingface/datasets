@@ -21,11 +21,11 @@ import contextlib
 import copy
 import inspect
 import os
-from pathlib import PurePath
 import shutil
 import urllib
 from dataclasses import dataclass
 from functools import partial
+from pathlib import PurePath
 from typing import Dict, List, Optional, Tuple, Union
 
 from datasets.features import Features
