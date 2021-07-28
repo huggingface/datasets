@@ -157,7 +157,14 @@ class BuilderConfig:
             remote_urls = [
                 data_file for key in data_files for data_file in data_files[key] if is_remote_url(data_file)
             ]
-            etags = dict(zip(remote_urls, request_etags(remote_urls, tqdm_kwargs={"desc": "Check remote data files"})))
+            etags = dict(
+                zip(
+                    remote_urls,
+                    request_etags(
+                        remote_urls, use_auth_token=use_auth_token, tqdm_kwargs={"desc": "Check remote data files"}
+                    ),
+                )
+            )
             for key in sorted(data_files.keys()):
                 m.update(key)
                 for data_file in data_files[key]:
