@@ -250,7 +250,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             chunk_indices = _generate_chunk_indices(data, args, split=split)
             if split != "test":
                 for key, (rec, st, ed) in enumerate(chunk_indices):
-                    speakers = _get_speakers(rec, data)
+                    speakers = _get_speakers(rec, data, args)
                     yield key, {
                         "record_id": rec,
                         "file": data.wavs[rec],
@@ -262,7 +262,7 @@ class Superb(datasets.GeneratorBasedBuilder):
                 key = 0
                 for rec in chunk_indices:
                     for rec, st, ed in chunk_indices[rec]:
-                        speakers = _get_speakers(rec, data)
+                        speakers = _get_speakers(rec, data, args)
                         yield key, {
                             "record_id": rec,
                             "file": data.wavs[rec],
@@ -383,8 +383,12 @@ def _gen_chunk_indices(data_len, chunk_size):
         start += step
 
 
-def _get_speakers(rec, data):
+def _get_speakers(rec, data, args):
     return [
-        {"speaker_id": data.utt2spk[segment["utt"]], "start": segment["st"], "end": segment["et"]}
+        {
+            "speaker_id": data.utt2spk[segment["utt"]],
+            "start": round(segment["st"] * args.rate / args.frame_shift),
+            "end": round(segment["et"] * args.rate / args.frame_shift),
+        }
         for segment in data.segments[rec]
     ]
