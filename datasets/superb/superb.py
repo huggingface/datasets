@@ -295,8 +295,9 @@ class SdData:
                 ret[rec].append({"utt": utt, "st": float(st), "et": float(et)})
         return ret
 
-    def _load_wav_zip(self, wav_dir):
+    def _load_wav_zip(self, wav_zip):
         """Return dictionary { rec: wav_rxfilename }."""
+        wav_dir = os.path.join(wav_zip, "wav")
         return {
             os.path.splitext(filename)[0]: os.path.join(wav_dir, filename) for filename in sorted(os.listdir(wav_dir))
         }
