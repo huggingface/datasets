@@ -2,14 +2,11 @@ import os
 
 import pytest
 
-from .utils import require_streaming
-
 
 TEST_URL = "https://huggingface.co/datasets/lhoestq/test/raw/main/some_text.txt"
 TEST_URL_CONTENT = "foo\nbar\nfoobar"
 
 
-@require_streaming
 def test_xopen_local(text_path):
     from datasets.utils.streaming_download_manager import xopen
 
@@ -17,7 +14,6 @@ def test_xopen_local(text_path):
         assert list(f) == list(expected_file)
 
 
-@require_streaming
 def test_xopen_remote():
     from datasets.utils.streaming_download_manager import xopen
 
@@ -25,7 +21,6 @@ def test_xopen_remote():
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
 
 
-@require_streaming
 @pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
 def test_streaming_dl_manager_download_dummy_path(urlpath):
     from datasets.utils.streaming_download_manager import StreamingDownloadManager
@@ -34,7 +29,6 @@ def test_streaming_dl_manager_download_dummy_path(urlpath):
     assert dl_manager.download(urlpath) == urlpath
 
 
-@require_streaming
 def test_streaming_dl_manager_download(text_path):
     from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
 
@@ -45,7 +39,6 @@ def test_streaming_dl_manager_download(text_path):
         assert f.read() == expected_file.read()
 
 
-@require_streaming
 @pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
 def test_streaming_dl_manager_download_and_extract_no_extraction(urlpath):
     from datasets.utils.streaming_download_manager import StreamingDownloadManager
@@ -54,7 +47,6 @@ def test_streaming_dl_manager_download_and_extract_no_extraction(urlpath):
     assert dl_manager.download_and_extract(urlpath) == urlpath
 
 
-@require_streaming
 def test_streaming_dl_manager_extract(text_gz_path):
     from datasets.utils.streaming_download_manager import StreamingDownloadManager
 
@@ -63,7 +55,6 @@ def test_streaming_dl_manager_extract(text_gz_path):
     assert dl_manager.extract(text_gz_path) == f"gzip://{path}::{text_gz_path}"
 
 
-@require_streaming
 def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path, text_path):
     from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
 

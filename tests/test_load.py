@@ -33,7 +33,6 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     offline,
-    require_streaming,
     set_current_working_directory_to_temp_dir,
 )
 
@@ -319,7 +318,6 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
     assert os.path.abspath(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST) in str(exc_info.value)
 
 
-@require_streaming
 def test_load_dataset_streaming(dataset_loading_script_dir, data_dir):
     dataset = load_dataset(dataset_loading_script_dir, streaming=True, data_dir=data_dir)
     assert isinstance(dataset, IterableDatasetDict)
@@ -328,7 +326,6 @@ def test_load_dataset_streaming(dataset_loading_script_dir, data_dir):
     assert isinstance(next(iter(dataset["train"])), dict)
 
 
-@require_streaming
 def test_load_dataset_streaming_gz_json(jsonl_gz_path):
     data_files = jsonl_gz_path
     ds = load_dataset("json", split="train", data_files=data_files, streaming=True)
@@ -361,7 +358,6 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
         mock_head.assert_called()
 
 
-@require_streaming
 def test_loaded_streaming_dataset_has_use_auth_token(dataset_loading_script_dir, data_dir):
     from datasets.utils.streaming_download_manager import xopen
 

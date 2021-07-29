@@ -45,6 +45,7 @@ from .iterable_dataset import IterableDataset
 from .metric import Metric
 from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, hash_python_lines
 from .splits import Split
+from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
@@ -64,10 +65,6 @@ from .utils.filelock import FileLock
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
 from .utils.version import Version
-
-
-if config.AIOHTTP_AVAILABLE:
-    from .streaming import extend_module_for_streaming
 
 
 logger = get_logger(__name__)
@@ -1079,13 +1076,6 @@ def load_dataset(
 
     """
     ignore_verifications = ignore_verifications or save_infos
-    # Check streaming
-    if streaming:
-        if not config.AIOHTTP_AVAILABLE:
-            raise ImportError(
-                "To be able to use dataset streaming, you need to install dependencies like aiohttp "
-                'using "pip install \'datasets[streaming]\'" or "pip install aiohttp" for instance'
-            )
 
     # Create a dataset builder
     builder_instance = load_dataset_builder(
