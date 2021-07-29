@@ -998,7 +998,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))}),
+                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
@@ -1015,7 +1015,24 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))}),
+                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
+                    )
+                    self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
+
+    @require_jax
+    def test_map_jax(self, in_memory):
+        import jax.numpy as jnp
+
+        def func(example):
+            return {"tensor": jnp.asarray([1.0, 2, 3])}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
