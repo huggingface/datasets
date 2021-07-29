@@ -120,7 +120,7 @@ def set_verbosity_info():
 def set_verbosity_warning():
     """Set the level for the HuggingFace datasets library's root logger to WARNING.
 
-    This will display only the warning and errors logging information (no tqdm bars).
+    This will display only the warning and errors logging information and tqdm bars.
 
     Shortcut to ``datasets.logging.set_verbosity(datasets.logging.WARNING)``
     """
@@ -140,7 +140,7 @@ def set_verbosity_debug():
 def set_verbosity_error():
     """Set the level for the HuggingFace datasets library's root logger to ERROR.
 
-    This will display only the errors logging information (no tqdm bars).
+    This will display only the errors logging information and tqdm bars.
 
     Shortcut to ``datasets.logging.set_verbosity(datasets.logging.ERROR)``
     """

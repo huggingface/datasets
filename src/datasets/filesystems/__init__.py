@@ -2,11 +2,17 @@ import importlib
 
 import fsspec
 
+from . import compression
+
 
 _has_s3fs = importlib.util.find_spec("s3fs") is not None
 
 if _has_s3fs:
     from .s3filesystem import S3FileSystem  # noqa: F401
+
+
+# Register custom filesystems
+fsspec.register_implementation(compression.gzip.GZipFileSystem.protocol, compression.gzip.GZipFileSystem)
 
 
 def extract_path_from_uri(dataset_path: str) -> str:

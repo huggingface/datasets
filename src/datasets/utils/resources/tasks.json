@@ -77,6 +77,21 @@
             "other"
         ]
     },
+    "speech-processing": {
+        "description": "tasks related to the analysis and representations of speech signals",
+        "options": [
+            "automatic-speech-recognition",
+            "phoneme-recognition",
+            "keyword-spotting",
+            "query-by-example-spoken-term-detection",
+            "speaker-identification",
+            "automatic-speaker-verification",
+            "speaker-diarization",
+            "intent-classification",
+            "slot-filling",
+            "emotion-recognition"
+        ]
+    },
     "other": {
         "description": "other task family not mentioned here",
         "options": [

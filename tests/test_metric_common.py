@@ -172,7 +172,7 @@ def patch_comet(module_name):
 
 
 def test_seqeval_raises_when_incorrect_scheme():
-    metric = load_metric("./metrics/seqeval")
+    metric = load_metric(os.path.join("metrics", "seqeval"))
     wrong_scheme = "ERROR"
     error_message = f"Scheme should be one of [IOB1, IOB2, IOE1, IOE2, IOBES, BILOU], got {wrong_scheme}"
     with pytest.raises(ValueError, match=re.escape(error_message)):

@@ -3,7 +3,7 @@ Adding a FAISS or Elastic Search index to a Dataset
 
 It is possible to do document retrieval in a dataset.
 
-For example, one way to do Open Domain Question Answering, one way to do that is to first retrieve documents that may be relevant to answer a question, and then we can use a model to generate an answer given the retrieved documents.
+For example, one way to do Open Domain Question Answering is to first retrieve documents that may be relevant to answer a question, and then we can use a model to generate an answer given the retrieved documents.
 
 FAISS is a library for dense retrieval. It means that it retrieves documents based on their vector representations, by doing a nearest neighbors search.
 As we now have models that can generate good semantic vector representations of documents, this has become an interesting tool for document retrieval.
@@ -29,7 +29,7 @@ Adding a FAISS index
 
 The :func:`datasets.Dataset.add_faiss_index` method is in charge of building, training and adding vectors to a FAISS index.
 
-One way to get good vector representations for text passages is to use the DPR model. We'll compute the representations of only 100 examples just to give you the idea of how it works.
+One way to get good vector representations for text passages is to use the `DPR model <https://huggingface.co/transformers/model_doc/dpr.html>`_. We'll compute the representations of only 100 examples just to give you the idea of how it works.
 
 .. code-block::
 

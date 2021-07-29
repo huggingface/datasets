@@ -375,7 +375,7 @@ Some text here.
 Language Text
 """
 
-EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1 = "The following issues were found for the README at `{path}`:\n-\tMultiple sections with the same heading `Dataset Card for My Dataset` have been found. Please keep only one of these sections."
+EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1 = "The following issues were found while parsing the README at `{path}`:\n-\tMultiple sections with the same heading `Dataset Card for My Dataset` have been found. Please keep only one of these sections."
 
 
 @pytest.mark.parametrize(
@@ -400,15 +400,36 @@ def test_readme_from_string_correct(readme_md, expected_dict):
         (README_MISSING_FIRST_LEVEL, EXPECTED_ERROR_README_MISSING_FIRST_LEVEL),
         (README_MISSING_SUBSECTION, EXPECTED_ERROR_README_MISSING_SUBSECTION),
         (README_MISSING_TEXT, EXPECTED_ERROR_README_MISSING_TEXT),
-        (README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),
         (README_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_WRONG_FIRST_LEVEL),
         (README_MULTIPLE_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL),
         (README_MISSING_CONTENT, EXPECTED_ERROR_README_MISSING_CONTENT),
     ],
 )
-def test_readme_from_string_errors(readme_md, expected_error):
+def test_readme_from_string_validation_errors(readme_md, expected_error):
+    with pytest.raises(ValueError, match=re.escape(expected_error.format(path="root"))):
+        readme = ReadMe.from_string(readme_md, example_yaml_structure)
+        readme.validate()
+
+
+@pytest.mark.parametrize(
+    "readme_md, expected_error",
+    [
+        (README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),
+    ],
+)
+def test_readme_from_string_parsing_errors(readme_md, expected_error):
     with pytest.raises(ValueError, match=re.escape(expected_error.format(path="root"))):
         ReadMe.from_string(readme_md, example_yaml_structure)
+
+
+@pytest.mark.parametrize(
+    "readme_md,",
+    [
+        (README_MULTIPLE_SAME_HEADING_1),
+    ],
+)
+def test_readme_from_string_suppress_parsing_errors(readme_md):
+    ReadMe.from_string(readme_md, example_yaml_structure, suppress_parsing_errors=True)
 
 
 @pytest.mark.parametrize(
@@ -441,7 +462,6 @@ def test_readme_from_readme_correct(readme_md, expected_dict):
         (README_MISSING_FIRST_LEVEL, EXPECTED_ERROR_README_MISSING_FIRST_LEVEL),
         (README_MISSING_SUBSECTION, EXPECTED_ERROR_README_MISSING_SUBSECTION),
         (README_MISSING_TEXT, EXPECTED_ERROR_README_MISSING_TEXT),
-        (README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),
         (README_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_WRONG_FIRST_LEVEL),
         (README_MULTIPLE_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL),
         (README_MISSING_CONTENT, EXPECTED_ERROR_README_MISSING_CONTENT),
@@ -454,4 +474,35 @@ def test_readme_from_readme_error(readme_md, expected_error):
             readme_file.write(readme_md)
         expected_error = expected_error.format(path=path)
         with pytest.raises(ValueError, match=re.escape(expected_error)):
+            readme = ReadMe.from_readme(path, example_yaml_structure)
+            readme.validate()
+
+
+@pytest.mark.parametrize(
+    "readme_md, expected_error",
+    [
+        (README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),
+    ],
+)
+def test_readme_from_readme_parsing_errors(readme_md, expected_error):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = Path(tmp_dir) / "README.md"
+        with open(path, "w+") as readme_file:
+            readme_file.write(readme_md)
+        expected_error = expected_error.format(path=path)
+        with pytest.raises(ValueError, match=re.escape(expected_error)):
             ReadMe.from_readme(path, example_yaml_structure)
+
+
+@pytest.mark.parametrize(
+    "readme_md,",
+    [
+        (README_MULTIPLE_SAME_HEADING_1),
+    ],
+)
+def test_readme_from_readme_suppress_parsing_errors(readme_md):
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = Path(tmp_dir) / "README.md"
+        with open(path, "w+") as readme_file:
+            readme_file.write(readme_md)
+        ReadMe.from_readme(path, example_yaml_structure, suppress_parsing_errors=True)

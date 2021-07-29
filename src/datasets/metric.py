@@ -37,7 +37,7 @@ from .utils.filelock import BaseFileLock, FileLock, Timeout
 from .utils.logging import get_logger
 
 
-logger = get_logger(__file__)
+logger = get_logger(__name__)
 
 
 class FileFreeLock(BaseFileLock):

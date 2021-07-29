@@ -18,6 +18,7 @@
 import os
 
 import datasets
+from datasets.tasks import AutomaticSpeechRecognition
 
 
 _DATA_URL = "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-6.1-2020-12-11/{}.tar.gz"
@@ -649,6 +650,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[
+                AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="sentence")
+            ],
         )
 
     def _split_generators(self, dl_manager):

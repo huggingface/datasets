@@ -49,11 +49,24 @@ class EmptyTqdm:
 _active = True
 
 
-def tqdm(*args, **kwargs):
-    if _active:
-        return tqdm_lib.tqdm(*args, **kwargs)
-    else:
-        return EmptyTqdm(*args, **kwargs)
+class _tqdm_cls:
+    def __call__(self, *args, **kwargs):
+        if _active:
+            return tqdm_lib.tqdm(*args, **kwargs)
+        else:
+            return EmptyTqdm(*args, **kwargs)
+
+    def set_lock(self, *args, **kwargs):
+        self._lock = None
+        if _active:
+            return tqdm_lib.tqdm.set_lock(*args, **kwargs)
+
+    def get_lock(self):
+        if _active:
+            return tqdm_lib.tqdm.get_lock()
+
+
+tqdm = _tqdm_cls()
 
 
 def async_tqdm(*args, **kwargs):
@@ -63,8 +76,13 @@ def async_tqdm(*args, **kwargs):
         return EmptyTqdm(*args, **kwargs)
 
 
+def is_progress_bar_enabled():
+    global _active
+    return bool(_active)
+
+
 def disable_progress_bar():
-    """Disabled Tqdm progress bar.
+    """Disable tqdm progress bar.
 
     Usage:
 
@@ -103,7 +121,7 @@ def _async_tqdm(*args, **kwargs):
 
 
 class _TqdmPbarAsync:
-    """Wrapper around Tqdm pbar which be shared between thread."""
+    """Wrapper around Tqdm pbar which can be shared between thread."""
 
     _tqdm_bars = []
 
