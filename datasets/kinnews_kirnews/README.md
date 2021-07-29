@@ -26,6 +26,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 - topic-classification
+paperswithcode_id: kinnews-and-kirnews
 ---
 # Dataset Card for kinnews_kirnews
 

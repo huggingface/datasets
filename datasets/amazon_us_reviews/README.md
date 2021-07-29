@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: null
 ---
 
 # Dataset Card for "amazon_us_reviews"

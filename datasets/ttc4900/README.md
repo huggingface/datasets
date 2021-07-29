@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-news-category-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for TTC4900: A Benchmark Data for Turkish Text Categorization

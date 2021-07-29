@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: asnq
 ---
 
 # Dataset Card for "asnq"

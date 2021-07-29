@@ -63,6 +63,7 @@ task_ids:
   - semantic-similarity-scoring
   wnli:
   - text-classification-other-coreference-nli
+paperswithcode_id: glue
 ---
 
 # Dataset Card for "glue"

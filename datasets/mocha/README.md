@@ -17,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - question-answering-other-generative-reading-comprehension-metric
+paperswithcode_id: mocha
 ---
 
 # Dataset Card for Mocha

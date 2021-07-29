@@ -1,4 +1,24 @@
 ---
+annotations_creators:
+- machine-generated
+language_creators:
+- machine-generated
+languages:
+- it-IT
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- unknown
+source_datasets:
+- extended|squad
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+- extractive-qa
+paperswithcode_id: squad-it
 ---
 
 # Dataset Card for "squad_it"
@@ -90,9 +110,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-| name  |train|test|
-|-------|----:|---:|
-|default|54159|7609|
+| name    | train | test |
+| ------- | ----: | ---: |
+| default | 54159 | 7609 |
 
 ## Dataset Creation
 

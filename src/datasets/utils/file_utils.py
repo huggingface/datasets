@@ -5,14 +5,11 @@ Copyright by the AllenNLP authors.
 """
 
 import copy
-import gzip
 import json
-import lzma
 import os
 import re
 import shutil
 import sys
-import tarfile
 import tempfile
 import time
 import urllib
@@ -21,24 +18,26 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, TypeVar, Union
 from urllib.parse import urlparse
-from zipfile import ZipFile, is_zipfile
 
 import numpy as np
 import posixpath
-import pyarrow as pa
 import requests
-from tqdm.auto import tqdm
+from tqdm.contrib.concurrent import thread_map
 
-from .. import __version__, config
+from .. import __version__, config, utils
+from . import logging
+from .extract import ExtractManager
 from .filelock import FileLock
-from .logging import WARNING, get_logger
+from .tqdm_utils import tqdm
 
 
-logger = get_logger(__name__)  # pylint: disable=invalid-name
+logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 INCOMPLETE_SUFFIX = ".incomplete"
+
+T = TypeVar("T", str, Path)
 
 
 def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
@@ -128,6 +127,12 @@ def is_local_path(url_or_filename: str) -> bool:
 
 def is_relative_path(url_or_filename: str) -> bool:
     return urlparse(url_or_filename).scheme == "" and not os.path.isabs(url_or_filename)
+
+
+def relative_to_absolute_path(path: T) -> T:
+    """Convert relative path to absolute path."""
+    abs_path_str = os.path.abspath(os.path.expanduser(os.path.expandvars(str(path))))
+    return Path(abs_path_str) if isinstance(path, Path) else abs_path_str
 
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
@@ -221,6 +226,7 @@ class DownloadConfig:
             extract the compressed file in a folder along the archive.
         force_extract (:obj:`bool`, default ``False``): If True when extract_compressed_file is True and the archive
             was already extracted, re-extract the archive and override the folder where it was extracted.
+        delete_extracted (:obj:`bool`, default ``False``): Whether to delete (or keep) the extracted files.
         use_etag (:obj:`bool`, default ``True``):
         num_proc (:obj:`int`, optional):
         max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
@@ -236,6 +242,7 @@ class DownloadConfig:
     user_agent: Optional[str] = None
     extract_compressed_file: bool = False
     force_extract: bool = False
+    delete_extracted: bool = False
     use_etag: bool = True
     num_proc: Optional[int] = None
     max_retries: int = 1
@@ -270,7 +277,7 @@ def cached_path(
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
-    cache_dir = download_config.cache_dir or os.path.join(config.HF_DATASETS_CACHE, "downloads")
+    cache_dir = download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
@@ -300,76 +307,26 @@ def cached_path(
         # Something unknown
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
-    if download_config.extract_compressed_file and output_path is not None:
+    if output_path is None:
+        return output_path
 
-        if (
-            not is_zipfile(output_path)
-            and not tarfile.is_tarfile(output_path)
-            and not is_gzip(output_path)
-            and not is_xz(output_path)
-            and not is_rarfile(output_path)
-        ):
-            return output_path
-
-        # Path where we extract compressed archives
-        # We extract in the cache dir, and get the extracted path name by hashing the original path"
-        abs_output_path = os.path.abspath(output_path)
-        output_path_extracted = os.path.join(cache_dir, "extracted", hash_url_to_filename(abs_output_path))
-
-        if (
-            os.path.isdir(output_path_extracted)
-            and os.listdir(output_path_extracted)
-            and not download_config.force_extract
-        ) or (os.path.isfile(output_path_extracted) and not download_config.force_extract):
-            return output_path_extracted
-
-        # Prevent parallel extractions
-        lock_path = output_path + ".lock"
-        with FileLock(lock_path):
-            shutil.rmtree(output_path_extracted, ignore_errors=True)
-            os.makedirs(output_path_extracted, exist_ok=True)
-            if tarfile.is_tarfile(output_path):
-                tar_file = tarfile.open(output_path)
-                tar_file.extractall(output_path_extracted)
-                tar_file.close()
-            elif is_gzip(output_path):
-                os.rmdir(output_path_extracted)
-                with gzip.open(output_path, "rb") as gzip_file:
-                    with open(output_path_extracted, "wb") as extracted_file:
-                        shutil.copyfileobj(gzip_file, extracted_file)
-            elif is_zipfile(output_path):  # put zip file to the last, b/c it is possible wrongly detected as zip
-                with ZipFile(output_path, "r") as zip_file:
-                    zip_file.extractall(output_path_extracted)
-                    zip_file.close()
-            elif is_xz(output_path):
-                os.rmdir(output_path_extracted)
-                with lzma.open(output_path) as compressed_file:
-                    with open(output_path_extracted, "wb") as extracted_file:
-                        shutil.copyfileobj(compressed_file, extracted_file)
-            elif is_rarfile(output_path):
-                if config.RARFILE_AVAILABLE:
-                    import rarfile
-
-                    rf = rarfile.RarFile(output_path)
-                    rf.extractall(output_path_extracted)
-                    rf.close()
-                else:
-                    raise EnvironmentError("Please pip install rarfile")
-            else:
-                raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
-
-        return output_path_extracted
+    if download_config.extract_compressed_file:
+        output_path = ExtractManager(cache_dir=download_config.cache_dir).extract(
+            output_path, force_extract=download_config.force_extract
+        )
 
     return output_path
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
     ua = "datasets/{}; python/{}".format(__version__, config.PY_VERSION)
-    ua += "; pyarrow/{}".format(pa.__version__)
+    ua += "; pyarrow/{}".format(config.PYARROW_VERSION)
     if config.TORCH_AVAILABLE:
         ua += "; torch/{}".format(config.TORCH_VERSION)
     if config.TF_AVAILABLE:
         ua += "; tensorflow/{}".format(config.TF_VERSION)
+    if config.JAX_AVAILABLE:
+        ua += "; jax/{}".format(config.JAX_VERSION)
     if config.BEAM_AVAILABLE:
         ua += "; apache_beam/{}".format(config.BEAM_VERSION)
     if isinstance(user_agent, dict):
@@ -421,13 +378,13 @@ def _request_with_retry(
     Note that if the environment variable HF_DATASETS_OFFLINE is set to 1, then a OfflineModeIsEnabled error is raised.
 
     Args:
-        method (str): HTTP method, such as 'GET' or 'HEAD'
-        url (str): The URL of the ressource to fetch
-        max_retries (int): Maximum number of retries, defaults to 0 (no retries)
+        method (str): HTTP method, such as 'GET' or 'HEAD'.
+        url (str): The URL of the resource to fetch.
+        max_retries (int): Maximum number of retries, defaults to 0 (no retries).
         base_wait_time (float): Duration (in seconds) to wait before retrying the first time. Wait time between
             retries then grows exponentially, capped by max_wait_time.
-        max_wait_time (float): Maximum amount of time between two retries, in seconds
-        **params: Params to pass to `requests.request`
+        max_wait_time (float): Maximum amount of time between two retries, in seconds.
+        **params: Params to pass to :obj:`requests.request`.
     """
     _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
     tries, success = 0, False
@@ -436,7 +393,7 @@ def _request_with_retry(
         try:
             response = requests.request(method=method.upper(), url=url, timeout=timeout, **params)
             success = True
-        except requests.exceptions.ConnectTimeout as err:
+        except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError) as err:
             if tries > max_retries:
                 raise err
             else:
@@ -485,14 +442,13 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-    progress = tqdm(
+    progress = utils.tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
         desc="Downloading",
-        disable=not_verbose,
+        disable=bool(logging.get_verbosity() == logging.NOTSET),
     )
     for chunk in response.iter_content(chunk_size=1024):
         if chunk:  # filter out keep-alive new chunks
@@ -517,6 +473,32 @@ def http_head(
         max_retries=max_retries,
     )
     return response
+
+
+def request_etag(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
+    headers = get_authentication_headers_for_url(url, use_auth_token=use_auth_token)
+    response = http_head(url, headers=headers, max_retries=3)
+    response.raise_for_status()
+    etag = response.headers.get("ETag") if response.ok else None
+    return etag
+
+
+def request_etags(
+    urls: List[str],
+    use_auth_token: Optional[Union[str, bool]] = None,
+    max_workers=64,
+    tqdm_kwargs: Optional[dict] = None,
+) -> List[Optional[str]]:
+    tqdm_kwargs = tqdm_kwargs if tqdm_kwargs is not None else {}
+    tqdm_kwargs["desc"] = tqdm_kwargs.get("desc", "Get ETags")
+    tqdm_kwargs["disable"] = tqdm_kwargs.get("disable", len(urls) <= 16 or logging.get_verbosity() == logging.NOTSET)
+    return thread_map(
+        partial(request_etag, use_auth_token=use_auth_token),
+        urls,
+        max_workers=max_workers,
+        tqdm_class=tqdm,
+        **tqdm_kwargs,
+    )
 
 
 def get_from_cache(
@@ -680,42 +662,6 @@ def get_from_cache(
             json.dump(meta, meta_file)
 
     return cache_path
-
-
-def is_gzip(path: str) -> bool:
-    """from https://stackoverflow.com/a/60634210"""
-    with gzip.open(path, "r") as fh:
-        try:
-            fh.read(1)
-            return True
-        except OSError:
-            return False
-
-
-def is_xz(path: str) -> bool:
-    """https://tukaani.org/xz/xz-file-format-1.0.4.txt"""
-    with open(path, "rb") as f:
-        try:
-            header_magic_bytes = f.read(6)
-        except OSError:
-            return False
-        if header_magic_bytes == b"\xfd7zXZ\x00":
-            return True
-        else:
-            return False
-
-
-def is_rarfile(path: str) -> bool:
-    """https://github.com/markokr/rarfile/blob/master/rarfile.py"""
-    RAR_ID = b"Rar!\x1a\x07\x00"
-    RAR5_ID = b"Rar!\x1a\x07\x01\x00"
-
-    with open(path, "rb", 1024) as fd:
-        buf = fd.read(len(RAR5_ID))
-    if buf.startswith(RAR_ID) or buf.startswith(RAR5_ID):
-        return True
-    else:
-        return False
 
 
 def add_start_docstrings(*docstr):

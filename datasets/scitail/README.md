@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: scitail
 ---
 
 # Dataset Card for "scitail"

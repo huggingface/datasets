@@ -1,4 +1,5 @@
 ---
+pretty_name: TIMIT
 annotations_creators:
 - expert-generated
 language_creators:
@@ -14,9 +15,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- speech-processing
 task_ids:
-- other-other-automatic speech recognition
+- automatic-speech-recognition
+paperswithcode_id: timit
 ---
 
 # Dataset Card for timit_asr

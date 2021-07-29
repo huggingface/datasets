@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - emotion-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for MetRec

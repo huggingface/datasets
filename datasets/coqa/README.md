@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: coqa
 ---
 
 # Dataset Card for "coqa"

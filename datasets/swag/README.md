@@ -18,6 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - natural-language-inference
+paperswithcode_id: swag
 ---
 
 # Dataset Card Creation Guide

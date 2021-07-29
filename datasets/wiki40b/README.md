@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: wiki-40b
 ---
 
 # Dataset Card for "wiki40b"

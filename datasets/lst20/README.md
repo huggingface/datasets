@@ -21,6 +21,7 @@ task_ids:
 - structure-prediction-other-clause-segmentation
 - structure-prediction-other-sentence-segmentation
 - structure-prediction-other-word-segmentation
+paperswithcode_id: null
 ---
 
 # Dataset Card for LST20

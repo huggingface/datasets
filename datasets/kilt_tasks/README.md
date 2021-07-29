@@ -200,6 +200,7 @@ task_ids:
   wow:
   - dialogue-modeling
   - document-retrieval
+paperswithcode_id: kilt
 ---
 
 # Dataset Card for KILT
@@ -268,10 +269,17 @@ trivia_qa = load_dataset('trivia_qa', 'unfiltered.nocontext')
 
 # The KILT IDs can then be mapped to the TriviaQA questions with:
 triviaqa_map = {}
+
+def add_missing_data(x, trivia_qa_subset, triviaqa_map):
+    i = triviaqa_map[x['id']]
+    x['input'] = trivia_qa_subset[i]['question']
+    x['output']['original_answer'] = trivia_qa_subset[i]['answer']['value']
+    return x
+    
 for k in ['train', 'validation', 'test']:
     triviaqa_map = dict([(q_id, i) for i, q_id in enumerate(trivia_qa[k]['question_id'])])
     kilt_triviaqa[k] = kilt_triviaqa[k].filter(lambda x: x['id'] in triviaqa_map)
-    kilt_triviaqa[k] = kilt_triviaqa[k].map(lambda x: {'input': trivia_qa[k][triviaqa_map[x['id']]]['question']})
+    kilt_triviaqa[k] = kilt_triviaqa[k].map(add_missing_data, fn_kwargs=dict(trivia_qa_subset=trivia_qa[k], triviaqa_map=triviaqa_map))
 ```
 
 ### Supported Tasks and Leaderboards
@@ -405,7 +413,22 @@ Examples from all configurations have the following features:
 
 ### Data Splits
 
-[Needs More Information]
+The configurations have the following splits:
+
+|             | Train       | Validation  | Test        |
+| ----------- | ----------- | ----------- | ----------- |
+| triviaqa    | 61844         | 5359  | 6586  |
+| fever       | 104966        | 10444         | 10100         |
+| aidayago2   | 18395         | 4784  | 4463  |
+| wned   | | 3396 | 3376 |
+| cweb   | | 5599 | 5543 |
+| trex   | 2284168       | 5000  | 5000  |
+| structured_zeroshot    | 147909        | 3724  | 4966  |
+| nq     | 87372         | 2837  | 1444  |
+| hotpotqa       | 88869         | 5600  | 5569  |
+| eli5   | 272634        | 1507  | 600   |
+| wow    | 94577         | 3058  | 2944  |
+
 
 ## Dataset Creation
 
@@ -463,7 +486,41 @@ Examples from all configurations have the following features:
 
 ### Citation Information
 
-[Needs More Information]
+Cite as:
+```
+@inproceedings{kilt_tasks,
+  author    = {Fabio Petroni and
+               Aleksandra Piktus and
+               Angela Fan and
+               Patrick S. H. Lewis and
+               Majid Yazdani and
+               Nicola De Cao and
+               James Thorne and
+               Yacine Jernite and
+               Vladimir Karpukhin and
+               Jean Maillard and
+               Vassilis Plachouras and
+               Tim Rockt{\"{a}}schel and
+               Sebastian Riedel},
+  editor    = {Kristina Toutanova and
+               Anna Rumshisky and
+               Luke Zettlemoyer and
+               Dilek Hakkani{-}T{\"{u}}r and
+               Iz Beltagy and
+               Steven Bethard and
+               Ryan Cotterell and
+               Tanmoy Chakraborty and
+               Yichao Zhou},
+  title     = {{KILT:} a Benchmark for Knowledge Intensive Language Tasks},
+  booktitle = {Proceedings of the 2021 Conference of the North American Chapter of
+               the Association for Computational Linguistics: Human Language Technologies,
+               {NAACL-HLT} 2021, Online, June 6-11, 2021},
+  pages     = {2523--2544},
+  publisher = {Association for Computational Linguistics},
+  year      = {2021},
+  url       = {https://www.aclweb.org/anthology/2021.naacl-main.200/}
+}
+```
 
 ### Contributions
 

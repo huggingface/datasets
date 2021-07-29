@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: wikisql
 ---
 
 # Dataset Card for "wikisql"

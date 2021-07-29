@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - topic-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for Yoruba BBC News Topic Classification dataset (yoruba_bbc_topics)

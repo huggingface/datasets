@@ -26,6 +26,7 @@ task_ids:
   offmychest:
   - dialogue-modeling
   - utterance-retrieval
+paperswithcode_id: pec
 ---
 
 # Dataset Card for PEC

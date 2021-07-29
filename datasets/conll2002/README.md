@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
+paperswithcode_id: conll-2002
 ---
 
 # Dataset Card Creation Guide

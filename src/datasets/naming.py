@@ -16,25 +16,32 @@
 # Lint as: python3
 """Utilities for file names."""
 
+import itertools
 import os
 import re
 
 
-_first_cap_re = re.compile("(.)([A-Z][a-z0-9]+)")
-_all_cap_re = re.compile("([a-z0-9])([A-Z])")
+_uppercase_uppercase_re = re.compile(r"([A-Z]+)([A-Z][a-z])")
+_lowercase_uppercase_re = re.compile(r"([a-z\d])([A-Z])")
+
+_single_underscore_re = re.compile(r"(?<!_)_(?!_)")
+_multiple_underscores_re = re.compile(r"(_{2,})")
 
 _split_re = r"^\w+(\.\w+)*$"
 
 
 def camelcase_to_snakecase(name):
     """Convert camel-case string to snake-case."""
-    s1 = _first_cap_re.sub(r"\1_\2", name)
-    return _all_cap_re.sub(r"\1_\2", s1).lower()
+    name = _uppercase_uppercase_re.sub(r"\1_\2", name)
+    name = _lowercase_uppercase_re.sub(r"\1_\2", name)
+    return name.lower()
 
 
-def snake_to_camelcase(name):
+def snakecase_to_camelcase(name):
     """Convert snake-case string to camel-case string."""
-    return "".join(n.capitalize() for n in name.split("_"))
+    name = _single_underscore_re.split(name)
+    name = [_multiple_underscores_re.split(n) for n in name]
+    return "".join(n.capitalize() for n in itertools.chain.from_iterable(name) if n != "")
 
 
 def filename_prefix_for_name(name):

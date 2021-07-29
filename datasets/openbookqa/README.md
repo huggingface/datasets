@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: openbookqa
 ---
 
 # Dataset Card for "openbookqa"

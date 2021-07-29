@@ -1,4 +1,5 @@
 ---
+paperswithcode_id: squad-es
 ---
 
 # Dataset Card for "squad_es"

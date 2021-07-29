@@ -17,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+paperswithcode_id: codah
 ---
 
 # Dataset Card Creation Guide

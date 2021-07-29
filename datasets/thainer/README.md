@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
+paperswithcode_id: null
 ---
 
 # Dataset Card for `thainer`

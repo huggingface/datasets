@@ -61,6 +61,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+paperswithcode_id: united-nations-parallel-corpus
 ---
 
 # Dataset Card for [Dataset Name]

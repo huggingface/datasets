@@ -19,9 +19,10 @@ task_categories:
 task_ids:
 - sentiment-classification
 - text-classification-other-dialogue-sentiment-classification
+paperswithcode_id: redial
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ReDial (Recommendation Dialogues)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

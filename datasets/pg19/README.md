@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: pg-19
 ---
 
 # Dataset Card for "pg19"

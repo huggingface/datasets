@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - extractive-qa
 - question-answering-other-conversational-qa
+paperswithcode_id: sharc
 ---
 
 # Dataset Card Creation Guide

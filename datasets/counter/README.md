@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - semantic-similarity-scoring
 - topic-classification
+paperswithcode_id: counter
 ---
 
 # Dataset Card for counter

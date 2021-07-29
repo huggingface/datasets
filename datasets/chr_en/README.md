@@ -62,6 +62,7 @@ task_ids:
   - machine-translation
   parallel_raw:
   - machine-translation
+paperswithcode_id: chren
 ---
 
 # Dataset Card for ChrEn

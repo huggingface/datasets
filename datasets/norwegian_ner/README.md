@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- no
+- 'no'
 licenses:
 - unknown-
 multilinguality:
@@ -17,6 +17,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+paperswithcode_id: null
 ---
 
 # Dataset Card for Norwegian NER

@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: reddit
 ---
 
 # Dataset Card for "reddit"

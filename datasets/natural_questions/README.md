@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: natural-questions
 ---
 
 # Dataset Card for "natural_questions"

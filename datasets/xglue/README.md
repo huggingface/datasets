@@ -219,7 +219,7 @@ source_datasets:
   - original
   paws-x:
   - original
-  pos: 
+  pos:
   - original
   qadsm:
   - original
@@ -278,6 +278,7 @@ task_ids:
   - acceptability-classification
   xnli:
   - natural-language-inference
+paperswithcode_id: null
 ---
 
 # Dataset Card for XGLUE

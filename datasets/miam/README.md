@@ -5,15 +5,15 @@ language_creators:
 - expert-generated
 languages:
   dihana:
-    - es
+  - es
   ilisten:
-    - it
+  - it
   loria:
-    - fr
+  - fr
   maptask:
-    - en
+  - en
   vm2:
-    - de
+  - de
 licenses:
 - cc-by-sa-4.0
 multilinguality:
@@ -46,6 +46,7 @@ task_ids:
   - dialogue-modeling
   - language-modeling
   - text-classification-other-dialogue-act-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for MIAM

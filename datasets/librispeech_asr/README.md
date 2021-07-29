@@ -1,4 +1,5 @@
 ---
+pretty_name: LibriSpeech
 annotations_creators:
 - expert-generated
 language_creators:
@@ -10,14 +11,15 @@ licenses:
 - cc-by-4.0
 multilinguality:
 - monolingual
+paperswithcode_id: librispeech-1
 size_categories:
 - 100K<n<1M
 source_datasets:
 - original
 task_categories:
-- other
+- speech-processing
 task_ids:
-- other-other-automatic speech recognition
+- automatic-speech-recognition
 ---
 
 # Dataset Card for librispeech_asr
@@ -180,7 +182,16 @@ CC BY 4.0
 
 ### Citation Information
 
-[Needs More Information]
+```
+@inproceedings{panayotov2015librispeech,
+  title={Librispeech: an ASR corpus based on public domain audio books},
+  author={Panayotov, Vassil and Chen, Guoguo and Povey, Daniel and Khudanpur, Sanjeev},
+  booktitle={Acoustics, Speech and Signal Processing (ICASSP), 2015 IEEE International Conference on},
+  pages={5206--5210},
+  year={2015},
+  organization={IEEE}
+}
+```
 
 ### Contributions
 

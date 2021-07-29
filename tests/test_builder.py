@@ -1,6 +1,7 @@
 import os
 import tempfile
 import types
+from pathlib import Path
 from unittest import TestCase
 
 import numpy as np
@@ -267,6 +268,14 @@ class BuilderTest(TestCase):
             self.assertListEqual(dset.column_names, ["text", "tokens"])
             del dset
 
+            dset = dummy_builder.as_dataset("all")
+            self.assertIsInstance(dset, Dataset)
+            self.assertEqual(dset.split, "train+test")
+            self.assertEqual(len(dset), 20)
+            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": [Value("string")]}))
+            self.assertListEqual(dset.column_names, ["text", "tokens"])
+            del dset
+
         def _post_process(self, dataset, resources_paths):
             return dataset.select([0, 1], keep_in_memory=True)
 
@@ -510,6 +519,12 @@ class BuilderTest(TestCase):
                 )
             )
 
+    def test_cache_dir_no_args(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dummy_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy", data_dir=None, data_files=None)
+            relative_cache_dir_parts = Path(dummy_builder._relative_data_dir()).parts
+            self.assertEqual(relative_cache_dir_parts, ("dummy_generator_based_builder", "dummy", "0.0.0"))
+
     def test_cache_dir_for_data_files(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_data1 = os.path.join(tmp_dir, "dummy_data1.txt")
@@ -628,6 +643,11 @@ class BuilderTest(TestCase):
 
     def test_config_names(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
+
+            with self.assertRaises(ValueError) as error_context:
+                DummyBuilderWithMultipleConfigs(cache_dir=tmp_dir, data_files=None, data_dir=None)
+            self.assertIn("Please pick one among the available configs", str(error_context.exception))
+
             dummy_builder = DummyBuilderWithMultipleConfigs(cache_dir=tmp_dir, name="a")
             self.assertEqual(dummy_builder.config.name, "a")
 

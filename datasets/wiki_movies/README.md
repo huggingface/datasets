@@ -17,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - closed-domain-qa
+paperswithcode_id: wikimovies
 ---
 
 

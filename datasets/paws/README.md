@@ -30,9 +30,10 @@ task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
 - text-scoring-other-paraphrase-identification
+paperswithcode_id: paws
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for PAWS: Paraphrase Adversaries from Word Scrambling
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

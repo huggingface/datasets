@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: blimp
 ---
 
 # Dataset Card for "blimp"

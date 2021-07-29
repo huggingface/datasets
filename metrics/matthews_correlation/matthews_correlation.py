@@ -63,7 +63,7 @@ _CITATION = """\
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
-class MatthewsCorelation(datasets.Metric):
+class MatthewsCorrelation(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
@@ -82,5 +82,5 @@ class MatthewsCorelation(datasets.Metric):
 
     def _compute(self, predictions, references, sample_weight=None):
         return {
-            "matthews_correlation": matthews_corrcoef(references, predictions, sample_weight=sample_weight),
+            "matthews_correlation": matthews_corrcoef(references, predictions, sample_weight=sample_weight).item(),
         }

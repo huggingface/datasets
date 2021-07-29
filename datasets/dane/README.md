@@ -17,6 +17,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
+paperswithcode_id: dane
 ---
 
 # Dataset Card for [Dataset Name]

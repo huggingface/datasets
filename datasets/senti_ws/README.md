@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - sentiment-scoring
 - structure-prediction-other-pos-tagging
+paperswithcode_id: null
 ---
 
 # Dataset Card for SentiWS

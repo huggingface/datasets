@@ -25,6 +25,7 @@ task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
+paperswithcode_id: xor-tydi-qa
 ---
 
 # Dataset Card for XOR QA

@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- no
+- false
 licenses:
 - other-national-library-of-norway
 multilinguality:
@@ -17,6 +17,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+paperswithcode_id: null
 ---
 
 # Dataset Card for NorNE: Norwegian Named Entities
@@ -237,7 +238,7 @@ To access these reduced versions of the dataset, you can use the configs `bokmaa
 
 NorNE was created as a collaboration between [Schibsted Media Group](https://schibsted.com/), [Språkbanken](https://www.nb.no/forskning/sprakbanken/) at the [National Library of Norway](https://www.nb.no) and the [Language Technology Group](https://www.mn.uio.no/ifi/english/research/groups/ltg/) at the University of Oslo.
 
-NorNE was added to Huggingface Datasets by the AI-Lab at the National Library of Norway.
+NorNE was added to 🤗 Datasets by the AI-Lab at the National Library of Norway.
 
 ### Licensing Information
 

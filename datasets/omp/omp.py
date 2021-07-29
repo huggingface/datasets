@@ -249,20 +249,9 @@ class Omp(datasets.GeneratorBasedBuilder):
         """Yields examples."""
 
         if self.config.name in ["posts_labeled", "posts_unlabeled"]:
-            posts_labeled = pd.read_csv(
-                filepath,
-                compression=None,
-                dtype={"ID_Post": str, "ID_Parent_Post": str, "ID_Article": str, "ID_User": str},
-            )
-            posts_labeled.fillna("", inplace=True)
-            for i, row in posts_labeled.iterrows():
-                yield row["ID_Post"], row.to_dict()
+            dtype = {"ID_Post": str, "ID_Parent_Post": str, "ID_Article": str, "ID_User": str}
         elif self.config.name == "articles":
-            posts_labeled = pd.read_csv(
-                filepath,
-                compression=None,
-                dtype={"ID_Article": str, "Path": str, "publishingDate": str, "ID_User": str},
-            )
-            posts_labeled.fillna("", inplace=True)
-            for i, row in posts_labeled.iterrows():
-                yield row["ID_Article"], row.to_dict()
+            dtype = {"ID_Article": str, "Path": str, "publishingDate": str, "ID_User": str}
+        data = pd.read_csv(filepath, compression=None, dtype=dtype).fillna("")
+        for id_, row in data.iterrows():
+            yield id_, row.to_dict()

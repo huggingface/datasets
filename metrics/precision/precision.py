@@ -87,6 +87,11 @@ class Precision(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "predictions": datasets.Sequence(datasets.Value("int32")),
+                    "references": datasets.Sequence(datasets.Value("int32")),
+                }
+                if self.config_name == "multilabel"
+                else {
                     "predictions": datasets.Value("int32"),
                     "references": datasets.Value("int32"),
                 }
@@ -103,5 +108,5 @@ class Precision(datasets.Metric):
                 pos_label=pos_label,
                 average=average,
                 sample_weight=sample_weight,
-            ),
+            ).item(),
         }

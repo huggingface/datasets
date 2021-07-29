@@ -12,7 +12,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K  
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - intent-classification
 - multi-class-classification
+paperswithcode_id: null
 ---
 
 # Dataset Card for NLU Evaluation Data

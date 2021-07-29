@@ -18,7 +18,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "1.6.2.dev0"
+__version__ = "1.10.3.dev0"
 
 import pyarrow
 from pyarrow import total_allocated_bytes
@@ -34,7 +34,8 @@ from .arrow_dataset import Dataset, concatenate_datasets
 from .arrow_reader import ArrowReader, ReadInstruction
 from .arrow_writer import ArrowWriter
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
-from .dataset_dict import DatasetDict
+from .combine import interleave_datasets
+from .dataset_dict import DatasetDict, IterableDatasetDict
 from .features import (
     Array2D,
     Array3D,
@@ -57,12 +58,22 @@ from .inspect import (
     list_datasets,
     list_metrics,
 )
+from .iterable_dataset import IterableDataset
 from .keyhash import KeyHasher
-from .load import import_main_class, load_dataset, load_from_disk, load_metric, prepare_module
+from .load import import_main_class, load_dataset, load_dataset_builder, load_from_disk, load_metric, prepare_module
 from .metric import Metric
-from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
+from .splits import (
+    NamedSplit,
+    NamedSplitAll,
+    Split,
+    SplitBase,
+    SplitDict,
+    SplitGenerator,
+    SplitInfo,
+    SubSplitInfo,
+    percent,
+)
 from .utils import *
-from .utils.tqdm_utils import disable_progress_bar
 
 
 SCRIPTS_VERSION = "master" if __version__.split(".")[-1].startswith("dev") else __version__

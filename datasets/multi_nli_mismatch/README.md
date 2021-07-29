@@ -1,7 +1,30 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+- found
+languages:
+- en
+licenses:
+- cc-by-3.0
+- cc-by-sa-3.0-at
+- mit
+- other-Open Portion of the American National Corpus
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-scoring
+task_ids:
+- semantic-similarity-scoring
+paperswithcode_id: multinli
 ---
 
-# Dataset Card for "multi_nli_mismatch"
+# Dataset Card for Multi-Genre Natural Language Inference (Mismatched only)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
+paperswithcode_id: refresd
 ---
 
 # Dataset Card for REFreSD Dataset

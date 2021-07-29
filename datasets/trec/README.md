@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: trecqa
 ---
 
 # Dataset Card for "trec"

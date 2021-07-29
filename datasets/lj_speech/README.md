@@ -9,15 +9,16 @@ licenses:
 - other-public-domain
 multilinguality:
 - monolingual
+paperswithcode_id: ljspeech
+pretty_name: LJ Speech
 size_categories:
 - 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- other
+- speech-processing
 task_ids:
-- other-other-automatic-speech-recognition
-- other-other-text-to-speech
+- automatic-speech-recognition
 ---
 
 # Dataset Card for lj_speech

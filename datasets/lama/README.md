@@ -31,6 +31,7 @@ task_categories:
 task_ids:
 - fact-checking-retrieval
 - text-scoring-other-probing
+paperswithcode_id: lama
 ---
 
 # Dataset Card for LAMA: LAnguage Model Analysis - a dataset for probing and analyzing the factual and commonsense knowledge contained in pretrained language models.

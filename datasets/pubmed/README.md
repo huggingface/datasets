@@ -23,6 +23,7 @@ task_ids:
 - other-stuctured-to-text
 - text-scoring-other-citation-estimation
 - topic-classification
+paperswithcode_id: pubmed
 ---
 
 # Dataset Card for [Dataset Name]

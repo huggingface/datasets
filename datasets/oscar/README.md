@@ -1,4 +1,5 @@
 ---
+pretty_name: OSCAR
 annotations_creators:
 - no-annotation
 language_creators:
@@ -116,7 +117,7 @@ languages:
 - new
 - nl
 - nn
-- "no"
+- 'no'
 - oc
 - or
 - os
@@ -845,6 +846,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+paperswithcode_id: oscar
 ---
 
 # Dataset Card for "oscar"
@@ -6328,15 +6330,29 @@ Filtering and cleaning processes at line level are done before feeding each line
 
 ### Source Data
 
+#### Initial Data Collection and Normalization
+
 [Common Crawl](https://commoncrawl.org/) is a non-profit foundation which produces and maintains an open repository of web crawled data that is both accessible and analysable. Common Crawl's complete web archive consists of petabytes of data collected over 8 years of web crawling. The repository contains raw web page HTML data (WARC files), metdata extracts (WAT files) and plain text extracts (WET files). The organisation's crawlers has always respected [nofollow](http://microformats.org/wiki/rel-nofollow) and [robots.txt](https://www.robotstxt.org/) policies.
 
 Each monthly Common Crawl snapshot is in itself a massive multilingual corpus, where every single file contains data coming from multiple web pages written in a large variety of languages and covering all possible types of topics.
 
 To construct OSCAR the WET files of Common Crawl were used. These contain the extracted plain texts from the websites mostly converted to UTF-8, as well as headers containing the metatada of each crawled document. Each WET file comes compressed in gzip format and is stored on Amazon Web Services. In the case of OSCAR, the **November 2018** snapshot was used. It surpasses 20TB of uncompressed data and contains more than 50 thousand plain text files where each file consists of the plain text from multiple websites along its metadata header.
 
+#### Who are the source language producers?
+
+The data comes from multiple web pages in a large variety of languages.
+
 ### Annotations
 
 The dataset does not contain any additional annotations.
+
+#### Annotation process
+
+N/A
+
+#### Who are the annotators?
+
+N/A
 
 ### Personal and Sensitive Information
 

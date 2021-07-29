@@ -17,6 +17,8 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+paperswithcode_id: null
+pretty_name: Turkish Product Reviews
 ---
 
 # Dataset Card for Turkish Product Reviews
@@ -53,6 +55,10 @@ task_ids:
 ### Dataset Summary
 
 This Turkish Product Reviews Dataset contains 235.165 product reviews collected online. There are 220.284 positive, 14881 negative reviews.
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 
@@ -120,7 +126,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 
@@ -140,7 +150,7 @@ The data is under the [CC-BY-SA-4.0 License](https://github.com/fthbrmnby/turkis
 
 ### Citation Information
 
-[More Information Needed]
+No citation available for this dataset.
 
 ### Contributions
 

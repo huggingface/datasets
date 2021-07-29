@@ -1,4 +1,7 @@
 ---
+languages:
+- en
+paperswithcode_id: reddit-tifu
 ---
 
 # Dataset Card for "reddit_tifu"
