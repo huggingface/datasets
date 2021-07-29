@@ -51,9 +51,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [Disfl-QA] (https://github.com/google-research-datasets/disfl-qa)
-- **Paper:** [Disfl-QA: A Benchmark Dataset for Understanding Disfluencies in Question Answering] (https://arxiv.org/pdf/2106.04016.pdf)
-- **Point of Contact:** [disfl-qa team] (disfl-qa@google.com)
+- **Homepage:** [Disfl-QA](https://github.com/google-research-datasets/disfl-qa)
+- **Paper:** [Disfl-QA: A Benchmark Dataset for Understanding Disfluencies in Question Answering](https://arxiv.org/pdf/2106.04016.pdf)
+- **Point of Contact:** [disfl-qa team](disfl-qa@google.com)
 
 ### Dataset Summary
 
