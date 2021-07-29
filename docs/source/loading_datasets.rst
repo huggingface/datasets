@@ -230,7 +230,7 @@ Let's see an example of all the various ways you can provide files to :func:`dat
 
 .. note::
 
-    If you use a private dataset repository on the Hub, you just need to pass ``use_auth_token=True`` after logging in with the ``huggingface-cli login`` bash command. Alternatively you can pass your `API token <https://huggingface.co/settings/token>`__ in ``use_auth_token``.
+    If you use a private dataset repository on the Hub, you just need to pass ``use_auth_token=True`` to ``load_dataset`` after logging in with the ``huggingface-cli login`` bash command. Alternatively you can pass your `API token <https://huggingface.co/settings/token>`__ in ``use_auth_token``.
 
 
 CSV files
