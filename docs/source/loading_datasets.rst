@@ -166,14 +166,14 @@ A dataset repository is a versioned repository of data files.
 Everyone can create a dataset repository on the Hugging Face Hub and upload their data.
 
 For example we have created a demo dataset at https://huggingface.co/datasets/lhoestq/demo1.
-In this dataset repository we uploaded some csv files, and you can load the dataset with:
+In this dataset repository we uploaded some CSV files, and you can load the dataset with:
 
 .. code-block::
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('lhoestq/demo1')
 
-You can even choose which files to use in a dataset repository.
+You can even choose which files to load from a dataset repository.
 For example you can load a subset of the **C4 dataset for language modeling**, hosted by AllenAI on the Hub.
 You can browse the dataset repository at https://huggingface.co/datasets/allenai/c4
 
@@ -184,7 +184,7 @@ In the following example we specify which subset of the files to use with the ``
     >>> from datasets import load_dataset
     >>> c4_subset = load_dataset('allenai/c4', data_files='en/c4-train.0000*-of-01024.json.gz')
 
-It will use all the files that match the pattern passed in ``data_files``.
+In this example, ``load_dataset`` will return all the files that match the Unix style pattern passed in ``data_files``.
 If you don't specify which data files to use, it will use all the data files (here all C4 is about 13TB of data).
 
 
@@ -203,7 +203,7 @@ Generic loading scripts are provided for:
 - parquet files (with the :obj:`parquet` script).
 - pandas pickled dataframe (with the :obj:`pandas` script).
 
-If you want to control better how your files are loaded, or if you have a file format exactly reproducing the file format for one of the datasets provided on the `Hugging Face Hub <https://huggingface.co/datasets>`__, it can be more flexible and simpler to create **your own loading script**, from scratch or by adapting one of the provided loading scripts. In this case, please go check the :doc:`add_dataset` chapter.
+If you want more fine-grained control on how your files are loaded or if you have a file format that matches the format for one of the datasets provided on the `Hugging Face Hub <https://huggingface.co/datasets>`__, it can be more  simpler to create **your own loading script**, from scratch or by adapting one of the provided loading scripts. In this case, please go check the :doc:`add_dataset` section.
 
 The :obj:`data_files` argument in :func:`datasets.load_dataset` is used to provide paths to one or several files. This argument currently accepts three types of inputs:
 
@@ -226,6 +226,11 @@ Let's see an example of all the various ways you can provide files to :func:`dat
 .. note::
 
     The :obj:`split` argument will work similarly to what we detailed above for the datasets on the Hub and you can find more details on the syntax for using :obj:`split` on the :doc:`dedicated tutorial on split <./splits>`. The only specific behavior related to loading local files is that if you don't indicate which split each files is related to, the provided files are assumed to belong to the **train** split.
+
+
+.. note::
+
+    If you use a private dataset repository on the Hub, you just need to pass ``use_auth_token=True`` after logging in with the ``huggingface-cli login`` bash command. Alternatively you can pass your `API token <https://huggingface.co/settings/token>`__ in ``use_auth_token``.
 
 
 CSV files
@@ -512,7 +517,7 @@ For example, run the following to skip integrity verifications when loading the 
 Loading datasets offline
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each dataset builder (e.g. "squad") is a python script that is downloaded and cached either from the 🤗 Datasets GitHub repository or from the `Hugging Face Hub <https://huggingface.co/datasets>`__.
+Each dataset builder (e.g. "squad") is a Python script that is downloaded and cached either from the 🤗 Datasets GitHub repository or from the `Hugging Face Hub <https://huggingface.co/datasets>`__.
 Only the ``text``, ``csv``, ``json``, ``parquet`` and ``pandas`` builders are included in ``datasets`` without requiring external downloads.
 
 Therefore if you don't have an internet connection you can't load a dataset that is not packaged with ``datasets``, unless the dataset is already cached.

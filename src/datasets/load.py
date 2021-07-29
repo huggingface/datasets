@@ -371,7 +371,7 @@ def prepare_module(
             - if ``path`` is a local directory (but doesn't contain a dataset script)
               -> load a generic module (csv, json, text etc.) based on the content of the directory
               e.g. ``'./path/to/directory/with/my/csv/data'``.
-            - if ``path`` is a local dataset or metric script or a directory containing a local dataset script (if the script has the same name as the directory):
+            - if ``path`` is a local dataset or metric script or a directory containing a local dataset or metric script (if the script has the same name as the directory):
               -> load the module from the dataset or metric script
               e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``.
 
