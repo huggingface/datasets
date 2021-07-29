@@ -159,6 +159,51 @@ class DatasetInfoMixin:
         return self._info.version
 
 
+class TensorflowDatasetMixIn:
+    def __init__(self):
+        pass
+
+    def to_tf_dataset(self, tokenizer, cols_to_remove, batch_size, shuffle):
+        import tensorflow as tf
+        dataset_in = self.remove_columns(cols_to_remove)
+        tf_cols = [col for col in dataset_in.features]
+        label_index = tf_cols.index("label")
+        dtypes_out = []
+        for col in tf_cols:
+            try:
+                col_feature = dataset_in.features[col]
+                if hasattr(col_feature, 'feature'):
+                    col_feature = col_feature.feature
+                dtype_str = col_feature.dtype
+                dtypes_out.append(tf.as_dtype(dtype_str))
+            except TypeError:
+                raise TypeError(f"Couldn't convert column {col}, dtype {dtype_str} to TF Tensor!")
+
+        def indices_to_samples(indices):
+            batch = dataset_in.select(list(indices), keep_in_memory=True).to_dict()
+            batch = tokenizer.pad(batch)
+            output = []
+            for col in tf_cols:
+                output.append(batch[col])
+            return output
+
+        def graph_indices_to_samples(indices):
+            return tf.py_function(indices_to_samples, [indices], Tout=dtypes_out)
+
+        def reform_dict(*batch_list):
+            return ({col: batch_list[i] for i, col in enumerate(tf_cols)}, batch_list[label_index])
+
+        indices = tf.range(len(dataset_in))
+        tf_dataset = tf.data.Dataset.from_tensor_slices(indices)
+        if shuffle:
+            tf_dataset = tf_dataset.shuffle(buffer_size=len(tf_dataset))
+        tf_dataset = tf_dataset.batch(batch_size)
+        tf_dataset = tf_dataset.map(graph_indices_to_samples).map(reform_dict)
+        return tf_dataset
+
+
+
+
 class DatasetTransformationNotAllowedError(Exception):
     pass
 
