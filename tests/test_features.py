@@ -335,7 +335,10 @@ class CastToPythonObjectsTest(TestCase):
             "col_1": [{"vec": jnp.array(np.arange(1, 4)), "txt": "foo"}] * 3,
             "col_2": jnp.array(np.arange(1, 7).reshape(3, 2)),
         }
-        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        expected_obj = {
+            "col_1": [{"vec": np.array([1, 2, 3]), "txt": "foo"}] * 3,
+            "col_2": np.array([[1, 2], [3, 4], [5, 6]]),
+        }
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
