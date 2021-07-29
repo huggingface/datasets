@@ -15,7 +15,6 @@
 """Temporal Commonsense Reasoning in Dialog"""
 
 
-import ast
 import json
 
 import datasets
