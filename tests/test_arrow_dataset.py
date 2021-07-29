@@ -28,6 +28,7 @@ from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_jax,
     require_pyarrow_at_least_3,
     require_s3,
     require_tf,
