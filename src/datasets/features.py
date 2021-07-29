@@ -177,7 +177,7 @@ def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
     elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
         return obj.numpy(), True
     elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
-        return jax.numpy.asarray(obj), True
+        return jnp.asarray(obj), True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
