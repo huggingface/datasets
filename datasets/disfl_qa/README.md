@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- en-US
+- en
 licenses:
 - cc-by-4.0
 multilinguality:
