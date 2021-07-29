@@ -12,7 +12,7 @@ multilinguality:
 pretty_name: 'DISFL-QA: A Benchmark Dataset for Understanding Disfluencies in Question
   Answering'
 size_categories:
-- unknown
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:

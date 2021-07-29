@@ -105,13 +105,6 @@ class DisflQA(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         squad_v2_downloaded_files = dl_manager.download_and_extract(_URLS_squad_v2)
-        merge_squad_v2_json = {}
-
-        for file in squad_v2_downloaded_files:
-            with open(squad_v2_downloaded_files[file], encoding="utf-8") as f:
-                merge_squad_v2_json.update(json.load(f))
-
-        squad_v2_dict = _helper_dict(merge_squad_v2_json)  # contains all squad_v2 data in a dict with id as key
 
         return [
             datasets.SplitGenerator(
@@ -120,7 +113,7 @@ class DisflQA(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "filepath": dl_manager.download_and_extract(_URL + "train.json"),
                     "split": "train",
-                    "squad_v2_dict": squad_v2_dict,
+                    "squad_v2_data": squad_v2_downloaded_files,
                 },
             ),
             datasets.SplitGenerator(
@@ -129,7 +122,7 @@ class DisflQA(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "filepath": dl_manager.download_and_extract(_URL + "test.json"),
                     "split": "test",
-                    "squad_v2_dict": squad_v2_dict,
+                    "squad_v2_data": squad_v2_downloaded_files,
                 },
             ),
             datasets.SplitGenerator(
@@ -138,7 +131,7 @@ class DisflQA(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "filepath": dl_manager.download_and_extract(_URL + "dev.json"),
                     "split": "dev",
-                    "squad_v2_dict": squad_v2_dict,
+                    "squad_v2_data": squad_v2_downloaded_files,
                 },
             ),
         ]
@@ -147,9 +140,17 @@ class DisflQA(datasets.GeneratorBasedBuilder):
         self,
         filepath,
         split,
-        squad_v2_dict,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+        squad_v2_data,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
         """Yields examples as (key, example) tuples."""
+
+        merge_squad_v2_json = {}
+
+        for file in squad_v2_data:
+            with open(squad_v2_data[file], encoding="utf-8") as f:
+                merge_squad_v2_json.update(json.load(f))
+
+        squad_v2_dict = _helper_dict(merge_squad_v2_json)  # contains all squad_v2 data in a dict with id as key
 
         with open(filepath, encoding="utf-8") as f:
             glob_id = 0
