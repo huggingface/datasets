@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - multi-label-classification
 - text-classification-other-dialog-act-classification
+paperswithcode_id: timedial
 ---
 
 # Dataset Card for TimeDial: Temporal Commonsense Reasoning in Dialog
@@ -52,7 +53,7 @@ task_ids:
 
 - **Homepage:** [TimeDial](https://github.com/google-research-datasets/timedial)
 - **Paper:** [TimeDial: Temporal Commonsense Reasoning in Dialog](https://arxiv.org/abs/2106.04571)
-- **Point of Contact:** If you have a technical question regarding the dataset or publication, please create an issue in the official repository.
+- **Point of Contact:** [Please create an issue in the official repository](https://github.com/google-research-datasets/timedial)
 
 ### Dataset Summary
 
@@ -93,29 +94,23 @@ The dataset is in English only.
 ```
 ### Data Fields
 
-```
-{
-  "id": Unique identifier,
-  "conversation": Dialog context with <MASK> span,
-  "correct1": Original <MASK> span,
-  "correct2": Additional correct option provided by annotators,
-  "incorrect1": Incorrect option #1 provided by annotators,
-  "incorrect1_rule": One of phrase matching ("Rule 1"), numeral matching ("Rule 2"), or open ended ("Rule 3"),
-  "incorrect2": Incorrect option #2 provided by annotators,
-  "incorrect2_rule": One of phrase matching ("Rule 1"), numeral matching ("Rule 2"), or open ended ("Rule 3")
-}
-```
+- "id": Unique identifier, as a integer
+- "conversation": Dialog context with <MASK> span, as a string
+- "correct1": Original <MASK> span, as a string
+- "correct2": Additional correct option provided by annotators, as a string
+- "incorrect1": Incorrect option #1 provided by annotators, as a string
+- "incorrect1_rule": One of phrase matching ("Rule 1"), numeral matching ("Rule 2"), or open ended ("Rule 3"), as a string
+- "incorrect2": Incorrect option #2 provided by annotators, as a string
+- "incorrect2_rule": One of phrase matching ("Rule 1"), numeral matching ("Rule 2"), or open ended ("Rule 3"), as a string
 
 ### Data Splits
 
-TimeDial dataset consists of 1,104 dialog instances with 2 correct and 2 incorrect options with the following statistics:
+TimeDial dataset consists only of a test set of 1,104 dialog instances with 2 correct and 2 incorrect options with the following statistics:
 |      | Avg.   |
 |-----|-----|
 |Turns per Dialog  | 11.7  |
 |Words per Turn  | 16.5   |
 |Time Spans per Dialog  | 3  |
-
-The entire TimeDial dataset is a challenge set (`test.json`), where each example is a JSON directory with the following format:
 
 
 ## Dataset Creation
