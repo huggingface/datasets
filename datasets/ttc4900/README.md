@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- tr-TR
+- tr
 licenses:
 - unknown
 multilinguality:
