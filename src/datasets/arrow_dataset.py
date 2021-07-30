@@ -181,31 +181,40 @@ class TensorflowDatasetMixIn:
         label_indices = dict()
         dtypes_out = []
         for i, col in enumerate(cols_to_retain):
-            try:
-                col_feature = dataset_in.features[col]
-                if hasattr(col_feature, 'feature'):
-                    col_feature = col_feature.feature
-                dtype_str = col_feature.dtype
-                dtypes_out.append(tf.as_dtype(dtype_str))
-                # Note that these two are not mutually exclusive!
-                if col in columns:
-                    feature_indices[col] = i
-                if col in label_cols:
-                    label_indices[col] = i
-            except TypeError:
-                raise TypeError(f"Couldn't convert column {col}, dtype {dtype_str} to TF Tensor!")
+            col_feature = dataset_in.features[col]
+            if hasattr(col_feature, 'feature'):
+                col_feature = col_feature.feature
+            dtype_str = col_feature.dtype
+            if dtype_str.startswith("int") or dtype_str.startswith("uint"):
+                dtypes_out.append(tf.int32)
+            elif dtype_str.startswith("float"):
+                dtypes_out.append(tf.float32)
+            else:
+                raise TypeError(f"Can't convert dtype {dtype_str} to TF Tensor!")
+            # Note that these two are not mutually exclusive!
+            if col in columns:
+                feature_indices[col] = i
+            if col in label_cols:
+                label_indices[col] = i
 
         def indices_to_samples(indices):
             batch = dataset_in.select(list(indices), keep_in_memory=True).to_dict()
             if collate_fn is not None:
                 batch = collate_fn(batch)
-            elif pad_to > 0:
-                batch = tf.ragged.constant(batch).to_tensor(shape=(batch_size, pad_to))
-            else:
-                batch = tf.ragged.constant(batch).to_tensor()
             output = []
             for col in cols_to_retain:
-                output.append(batch[col])
+                if pad_to > 0:  # We know collate_fn is False
+                    tensor = tf.ragged.constant(batch[col])
+                    if isinstance(tensor, tf.RaggedTensor):
+                        tensor = tensor.to_tensor(shape=(batch_size, pad_to))
+                    output.append(tensor)
+                elif collate_fn is None:
+                    tensor = tf.ragged.constant(batch[col])
+                    if isinstance(tensor, tf.RaggedTensor):
+                        tensor = tensor.to_tensor()
+                    output.append(tensor)
+                else:  # Already processed
+                    output.append(batch[col])
             return output
 
         def graph_indices_to_samples(indices):
