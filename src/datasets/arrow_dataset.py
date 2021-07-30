@@ -237,6 +237,7 @@ class TensorflowDatasetMixIn:
             tf_dataset = tf_dataset.shuffle(buffer_size=len(tf_dataset))
         tf_dataset = tf_dataset.batch(batch_size)
         tf_dataset = tf_dataset.map(graph_indices_to_samples).map(reform_dict)
+        tf_dataset = tf_dataset.prefetch(tf.data.AUTOTUNE)
         return tf_dataset
 
 
