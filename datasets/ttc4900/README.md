@@ -49,9 +49,10 @@ pretty_name: TTC4900 - A Benchmark Data for Turkish Text Categorization
 
 ## Dataset Description
 
-- **Homepage:** [https://www.kaggle.com/savasy/ttc4900](https://www.kaggle.com/savasy/ttc4900)
-- **Point of Contact:** [Savaş Yıldırım](mailto:savasy@gmail.com)
+- **Homepage:** [TTC4900 Homepage](https://www.kaggle.com/savasy/ttc4900)
+- **Repository:** [TTC4900 Repository](https://github.com/savasy/TurkishTextClassification)
 - **Paper:** [A Comparison of Different Approaches to Document Representation in Turkish Language](https://dergipark.org.tr/en/pub/sdufenbed/issue/38975/456349)
+- **Point of Contact:** [Savaş Yıldırım](mailto:savasy@gmail.com)
 
 ### Dataset Summary
 
