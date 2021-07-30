@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-classification-other-news-category-classification
 paperswithcode_id: null
+pretty_name: TTC4900 - A Benchmark Data for Turkish Text Categorization
 ---
 
 # Dataset Card for TTC4900: A Benchmark Data for Turkish Text Categorization
@@ -49,14 +50,20 @@ paperswithcode_id: null
 ## Dataset Description
 
 - **Homepage:** [https://www.kaggle.com/savasy/ttc4900](https://www.kaggle.com/savasy/ttc4900)
-- **Point of Contact:** [ Avatar
-Savaş Yıldırım](mailto:savasy@gmail.com)
+- **Point of Contact:** [Savaş Yıldırım](mailto:savasy@gmail.com)
+- **Paper:** [A Comparison of Different Approaches to Document Representation in Turkish Language](https://dergipark.org.tr/en/pub/sdufenbed/issue/38975/456349)
 
 ### Dataset Summary
 
 The data set is taken from [kemik group](http://www.kemik.yildiz.edu.tr/)
+The data are pre-processed for the text categorization, collocations are found, character set is corrected, and so forth.
+We named TTC4900 by mimicking the name convention of TTC 3600 dataset shared by the study ["A Knowledge-poor Approach to Turkish Text Categorization with a Comparative Analysis, Proceedings of CICLING 2014, Springer LNCS, Nepal, 2014"](https://link.springer.com/chapter/10.1007/978-3-642-54903-8_36)
 
-The data are pre-processed (noun phrase chunking etc.) for the text categorization problem by the study ["A Knowledge-poor Approach to Turkish Text Categorization with a Comparative Analysis, Proceedings of CICLING 2014, Springer LNCS, Nepal, 2014"](https://link.springer.com/chapter/10.1007/978-3-642-54903-8_36)
+If you use the dataset in a paper, please refer https://www.kaggle.com/savasy/ttc4900 as footnote and cite one of the papers as follows:
+
+- A Comparison of Different Approaches to Document Representation in Turkish Language, SDU Journal of Natural and Applied Science, Vol 22, Issue 2, 2018
+- A comparative analysis of text classification for Turkish language, Pamukkale University Journal of Engineering Science Volume 25 Issue 5, 2018
+- A Knowledge-poor Approach to Turkish Text Categorization with a Comparative Analysis, Proceedings of CICLING 2014, Springer LNCS, Nepal, 2014.
 
 ### Languages
 
@@ -137,15 +144,29 @@ The dataset does not contain any additional annotations.
 
 ### Dataset Curators
 
-[More Information Needed]
+The dataset was created by [Savaş Yıldırım](https://github.com/savasy)  
 
 ### Licensing Information
 
 [More Information Needed]
 
 ### Citation Information
+```
+@article{doi:10.5505/pajes.2018.15931,
+  author = {Yıldırım, Savaş and Yıldız, Tuğba},
+  title = {A comparative analysis of text classification for Turkish language},
+  journal = {Pamukkale Univ Muh Bilim Derg},
+  volume = {24},
+  number = {5},
+  pages = {879-886},
+  year = {2018},
+  doi = {10.5505/pajes.2018.15931},
+  note ={doi: 10.5505/pajes.2018.15931},
 
-[More Information Needed]
+  URL = {https://dx.doi.org/10.5505/pajes.2018.15931},
+  eprint = {https://dx.doi.org/10.5505/pajes.2018.15931}
+}
+```
 
 ### Contributions
 
