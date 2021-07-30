@@ -58,7 +58,7 @@ eprint = {https://dx.doi.org/10.5505/pajes.2018.15931}
 
 _LICENSE = "CC0: Public Domain"
 _HOMEPAGE = "https://www.kaggle.com/savasy/ttc4900"
-_DOWNLOAD_URL = "https://raw.githubusercontent.com/savasy/TurkishTextClassification/master/"
+_DOWNLOAD_URL = "https://raw.githubusercontent.com/savasy/TurkishTextClassification/master"
 _FILENAME = "7allV03.csv"
 
 
@@ -109,7 +109,7 @@ class TTC4900(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         urls_to_download = {
-            "train": os.path.join(_DOWNLOAD_URL, _FILENAME),
+            "train": _DOWNLOAD_URL + "/" + _FILENAME,
         }
         downloaded_files = dl_manager.download(urls_to_download)
         return [
