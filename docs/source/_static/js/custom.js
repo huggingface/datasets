@@ -1,6 +1,6 @@
 // These two things need to be updated at each release for the version selector.
 // Last stable version
-const stableVersion = "v1.10.2"
+const stableVersion = "v1.11.0"
 // Dictionary doc folder to label
 const versionMapping = {
     "master": "master",
@@ -28,6 +28,7 @@ const versionMapping = {
     "v1.10.0": "v1.10.0",
     "v1.10.1": "v1.10.1",
     "v1.10.2": "v1.10.2",
+    "v1.11.0": "v1.11.0",
 }
 
 function addIcon() {
@@ -80,7 +81,7 @@ function addCustomFooter() {
 function addGithubButton() {
     const div = `
         <div class="github-repo">
-            <a 
+            <a
                 class="github-button"
                 href="https://github.com/huggingface/datasets" data-size="large" data-show-count="true" aria-label="Star huggingface/datasets on GitHub">
                 Star
@@ -101,7 +102,7 @@ function addVersionControl() {
     // Main classes and models are nested so we need to go deeper
     else if (parts[versionIndex] == "main_classes" || parts[versionIndex] == "model_doc") {
         versionIndex = versionIndex - 1;
-    } 
+    }
     const version = parts[versionIndex];
 
     // Menu with all the links,
@@ -120,7 +121,7 @@ function addVersionControl() {
 
     versionMenu.classList.add("version-dropdown");
     versionMenu.innerHTML = htmlLines.join('\n');
-    
+
     // Button for version selection
     const versionButton = document.createElement("div");
     versionButton.classList.add("version-button");
