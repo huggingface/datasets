@@ -37,6 +37,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: null
+pretty_name: Arabic Billion Words
 ---
 
 # Dataset Card for Arabic Billion Words Corpus
