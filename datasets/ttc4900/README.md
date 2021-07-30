@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- tr
+- tr-TR
 licenses:
 - unknown
 multilinguality:
@@ -24,6 +24,7 @@ pretty_name: TTC4900 - A Benchmark Data for Turkish Text Categorization
 # Dataset Card for TTC4900: A Benchmark Data for Turkish Text Categorization
 
 ## Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
@@ -66,6 +67,10 @@ If you use the dataset in a paper, please refer https://www.kaggle.com/savasy/tt
 - A comparative analysis of text classification for Turkish language, Pamukkale University Journal of Engineering Science Volume 25 Issue 5, 2018
 - A Knowledge-poor Approach to Turkish Text Categorization with a Comparative Analysis, Proceedings of CICLING 2014, Springer LNCS, Nepal, 2014.
 
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
+
 ### Languages
 
 The dataset is based on Turkish.
@@ -85,7 +90,6 @@ Here is an example from the dataset:
 }
 ```
 
-
 ### Data Fields
 
 - **category** : Indicates to which category the news text belongs.
@@ -104,20 +108,15 @@ It is not divided into Train set and Test set.
 
 ### Source Data
 
-[More Information Needed]
-
 #### Initial Data Collection and Normalization
 
 The data are pre-processed for the text categorization, collocations are found, character set is corrected, and so forth. 
-
 
 #### Who are the source language producers?
 
 Turkish online news sites. 
 
 ### Annotations
-
-The dataset does not contain any additional annotations.
 
 #### Annotation process
 
@@ -133,7 +132,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 
@@ -152,6 +155,7 @@ The dataset was created by [Savaş Yıldırım](https://github.com/savasy)
 [More Information Needed]
 
 ### Citation Information
+
 ```
 @article{doi:10.5505/pajes.2018.15931,
   author = {Yıldırım, Savaş and Yıldız, Tuğba},
