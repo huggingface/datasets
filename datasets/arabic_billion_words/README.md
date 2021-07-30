@@ -105,7 +105,20 @@ The data fields are:
 
 ### Data Splits
 
-[More Information Needed]
+There is only one "training" split for all configuration subsets, containing the following number of examples:
+
+|                | Number of examples |
+|:---------------|-------------------:|
+| Alittihad      |              11551 |
+| Almasryalyoum  |               3170 |
+| Almustaqbal    |              12627 |
+| Alqabas        |              16449 |
+| Echoroukonline |              34931 |
+| Ryiadh         |              13112 |
+| Sabanews       |              23036 |
+| SaudiYoum      |              73922 |
+| Techreen       |              37491 |
+| Youm7          |              33460 |
 
 ## Dataset Creation
 
