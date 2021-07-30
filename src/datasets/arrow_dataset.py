@@ -163,27 +163,48 @@ class TensorflowDatasetMixIn:
     def __init__(self):
         pass
 
-    def to_tf_dataset(self, tokenizer, cols_to_remove, batch_size, shuffle):
+    def to_tf_dataset(self, columns, batch_size, shuffle, collate_fn=None, label_cols=None, pad_to=0):
         import tensorflow as tf
-        dataset_in = self.remove_columns(cols_to_remove)
-        tf_cols = [col for col in dataset_in.features]
-        label_index = tf_cols.index("label")
+        if len(set(columns)) < len(columns):
+            raise ValueError("List of columns contains duplicates!")
+        if len(set(label_cols)) < len(label_cols):
+            raise ValueError("List of label_cols contains duplicates!")
+        if pad_to > 0 and collate_fn is not None:
+            raise ValueError("pad_to cannot be used with a custom collate_fn - you should modify your collate_fn instead!")
+        if label_cols is not None:
+            cols_to_retain = list(set(columns + label_cols))
+        else:
+            cols_to_retain = columns
+
+        dataset_in = self.remove_columns([col for col in self.features if col not in cols_to_retain])
+        feature_indices = dict()
+        label_indices = dict()
         dtypes_out = []
-        for col in tf_cols:
+        for i, col in enumerate(cols_to_retain):
             try:
                 col_feature = dataset_in.features[col]
                 if hasattr(col_feature, 'feature'):
                     col_feature = col_feature.feature
                 dtype_str = col_feature.dtype
                 dtypes_out.append(tf.as_dtype(dtype_str))
+                # Note that these two are not mutually exclusive!
+                if col in columns:
+                    feature_indices[col] = i
+                if col in label_cols:
+                    label_indices[col] = i
             except TypeError:
                 raise TypeError(f"Couldn't convert column {col}, dtype {dtype_str} to TF Tensor!")
 
         def indices_to_samples(indices):
             batch = dataset_in.select(list(indices), keep_in_memory=True).to_dict()
-            batch = tokenizer.pad(batch)
+            if collate_fn is not None:
+                batch = collate_fn(batch)
+            elif pad_to > 0:
+                batch = tf.ragged.constant(batch).to_tensor(shape=(batch_size, pad_to))
+            else:
+                batch = tf.ragged.constant(batch).to_tensor()
             output = []
-            for col in tf_cols:
+            for col in cols_to_retain:
                 output.append(batch[col])
             return output
 
@@ -191,7 +212,15 @@ class TensorflowDatasetMixIn:
             return tf.py_function(indices_to_samples, [indices], Tout=dtypes_out)
 
         def reform_dict(*batch_list):
-            return ({col: batch_list[i] for i, col in enumerate(tf_cols)}, batch_list[label_index])
+            features = {col: batch_list[idx] for col, idx in feature_indices.items()}
+            if label_cols is None:
+                return features
+            elif len(label_cols) == 1:
+                label_index = list(label_indices.values())[0]
+                return features, batch_list[label_index]
+            else:
+                labels = {col: batch_list[idx] for col, idx in label_indices.items()}
+                return features, labels
 
         indices = tf.range(len(dataset_in))
         tf_dataset = tf.data.Dataset.from_tensor_slices(indices)
