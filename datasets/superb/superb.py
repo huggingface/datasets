@@ -280,7 +280,6 @@ class SdData:
         self.utt2spk = self._load_utt2spk(data_dir["utt2spk"])
         self.wavs = self._load_wav_zip(data_dir["wav.zip"])
         self.reco2dur = self._load_reco2dur(data_dir["reco2dur"])
-        # self.spk2utt = self._load_spk2utt(data_dir["spk2utt"])
 
     def _load_segments_rechash(self, segments_file):
         """Load segments file as dict with recid index."""
@@ -307,14 +306,6 @@ class SdData:
         with open(utt2spk_file, encoding="utf-8") as f:
             lines = [line.strip().split(None, 1) for line in f]
         return {x[0]: x[1] for x in lines}
-
-    # def _load_spk2utt(self, spk2utt_file):
-    #     """Returns dictionary { spkid: list of uttids }."""
-    #     if not os.path.exists(spk2utt_file):
-    #         return None
-    #     with open(spk2utt_file, encoding="utf-8") as f:
-    #         lines = [line.strip().split() for line in f]
-    #     return {x[0]: x[1:] for x in lines}
 
     def _load_reco2dur(self, reco2dur_file):
         """Returns dictionary { recid: duration }."""
