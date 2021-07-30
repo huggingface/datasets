@@ -17,7 +17,6 @@
 
 
 import csv
-import os
 
 import datasets
 from datasets.tasks import TextClassification
