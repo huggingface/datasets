@@ -14,7 +14,7 @@ This guides shows you how to load a dataset from:
 Local files
 -----------
 
-Datasets can be loaded from local files stored on your computer. The datasets most likely exist as a ``csv``, ``json`` or ``txt`` file. Datasets provides the :func:`datasets.load_dataset` method for loading these file types.
+Datasets can be loaded from local files stored on your computer. The datasets most likely exist as a ``csv``, ``json``, ``txt`` or ``parquet`` file. Datasets provides the :func:`datasets.load_dataset` method for loading these file types.
 
 CSV
 ^^^
@@ -69,6 +69,16 @@ Text files are one of the most common methods for storing a dataset. Datasets wi
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('text', data_files={'train': ['my_text_1.txt', 'my_text_2.txt'], 'test': 'my_test_file.txt'})
+
+Parquet
+^^^^^^^
+
+Parquet files are stored in a columnar format unlike row based files like ``csv``. Large datasets may be stored in a Parquet file because it is more efficient, and quicker at returning your query. You can load a Parquet file as shown in the following example:
+
+   >>> from datasets import load_dataset
+   >>> base_url = "https://storage.googleapis.com/huggingface-nlp/cache/datasets/wikipedia/20200501.en/1.0.0/"
+   >>> data_files = {"train": base_url + "wikipedia-train.parquet"}
+   >>> wiki = load_dataset("parquet", data_files=data_files, split="train", streaming=True)
 
 In-memory data
 --------------
@@ -227,12 +237,13 @@ Sometimes, loading a dataset is not as simple as calling :func:`dataset.load_dat
 Manual download
 ^^^^^^^^^^^^^^^
 
-Certain datasets will require you to manually download the dataset files due to licensing incompatibility or if the files are hidden behind a login page. This will cause :func:`dataset.load_dataset` to throw an ``AssertionError``. But Datasets provides detailed instructions for downloading the missing files. After you have downloaded the files, use the ``data_dir`` argument to specify the path to the files you just downloaded. For example, if you try to download the PAN-X.fr configuration from the `xtreme dataset <https://sites.research.google/xtreme>`_:
+Certain datasets will require you to manually download the dataset files due to licensing incompatibility or if the files are hidden behind a login page. This will cause :func:`dataset.load_dataset` to throw an ``AssertionError``. But Datasets provides detailed instructions for downloading the missing files. After you have downloaded the files, use the ``data_dir`` argument to specify the path to the files you just downloaded. For example, if you try to download a configuration from the `MATINF <https://huggingface.co/datasets/matinf>`_:
 
-    >>> dataset = load_dataset("xtreme", "PAN-X.fr")
-    Downloading and preparing dataset xtreme/PAN-X.fr (download: Unknown size, generated: 5.80 MiB, total: 5.80 MiB) to /Users/thomwolf/.cache/huggingface/datasets/xtreme/PAN-X.fr/1.0.0...
-    AssertionError: The dataset xtreme with config PAN-X.fr requires manual data.
-    Please follow the manual download instructions: You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN). The folder containing the saved file can be used to load the dataset via 'datasets.load_dataset("xtreme", data_dir="<path/to/folder>")'
+    >>> dataset = load_dataset("matinf", "summarization")
+    Downloading and preparing dataset matinf/summarization (download: Unknown size, generated: 246.89 MiB, post-processed: Unknown size, total: 246.89 MiB) to /root/.cache/huggingface/datasets/matinf/summarization/1.0.0/82eee5e71c3ceaf20d909bca36ff237452b4e4ab195d3be7ee1c78b53e6f540e...
+    AssertionError: The dataset matinf with config summarization requires manual data. 
+    Please follow the manual download instructions: To use MATINF you have to download it manually. Please fill this google form (https://forms.gle/nkH4LVE4iNQeDzsc9). You will receive a download link and a password once you complete the form. Please extract all files in one folder and load the dataset with: `datasets.load_dataset('matinf', data_dir='path/to/folder/folder_name')`. 
+    Manual data can be loaded with `datasets.load_dataset(matinf, data_dir='<path/to/manual/data>')
 
 Specify features
 ^^^^^^^^^^^^^^^^

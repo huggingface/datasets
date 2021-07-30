@@ -17,6 +17,8 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
         :type: ref
         :text: Tutorials
         :classes: btn-primary btn-block
+    
+    ^^^
     Learn the basics by becoming familiar with loading, accessing and using a dataset. Start here if you are using Datasets for the first time!
 
     ---
@@ -24,6 +26,8 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
         :type: ref
         :text: How-to guides
         :classes: btn-primary btn-block
+
+    ^^^
     Practical guides to help you get the most out of Datasets for your use-case. Take a look at these guides for a demonstration on how to complete a specific task.
 
     ---
@@ -31,6 +35,8 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
         :type: ref
         :text: Conceptual guides
         :classes: btn-primary btn-block
+
+    ^^^
     High-level discussions about Datasets. Read these to build a better understanding about key topics in Datasets.
     
     ---
@@ -38,6 +44,8 @@ Get started today and find your dataset on the `Datasets Hub <https://huggingfac
         :type: ref
         :text: Reference
         :classes: btn-primary btn-block
+
+    ^^^
     Technical descriptions of Datasets APIs. Only read if you need help falling asleep.
 
 .. toctree::

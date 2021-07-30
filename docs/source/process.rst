@@ -554,7 +554,7 @@ When you want to use it again, use :func:`load_from_disk` to reload the dataset:
 
 .. note::
 
-    Want to save your dataset to a cloud storage provider? Read our :doc:`Cloud Storage <./fss>` guide on how to save your dataset to AWS or Google Cloud Storage!
+    Want to save your dataset to a cloud storage provider? Read our :doc:`Cloud Storage <./filesystems>` guide on how to save your dataset to AWS or Google Cloud Storage!
 
 Export
 ^^^^^^

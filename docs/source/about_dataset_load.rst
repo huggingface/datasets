@@ -4,7 +4,7 @@ Loading a Dataset
 Entire datasets are readily available with a single line of code: :func:`datasets.load_dataset`. But how does this simple function serve you whatever dataset you request? This guide will help you understand how :func:`datasets.load_dataset` works.
 
 What happens when you call :func:`datasets.load_dataset`?
---------------------------------------------------------
+---------------------------------------------------------
 
 In the beginning, :func:`datasets.load_dataset` downloads and imports the dataset loading script associated with the dataset you requested from the Hugging Face Hub. The Hub is a central repository where all the Hugging Face datasets and models are stored. Code in the loading script defines the dataset information (description, features, URL to the original files, etc.), and tells Datasets how to generate and display examples from it.
 
