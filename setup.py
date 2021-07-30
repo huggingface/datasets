@@ -195,6 +195,7 @@ EXTRAS_REQUIRE = {
         "s3fs",
         "sphinx-panels",
         "sphinx-inline-tabs"
+        "myst-parser"
     ],
 }
 
