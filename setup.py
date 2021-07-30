@@ -194,8 +194,8 @@ EXTRAS_REQUIRE = {
         "fsspec",
         "s3fs",
         "sphinx-panels",
-        "sphinx-inline-tabs"
-        "myst-parser"
+        "sphinx-inline-tabs",
+        "myst-parser",
     ],
 }
 
