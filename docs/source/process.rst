@@ -204,25 +204,7 @@ The **answers** field contains two subfields: **text** and **answer_start**. Aft
         num_rows: 87599
     })
 
-Concatenate
-------------
-
-Separate datasets can be concatenated if they share the same column types. Concatenate datasets with :func:`datasets.concatenate_datasets`:
-
-   >>> from datasets import concatenate_datasets, load_dataset
-   >>>
-   >>> bookcorpus = load_dataset("bookcorpus", split="train")
-   >>> wiki = load_dataset("wikipedia", "20200501.en", split="train")
-   >>> wiki = wiki.remove_columns("title")  # only keep the text
-   >>>
-   >>> assert bookcorpus.features.type == wiki.features.type
-   >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
-
-.. seealso::
-
-    You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving datasets, and you can use it with :func:`datasets.interleave_datasets`.  See the ``IterableDataset`` section for an example of how it's used.
-
-``map``
+``Map``
 -------
 
 Some of the more powerful applications provided by Datasets come from using :func:`datasets.Dataset.map`. It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns. 
@@ -253,7 +235,7 @@ Specify the column to remove with the ``remove_columns=List[str]`` argument in :
 
 .. tip::
 
-    Datasets also has a :func:`datasets.Dataset.remove_columns` method that is functionally identical, but faster, because it doesn't copy the data to a new dataset object.
+    Datasets also has a :func:`datasets.Dataset.remove_columns` method that is functionally identical, but faster, because it doesn't copy the data of the remaining columns.
 
 You can also use :func:`datasets.Dataset.map` with indices if you set ``with_indices=True``. The sample code below adds the index to the beginning of each sentence:
 
@@ -264,6 +246,13 @@ You can also use :func:`datasets.Dataset.map` with indices if you set ``with_ind
      "2: On June 10 , the ship 's owners had published an advertisement on the Internet , offering the explosives for sale .",
      '3: Tab shares jumped 20 cents , or 4.6 % , to set a record closing high at A $ 4.57 .', 
      '4: PG & E Corp. shares jumped $ 1.63 or 8 percent to $ 21.03 on the New York Stock Exchange on Friday .']
+
+Multiprocessing
+^^^^^^^^^^^^^^^
+
+Multiprocessing can significantly speed up processing by parallelizing the processes on your CPU. Set the ``num_proc`` argument in :func:`datasets.Dataset.map` to determine the number of processes to use:
+
+   >>> updated_dataset = dataset.map(lambda example, idx: {'sentence2': f'{idx}: ' + example['sentence2']}, num_proc=4)
 
 Batch processing
 ^^^^^^^^^^^^^^^^
@@ -377,7 +366,7 @@ For each original sentence, RoBERTA augmented a random word with three alternati
 Process multiple splits
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Many datasets have splits that we can process simultaneously with :func:`datasets.Dataset.map`. You can tokenize the ``sentence1`` field in the train and test split by:
+Many datasets have splits that we can process simultaneously with :func:`datasets.DatasetDict.map`. You can tokenize the ``sentence1`` field in the train and test split by:
 
     >>> from datasets import load_dataset
     >>>
@@ -414,6 +403,24 @@ When you use :func:`datasets.Dataset.map` in a distributed setting, you should a
    ...     print("Loading results from main process")
    ...     torch.distributed.barrier()
 
+Concatenate
+------------
+
+Separate datasets can be concatenated if they share the same column types. Concatenate datasets with :func:`datasets.concatenate_datasets`:
+
+   >>> from datasets import concatenate_datasets, load_dataset
+   >>>
+   >>> bookcorpus = load_dataset("bookcorpus", split="train")
+   >>> wiki = load_dataset("wikipedia", "20200501.en", split="train")
+   >>> wiki = wiki.remove_columns("title")  # only keep the text
+   >>>
+   >>> assert bookcorpus.features.type == wiki.features.type
+   >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
+
+.. seealso::
+
+    You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving datasets, and you can use it with :func:`datasets.interleave_datasets`.  See the ``IterableDataset`` section below for an example of how it's used. Both :func:`datasets.interleave_datasets` and :func:`datasets.concatenate_datasets` will work with regular :class:`Dataset` and :class:`IterableDataset` objects.
+
 :class:`IterableDataset`
 ------------------------
 
@@ -421,10 +428,10 @@ An :class:`IterableDataset` is a unique instance of the classic :class:`datasets
 
 .. note::
 
-    This type of Dataset is useful for iterative jobs such as training a model. You shouldn't use an iterable Dataset for jobs that require random access to examples.
+    This type of Dataset is useful for iterative jobs such as training a model. You shouldn't use an iterable Dataset for jobs that require random access to examples because you have to iterate over it using a for loop. To get the last example in a dataset would require you to iterate over all the previous examples.
 
-Shuffle
-^^^^^^^
+``Shuffle``
+^^^^^^^^^^^
 
 As with a regular Dataset object, you can also shuffle an iterable Dataset with :func:`datasets.IterableDataset.shuffle`. The ``buffer_size`` argument controls the size of the buffer to randomly sample examples from. For example, if your dataset has one million examples and you set the ``buffer_size`` to ten thousand, :func:`datasets.IterableDataset.shuffle` will randomly select examples from the first ten thousand examples in the buffer. Selected examples in the buffer are replaced by new examples.
 
@@ -466,9 +473,8 @@ You can split your dataset one of two ways: :func:`datasets.IterableDataset.take
 
     ``take`` and ``skip`` prevents future calls to ``shuffle`` because they lock in the order of the shards. You should ``shuffle`` your dataset before splitting it.
 
-.. _mix_label:
-Mix
-^^^
+``Interleave``
+^^^^^^^^^^^^^^
 
 Iterable Datasets can also be mixed together with :func:`datasets.interleave_datasets`. The mixed dataset returns alternating examples from each of the original datasets. 
 
@@ -501,6 +507,10 @@ If you need to reset the dataset to the original format, use :func:`datasets.Dat
     >>> dataset.reset_format()
     >>> dataset.format
     {'type': 'python', 'format_kwargs': {}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
+
+.. caution::
+
+    All the methods in this section and the following sections are only applicable to regular :class:`Dataset` objects. They are not compatible with :class:`IterableDataset` objects.
 
 Format transform
 ^^^^^^^^^^^^^^^^

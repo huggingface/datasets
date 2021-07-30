@@ -102,7 +102,7 @@ Streaming
 
 Streaming a dataset is useful when you want to start using the dataset without having to wait to download the entire dataset. It also allows you to work with datasets that exceed the amount of disk space on your computer. The data is downloaded progressively as you iterate over the dataset. 
 
-Stream a dataset by setting ``streaming=True`` in ``load_dataset()`` as shown below:
+The English split of the `OSCAR <https://huggingface.co/datasets/oscar>`_ is 1.2 terabytes, but you can use it instantly with streaming. Stream a dataset by setting ``streaming=True`` in ``load_dataset()`` as shown below:
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
@@ -298,7 +298,7 @@ For example, imagine you are training and evaluating eight parallel processes. H
 
     Once you've loaded a metric for distributed usage, you can compute the metric as usual. Behind the scenes, :func:`datasets.Metric.compute` gathers all the predictions and references from the nodes, and computes the final metric.
 
-In some instances, you may have be simulatenously running multiple independent distributed evaluations on the same server and files. To avoid any conflicts, it is important to provide an ``experiment_id`` to distinguish the separate evaluations:
+In some instances, you may be simulatenously running multiple independent distributed evaluations on the same server and files. To avoid any conflicts, it is important to provide an ``experiment_id`` to distinguish the separate evaluations:
 
    >>> from datasets import load_metric
    >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=process_id,experiment_id="My_experiment_10")

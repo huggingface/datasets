@@ -1,11 +1,11 @@
 Dataset features
 ================
 
-:class:`datasets.Features` defines the internal structure of a dataset, and are used to specify the underlying serialization format. What's more relevant to you though is that :class:`datasets.Features` contains high-level information about everything from the column names and types, to the :class:`datasets.ClassLabel`. Datasets uses the `Apache Arrow Automatic Type Inference <https://arrow.apache.org/docs/python/json.html#automatic-type-inference>`_ to generate the features of your dataset. This guide will help you gain a better understanding about Datasets features.
+:class:`datasets.Features` defines the internal structure of a dataset, and are used to specify the underlying serialization format. What's more relevant to you though is that :class:`datasets.Features` contains high-level information about everything from the column names and types, to the :class:`datasets.ClassLabel`. Datasets uses the `Apache Arrow Automatic Type Inference <https://arrow.apache.org/docs/python/data.html>`_ to generate the features of your dataset. This guide will help you gain a better understanding about Datasets features.
 
 .. tip::
 
-    See the Troubleshooting section from How-to Load a dataset to see how you can manually specify features in case Arrow inferred an unexpected data type.
+    See the Troubleshooting section from How-to Load a dataset to see how you can manually specify features in case Arrow infers an unexpected data type.
 
 The format of :class:`datasets.Features` is simple: ``dict[column_name, column_type]``. The column type provides a wide range of options for describing the type of data you have. Let's take a look at the features of the MRPC dataset again:
 

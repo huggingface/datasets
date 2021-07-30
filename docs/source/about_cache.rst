@@ -1,7 +1,7 @@
 The Cache
 =========
 
-One of the reasons why Datasets is so efficient is because of the cache. It stores previously downloaded and processed datasets so when you need to use them again, Datasets will reload it straight from the cache. This avoids having to download a dataset all over again, or recomputing all the processing functions you applied.
+One of the reasons why Datasets is so efficient is because of the cache. It stores previously downloaded and processed datasets so when you need to use them again, Datasets will reload it straight from the cache. This avoids having to download a dataset all over again, or recomputing all the processing functions you applied. Even after you close and start another Python session, Datasets will reload directly from the cache!
 
 Fingerprint 
 -----------

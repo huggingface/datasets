@@ -364,7 +364,7 @@ Each dataset should be accompanied with a Dataset card to promote responsible us
 Upload
 ------
 
-The final step is to upload your dataset! There are two types of datasets based on your sharing workflow: canonical and community datasets. The main differences between the two are highlighted in the table below:
+The final step is to upload your dataset! There are two types of datasets based on your sharing workflow: community and canonical datasets. The main differences between the two are highlighted in the table below:
 
 .. list-table::
     :header-rows: 1
@@ -383,52 +383,6 @@ The final step is to upload your dataset! There are two types of datasets based 
 .. important::
 
     The distinction between a canonical and community dataset is based solely on the selected sharing workflow. It does not involve any ranking, decisioning, or opinion regarding the contents of the dataset itself.
-
-Canonical dataset
-^^^^^^^^^^^^^^^^^
-
-To share a canonical dataset:
-
-1. Fork the `Datasets repository <https://github.com/huggingface/datasets>`_ by clicking on the **Fork** button.
-
-2. Clone your fork to your local disk, and add the base repository as a remote:
-
-   .. code-block::
-
-        git clone https://github.com/<your_Github_handle>/datasets
-        cd datasets
-        git remote add upstream https://github.com/huggingface/datasets.git
-
-3. Create a new branch to hold your changes. You can name the new branch using the short name of your dataset:
-
-   .. code-block::
-
-        git checkout -b my-new-dataset
-
-4. Set up a development environment by running the following command in a virtual environment:
-
-   .. code-block::
-
-        pip install -e ".[dev]"
-
-5. Create a new folder with the dataset name inside ``huggingface/datasets``, and add the dataset loading script you just created.
-
-6. Run `Black <https://black.readthedocs.io/en/stable/index.html>`_ and `isort <https://pycqa.github.io/isort/>`_ to tidy up your code and files:
-
-   .. code-block::
-
-        make style
-        make quality
-
-7. Add your changes, and make a commit to record your changes locally. Then you can push the changes to your account:
-
-   .. code-block::
-
-        git add datasets/<my-new-dataset>
-        git commit
-        git push -u origin my-new-dataset
-
-8. Go back to your fork on Github, and click on **Pull request** to open a pull request on the main repository for review.
 
 Community dataset
 ^^^^^^^^^^^^^^^^^
@@ -507,6 +461,52 @@ Congratulations, your dataset has now been uploaded to the Datasets Hub where an
 .. code-block::
 
     dataset = load_dataset("namespace/your_dataset_name")
+
+Canonical dataset
+^^^^^^^^^^^^^^^^^
+
+To share a canonical dataset:
+
+1. Fork the `Datasets repository <https://github.com/huggingface/datasets>`_ by clicking on the **Fork** button.
+
+2. Clone your fork to your local disk, and add the base repository as a remote:
+
+   .. code-block::
+
+        git clone https://github.com/<your_Github_handle>/datasets
+        cd datasets
+        git remote add upstream https://github.com/huggingface/datasets.git
+
+3. Create a new branch to hold your changes. You can name the new branch using the short name of your dataset:
+
+   .. code-block::
+
+        git checkout -b my-new-dataset
+
+4. Set up a development environment by running the following command in a virtual environment:
+
+   .. code-block::
+
+        pip install -e ".[dev]"
+
+5. Create a new folder with the dataset name inside ``huggingface/datasets``, and add the dataset loading script you just created.
+
+6. Run `Black <https://black.readthedocs.io/en/stable/index.html>`_ and `isort <https://pycqa.github.io/isort/>`_ to tidy up your code and files:
+
+   .. code-block::
+
+        make style
+        make quality
+
+7. Add your changes, and make a commit to record your changes locally. Then you can push the changes to your account:
+
+   .. code-block::
+
+        git add datasets/<my-new-dataset>
+        git commit
+        git push -u origin my-new-dataset
+
+8. Go back to your fork on Github, and click on **Pull request** to open a pull request on the main repository for review.
 
 Metric
 ------

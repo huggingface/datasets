@@ -1,19 +1,26 @@
 Batch mapping
 =============
 
-Combining the utility of :func:`datasets.Dataset.map` with batch mode is very powerful because it allows you to freely control the size of the generated dataset. You can get creative with this, and take advantage of it for many interesting use-cases. In the Map section of the :doc:`How-to Process <./process>` guides, there are some examples of using :func:`datasets.Dataset.map` in batched mode to:
+Combining the utility of :func:`datasets.Dataset.map` with batch mode is very powerful. It allows you to speed up processing, and freely control the size of the generated dataset. 
 
-* split long sentences into shorter chunks
-* augment the dataset with additional tokens
+Speed
+-----
 
-It will be helpful to understand how this works, so you can come up with your own ways of using :func:`datasets.Dataset.map` in batched mode.
+The primary use for batch map is to speed up processing. Sometimes it is faster to work with batches of data. instead of single examples. Naturally, batch map lends itself to tokenization. For example, the 🤗 `Tokenizers <https://huggingface.co/docs/tokenizers/python/latest/>`_ library works faster with batches because it parallelizes the tokenization of all the examples in a batch.
 
 Input size != output size
 -------------------------
 
+The ability to control the generated dataset size can be taken advantage of for many interesting use-cases. In the Map section of the :doc:`How-to Process <./process>` guides, there are examples of how to use batch mapping:
+
+* split long sentences into shorter chunks
+* augment the dataset with additional tokens
+
+It will be helpful to understand how this works, so you can come up with your own ways to use batch map.
+
 You may be wondering how you can control the size of the generated dataset. The answer is:
 
-✨ The mapped function accepts a batch of inputs, but the output batch is not required to be the same size. ✨
+✨ The mapped function does not have to return an output batch of the same size. ✨
 
 In other words, your input can be a batch of size ``N`` and return a batch of size ``M`` which can be greater or less than ``N``. This means you can concatenate your examples, divide it up, and even add more examples!
 

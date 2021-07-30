@@ -81,7 +81,7 @@ After you have processed your dataset, you can save it to S3:
     >>> s3 = S3FileSystem(anon=True)  
     >>>
     >>> # saves encoded_dataset to your s3 bucket
-    >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)
+    >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train', fs=s3)
 
 .. tip::
 

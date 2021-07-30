@@ -52,9 +52,11 @@ FAISS retrieves documents based on the similiarity of their vector representatio
 ElasticSearch
 -------------
 
-Unlike FAISS, ElasticSearch retrieves documents based on exact matches.
+Unlike FAISS, ElasticSearch retrieves documents based on exact matches. 
 
-1. Start ElasticSearch on your machine:
+0. Start ElasticSearch on your machine, or see the `ElasticSearch installation guide <https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html>`_ if you don't already have it installed.
+
+1. Load the dataset you want to index:
 
     >>> from datasets import load_dataset
     >>> squad = load_dataset('squad', split='validation')
@@ -93,11 +95,11 @@ For more advanced usage of ElasticSearch, you can specify your own configuration
     >>> from elasticsearch import Elasticsearch
     >>> es_client = Elasticsearch([{"host": "localhost", "port": "9200"}])  # default client
     >>> es_config = {
-            "settings": {
-                "number_of_shards": 1,
-                "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
-            },
-            "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
-        }  # default config
+    ...     "settings": {
+    ...         "number_of_shards": 1,
+    ...         "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+    ...     },
+    ...     "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
+    ... }  # default config
     >>> es_index_name = "hf_squad_context"  # name of the index in ElasticSearch
     >>> squad.add_elasticsearch_index("context", es_client=es_client, es_config=es_config, es_index_name=es_index_name)
