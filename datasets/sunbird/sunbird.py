@@ -32,15 +32,40 @@ _CITATION = """\
 
 _VERSION = "1.0.0"
 
-_TRAIN_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/train.en"
-_TEST_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/test.en"
-_VAL_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/val.en"
-_TRAIN_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/train.lg"
-_TEST_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/test.lg"
-_VAL_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/val.lg"
+# _TRAIN_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/train.en"
+# _TEST_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/test.en"
+# _VAL_EN = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/val.en"
+
+# _TRAIN_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/train.lg"
+# _TEST_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/test.lg"
+# _VAL_LG = "https://raw.githubusercontent.com/SunbirdAI/toy-hf-datasets/main/val.lg"
+
+_TRAIN_ACH = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/train.ach"
+_TEST_ACH = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/test.ach"
+_VAL_ACH = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/test.ach"
+
+_TRAIN_LGG = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/train.lgg"
+_TEST_LGG = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/test.lgg"
+_VAL_LGG = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/val.lgg"
+
+_TRAIN_TEO = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/train.teo"
+_TEST_TEO = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/test.teo"
+_VAL_TEO = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/val.teo"
+
+_TRAIN_RUN = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/train.run"
+_TEST_RUN = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/test.run"
+_VAL_RUN = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/val.run"
+
+_TRAIN_EN = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/train.en"
+_TEST_EN = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/test.en"
+_VAL_EN = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/val.en"
+
+_TRAIN_LUG = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/train.lug"
+_TEST_LUG = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/test.lug"
+_VAL_LUG = "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/val.lug"
 
 _LANGUAGE_PAIRS = [
-    ("lg", "en"),
+    ("lug", "en", "run","teo","ach","lgg"),
 ]
 
 
@@ -94,26 +119,65 @@ class Sunbird(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         train_en = dl_manager.download_and_extract(_TRAIN_EN)
-        train_lg = dl_manager.download_and_extract(_TRAIN_LG)
-
+        test_en = dl_manager.download_and_extract(_TEST_EN)
         valid_en = dl_manager.download_and_extract(_VAL_EN)
+
+        train_lg = dl_manager.download_and_extract(_TRAIN_LG)
+        test_lg = dl_manager.download_and_extract(_TEST_LG)
         valid_lg = dl_manager.download_and_extract(_VAL_LG)
 
-        test_en = dl_manager.download_and_extract(_TEST_EN)
-        test_lg = dl_manager.download_and_extract(_TEST_LG)
+        train_run = dl_manager.download_and_extract(TRAIN_RUN)
+        test_run = dl_manager.download_and_extract(TEST_RUN)
+        valid_run = dl_manager.download_and_extract(VAL_RUN)
+
+        train_teo = dl_manager.download_and_extract(TRAIN_TEO)
+        test_teo = dl_manager.download_and_extract(TEST_TEO)
+        valid_teo = dl_manager.download_and_extract(VAL_TEO)
+
+        train_lug = dl_manager.download_and_extract(TRAIN_LUG)
+        test_lug = dl_manager.download_and_extract(TEST_LUG)
+        valid_lug = dl_manager.download_and_extract(VAL_LUG)
+
+        train_lgg = dl_manager.download_and_extract(TRAIN_LGG)
+        test_lgg = dl_manager.download_and_extract(TEST_LGG)
+        valid_lgg = dl_manager.download_and_extract(VAL_LGG)
+
+        train_ach = dl_manager.download_and_extract(TRAIN_ACH)
+        test_ach = dl_manager.download_and_extract(TEST_ACH)
+        valid_ach = dl_manager.download_and_extract(VAL_ACH) 
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"lg_datapath": train_lg, "en_datapath": train_en},
+                gen_kwargs={"lg_datapath":  train_lg,
+                            "en_datapath":  train_en,
+                            "run_datapath": train_run,
+                            "teo_datapath": train_teo,
+                            "lug_datapath": train_lug,
+                            "lgg_datapath": train_lgg,
+                            "ach_datapath": train_ach
+                            },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"lg_datapath": valid_lg, "en_datapath": valid_en},
+                gen_kwargs={"lg_datapath": valid_lg,
+                            "en_datapath": valid_en,
+                            "run_datapath": valid_run,
+                            "teo_datapath": valid_teo,
+                            "lug_datapath": valid_lug,
+                            "lgg_datapath": valid_lgg,
+                            "ach_datapath": valid_ach},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"lg_datapath": test_lg, "en_datapath": test_en},
+                gen_kwargs={"lg_datapath": test_lg, 
+                            "en_datapath": test_en,
+                            "run_datapath": test_run,
+                            "teo_datapath": test_teo,
+                            "lug_datapath": test_lug,
+                            "lgg_datapath": test_lgg,
+                            "ach_datapath": test_ach
+                            },
             ),
         ]
 
