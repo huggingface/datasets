@@ -192,12 +192,12 @@ _VERSION = "1.0.0"
 #                 yield result
 
 _URL = {
-    "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/",
+    "supervised": "https://transfer.sh/1pyMrjr/v1-dataset.zip",
 }
 
 
 language_pairs = [
-"en-lg",
+"en-lug",
 "en-run",
 "en-ach",
 "en-lgg"
@@ -220,7 +220,7 @@ class SunbirdConfig(datasets.BuilderConfig):
 class Sunbird(datasets.GeneratorBasedBuilder):
     """Sunbird machine translation dataset."""
 
-    VERSION = datasets.version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIG_CLASS = SunbirdConfig
     BUILDER_CONFIGS = [
@@ -229,7 +229,7 @@ class Sunbird(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        src_tag, tgt_tag = self.builder_config.language_pair.split("-")
+        src_tag, tgt_tag = self.config.language_pair.split("-")
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features({"translation": datasets.features.Translation(languages=(src_tag, tgt_tag))}),           
@@ -239,23 +239,25 @@ class Sunbird(datasets.GeneratorBasedBuilder):
         )
     
     def _split_generators(self, dl_manager):
-        lang_pair = self.config.language_pair,
+        
+        lang_pair = self.config.language_pair
         src_tag, tgt_tag = lang_pair.split("-")
 
         domain = "supervised"
 
         if domain=="supervised":
-             dl_dir = dl_manager.download_and_extract(_URL["supervised"].format(lang_pair))
+            print(_URL["supervised"].format(lang_pair))
+            dl_dir = dl_manager.download_and_extract(_URL["supervised"].format(lang_pair))
         
-        data_dir = os.path.join(dl_dir, os.path.join("sunbird","v1.10", domain, lang_pair))
+        data_dir = os.path.join(dl_dir, os.path.join("v1-dataset/v1.0", domain, lang_pair))
 
         output=[]
 
         test = datasets.SplitGenerator(
             name=datasets.Split.TEST,
             gen_kwargs={
-                "filepath": os.path.join(data_dir, f"{lang_pair}-test.{src_tag}"),
-                "labelpath": os.path.join(data_dir, f"{lang_pair}-test.{tgt_tag}"),
+                "filepath": os.path.join(data_dir, f"test.{src_tag}"),
+                "labelpath": os.path.join(data_dir, f"test.{tgt_tag}"),
             },
         )
 
@@ -267,8 +269,8 @@ class Sunbird(datasets.GeneratorBasedBuilder):
             train = datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, f"{lang_pair}-train.{src_tag}"),
-                    "labelpath": os.path.join(data_dir, f"{lang_pair}-train.{tgt_tag}"),
+                    "filepath": os.path.join(data_dir, f"train.{src_tag}"),
+                    "labelpath": os.path.join(data_dir, f"train.{tgt_tag}"),
                 },
             )
 
@@ -279,8 +281,8 @@ class Sunbird(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, f"{lang_pair}-dev.{src_tag}"),
-                    "labelpath": os.path.join(data_dir, f"{lang_pair}-dev.{tgt_tag}"),
+                    "filepath": os.path.join(data_dir, f"val.{src_tag}"),
+                    "labelpath": os.path.join(data_dir, f"val.{tgt_tag}"),
                 },
             )
 
