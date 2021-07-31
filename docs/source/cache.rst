@@ -71,3 +71,14 @@ You can also avoid caching your metric entirely, and keep it in CPU memory inste
 .. caution::
 
     Keeping the predictions in-memory is not possible in a distributed setting since the CPU memory spaces of the various processes are not shared.
+
+.. _load_dataset_enhancing_performance:
+
+Improve performance
+-------------------
+
+Disabling the cache and copying the dataset in-memory will speed up dataset operations. There are two ways to do this:
+
+1. Set ``datasets.config.IN_MEMORY_MAX_SIZE`` to a nonzero value (in bytes), that fits in your RAM memory. 
+
+2. You can also set the environment variable ``HF_DATASETS_IN_MEMORY_MAX_SIZE`` to a nonzero value, but the first method takes higher precedence.
