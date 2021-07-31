@@ -250,6 +250,9 @@ class Sunbird(datasets.GeneratorBasedBuilder):
             dl_dir = dl_manager.download_and_extract(_URL["supervised"].format(lang_pair))
         
         data_dir = os.path.join(dl_dir, os.path.join("v1-dataset/v1.0", domain, lang_pair))
+        print("########",src_tag)
+        print("########",data_dir)
+        print("$$$$$",os.path.join(data_dir, f"test.{src_tag}"))
 
         output=[]
 
@@ -261,7 +264,7 @@ class Sunbird(datasets.GeneratorBasedBuilder):
             },
         )
 
-        if f"{lang_pair}-test.{src_tag}" in os.listdir(data_dir):
+        if f"test.{src_tag}" in os.listdir(data_dir):
             output.append(test)
 
         if domain == "supervised":
@@ -274,7 +277,7 @@ class Sunbird(datasets.GeneratorBasedBuilder):
                 },
             )
 
-            if f"{lang_pair}-train.{src_tag}" in os.listdir(data_dir):
+            if f"train.{src_tag}" in os.listdir(data_dir):
                 output.append(train)
 
             valid = datasets.SplitGenerator(
@@ -286,7 +289,7 @@ class Sunbird(datasets.GeneratorBasedBuilder):
                 },
             )
 
-            if f"{lang_pair}-dev.{src_tag}" in os.listdir(data_dir):
+            if f"val.{src_tag}" in os.listdir(data_dir):
                 output.append(valid)
 
         return output
