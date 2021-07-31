@@ -18,6 +18,8 @@
 
 
 import collections
+import os
+from posixpath import basename
 
 import datasets
 
@@ -189,6 +191,11 @@ _VERSION = "1.0.0"
 #                 )
 #                 yield result
 
+_URL = {
+    "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/sunbird-ug-lang-v1.0/",
+}
+
+
 language_pairs = [
 "en-lg",
 "en-run",
@@ -235,4 +242,61 @@ class Sunbird(datasets.GeneratorBasedBuilder):
         lang_pair = self.config.language_pair,
         src_tag, tgt_tag = lang_pair.split("-")
 
-        domain = "su"
+        domain = "supervised"
+
+        if domain=="supervised":
+             dl_dir = dl_manager.download_and_extract(_URL["supervised"].format(lang_pair))
+        
+        data_dir = os.path.join(dl_dir, os.path.join("sunbird","v1.10", domain, lang_pair))
+
+        output=[]
+
+        test = datasets.SplitGenerator(
+            name=datasets.Split.TEST,
+            gen_kwargs={
+                "filepath": os.path.join(data_dir, f"{lang_pair}-test.{src_tag}"),
+                "labelpath": os.path.join(data_dir, f"{lang_pair}-test.{tgt_tag}"),
+            },
+        )
+
+        if f"{lang_pair}-test.{src_tag}" in os.listdir(data_dir):
+            output.append(test)
+
+        if domain == "supervised":
+
+            train = datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, f"{lang_pair}-train.{src_tag}"),
+                    "labelpath": os.path.join(data_dir, f"{lang_pair}-train.{tgt_tag}"),
+                },
+            )
+
+            if f"{lang_pair}-train.{src_tag}" in os.listdir(data_dir):
+                output.append(train)
+
+            valid = datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, f"{lang_pair}-dev.{src_tag}"),
+                    "labelpath": os.path.join(data_dir, f"{lang_pair}-dev.{tgt_tag}"),
+                },
+            )
+
+            if f"{lang_pair}-dev.{src_tag}" in os.listdir(data_dir):
+                output.append(valid)
+
+        return output
+
+    def _generate_examples(self, filepath, labelpath):
+        """Yields examples."""
+        src_tag, tgt_tag = self.config.language_pair.split("-")
+        with open(filepath, encoding="utf-8") as f1, open(labelpath, encoding="utf-8") as f2:
+            src = f1.read().split("\n")[:-1]
+            tgt = f2.read().split("\n")[:-1]
+            for idx, (s, t) in enumerate(zip(src, tgt)):
+                yield idx, {"translation": {src_tag: s, tgt_tag: t}}
+
+
+
