@@ -122,35 +122,30 @@ class Sunbird(datasets.GeneratorBasedBuilder):
         test_en = dl_manager.download_and_extract(_TEST_EN)
         valid_en = dl_manager.download_and_extract(_VAL_EN)
 
-        train_lg = dl_manager.download_and_extract(_TRAIN_LG)
-        test_lg = dl_manager.download_and_extract(_TEST_LG)
-        valid_lg = dl_manager.download_and_extract(_VAL_LG)
+        train_run = dl_manager.download_and_extract(_TRAIN_RUN)
+        test_run = dl_manager.download_and_extract(_TEST_RUN)
+        valid_run = dl_manager.download_and_extract(_VAL_RUN)
 
-        train_run = dl_manager.download_and_extract(TRAIN_RUN)
-        test_run = dl_manager.download_and_extract(TEST_RUN)
-        valid_run = dl_manager.download_and_extract(VAL_RUN)
+        train_teo = dl_manager.download_and_extract(_TRAIN_TEO)
+        test_teo = dl_manager.download_and_extract(_TEST_TEO)
+        valid_teo = dl_manager.download_and_extract(_VAL_TEO)
 
-        train_teo = dl_manager.download_and_extract(TRAIN_TEO)
-        test_teo = dl_manager.download_and_extract(TEST_TEO)
-        valid_teo = dl_manager.download_and_extract(VAL_TEO)
+        train_lug = dl_manager.download_and_extract(_TRAIN_LUG)
+        test_lug = dl_manager.download_and_extract(_TEST_LUG)
+        valid_lug = dl_manager.download_and_extract(_VAL_LUG)
 
-        train_lug = dl_manager.download_and_extract(TRAIN_LUG)
-        test_lug = dl_manager.download_and_extract(TEST_LUG)
-        valid_lug = dl_manager.download_and_extract(VAL_LUG)
+        train_lgg = dl_manager.download_and_extract(_TRAIN_LGG)
+        test_lgg = dl_manager.download_and_extract(_TEST_LGG)
+        valid_lgg = dl_manager.download_and_extract(_VAL_LGG)
 
-        train_lgg = dl_manager.download_and_extract(TRAIN_LGG)
-        test_lgg = dl_manager.download_and_extract(TEST_LGG)
-        valid_lgg = dl_manager.download_and_extract(VAL_LGG)
-
-        train_ach = dl_manager.download_and_extract(TRAIN_ACH)
-        test_ach = dl_manager.download_and_extract(TEST_ACH)
-        valid_ach = dl_manager.download_and_extract(VAL_ACH) 
+        train_ach = dl_manager.download_and_extract(_TRAIN_ACH)
+        test_ach = dl_manager.download_and_extract(_TEST_ACH)
+        valid_ach = dl_manager.download_and_extract(_VAL_ACH) 
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"lg_datapath":  train_lg,
-                            "en_datapath":  train_en,
+                gen_kwargs={"en_datapath":  train_en,
                             "run_datapath": train_run,
                             "teo_datapath": train_teo,
                             "lug_datapath": train_lug,
@@ -160,8 +155,7 @@ class Sunbird(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"lg_datapath": valid_lg,
-                            "en_datapath": valid_en,
+                gen_kwargs={"en_datapath": valid_en,
                             "run_datapath": valid_run,
                             "teo_datapath": valid_teo,
                             "lug_datapath": valid_lug,
@@ -170,8 +164,7 @@ class Sunbird(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"lg_datapath": test_lg, 
-                            "en_datapath": test_en,
+                gen_kwargs={"en_datapath": test_en,
                             "run_datapath": test_run,
                             "teo_datapath": test_teo,
                             "lug_datapath": test_lug,
