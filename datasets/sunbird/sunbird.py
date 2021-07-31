@@ -250,7 +250,8 @@ class Sunbird(datasets.GeneratorBasedBuilder):
             dl_dir = dl_manager.download_and_extract(_URL["supervised"].format(lang_pair))
         
         data_dir = os.path.join(dl_dir, os.path.join("v1-dataset/v1.0", domain, lang_pair))
-
+        print("########",data_dir)
+        
         output=[]
 
         test = datasets.SplitGenerator(
