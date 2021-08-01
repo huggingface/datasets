@@ -35,7 +35,7 @@ _CITATION = """\
 _VERSION = "1.0.0"
 
 _URL = {
-    "supervised": "https://transfer.sh/1pyMrjr/v1-dataset.zip",
+    "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/v1-dataset.zip",
 }
 
 
