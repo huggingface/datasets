@@ -49,6 +49,7 @@ from .utils.file_utils import (
     hf_github_url,
     hf_hub_url,
     init_hf_modules,
+    relative_to_absolute_path,
     url_or_path_join,
     url_or_path_parent,
 )
@@ -246,10 +247,11 @@ def prepare_module(
         script_version (Optional ``Union[str, datasets.Version]``):
             If specified, the module will be loaded from the datasets repository at this version.
             By default:
-            - it is set to the local version fo the lib.
+            - it is set to the local version of the lib.
             - it will also try to load it from the master branch if it's not available at the local version fo the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
-        download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
+        download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         dataset (bool): True if the script to load is a dataset, False if the script is a metric.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
             Used to inspect or modify the script folder.
@@ -307,15 +309,18 @@ def prepare_module(
     # - if os.path.join(path, name) is a file or a remote url
     # - if path is a file or a remote url
     # - otherwise we assume path/name is a path to our S3 bucket
-    combined_path = os.path.join(path, name)
+    combined_path = path if path.endswith(name) else os.path.join(path, name)
+
     if os.path.isfile(combined_path):
         file_path = combined_path
-        local_path = file_path
+        local_path = combined_path
     elif os.path.isfile(path):
         file_path = path
         local_path = path
     else:
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
+
+        combined_path_abs = relative_to_absolute_path(combined_path)
         try:
             head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
             script_version = str(script_version) if script_version is not None else None
@@ -326,7 +331,7 @@ def prepare_module(
                 except FileNotFoundError:
                     if script_version is not None:
                         raise FileNotFoundError(
-                            "Couldn't find remote file with version {} at {}. Please provide a valid version and a valid {} name".format(
+                            "Couldn't find remote file with version {} at {}. Please provide a valid version and a valid {} name.".format(
                                 script_version, file_path, "dataset" if dataset else "metric"
                             )
                         )
@@ -338,14 +343,14 @@ def prepare_module(
                             logger.warning(
                                 "Couldn't find file locally at {}, or remotely at {}.\n"
                                 "The file was picked from the master branch on github instead at {}.".format(
-                                    combined_path, github_file_path, file_path
+                                    combined_path_abs, github_file_path, file_path
                                 )
                             )
                         except FileNotFoundError:
                             raise FileNotFoundError(
                                 "Couldn't find file locally at {}, or remotely at {}.\n"
                                 "The file is also not present on the master branch on github.".format(
-                                    combined_path, github_file_path
+                                    combined_path_abs, github_file_path
                                 )
                             )
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
@@ -357,14 +362,14 @@ def prepare_module(
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
                     raise FileNotFoundError(
-                        "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name".format(
-                            combined_path, file_path, "dataset" if dataset else "metric"
+                        "Couldn't find file locally at {}, or remotely at {}. Please provide a valid {} name.".format(
+                            combined_path_abs, file_path, "dataset" if dataset else "metric"
                         )
                     )
             else:
                 raise FileNotFoundError(
-                    "Couldn't find file locally at {}. Please provide a valid {} name".format(
-                        combined_path, "dataset" if dataset else "metric"
+                    "Couldn't find file locally at {}. Please provide a valid {} name.".format(
+                        combined_path_abs, "dataset" if dataset else "metric"
                     )
                 )
         except Exception as e:  # noqa: all the attempts failed, before raising the error we should check if the module already exists.
@@ -382,7 +387,7 @@ def prepare_module(
                     logger.warning(
                         f"Using the latest cached version of the module from {os.path.join(main_folder_path, hash)} "
                         f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
-                        f"couldn't be found locally at {combined_path} or remotely ({type(e).__name__})."
+                        f"couldn't be found locally at {combined_path_abs}, or remotely ({type(e).__name__})."
                     )
                     if return_resolved_file_path:
                         with open(os.path.join(main_folder_path, hash, short_name + ".json")) as cache_metadata:
@@ -421,7 +426,7 @@ def prepare_module(
                 f"Error in {module_type} script at {file_path}, importing relative {import_name} module "
                 f"but {import_name} is the name of the {module_type} script. "
                 f"Please change relative import {import_name} to another name and add a '# From: URL_OR_PATH' "
-                f"comment pointing to the original realtive import file path."
+                f"comment pointing to the original relative import file path."
             )
         if import_type == "internal":
             url_or_filename = url_or_path_join(base_path, import_path + ".py")
@@ -594,7 +599,7 @@ def load_metric(
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         keep_in_memory (bool): Whether to store the temporary results in memory (defaults to False)
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-        download_mode (Optional `datasets.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         script_version (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
             at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
             your local version of the lib might cause compatibility issues.
@@ -658,7 +663,7 @@ def load_dataset_builder(
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, optional): Select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
@@ -746,7 +751,7 @@ def load_dataset(
             * Process and cache the dataset in typed Arrow tables for caching.
 
                 Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
-                They can be directly access from drive, loaded in RAM or even streamed over the web.
+                They can be directly accessed from drive, loaded in RAM or even streamed over the web.
 
         3. Return a dataset built from the requested splits in ``split`` (default: all).
 
@@ -768,7 +773,7 @@ def load_dataset(
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, optional): Select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
@@ -806,7 +811,7 @@ def load_dataset(
         if not config.AIOHTTP_AVAILABLE:
             raise ImportError(
                 f"To be able to use dataset streaming, you need to install dependencies like aiohttp "
-                f"using 'pip install datasets[streaming]' or 'pip install aiohttp' for instance"
+                f'using "pip install \'datasets[streaming]\'" or "pip install aiohttp" for instance'
             )
     # Download/copy dataset processing script
 

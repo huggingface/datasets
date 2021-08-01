@@ -42,7 +42,7 @@ from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
 from .utils.download_manager import DownloadManager, GenerateMode
-from .utils.file_utils import DownloadConfig, is_remote_url, request_etag
+from .utils.file_utils import DownloadConfig, is_remote_url, request_etags
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 
@@ -123,6 +123,8 @@ class BuilderConfig:
         # it was previously ignored before the introduction of config id because we didn't want
         # to change the config name. Now it's fine to take it into account for the config id.
         # config_kwargs_to_add_to_suffix.pop("data_dir", None)
+        if "data_dir" in config_kwargs_to_add_to_suffix and config_kwargs_to_add_to_suffix["data_dir"] is None:
+            del config_kwargs_to_add_to_suffix["data_dir"]
         if config_kwargs_to_add_to_suffix:
             # we don't care about the order of the kwargs
             config_kwargs_to_add_to_suffix = {
@@ -152,12 +154,23 @@ class BuilderConfig:
                 }
             else:
                 raise ValueError("Please provide a valid `data_files` in `DatasetBuilder`")
+            remote_urls = [
+                data_file for key in data_files for data_file in data_files[key] if is_remote_url(data_file)
+            ]
+            etags = dict(
+                zip(
+                    remote_urls,
+                    request_etags(
+                        remote_urls, use_auth_token=use_auth_token, tqdm_kwargs={"desc": "Check remote data files"}
+                    ),
+                )
+            )
             for key in sorted(data_files.keys()):
                 m.update(key)
                 for data_file in data_files[key]:
                     if is_remote_url(data_file):
                         m.update(data_file)
-                        m.update(str(request_etag(data_file, use_auth_token=use_auth_token)))
+                        m.update(etags[data_file])
                     else:
                         m.update(os.path.abspath(data_file))
                         m.update(str(os.path.getmtime(data_file)))
@@ -247,6 +260,11 @@ class DatasetBuilder:
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
+        # Discard default config parameters
+        if "data_files" in config_kwargs and config_kwargs["data_files"] is None:
+            del config_kwargs["data_files"]
+        if "data_dir" in config_kwargs and config_kwargs["data_dir"] is None:
+            del config_kwargs["data_dir"]
         self.config, self.config_id = self._create_builder_config(
             name,
             custom_features=features,
@@ -681,6 +699,8 @@ class DatasetBuilder:
                     + str(e)
                 )
 
+            dl_manager.manage_extracted_files()
+
         if verify_infos:
             verify_splits(self.info.splits, split_dict)
 
@@ -890,7 +910,7 @@ class DatasetBuilder:
         if not config.AIOHTTP_AVAILABLE:
             raise ImportError(
                 f"To be able to use dataset streaming, you need to install dependencies like aiohttp "
-                f"using 'pip install datasets[streaming]' or 'pip install aiohttp' for instance"
+                f'using "pip install \'datasets[streaming]\'" or "pip install aiohttp" for instance'
             )
 
         from .utils.streaming_download_manager import StreamingDownloadManager

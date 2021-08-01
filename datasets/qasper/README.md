@@ -1,4 +1,5 @@
 ---
+pretty_name: QASPER
 annotations_creators:
 - expert-generated
 language_creators:
@@ -17,6 +18,7 @@ task_categories:
 - question-answering
 task_ids:
 - closed-domain-qa
+paperswithcode_id: qasper
 ---
 
 # Dataset Card for Qasper

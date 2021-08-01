@@ -1,5 +1,6 @@
 import importlib
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -19,6 +20,7 @@ from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import prepare_module
+from datasets.utils.file_utils import DownloadConfig
 
 from .utils import (
     OfflineSimulationMode,
@@ -223,7 +225,8 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
             assert "Using the latest cached version of the module" in caplog.text
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset("_dummy")
-    assert "at " + os.path.join("_dummy", "_dummy.py") in str(exc_info.value)
+    m_combined_path = re.search(fr"\S*{re.escape(os.path.join('_dummy', '_dummy.py'))}\b", str(exc_info.value))
+    assert m_combined_path is not None and os.path.isabs(m_combined_path.group())
 
 
 @require_streaming
@@ -345,3 +348,18 @@ def test_remote_data_files():
     assert isinstance(ds, IterableDataset)
     ds_item = next(iter(ds))
     assert ds_item.keys() == {"langs", "ner_tags", "spans", "tokens"}
+
+
+@pytest.mark.parametrize("deleted", [False, True])
+def test_load_dataset_deletes_extracted_files(deleted, jsonl_gz_path, tmp_path):
+    data_files = jsonl_gz_path
+    cache_dir = tmp_path / "cache"
+    if deleted:
+        download_config = DownloadConfig(delete_extracted=True, cache_dir=cache_dir / "downloads")
+        ds = load_dataset(
+            "json", split="train", data_files=data_files, cache_dir=cache_dir, download_config=download_config
+        )
+    else:  # default
+        ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
+    assert ds[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+    assert (sorted((cache_dir / "downloads" / "extracted").iterdir()) == []) is deleted

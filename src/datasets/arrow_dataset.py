@@ -41,7 +41,7 @@ from tqdm.auto import tqdm
 
 from datasets.tasks.text_classification import TextClassification
 
-from . import config
+from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import ClassLabel, Features, Value, cast_to_python_objects
@@ -1659,6 +1659,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
+        disable_tqdm = bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
+
         if num_proc is None or num_proc == 1:
             return self._map_single(
                 function=function,
@@ -1676,6 +1678,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
+                disable_tqdm=disable_tqdm,
                 desc=desc,
             )
         else:
@@ -1701,7 +1704,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             ):
                 logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
-            with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
+            initargs, initializer = None, None
+            if not disable_tqdm:
+                initargs, initializer = (RLock(),), tqdm.set_lock
+            with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
                 os.environ = prev_env
                 shards = [
                     self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
@@ -1728,6 +1734,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         fn_kwargs=fn_kwargs,
                         rank=rank,
                         offset=sum(len(s) for s in shards[:rank]),
+                        disable_tqdm=disable_tqdm,
                         desc=desc,
                     )
                     for rank in range(num_proc)
@@ -1762,6 +1769,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
+        disable_tqdm: bool = False,
         desc: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
@@ -1800,7 +1808,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
-            offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`
+            offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
+            disable_tqdm (:obj:`bool`, defaults to `False`): Whether to silence tqdm's output.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         assert (
@@ -1812,7 +1821,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             logging.set_verbosity_warning()
         # Print at least one thing to fix tqdm in notebooks in multiprocessing
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-        if rank is not None and "notebook" in tqdm.__name__:
+        if rank is not None and not disable_tqdm and "notebook" in tqdm.__name__:
             print(" ", end="", flush=True)
 
         # Select the columns (arrow columns) to process
@@ -1976,9 +1985,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
-                pbar = tqdm(
+                pbar = utils.tqdm(
                     pbar_iterable,
-                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    disable=disable_tqdm,
                     position=rank,
                     unit=pbar_unit,
                     desc=pbar_desc,

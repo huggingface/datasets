@@ -194,7 +194,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
     def shuffle_data_sources(self, seed: Optional[int]) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return MappedExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(seed), function=self.function, batch_size=self.batch_size
+            self.ex_iterable.shuffle_data_sources(seed),
+            function=self.function,
+            batched=self.batched,
+            batch_size=self.batch_size,
         )
 
     @property

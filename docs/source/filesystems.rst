@@ -4,7 +4,7 @@ FileSystems Integration for cloud storages
 Supported Filesystems
 ---------------------
 
-Currenlty ``datasets`` offers an s3 filesystem implementation with :class:`datasets.filesystems.S3FileSystem`. ``S3FileSystem`` is a subclass of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_, which is a known implementation of ``fsspec``.
+Currently ``datasets`` offers an s3 filesystem implementation with :class:`datasets.filesystems.S3FileSystem`. ``S3FileSystem`` is a subclass of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_, which is a known implementation of ``fsspec``.
 
 Furthermore ``datasets`` supports all ``fsspec`` implementations. Currently known implementations are: 
 
@@ -24,7 +24,7 @@ Example using :class:`datasets.filesystems.S3FileSystem` within ``datasets``.
 
 .. code-block::
 
-    >>> pip install datasets[s3]
+    >>> pip install "datasets[s3]"
 
 Listing files from a public s3 bucket.
 
@@ -32,7 +32,7 @@ Listing files from a public s3 bucket.
 
       >>> import datasets
       >>> s3 = datasets.filesystems.S3FileSystem(anon=True)  # doctest: +SKIP
-      >>> s3.ls('public-datasets/imdb/train')  # doctest: +SKIP
+      >>> s3.ls('some-public-datasets/imdb/train')  # doctest: +SKIP
       ['dataset_info.json.json','dataset.arrow','state.json']
 
 Listing files from a private s3 bucket using ``aws_access_key_id`` and ``aws_secret_access_key``.
@@ -129,8 +129,8 @@ Loading ``encoded_dataset`` from a public s3 bucket.
       >>> # create S3FileSystem without credentials
       >>> s3 = S3FileSystem(anon=True)  # doctest: +SKIP
       >>>
-      >>> # load encoded_dataset to from s3 bucket
-      >>> dataset = load_from_disk('s3://a-public-datasets/imdb/train',fs=s3)  # doctest: +SKIP
+      >>> # load encoded_dataset from s3 bucket
+      >>> dataset = load_from_disk('s3://some-public-datasets/imdb/train',fs=s3)  # doctest: +SKIP
       >>>
       >>> print(len(dataset))
       >>> # 25000

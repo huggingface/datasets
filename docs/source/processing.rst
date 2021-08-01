@@ -14,11 +14,11 @@ As always, let's start by loading a small dataset for our demonstrations:
 
 .. note::
 
-    **No in-place policy** All the methods in this chapter return a new :class:`datasets.Dataset`. No modification is done in-place and it's the thus responsibility of the user to decide to override the previous dataset with the newly returned one.
+    **No in-place policy** All the methods in this chapter return a new :class:`datasets.Dataset`. No modification is done in-place and it's thus responsibility of the user to decide to override the previous dataset with the newly returned one.
 
 .. note::
 
-    **Caching policy** All the methods in this chapter store the updated dataset in a cache file indexed by a hash of current state and all the argument used to call the method.
+    **Caching policy** All the methods in this chapter store the updated dataset in a cache file indexed by a hash of current state and all the arguments used to call the method.
 
     A subsequent call to any of the methods detailed here (like :func:`datasets.Dataset.sort`, :func:`datasets.Dataset.map`, etc) will thus **reuse the cached file instead of recomputing the operation** (even in another python session).
 
@@ -92,11 +92,11 @@ You can filter rows according to a list of indices (:func:`datasets.Dataset.sele
      'Artists are worried the plan would harm those who need help most - performers who have a difficult time lining up shows .'
     ]
 
-:func:`datasets.Dataset.filter` expects a function which can accept a single example of the dataset, i.e. the python dictionary returned by :obj:`dataset[i]` and returns a boolean value. It's also possible to use the indice of each example in the function by setting :obj:`with_indices=True` in :func:`datasets.Dataset.filter`. In this case, the signature of the function given to :func:`datasets.Dataset.filter` should be :obj:`function(example: dict, indice: int) -> bool`:
+:func:`datasets.Dataset.filter` expects a function which can accept a single example of the dataset, i.e. the python dictionary returned by :obj:`dataset[i]` and returns a boolean value. It's also possible to use the index of each example in the function by setting :obj:`with_indices=True` in :func:`datasets.Dataset.filter`. In this case, the signature of the function given to :func:`datasets.Dataset.filter` should be :obj:`function(example: dict, index: int) -> bool`:
 
 .. code-block::
 
-    >>> even_dataset = dataset.filter(lambda example, indice: indice % 2 == 0, with_indices=True)
+    >>> even_dataset = dataset.filter(lambda example, index: index % 2 == 0, with_indices=True)
     >>> len(even_dataset)
     1834
     >>> len(dataset) / 2
@@ -105,7 +105,7 @@ You can filter rows according to a list of indices (:func:`datasets.Dataset.sele
 Splitting the dataset in train and test split: ``train_test_split``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This method is adapted from scikit-learn celebrated :obj:`train_test_split` method with the omission of the stratified options.
+This method is adapted from scikit-learn celebrated: obj:`train_test_split` `method <https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html>`_ with the omission of the stratified options.
 
 You can select the test and train sizes as relative proportions or absolute number of samples.
 
@@ -128,12 +128,19 @@ The :func:`datasets.Dataset.train_test_split` has many ways to select the relati
 Sharding the dataset: ``shard``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Eventually, it's possible to "shard" the dataset, i.e. divide it in a deterministic list of dataset of (almost) the same size.
+Eventually, it's possible to "shard" the dataset, i.e. divide it in a deterministic list of datasets of (almost) the same size.
 
 The :func:`datasets.Dataset.shard` takes as arguments the total number of shards (:obj:`num_shards`) and the index of the currently requested shard (:obj:`index`)  and return a :class:`datasets.Dataset` instance constituted by the requested shard.
 
 This method can be used to slice a very large dataset in a predefined number of chunks.
 
+.. code-block::
+
+    >>> dataset_shard = dataset.shard(num_shards=40, index=3)
+    >>> print(dataset_shard.num_rows)
+    92
+    >>> print(dataset.num_rows /40)
+    91.7
 
 Renaming, removing, casting and flattening columns
 --------------------------------------------------
@@ -252,10 +259,12 @@ Let's print the length of the ``sentence1`` value for each sample in our dataset
 
 .. code-block::
 
+    >>> from datasets.utils import disable_progress_bar
+    >>> disable_progress_bar()
     >>> small_dataset = dataset.select(range(10))
     >>> small_dataset
     Dataset(schema: {'sentence1': 'string', 'sentence2': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 10)
-    >>> small_dataset.map(lambda example: print(len(example['sentence1'])), verbose=False)
+    >>> small_dataset.map(lambda example: print(len(example['sentence1'])))
     103
     89
     105
@@ -295,7 +304,7 @@ Let's add a prefix ``'My sentence: '`` to each ``sentence1`` value in our small 
     >>> def add_prefix(example):
     ...     example['sentence1'] = 'My sentence: ' + example['sentence1']
     ...     return example
-    ... 
+    
     >>> updated_dataset = small_dataset.map(add_prefix)
     >>> updated_dataset['sentence1'][:5]
     ['My sentence: Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
@@ -353,7 +362,7 @@ To this aim, the :obj:`remove_columns=List[str]` argument can be used and provid
 
 Columns to remove are removed **after** the example has been provided to the mapped function so that the mapped function can use the content of these columns before they are removed.
 
-Here is an example removing the ``sentence1`` column while adding a ``new_sentence`` column with the content of the ``new_sentence``. Said more simply, we are renaming the ``sentence1`` column as ``new_sentence``:
+Here is an example removing the ``sentence1`` column while adding a ``new_sentence`` column with the content of the ``sentence1``. Said more simply, we are renaming the ``sentence1`` column as ``new_sentence``:
 
 .. code-block::
 
@@ -365,7 +374,7 @@ Here is an example removing the ``sentence1`` column while adding a ``new_senten
 Using row indices
 ^^^^^^^^^^^^^^^^^^^^^^
 
-When the argument :obj:`with_indices` is set to :obj:`True`, the indices of the rows (from ``0`` to ``len(dataset)``) will be provided to the mapped function. This function must then have the following signature: :obj:`function(example: dict, indice: int) -> Union[None, dict]`.
+When the argument :obj:`with_indices` is set to :obj:`True`, the indices of the rows (from ``0`` to ``len(dataset)``) will be provided to the mapped function. This function must then have the following signature: :obj:`function(example: dict, index: int) -> Union[None, dict]`.
 
 In the following example, we add the index of the example as a prefix to the ``sentence2`` field of each example:
 
@@ -387,7 +396,7 @@ Processing data in batches
 
 This is particularly interesting if you have a mapped function which can efficiently handle batches of inputs like the tokenizers of the fast `HuggingFace tokenizers library <https://github.com/huggingface/tokenizers>`__.
 
-To operate on batch of example, just set :obj:`batched=True` when calling :func:`datasets.Dataset.map` and provide a function with the following signature: :obj:`function(examples: Dict[List]) -> Dict[List]` or, if you use indices (:obj:`with_indices=True`): :obj:`function(examples: Dict[List], indices: List[int]) -> Dict[List])`.
+To operate on batch of examples, just set :obj:`batched=True` when calling :func:`datasets.Dataset.map` and provide a function with the following signature: :obj:`function(examples: Dict[List]) -> Dict[List]` or, if you use indices (:obj:`with_indices=True`): :obj:`function(examples: Dict[List], indices: List[int]) -> Dict[List])`.
 
 In other words, the mapped function should accept an input with the format of a slice of the dataset: :obj:`function(dataset[:10])`.
 
@@ -476,7 +485,7 @@ We will also remove all the columns of the dataset and only keep the chunks in o
     ...     for sentence in examples['sentence1']:
     ...         chunks += [sentence[i:i + 50] for i in range(0, len(sentence), 50)]
     ...     return {'chunks': chunks}
-    ... 
+    
     >>> chunked_dataset = dataset.map(chunk_examples, batched=True, remove_columns=dataset.column_names)
     >>> chunked_dataset
     Dataset(schema: {'chunks': 'string'}, num_rows: 10470)
@@ -522,11 +531,11 @@ Since the Roberta model is quite large to run on a small laptop CPU, we will res
     ...         outputs += [sentence] + augmented_sequences
     ...     
     ...     return {'data': outputs}
-    ... 
+    
     >>> augmented_dataset = smaller_dataset.map(augment_data, batched=True, remove_columns=dataset.column_names, batch_size=8)
     >>> len(augmented_dataset)
     400
-    >>> augmented_dataset[:9]['data']
+    >>> augmented_dataset[:8]['data']
     ['Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
      'Amrozi accused his brother, whom he called " the witness ", of deliberately withholding his evidence.',
      'Amrozi accused his brother, whom he called " the witness ", of deliberately suppressing his evidence.',
@@ -538,7 +547,7 @@ Since the Roberta model is quite large to run on a small laptop CPU, we will res
 
 Here we have now multiplied the size of our dataset by ``4`` by adding three alternatives generated with Roberta to each example. We can see that the word ``distorting`` in the first example was augmented with other possibilities by the Roberta model: ``withholding``, ``suppressing``, ``destroying``, while in the second sentence, it was the ``'s`` token which was randomly sampled and replaced by ``Stores`` and ``Pizza``.
 
-Obviously this is a very simple example for data augmentation and it could be improved in several ways, the most interesting take-away is probably how this can be written in roughtly ten lines of code without any loss in flexibility.
+Obviously this is a very simple example for data augmentation and it could be improved in several ways, the most interesting take-away is probably how this can be written in roughly ten lines of code without any loss in flexibility.
 
 Processing several splits at once
 -----------------------------------
@@ -563,8 +572,6 @@ You can directly call map, filter, shuffle, and sort directly on a :obj:`dataset
      'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
      'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
-
-This concludes our chapter on data processing with 🤗 Datasets (and 🤗 Transformers).
 
 Concatenate several datasets
 ----------------------------
@@ -593,12 +600,11 @@ Saving a dataset creates a directory with various files:
 
 - arrow files: they contain your dataset's data
 - dataset_info.json: contains the description, citations, etc. of the dataset
-- state.json: contains the list of the arrow files and other informations like the dataset format type, if any (torch or tensorflow for example)
+- state.json: contains the list of the arrow files and other information like the dataset format type, if any (torch or tensorflow for example)
 
 .. code-block::
 
     >>> encoded_dataset.save_to_disk("path/of/my/dataset/directory")
-    >>> ...
     >>> from datasets import load_from_disk
     >>> reloaded_encoded_dataset = load_from_disk("path/of/my/dataset/directory")
 
@@ -633,8 +639,7 @@ This is possible thanks to a custom hashing function that works with most python
 Fingerprinting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The fingerprint of a dataset in a given state is an internal value computed by combining the fingerprint of the previous state and a hash of the latest transform that was applied. (Transforms are all the processing method for transforming a dataset that we listed in this chapter (:func:`datasets.Dataset.map`, :func:`datasets.Dataset.shuffle`, etc)
-The initial fingerprint is computed using a hash of the arrow table, or a hash of the arrow files if the dataset lives on disk.
+The fingerprint of a dataset in a given state is an internal value computed by combining the fingerprint of the previous state and a hash of the latest transform that was applied (transforms are all the processing methods for transforming a dataset that we listed in this chapter: :func:`datasets.Dataset.map`, :func:`datasets.Dataset.shuffle`, etc). The initial fingerprint is computed using a hash of the arrow table, or a hash of the arrow files if the dataset lives on disk.
 
 For example:
 
@@ -646,7 +651,7 @@ For example:
     >>> print(dataset1._fingerprint, dataset2._fingerprint)
     d19493523d95e2dc 5b86abacd4b42434
 
-The new fingerprint is a combination of the previous fingerprint and the hash of the given transform. For a transform to be hashable, it needs to be picklable using dill or pickle. In particular for :func:`datasets.Dataset.map`, you need to provide a picklable processing method to apply on the dataset so that a determinist fingerprint can be computed by hashing the full state of the provided method (the fingerprint is computed taking into account all the dependencies of the method you provide). 
+The new fingerprint is a combination of the previous fingerprint and the hash of the given transform. For a transform to be hashable, it needs to be pickleable using `dill <https://dill.readthedocs.io/en/latest/>`_ or `pickle <https://docs.python.org/3/library/pickle.html>`_. In particular for :func:`datasets.Dataset.map`, you need to provide a pickleable processing method to apply on the dataset so that a determinist fingerprint can be computed by hashing the full state of the provided method (the fingerprint is computed taking into account all the dependencies of the method you provide).
 For non-hashable transform, a random fingerprint is used and a warning is raised.
 Make sure your transforms and parameters are serializable with pickle or dill for the dataset fingerprinting and caching to work.
 If you reuse a non-hashable transform, the caching mechanism will consider it to be different from the previous calls and recompute everything.
@@ -661,12 +666,12 @@ It is also possible to disable caching globally with :func:`datasets.set_caching
 
 If the caching is disabled, the library will no longer reload cached dataset files when applying transforms to the datasets.
 More precisely, if the caching is disabled:
+
 - cache files are always recreated
 - cache files are written to a temporary directory that is deleted when session closes
 - cache files are named using a random hash instead of the dataset fingerprint
 - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
-- caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
-the ``download_mode`` parameter in :func:`datasets.load_dataset`.
+- caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use the ``download_mode`` parameter in :func:`datasets.load_dataset`.
 
 To disable caching you can run:
 
@@ -686,17 +691,18 @@ In a distributed setting, you may use caching and a :func:`torch.distributed.bar
 
     >>> from datasets import Dataset
     >>> import torch.distributed
-    >>> 
+    
     >>> dataset1 = Dataset.from_dict({"a": [0, 1, 2]})
-    >>> 
+    
     >>> if training_args.local_rank > 0:
     ...     print("Waiting for main process to perform the mapping")
     ...     torch.distributed.barrier()
-    >>> 
+    
     >>> dataset2 = dataset1.map(lambda x: {"a": x["a"] + 1})
     >>> 
     >>> if training_args.local_rank == 0:
     ...     print("Loading results from main process")
     ...     torch.distributed.barrier()
+    
 
 When it encounters a barrier, each process will stop until all other processes have reached the barrier. The non-main processes reach the barrier first, before the mapping, and wait there. The main processes creates the cache for the processed dataset. It then reaches the barrier, at which point the other processes resume, and load the cache instead of performing the processing themselves.
