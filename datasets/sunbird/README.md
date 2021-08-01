@@ -3,7 +3,7 @@ YAML tags:
 - copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for [Sunbird AI Parallel Text MT Dataset]
 
 ## Table of Contents
 - [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
@@ -37,15 +37,16 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage: sunbird.ai**
+- **Repository: https://github.com/SunbirdAI/ug-language-parallel-text-dataset**
 - **Paper:**
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact: sunbird.ai**
 
 ### Dataset Summary
 
-[More Information Needed]
+This is Multi-way parallel text corpus of 5 key Ugandan languages intended for the task of machine translation
+
 
 ### Supported Tasks and Leaderboards
 
@@ -53,7 +54,11 @@ YAML tags:
 
 ### Languages
 
-[More Information Needed]
+en-lug - English to Luganda
+en-run - English to Runyankore
+en-ach - English to Acholi
+en-teo - English to Itesot
+en-lgg - English to Lugbara
 
 ## Dataset Structure
 
@@ -63,11 +68,27 @@ YAML tags:
 
 ### Data Fields
 
-[More Information Needed]
+`src_tag`: string text in source language
+`tgt_tag`: string translation of source language in target language
 
 ### Data Splits
 
-[More Information Needed]
+The dataset is split into training, validation, and test portions. Data was prepared by randomly sampled up to 5000 sentence pairs per language pair for training and up to 3000 each for test and 2000 for validation.
+
+``DatasetDict({
+    test: Dataset({
+        features: ['translation'],
+        num_rows: 3000
+    })
+    train: Dataset({
+        features: ['translation'],
+        num_rows: 5000
+    })
+    validation: Dataset({
+        features: ['translation'],
+        num_rows: 2000
+    })
+})``
 
 ## Dataset Creation
 
@@ -129,4 +150,4 @@ YAML tags:
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+Thanks to [@sunbirdai](https://github.com/sunbirdai) for adding this dataset.
