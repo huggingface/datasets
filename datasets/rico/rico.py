@@ -18,12 +18,11 @@
 import csv
 import glob
 import json
-import imageio
-import pickle
 import os
 
 import datasets
 
+import numpy as np
 
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
@@ -83,23 +82,76 @@ class RicoDataset(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(
             name="screenshots_hierarchies",
             version=VERSION,
-            description="Contains 66k+ unique UI screens. For each UI, we present a screenshot (PNG file) and a detailed view hierarchy (JSON object)."
+            description="Contains 66k+ unique UI screens. For each UI, we present a screenshot (PNG file) and a detailed view hierarchy (JSON object).",
         ),
         datasets.BuilderConfig(name="ui_metadata", version=VERSION, description=""),
         datasets.BuilderConfig(name="layout_vectors", version=VERSION, description=""),
         datasets.BuilderConfig(name="traces", version=VERSION, description=""),
         datasets.BuilderConfig(name="animations", version=VERSION, description=""),
-        datasets.BuilderConfig(name="playstore_metadata", version=VERSION, description=""),
-        datasets.BuilderConfig(name="screenshots_semantic_hierarchies", version=VERSION, description=""),
+        datasets.BuilderConfig(
+            name="playstore_metadata", version=VERSION, description=""
+        ),
+        datasets.BuilderConfig(
+            name="screenshots_semantic_hierarchies", version=VERSION, description=""
+        ),
     ]
 
-    DEFAULT_CONFIG_NAME = "screenshots_hierarchies"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = "screenshots_hierarchies"
 
     def _info(self):
         if self.config.name == "screenshots_hierarchies":
             features = datasets.Features(
                 {
-                    "screenshot": datasets.Array3D(shape=(1440, 2560, 3), dtype="uint8"),
+                    "screenshot_path": datasets.Value("string"),
+                    # This is a JSON obj, but will be coded as a string
+                    "hierarchy": datasets.Value("string"),
+                }
+            )
+        elif self.config.name == "ui_metadata":
+            features = datasets.Features(
+                {
+                    "UI Number": datasets.Value("int32"),
+                    "App Package Name": datasets.Value("string"),
+                    "Interaction Trace Number": datasets.Value("int32"),
+                    "UI Number in Trace": datasets.Value("int32"),
+                }
+            )
+        elif self.config.name == "layout_vectors":
+            features = datasets.Features(
+                {
+                    "ui_name": datasets.Value("string"),
+                    # This is a JSON obj, but will be coded as a string
+                    "ui_vector": datasets.Sequence(datasets.Value("float32")),
+                }
+            )
+        elif self.config.name == "traces":
+            features = datasets.Features(
+                {
+                    "screenshot_path": datasets.Value("string"),
+                    # This is a JSON obj, but will be coded as a string
+                    "hierarchy": datasets.Value("string"),
+                }
+            )
+        elif self.config.name == "animations":
+            features = datasets.Features(
+                {
+                    "screenshot_path": datasets.Value("string"),
+                    # This is a JSON obj, but will be coded as a string
+                    "hierarchy": datasets.Value("string"),
+                }
+            )
+        elif self.config.name == "playstore_metadata":
+            features = datasets.Features(
+                {
+                    "screenshot_path": datasets.Value("string"),
+                    # This is a JSON obj, but will be coded as a string
+                    "hierarchy": datasets.Value("string"),
+                }
+            )
+        elif self.config.name == "screenshots_semantic_hierarchies":
+            features = datasets.Features(
+                {
+                    "screenshot_path": datasets.Value("string"),
                     # This is a JSON obj, but will be coded as a string
                     "hierarchy": datasets.Value("string"),
                 }
@@ -123,33 +175,95 @@ class RicoDataset(datasets.GeneratorBasedBuilder):
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _DATA_URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "combined"),
-                    "split": "train",
-                },
-            )
-        ]
+        if self.config.name == "screenshots_hierarchies":
+            data_dir = dl_manager.download_and_extract(my_urls)
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    # These kwargs will be passed to _generate_examples
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "combined"),
+                        "split": "train",
+                    },
+                )
+            ]
+        elif self.config.name == "ui_metadata":
+            data_dir = dl_manager.download(my_urls)
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    # These kwargs will be passed to _generate_examples
+                    gen_kwargs={
+                        "filepath": data_dir,
+                        "split": "train",
+                    },
+                )
+            ]
+        elif self.config.name == "layout_vectors":
+            data_dir = dl_manager.download_and_extract(my_urls)
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    # These kwargs will be passed to _generate_examples
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, "ui_layout_vectors"),
+                        "split": "train",
+                    },
+                )
+            ]
+        elif self.config.name == "traces":
+            return []
+        elif self.config.name == "animations":
+            return []
+        elif self.config.name == "playstore_metadata":
+            return []
+        elif self.config.name == "screenshots_semantic_hierarchies":
+            return []
 
     def _generate_examples(
-        self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+        self,
+        filepath,
+        split,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
-        print(filepath)
-        screen_glob = sorted(glob.glob(os.path.join(filepath, "*.jpg")))
-        hierarchy_glob = sorted(glob.glob(os.path.join(filepath, "*.json")))
-        for idx, (screen_filepath, hierarchy_filepath) in enumerate(zip(screen_glob, hierarchy_glob)):
-            screen = imageio.imread(screen_filepath)
-            with open(hierarchy_filepath, "r") as f:
-                hierarchy = f.read()
 
-            yield idx, {"screenshot": screen, "hierarchy": hierarchy}
+        if self.config.name == "screenshots_hierarchies":
+            screen_glob = sorted(glob.glob(os.path.join(filepath, "*.jpg")))
+            hierarchy_glob = sorted(glob.glob(os.path.join(filepath, "*.json")))
+            for idx, (screen_filepath, hierarchy_filepath) in enumerate(
+                zip(screen_glob, hierarchy_glob)
+            ):
+                with open(hierarchy_filepath, "r") as f:
+                    hierarchy = f.read()
+
+                yield idx, {"screenshot_path": screen_filepath, "hierarchy": hierarchy}
+        elif self.config.name == "ui_metadata":
+            with open(filepath, encoding="utf-8") as csv_file:
+                csv_reader = csv.reader(
+                    csv_file,
+                    delimiter=",",
+                    quoting=csv.QUOTE_ALL,
+                )
+                header = next(csv_reader, None)
+                for idx, row in enumerate(csv_reader):
+                    yield idx, {k: v for k, v in zip(header, row)}
+        elif self.config.name == "layout_vectors":
+            with open(os.path.join(filepath, "ui_names.json"), "r") as f:
+                ui_names = json.load(f)["ui_names"]
+
+            ui_vectors = np.load(os.path.join(filepath, "ui_vectors.npy"))
+            for idx, (name, vector) in enumerate(zip(ui_names, ui_vectors)):
+                yield idx, {"ui_name": name, "ui_vector": vector}
+        elif self.config.name == "traces":
+            return []
+        elif self.config.name == "animations":
+            return []
+        elif self.config.name == "playstore_metadata":
+            return []
+        elif self.config.name == "screenshots_semantic_hierarchies":
+            return []
         #     pass
 
         # with open(filepath, encoding="utf-8") as f:
