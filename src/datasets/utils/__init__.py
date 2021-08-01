@@ -19,7 +19,7 @@
 
 from . import logging
 from .download_manager import DownloadManager, GenerateMode
-from .file_utils import DownloadConfig, cached_path, hf_bucket_url, is_remote_url, temp_seed
+from .file_utils import DownloadConfig, cached_path, hf_bucket_url, is_remote_url, relative_to_absolute_path, temp_seed
 from .mock_download_manager import MockDownloadManager
 from .py_utils import (
     NonMutableDict,
@@ -35,5 +35,5 @@ from .py_utils import (
     zip_dict,
     zip_nested,
 )
-from .tqdm_utils import async_tqdm, tqdm
+from .tqdm_utils import async_tqdm, disable_progress_bar, is_progress_bar_enabled, tqdm
 from .version import Version

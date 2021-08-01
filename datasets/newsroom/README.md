@@ -1,4 +1,6 @@
 ---
+languages:
+- en
 paperswithcode_id: newsroom
 ---
 
@@ -59,7 +61,7 @@ And additional features:
   - compression_bin: low, medium, high.
 
 This dataset can be downloaded upon requests. Unzip all the contents
-"train.jsonl, dev.josnl, test.jsonl" to the tfds folder.
+"train.jsonl, dev.josnl, test.jsonl" to the `tfds` folder.
 
 ### Supported Tasks and Leaderboards
 

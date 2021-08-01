@@ -1,4 +1,33 @@
 ---
+pretty_name: TyDi QA
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+- ar
+- bn
+- fi
+- id
+- ja
+- sw
+- ko
+- ru
+- te
+- th
+licenses:
+- apache-2.0
+multilinguality:
+- multilingual
+size_categories:
+- unknown
+source_datasets:
+- extended|wikipedia
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
 paperswithcode_id: tydi-qa
 ---
 
@@ -140,10 +169,10 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|     name     |train |validation|
-|--------------|-----:|---------:|
-|primary_task  |166916|     18670|
-|secondary_task| 49881|      5077|
+| name           |  train | validation |
+| -------------- | -----: | ---------: |
+| primary_task   | 166916 |      18670 |
+| secondary_task |  49881 |       5077 |
 
 ## Dataset Creation
 

@@ -1,4 +1,33 @@
 ---
+pretty_name: XQuAD
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+languages:
+- en
+- fr
+- es
+- de
+- el
+- bg
+- ru
+- tr
+- ar
+- vi
+- zh
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- multilingual
+size_categories:
+- unknown
+source_datasets:
+- extended|squad
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
 paperswithcode_id: xquad
 ---
 
@@ -211,13 +240,13 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|  name  |validation|
-|--------|---------:|
-|xquad.ar|      1190|
-|xquad.de|      1190|
-|xquad.el|      1190|
-|xquad.en|      1190|
-|xquad.es|      1190|
+| name     | validation |
+| -------- | ---------: |
+| xquad.ar |       1190 |
+| xquad.de |       1190 |
+| xquad.el |       1190 |
+| xquad.en |       1190 |
+| xquad.es |       1190 |
 
 ## Dataset Creation
 

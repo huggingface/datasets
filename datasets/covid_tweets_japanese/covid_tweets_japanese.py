@@ -23,7 +23,7 @@ import datasets
 
 _CITATION = """\
 No paper about this dataset is published yet. \
-Please cite this dataset as "鈴木 優: COVID-19 日本語 Twitter データセット （http://www.db.info.gifu-u.ac.jp/data/Data_5f02db873363f976fce930d1）"
+Please cite this dataset as "鈴木 優: COVID-19 日本語 Twitter データセット （http://www.db.info.gifu-u.ac.jp/covid-19-twitter-dataset/）"
 """
 
 _DESCRIPTION = """\
@@ -32,14 +32,14 @@ Target tweets include "COVID" or "コロナ". The period of the tweets is from a
 The original tweets are not contained. Please use Twitter API to get them, for example.
 """
 
-_HOMEPAGE = "http://www.db.info.gifu-u.ac.jp/data/Data_5f02db873363f976fce930d1"
+_HOMEPAGE = "http://www.db.info.gifu-u.ac.jp/covid-19-twitter-dataset/"
 
 _LICENSE = "CC-BY-ND 4.0"
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    "url": "http://www.db.info.gifu-u.ac.jp/data/data.csv.bz2",
+    "url": "http://www.db.info.gifu-u.ac.jp/data/covid19.csv.bz2",
 }
 
 

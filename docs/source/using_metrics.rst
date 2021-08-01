@@ -69,13 +69,15 @@ Here is an example for the sacrebleu metric:
     from a source against one or more references.
 
     Args:
-        predictions: The system stream (a sequence of segments)
-        references: A list of one or more reference streams (each a sequence of segments)
-        smooth: The smoothing method to use
-        smooth_value: For 'floor' smoothing, the floor to use
-        force: Ignore data that looks already tokenized
-        lowercase: Lowercase the data
-        tokenize: The tokenizer to use
+        predictions: The system stream (a sequence of segments).
+        references: A list of one or more reference streams (each a sequence of segments).
+        smooth_method: The smoothing method to use. (Default: 'exp').
+        smooth_value: The smoothing value. Only valid for 'floor' and 'add-k'. (Defaults: floor: 0.1, add-k: 1).
+        tokenize: Tokenization method to use for BLEU. If not provided, defaults to 'zh' for Chinese, 'ja-mecab' for
+            Japanese and '13a' (mteval) otherwise.
+        lowercase: Lowercase the data. If True, enables case-insensitivity. (Default: False).
+        force: Insist that your tokenized input is actually detokenized.
+
     Returns:
         'score': BLEU score,
         'counts': Counts,
@@ -84,6 +86,7 @@ Here is an example for the sacrebleu metric:
         'bp': Brevity penalty,
         'sys_len': predictions length,
         'ref_len': reference length,
+
     Examples:
 
         >>> predictions = ["hello there general kenobi", "foo bar foobar"]
@@ -101,15 +104,17 @@ Here is an example for the sacrebleu metric:
     >>> print(metric.inputs_description)
     Produces BLEU scores along with its sufficient statistics
     from a source against one or more references.
-    
+
     Args:
-        predictions: The system stream (a sequence of segments)
-        references: A list of one or more reference streams (each a sequence of segments)
-        smooth: The smoothing method to use
-        smooth_value: For 'floor' smoothing, the floor to use
-        force: Ignore data that looks already tokenized
-        lowercase: Lowercase the data
-        tokenize: The tokenizer to use
+        predictions: The system stream (a sequence of segments).
+        references: A list of one or more reference streams (each a sequence of segments).
+        smooth_method: The smoothing method to use. (Default: 'exp').
+        smooth_value: The smoothing value. Only valid for 'floor' and 'add-k'. (Defaults: floor: 0.1, add-k: 1).
+        tokenize: Tokenization method to use for BLEU. If not provided, defaults to 'zh' for Chinese, 'ja-mecab' for
+            Japanese and '13a' (mteval) otherwise.
+        lowercase: Lowercase the data. If True, enables case-insensitivity. (Default: False).
+        force: Insist that your tokenized input is actually detokenized.
+
     Returns:
         'score': BLEU score,
         'counts': Counts,
@@ -118,6 +123,7 @@ Here is an example for the sacrebleu metric:
         'bp': Brevity penalty,
         'sys_len': predictions length,
         'ref_len': reference length,
+
     Examples:
         >>> predictions = ["hello there general kenobi", "foo bar foobar"]
         >>> references = [["hello there general kenobi", "hello there !"], ["foo bar foobar", "foo bar foobar"]]
@@ -168,7 +174,7 @@ Let's use ``sacrebleu`` with the official quick-start example on its homepage at
 
 Note that the format of the inputs is a bit different than the official sacrebleu format: we provide the references for each prediction in a list inside the list associated to the prediction while the official example is nested the other way around (list for the reference numbers and inside list for the examples).
 
-Querying the length of a Metric object will return the number of examples (predictions or predictions/references pair) currently stored in the metric's cache. As we can see on the last line, we have stored three evaluation examples in our metric. 
+Querying the length of a Metric object will return the number of examples (predictions or predictions/references pair) currently stored in the metric's cache. As we can see on the last line, we have stored three evaluation examples in our metric.
 
 Now let's compute the sacrebleu score from these 3 evaluation datapoints.
 
@@ -195,11 +201,18 @@ These additional arguments are detailed in the metric information.
 
 For example ``sacrebleu`` accepts the following additional arguments:
 
-- ``smooth``: The smoothing method to use
-- ``smooth_value``: For 'floor' smoothing, the floor to use
-- ``force``: Ignore data that looks already tokenized
-- ``lowercase``: Lowercase the data
-- ``tokenize``: The tokenizer to use
+- ``smooth_method``: The smoothing method to use. (Default: 'exp').
+- ``smooth_value``: The smoothing value. Only valid for 'floor' and 'add-k'. (Defaults: floor: 0.1, add-k: 1).
+- ``tokenize``: Tokenization method to use for BLEU. If not provided, defaults to 'zh' for Chinese, 'ja-mecab' for
+  Japanese and '13a' (mteval) otherwise.
+- ``lowercase``: Lowercase the data. If True, enables case-insensitivity. (Default: False).
+- ``force``: Insist that your tokenized input is actually detokenized.
+
+To use `"floor"` smooth method with floor value 0.2, pass these arguments to :func:`datasets.Metric.compute`:
+
+.. code-block::
+
+    score = metric.compute(smooth_method="floor", smooth_value=0.2)
 
 You can list these arguments with ``print(metric)`` or ``print(metric.inputs_description)`` as we saw in the previous section and have more details on the official ``sacrebleu`` homepage and publication (accessible with ``print(metric.homepage)`` and ``print(metric.citation)``):
 
@@ -210,13 +223,15 @@ You can list these arguments with ``print(metric)`` or ``print(metric.inputs_des
     from a source against one or more references.
 
     Args:
-        predictions: The system stream (a sequence of segments)
-        references: A list of one or more reference streams (each a sequence of segments)
-        smooth: The smoothing method to use
-        smooth_value: For 'floor' smoothing, the floor to use
-        force: Ignore data that looks already tokenized
-        lowercase: Lowercase the data
-        tokenize: The tokenizer to use
+        predictions: The system stream (a sequence of segments).
+        references: A list of one or more reference streams (each a sequence of segments).
+        smooth_method: The smoothing method to use. (Default: 'exp').
+        smooth_value: The smoothing value. Only valid for 'floor' and 'add-k'. (Defaults: floor: 0.1, add-k: 1).
+        tokenize: Tokenization method to use for BLEU. If not provided, defaults to 'zh' for Chinese, 'ja-mecab' for
+            Japanese and '13a' (mteval) otherwise.
+        lowercase: Lowercase the data. If True, enables case-insensitivity. (Default: False).
+        force: Insist that your tokenized input is actually detokenized.
+
     Returns:
         'score': BLEU score,
         'counts': Counts,
@@ -225,6 +240,7 @@ You can list these arguments with ``print(metric)`` or ``print(metric.inputs_des
         'bp': Brevity penalty,
         'sys_len': predictions length,
         'ref_len': reference length,
+
     Examples:
         >>> predictions = ["hello there general kenobi", "foo bar foobar"]
         >>> references = [["hello there general kenobi", "hello there !"], ["foo bar foobar", "foo bar foobar"]]

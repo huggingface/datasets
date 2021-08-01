@@ -118,9 +118,9 @@ annotated afterwards.
 
 #### Annotation process
 
-While annotators were volunteers, they were required to have at least a Master’s degree in biomedical sciences. 
-The annotation team was led by a medical doctor (G.A.R.) who vetted the volunteer’s credentials and 
-manually verified each question/answer pair produced. We used an existing, web-based annotation tool that had been 
+While annotators were volunteers, they were required to have at least a Master’s degree in biomedical sciences.
+The annotation team was led by a medical doctor (G.A.R.) who vetted the volunteer’s credentials and
+manually verified each question/answer pair produced. We used an existing, web-based annotation tool that had been
 created by deepset and is available at their Neural Search framework [haystack](https://github.com/deepset-ai/haystack).
 
 #### Who are the annotators?
@@ -146,16 +146,15 @@ These QA systems can help them find answers and patterns in research papers by l
 
 ## Additional Information
 
-The listed authors in the homepage are maintaining/supporting the dataset. 
+The listed authors in the homepage are maintaining/supporting the dataset.
 
 ### Dataset Curators
 
 [More Information Needed]
 
-The Proto_qa dataset is licensed under 
-the [Apache License 2.0](https://github.com/deepset-ai/COVID-QA/blob/master/LICENSE)
+### Licensing Information
 
-[More Information Needed]
+The Proto_qa dataset is licensed under the [Apache License 2.0](https://github.com/deepset-ai/COVID-QA/blob/master/LICENSE)
 
 ### Citation Information
 

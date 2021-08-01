@@ -157,14 +157,14 @@ class ArabicBillionWords(datasets.GeneratorBasedBuilder):
                     pattern = f"<{data_tag}(.*?)</{data_tag}>"
                     data = re.finditer(r"" + pattern, current_multi_line, re.MULTILINE | re.DOTALL)
                     text, url, head_line, date = ["", "", "", ""]
-                    for _, record in enumerate(data):
+                    for record in data:
                         try:
                             text = self._clean_text(self._extract_tags(record, "Text"))
                             url = self._extract_tags(record, "URL")
                             head_line = self._clean_text(self._extract_tags(record, "Headline"))
                             date = self._extract_tags(record, "Dateline")
-                        except ValueError:
-                            pass
+                        except IndexError:
+                            continue
                         yield str(_idx), {"url": url, "head_line": head_line, "date": date, "text": text}
                         _idx += 1
                     current_multi_line = ""
