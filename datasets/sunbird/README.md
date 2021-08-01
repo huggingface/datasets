@@ -68,27 +68,16 @@ en-lgg - English to Lugbara
 
 ### Data Fields
 
-`src_tag`: string text in source language
+`src_tag`: string text in source language <br>
 `tgt_tag`: string translation of source language in target language
 
 ### Data Splits
 
 The dataset is split into training, validation, and test portions. Data was prepared by randomly sampled up to 5000 sentence pairs per language pair for training and up to 3000 each for test and 2000 for validation.
 
-``DatasetDict({
-    test: Dataset({
-        features: ['translation'],
-        num_rows: 3000
-    })
-    train: Dataset({
-        features: ['translation'],
-        num_rows: 5000
-    })
-    validation: Dataset({
-        features: ['translation'],
-        num_rows: 2000
-    })
-})``
+- train - 5000
+- test - 3000
+- val - 2000
 
 ## Dataset Creation
 
