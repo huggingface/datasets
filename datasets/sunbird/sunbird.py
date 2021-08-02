@@ -43,7 +43,8 @@ language_pairs = [
 "en-lug",
 "en-run",
 "en-ach",
-"en-lgg"
+"en-lgg",
+"en-teo"
 ]
 
 class SunbirdConfig(datasets.BuilderConfig):
