@@ -10,12 +10,22 @@ Simple check list for release from AllenNLP repo: https://github.com/allenai/all
 
 To create the package for pypi.
 
-1. Change the version in __init__.py, setup.py as well as docs/source/conf.py.
+0. Prerequisites:
+   - Dependencies:
+     - twine: "pip install twine"
+   - Create an account in (and join the 'datasets' project):
+     - PyPI: https://pypi.org/
+     - Test PyPI: https://test.pypi.org/
 
-2. Commit these changes with the message: "Release: VERSION"
+1. Change the version in:
+   - __init__.py
+   - setup.py
+   - docs/source/conf.py
 
-3. Add a tag in git to mark the release: "git tag VERSION -m'Adds tag VERSION for pypi' "
-   Push the tag to git: git push --tags origin master
+2. Commit these changes: "git commit -m 'Release: VERSION'"
+
+3. Add a tag in git to mark the release: "git tag VERSION -m 'Add tag VERSION for pypi'"
+   Push the tag to remote: git push --tags origin master
 
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
@@ -28,12 +38,12 @@ To create the package for pypi.
 
 5. Check that everything looks correct by uploading the package to the pypi test server:
 
-   twine upload dist/* -r pypitest
-   (pypi suggest using twine as other methods upload files via plaintext.)
-   You may have to specify the repository url, use the following command then:
    twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
 
-   Check that you can install it in a virtualenv by running:
+   Check that you can install it in a virtualenv/notebook by running:
+   pip install huggingface_hub
+   pip install fsspec
+   pip install -U tqdm
    pip install -i https://testpypi.python.org/pypi datasets
 
 6. Upload the final version to actual pypi:
@@ -41,10 +51,14 @@ To create the package for pypi.
 
 7. Fill release notes in the tag in github once everything is looking hunky-dory.
 
-8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed
-   Update the version mapping in docs/source/_static/js/custom.js with utils/release.py,
-   and set version to X.X.X+1.dev0 (e.g. 1.8.0 -> 1.8.1.dev0) in setup.py and __init__.py
+8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed.
+   Update the version mapping in docs/source/_static/js/custom.js with: "python utils/release.py --version VERSION"
+   Set version to X.X.X+1.dev0 (e.g. 1.8.0 -> 1.8.1.dev0) in:
+   - setup.py
+   - __init__.py
 
+9. Commit these changes: "git commit -m 'Release docs'"
+   Push the commit to remote: "git push origin master"
 """
 
 import datetime
