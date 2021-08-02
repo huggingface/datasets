@@ -77,6 +77,12 @@ There are three main methods :class:`datasets.DatasetBuilder` uses:
 
    The dataset is generated with a Python generator, which doesn't load all the data in memory. As a result, the generator can handle large datasets. However, before the generated samples are flushed to the dataset file on disk, they are stored in an ``ArrowWriter`` buffer. This means the generated samples are written by batch. If your dataset samples consumes a lot of memory (images or videos), then make sure to specify a low value for the ``DEFAULT_WRITER_BATCH_SIZE`` attribute in :class:`datasets.DatasetBuilder`. We recommend not exceeding a size of 200MB.
 
+Without loading scripts
+-----------------------
+
+As a user, you want to be able to quickly use a dataset. Implementing a dataset loading script can sometimes get in the way, or it may be a barrier for some people without a developer background. 🤗 Datasets removes this barrier by making it possible to load any dataset from the Hub without a dataset loading script. All a user has to do is just upload the data files to a dataset repository on the Hub, and they will be able to load that dataset without ever having to create a loading script. This doesn't mean we are moving away from supporting loading scripts because they still offer the most flexibility in controlling how a dataset is generated.
+
+This loading script free method uses the `huggingface_hub <https://github.com/huggingface/huggingface_hub>`_ library to list the files in a dataset repository. You can also provide a path to a local directory instead of a repository name, but 🤗 Datasets will use `glob <https://docs.python.org/3/library/glob.html>`_ instead. Depending on the data files available, one of the data file builders will create your dataset for you. If you have a CSV file, the CSV builder will be used and if you have a Parquet file, the Parquet builder will be used. The drawback of this approach is it's not possible to simultaneously load CSV and JSON files. In this case, you will need to load the two file types separately and then concatenate them.
 
 Maintaining integrity
 ---------------------

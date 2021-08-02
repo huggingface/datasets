@@ -384,6 +384,8 @@ The final step is to upload your dataset! There are two types of datasets based 
 
     The distinction between a canonical and community dataset is based solely on the selected sharing workflow. It does not involve any ranking, decisioning, or opinion regarding the contents of the dataset itself.
 
+.. _upload_dataset_repo:
+
 Community dataset
 ^^^^^^^^^^^^^^^^^
 

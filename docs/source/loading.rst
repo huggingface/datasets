@@ -5,11 +5,26 @@ You have already seen how you can load a dataset from the Datasets Hub. But data
 
 This guides shows you how to load a dataset from:
 
+* the Hub without a dataset loading script
 * local files
 * in-memory data
-* in streaming mode
 * offline
 * a specific slice of a split
+
+Hugging Face Hub
+----------------
+
+In the tutorial, you learned how to load a dataset from the Hub. This method relies on a dataset loading script that downloads and builds the dataset. However, you can also load a dataset from any dataset repository on the Hub **without** a loading script! Create a dataset repository and upload your data files, and then you can use :func:`datasets.load_dataset`.
+
+.. seealso::
+
+    Refer to the :ref:`upload_dataset_repo` guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
+
+Specify the files for each split with the ``data_files`` argument:
+
+    >>> from datasets import load_dataset
+    >>> data_files = {"train": "en/c4-train.*.json.gz"}
+    >>> c4 = load_dataset("allenai/c4", data_files=data_files, split="train", streaming=True)
 
 Local files
 -----------
@@ -106,18 +121,6 @@ Likewise, datasets in Pandas DataFrames can be instantiated by:
 .. important::
 
     An object data type in pandas.Series doesn't always carry enough information for Arrow to automatically infer a type. Avoid this by constructing an explicit schema with :class:`datasets.Features` using the ``from_dict`` or ``from_pandas`` methods. See the Troubleshooting guide below for more details on how to specify a feature.
-
-Streaming
---------------
-
-Streaming a dataset is useful when you want to start using the dataset without having to wait to download the entire dataset. It also allows you to work with datasets that exceed the amount of disk space on your computer. The data is downloaded progressively as you iterate over the dataset. 
-
-The English split of the `OSCAR <https://huggingface.co/datasets/oscar>`_ is 1.2 terabytes, but you can use it instantly with streaming. Stream a dataset by setting ``streaming=True`` in ``load_dataset()`` as shown below:
-
-    >>> from datasets import load_dataset
-    >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
-    >>> print(next(iter(dataset)))
-    {'text': 'Mtendere Village was inspired by the vision of Chief Napoleon Dzombe, which he shared with John Blanchard during his first visit to Malawi. Chief Napoleon conveyed the desperate need for a program to intervene and care for the orphans and vulnerable children (OVC) in Malawi, and John committed to help...
 
 Offline
 -------

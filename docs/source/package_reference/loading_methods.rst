@@ -1,7 +1,7 @@
 Loading methods
-----------------------------------------------------
+---------------
 
-Methods are provided to list and load datasets and metrics.
+Methods for listing and loading datasets and metrics:
 
 Datasets
 ~~~~~~~~~~~~~~~~~~~~~
