@@ -936,6 +936,7 @@ class DatasetBuilder:
             dataset_name=self.name,
             data_dir=self.config.data_dir,
         )
+        self._check_manual_download(dl_manager)
         splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
         # By default, return all splits
         if split is None:
