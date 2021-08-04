@@ -54,6 +54,14 @@ class InvalidConfigName(ValueError):
     pass
 
 
+class DatasetBuildError(Exception):
+    pass
+
+
+class ManualDownloadError(DatasetBuildError):
+    pass
+
+
 @dataclass
 class BuilderConfig:
     """Base class for :class:`DatasetBuilder` data configuration.
