@@ -44,7 +44,7 @@ from datasets.tasks.text_classification import TextClassification
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, Value, cast_to_python_objects
+from .features import ClassLabel, Features, Value, _ArrayXD, Sequence, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -180,12 +180,20 @@ class TensorflowDatasetMixIn:
             else:
                 raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
 
-            if hasattr(col_feature, "shape"):
+            if isinstance(col_feature, Value):
+                shape = [batch_size]
+            elif isinstance(col_feature, _ArrayXD):
                 shape = [batch_size] + list(col_feature.shape)
-            elif hasattr(col_feature, "length"):
+            elif isinstance(col_feature, Sequence):
                 shape = [batch_size, col_feature.length]
             else:
-                shape = [batch_size]
+                raise ValueError(f"Couldn't parse feature {column} with type {type(col_feature)}! "
+                                 "This may indicate a column was included with an unusual datatype "
+                                 "that we were unable to process correctly. "
+                                 "If you're getting this error with one of our datasets, and you're "
+                                 "sure the column should be convertable to tf.Tensor, please "
+                                 "file an issue at github.com/huggingface/datasets and tag "
+                                 "@rocketknight1!")
             shape = [dim if dim != -1 else None for dim in shape]
 
             signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
