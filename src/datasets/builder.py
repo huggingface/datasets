@@ -22,6 +22,7 @@ import copy
 import inspect
 import os
 import shutil
+import textwrap
 import urllib
 from dataclasses import dataclass
 from functools import partial
@@ -597,11 +598,14 @@ class DatasetBuilder:
                 f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
             )
 
-            if self.manual_download_instructions is not None:
-                assert (
-                    dl_manager.manual_dir is not None
-                ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `datasets.load_dataset({}, data_dir='<path/to/manual/data>')".format(
-                    self.name, self.config.name, self.manual_download_instructions, self.name
+            if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
+                raise ManualDownloadError(
+                    textwrap.dedent(
+                        f"""The dataset {self.name} with config {self.config.name} requires manual data.
+                    Please follow the manual download instructions: {self.manual_download_instructions}.
+                    Manual data can be loaded with:
+                     datasets.load_dataset({self.name}, data_dir='<path/to/manual/data>')"""
+                    )
                 )
 
             # Create a tmp dir and rename to self._cache_dir on successful exit.
