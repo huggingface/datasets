@@ -190,7 +190,7 @@ class TensorflowDatasetMixIn:
             signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
         return signatures
 
-    def to_tf_dataset(self, columns, batch_size, shuffle, collate_fn=None, label_cols=None, pad_to=0, pad_value=0, prefetch=True):
+    def to_tf_dataset(self, columns, batch_size, shuffle, collate_fn=None, label_cols=None, pad_to=0, prefetch=True):
         import tensorflow as tf
         if label_cols is None:
             label_cols = []
@@ -244,7 +244,7 @@ class TensorflowDatasetMixIn:
                 for key, tensor in input_batch.items():
                     if tf.rank(tensor) == 2:
                         padding = [[0, 0], [0, pad_to - tf.shape(tensor)[1]]]
-                        output_batch[key] = tf.pad(tensor, padding, constant_values=pad_value)
+                        output_batch[key] = tf.pad(tensor, padding)
                     else:
                         output_batch[key] = tensor
                 return output_batch
