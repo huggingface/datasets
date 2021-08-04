@@ -166,9 +166,10 @@ class TensorflowDatasetMixIn:
     @staticmethod
     def _get_output_signature(dataset, batch_size):
         import tensorflow as tf
+
         signatures = dict()
         for column, col_feature in dataset.features.items():
-            if hasattr(col_feature, 'feature'):
+            if hasattr(col_feature, "feature"):
                 dtype_str = col_feature.feature.dtype
             else:
                 dtype_str = col_feature.dtype
@@ -179,9 +180,9 @@ class TensorflowDatasetMixIn:
             else:
                 raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
 
-            if hasattr(col_feature, 'shape'):
+            if hasattr(col_feature, "shape"):
                 shape = [batch_size] + list(col_feature.shape)
-            elif hasattr(col_feature, 'length'):
+            elif hasattr(col_feature, "length"):
                 shape = [batch_size, col_feature.length]
             else:
                 shape = [batch_size]
@@ -192,6 +193,7 @@ class TensorflowDatasetMixIn:
 
     def to_tf_dataset(self, columns, batch_size, shuffle, collate_fn=None, label_cols=None, pad_to=0, prefetch=True):
         import tensorflow as tf
+
         if label_cols is None:
             label_cols = []
         elif isinstance(label_cols, str):
@@ -206,7 +208,8 @@ class TensorflowDatasetMixIn:
             raise ValueError("List of columns contains duplicates!")
         if pad_to > 0 and collate_fn is not None:
             raise ValueError(
-                "pad_to cannot be used with a custom collate_fn - you should modify your collate_fn instead!")
+                "pad_to cannot be used with a custom collate_fn - you should modify your collate_fn instead!"
+            )
         if label_cols is not None:
             cols_to_retain = list(set(columns + label_cols))
         else:
@@ -226,11 +229,11 @@ class TensorflowDatasetMixIn:
             else:
                 epoch_dataset = dataset
             if collate_fn is None:
-                epoch_dataset.set_format('numpy')  # Automatic padding
+                epoch_dataset.set_format("numpy")  # Automatic padding
             else:
-                epoch_dataset.set_format('python')  # List of possibly variable lists
+                epoch_dataset.set_format("python")  # List of possibly variable lists
             for i in range(0, len(epoch_dataset) - batch_size + 1, batch_size):
-                batch = epoch_dataset[i: i + batch_size]
+                batch = epoch_dataset[i : i + batch_size]
                 if collate_fn is not None:
                     batch = collate_fn(batch)
                     batch = {key: np.array(val) for key, val in batch.items()}
@@ -239,6 +242,7 @@ class TensorflowDatasetMixIn:
         tf_dataset = tf.data.Dataset.from_generator(tf_generator, output_signature=gen_signature)
 
         if pad_to > 0:
+
             def padding_function(input_batch):
                 output_batch = dict()
                 for key, tensor in input_batch.items():
@@ -252,6 +256,7 @@ class TensorflowDatasetMixIn:
             tf_dataset = tf_dataset.map(padding_function)
 
         if label_cols:
+
             def split_features_and_labels(input_batch):
                 features = {key: tensor for key, tensor in input_batch.items() if key in columns}
                 labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
