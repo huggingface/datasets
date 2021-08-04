@@ -1,6 +1,5 @@
 import multiprocessing as mp
 import os
-from multiprocessing import cpu_count
 from typing import BinaryIO, Optional, Union
 
 from .. import Dataset, Features, NamedSplit, config, utils
@@ -81,9 +80,9 @@ class JsonDatasetWriter:
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with open(self.path_or_buf, "wb+") as buffer:
-                written = self._write(file_obj=buffer, batch_size=batch_size)
+                written = self._write(file_obj=buffer, batch_size=batch_size, **self.to_json_kwargs)
         else:
-            written = self._write(file_obj=self.path_or_buf, batch_size=batch_size)
+            written = self._write(file_obj=self.path_or_buf, batch_size=batch_size, **self.to_json_kwargs)
         return written
 
     def _batch_json(self, args):
