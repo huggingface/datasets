@@ -163,84 +163,110 @@ class TensorflowDatasetMixIn:
     def __init__(self):
         pass
 
-    def to_tf_dataset(self, columns, batch_size, shuffle, collate_fn=None, label_cols=None, pad_to=0):
+    @staticmethod
+    def _get_output_signature(dataset, batch_size):
         import tensorflow as tf
-        if len(set(columns)) < len(columns):
-            raise ValueError("List of columns contains duplicates!")
-        if len(set(label_cols)) < len(label_cols):
+        signatures = dict()
+        for column, col_feature in dataset.features.items():
+            if hasattr(col_feature, 'feature'):
+                dtype_str = col_feature.feature.dtype
+            else:
+                dtype_str = col_feature.dtype
+            if dtype_str.startswith("int") or dtype_str.startswith("uint"):
+                dtype = tf.int32
+            elif dtype_str.startswith("float"):
+                dtype = tf.float32
+            else:
+                raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
+
+            if hasattr(col_feature, 'shape'):
+                shape = [batch_size] + list(col_feature.shape)
+            elif hasattr(col_feature, 'length'):
+                shape = [batch_size, col_feature.length]
+            else:
+                shape = [batch_size]
+            shape = [dim if dim != -1 else None for dim in shape]
+
+            signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
+        return signatures
+
+    def to_tf_dataset(self, columns, batch_size, shuffle, collate_fn=None, label_cols=None, pad_to=0, pad_value=0, prefetch=True):
+        import tensorflow as tf
+        if label_cols is None:
+            label_cols = []
+        elif isinstance(label_cols, str):
+            label_cols = [label_cols]
+        elif len(set(label_cols)) < len(label_cols):
             raise ValueError("List of label_cols contains duplicates!")
+        if not columns:
+            raise ValueError("Need to specify at least one column!")
+        elif isinstance(columns, str):
+            columns = [columns]
+        elif len(set(columns)) < len(columns):
+            raise ValueError("List of columns contains duplicates!")
         if pad_to > 0 and collate_fn is not None:
-            raise ValueError("pad_to cannot be used with a custom collate_fn - you should modify your collate_fn instead!")
+            raise ValueError(
+                "pad_to cannot be used with a custom collate_fn - you should modify your collate_fn instead!")
         if label_cols is not None:
             cols_to_retain = list(set(columns + label_cols))
         else:
             cols_to_retain = columns
+        for col in cols_to_retain:
+            if col not in self.features:
+                raise ValueError(f"Couldn't find column {col} in dataset!")
+        dataset = self.remove_columns([col for col in self.features if col not in cols_to_retain])
+        gen_signature = self._get_output_signature(dataset, batch_size)
+        num_batches = len(dataset) // batch_size  # Because we drop the remainder
 
-        dataset_in = self.remove_columns([col for col in self.features if col not in cols_to_retain])
-        feature_indices = dict()
-        label_indices = dict()
-        dtypes_out = []
-        for i, col in enumerate(cols_to_retain):
-            col_feature = dataset_in.features[col]
-            if hasattr(col_feature, 'feature'):
-                col_feature = col_feature.feature
-            dtype_str = col_feature.dtype
-            if dtype_str.startswith("int") or dtype_str.startswith("uint"):
-                dtypes_out.append(tf.int32)
-            elif dtype_str.startswith("float"):
-                dtypes_out.append(tf.float32)
+        def tf_generator():
+            # Note that the 'tensorflow' return format uses ragged tensors, which are VERY unperformant
+            # right now (TF 2.5). This may or may not change in the future, but for now we stick to 'numpy'.
+            if shuffle:
+                epoch_dataset = dataset.shuffle(load_from_cache_file=False)
             else:
-                raise TypeError(f"Can't convert dtype {dtype_str} to TF Tensor!")
-            # Note that these two are not mutually exclusive!
-            if col in columns:
-                feature_indices[col] = i
-            if col in label_cols:
-                label_indices[col] = i
-
-        def indices_to_samples(indices):
-            batch = dataset_in.select(list(indices), keep_in_memory=True).to_dict()
-            if collate_fn is not None:
-                batch = collate_fn(batch)
-            output = []
-            for col in cols_to_retain:
-                if pad_to > 0:  # We know collate_fn is False
-                    tensor = tf.ragged.constant(batch[col])
-                    if isinstance(tensor, tf.RaggedTensor):
-                        tensor = tensor.to_tensor(shape=(batch_size, pad_to))
-                    output.append(tensor)
-                elif collate_fn is None:
-                    tensor = tf.ragged.constant(batch[col])
-                    if isinstance(tensor, tf.RaggedTensor):
-                        tensor = tensor.to_tensor()
-                    output.append(tensor)
-                else:  # Already processed
-                    output.append(batch[col])
-            return output
-
-        def graph_indices_to_samples(indices):
-            return tf.py_function(indices_to_samples, [indices], Tout=dtypes_out)
-
-        def reform_dict(*batch_list):
-            features = {col: batch_list[idx] for col, idx in feature_indices.items()}
-            if label_cols is None:
-                return features
-            elif len(label_cols) == 1:
-                label_index = list(label_indices.values())[0]
-                return features, batch_list[label_index]
+                epoch_dataset = dataset
+            if collate_fn is None:
+                epoch_dataset.set_format('numpy')  # Automatic padding
             else:
-                labels = {col: batch_list[idx] for col, idx in label_indices.items()}
+                epoch_dataset.set_format('python')  # List of possibly variable lists
+            for i in range(0, len(epoch_dataset) - batch_size + 1, batch_size):
+                batch = epoch_dataset[i: i + batch_size]
+                if collate_fn is not None:
+                    batch = collate_fn(batch)
+                    batch = {key: np.array(val) for key, val in batch.items()}
+                yield batch
+
+        tf_dataset = tf.data.Dataset.from_generator(tf_generator, output_signature=gen_signature)
+
+        if pad_to > 0:
+            def padding_function(input_batch):
+                output_batch = dict()
+                for key, tensor in input_batch.items():
+                    if tf.rank(tensor) == 2:
+                        padding = [[0, 0], [0, pad_to - tf.shape(tensor)[1]]]
+                        output_batch[key] = tf.pad(tensor, padding, constant_values=pad_value)
+                    else:
+                        output_batch[key] = tensor
+                return output_batch
+
+            tf_dataset = tf_dataset.map(padding_function)
+
+        if label_cols:
+            def split_features_and_labels(input_batch):
+                features = {key: tensor for key, tensor in input_batch.items() if key in columns}
+                labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
+                if len(features) == 1:
+                    features = list(features.values())[0]
+                if len(labels) == 1:
+                    labels = list(labels.values())[0]
                 return features, labels
 
-        indices = tf.range(len(dataset_in))
-        tf_dataset = tf.data.Dataset.from_tensor_slices(indices)
-        if shuffle:
-            tf_dataset = tf_dataset.shuffle(buffer_size=len(tf_dataset))
-        tf_dataset = tf_dataset.batch(batch_size)
-        tf_dataset = tf_dataset.map(graph_indices_to_samples).map(reform_dict)
-        tf_dataset = tf_dataset.prefetch(tf.data.AUTOTUNE)
+            tf_dataset = tf_dataset.map(split_features_and_labels)
+
+        tf_dataset = tf_dataset.apply(tf.data.experimental.assert_cardinality(num_batches))
+        if prefetch:
+            tf_dataset = tf_dataset.prefetch(tf.data.AUTOTUNE)
         return tf_dataset
-
-
 
 
 class DatasetTransformationNotAllowedError(Exception):
