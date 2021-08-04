@@ -65,11 +65,13 @@ class JsonDatasetWriter:
         dataset: Dataset,
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
+        num_proc: Optional[int] = None,
         **to_json_kwargs,
     ):
         self.dataset = dataset
         self.path_or_buf = path_or_buf
         self.batch_size = batch_size
+        self.num_proc = num_proc
         self.to_json_kwargs = to_json_kwargs
 
     def write(self) -> int:
@@ -85,14 +87,14 @@ class JsonDatasetWriter:
         return written
 
     def _batch_json(self, args):
-        offset, batch_size = args
+        offset, batch_size, orient, lines = args
 
         batch = query_table(
             table=self.dataset.data,
             key=slice(offset, offset + batch_size),
             indices=self.dataset._indices if self.dataset._indices is not None else None,
         )
-        var = batch.to_pandas().to_json(path_or_buf=None, orient="records", lines=True, **self.to_json_kwargs)
+        var = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **self.to_json_kwargs)
         return var
 
     def _write(
@@ -100,30 +102,49 @@ class JsonDatasetWriter:
         file_obj: BinaryIO,
         batch_size: int,
         encoding: str = "utf-8",
+        orient="records",
+        lines=True,
+        **to_json_kwargs,
     ) -> int:
         """Writes the pyarrow table as JSON lines to a binary file handle.
 
         Caller is responsible for opening and closing the handle.
         """
         written = 0
-        num_proc = cpu_count()
 
-        pool = mp.Pool(processes=num_proc)
-        json_list = list(
-            utils.tqdm(
-                pool.imap(
-                    self._batch_json, [(offset, batch_size) for offset in range(0, len(self.dataset), batch_size)]
-                ),
-                total=len(self.dataset) // batch_size,
+        if self.num_proc is None or self.num_proc == 1:
+            for offset in utils.tqdm(
+                range(0, len(self.dataset), batch_size),
                 unit="ba",
                 disable=bool(logging.get_verbosity() == logging.NOTSET),
                 desc="Creating json from Arrow format",
-                leave=False,
+            ):
+                batch = query_table(
+                    table=self.dataset.data,
+                    key=slice(offset, offset + batch_size),
+                    indices=self.dataset._indices if self.dataset._indices is not None else None,
+                )
+                json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+                if not json_str.endswith("\n"):
+                    json_str += "\n"
+                written += file_obj.write(json_str.encode(encoding))
+        else:
+            pool = mp.Pool(processes=self.num_proc)
+            json_list = list(
+                utils.tqdm(
+                    pool.imap(
+                        self._batch_json,
+                        [(offset, batch_size, orient, lines) for offset in range(0, len(self.dataset), batch_size)],
+                    ),
+                    total=len(self.dataset) // batch_size,
+                    unit="ba",
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    desc="Creating json from Arrow format",
+                    leave=False,
+                )
             )
-        )
-        pool.close()
-
-        for element in json_list:
-            written += file_obj.write(element.encode(encoding))
+            pool.close()
+            for element in json_list:
+                written += file_obj.write(element.encode(encoding))
 
         return written
