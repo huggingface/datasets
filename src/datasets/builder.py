@@ -528,7 +528,6 @@ class DatasetBuilder:
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
         base_path = base_path if base_path is not None else self.base_path
-
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
@@ -598,15 +597,7 @@ class DatasetBuilder:
                 f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
             )
 
-            if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
-                raise ManualDownloadError(
-                    textwrap.dedent(
-                        f"""The dataset {self.name} with config {self.config.name} requires manual data.
-                    Please follow the manual download instructions: {self.manual_download_instructions}.
-                    Manual data can be loaded with:
-                     datasets.load_dataset({self.name}, data_dir='<path/to/manual/data>')"""
-                    )
-                )
+            self._check_manual_download(dl_manager)
 
             # Create a tmp dir and rename to self._cache_dir on successful exit.
             with incomplete_dir(self._cache_dir) as tmp_data_dir:
@@ -640,6 +631,18 @@ class DatasetBuilder:
             print(
                 f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
                 f"Subsequent calls will reuse this data."
+            )
+
+    def _check_manual_download(self, dl_manager):
+        if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
+            raise ManualDownloadError(
+                textwrap.dedent(
+                    f"""The dataset {self.name} with config {self.config.name} requires manual data.
+                    Please follow the manual download instructions:
+                     {self.manual_download_instructions}
+                    Manual data can be loaded with:
+                     datasets.load_dataset({self.name}, data_dir='<path/to/manual/data>')"""
+                )
             )
 
     def _download_prepared_from_hf_gcs(self, download_config: DownloadConfig):
