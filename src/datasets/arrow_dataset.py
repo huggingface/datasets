@@ -180,7 +180,7 @@ class TensorflowDatasetMixIn:
             else:
                 raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
 
-            if isinstance(col_feature, Value):
+            if isinstance(col_feature, (Value, ClassLabel)):
                 shape = [batch_size]
             elif isinstance(col_feature, _ArrayXD):
                 shape = [batch_size] + list(col_feature.shape)
