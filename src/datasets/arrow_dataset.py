@@ -233,7 +233,9 @@ class TensorflowDatasetMixIn:
             gen_signature = self._get_output_signature(dataset, batch_size=batch_size)
             num_batches = floor(len(dataset) / batch_size)  # Division rounding down ( // still returns a float!)
         else:
-            gen_signature = self._get_output_signature(dataset, batch_size=None)  # Because batches can be variable here
+            gen_signature = self._get_output_signature(
+                dataset, batch_size=None
+            )  # Because batches can be variable here
             num_batches = ceil(len(dataset) / batch_size)  # Division rounding up
 
         def tf_generator():
