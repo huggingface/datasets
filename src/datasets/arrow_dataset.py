@@ -229,10 +229,11 @@ class TensorflowDatasetMixIn:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
         dataset = self.remove_columns([col for col in self.features if col not in cols_to_retain])
-        gen_signature = self._get_output_signature(dataset, batch_size)
         if drop_remainder:
+            gen_signature = self._get_output_signature(dataset, batch_size=batch_size)
             num_batches = floor(len(dataset) / batch_size)  # Division rounding down ( // still returns a float!)
         else:
+            gen_signature = self._get_output_signature(dataset, batch_size=None)  # Because batches can be variable here
             num_batches = ceil(len(dataset) / batch_size)  # Division rounding up
 
         def tf_generator():
@@ -267,6 +268,9 @@ class TensorflowDatasetMixIn:
                 return features, labels
 
             tf_dataset = tf_dataset.map(split_features_and_labels)
+
+        elif len(columns) == 1:
+            tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
 
         tf_dataset = tf_dataset.apply(tf.data.experimental.assert_cardinality(num_batches))
         if prefetch:
