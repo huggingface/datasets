@@ -201,7 +201,9 @@ class TensorflowDatasetMixIn:
             signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
         return signatures
 
-    def to_tf_dataset(self, columns, batch_size, shuffle, collate_fn=None, label_cols=None, pad_to=0, prefetch=True):
+    def to_tf_dataset(
+        self, columns, batch_size, shuffle, drop_remainder=None, collate_fn=None, label_cols=None, prefetch=True
+    ):
         import tensorflow as tf
 
         if label_cols is None:
@@ -216,10 +218,6 @@ class TensorflowDatasetMixIn:
             columns = [columns]
         elif len(set(columns)) < len(columns):
             raise ValueError("List of columns contains duplicates!")
-        if pad_to > 0 and collate_fn is not None:
-            raise ValueError(
-                "pad_to cannot be used with a custom collate_fn - you should modify your collate_fn instead!"
-            )
         if label_cols is not None:
             cols_to_retain = list(set(columns + label_cols))
         else:
@@ -227,9 +225,15 @@ class TensorflowDatasetMixIn:
         for col in cols_to_retain:
             if col not in self.features:
                 raise ValueError(f"Couldn't find column {col} in dataset!")
+        if drop_remainder is None:
+            # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
+            drop_remainder = shuffle
         dataset = self.remove_columns([col for col in self.features if col not in cols_to_retain])
         gen_signature = self._get_output_signature(dataset, batch_size)
-        num_batches = len(dataset) // batch_size  # Because we drop the remainder
+        if drop_remainder:
+            num_batches = floor(len(dataset) / batch_size)  # Division rounding down ( // still returns a float!)
+        else:
+            num_batches = ceil(len(dataset) / batch_size)  # Division rounding up
 
         def tf_generator():
             # Note that the 'tensorflow' return format uses ragged tensors, which are VERY unperformant
@@ -242,28 +246,14 @@ class TensorflowDatasetMixIn:
                 epoch_dataset.set_format("numpy")  # Automatic padding
             else:
                 epoch_dataset.set_format("python")  # List of possibly variable lists
-            for i in range(0, len(epoch_dataset) - batch_size + 1, batch_size):
-                batch = epoch_dataset[i : i + batch_size]
+            for i in range(num_batches):
+                batch = epoch_dataset[i * batch_size : (i + 1) * batch_size]
                 if collate_fn is not None:
                     batch = collate_fn(batch)
                     batch = {key: np.array(val) for key, val in batch.items()}
                 yield batch
 
         tf_dataset = tf.data.Dataset.from_generator(tf_generator, output_signature=gen_signature)
-
-        if pad_to > 0:
-
-            def padding_function(input_batch):
-                output_batch = dict()
-                for key, tensor in input_batch.items():
-                    if tf.rank(tensor) == 2:
-                        padding = [[0, 0], [0, pad_to - tf.shape(tensor)[1]]]
-                        output_batch[key] = tf.pad(tensor, padding)
-                    else:
-                        output_batch[key] = tensor
-                return output_batch
-
-            tf_dataset = tf_dataset.map(padding_function)
 
         if label_cols:
 
