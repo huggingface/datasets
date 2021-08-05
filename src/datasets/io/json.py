@@ -76,12 +76,14 @@ class JsonDatasetWriter:
 
     def write(self) -> int:
         _ = self.to_json_kwargs.pop("path_or_buf", None)
+        orient = self.to_json_kwargs.pop("orient", "records")
+        lines = self.to_json_kwargs.pop("lines", True)
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
             with open(self.path_or_buf, "wb+") as buffer:
-                written = self._write(file_obj=buffer, **self.to_json_kwargs)
+                written = self._write(file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs)
         else:
-            written = self._write(file_obj=self.path_or_buf, **self.to_json_kwargs)
+            written = self._write(file_obj=self.path_or_buf, orient=orient, lines=lines, **self.to_json_kwargs)
         return written
 
     def _batch_json(self, args):
@@ -98,8 +100,8 @@ class JsonDatasetWriter:
     def _write(
         self,
         file_obj: BinaryIO,
-        orient="records",
-        lines=True,
+        orient,
+        lines,
         **to_json_kwargs,
     ) -> int:
         """Writes the pyarrow table as JSON lines to a binary file handle.
@@ -132,7 +134,7 @@ class JsonDatasetWriter:
                         self._batch_json,
                         [(offset, orient, lines) for offset in range(0, len(self.dataset), self.batch_size)],
                     ),
-                    total=len(self.dataset) // self.batch_size,
+                    total=(len(self.dataset) // self.batch_size) + 1,
                     unit="ba",
                     disable=bool(logging.get_verbosity() == logging.NOTSET),
                     desc="Creating json from Arrow format",
