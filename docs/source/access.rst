@@ -1,9 +1,11 @@
-Access a Dataset
-================
+The ``Dataset`` object
+======================
 
-In the previous tutorial, you learned how to successfully load a dataset. This section will familiarize you with the :class:`datasets.Dataset` object. You will learn what's inside a Dataset, and how you can access all the information inside. 
+In the previous tutorial, you learned how to successfully load a dataset. This section will familiarize you with the :class:`datasets.Dataset` object. You will learn about the metadata stored inside a Dataset, and the basics of querying a Dataset to return rows and columns.
 
 A :class:`datasets.Dataset` object is returned when you load an instance of a dataset. This object behaves like a normal Python container.
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
@@ -11,7 +13,9 @@ A :class:`datasets.Dataset` object is returned when you load an instance of a da
 Metadata
 --------
 
-The :class:`datasets.Dataset` object contains a lot of useful information about your dataset. For example, you can return a short description of the dataset, it's authors, and even its size of it by calling ``dataset.info``. This gives you a quick snapshot of the datasets most important attributes.
+The :class:`datasets.Dataset` object contains a lot of useful information about your dataset. For example, call :attr:`dataset.info` to return a short description of the dataset, the authors, and even its size. This will give you a quick snapshot of the datasets most important attributes.
+
+.. code-block::
 
     >>> dataset.info
     DatasetInfo(
@@ -26,7 +30,9 @@ The :class:`datasets.Dataset` object contains a lot of useful information about 
         size_in_bytes=2986697
     )
 
-To access more specific attributes of the dataset, like the ``description``, ``citation``, and ``homepage``, you can call them directly. Take a look at :class:`datasets.DatasetInfo` for a complete list of attributes you can return.
+You can request specific attributes of the dataset, like ``description``, ``citation``, and ``homepage``, by calling them directly. Take a look at :class:`datasets.DatasetInfo` for a complete list of attributes you can return.
+
+.. code-block::
 
     >>> dataset.split
     NamedSplit('train')
@@ -40,7 +46,9 @@ To access more specific attributes of the dataset, like the ``description``, ``c
 Features and columns
 --------------------
 
-A dataset is a table of rows and typed columns. Querying a dataset returns a Python dictionary where the keys correspond to column names, and values correspond to column values.
+A dataset is a table of rows and typed columns. Querying a dataset returns a Python dictionary where the keys correspond to column names, and the values correspond to column values:
+
+.. code-block::
 
     >>> dataset[0]
     {'idx': 0,
@@ -48,7 +56,9 @@ A dataset is a table of rows and typed columns. Querying a dataset returns a Pyt
     'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
     'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .'}
 
-You can get the number of rows and columns using the following standard attributes:
+Return the number of rows and columns with the following standard attributes:
+
+.. code-block::
 
     >>> dataset.shape
     (3668, 4)
@@ -61,10 +71,14 @@ You can get the number of rows and columns using the following standard attribut
 
 List the columns names with :func:`datasets.Dataset.column_names`:
 
+.. code-block::
+
     >>> dataset.column_names
     ['idx', 'label', 'sentence1', 'sentence2']
 
 Get detailed information about the columns with :attr:`datasets.Dataset.features`:
+
+.. code-block::
 
     >>> dataset.features
     {'idx': Value(dtype='int32', id=None),
@@ -73,23 +87,21 @@ Get detailed information about the columns with :attr:`datasets.Dataset.features
      'sentence2': Value(dtype='string', id=None),
     }
 
-And you can even retrieve information about a specific feature like :class:`datasets.ClassLabel`:
+Return even more specific information about a feature like :class:`datasets.ClassLabel` by calling its parameters ``num_classes`` and ``names``:
 
-    
+.. code-block::
+
     >>> dataset.features['label'].num_classes
     2
     >>> dataset.features['label'].names
     ['not_equivalent', 'equivalent']
-    >>> dataset.features['label'].str2int('equivalent')
-    1
-    >>> dataset.features['label'].str2int('not_equivalent')
-    0
-
 
 Rows, slices, batches, and columns
 ----------------------------------
 
-You can access several rows at a time with slice notation or a list of indices.
+Get several rows of your dataset at a time with slice notation or a list of indices:
+
+.. code-block::
 
     >>> dataset[:3]
     {'idx': [0, 1, 2],

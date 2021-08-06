@@ -1,16 +1,20 @@
 Process
 =======
 
-Datasets provides a wide range of tools for modifying the structure of a dataset, such as rearranging the order of rows or extracting nested fields into their own columns. For more powerful processing applications, you can even alter the contents of a dataset by applying a function to the entire dataset to generate new rows and columns. These processing methods provide a lot of control and flexibility to massage your dataset into the desired shape and size with the appropriate features.
+🤗 Datasets provides many tools for modifying the structure and content of a dataset. You can rearrange the order of rows or extract nested fields into their own columns. For more powerful processing applications, you can even alter the contents of a dataset by applying a function to the entire dataset to generate new rows and columns. These processing methods provide a lot of control and flexibility to mold your dataset into the desired shape and size with the appropriate features.
 
-This guide shows you how to:
+This guide will show you how to:
 
-* reorder rows and split the dataset
-* rename and remove columns as well as other common column operations
-* apply processing functions to each example in a dataset
-* augment a dataset
+* Reorder rows and split the dataset.
+* Rename and remove columns as well as other common column operations.
+* Apply processing functions to each example in a dataset.
+* Concatenate datasets.
+* Apply a custom formatting transform.
+* Save and export processed datasets.
 
-Load the MRPC dataset to follow our examples 🤗 :
+Load the MRPC dataset to follow along with our examples:
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
@@ -19,15 +23,17 @@ Load the MRPC dataset to follow our examples 🤗 :
 
     All the processing methods in this guide returns a new :class:`datasets.Dataset`. Modification is not done in-place. Be careful about overriding your previous dataset!
 
-Sort, shuffle, select, and split
---------------------------------
+Sort, shuffle, select, split, and shard
+---------------------------------------
 
-There are several methods for rearranging the structure of a dataset. These are useful for only selecting the rows you want, creating train and test splits, and splitting very large datasets into smaller chunks.
+There are several methods for rearranging the structure of a dataset. These methods are useful for selecting only the rows you want, creating train and test splits, and sharding very large datasets into smaller chunks.
 
 ``Sort``
 ^^^^^^^^
 
-Use :func:`datasets.Dataset.sort` to sort a column's values according to their numerical values. The provided column must be NumPy compatible.
+Use :func:`datasets.Dataset.sort` to sort a columns values according to their numerical values. The provided column must be NumPy compatible.
+
+.. code-block::
 
     >>> dataset['label'][:10]
     [1, 0, 1, 0, 1, 1, 0, 1, 0, 0]
@@ -42,6 +48,8 @@ Use :func:`datasets.Dataset.sort` to sort a column's values according to their n
 
 The :func:`datasets.Dataset.shuffle` method randomly rearranges the values of a column. You can specify the ``generator`` argument in this method to use a different ``numpy.random.Generator`` if you want more control over the algorithm used to shuffle the dataset.
 
+.. code-block::
+
     >>> shuffled_dataset = sorted_dataset.shuffle(seed=42)
     >>> shuffled_dataset['label'][:10]
     [1, 1, 1, 0, 1, 1, 1, 1, 1, 0]
@@ -51,13 +59,17 @@ The :func:`datasets.Dataset.shuffle` method randomly rearranges the values of a 
 
 There are two options for filtering rows in a dataset: :func:`datasets.Dataset.select` and :func:`datasets.Dataset.filter`.
 
-* The :func:`datasets.Dataset.select` method filters rows according to a list of indices:
+* :func:`datasets.Dataset.select` filters rows according to a list of indices:
+
+.. code-block::
 
     >>> small_dataset = dataset.select([0, 10, 20, 30, 40, 50])
     >>> len(small_dataset)
     6
 
-* The :func:`datasets.Dataset.filter` method returns rows that match a specified condition:
+* :func:`datasets.Dataset.filter` returns rows that match a specified condition:
+
+.. code-block::
 
     >>> start_with_ar = dataset.filter(lambda example: example['sentence1'].startswith('Ar'))
     >>> len(start_with_ar)
@@ -71,7 +83,9 @@ There are two options for filtering rows in a dataset: :func:`datasets.Dataset.s
     'Artists are worried the plan would harm those who need help most - performers who have a difficult time lining up shows .'
     ]
 
- This method can also filter by indices if you set ``with_indices=True``:
+:func:`datasets.Dataset.filter` can also filter by indices if you set ``with_indices=True``:
+
+.. code-block::
 
     >>> even_dataset = dataset.filter(lambda example, indice: indice % 2 == 0, with_indices=True)
     len(even_dataset)
@@ -82,7 +96,9 @@ There are two options for filtering rows in a dataset: :func:`datasets.Dataset.s
 ``Split``
 ^^^^^^^^^
 
-If your dataset doesn't have a train or test split, you can create your own with :func:`datasets.Dataset.train_test_split`. This allows you to control the relative proportions or absolute number of samples in each split. In the example below, you use the ``test_size`` argument to create a test split that is 10% of the original dataset:
+:func:`datasets.Dataset.train_test_split` can create train and test splits if your dataset doesn't already have them. This allows you to adjust the relative proportions or absolute number of samples in each split. In the example below, use the ``test_size`` argument to create a test split that is 10% of the original dataset:
+
+.. code-block::
 
     >>> dataset.train_test_split(test_size=0.1)
     {'train': Dataset(schema: {'sentence1': 'string', 'sentence2': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 3301),
@@ -95,9 +111,11 @@ The splits are shuffled by default, but you can set ``shuffle=False`` to prevent
 ``Shard``
 ^^^^^^^^^
 
-Datasets supports sharding to divide a very large dataset into a predefined number of chunks. Specify the ``num_shards`` argument in :func:`datasets.Dataset.shard` to specify the number of shards to split the dataset into. You will also need to provide the shard you want to return with the ``index`` argument.
+🤗 Datasets supports sharding to divide a very large dataset into a predefined number of chunks. Specify the ``num_shards`` argument in :func:`datasets.Dataset.shard` to determine the number of shards to split the dataset into. You will also need to provide the shard you want to return with the ``index`` argument.
 
 For example, the `imdb <https://huggingface.co/datasets/imdb>`_ dataset has 25000 examples:
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> datasets = load_dataset('imdb', split='train')
@@ -109,6 +127,8 @@ For example, the `imdb <https://huggingface.co/datasets/imdb>`_ dataset has 2500
 
 After you shard it into 4 chunks, the first chunk only has 6250 examples:
 
+.. code-block::
+
     >>> dataset.shard(num_shards=4, index=0)
     Dataset({
         features: ['text', 'label'],
@@ -117,18 +137,19 @@ After you shard it into 4 chunks, the first chunk only has 6250 examples:
     >>> print(25000/4)
     6250.0
 
-
 Rename, remove, cast, and flatten
 ---------------------------------
 
-The following methods lets you edit the columns of a dataset. These are useful for renaming or removing columns, changing columns to a new set of features, and flattening nested column structures.
+The following methods allow you to modify the columns of a dataset. These methods are useful for renaming or removing columns, changing columns to a new set of features, and flattening nested column structures.
 
 ``Rename``
 ^^^^^^^^^^
 
-Use :func:`datasets.Dataset.rename` when you need to rename a column in your dataset. Features associated with the original column are actually moved under the new column name, instead of just replacing the original column in-place. 
+Use :func:`datasets.Dataset.rename_column` when you need to rename a column in your dataset. Features associated with the original column are actually moved under the new column name, instead of just replacing the original column in-place. 
 
-Provide this method with the name of the original column, and the new column name:
+Provide :func:`datasets.Dataset.rename_column` with the name of the original column, and the new column name:
+
+.. code-block::
 
     >>> dataset = dataset.rename_column("sentence1", "sentenceA")
     >>> dataset = dataset.rename_column("sentence2", "sentenceB")
@@ -141,7 +162,9 @@ Provide this method with the name of the original column, and the new column nam
 ``Remove``
 ^^^^^^^^^^
 
-When you need to remove one or more columns, give :func:`datasets.Dataset.remove_columns` the name of the column to remove. To remove more than one column, provide a list of column names.
+When you need to remove one or more columns, give :func:`datasets.Dataset.remove_columns` the name of the column to remove. To remove more than one column, provide a list of column names:
+
+.. code-block::
 
     >>> dataset = dataset.remove_columns("label")
     >>> dataset
@@ -159,13 +182,16 @@ When you need to remove one or more columns, give :func:`datasets.Dataset.remove
 ``Cast``
 ^^^^^^^^
 
-:func:`datasets.Dataset.cast` is another very useful method in Datasets that lets you change the feature type of one or more columns. This method takes your new :obj:`datasets.Features` as arguments. The following sample code shows how to change the :obj:`datasets.ClassLabel` and :obj:`datasets.Value`:
+:func:`datasets.Dataset.cast` changes the feature type of one or more columns. This method takes your new :obj:`datasets.Features` as arguments. The following sample code shows how to change the feature types of :obj:`datasets.ClassLabel` and :obj:`datasets.Value`:
+
+.. code-block::
 
     >>> dataset.features
     {'sentence1': Value(dtype='string', id=None),
     'sentence2': Value(dtype='string', id=None),
     'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
     'idx': Value(dtype='int32', id=None)}
+    
     >>> from datasets import ClassLabel, Value
     >>> new_features = dataset.features.copy()
     >>> new_features["label"] = ClassLabel(names=['negative', 'positive'])
@@ -181,10 +207,14 @@ When you need to remove one or more columns, give :func:`datasets.Dataset.remove
 
     Casting only works if the original feature type and new feature type are compatible. For example, you can cast a column with the feature type ``Value('int32')`` to ``Value('bool')`` if the original column only contains ones and zeros. 
 
+.. _flatten:
+
 ``Flatten``
 ^^^^^^^^^^^
 
-Sometimes a column can be a nested structure of several types. In these scenarios, use :func:`datasets.Dataset.flatten` to extract the subfields into their own separate columns. Take a look at the nested structure below from the SQuAD dataset:
+Sometimes a column can be a nested structure of several types. Use :func:`datasets.Dataset.flatten` to extract the subfields into their own separate columns. Take a look at the nested structure below from the SQuAD dataset:
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('squad', split='train')
@@ -195,7 +225,9 @@ Sometimes a column can be a nested structure of several types. In these scenario
     'question': Value(dtype='string', id=None),
     'title': Value(dtype='string', id=None)}
 
-The **answers** field contains two subfields: **text** and **answer_start**. After you use :func:`datasets.Dataset.flatten`, these subfields are now their own independent columns:
+The ``answers`` field contains two subfields: ``text`` and ``answer_start``. Flatten them with :func:`datasets.Dataset.flatten`:
+
+.. code-block::
 
     >>> flat_dataset = dataset.flatten()
     >>> flat_dataset
@@ -204,18 +236,26 @@ The **answers** field contains two subfields: **text** and **answer_start**. Aft
         num_rows: 87599
     })
 
+Notice how the subfields are now their own independent columns.
+
+.. _map:
+
 ``Map``
 -------
 
-Some of the more powerful applications provided by Datasets come from using :func:`datasets.Dataset.map`. It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns. 
+Some of the more powerful applications of 🤗 Datasets come from using :func:`datasets.Dataset.map`. The primary purpose of :func:`datasets.Dataset.map` is to update and modify the contents of a dataset.  It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.
 
-The primary utility of :func:`datasets.Dataset.map` is to update and modify the contents of a dataset. In the following example, you will prefix each ``sentence1`` value in the dataset with ``'My sentence: '``. First, create a function that will add ``'My sentence: '`` to the beginning of each sentence. The function needs to accept and outputs a :obj:`dict`:
+In the following example, you will prefix each ``sentence1`` value in the dataset with ``'My sentence: '``. First, create a function that adds ``'My sentence: '`` to the beginning of each sentence. The function needs to accept and output a ``dict``:
+
+.. code-block::
 
     >>> def add_prefix(example):
     ...     example['sentence1'] = 'My sentence: ' + example['sentence1']
     ...     return example
         
-Next, apply this function to your dataset with :func:`datasets.Dataset.map`:
+Next, apply this function to the dataset with :func:`datasets.Dataset.map`:
+
+.. code-block::
 
     >>> updated_dataset = small_dataset.map(add_prefix)
     >>> updated_dataset['sentence1'][:5]
@@ -229,15 +269,19 @@ Let's take a look at another example, except this time, you will remove a column
 
 Specify the column to remove with the ``remove_columns=List[str]`` argument in :func:`datasets.Dataset.map`:
 
+.. code-block::
+
     >>> updated_dataset = dataset.map(lambda example: {'new_sentence': example['sentence1']}, remove_columns=['sentence1'])
     >>> updated_dataset.column_names
     ['sentence2', 'label', 'idx', 'new_sentence']
 
 .. tip::
 
-    Datasets also has a :func:`datasets.Dataset.remove_columns` method that is functionally identical, but faster, because it doesn't copy the data of the remaining columns.
+    🤗 Datasets also has a :func:`datasets.Dataset.remove_columns` method that is functionally identical, but faster, because it doesn't copy the data of the remaining columns.
 
-You can also use :func:`datasets.Dataset.map` with indices if you set ``with_indices=True``. The sample code below adds the index to the beginning of each sentence:
+You can also use :func:`datasets.Dataset.map` with indices if you set ``with_indices=True``. The sample below adds the index to the beginning of each sentence:
+
+.. code-block::
 
     >>> updated_dataset = dataset.map(lambda example, idx: {'sentence2': f'{idx}: ' + example['sentence2']}, with_indices=True)
     >>> updated_dataset['sentence2'][:5]
@@ -250,24 +294,32 @@ You can also use :func:`datasets.Dataset.map` with indices if you set ``with_ind
 Multiprocessing
 ^^^^^^^^^^^^^^^
 
-Multiprocessing can significantly speed up processing by parallelizing the processes on your CPU. Set the ``num_proc`` argument in :func:`datasets.Dataset.map` to determine the number of processes to use:
+Multiprocessing can significantly speed up processing by parallelizing the processes on your CPU. Set the ``num_proc`` argument in :func:`datasets.Dataset.map` to set the number of processes to use:
+
+.. code::
 
    >>> updated_dataset = dataset.map(lambda example, idx: {'sentence2': f'{idx}: ' + example['sentence2']}, num_proc=4)
 
 Batch processing
 ^^^^^^^^^^^^^^^^
 
-:func:`datasets.Dataset.map` also supports working with batches of examples. You can operate on batches by setting ``batched=True``. The default batch size is 1000, but you can change it with the ``batch_size`` argument. This opens the door to many interesting applications such as tokenization, splitting long sentences into shorter chunks, and data augmentation. 
+:func:`datasets.Dataset.map` also supports working with batches of examples. Operate on batches by setting ``batched=True``. The default batch size is 1000, but you can adjust it with the ``batch_size`` argument. This opens the door to many interesting applications such as tokenization, splitting long sentences into shorter chunks, and data augmentation.
 
 Tokenization
 """"""""""""
 
-One of the most obvious use-cases for batch processing is tokenization which accepts batches of inputs. First, load the tokenizer from the BERT model:
+One of the most obvious use-cases for batch processing is tokenization, which accepts batches of inputs. 
+
+First, load the tokenizer from the BERT model:
+
+.. code-block::
 
     >>> from transformers import BertTokenizerFast
     >>> tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
 
-Next, apply the tokenizer to batches of the ``sentence1`` field:
+Apply the tokenizer to batches of the ``sentence1`` field:
+
+.. code-block::
 
     >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True)
     >>> encoded_dataset.column_names
@@ -287,72 +339,88 @@ Now you have three new columns, ``input_ids``, ``token_type_ids``, ``attention_m
 Split long examples
 """""""""""""""""""
 
-When your examples are too long, you may want to split it into several smaller snippets. The first thing to do is create a function that splits the ``sentence1`` field into snippets of 50 characters, and stack all the snippets together to create the new dataset:
+When your examples are too long, you may want to split them into several smaller snippets. Begin by creating a function that:
 
-    >>> def chunk_examples(examples):
-    ...     chunks = []
-    ...     for sentence in examples['sentence1']:
-    ...         chunks += [sentence[i:i + 50] for i in range(0, len(sentence), 50)]
-    ...     return {'chunks': chunks}
+1. splits the ``sentence1`` field into snippets of 50 characters 
 
-Then apply the function with :func:`datasets.Dataset.map`:
+2. stack all the snippets together to create the new dataset
 
-    >>> chunked_dataset = dataset.map(chunk_examples, batched=True, remove_columns=dataset.column_names)
-    >>> chunked_dataset[:10]
-    {'chunks': ['Amrozi accused his brother , whom he called " the ',
-                'witness " , of deliberately distorting his evidenc',
-                'e .',
-                "Yucaipa owned Dominick 's before selling the chain",
-                ' to Safeway in 1998 for $ 2.5 billion .',
-                'They had published an advertisement on the Interne',
-                't on June 10 , offering the cargo for sale , he ad',
-                'ded .',
-                'Around 0335 GMT , Tab shares were up 19 cents , or',
-                ' 4.4 % , at A $ 4.56 , having earlier set a record']}
+.. code-block::
 
-The sentences are split into shorter chunks now, and there are more rows in the dataset.
+   >>> def chunk_examples(examples):
+   ...     chunks = []
+   ...     for sentence in examples['sentence1']:
+   ...         chunks += [sentence[i:i + 50] for i in range(0, len(sentence), 50)]
+   ...     return {'chunks': chunks}
 
-    >>> dataset
-    Dataset({
+Apply the function with :func:`datasets.Dataset.map`:
+
+.. code-block::
+
+   >>> chunked_dataset = dataset.map(chunk_examples, batched=True, remove_columns=dataset.column_names)
+   >>> chunked_dataset[:10]
+   {'chunks': ['Amrozi accused his brother , whom he called " the ',
+               'witness " , of deliberately distorting his evidenc',
+               'e .',
+               "Yucaipa owned Dominick 's before selling the chain",
+               ' to Safeway in 1998 for $ 2.5 billion .',
+               'They had published an advertisement on the Interne',
+               't on June 10 , offering the cargo for sale , he ad',
+               'ded .',
+               'Around 0335 GMT , Tab shares were up 19 cents , or',
+               ' 4.4 % , at A $ 4.56 , having earlier set a record']}
+
+Notice how the sentences are split into shorter chunks now, and there are more rows in the dataset.
+
+.. code-block::
+
+   >>> dataset
+   Dataset({
     features: ['sentence1', 'sentence2', 'label', 'idx'],
     num_rows: 3668
-    })
-    >>> chunked_dataset
-    Dataset(schema: {'chunks': 'string'}, num_rows: 10470)
+   })
+   >>> chunked_dataset
+   Dataset(schema: {'chunks': 'string'}, num_rows: 10470)
 
 Data augmentation
 """""""""""""""""
 
-With batch processing, you can even augment your dataset with additional examples. In the following sample scenario, you will generate additional words for a masked token in a sentence. 
+With batch processing, you can even augment your dataset with additional examples. In the following example, you will generate additional words for a masked token in a sentence. 
 
-Load the `RoBERTA <https://huggingface.co/roberta-base>`_ model to use in the Transformer `FillMaskPipeline <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.FillMaskPipeline>`_:
+Load the `RoBERTA <https://huggingface.co/roberta-base>`_ model to use in the 🤗 Transformer `FillMaskPipeline <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.FillMaskPipeline>`_:
 
-    >>> from random import randint
-    >>> from transformers import pipeline
-    >>>
-    >>> fillmask = pipeline('fill-mask', model='roberta-base')
-    >>> mask_token = fillmask.tokenizer.mask_token
-    >>> smaller_dataset = dataset.filter(lambda e, i: i<100, with_indices=True)
+.. code-block::
 
-Next, create a function to randomly select a work to mask in the sentence. The function should also return the original sentence and the top two replacements generated by RoBERTA.
+   >>> from random import randint
+   >>> from transformers import pipeline
+   
+   >>> fillmask = pipeline('fill-mask', model='roberta-base')
+   >>> mask_token = fillmask.tokenizer.mask_token
+   >>> smaller_dataset = dataset.filter(lambda e, i: i<100, with_indices=True)
 
-    >>> def augment_data(examples):
-    ...     outputs = []
-    ...     for sentence in examples['sentence1']:
-    ...         words = sentence.split(' ')
-    ...         K = randint(1, len(words)-1)
-    ...         masked_sentence = " ".join(words[:K]  + [mask_token] + words[K+1:])
-    ...         predictions = fillmask(masked_sentence)
-    ...         augmented_sequences = [predictions[i]['sequence'] for i in range(3)]
-    ...         outputs += [sentence] + augmented_sequences
-    ...
-    ...     return {'data': outputs}
+Create a function to randomly select a word to mask in the sentence. The function should also return the original sentence and the top two replacements generated by RoBERTA.
 
-Use :func:`datasets.Dataset.map` to apply the function across the whole dataset:
+.. code-block::
 
-    >>> augmented_dataset = smaller_dataset.map(augment_data, batched=True, remove_columns=dataset.column_names, batch_size=8)
-    >>> augmented_dataset[:9]['data']
-    ['Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
+   >>> def augment_data(examples):
+   ...     outputs = []
+   ...     for sentence in examples['sentence1']:
+   ...         words = sentence.split(' ')
+   ...         K = randint(1, len(words)-1)
+   ...         masked_sentence = " ".join(words[:K]  + [mask_token] + words[K+1:])
+   ...         predictions = fillmask(masked_sentence)
+   ...         augmented_sequences = [predictions[i]['sequence'] for i in range(3)]
+   ...         outputs += [sentence] + augmented_sequences
+   ...
+   ...     return {'data': outputs}
+
+Use :func:`datasets.Dataset.map` to apply the function over the whole dataset:
+
+.. code-block::
+
+   >>> augmented_dataset = smaller_dataset.map(augment_data, batched=True, remove_columns=dataset.column_names, batch_size=8)
+   >>> augmented_dataset[:9]['data']
+   ['Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
     'Amrozi accused his brother, whom he called " the witness ", of deliberately withholding his evidence.',
     'Amrozi accused his brother, whom he called " the witness ", of deliberately suppressing his evidence.',
     'Amrozi accused his brother, whom he called " the witness ", of deliberately destroying his evidence.',
@@ -366,39 +434,45 @@ For each original sentence, RoBERTA augmented a random word with three alternati
 Process multiple splits
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Many datasets have splits that we can process simultaneously with :func:`datasets.DatasetDict.map`. You can tokenize the ``sentence1`` field in the train and test split by:
+Many datasets have splits that you can process simultaneously with :func:`datasets.DatasetDict.map`. For example, tokenize the ``sentence1`` field in the train and test split by:
 
-    >>> from datasets import load_dataset
-    >>>
-    # load all the splits
-    >>> dataset = load_dataset('glue', 'mrpc')
-    >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True)
-    >>> encoded_dataset["train"][0]
-    {'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
-    'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
-    'label': 1,
-    'idx': 0,
-    'input_ids': [  101,  7277,  2180,  5303,  4806,  1117,  1711,   117,  2292, 1119,  1270,   107,  1103,  7737,   107,   117,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102],
-    'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    }
+.. code-block::
+
+   >>> from datasets import load_dataset
+   
+   # load all the splits
+   >>> dataset = load_dataset('glue', 'mrpc')
+   >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True)
+   >>> encoded_dataset["train"][0]
+   {'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
+   'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
+   'label': 1,
+   'idx': 0,
+   'input_ids': [  101,  7277,  2180,  5303,  4806,  1117,  1711,   117,  2292, 1119,  1270,   107,  1103,  7737,   107,   117,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102],
+   'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+   'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+   }
 
 Distributed usage
 ^^^^^^^^^^^^^^^^^
 
-When you use :func:`datasets.Dataset.map` in a distributed setting, you should also use `torch.distributed.barrier <https://pytorch.org/docs/stable/distributed.html?highlight=barrier#torch.distributed.barrier>`_. This ensures the main process perform the mapping, while the other processes load the results, thereby avoiding duplicate work. The following example shows how you can use ``torch.distributed.barrier`` to synchronize the processes:
+When you use :func:`datasets.Dataset.map` in a distributed setting, you should also use `torch.distributed.barrier <https://pytorch.org/docs/stable/distributed.html?highlight=barrier#torch.distributed.barrier>`_. This ensures the main process performs the mapping, while the other processes load the results, thereby avoiding duplicate work. 
+
+The following example shows how you can use ``torch.distributed.barrier`` to synchronize the processes:
+
+.. code-block::
 
    >>> from datasets import Dataset
    >>> import torch.distributed
-   >>>
+   
    >>> dataset1 = Dataset.from_dict({"a": [0, 1, 2]})
-   >>>
+   
    >>> if training_args.local_rank > 0:
    ...     print("Waiting for main process to perform the mapping")
    ...     torch.distributed.barrier()
-   >>>
+   
    >>> dataset2 = dataset1.map(lambda x: {"a": x["a"] + 1})
-   >>>
+   
    >>> if training_args.local_rank == 0:
    ...     print("Loading results from main process")
    ...     torch.distributed.barrier()
@@ -408,54 +482,62 @@ Concatenate
 
 Separate datasets can be concatenated if they share the same column types. Concatenate datasets with :func:`datasets.concatenate_datasets`:
 
+.. code-block::
+
    >>> from datasets import concatenate_datasets, load_dataset
-   >>>
+   
    >>> bookcorpus = load_dataset("bookcorpus", split="train")
    >>> wiki = load_dataset("wikipedia", "20200501.en", split="train")
    >>> wiki = wiki.remove_columns("title")  # only keep the text
-   >>>
+   
    >>> assert bookcorpus.features.type == wiki.features.type
    >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
 
 .. seealso::
 
-    You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving datasets, and you can use it with :func:`datasets.interleave_datasets`.  See the ``IterableDataset`` section below for an example of how it's used. Both :func:`datasets.interleave_datasets` and :func:`datasets.concatenate_datasets` will work with regular :class:`Dataset` and :class:`IterableDataset` objects.
+    You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving, and you can use it with :func:`datasets.interleave_datasets`. Both :func:`datasets.interleave_datasets` and :func:`datasets.concatenate_datasets` will work with regular :class:`datasets.Dataset` and :class:`datasets.IterableDataset` objects. Refer to the :ref:`interleave_datasets` section for an example of how it's used.
 
 Format
 ------
 
-Another way to set the format is with :func:`datasets.Dataset.with_format`. This will return a new Dataset object with your specified format.
+:func:`datasets.Dataset.with_format` provides an alternative method to set the format. This method will return a new :class:`datasets.Dataset` object with your specified format:
 
-    >>> dataset.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+.. code::
 
-If you need to reset the dataset to the original format, use :func:`datasets.Dataset.reset_format`:
+   >>> dataset.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
 
-    >>> dataset.format
-    {'type': 'torch', 'format_kwargs': {}, 'columns': ['label'], 'output_all_columns': False}
-    >>> dataset.reset_format()
-    >>> dataset.format
-    {'type': 'python', 'format_kwargs': {}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
+Use :func:`datasets.Dataset.reset_format` if you need to reset the dataset to the original format:
+
+.. code-block::
+
+   >>> dataset.format
+   {'type': 'torch', 'format_kwargs': {}, 'columns': ['label'], 'output_all_columns': False}
+   >>> dataset.reset_format()
+   >>> dataset.format
+   {'type': 'python', 'format_kwargs': {}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
 
 Format transform
 ^^^^^^^^^^^^^^^^
 
-You can also use :func:`datasets.Dataset.set_transform` to apply a custom formatting transform on-the-fly. This will replace any previously specified format. For example, you can use this method to tokenize and pad tokens on-the-fly:
+:func:`datasets.Dataset.set_transform` allows you to apply a custom formatting transform on-the-fly. This will replace any previously specified format. For example, you can use this method to tokenize and pad tokens on-the-fly:
 
-    >>> from transformers import BertTokenizer
-    >>> tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-    >>> def encode(batch):
-    >>>     return tokenizer(batch["sentence1"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
-    >>> dataset.set_transform(encode)
-    >>> dataset.format
-    {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
-    >>> dataset[:2]
-    {'input_ids': tensor([[  101,  2572,  3217, ... 102]]), 'token_type_ids': tensor([[0, 0, 0, ... 0]]), 'attention_mask': tensor([[1, 1, 1, ... 1]])}
+.. code-block::
+
+   >>> from transformers import BertTokenizer
+   >>> tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+   >>> def encode(batch):
+   ...     return tokenizer(batch["sentence1"], padding="longest", truncation=True, max_length=512, return_tensors="pt")
+   >>> dataset.set_transform(encode)
+   >>> dataset.format
+   {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
+   >>> dataset[:2]
+   {'input_ids': tensor([[  101,  2572,  3217, ... 102]]), 'token_type_ids': tensor([[0, 0, 0, ... 0]]), 'attention_mask': tensor([[1, 1, 1, ... 1]])}
 
 
-Save and export
----------------
+Save
+----
 
-Once you are done processing your dataset, you can save and reuse it later. The following table shows which save method you should use depending on your Dataset object:
+Once you are done processing your dataset, you can save it and reuse it later. The following table shows which save method you should use depending on your :class:`datasets.Dataset` object:
 
 .. list-table::
     :header-rows: 1
@@ -469,21 +551,25 @@ Once you are done processing your dataset, you can save and reuse it later. The 
 
 Save your dataset by providing the path to the directory you wish to save it to:
 
-    >>> encoded_dataset.save_to_disk("path/of/my/dataset/directory")
+.. code::
 
-When you want to use it again, use :func:`load_from_disk` to reload the dataset:
+   >>> encoded_dataset.save_to_disk("path/of/my/dataset/directory")
 
-    >>> from datasets import load_from_disk
-    >>> reloaded_encoded_dataset = load_from_disk("path/of/my/dataset/directory")
+When you want to use your dataset again, use :func:`load_from_disk` to reload it:
 
-.. note::
+.. code-block::
 
-    Want to save your dataset to a cloud storage provider? Read our :doc:`Cloud Storage <./filesystems>` guide on how to save your dataset to AWS or Google Cloud Storage!
+   >>> from datasets import load_from_disk
+   >>> reloaded_encoded_dataset = load_from_disk("path/of/my/dataset/directory")
+
+.. tip::
+
+   Want to save your dataset to a cloud storage provider? Read our :doc:`Cloud Storage <./filesystems>` guide on how to save your dataset to AWS or Google Cloud Storage!
 
 Export
-^^^^^^
+------
 
-Datasets supports exporting so you can work with your dataset in other applications. The following table shows currently supported file formats you can export as:
+🤗 Datasets supports exporting as well, so you can work with your dataset in other applications. The following table shows currently supported file formats you can export to:
 
 .. list-table::
     :header-rows: 1
@@ -499,6 +585,8 @@ Datasets supports exporting so you can work with your dataset in other applicati
     * - Python object
       - :func:`datasets.Dataset.to_pandas` or :func:`datasets.Dataset.to_dict`
 
-For example, you can export your dataset to a CSV like this:
+For example, export your dataset to a CSV file like this:
 
-    >>> encoded_dataset.to_csv("path/of/my/dataset/directory")
+.. code::
+
+   >>> encoded_dataset.to_csv("path/of/my/dataset/directory")

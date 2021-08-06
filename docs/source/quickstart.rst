@@ -1,21 +1,21 @@
 Quick Start
 ===========
 
-The quick start is intended for developers who are ready to dive in, and see an end-to-end example of how they can integrate Datasets into their model training workflow. For beginners who are looking for a gentler introduction to Datasets, please take a look at our :doc:`tutorials <./tutorial>`.
+The quick start is intended for developers who are ready to dive in to the code, and see an end-to-end example of how they can integrate 🤗 Datasets into their model training workflow. For beginners who are looking for a gentler introduction, we recommend you begin with the :doc:`tutorials <./tutorial>`.
 
-In the quick start, you will walkthrough all the steps to fine-tune BERT on a paraphrase classification task. Depending on the specific dataset you use, these steps may vary, but the general steps of how to load a dataset and process it are the same.
+In the quick start, you will walkthrough all the steps to fine-tune `BERT <https://huggingface.co/bert-base-cased>`_ on a paraphrase classification task. Depending on the specific dataset you use, these steps may vary, but the general steps of how to load a dataset and process it are the same.
 
 Load the dataset and model
 --------------------------
 
-Begin by loading the `Microsoft Research Paraphrase Corpus (MRPC) <https://huggingface.co/datasets/viewer/?dataset=glue&config=mrpc>`_ training dataset from the General Language Understanding Evaluation (GLUE) benchmark. MRPC is a corpus of human annotated sentence pairs for determining whether sentence pairs are semantically equivalent.
+Begin by loading the `Microsoft Research Paraphrase Corpus (MRPC) <https://huggingface.co/datasets/viewer/?dataset=glue&config=mrpc>`_ training dataset from the `General Language Understanding Evaluation (GLUE) benchmark <https://huggingface.co/datasets/glue>`_. MRPC is a corpus of human annotated sentence pairs for determining whether sentence pairs are semantically equivalent.
 
 .. code-block::
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
 
-Then import the pre-trained `BERT <https://huggingface.co/bert-base-cased>`_ model and its tokenizer from the `Transformers <https://huggingface.co/transformers/>`_ library.
+Next, import the pre-trained BERT model and its tokenizer from the `🤗 Transformers <https://huggingface.co/transformers/>`_ library:
 
 .. tab:: PyTorch
 
@@ -42,7 +42,7 @@ Then import the pre-trained `BERT <https://huggingface.co/bert-base-cased>`_ mod
 Tokenize the dataset
 --------------------
 
-Next, you need to tokenize the text in order to build sequences of integers the model can understand. Encode the entire dataset with :func:`datasets.Dataset.map`, and truncate and pad the inputs to the maximum length of the model. This ensures the appropriate tensor batches are built.
+The next step is to tokenize the text in order to build sequences of integers the model can understand. Encode the entire dataset with :func:`datasets.Dataset.map`, and truncate and pad the inputs to the maximum length of the model. This ensures the appropriate tensor batches are built.
 
 .. code-block::
 
@@ -60,23 +60,23 @@ Next, you need to tokenize the text in order to build sequences of integers the 
     'token_type_ids': array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
     'attention_mask': array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])}
 
-Notice how there are three new columns in the dataset: ``input_ids``, ``token_type_ids``, and ``attention_mask``. These columns will be the inputs to the model.
+Notice how there are three new columns in the dataset: ``input_ids``, ``token_type_ids``, and ``attention_mask``. These columns are the inputs to the model.
 
 Format the dataset
 ------------------
 
-Depending on whether you are using PyTorch or TensorFlow, you need to format the dataset accordingly. There are three changes you need to make to the dataset:
+Depending on whether you are using PyTorch or TensorFlow, you will need to format the dataset accordingly. There are three changes you need to make to the dataset:
 
 1. Rename the ``label`` column to ``labels``, the expected input name in `BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#transformers.BertForSequenceClassification.forward>`__ or `TFBertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#tfbertforsequenceclassification>`__.
    
-   .. code-block::
+   .. code::
 
       >>> dataset = dataset.map(lambda examples: {'labels': examples['label']}, batched=True)
 
 2. Retrieve the actual tensors from the Dataset object instead of using the current Python objects.
-3. Filter the dataset to return on the model inputs: ``input_ids``, ``token_type_ids``, and ``attention_mask``.
+3. Filter the dataset to only return the model inputs: ``input_ids``, ``token_type_ids``, and ``attention_mask``.
    
-The last two steps are completed on the fly with :func:`datasets.Dataset.set_format`. After you set the format, wrap the dataset in ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``.
+:func:`datasets.Dataset.set_format` completes the last two steps on-the-fly. After you set the format, wrap the dataset in ``torch.utils.data.DataLoader`` or ``tf.data.Dataset``:
 
 .. tab:: PyTorch
 
@@ -142,7 +142,7 @@ The last two steps are completed on the fly with :func:`datasets.Dataset.set_for
 Train the model
 ---------------
 
-Lastly, create a training loop and begin training.
+Lastly, create a simple training loop and start training:
 
 .. tab:: PyTorch
 
@@ -171,6 +171,6 @@ Lastly, create a training loop and begin training.
 What's next?
 ------------
 
-This completes the basic steps of loading a dataset to train a model. You loaded and processed the MRPC dataset to fine-tune BERT to determine whether sentence pairs have the same meaning. 🤗
+This completes the basic steps of loading a dataset to train a model. You loaded and processed the MRPC dataset to fine-tune BERT to determine whether sentence pairs have the same meaning.
 
-For your next steps, take a look at our how-to guides and learn how to solve a specific task you may have (e.g. load a dataset offline, add a dataset to the Hub, change the name of a column).
+For your next steps, take a look at our :doc:`How-to guides <./how_to>` and learn how to achieve a specific task (e.g. load a dataset offline, add a dataset to the Hub, change the name of a column). To deepen your knowledge of 🤗 Datasets, read our :doc:`Conceptual Guides <./about_arrow>`.

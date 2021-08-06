@@ -1,12 +1,14 @@
-Datasets Hub
-=============
+Hugging Face Hub
+================
 
-Now that you are all setup, the first step is to load a dataset. The easiest way to load a dataset is from the `Datasets Hub <https://huggingface.co/datasets.>`_. There are already over 900 datasets in over 100 languages in the Hub. Choose a dataset to use in a wide category of NLP tasks like question answering, summarization, machine translation, and language modeling. For a more in-depth look inside a dataset, use the live `Datasets Viewer <https://huggingface.co/datasets/viewer/>`_.
+Now that you are all setup, the first step is to load a dataset. The easiest way to load a dataset is from the `Hugging Face Hub <https://huggingface.co/datasets>`_. There are already over 900 datasets in over 100 languages on the Hub. Choose from a wide category of datasets to use for NLP tasks like question answering, summarization, machine translation, and language modeling. For a more in-depth look inside a dataset, use the live `Datasets Viewer <https://huggingface.co/datasets/viewer/>`_.
 
 Load a dataset
 --------------
 
-Before you take the time to download a dataset, it is often helpful to quickly get all the relevant information about a dataset. The :func:`datasets.load_dataset_builder` method allows you to inspect the attributes of a dataset:
+Before you take the time to download a dataset, it is often helpful to quickly get all the relevant information about a dataset. The :func:`datasets.load_dataset_builder` method allows you to inspect the attributes of a dataset without download it:
+
+.. code-block::
 
     >>> from datasets import load_dataset_builder
     >>> dataset_builder = load_dataset_builder('imdb')
@@ -17,9 +19,13 @@ Before you take the time to download a dataset, it is often helpful to quickly g
     >>> print(dataset_builder.info.splits)
     {'train': SplitInfo(name='train', num_bytes=33432835, num_examples=25000, dataset_name='imdb'), 'test': SplitInfo(name='test', num_bytes=32650697, num_examples=25000, dataset_name='imdb'), 'unsupervised': SplitInfo(name='unsupervised', num_bytes=67106814, num_examples=50000, dataset_name='imdb')}
 
-Take a look at the reference for a full list of attributes you can use with ``dataset_builder.info``.
+.. seealso::
 
-Once you are happy with the dataset you want, you can load it in a single line of code with :func:`datasets.load_dataset`:
+   Take a look at :class:`datasets.DatasetInfo` for a full list of attributes you can use with ``dataset_builder``.
+
+Once you are happy with the dataset you want, load it in a single line of code with :func:`datasets.load_dataset`:
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
@@ -27,7 +33,9 @@ Once you are happy with the dataset you want, you can load it in a single line o
 Select a split
 --------------
 
-A split is a specific subset of the dataset like ``train`` and ``test``. Make sure you always select a split when you load a dataset. If you don't supply a ``split`` argument, Datasets will return a dictionary containing the subsets of the dataset.
+A split is a specific subset of the dataset like ``train`` and ``test``. Make sure you always select a split when you load a dataset. If you don't supply a ``split`` argument, 🤗 Datasets will only return a dictionary containing the subsets of the dataset.
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> datasets = load_dataset('glue', 'mrpc')
@@ -49,7 +57,11 @@ A split is a specific subset of the dataset like ``train`` and ``test``. Make su
 Select a configuration
 ----------------------
 
-Some datasets, like the `General Language Understanding Evaluation (GLUE) <https://huggingface.co/datasets/glue>`_ benchmark, are made up of several datasets. These sub-datasets are called **configurations**, and you must explicitly select one when you load the dataset. If you don't name a configuration, Datasets will raise a ``ValueError`` and remind you to select a configuration.
+Some datasets, like the `General Language Understanding Evaluation (GLUE) <https://huggingface.co/datasets/glue>`_ benchmark, are made up of several datasets. These sub-datasets are called **configurations**, and you must explicitly select one when you load the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a ``ValueError`` and remind you to select a configuration.
+
+❌ Incorrect way to load a configuration:
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue')
@@ -58,7 +70,9 @@ Some datasets, like the `General Language Understanding Evaluation (GLUE) <https
     Example of usage:
             `load_dataset('glue', 'cola')`
 
-This is the correct way to load a configuration:
+✅ Correct way to load a configuration:
+
+.. code-block::
 
     >>> dataset = load_dataset('glue', 'sst2')
     Downloading and preparing dataset glue/sst2 (download: 7.09 MiB, generated: 4.81 MiB, total: 11.90 MiB) to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0...

@@ -1,14 +1,14 @@
 # Installation
 
-Before you start, you will need to setup your environment and install the appropriate packages. Datasets is tested on **Python 3.6+**.
+Before you start, you will need to setup your environment and install the appropriate packages. Datasets is tested on Python 3.6+.
 
 ```{seealso}
-If you want to use Datasets with TensorFlow or PyTorch, you will need to install these separately. Please refer to the [TensorFlow](https://www.tensorflow.org/install/pip#tensorflow-2.0-rc-is-available) or the [PyTorch installation page](https://pytorch.org/get-started/locally/#start-locally) for the specific install command for your framework.
+If you want to use Datasets with TensorFlow or PyTorch, you will need to install these separately. Refer to the [TensorFlow](https://www.tensorflow.org/install/pip#tensorflow-2.0-rc-is-available) or the [PyTorch installation page](https://pytorch.org/get-started/locally/#start-locally) for the specific install command for your framework.
 ```
 
 ## Virtual environment
 
-You should install Datasets in a [virtual environment](https://docs.python.org/3/library/venv.html) to keep everything neat and tidy.
+You should install 🤗 Datasets in a [virtual environment](https://docs.python.org/3/library/venv.html) to keep everything neat and tidy.
 
 1. Create and navigate to your project directory:
 
@@ -33,17 +33,17 @@ You should install Datasets in a [virtual environment](https://docs.python.org/3
     source .env/bin/deactivate
     ```
 
-Once you have created your virtual environment, you can install Datasets in it.
+Once you have created your virtual environment, you can install 🤗 Datasets in it.
 
 ## pip
 
-The most straightforward way to install Datasets is with pip:
+The most straightforward way to install 🤗 Datasets is with pip:
 
 ```bash
 pip install datasets
 ```
 
-Run the following command to check if Datasets has been properly installed:
+Run the following command to check if 🤗 Datasets has been properly installed:
 
 ```bash
 python -c "from datasets import load_dataset; print(load_dataset('squad', split='train')[0])"
@@ -57,7 +57,7 @@ This should download version 1 of the [Stanford Question Answering Dataset](http
 
 ## source
 
-Building Datasets from source lets you make changes to the code base. To install from source, clone the repository and install with the following commands:
+Building 🤗 Datasets from source lets you make changes to the code base. To install from source, clone the repository and install with the following commands:
 
 ```bash
 git clone https://github.com/huggingface/datasets.git
@@ -65,7 +65,7 @@ cd datasets
 pip install -e .
 ```
 
-Again, you can check if Datasets has been properly installed with:
+Again, you can check if 🤗 Datasets has been properly installed with:
 
 ```bash
 python -c "from datasets import load_dataset; print(load_dataset('squad', split='train')[0])"
@@ -73,7 +73,7 @@ python -c "from datasets import load_dataset; print(load_dataset('squad', split=
 
 ## conda
 
-Datasets can be installed using conda, a package management system, with:
+🤗 Datasets can also be installed with conda, a package management system:
 
 ```bash
 conda install -c huggingface -c conda-forge datasets

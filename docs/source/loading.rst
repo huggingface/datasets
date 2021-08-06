@@ -1,26 +1,32 @@
 Load
 ====
 
-You have already seen how you can load a dataset from the Datasets Hub. But datasets are stored in a variety of places, and sometimes you won't find the one you want on the Hub. The datasets can be on your local machine, in a Github repository, and in data structures like Python dictionaries and Pandas DataFrames. Wherever your dataset may be stored, Datasets provides a way for you to load it and use it for training.
+You have already seen how you can load a dataset from the Hugging Face Hub. But datasets are stored in a variety of places, and sometimes you won't find the one you want on the Hub. The datasets can be on your local machine, in a Github repository, and in data structures like Python dictionaries and Pandas DataFrames. Wherever your dataset may be stored, 🤗 Datasets provides a way for you to load it and use it for training.
 
-This guides shows you how to load a dataset from:
+This guide will show you how to load a dataset from:
 
-* the Hub without a dataset loading script
-* local files
-* in-memory data
-* offline
-* a specific slice of a split
+* The Hub without a dataset loading script
+* Local files
+* In-memory data
+* Offline
+* A specific slice of a split
+
+You will also learn how to troubleshoot common errors, and how to load specific configurations of a metric.
 
 Hugging Face Hub
 ----------------
 
-In the tutorial, you learned how to load a dataset from the Hub. This method relies on a dataset loading script that downloads and builds the dataset. However, you can also load a dataset from any dataset repository on the Hub **without** a loading script! Create a dataset repository and upload your data files, and then you can use :func:`datasets.load_dataset`.
+In the tutorial, you learned how to load a dataset from the Hub. This method relies on a dataset loading script that downloads and builds the dataset. However, you can also load a dataset from any dataset repository on the Hub **without** a loading script! 
+
+First, create a dataset repository and upload your data files. Then you can use :func:`datasets.load_dataset` like you learned in the tutorial. 
 
 .. seealso::
 
     Refer to the :ref:`upload_dataset_repo` guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
 
-Specify the files for each split with the ``data_files`` argument:
+The only extra step you need to take is to specify the files for each split with the ``data_files`` argument:
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> data_files = {"train": "en/c4-train.*.json.gz"}
@@ -29,21 +35,27 @@ Specify the files for each split with the ``data_files`` argument:
 Local files
 -----------
 
-Datasets can be loaded from local files stored on your computer. The datasets most likely exist as a ``csv``, ``json``, ``txt`` or ``parquet`` file. Datasets provides the :func:`datasets.load_dataset` method for loading these file types.
+🤗 Datasets can be loaded from local files stored on your computer. The datasets most likely exist as a ``csv``, ``json``, ``txt`` or ``parquet`` file. The :func:`datasets.load_dataset` method is able to load each of these file types.
 
 CSV
 ^^^
 
-Datasets can read a dataset made up of one or several CSV files.
+🤗 Datasets can read a dataset made up of one or several CSV files:
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('csv', data_files='my_file.csv')
 
 If you have more than one ``csv`` file:
 
+.. code::
+
     >>> dataset = load_dataset('csv', data_files=['my_file_1.csv', 'my_file_2.csv', 'my_file_3.csv'])
 
 You can also map the training and test splits to specific ``csv`` files:
+
+.. code::
 
     >>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'],
                                                   'test': 'my_test_file.csv'})
@@ -51,19 +63,21 @@ You can also map the training and test splits to specific ``csv`` files:
 JSON
 ^^^^
 
-``json`` files can be loaded directly as shown below:
+``json`` files are loaded directly with :func:`datasets.load_dataset` as shown below:
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('json', data_files='my_file.json')
 
-``json`` files can have diverse formats, but we think the most efficient ``json`` format is to have multiple ``json`` objects; each line represents an individual row of data. For example:
+``json`` files can have diverse formats, but we think the most efficient format is to have multiple ``json`` objects; each line represents an individual row of data. For example:
 
 .. code-block::
 
     {"a": 1, "b": 2.0, "c": "foo", "d": false}
     {"a": 4, "b": -5.5, "c": null, "d": true}
 
-Another common ``json`` format you may encounter is a nested field. In this situation, you will need to specify the ``field`` argument as shown in the following:
+Another format you may often encounter is a nested field. In this situation, you will need to specify the ``field`` argument as shown in the following:
 
 .. code-block::
 
@@ -71,16 +85,18 @@ Another common ``json`` format you may encounter is a nested field. In this situ
      "data": [{"a": 1, "b": 2.0, "c": "foo", "d": false},
               {"a": 4, "b": -5.5, "c": null, "d": true}]
     }
-
+    
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('json', data_files='my_file.json', field='data')
 
-While these are the most common formats, you may encounter other datasets that are stored differently. Datasets will recognize this, and fallback accordingly on the Python ``json`` loading methods to handle the various formats.
+While these are the most common formats, you may see other datasets that are stored differently. 🤗 Datasets will recognize this, and fallback accordingly on the Python ``json`` loading methods to handle the various formats.
 
 Text files
 ^^^^^^^^^^
 
-Text files are one of the most common methods for storing a dataset. Datasets will read the text file line by line to build the dataset.
+Text files are one of the most common file types for storing a dataset. 🤗 Datasets will read the text file line by line to build the dataset.
+
+.. code-block::
 
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('text', data_files={'train': ['my_text_1.txt', 'my_text_2.txt'], 'test': 'my_test_file.txt'})
@@ -88,7 +104,9 @@ Text files are one of the most common methods for storing a dataset. Datasets wi
 Parquet
 ^^^^^^^
 
-Parquet files are stored in a columnar format unlike row based files like ``csv``. Large datasets may be stored in a Parquet file because it is more efficient, and quicker at returning your query. You can load a Parquet file as shown in the following example:
+Parquet files are stored in a columnar format unlike row based files like ``csv``. Large datasets may be stored in a Parquet file because it is more efficient, and faster at returning your query. Load a Parquet file as shown in the following example:
+
+.. code-block::
 
    >>> from datasets import load_dataset
    >>> base_url = "https://storage.googleapis.com/huggingface-nlp/cache/datasets/wikipedia/20200501.en/1.0.0/"
@@ -98,12 +116,14 @@ Parquet files are stored in a columnar format unlike row based files like ``csv`
 In-memory data
 --------------
 
-Datasets will also allow you to create a Dataset directly from in-memory data structures. Currently, Datasets supports loading data directly from Python dictionaries and Pandas DataFrames.
+🤗 Datasets will also allow you to create a :class:`datasets.Dataset` directly from in-memory data structures like Python dictionaries and Pandas DataFrames.
 
 Python dictionary
 ^^^^^^^^^^^^^^^^^
 
-Python dictionaries can be loaded using the :func:`datasets.Dataset.from_dict()` method:
+Load Python dictionaries with :func:`datasets.Dataset.from_dict`:
+
+.. code-block::
 
     >>> from datasets import Dataset
     >>> dataset = Dataset.from_dict(my_dict)
@@ -111,7 +131,9 @@ Python dictionaries can be loaded using the :func:`datasets.Dataset.from_dict()`
 Pandas DataFrame
 ^^^^^^^^^^^^^^^^
 
-Likewise, datasets in Pandas DataFrames can be instantiated by:
+Load Pandas DataFrames with :func:`datasets.Dataset.from_pandas`:
+
+.. code-block::
 
     >>> from datasets import Dataset
     >>> import pandas as pd
@@ -120,19 +142,19 @@ Likewise, datasets in Pandas DataFrames can be instantiated by:
 
 .. important::
 
-    An object data type in pandas.Series doesn't always carry enough information for Arrow to automatically infer a type. Avoid this by constructing an explicit schema with :class:`datasets.Features` using the ``from_dict`` or ``from_pandas`` methods. See the Troubleshooting guide below for more details on how to specify a feature.
+    An object data type in pandas.Series doesn't always carry enough information for Arrow to automatically infer a data type. Avoid potential errors by constructing an explicit schema with :class:`datasets.Features` using the ``from_dict`` or ``from_pandas`` methods. See the :ref:`Troubleshooting guide <troubleshoot>` below for more details on how to specify a feature.
 
 Offline
 -------
 
 Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub or Datasets Github repository, it should be cached. This means you can reload the dataset from the cache and use it offline.
 
-If you know you won't have internet access, you can run Datasets in full offline mode. This saves time because instead of waiting for the Dataset builder download to time out, Datasets will look directly at the cache. Set the environment variable ``HF_DATASETS_OFFLINE`` to ``1`` to enable full offline mode.
+If you know you won't have internet access, you can run 🤗 Datasets in full offline mode. This saves time because instead of waiting for the Dataset builder download to time out, 🤗 Datasets will look directly in the cache. Set the environment variable ``HF_DATASETS_OFFLINE`` to ``1`` to enable full offline mode.
 
 Slice splits
 ------------
 
-You already know how to load a specific split of a dataset. But if you want even more control over how to load a split, you can load a specific slice of your split. There are two options for slicing a split: using strings or ``ReadInstruction``. Strings are more compact and readable for simple cases, while ``ReadInstruction`` is easier to use with variable slicing parameters.
+For even greater control over how to load a split, you can choose to only load specific slices of a split. There are two options for slicing a split: using strings or ``ReadInstruction``. Strings are more compact and readable for simple cases, while ``ReadInstruction`` is easier to use with variable slicing parameters.
 
 Concatenate the ``train`` and ``test`` split by:
 
@@ -165,7 +187,7 @@ Or select a percentage of the split with:
 
     >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', to=10, unit='%'))
 
-You can even select a combination of percentages of a split as shown in the following:
+You can even select a combination of percentages of a split:
 
 .. tab:: String API
 
@@ -176,7 +198,7 @@ You can even select a combination of percentages of a split as shown in the foll
     >>> ri = (datasets.ReadInstruction('train', to=10, unit='%') + datasets.ReadInstruction('train', from_=-80, unit='%'))
     >>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split=ri)
 
-Datasets also supports creating cross-validated dataset splits:
+Finally, create cross-validated dataset splits by:
 
 .. tab:: String API
 
@@ -206,7 +228,7 @@ Datasets also supports creating cross-validated dataset splits:
 Percent slicing and rounding
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For Datasets where the requested slice boundaries do not divide evenly by 100, the default behavior is to round the boundaries to the nearest integer. As a result, some slices may contain more examples than others as shown in the following example:
+For datasets where the requested slice boundaries do not divide evenly by 100, the default behavior is to round the boundaries to the nearest integer. As a result, some slices may contain more examples than others as shown in the following example:
 
 .. code-block::
 
@@ -232,15 +254,21 @@ If you want equal sized splits, use ``pct1_dropremainder`` rounding instead. Thi
 
     Using ``pct1_dropremainder`` rounding may truncate the last examples in a dataset if the number of examples in your dataset don't divide evenly by 100.
 
+.. _troubleshoot:
+
 Troubleshooting
 ---------------
 
-Sometimes, loading a dataset is not as simple as calling :func:`dataset.load_dataset`. In this section, you will learn how to solve two of the most common issues you may encounter when you load a dataset: manually download a dataset, and specify features of a dataset.
+Sometimes, you may get unexpected results when you load a dataset. In this section, you will learn how to solve two common issues you may encounter when you load a dataset: manually download a dataset, and specify features of a dataset.
 
 Manual download
 ^^^^^^^^^^^^^^^
 
-Certain datasets will require you to manually download the dataset files due to licensing incompatibility or if the files are hidden behind a login page. This will cause :func:`dataset.load_dataset` to throw an ``AssertionError``. But Datasets provides detailed instructions for downloading the missing files. After you have downloaded the files, use the ``data_dir`` argument to specify the path to the files you just downloaded. For example, if you try to download a configuration from the `MATINF <https://huggingface.co/datasets/matinf>`_:
+Certain datasets require you to manually download the dataset files due to licensing incompatibility, or if the files are hidden behind a login page. This will cause :func:`datasets.load_dataset` to throw an ``AssertionError``. But 🤗 Datasets provides detailed instructions for downloading the missing files. After you have downloaded the files, use the ``data_dir`` argument to specify the path to the files you just downloaded.
+
+For example, if you try to download a configuration from the `MATINF <https://huggingface.co/datasets/matinf>`_ dataset:
+
+.. code-block::
 
     >>> dataset = load_dataset("matinf", "summarization")
     Downloading and preparing dataset matinf/summarization (download: Unknown size, generated: 246.89 MiB, post-processed: Unknown size, total: 246.89 MiB) to /root/.cache/huggingface/datasets/matinf/summarization/1.0.0/82eee5e71c3ceaf20d909bca36ff237452b4e4ab195d3be7ee1c78b53e6f540e...
@@ -251,18 +279,24 @@ Certain datasets will require you to manually download the dataset files due to 
 Specify features
 ^^^^^^^^^^^^^^^^
 
-When you create a dataset from local files, the :class:`dataset.Features` are automatically generated by `Apache Arrow's Automatic Type Inference <https://arrow.apache.org/docs/python/json.html#automatic-type-inference>`_. However, the features of the dataset may not always align with your expectations or you may want to define the features yourself. 
+When you create a dataset from local files, the :class:`datasets.Features` are automatically inferred by `Apache Arrow <https://arrow.apache.org/docs/>`_. However, the features of the dataset may not always align with your expectations or you may want to define the features yourself. 
 
 The following example shows how you can add custom labels with :class:`datasets.ClassLabel`. First, define your own labels using the :class:`datasets.Features` class:
+
+.. code-block::
 
     >>> class_names = ["sadness", "joy", "love", "anger", "fear", "surprise"]
     >>> emotion_features = Features({'text': Value('string'), 'label': ClassLabel(names=class_names)})
 
-Next, specify the ``features`` argument in :func:`dataset.load_dataset` with the features you just created:
+Next, specify the ``features`` argument in :func:`datasets.load_dataset` with the features you just created:
+
+.. code::
 
     >>> dataset = load_dataset('csv', data_files=file_dict, delimiter=';', column_names=['text', 'label'], features=emotion_features)
 
-Now when you look at the features of your dataset, you can see that it uses the custom labels you supplied:
+Now when you look at your dataset features, you can see it uses the custom labels you defined:
+
+.. code::
 
     >>> dataset['train'].features
     {'text': Value(dtype='string', id=None),
@@ -271,22 +305,26 @@ Now when you look at the features of your dataset, you can see that it uses the 
 Metrics
 -------
 
-When the metric you want to use is not supported by Datasets, you can write and use your own metric script. Load it by providing the path to your local metric script:
+When the metric you want to use is not supported by 🤗 Datasets, you can write and use your own metric script. Load your own metric by providing the path to your local metric loading script:
+
+.. code-block::
 
     >>> from datasets import load_metric
     >>> metric = load_metric('PATH/TO/MY/METRIC/SCRIPT')
-    >>>
+    
     >>> # Example of typical usage
     >>> for batch in dataset:
-    >>>     inputs, references = batch
-    >>>     predictions = model(inputs)
-    >>>     metric.add_batch(predictions=predictions, references=references)
+    ...     inputs, references = batch
+    ...     predictions = model(inputs)
+    ...     metric.add_batch(predictions=predictions, references=references)
     >>> score = metric.compute()
 
 Load configurations
 ^^^^^^^^^^^^^^^^^^^
 
-It is possible to specify different configurations for a metric. The different configurations are stored in the :attr:`datasets.Metric.config_name` attribute. When you load a metric, provide the configuration name as shown in the following:
+It is possible for a metric to have different configurations. The configurations are stored in the :attr:`datasets.Metric.config_name` attribute. When you load a metric, provide the configuration name as shown in the following:
+
+.. code-block::
 
     >>> from datasets import load_metric
     >>> metric = load_metric('bleurt', name='bleurt-base-128')
@@ -295,15 +333,17 @@ It is possible to specify different configurations for a metric. The different c
 Distributed setup
 ^^^^^^^^^^^^^^^^^
 
-When you work in a distributed or parallel processing environment, loading and computing a metric can be tricky because these processes are executed on separate subsets of the data. Datasets supports distributed usage with a few additional arguments when you load a metric.
+When you work in a distributed or parallel processing environment, loading and computing a metric can be tricky because these processes are executed in parallel on separate subsets of the data. 🤗 Datasets supports distributed usage with a few additional arguments when you load a metric.
 
 For example, imagine you are training and evaluating eight parallel processes. Here's how you would load a metric in this distributed setting:
 
-1. Define the total numner of processes with the ``num_process`` argument.
+1. Define the total number of processes with the ``num_process`` argument.
 
-2. Set the process ``rank`` as an integer between 0 and ``num_process - 1``. 
+2. Set the process ``rank`` as an integer between zero and ``num_process - 1``. 
 
 3. Load your metric with :func:`datasets.load_metric` with these arguments:
+
+.. code-block::
 
    >>> from datasets import load_metric
    >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=rank)
@@ -312,7 +352,9 @@ For example, imagine you are training and evaluating eight parallel processes. H
 
     Once you've loaded a metric for distributed usage, you can compute the metric as usual. Behind the scenes, :func:`datasets.Metric.compute` gathers all the predictions and references from the nodes, and computes the final metric.
 
-In some instances, you may be simulatenously running multiple independent distributed evaluations on the same server and files. To avoid any conflicts, it is important to provide an ``experiment_id`` to distinguish the separate evaluations:
+In some instances, you may be simultaneously running multiple independent distributed evaluations on the same server and files. To avoid any conflicts, it is important to provide an ``experiment_id`` to distinguish the separate evaluations:
+
+.. code-block::
 
    >>> from datasets import load_metric
    >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=process_id,experiment_id="My_experiment_10")

@@ -1,29 +1,31 @@
-Use Datasets
-============
+Train with 🤗 Datasets
+======================
 
-So far, you loaded a dataset from the Hub and learned how to access the information stored inside the dataset. Now you will tokenize and use your dataset with a framework such as PyTorch or TensorFlow. By default, all Dataset columns are returned as Python objects. But you can bridge this gap by setting the format of a dataset. Formatting casts the columns into compatible PyTorch or TensorFlow types.
+So far, you loaded a dataset from the Hugging Face Hub and learned how to access the information stored inside the dataset. Now you will tokenize and use your dataset with a framework such as PyTorch or TensorFlow. By default, all Dataset columns are returned as Python objects. But you can bridge the gap between a Python object and your machine learning framework by setting the format of a dataset. Formatting casts the columns into compatible PyTorch or TensorFlow types.
 
-.. note::
+.. important::
     
-    Often times you may want to modify the structure and content of your dataset before you use it to train a model. For example, you may want to remove a column or cast it as a different type. Datasets provides the necessary tools to do this, but since each dataset is so different, the processing approach will vary individually. For more detailed information about preprocessing data, take a look at our `guide <https://huggingface.co/transformers/preprocessing.html#>`_ from the Transformers library. Then come back and view our how-to guide to see all the different methods for processing your custom dataset. 
+   Often times you may want to modify the structure and content of your dataset before you use it to train a model. For example, you may want to remove a column or cast it as a different type. 🤗 Datasets provides the necessary tools to do this, but since each dataset is so different, the processing approach will vary individually. For more detailed information about preprocessing data, take a look at our `guide <https://huggingface.co/transformers/preprocessing.html#>`_ from the 🤗 Transformers library. Then come back and read our :doc:`How-to Process <./process>` guide to see all the different methods for processing your custom dataset.
 
 Tokenize
 --------
 
-Tokenization divides text into individual words called tokens. Tokens are then converted into numbers. This is what the model receives as its input. 
+Tokenization divides text into individual words called tokens. Tokens are converted into numbers, which is what the model receives as its input. 
 
-The first step is to install the Transformers library:
+The first step is to install the 🤗 Transformers library:
 
-.. code-block::
+.. code::
 
     pip install transformers
 
-Next you will import a tokenizer. It is important to use the tokenizer that is associated with the model you are using, so the text is split in the same way. In this example, you will load the BERT tokenizer because you are using the BERT model.
+Next, import a tokenizer. It is important to use the tokenizer that is associated with the model you are using, so the text is split in the same way. In this example, you will load the `BERT tokenizer <https://huggingface.co/transformers/model_doc/bert.html#berttokenizerfast>`_ because you are using the `BERT <https://huggingface.co/bert-base-cased>`_ model:
 
     >>> from transformers import BertTokenizerFast
     >>> tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
 
-Now you can use the tokenizer on the ``sentence1`` field of the dataset.
+Now you can tokenize ``sentence1`` field of the dataset:
+
+.. code-block::
 
     >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True)
     >>> encoded_dataset.column_names
@@ -38,18 +40,18 @@ Now you can use the tokenizer on the ``sentence1`` field of the dataset.
      'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
 
-The tokenization process creates three new columns: ``input_ids``, ``token_type_ids``, and ``attention_mask``. These will be the inputs to the model.
+The tokenization process creates three new columns: ``input_ids``, ``token_type_ids``, and ``attention_mask``. These are the inputs to the model.
 
 Format
 ------
 
-The format is set with :func:`datasets.Datasets.set_format()` which accepts three arguments:
+Set the format with :func:`datasets.Dataset.set_format`, which accepts two main arguments:
 
-1. ``type`` is a string defining the type of column to cast to. For example, ``torch`` returns PyTorch tensors and ``tensorflow`` returns TensorFlow tensors.
+1. ``type`` defines the type of column to cast to. For example, ``torch`` returns PyTorch tensors and ``tensorflow`` returns TensorFlow tensors.
    
 2. ``columns`` specifies which columns should be formatted.
 
-After you set the format, wrap the dataset in a ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``.
+After you set the format, wrap the dataset in a ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``:
 
 .. tab:: PyTorch
 
