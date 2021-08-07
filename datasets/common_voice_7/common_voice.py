@@ -662,9 +662,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             license=_LICENSE,
             citation=_CITATION,
             task_templates=[
-                AutomaticSpeechRecognition(
-                    audio_file_path_column="path", transcription_column="sentence"
-                )
+                AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="sentence")
             ],
         )
 
@@ -679,9 +677,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 )
             )
 
-        abs_path_to_data = os.path.join(
-            manual_dir, "cv-corpus-7.0-2021-07-21", self.config.name
-        )
+        abs_path_to_data = os.path.join(manual_dir, "cv-corpus-7.0-2021-07-21", self.config.name)
         abs_path_to_clips = os.path.join(abs_path_to_data, "clips")
 
         return [
@@ -740,9 +736,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 field_values = line.strip().split("\t")
 
                 # set absolute path for mp3 audio file
-                field_values[path_idx] = os.path.join(
-                    path_to_clips, field_values[path_idx]
-                )
+                field_values[path_idx] = os.path.join(path_to_clips, field_values[path_idx])
 
                 # if data is incomplete, fill with empty values
                 if len(field_values) < len(data_fields):
