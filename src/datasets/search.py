@@ -6,6 +6,7 @@ from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
 import numpy as np
+from elasticsearch import Elasticsearch
 
 from . import utils
 from .utils import logging
