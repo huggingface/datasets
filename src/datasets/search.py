@@ -6,7 +6,6 @@ from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
 import numpy as np
-from elasticsearch import Elasticsearch
 
 from . import utils
 from .utils import logging
@@ -677,7 +676,12 @@ class IndexableMixin:
                 Defaults to `_all`, use all indexes.
         """
         if es_client is None:
-            es_client = Elasticsearch([f"{host}:{port}"])
+            try:
+                es_client = Elasticsearch([f"{host}:{port}"])
+            except NameError:
+                from elasticsearch import Elasticsearch  # noqa: F401
+
+                es_client = Elasticsearch([f"{host}:{port}"])
         es_client.update_by_query(body=body, index=es_index_name, **kwargs)
 
     def load_elasticsearch_index(
