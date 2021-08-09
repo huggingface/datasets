@@ -50,7 +50,7 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
     TORCH_AVAILABLE = importlib.util.find_spec("torch") is not None
     if TORCH_AVAILABLE:
         try:
-            TORCH_VERSION = importlib_metadata.version("torch")
+            TORCH_VERSION = version.parse(importlib_metadata.version("torch"))
             logger.info(f"PyTorch version {TORCH_VERSION} available.")
         except importlib_metadata.PackageNotFoundError:
             pass
