@@ -1617,8 +1617,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `True`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
-            num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+            num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing when generating cache. Upon loading from cache
+                we run it sequentially. By default it doesn't use multiprocessing.
             suffix_template (:obj:`str`):
                 If cache_file_name is specified, then this suffix
                 will be added at the end of the base name of each: defaults to "_{rank:05d}_of_{num_proc:05d}". For example, if cache_file_name is "processed.arrow", then for
@@ -1707,46 +1707,54 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             initargs, initializer = None, None
             if not disable_tqdm:
                 initargs, initializer = (RLock(),), tqdm.set_lock
-            with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
-                os.environ = prev_env
-                shards = [
-                    self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
-                    for rank in range(num_proc)
-                ]
-                kwds_per_shard = [
-                    dict(
-                        self=shards[rank],
-                        function=function,
-                        with_indices=with_indices,
-                        input_columns=input_columns,
-                        batched=batched,
-                        batch_size=batch_size,
-                        drop_last_batch=drop_last_batch,
-                        remove_columns=remove_columns,
-                        keep_in_memory=keep_in_memory,
-                        load_from_cache_file=load_from_cache_file,
-                        cache_file_name=format_cache_file_name(cache_file_name, rank)
-                        if cache_file_name is not None
-                        else None,
-                        writer_batch_size=writer_batch_size,
-                        features=features.copy() if features is not None else None,
-                        disable_nullable=disable_nullable,
-                        fn_kwargs=fn_kwargs,
-                        rank=rank,
-                        offset=sum(len(s) for s in shards[:rank]),
-                        disable_tqdm=disable_tqdm,
-                        desc=desc,
-                    )
-                    for rank in range(num_proc)
-                ]
-                logger.info("Spawning {} processes".format(num_proc))
-                results = [pool.apply_async(self.__class__._map_single, kwds=kwds) for kwds in kwds_per_shard]
-                transformed_shards = [r.get() for r in results]
-                logger.info("Concatenating {} shards from multiprocessing".format(num_proc))
-                result = concatenate_datasets(transformed_shards)
-                if new_fingerprint is not None:
-                    result._fingerprint = new_fingerprint
-                return result
+
+            shards = [
+                self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
+                for rank in range(num_proc)
+            ]
+            kwds_per_shard = [
+                dict(
+                    self=shards[rank],
+                    function=function,
+                    with_indices=with_indices,
+                    input_columns=input_columns,
+                    batched=batched,
+                    batch_size=batch_size,
+                    drop_last_batch=drop_last_batch,
+                    remove_columns=remove_columns,
+                    keep_in_memory=keep_in_memory,
+                    load_from_cache_file=load_from_cache_file,
+                    cache_file_name=format_cache_file_name(cache_file_name, rank)
+                    if cache_file_name is not None
+                    else None,
+                    writer_batch_size=writer_batch_size,
+                    features=features.copy() if features is not None else None,
+                    disable_nullable=disable_nullable,
+                    fn_kwargs=fn_kwargs,
+                    rank=rank,
+                    offset=sum(len(s) for s in shards[:rank]),
+                    disable_tqdm=disable_tqdm,
+                    desc=desc,
+                )
+                for rank in range(num_proc)
+            ]
+
+            all_shards_are_cached = all([os.path.exists(kwds["cache_file_name"]) for kwds in kwds_per_shard])
+            # Upon loading from cache, we use a sequential operator to obtain the dataset
+            if self.cache_files and load_from_cache_file and all_shards_are_cached:
+                transformed_shards = [self._map_single(**kwds) for kwds in kwds_per_shard]
+            else:
+                with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
+                    os.environ = prev_env
+                    logger.info("Spawning {} processes".format(num_proc))
+                    results = [pool.apply_async(self.__class__._map_single, kwds=kwds) for kwds in kwds_per_shard]
+                    transformed_shards = [r.get() for r in results]
+
+            logger.info("Concatenating {} shards".format(num_proc))
+            result = concatenate_datasets(transformed_shards)
+            if new_fingerprint is not None:
+                result._fingerprint = new_fingerprint
+            return result
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"])
