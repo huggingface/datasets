@@ -28,6 +28,7 @@ requirements:
     - huggingface_hub <0.1.0
     - packaging
     - aiohttp
+    - elasticsearch
   run:
     - python
     - pip
@@ -45,6 +46,7 @@ requirements:
     - huggingface_hub <0.1.0
     - packaging
     - aiohttp
+    - elasticsearch
 
 test:
   imports:
