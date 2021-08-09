@@ -111,7 +111,7 @@ BEAM_VERSION = "N/A"
 BEAM_AVAILABLE = False
 if USE_BEAM in ("1", "ON", "YES", "AUTO"):
     try:
-        BEAM_VERSION = importlib_metadata.version("apache_beam")
+        BEAM_VERSION = version.parse(importlib_metadata.version("apache_beam"))
         BEAM_AVAILABLE = True
         logger.info("Apache Beam version {} available.".format(BEAM_VERSION))
     except importlib_metadata.PackageNotFoundError:
