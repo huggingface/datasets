@@ -381,7 +381,7 @@ def fingerprint_transform(
                     kwargs_for_fingerprint.pop(default_varname)
 
             # compute new_fingerprint and add it to the args of not in-place transforms
-            transform = func.__module__ + "." + func.__qualname__
+            transform = func.__module__ + "." + func.__name__
             if inplace:
                 new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
             else:

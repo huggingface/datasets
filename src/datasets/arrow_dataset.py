@@ -1620,7 +1620,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
             num_proc (`Optional[int]`, default `None`): Number of processes when generating cache. By default it doesn't use multiprocessing.
             sequential (`Optional[bool]`, by default `None`): Flag in order to determine whether to use multiprocessing or not when
-                `num_proc is not None and num_proc > 0`. By default, it uses multiprocessing.
+                `num_proc is not None and num_proc > 0`. By default, it uses multiprocessing if `num_proc > 0`.
             suffix_template (:obj:`str`):
                 If cache_file_name is specified, then this suffix
                 will be added at the end of the base name of each: defaults to "_{rank:05d}_of_{num_proc:05d}". For example, if cache_file_name is "processed.arrow", then for
@@ -1758,12 +1758,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results = [pool.apply_async(self.__class__._map_single, kwds=kwds) for kwds in kwds_per_shard]
                     transformed_shards = [r.get() for r in results]
 
-            print(f"Shard fingerprints: {[shard._fingerprint for shard in transformed_shards]}")
             logger.info("Concatenating {} shards".format(num_proc))
             result = concatenate_datasets(transformed_shards)
             if new_fingerprint is not None:
                 result._fingerprint = new_fingerprint
-            print(f"Resulting dataset fingerprint: {result._fingerprint}")
             return result
 
     @transmit_format
