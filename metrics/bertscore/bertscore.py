@@ -79,6 +79,7 @@ Args:
         specified when `rescale_with_baseline` is True.
     rescale_with_baseline (bool): Rescale bertscore with pre-computed baseline.
     baseline_path (str): Customized baseline file.
+    use_fast_tokenizer (bool): `use_fast` parameter passed to HF tokenizer. New in version 0.3.10.
 
 Returns:
     precision: Precision.
