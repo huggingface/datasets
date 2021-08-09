@@ -76,13 +76,13 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             "tensorflow-macos",
         ]:
             try:
-                TF_VERSION = importlib_metadata.version(package)
+                TF_VERSION = version.parse(importlib_metadata.version(package))
             except importlib_metadata.PackageNotFoundError:
                 continue
             else:
                 break
     if TF_AVAILABLE:
-        if version.parse(TF_VERSION) < version.parse("2"):
+        if TF_VERSION.major < 2:
             logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
             TF_AVAILABLE = False
         else:
