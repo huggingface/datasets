@@ -77,4 +77,4 @@ from .splits import (
 from .utils import *
 
 
-SCRIPTS_VERSION = "master" if __version__.split(".")[-1].startswith("dev") else __version__
+SCRIPTS_VERSION = "master" if _version.parse(__version__).is_devrelease else __version__
