@@ -1757,10 +1757,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results = [pool.apply_async(self.__class__._map_single, kwds=kwds) for kwds in kwds_per_shard]
                     transformed_shards = [r.get() for r in results]
 
+            print(f"Shard fingerprints: {[shard._fingerprint for shard in transformed_shards]}")
             logger.info("Concatenating {} shards".format(num_proc))
             result = concatenate_datasets(transformed_shards)
             if new_fingerprint is not None:
                 result._fingerprint = new_fingerprint
+            print(f"Resulting dataset fingerprint: {result._fingerprint}")
             return result
 
     @transmit_format
