@@ -832,7 +832,7 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
 
-        with tempfile.TemporaryDirectory() as tmp_dir: # sequential version
+        with tempfile.TemporaryDirectory() as tmp_dir:  # sequential version
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                 fingerprint = dset._fingerprint
@@ -849,7 +849,7 @@ class BaseDatasetTest(TestCase):
                         self.assertNotEqual(dset_test._fingerprint, fingerprint)
                         assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
 
-                        self.assertEqual(dset_test.fingerprint, dset_reference.fingerprint)
+                        self.assertEqual(dset_test._fingerprint, dset_reference._fingerprint)
                         for ref, value in zip(dset_reference, dset_test):
                             self.assertEqual(value, ref)
 
