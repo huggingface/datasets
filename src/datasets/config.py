@@ -125,7 +125,7 @@ RARFILE_VERSION = "N/A"
 RARFILE_AVAILABLE = False
 if USE_RAR in ("1", "ON", "YES", "AUTO"):
     try:
-        RARFILE_VERSION = importlib_metadata.version("rarfile")
+        RARFILE_VERSION = version.parse(importlib_metadata.version("rarfile"))
         RARFILE_AVAILABLE = True
         logger.info("rarfile available.")
     except importlib_metadata.PackageNotFoundError:
