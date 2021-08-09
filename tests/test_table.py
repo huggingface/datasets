@@ -746,7 +746,7 @@ def test_concatenation_table_cast(
             for k, v in zip(in_memory_pa_table.schema.names, in_memory_pa_table.schema.types)
         }
     )
-    if config.PYARROW_VERSION < "4":
+    if config.PYARROW_VERSION.major < 4:
         with pytest.raises(pa.ArrowNotImplementedError):
             ConcatenationTable.from_blocks(blocks).cast(schema)
     else:

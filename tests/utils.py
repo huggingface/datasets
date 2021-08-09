@@ -43,7 +43,7 @@ def require_pyarrow_at_least_3(test_case):
     These tests are skipped when the PyArrow version is outdated.
 
     """
-    if version.parse(config.PYARROW_VERSION) < version.parse("3.0.0"):
+    if config.PYARROW_VERSION.major < 3:
         test_case = unittest.skip("test requires PyArrow>=3.0.0")(test_case)
     return test_case
 

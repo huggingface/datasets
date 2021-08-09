@@ -37,7 +37,7 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 
 # Imports
-PYARROW_VERSION = importlib_metadata.version("pyarrow")
+PYARROW_VERSION = version.parse(importlib_metadata.version("pyarrow"))
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()

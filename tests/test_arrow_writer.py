@@ -58,7 +58,7 @@ class TypedSequenceTest(TestCase):
         self.assertEqual(arr.type, pa.string())
 
     def test_catch_overflow(self):
-        if version.parse(config.PYARROW_VERSION) < version.parse("2.0.0"):
+        if config.PYARROW_VERSION.major < 2:
             with self.assertRaises(OverflowError):
                 _ = pa.array(TypedSequence([["x" * 1024]] * ((2 << 20) + 1)))  # ListArray with a bit more than 2GB
 
