@@ -98,7 +98,7 @@ if USE_JAX in ENV_VARS_TRUE_AND_AUTO_VALUES:
     JAX_AVAILABLE = importlib.util.find_spec("jax") is not None
     if JAX_AVAILABLE:
         try:
-            JAX_VERSION = importlib_metadata.version("jax")
+            JAX_VERSION = version.parse(importlib_metadata.version("jax"))
             logger.info(f"JAX version {JAX_VERSION} available.")
         except importlib_metadata.PackageNotFoundError:
             pass
