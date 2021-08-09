@@ -24,9 +24,9 @@ REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{vers
 HUB_DATASETS_URL = "https://huggingface.co/datasets/{path}/resolve/{version}/{name}"
 HUB_DEFAULT_VERSION = "main"
 
-PY_VERSION: str = platform.python_version()
+PY_VERSION = version.parse(platform.python_version())
 
-if int(PY_VERSION.split(".")[0]) == 3 and int(PY_VERSION.split(".")[1]) < 8:
+if PY_VERSION < version.parse("3.8"):
     import importlib_metadata
 else:
     import importlib.metadata as importlib_metadata
