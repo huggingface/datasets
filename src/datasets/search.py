@@ -677,11 +677,11 @@ class IndexableMixin:
         """
         if es_client is None:
             try:
-                es_client = Elasticsearch([f"{host}:{port}"])
+                es_client = Elasticsearch([{"host": host, "port": str(port)}])
             except NameError:
                 from elasticsearch import Elasticsearch  # noqa: F401
 
-                es_client = Elasticsearch([f"{host}:{port}"])
+                es_client = Elasticsearch([{"host": host, "port": str(port)}])
         es_client.update_by_query(body=body, index=es_index_name, **kwargs)
 
     def load_elasticsearch_index(
