@@ -832,6 +832,27 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
 
+        with tempfile.TemporaryDirectory() as tmp_dir: # sequential version
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                fingerprint = dset._fingerprint
+                with dset.map(picklable_map_function, num_proc=2) as dset_reference:
+                    with dset.map(picklable_map_function, num_proc=2, sequential=True) as dset_test:
+                        self.assertEqual(len(dset_test), 30)
+                        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                        self.assertDictEqual(
+                            dset_test.features,
+                            Features({"filename": Value("string"), "id": Value("int64")}),
+                        )
+                        self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
+                        self.assertListEqual(dset_test["id"], list(range(30)))
+                        self.assertNotEqual(dset_test._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+
+                        self.assertEqual(dset_test.fingerprint, dset_reference.fingerprint)
+                        for ref, value in zip(dset_reference, dset_test):
+                            self.assertEqual(value, ref)
+
         with tempfile.TemporaryDirectory() as tmp_dir:  # num_proc > num rows
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))

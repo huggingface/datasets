@@ -1618,8 +1618,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `True`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
-            num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing when generating cache. Upon loading from cache
-                we run it sequentially. By default it doesn't use multiprocessing.
+            num_proc (`Optional[int]`, default `None`): Number of processes when generating cache. By default it doesn't use multiprocessing.
             sequential (`Optional[bool]`, by default `None`): Flag in order to determine whether to use multiprocessing or not when
                 `num_proc is not None and num_proc > 0`. By default, it uses multiprocessing.
             suffix_template (:obj:`str`):
