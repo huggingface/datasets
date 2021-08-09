@@ -1745,8 +1745,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # sequentially. This is useful when preprocessing can be done on multiple processes and loading has to be
             # done on a single process.
             if sequential:
-                logger.warning("Running map on shards sequentially, despite having `num_proc={}`. This is generally used "
-                               "to load a multiprocessed cached mapping.".format(num_proc))
+                logger.warning(
+                    "Running map on shards sequentially, despite having `num_proc={}`. This is generally used to load a"
+                    " multiprocessed cached mapping.".format(num_proc)
+                )
                 transformed_shards = [self.__class__._map_single(**kwds) for kwds in kwds_per_shard]
             else:
                 with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
