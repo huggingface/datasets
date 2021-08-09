@@ -24,7 +24,7 @@ import pyarrow
 from pyarrow import total_allocated_bytes
 
 
-if tuple(int(i) for i in pyarrow.__version__.split(".")) < (1, 0, 0):
+if tuple(int(i) for i in pyarrow.__version__.split(".")[:3]) < (1, 0, 0):
     raise ImportWarning(
         "To use `datasets`, the module `pyarrow>=1.0.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
