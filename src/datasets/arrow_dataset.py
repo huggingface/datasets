@@ -1577,6 +1577,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
+        sequential: Optional[bool] = None,
         suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
@@ -1619,6 +1620,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
             num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing when generating cache. Upon loading from cache
                 we run it sequentially. By default it doesn't use multiprocessing.
+            sequential (`Optional[bool]`, by default `None`): Flag in order to determine whether to use multiprocessing or not when
+                `num_proc is not None and num_proc > 0`. By default, it uses multiprocessing.
             suffix_template (:obj:`str`):
                 If cache_file_name is specified, then this suffix
                 will be added at the end of the base name of each: defaults to "_{rank:05d}_of_{num_proc:05d}". For example, if cache_file_name is "processed.arrow", then for
@@ -1739,9 +1742,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for rank in range(num_proc)
             ]
 
-            all_shards_are_cached = all([os.path.exists(kwds["cache_file_name"]) for kwds in kwds_per_shard])
-            # Upon loading from cache, we use a sequential operator to obtain the dataset
-            if self.cache_files and load_from_cache_file and all_shards_are_cached:
+            # Upon mapping using multiple processes, we can choose to load them on a single process instead by doing it
+            # sequentially. This is useful when preprocessing can be done on multiple processes and loading has to be
+            # done on a single process.
+            if sequential:
+                logger.warning("Running map on shards sequentially, despite having `num_proc={}`. This is generally used "
+                               "to load a multiprocessed cached mapping.".format(num_proc))
                 transformed_shards = [self._map_single(**kwds) for kwds in kwds_per_shard]
             else:
                 with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
