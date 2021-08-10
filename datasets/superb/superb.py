@@ -149,6 +149,27 @@ class Superb(datasets.GeneratorBasedBuilder):
             task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
         ),
         SuperbConfig(
+            name="ks",
+            description=textwrap.dedent(
+                """\
+            Keyword Spotting (KS) detects preregistered keywords by classifying utterances into a predefined set of
+            words. The task is usually performed on-device for the fast response time. Thus, accuracy, model size, and
+            inference time are all crucial. SUPERB uses the widely used [Speech Commands dataset v1.0] for the task.
+            The dataset consists of ten classes of keywords, a class for silence, and an unknown class to include the
+            false positive. The evaluation metric is accuracy (ACC)"""
+            ),
+            features=datasets.Features(
+                {
+                    "file": datasets.Value("string"),
+                    "label": datasets.Value("string"),
+                    "id": datasets.Value("string"),
+                }
+            ),
+            supervised_keys=("file", "label"),
+            url="https://www.tensorflow.org/datasets/catalog/speech_commands",
+            data_url="http://download.tensorflow.org/data/{filename}",
+        ),
+        SuperbConfig(
             name="sd",
             description=textwrap.dedent(
                 """\
@@ -206,6 +227,25 @@ class Superb(datasets.GeneratorBasedBuilder):
                 ),
                 datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_path["test"]}),
             ]
+        elif self.config.name == "ks":
+            _DL_URLS = {
+                "train_val_test": self.config.data_url.format(filename="speech_commands_v0.01.tar.gz"),
+                "test": self.config.data_url.format(filename="speech_commands_test_set_v0.01.tar.gz"),
+            }
+            archive_path = dl_manager.download_and_extract(_DL_URLS)
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"archive_path": archive_path["train_val_test"], "split": "train"},
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={"archive_path": archive_path["train_val_test"], "split": "val"},
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_path["test"], "split": "test"}
+                ),
+            ]
         elif self.config.name == "sd":
             splits = ["train", "dev", "test"]
             _DL_URLS = {
@@ -244,6 +284,22 @@ class Superb(datasets.GeneratorBasedBuilder):
                             "text": transcript,
                         }
                         key += 1
+        elif self.config.name == "ks":
+            words = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go"]
+            splits = _split_ks_files(archive_path, split)
+            key = 0
+            for audio_file in sorted(splits[split]):
+                base_dir, file_name = os.path.split(audio_file)
+                _, word = os.path.split(base_dir)
+                id_ = "{}_{}".format(word, file_name)
+                if word in words:
+                    label = word
+                elif word == "_silence_" or word == "_background_noise_":
+                    label = "_silence_"
+                else:
+                    label = "_unknown_"
+                yield key, {"id": id_, "file": audio_file, "label": label}
+                key += 1
         elif self.config.name == "sd":
             data = SdData(archive_path)
             args = SdArgs()
@@ -383,3 +439,26 @@ def _get_speakers(rec, data, args):
         }
         for segment in data.segments[rec]
     ]
+
+
+def _split_ks_files(archive_path, split):
+    audio_path = os.path.join(archive_path, "**/*.wav")
+    audio_paths = sorted(glob.glob(audio_path))
+    if split == "test":
+        # use all available files for the test archive
+        return {"test": audio_paths}
+
+    val_list_file = os.path.join(archive_path, "validation_list.txt")
+    test_list_file = os.path.join(archive_path, "testing_list.txt")
+    with open(val_list_file) as f:
+        val_paths = f.read().strip().splitlines()
+        val_paths = [os.path.join(archive_path, p) for p in val_paths]
+    with open(test_list_file) as f:
+        test_paths = f.read().strip().splitlines()
+        test_paths = [os.path.join(archive_path, p) for p in test_paths]
+
+    # the paths for the train set is just whichever paths that do not exist in
+    # either the test or validation splits
+    train_paths = list(set(audio_paths) - set(val_paths) - set(test_paths))
+
+    return {"train": train_paths, "val": val_paths, "test": test_paths}
