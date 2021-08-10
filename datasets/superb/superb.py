@@ -450,10 +450,10 @@ def _split_ks_files(archive_path, split):
 
     val_list_file = os.path.join(archive_path, "validation_list.txt")
     test_list_file = os.path.join(archive_path, "testing_list.txt")
-    with open(val_list_file) as f:
+    with open(val_list_file, encoding="utf-8") as f:
         val_paths = f.read().strip().splitlines()
         val_paths = [os.path.join(archive_path, p) for p in val_paths]
-    with open(test_list_file) as f:
+    with open(test_list_file, encoding="utf-8") as f:
         test_paths = f.read().strip().splitlines()
         test_paths = [os.path.join(archive_path, p) for p in test_paths]
 
