@@ -298,7 +298,6 @@ def compute_sacrebleu(
     smooth_value=None,
     force=False,
     lowercase=False,
-    tokenize=sacrebleu.DEFAULT_TOKENIZER,
     use_effective_order=False,
 ):
     references_per_prediction = len(references[0])
@@ -312,7 +311,6 @@ def compute_sacrebleu(
         smooth_value=smooth_value,
         force=force,
         lowercase=lowercase,
-        tokenize=tokenize,
         use_effective_order=use_effective_order,
     )
     return output.score
