@@ -3,6 +3,7 @@ import itertools
 import json
 import os
 import pickle
+import re
 import tempfile
 from functools import partial
 from unittest import TestCase
@@ -986,6 +987,18 @@ class BaseDatasetTest(TestCase):
                         self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
                         self.assertEqual(len(dset_test2.cache_files), 1 - int(in_memory))
                         self.assertNotIn("Loading cached processed dataset", self._caplog.text)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._caplog.clear()
+            with self._caplog.at_level(WARNING):
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
+                        dset_test1_data_files = list(dset_test1.cache_files)
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2, sequential=True) as dset_test2:
+                        self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                        self.assertTrue(
+                            (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2) ^ in_memory
+                        )
 
         if not in_memory:
             try:
