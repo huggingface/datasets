@@ -239,7 +239,7 @@ def normalize(sentence, lowercase: bool = True, tokenizer: str = "13a", return_s
         sentence = sentence.lower()
 
     if tokenizer in ["13a", "intl"]:
-        normalized_sent = sacrebleu.TOKENIZERS[tokenizer]()(sentence)
+        normalized_sent = sacrebleu.metrics.bleu._get_tokenizer(tokenizer)(sentence)
     elif tokenizer == "moses":
         normalized_sent = sacremoses.MosesTokenizer().tokenize(sentence, return_str=True, escape=False)
     elif tokenizer == "penn":
