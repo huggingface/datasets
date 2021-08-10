@@ -1750,7 +1750,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     " multiprocessed cached mapping.".format(num_proc)
                 )
                 os.environ = prev_env
-                transformed_shards = [self.__class__._map_single(**kwds) for kwds in kwds_per_shard]
+                transformed_shards = [self.__class__._map_single(**deepcopy(kwds)) for kwds in kwds_per_shard]
             else:
                 with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
                     os.environ = prev_env
