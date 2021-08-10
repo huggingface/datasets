@@ -4,7 +4,6 @@ from unittest import TestCase
 
 import pyarrow as pa
 import pytest
-from packaging import version
 
 from datasets import config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
