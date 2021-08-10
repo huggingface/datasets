@@ -31,6 +31,7 @@ from math import ceil, floor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
+import dill
 import fsspec
 import numpy as np
 import pandas as pd
@@ -1750,7 +1751,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     " multiprocessed cached mapping.".format(num_proc)
                 )
                 os.environ = prev_env
-                transformed_shards = [self.__class__._map_single(**deepcopy(kwds)) for kwds in kwds_per_shard]
+                transformed_shards = [self.__class__._map_single(**dill.copy(kwds)) for kwds in kwds_per_shard]
             else:
                 with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
                     os.environ = prev_env
