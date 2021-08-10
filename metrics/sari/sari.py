@@ -241,7 +241,7 @@ def normalize(sentence, lowercase: bool = True, tokenizer: str = "13a", return_s
 
     if tokenizer in ["13a", "intl"]:
         if version.parse(sacrebleu.__version__).major >= 2:
-            normalized_sent = sacrebleu.metrics.bleu._get_tokenizer(tokenizer)(sentence)
+            normalized_sent = sacrebleu.metrics.bleu._get_tokenizer(tokenizer)()(sentence)
         else:
             normalized_sent = sacrebleu.TOKENIZERS[tokenizer]()(sentence)
     elif tokenizer == "moses":
