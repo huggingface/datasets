@@ -15,7 +15,7 @@ from .logging import get_logger
 
 logger = get_logger(__name__)
 BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
-COMPRESSION_KNOWN_EXTENSIONS = ["zst"]
+COMPRESSION_KNOWN_EXTENSIONS = ["xz", "zst"]
 
 
 def xjoin(a, *p):
