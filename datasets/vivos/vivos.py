@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+
 import datasets
+
 
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
@@ -26,9 +28,10 @@ year={2016}
 """
 
 _DESCRIPTION = """\
-VIVOS is a free Vietnamese speech corpus consisting of 15 hours of recording speech prepared for VietnameseAutomatic Speech Recognition task.
+VIVOS is a free Vietnamese speech corpus consisting of 15 hours of recording speech prepared for
+Vietnamese Automatic Speech Recognition task.
 The corpus was prepared by AILAB, a computer science lab of VNUHCM - University of Science, with Prof. Vu Hai Quan is the head of.
-We publish this corpus in hope to attract more scientists to solve Vietnamese speech recognition problems. The corpus should only be used for academic purposes.
+We publish this corpus in hope to attract more scientists to solve Vietnamese speech recognition problems.
 """
 
 _HOMEPAGE = "https://ailab.hcmus.edu.vn/vivos"
@@ -38,9 +41,9 @@ _LICENSE = "cc-by-sa-4.0"
 _DATA_URL = "https://ailab.hcmus.edu.vn/assets/vivos.tar.gz"
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class VivosDataset(datasets.GeneratorBasedBuilder):
-    """VIVOS is a free Vietnamese speech corpus consisting of 15 hours of recording speech prepared for Vietnamese Automatic Speech Recognition task."""
+    """VIVOS is a free Vietnamese speech corpus consisting of 15 hours of recording speech prepared for
+    Vietnamese Automatic Speech Recognition task."""
 
     VERSION = datasets.Version("1.1.0")
 
@@ -52,54 +55,42 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
     # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
     # BUILDER_CONFIG_CLASS = MyBuilderConfig
 
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
-
     def _info(self):
-        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        features = datasets.Features(
-            {
-                "sentence": datasets.Value("string"),
-                "path": datasets.Value("string"),
-            }
-        )
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=datasets.Features(
+                {
+                    "speaker_id": datasets.Value("string"),
+                    "path": datasets.Value("string"),
+                    "sentence": datasets.Value("string"),
+                }
+            ),
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
         # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        dl_path = dl_manager.download_and_extract(_DATA_URL.format(self.config.name))
-        data_dir = os.path.join(dl_path, 'vivos')
-        train_dir = os.path.join(data_dir, 'train')
-        test_dir = os.path.join(data_dir, 'test')
+        dl_path = dl_manager.download_and_extract(_DATA_URL)
+        data_dir = os.path.join(dl_path, "vivos")
+        train_dir = os.path.join(data_dir, "train")
+        test_dir = os.path.join(data_dir, "test")
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(train_dir, "prompts.txt"),
-                    "path_to_clips": os.path.join(train_dir, "waves")
+                    "path_to_clips": os.path.join(train_dir, "waves"),
                 },
             ),
             datasets.SplitGenerator(
@@ -107,15 +98,17 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(test_dir, "prompts.txt"),
-                    "path_to_clips": os.path.join(test_dir, "waves")
+                    "path_to_clips": os.path.join(test_dir, "waves"),
                 },
-            )
+            ),
         ]
 
     def _generate_examples(
-        self, filepath, path_to_clips  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+        self,
+        filepath,
+        path_to_clips,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
 
@@ -123,7 +116,9 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
             lines = f.readlines()
             for id_, row in enumerate(lines):
                 data = row.strip().split(" ", 1)
+                speaker_id = data[0].split("_")[0]
                 yield id_, {
-                    "path": os.path.join(path_to_clips, data[0] + ".wav"),
+                    "speaker_id": speaker_id,
+                    "path": os.path.join(path_to_clips, speaker_id, data[0] + ".wav"),
                     "sentence": data[1],
                 }
