@@ -15,6 +15,7 @@ from .logging import get_logger
 
 logger = get_logger(__name__)
 BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
+COMPRESSION_KNOWN_EXTENSIONS = ["zst"]
 
 
 def xjoin(a, *p):
@@ -74,8 +75,12 @@ def xopen(file, mode="r", *args, **kwargs):
     """
     if fsspec.get_fs_token_paths(file)[0].protocol == "https":
         kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=kwargs.pop("use_auth_token", None))
-    file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
-    _add_retries_to_file_obj_read_method(file_obj)
+    compression = fsspec.core.get_compression(file, "infer")
+    if not compression or compression in ["gzip", "zip"]:
+        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+        _add_retries_to_file_obj_read_method(file_obj)
+    else:
+        file_obj = fsspec.open(file, mode=mode, compression=compression, *args, **kwargs)
     return file_obj
 
 
@@ -130,7 +135,7 @@ class StreamingDownloadManager(object):
 
     def _get_extraction_protocol(self, urlpath) -> Optional[str]:
         path = urlpath.split("::")[0]
-        if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS:
+        if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS + COMPRESSION_KNOWN_EXTENSIONS:
             return None
         elif path.endswith(".gz") and not path.endswith(".tar.gz"):
             return "gzip"
