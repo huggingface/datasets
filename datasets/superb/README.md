@@ -189,8 +189,7 @@ An example from each split looks like:
 ```python
 {
   'file': '/path/yes/af7a8296_nohash_1.wav', 
-  'label': 'yes', 
-  'id': 'yes_af7a8296_nohash_1.wav'
+  'label': 'yes'
 }
 ```
 

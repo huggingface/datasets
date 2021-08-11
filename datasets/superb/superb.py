@@ -161,7 +161,22 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "label": datasets.Value("string")
+                    "label": datasets.ClassLabel(
+                        names=[
+                            "yes",
+                            "no",
+                            "up",
+                            "down",
+                            "left",
+                            "right",
+                            "on",
+                            "off",
+                            "stop",
+                            "go",
+                            "_silence_",
+                            "_unknown_",
+                        ]
+                    ),
                 }
             ),
             supervised_keys=("file", "label"),
@@ -457,4 +472,4 @@ def _split_ks_files(archive_path, split):
     # either the test or validation splits
     train_paths = list(set(audio_paths) - set(val_paths) - set(test_paths))
 
-    return {"train": train_paths, "val": val_paths, "test": test_paths}
+    return {"train": train_paths, "val": val_paths}
