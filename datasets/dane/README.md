@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- da
+- da-DA
 licenses:
 - cc-by-sa-4.0
 multilinguality:
@@ -18,6 +18,7 @@ task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
 paperswithcode_id: dane
+pretty_name: 'Danish Dependency Treebank (DaNE)
 ---
 
 # Dataset Card for [Dataset Name]
@@ -56,15 +57,17 @@ paperswithcode_id: dane
 
 ### Dataset Summary
 
-[More Information Needed]
+Danish Dependency Treebank (DaNE)
+
+The Danish UD treebank (Johannsen et al., 2015, UD-DDT) is a conversion of the Danish Dependency Treebank (Buch-Kromann et al. 2003) based on texts from Parole (Britt, 1998). UD-DDT has annotations for dependency parsing and part-of-speech (POS) tagging. The dataset was annotated with Named Entities for PER, ORG, and LOC by the Alexandra Institute in the DaNE dataset (Hvingelby et al. 2020). 
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+Parts-of-speech tagging, dependency parsing and named entitity recognition.
 
 ### Languages
 
-[More Information Needed]
+Danish
 
 ## Dataset Structure
 
