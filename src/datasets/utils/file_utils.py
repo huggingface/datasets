@@ -687,9 +687,8 @@ def estimate_dataset_size(paths):
 
 def readline(f: io.RawIOBase):
     # From: https://github.com/python/cpython/blob/d27e2f4d118e7a9909b6a3e5da06c5ff95806a85/Lib/_pyio.py#L525
-    size = -1
     res = bytearray()
-    while size < 0 or len(res) < size:
+    while True:
         b = f.read(1)
         if not b:
             break
