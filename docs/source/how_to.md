@@ -4,9 +4,9 @@ Our how-to guides will show you how to complete a specific task. These guides ar
 
 The how-to guides will cover six key areas of 🤗 Datasets:
 
-* How to load a dataset from other sources of data.
+* How to load a dataset from other data sources.
 
-* How to process the data.
+* How to process a dataset.
 
 * How to stream large datasets.
 
@@ -16,4 +16,4 @@ The how-to guides will cover six key areas of 🤗 Datasets:
 
 * How to manage the cache.
 
-You can also find guides on how to process enormous datasets with Beam, how to integrate with cloud storage providers, and how to add an index to search your dataset.
+You can also find guides on how to process massive datasets with Beam, how to integrate with cloud storage providers, and how to add an index to search your dataset.

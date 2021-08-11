@@ -19,14 +19,14 @@ The default cache directory is ``~/.cache/huggingface/datasets``. Change the cac
 
    $ export HF_DATASETS_CACHE="/path/to/another/directory"
 
-When you load a dataset, you also have the option to control where the data is cached. Change the ``cache_dir`` parameter to the path you want:
+When you load a dataset, you also have the option to change where the data is cached. Change the ``cache_dir`` parameter to the path you want:
 
 .. code-block::
 
    >>> from datasets import load_dataset
    >>> dataset = load_dataset('LOADING_SCRIPT', cache_dir="PATH/TO/MY/CACHE/DIR")
 
-Similarly, you can control where a metric is cached with the ``cache_dir`` parameter:
+Similarly, you can change where a metric is cached with the ``cache_dir`` parameter:
 
 .. code-block::
 
@@ -59,13 +59,13 @@ Clean up the cache files in the directory with :func:`datasets.Dataset.cleanup_c
 Enable or disable caching
 -------------------------
 
-If you're using a cached file locally, it will automatically reload the dataset with any previous computations you applied to the dataset. Disable this behavior by setting the argument ``load_from_cache=False`` in :func:`datasets.Dataset.map`:
+If you're using a cached file locally, it will automatically reload the dataset with any previous transforms you applied to the dataset. Disable this behavior by setting the argument ``load_from_cache=False`` in :func:`datasets.Dataset.map`:
 
 .. code::
 
    >>> updated_dataset = small_dataset.map(add_prefix, load_from_cache=False)
 
-In the example above, 🤗 Datasets will execute the function ``add_prefix`` over the entire dataset again instead of just loading the dataset from its previous state.
+In the example above, 🤗 Datasets will execute the function ``add_prefix`` over the entire dataset again instead of loading the dataset from its previous state.
 
 Disable caching on a global scale with :func:`datasets.set_caching_enabled`:
 
@@ -74,7 +74,7 @@ Disable caching on a global scale with :func:`datasets.set_caching_enabled`:
    >>> from datasets import set_caching_enabled
    >>> set_caching_enabled(False)
 
-When you disable caching, 🤗 Datasets will no longer reload cached files when applying transforms to datasets. Any transform you apply on your dataset will be need to be recomputed.
+When you disable caching, 🤗 Datasets will no longer reload cached files when applying transforms to datasets. Any transform you apply on your dataset will be need to be reapplied.
 
 .. tip::
 

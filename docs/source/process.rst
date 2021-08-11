@@ -6,7 +6,7 @@ Process
 This guide will show you how to:
 
 * Reorder rows and split the dataset.
-* Rename and remove columns as well as other common column operations.
+* Rename and remove columns, and other common column operations.
 * Apply processing functions to each example in a dataset.
 * Concatenate datasets.
 * Apply a custom formatting transform.
@@ -16,12 +16,12 @@ Load the MRPC dataset to follow along with our examples:
 
 .. code-block::
 
-    >>> from datasets import load_dataset
-    >>> dataset = load_dataset('glue', 'mrpc', split='train')
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset('glue', 'mrpc', split='train')
 
 .. attention::
 
-    All the processing methods in this guide returns a new :class:`datasets.Dataset`. Modification is not done in-place. Be careful about overriding your previous dataset!
+   All the processing methods in this guide returns a new :class:`datasets.Dataset`. Modification is not done in-place. Be careful about overriding your previous dataset!
 
 Sort, shuffle, select, split, and shard
 ---------------------------------------
@@ -35,13 +35,13 @@ Use :func:`datasets.Dataset.sort` to sort a columns values according to their nu
 
 .. code-block::
 
-    >>> dataset['label'][:10]
-    [1, 0, 1, 0, 1, 1, 0, 1, 0, 0]
-    >>> sorted_dataset = dataset.sort('label')
-    >>> sorted_dataset['label'][:10]
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    >>> sorted_dataset['label'][-10:]
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+   >>> dataset['label'][:10]
+   [1, 0, 1, 0, 1, 1, 0, 1, 0, 0]
+   >>> sorted_dataset = dataset.sort('label')
+   >>> sorted_dataset['label'][:10]
+   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+   >>> sorted_dataset['label'][-10:]
+   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
 ``Shuffle``
 ^^^^^^^^^^^
@@ -50,9 +50,9 @@ The :func:`datasets.Dataset.shuffle` method randomly rearranges the values of a 
 
 .. code-block::
 
-    >>> shuffled_dataset = sorted_dataset.shuffle(seed=42)
-    >>> shuffled_dataset['label'][:10]
-    [1, 1, 1, 0, 1, 1, 1, 1, 1, 0]
+   >>> shuffled_dataset = sorted_dataset.shuffle(seed=42)
+   >>> shuffled_dataset['label'][:10]
+   [1, 1, 1, 0, 1, 1, 1, 1, 1, 0]
 
 ``Select`` and ``Filter``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -63,50 +63,50 @@ There are two options for filtering rows in a dataset: :func:`datasets.Dataset.s
 
 .. code-block::
 
-    >>> small_dataset = dataset.select([0, 10, 20, 30, 40, 50])
-    >>> len(small_dataset)
-    6
+   >>> small_dataset = dataset.select([0, 10, 20, 30, 40, 50])
+   >>> len(small_dataset)
+   6
 
 * :func:`datasets.Dataset.filter` returns rows that match a specified condition:
 
 .. code-block::
 
-    >>> start_with_ar = dataset.filter(lambda example: example['sentence1'].startswith('Ar'))
-    >>> len(start_with_ar)
-    6
-    >>> start_with_ar['sentence1']
-    ['Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
-    'Arison said Mann may have been one of the pioneers of the world music movement and he had a deep love of Brazilian music .',
-    'Arts helped coach the youth on an eighth-grade football team at Lombardi Middle School in Green Bay .',
-    'Around 9 : 00 a.m. EDT ( 1300 GMT ) , the euro was at $ 1.1566 against the dollar , up 0.07 percent on the day .',
-    "Arguing that the case was an isolated example , Canada has threatened a trade backlash if Tokyo 's ban is not justified on scientific grounds .",
-    'Artists are worried the plan would harm those who need help most - performers who have a difficult time lining up shows .'
-    ]
+   >>> start_with_ar = dataset.filter(lambda example: example['sentence1'].startswith('Ar'))
+   >>> len(start_with_ar)
+   6
+   >>> start_with_ar['sentence1']
+   ['Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
+   'Arison said Mann may have been one of the pioneers of the world music movement and he had a deep love of Brazilian music .',
+   'Arts helped coach the youth on an eighth-grade football team at Lombardi Middle School in Green Bay .',
+   'Around 9 : 00 a.m. EDT ( 1300 GMT ) , the euro was at $ 1.1566 against the dollar , up 0.07 percent on the day .',
+   "Arguing that the case was an isolated example , Canada has threatened a trade backlash if Tokyo 's ban is not justified on scientific grounds .",
+   'Artists are worried the plan would harm those who need help most - performers who have a difficult time lining up shows .'
+   ]
 
 :func:`datasets.Dataset.filter` can also filter by indices if you set ``with_indices=True``:
 
 .. code-block::
 
-    >>> even_dataset = dataset.filter(lambda example, indice: indice % 2 == 0, with_indices=True)
-    len(even_dataset)
-    1834
-    len(dataset) / 2
-    1834.0
+   >>> even_dataset = dataset.filter(lambda example, indice: indice % 2 == 0, with_indices=True)
+   len(even_dataset)
+   1834
+   len(dataset) / 2
+   1834.0
 
 ``Split``
 ^^^^^^^^^
 
-:func:`datasets.Dataset.train_test_split` can create train and test splits if your dataset doesn't already have them. This allows you to adjust the relative proportions or absolute number of samples in each split. In the example below, use the ``test_size`` argument to create a test split that is 10% of the original dataset:
+:func:`datasets.Dataset.train_test_split` creates train and test splits, if your dataset doesn't already have them. This allows you to adjust the relative proportions or absolute number of samples in each split. In the example below, use the ``test_size`` argument to create a test split that is 10% of the original dataset:
 
 .. code-block::
 
-    >>> dataset.train_test_split(test_size=0.1)
-    {'train': Dataset(schema: {'sentence1': 'string', 'sentence2': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 3301),
-    'test': Dataset(schema: {'sentence1': 'string', 'sentence2': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 367)}
-    >>> 0.1 * len(dataset)
-    366.8
+   >>> dataset.train_test_split(test_size=0.1)
+   {'train': Dataset(schema: {'sentence1': 'string', 'sentence2': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 3301),
+   'test': Dataset(schema: {'sentence1': 'string', 'sentence2': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 367)}
+   >>> 0.1 * len(dataset)
+   366.8
 
-The splits are shuffled by default, but you can set ``shuffle=False`` to prevent shuffling. For even more options selecting relative sizes of the train and test split, see the reference for :func:`datasets.Dataset.train_test_split`.
+The splits are shuffled by default, but you can set ``shuffle=False`` to prevent shuffling.
 
 ``Shard``
 ^^^^^^^^^
@@ -117,25 +117,25 @@ For example, the `imdb <https://huggingface.co/datasets/imdb>`_ dataset has 2500
 
 .. code-block::
 
-    >>> from datasets import load_dataset
-    >>> datasets = load_dataset('imdb', split='train')
-    >>> print(dataset)
-    Dataset({
-        features: ['text', 'label'],
-        num_rows: 25000
-    })
+   >>> from datasets import load_dataset
+   >>> datasets = load_dataset('imdb', split='train')
+   >>> print(dataset)
+   Dataset({
+       features: ['text', 'label'],
+       num_rows: 25000
+   })
 
-After you shard it into 4 chunks, the first chunk only has 6250 examples:
+After you shard the dataset into four chunks, the first shard only has 6250 examples:
 
 .. code-block::
 
-    >>> dataset.shard(num_shards=4, index=0)
-    Dataset({
-        features: ['text', 'label'],
-        num_rows: 6250
-    })
-    >>> print(25000/4)
-    6250.0
+   >>> dataset.shard(num_shards=4, index=0)
+   Dataset({
+       features: ['text', 'label'],
+       num_rows: 6250
+   })
+   >>> print(25000/4)
+   6250.0
 
 Rename, remove, cast, and flatten
 ---------------------------------
@@ -151,61 +151,61 @@ Provide :func:`datasets.Dataset.rename_column` with the name of the original col
 
 .. code-block::
 
-    >>> dataset = dataset.rename_column("sentence1", "sentenceA")
-    >>> dataset = dataset.rename_column("sentence2", "sentenceB")
-    >>> dataset
-    Dataset({
-        features: ['sentenceA', 'sentenceB', 'label', 'idx'],
-        num_rows: 3668
-    })
+   >>> dataset = dataset.rename_column("sentence1", "sentenceA")
+   >>> dataset = dataset.rename_column("sentence2", "sentenceB")
+   >>> dataset
+   Dataset({
+       features: ['sentenceA', 'sentenceB', 'label', 'idx'],
+       num_rows: 3668
+   })
 
 ``Remove``
 ^^^^^^^^^^
 
-When you need to remove one or more columns, give :func:`datasets.Dataset.remove_columns` the name of the column to remove. To remove more than one column, provide a list of column names:
+When you need to remove one or more columns, give :func:`datasets.Dataset.remove_columns` the name of the column to remove. Remove more than one column by providing a list of column names:
 
 .. code-block::
 
-    >>> dataset = dataset.remove_columns("label")
-    >>> dataset
-    Dataset({
-        features: ['sentence1', 'sentence2', 'idx'],
-        num_rows: 3668
-    })
-    >>> dataset = dataset.remove_columns(['sentence1', 'sentence2'])
-    >>> dataset
-    Dataset({
-        features: ['idx'],
-        num_rows: 3668
-    })
+   >>> dataset = dataset.remove_columns("label")
+   >>> dataset
+   Dataset({
+       features: ['sentence1', 'sentence2', 'idx'],
+       num_rows: 3668
+   })
+   >>> dataset = dataset.remove_columns(['sentence1', 'sentence2'])
+   >>> dataset
+   Dataset({
+       features: ['idx'],
+       num_rows: 3668
+   })
 
 ``Cast``
 ^^^^^^^^
 
-:func:`datasets.Dataset.cast` changes the feature type of one or more columns. This method takes your new :obj:`datasets.Features` as arguments. The following sample code shows how to change the feature types of :obj:`datasets.ClassLabel` and :obj:`datasets.Value`:
+:func:`datasets.Dataset.cast` changes the feature type of one or more columns. This method takes your new :obj:`datasets.Features` as its argument. The following sample code shows how to change the feature types of :obj:`datasets.ClassLabel` and :obj:`datasets.Value`:
 
 .. code-block::
 
-    >>> dataset.features
-    {'sentence1': Value(dtype='string', id=None),
-    'sentence2': Value(dtype='string', id=None),
-    'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
-    'idx': Value(dtype='int32', id=None)}
-    
-    >>> from datasets import ClassLabel, Value
-    >>> new_features = dataset.features.copy()
-    >>> new_features["label"] = ClassLabel(names=['negative', 'positive'])
-    >>> new_features["idx"] = Value('int64')
-    >>> dataset = dataset.cast(new_features)
-    >>> dataset.features
-    {'sentence1': Value(dtype='string', id=None),
-    'sentence2': Value(dtype='string', id=None),
-    'label': ClassLabel(num_classes=2, names=['negative', 'positive'], names_file=None, id=None),
-    'idx': Value(dtype='int64', id=None)}
+   >>> dataset.features
+   {'sentence1': Value(dtype='string', id=None),
+   'sentence2': Value(dtype='string', id=None),
+   'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
+   'idx': Value(dtype='int32', id=None)}
+   
+   >>> from datasets import ClassLabel, Value
+   >>> new_features = dataset.features.copy()
+   >>> new_features["label"] = ClassLabel(names=['negative', 'positive'])
+   >>> new_features["idx"] = Value('int64')
+   >>> dataset = dataset.cast(new_features)
+   >>> dataset.features
+   {'sentence1': Value(dtype='string', id=None),
+   'sentence2': Value(dtype='string', id=None),
+   'label': ClassLabel(num_classes=2, names=['negative', 'positive'], names_file=None, id=None),
+   'idx': Value(dtype='int64', id=None)}
 
 .. tip::
 
-    Casting only works if the original feature type and new feature type are compatible. For example, you can cast a column with the feature type ``Value('int32')`` to ``Value('bool')`` if the original column only contains ones and zeros. 
+   Casting only works if the original feature type and new feature type are compatible. For example, you can cast a column with the feature type ``Value('int32')`` to ``Value('bool')`` if the original column only contains ones and zeros. 
 
 .. _flatten:
 
@@ -216,25 +216,25 @@ Sometimes a column can be a nested structure of several types. Use :func:`datase
 
 .. code-block::
 
-    >>> from datasets import load_dataset
-    >>> dataset = load_dataset('squad', split='train')
-    >>> dataset.features
-    {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
-    'context': Value(dtype='string', id=None),
-    'id': Value(dtype='string', id=None),
-    'question': Value(dtype='string', id=None),
-    'title': Value(dtype='string', id=None)}
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset('squad', split='train')
+   >>> dataset.features
+   {'answers': Sequence(feature={'text': Value(dtype='string', id=None), 'answer_start': Value(dtype='int32', id=None)}, length=-1, id=None),
+   'context': Value(dtype='string', id=None),
+   'id': Value(dtype='string', id=None),
+   'question': Value(dtype='string', id=None),
+   'title': Value(dtype='string', id=None)}
 
 The ``answers`` field contains two subfields: ``text`` and ``answer_start``. Flatten them with :func:`datasets.Dataset.flatten`:
 
 .. code-block::
 
-    >>> flat_dataset = dataset.flatten()
-    >>> flat_dataset
-    Dataset({
-        features: ['id', 'title', 'context', 'question', 'answers.text', 'answers.answer_start'],
-        num_rows: 87599
-    })
+   >>> flat_dataset = dataset.flatten()
+   >>> flat_dataset
+   Dataset({
+       features: ['id', 'title', 'context', 'question', 'answers.text', 'answers.answer_start'],
+    num_rows: 87599
+   })
 
 Notice how the subfields are now their own independent columns.
 
@@ -243,27 +243,27 @@ Notice how the subfields are now their own independent columns.
 ``Map``
 -------
 
-Some of the more powerful applications of 🤗 Datasets come from using :func:`datasets.Dataset.map`. The primary purpose of :func:`datasets.Dataset.map` is to update and modify the contents of a dataset.  It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.
+Some of the more powerful applications of 🤗 Datasets come from using :func:`datasets.Dataset.map`. The primary purpose of :func:`datasets.Dataset.map` is to speed up processing functions. It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.
 
 In the following example, you will prefix each ``sentence1`` value in the dataset with ``'My sentence: '``. First, create a function that adds ``'My sentence: '`` to the beginning of each sentence. The function needs to accept and output a ``dict``:
 
 .. code-block::
 
-    >>> def add_prefix(example):
-    ...     example['sentence1'] = 'My sentence: ' + example['sentence1']
-    ...     return example
+   >>> def add_prefix(example):
+   ...     example['sentence1'] = 'My sentence: ' + example['sentence1']
+   ...     return example
         
 Next, apply this function to the dataset with :func:`datasets.Dataset.map`:
 
 .. code-block::
 
-    >>> updated_dataset = small_dataset.map(add_prefix)
-    >>> updated_dataset['sentence1'][:5]
-    ['My sentence: Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
-    "My sentence: Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .",
-    'My sentence: They had published an advertisement on the Internet on June 10 , offering the cargo for sale , he added .',
-    'My sentence: Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
-    ]
+   >>> updated_dataset = small_dataset.map(add_prefix)
+   >>> updated_dataset['sentence1'][:5]
+   ['My sentence: Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
+   "My sentence: Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .",
+   'My sentence: They had published an advertisement on the Internet on June 10 , offering the cargo for sale , he added .',
+   'My sentence: Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
+   ]
 
 Let's take a look at another example, except this time, you will remove a column with :func:`datasets.Dataset.map`. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed. 
 
@@ -271,25 +271,26 @@ Specify the column to remove with the ``remove_columns=List[str]`` argument in :
 
 .. code-block::
 
-    >>> updated_dataset = dataset.map(lambda example: {'new_sentence': example['sentence1']}, remove_columns=['sentence1'])
-    >>> updated_dataset.column_names
-    ['sentence2', 'label', 'idx', 'new_sentence']
+   >>> updated_dataset = dataset.map(lambda example: {'new_sentence': example['sentence1']}, remove_columns=['sentence1'])
+   >>> updated_dataset.column_names
+   ['sentence2', 'label', 'idx', 'new_sentence']
 
 .. tip::
 
-    🤗 Datasets also has a :func:`datasets.Dataset.remove_columns` method that is functionally identical, but faster, because it doesn't copy the data of the remaining columns.
+   🤗 Datasets also has a :func:`datasets.Dataset.remove_columns` method that is functionally identical, but faster, because it doesn't copy the data of the remaining columns.
 
 You can also use :func:`datasets.Dataset.map` with indices if you set ``with_indices=True``. The sample below adds the index to the beginning of each sentence:
 
 .. code-block::
 
-    >>> updated_dataset = dataset.map(lambda example, idx: {'sentence2': f'{idx}: ' + example['sentence2']}, with_indices=True)
-    >>> updated_dataset['sentence2'][:5]
-    ['0: Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
-     "1: Yucaipa bought Dominick 's in 1995 for $ 693 million and sold it to Safeway for $ 1.8 billion in 1998 .",
-     "2: On June 10 , the ship 's owners had published an advertisement on the Internet , offering the explosives for sale .",
-     '3: Tab shares jumped 20 cents , or 4.6 % , to set a record closing high at A $ 4.57 .', 
-     '4: PG & E Corp. shares jumped $ 1.63 or 8 percent to $ 21.03 on the New York Stock Exchange on Friday .']
+   >>> updated_dataset = dataset.map(lambda example, idx: {'sentence2': f'{idx}: ' + example['sentence2']}, with_indices=True)
+   >>> updated_dataset['sentence2'][:5]
+   ['0: Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
+    "1: Yucaipa bought Dominick 's in 1995 for $ 693 million and sold it to Safeway for $ 1.8 billion in 1998 .",
+    "2: On June 10 , the ship 's owners had published an advertisement on the Internet , offering the explosives for sale .",
+    '3: Tab shares jumped 20 cents , or 4.6 % , to set a record closing high at A $ 4.57 .', 
+    '4: PG & E Corp. shares jumped $ 1.63 or 8 percent to $ 21.03 on the New York Stock Exchange on Friday .'
+   ]
 
 Multiprocessing
 ^^^^^^^^^^^^^^^
@@ -314,25 +315,25 @@ First, load the tokenizer from the BERT model:
 
 .. code-block::
 
-    >>> from transformers import BertTokenizerFast
-    >>> tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
+   >>> from transformers import BertTokenizerFast
+   >>> tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
 
 Apply the tokenizer to batches of the ``sentence1`` field:
 
 .. code-block::
 
-    >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True)
-    >>> encoded_dataset.column_names
-    ['sentence1', 'sentence2', 'label', 'idx', 'input_ids', 'token_type_ids', 'attention_mask']
-    >>> encoded_dataset[0]
-    {'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
-    'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
-    'label': 1,
-    'idx': 0,
-    'input_ids': [  101,  7277,  2180,  5303,  4806,  1117,  1711,   117,  2292, 1119,  1270,   107,  1103,  7737,   107,   117,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102],
-    'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    }
+   >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True)
+   >>> encoded_dataset.column_names
+   ['sentence1', 'sentence2', 'label', 'idx', 'input_ids', 'token_type_ids', 'attention_mask']
+   >>> encoded_dataset[0]
+   {'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
+   'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
+   'label': 1,
+   'idx': 0,
+   'input_ids': [  101,  7277,  2180,  5303,  4806,  1117,  1711,   117,  2292, 1119,  1270,   107,  1103,  7737,   107,   117,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102],
+   'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+   'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+   }
 
 Now you have three new columns, ``input_ids``, ``token_type_ids``, ``attention_mask``, that contain the encoded version of the ``sentence1`` field.
 
@@ -341,9 +342,9 @@ Split long examples
 
 When your examples are too long, you may want to split them into several smaller snippets. Begin by creating a function that:
 
-1. splits the ``sentence1`` field into snippets of 50 characters 
+1. Splits the ``sentence1`` field into snippets of 50 characters.
 
-2. stack all the snippets together to create the new dataset
+2. Stacks all the snippets together to create the new dataset.
 
 .. code-block::
 
@@ -387,7 +388,7 @@ Data augmentation
 
 With batch processing, you can even augment your dataset with additional examples. In the following example, you will generate additional words for a masked token in a sentence. 
 
-Load the `RoBERTA <https://huggingface.co/roberta-base>`_ model to use in the 🤗 Transformer `FillMaskPipeline <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.FillMaskPipeline>`_:
+Load the `RoBERTA <https://huggingface.co/roberta-base>`_ model for use in the 🤗 Transformer `FillMaskPipeline <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.FillMaskPipeline>`_:
 
 .. code-block::
 
@@ -427,7 +428,8 @@ Use :func:`datasets.Dataset.map` to apply the function over the whole dataset:
     "Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .",
     'Yucaipa owned Dominick Stores before selling the chain to Safeway in 1998 for $ 2.5 billion.',
     "Yucaipa owned Dominick's before selling the chain to Safeway in 1998 for $ 2.5 billion.",
-    'Yucaipa owned Dominick Pizza before selling the chain to Safeway in 1998 for $ 2.5 billion.']
+    'Yucaipa owned Dominick Pizza before selling the chain to Safeway in 1998 for $ 2.5 billion.'
+   ]
 
 For each original sentence, RoBERTA augmented a random word with three alternatives. In the first sentence, the word ``distorting`` is augmented with ``withholding``, ``suppressing``, and ``destroying``.
 
@@ -495,7 +497,7 @@ Separate datasets can be concatenated if they share the same column types. Conca
 
 .. seealso::
 
-    You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving, and you can use it with :func:`datasets.interleave_datasets`. Both :func:`datasets.interleave_datasets` and :func:`datasets.concatenate_datasets` will work with regular :class:`datasets.Dataset` and :class:`datasets.IterableDataset` objects. Refer to the :ref:`interleave_datasets` section for an example of how it's used.
+   You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving, and you can use it with :func:`datasets.interleave_datasets`. Both :func:`datasets.interleave_datasets` and :func:`datasets.concatenate_datasets` will work with regular :class:`datasets.Dataset` and :class:`datasets.IterableDataset` objects. Refer to the :ref:`interleave_datasets` section for an example of how it's used.
 
 Format
 ------
@@ -537,7 +539,7 @@ Format transform
 Save
 ----
 
-Once you are done processing your dataset, you can save it and reuse it later. The following table shows which save method you should use depending on your :class:`datasets.Dataset` object:
+Once you are done processing your dataset, you can save and reuse it later. The following table shows which save method you should use depending on your :class:`datasets.Dataset` object:
 
 .. list-table::
     :header-rows: 1

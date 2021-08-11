@@ -31,7 +31,7 @@ Use :func:`datasets.Metric.add_batch` by passing it your model predictions, and 
 
 .. note::
 
-    Metrics accepts various input formats (Python lists, NumPy arrays, PyTorch tensors, etc.) and converts them to an appropriate format for storage and computation.
+   Metrics accepts various input formats (Python lists, NumPy arrays, PyTorch tensors, etc.) and converts them to an appropriate format for storage and computation.
 
 Compute scores
 --------------
@@ -65,11 +65,13 @@ Let's load the `SacreBLEU <https://huggingface.co/metrics/sacrebleu>`_ metric, a
        force: Insist that your tokenized input is actually detokenized.
    ...
 
-3. Compute the metric with the ``floor`` method and a different ``smooth_value``:
+3. Compute the metric with the ``floor`` method, and a different ``smooth_value``:
 
 .. code::
 
    >>> score = metric.compute(smooth_method="floor", smooth_value=0.2)
+
+.. _metric_script:
 
 Custom metric loading script
 ----------------------------

@@ -19,7 +19,7 @@ Loading a dataset in streaming mode creates a unique instance of the classic :cl
 
 .. tip::
 
-    This type of ``Dataset`` is useful for iterative jobs such as training a model. You shouldn't use an iterable Dataset for jobs that require random access to examples because you have to iterate over it using a for loop. Getting the last example in a dataset would require you to iterate over all the previous examples.
+    An :class:`datasets.IterableDataset` is useful for iterative jobs like training a model. You shouldn't use an :class:`datasets.IterableDataset` for jobs that require random access to examples because you have to iterate over it using a for loop. Getting the last example in a dataset would require you to iterate over all the previous examples.
 
 ``Shuffle``
 ^^^^^^^^^^^
@@ -94,7 +94,7 @@ You can split your dataset one of two ways:
    >>> print(list(islice(multilingual_dataset, 2)))
    [{'text': 'Mtendere Village was inspired by the vision...}, {'text': "Média de débat d'idées, de culture et de littérature....}]
 
-Define sampling probabilities for each of the original datasets for more control over how each of them are sampled and combined. Set the ``probabilities`` argument with your desired sampling probabilities:
+Define sampling probabilities from each of the original datasets for more control over how each of them are sampled and combined. Set the ``probabilities`` argument with your desired sampling probabilities:
 
 .. code-block::
 
@@ -102,4 +102,4 @@ Define sampling probabilities for each of the original datasets for more control
    >>> print(list(islice(multilingual_dataset_with_oversampling, 2)))
    [{'text': 'Mtendere Village was inspired by the vision...}, {'text': 'Lily James cannot fight the music...}]
 
-The final dataset contains of 80% of the ``en_dataset``, and 20% of the ``fr_dataset``.
+The final dataset contains 80% of the ``en_dataset``, and 20% of the ``fr_dataset``.

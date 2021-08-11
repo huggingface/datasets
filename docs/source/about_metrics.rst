@@ -21,8 +21,8 @@ A common way to overcome this issue is to fallback on single process evaluation.
 
 TO DO: Briefly explain what distributed reduce operations are.
 
-🤗 Datasets solves this by only computing the final metric on the first node. The predictions and references are computed and provided to the metric separately for each node. These are temporarily stored in an Apache Arrow table, avoiding cluttering the GPU or CPU memory. When you are ready to :func:`datasets.Metric.compute` the final metric, the first node is able to access the predictions and references stored on all the other nodes. Once it has gathered all the predictions and references, :func:`datasets.Metric.compute` will perform the final metric evaluation.
+🤗 Datasets solves this issue by only computing the final metric on the first node. The predictions and references are computed and provided to the metric separately for each node. These are temporarily stored in an Apache Arrow table, avoiding cluttering the GPU or CPU memory. When you are ready to :func:`datasets.Metric.compute` the final metric, the first node is able to access the predictions and references stored on all the other nodes. Once it has gathered all the predictions and references, :func:`datasets.Metric.compute` will perform the final metric evaluation.
 
-This solution enables 🤗 Datasets to perform distributed predictions, which is important for evaluation speed in distributed settings. At the same time, you can also use complex non-additive metrics without wasting valuable GPU or CPU memory.
+This solution allows 🤗 Datasets to perform distributed predictions, which is important for evaluation speed in distributed settings. At the same time, you can also use complex non-additive metrics without wasting valuable GPU or CPU memory.
 
 TO DO: More explanation on how the file locks perform the synchronization, or remove this part.

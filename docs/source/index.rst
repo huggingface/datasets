@@ -6,7 +6,7 @@ Datasets
 
 🤗 Datasets is a library for easily accessing and sharing datasets, and evaluation metrics for Natural Language Processing (NLP). 
 
-Load a dataset in a single line of code, and use our powerful data processing methods to quickly get your dataset ready for training in a deep learning model. Backed by the Apache Arrow format, process large datasets with zero-copy reads without any memory constraints for optimal speed and efficiency. We also feature deep integration with the Hugging Face Hub, allowing you to easily load and share a dataset with the wider NLP community. There are currently over 900 datasets, and more than 25 metrics available. 
+Load a dataset in a single line of code, and use our powerful data processing methods to quickly get your dataset ready for training in a deep learning model. Backed by the Apache Arrow format, process large datasets with zero-copy reads without any memory constraints for optimal speed and efficiency. We also feature a deep integration with the `Hugging Face Hub <https://huggingface.co/datasets>`_, allowing you to easily load and share a dataset with the wider NLP community. There are currently over 900 datasets, and more than 25 metrics available. 
 
 Find your dataset today on the `Hugging Face Hub <https://huggingface.co/datasets>`_, or take an in-depth look inside a dataset with the live `Datasets Viewer <https://huggingface.co/datasets/viewer/>`_.
 
@@ -19,7 +19,7 @@ Find your dataset today on the `Hugging Face Hub <https://huggingface.co/dataset
         :classes: btn-primary btn-block
     
     ^^^
-    Learn the basics and become familiar with loading, accessing, and using a dataset. Start here if you are using 🤗 Datasets for the first time!
+    Learn the basics and become familiar with loading, accessing, and processing a dataset. Start here if you are using 🤗 Datasets for the first time!
 
     ---
     .. link-button:: how_to
@@ -37,7 +37,7 @@ Find your dataset today on the `Hugging Face Hub <https://huggingface.co/dataset
         :classes: btn-primary btn-block
 
     ^^^
-    High-level explanations for building a better understanding about important topics such as the underlying data format, cache, and how datasets are generated.
+    High-level explanations for building a better understanding about important topics such as the underlying data format, thecache, and how datasets are generated.
     ---
     .. link-button:: package_reference/main_classes
         :type: ref

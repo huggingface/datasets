@@ -16,9 +16,7 @@ The ability to control the generated dataset size can be taken advantage of for 
 * Split long sentences into shorter chunks.
 * Augment a dataset with additional tokens.
 
-It is helpful to understand how this works, so you can come up with your own ways to use batch mapping. At this point, you may be wondering how you can control the size of the generated dataset. The answer is:
-
-    ✨ The mapped function does not have to return an output batch of the same size. ✨
+It is helpful to understand how this works, so you can come up with your own ways to use batch mapping. At this point, you may be wondering how you can control the size of the generated dataset. The answer is: **the mapped function does not have to return an output batch of the same size**.
 
 In other words, your input can be a batch of size ``N`` and return a batch of size ``M``. The output ``M`` can be greater than or less than ``N``. This means you can concatenate your examples, divide it up, and even add more examples!
 

@@ -1,7 +1,7 @@
 Share
 ======
 
-At Hugging Face, we are on a mission to democratize NLP and we believe in the significance of open source. That's why we designed 🤗 Datasets so that anyone can share a dataset with the greater NLP community. There are currently over 900 datasets in over 100 languages, and the Hugging Face team always welcomes new submissions!
+At Hugging Face, we are on a mission to democratize NLP and we believe in the value of open source. That's why we designed 🤗 Datasets so that anyone can share a dataset with the greater NLP community. There are currently over 900 datasets in over 100 languages, and the Hugging Face team always welcomes new submissions!
 
 This guide will show you how to add a dataset that can be easily accessed by anyone. The guide includes instructions for how to:
 
@@ -16,7 +16,7 @@ Open the `SQuAD dataset loading script <https://github.com/huggingface/datasets/
 
 .. tip::
 
-   To help you get started, try beginning with the dataset loading script `template <https://github.com/huggingface/datasets/blob/master/templates/new_dataset_script.py>`_.
+   To help you get started, try beginning with the dataset loading script `template <https://github.com/huggingface/datasets/blob/master/templates/new_dataset_script.py>`_!
 
 Add dataset attributes
 ----------------------
@@ -76,7 +76,7 @@ After you've filled out all these fields in the template, it should look like th
 Multiple configurations
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-In some cases, your dataset may have multiple configurations. For example, the `SuperGLUE <https://huggingface.co/datasets/super_glue>`_ dataset is a collection of 5 datasets designed to evaluate more difficult language understanding tasks. 🤗 Datasets provides :class:`datasets.BuilderConfig` which allows you to create different configurations for the user to select from.
+In some cases, your dataset may have multiple configurations. For example, the `SuperGLUE <https://huggingface.co/datasets/super_glue>`_ dataset is a collection of 5 datasets designed to evaluate language understanding tasks. 🤗 Datasets provides :class:`datasets.BuilderConfig` which allows you to create different configurations for the user to select from.
 
 Let's study the `SuperGLUE loading script <https://github.com/huggingface/datasets/blob/master/datasets/super_glue/super_glue.py>`_ to see how you can define several configurations.
 
@@ -267,7 +267,7 @@ Dataset metadata
 
    datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 
-2. If your dataset loading script behaved correctly, you should now have a ``dataset_infos.json`` file in your dataset folder. This file contains information about the dataset, like its ``features`` and ``download_size``.
+2. If your dataset loading script passed the test, you should now have a ``dataset_infos.json`` file in your dataset folder. This file contains information about the dataset, like its ``features`` and ``download_size``.
 
 Dummy data
 ^^^^^^^^^^
@@ -357,7 +357,7 @@ Each dataset should be accompanied with a Dataset card to promote responsible us
 
    cp ./templates/README.md ./datasets/<your_dataset_name>/README.md
 
-2. Next, you need to generate structured tags. These help users discover your dataset on the Hub. Create the tags with the `online tagging app <https://huggingface.co/datasets/tagging/>`_, or clone and install the `Dataset tagging app <https://github.com/huggingface/datasets-tagging>`_ locally.
+2. Next, you need to generate structured tags. The tags help users discover your dataset on the Hub. Create the tags with the `online tagging app <https://huggingface.co/datasets/tagging/>`_, or clone and install the `Datasets tagging app <https://github.com/huggingface/datasets-tagging>`_ locally.
 
 3. Select the appropriate tags for your dataset from the dropdown menus, and save the file once you are done.
 
@@ -427,7 +427,7 @@ Add the ``-organization`` flag to create a repository under a specific organizat
 
    git clone https://huggingface.co/datasets/username/your_dataset_name
 
-4. Now is a good time to check your directory to ensure the only files you are:
+4. Now is a good time to check your directory to ensure the only files you're uploading are:
 
 * ``README.md`` is a Dataset card that describes the datasets contents, creation, and usage.
 
@@ -466,7 +466,7 @@ Add the ``-organization`` flag to create a repository under a specific organizat
    git push
 
 
-Congratulations, your dataset has now been uploaded to the Hugging Face Hub where anyone can load it with a single line of code! 🥳
+Congratulations, your dataset has now been uploaded to the Hugging Face Hub where anyone can load it in a single line of code! 🥳
 
 .. code::
 

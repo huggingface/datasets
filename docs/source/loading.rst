@@ -1,7 +1,7 @@
 Load
 ====
 
-You have already seen how you can load a dataset from the Hugging Face Hub. But datasets are stored in a variety of places, and sometimes you won't find the one you want on the Hub. The datasets can be on your local machine, in a Github repository, and in data structures like Python dictionaries and Pandas DataFrames. Wherever your dataset may be stored, 🤗 Datasets provides a way for you to load it and use it for training.
+You have already seen how to load a dataset from the Hugging Face Hub. But datasets are stored in a variety of places, and sometimes you won't find the one you want on the Hub. A dataset can be on your local machine, in a Github repository, and in data structures like Python dictionaries and Pandas DataFrames. Wherever your dataset may be stored, 🤗 Datasets provides a way for you to load and use it for training.
 
 This guide will show you how to load a dataset from:
 
@@ -22,20 +22,20 @@ First, create a dataset repository and upload your data files. Then you can use 
 
 .. seealso::
 
-    Refer to the :ref:`upload_dataset_repo` guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
+   Refer to the :ref:`upload_dataset_repo` guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
 
 The only extra step you need to take is to specify the files for each split with the ``data_files`` argument:
 
 .. code-block::
 
-    >>> from datasets import load_dataset
-    >>> data_files = {"train": "en/c4-train.*.json.gz"}
-    >>> c4 = load_dataset("allenai/c4", data_files=data_files, split="train", streaming=True)
+   >>> from datasets import load_dataset
+   >>> data_files = {"train": "en/c4-train.*.json.gz"}
+   >>> c4 = load_dataset("allenai/c4", data_files=data_files, split="train", streaming=True)
 
 Local files
 -----------
 
-🤗 Datasets can be loaded from local files stored on your computer. The datasets most likely exist as a ``csv``, ``json``, ``txt`` or ``parquet`` file. The :func:`datasets.load_dataset` method is able to load each of these file types.
+🤗 Datasets can be loaded from local files stored on your computer. The datasets are most likely stored as a ``csv``, ``json``, ``txt`` or ``parquet`` file. The :func:`datasets.load_dataset` method is able to load each of these file types.
 
 CSV
 ^^^
@@ -44,52 +44,51 @@ CSV
 
 .. code-block::
 
-    >>> from datasets import load_dataset
-    >>> dataset = load_dataset('csv', data_files='my_file.csv')
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset('csv', data_files='my_file.csv')
 
-If you have more than one ``csv`` file:
-
-.. code::
-
-    >>> dataset = load_dataset('csv', data_files=['my_file_1.csv', 'my_file_2.csv', 'my_file_3.csv'])
-
-You can also map the training and test splits to specific ``csv`` files:
+If you have more than one CSV file:
 
 .. code::
 
-    >>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'],
-                                                  'test': 'my_test_file.csv'})
+   >>> dataset = load_dataset('csv', data_files=['my_file_1.csv', 'my_file_2.csv', 'my_file_3.csv'])
+
+You can also map the training and test splits to specific CSV files:
+
+.. code::
+
+   >>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'] 'test': 'my_test_file.csv'})
 
 JSON
 ^^^^
 
-``json`` files are loaded directly with :func:`datasets.load_dataset` as shown below:
+JSON files are loaded directly with :func:`datasets.load_dataset` as shown below:
 
 .. code-block::
 
-    >>> from datasets import load_dataset
-    >>> dataset = load_dataset('json', data_files='my_file.json')
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset('json', data_files='my_file.json')
 
-``json`` files can have diverse formats, but we think the most efficient format is to have multiple ``json`` objects; each line represents an individual row of data. For example:
-
-.. code-block::
-
-    {"a": 1, "b": 2.0, "c": "foo", "d": false}
-    {"a": 4, "b": -5.5, "c": null, "d": true}
-
-Another format you may often encounter is a nested field. In this situation, you will need to specify the ``field`` argument as shown in the following:
+JSON files can have diverse formats, but we think the most efficient format is to have multiple JSON objects; each line represents an individual row of data. For example:
 
 .. code-block::
 
-    {"version": "0.1.0",
-     "data": [{"a": 1, "b": 2.0, "c": "foo", "d": false},
-              {"a": 4, "b": -5.5, "c": null, "d": true}]
-    }
+   {"a": 1, "b": 2.0, "c": "foo", "d": false}
+   {"a": 4, "b": -5.5, "c": null, "d": true}
+
+Another format you may encounter is a nested field, in which case you will need to specify the ``field`` argument as shown in the following:
+
+.. code-block::
+
+   {"version": "0.1.0",
+       "data": [{"a": 1, "b": 2.0, "c": "foo", "d": false},
+               {"a": 4, "b": -5.5, "c": null, "d": true}]
+   }
     
-    >>> from datasets import load_dataset
-    >>> dataset = load_dataset('json', data_files='my_file.json', field='data')
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset('json', data_files='my_file.json', field='data')
 
-While these are the most common formats, you may see other datasets that are stored differently. 🤗 Datasets will recognize this, and fallback accordingly on the Python ``json`` loading methods to handle the various formats.
+While these are the most common formats, you will see other datasets that are formatted differently. 🤗 Datasets recognizes these other formats, and will fallback accordingly on the Python JSON loading methods to handle them.
 
 Text files
 ^^^^^^^^^^
@@ -98,13 +97,13 @@ Text files are one of the most common file types for storing a dataset. 🤗 Dat
 
 .. code-block::
 
-    >>> from datasets import load_dataset
-    >>> dataset = load_dataset('text', data_files={'train': ['my_text_1.txt', 'my_text_2.txt'], 'test': 'my_test_file.txt'})
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset('text', data_files={'train': ['my_text_1.txt', 'my_text_2.txt'], 'test': 'my_test_file.txt'})
 
 Parquet
 ^^^^^^^
 
-Parquet files are stored in a columnar format unlike row based files like ``csv``. Large datasets may be stored in a Parquet file because it is more efficient, and faster at returning your query. Load a Parquet file as shown in the following example:
+Parquet files are stored in a columnar format unlike row-based files like CSV. Large datasets may be stored in a Parquet file because it is more efficient, and faster at returning your query. Load a Parquet file as shown in the following example:
 
 .. code-block::
 
@@ -125,8 +124,8 @@ Load Python dictionaries with :func:`datasets.Dataset.from_dict`:
 
 .. code-block::
 
-    >>> from datasets import Dataset
-    >>> dataset = Dataset.from_dict(my_dict)
+   >>> from datasets import Dataset
+   >>> dataset = Dataset.from_dict(my_dict)
 
 Pandas DataFrame
 ^^^^^^^^^^^^^^^^
@@ -135,19 +134,19 @@ Load Pandas DataFrames with :func:`datasets.Dataset.from_pandas`:
 
 .. code-block::
 
-    >>> from datasets import Dataset
-    >>> import pandas as pd
-    >>> df = pd.DataFrame({"a": [1, 2, 3]})
-    >>> dataset = Dataset.from_pandas(df)
+   >>> from datasets import Dataset
+   >>> import pandas as pd
+   >>> df = pd.DataFrame({"a": [1, 2, 3]})
+   >>> dataset = Dataset.from_pandas(df)
 
 .. important::
 
-    An object data type in pandas.Series doesn't always carry enough information for Arrow to automatically infer a data type. Avoid potential errors by constructing an explicit schema with :class:`datasets.Features` using the ``from_dict`` or ``from_pandas`` methods. See the :ref:`Troubleshooting guide <troubleshoot>` below for more details on how to specify a feature.
+   An object data type in `pandas.Series <https://pandas.pydata.org/docs/reference/api/pandas.Series.html>`_ doesn't always carry enough information for Arrow to automatically infer a data type. Avoid potential errors by constructing an explicit schema with :class:`datasets.Features` using the ``from_dict`` or ``from_pandas`` methods. See the :ref:`troubleshoot` for more details on how to explicitly specify your own features.
 
 Offline
 -------
 
-Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub or Datasets Github repository, it should be cached. This means you can reload the dataset from the cache and use it offline.
+Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub or 🤗 Datasets Github repository, it should be cached. This means you can reload the dataset from the cache and use it offline.
 
 If you know you won't have internet access, you can run 🤗 Datasets in full offline mode. This saves time because instead of waiting for the Dataset builder download to time out, 🤗 Datasets will look directly in the cache. Set the environment variable ``HF_DATASETS_OFFLINE`` to ``1`` to enable full offline mode.
 
@@ -160,70 +159,69 @@ Concatenate the ``train`` and ``test`` split by:
 
 .. tab:: String API
 
-    >>> train_test_ds = datasets.load_dataset('bookcorpus', split='train+test')
+   >>> train_test_ds = datasets.load_dataset('bookcorpus', split='train+test')
 
 .. tab:: ReadInstruction
 
-    >>> ri = datasets.ReadInstruction('train') + datasets.ReadInstruction('test')
-    >>> train_test_ds = datasets.load_dataset('bookcorpus', split=ri)
+   >>> ri = datasets.ReadInstruction('train') + datasets.ReadInstruction('test')
+   >>> train_test_ds = datasets.load_dataset('bookcorpus', split=ri)
 
 Select specific rows of the ``train`` split:
 
 .. tab:: String API
 
-    >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split='train[10:20]')
+   >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split='train[10:20]')
 
 .. tab:: ReadInstruction
 
-    >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', from_=10, to=20, unit='abs'))
+   >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', from_=10, to=20, unit='abs'))
 
 Or select a percentage of the split with:
 
 .. tab:: String API
 
-    >>> train_10pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]')
+   >>> train_10pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]')
 
 .. tab:: ReadInstruction
 
-    >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', to=10, unit='%'))
+   >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', to=10, unit='%'))
 
-You can even select a combination of percentages of a split:
+You can even select a combination of percentages from each split:
 
 .. tab:: String API
 
-    >>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]+train[-80%:]')
+   >>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]+train[-80%:]')
 
 .. tab:: ReadInstruction
 
-    >>> ri = (datasets.ReadInstruction('train', to=10, unit='%') + datasets.ReadInstruction('train', from_=-80, unit='%'))
-    >>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split=ri)
+   >>> ri = (datasets.ReadInstruction('train', to=10, unit='%') + datasets.ReadInstruction('train', from_=-80, unit='%'))
+   >>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split=ri)
 
 Finally, create cross-validated dataset splits by:
 
 .. tab:: String API
 
-    >>> # 10-fold cross-validation (see also next section on rounding behavior):
-    >>> # The validation datasets are each going to be 10%:
-    >>> # [0%:10%], [10%:20%], ..., [90%:100%].
-    >>> # And the training datasets are each going to be the complementary 90%:
-    >>> # [10%:100%] (for a corresponding validation set of [0%:10%]),
-    >>> # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
-    >>> # [0%:90%] (for a validation set of [90%:100%]).
-    >>> vals_ds = datasets.load_dataset('bookcorpus', split=[f'train[{k}%:{k+10}%]' for k in range(0, 100, 10)])
-    >>> trains_ds = datasets.load_dataset('bookcorpus', split=[f'train[:{k}%]+train[{k+10}%:]' for k in range(0, 100, 10)])
+   >>> # 10-fold cross-validation (see also next section on rounding behavior):
+   >>> # The validation datasets are each going to be 10%:
+   >>> # [0%:10%], [10%:20%], ..., [90%:100%].
+   >>> # And the training datasets are each going to be the complementary 90%:
+   >>> # [10%:100%] (for a corresponding validation set of [0%:10%]),
+   >>> # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
+   >>> # [0%:90%] (for a validation set of [90%:100%]).
+   >>> vals_ds = datasets.load_dataset('bookcorpus', split=[f'train[{k}%:{k+10}%]' for k in range(0, 100, 10)])
+   >>> trains_ds = datasets.load_dataset('bookcorpus', split=[f'train[:{k}%]+train[{k+10}%:]' for k in range(0, 100, 10)])
 
 .. tab:: ReadInstruction
 
-    >>> # 10-fold cross-validation (see also next section on rounding behavior):
-    >>> # The validation datasets are each going to be 10%:
-    >>> # [0%:10%], [10%:20%], ..., [90%:100%].
-    >>> # And the training datasets are each going to be the complementary 90%:
-    >>> # [10%:100%] (for a corresponding validation set of [0%:10%]),
-    >>> # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
-    >>> # [0%:90%] (for a validation set of [90%:100%]).
-    >>> vals_ds = datasets.load_dataset('bookcorpus', [datasets.ReadInstruction('train', from_=k, to=k+10, unit='%') for k in range(0, 100, 10)])
-    >>> trains_ds = datasets.load_dataset('bookcorpus', [(datasets.ReadInstruction('train', to=k, unit='%') + datasets.ReadInstruction('train', from_=k+10, unit='%')) for k in range(0, 100, 10)])
-
+   >>> # 10-fold cross-validation (see also next section on rounding behavior):
+   >>> # The validation datasets are each going to be 10%:
+   >>> # [0%:10%], [10%:20%], ..., [90%:100%].
+   >>> # And the training datasets are each going to be the complementary 90%:
+   >>> # [10%:100%] (for a corresponding validation set of [0%:10%]),
+   >>> # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
+   >>> # [0%:90%] (for a validation set of [90%:100%]).
+   >>> vals_ds = datasets.load_dataset('bookcorpus', [datasets.ReadInstruction('train', from_=k, to=k+10, unit='%') for k in range(0, 100, 10)])
+   >>> trains_ds = datasets.load_dataset('bookcorpus', [(datasets.ReadInstruction('train', to=k, unit='%') + datasets.ReadInstruction('train', from_=k+10, unit='%')) for k in range(0, 100, 10)])
 
 Percent slicing and rounding
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -232,27 +230,27 @@ For datasets where the requested slice boundaries do not divide evenly by 100, t
 
 .. code-block::
 
-    # Assuming `train` split contains 999 records.
-    # 19 records, from 500 (included) to 519 (excluded).
-    >>> train_50_52_ds = datasets.load_dataset('bookcorpus', split='train[50%:52%]')
-    # 20 records, from 519 (included) to 539 (excluded).
-    >>> train_52_54_ds = datasets.load_dataset('bookcorpus', split='train[52%:54%]')
+   # Assuming `train` split contains 999 records.
+   # 19 records, from 500 (included) to 519 (excluded).
+   >>> train_50_52_ds = datasets.load_dataset('bookcorpus', split='train[50%:52%]')
+   # 20 records, from 519 (included) to 539 (excluded).
+   >>> train_52_54_ds = datasets.load_dataset('bookcorpus', split='train[52%:54%]')
 
 If you want equal sized splits, use ``pct1_dropremainder`` rounding instead. This will treat the specified percentage boundaries as multiples of 1%. 
 
 .. code-block::
 
-    # 18 records, from 450 (included) to 468 (excluded).
-    >>> train_50_52pct1_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction( 'train', from_=50, to=52, unit='%', rounding='pct1_dropremainder'))
-    # 18 records, from 468 (included) to 486 (excluded).
-    >>> train_52_54pct1_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train',from_=52, to=54, unit='%', rounding='pct1_dropremainder'))
-    # Or equivalently:
-    >>> train_50_52pct1_ds = datasets.load_dataset('bookcorpus', split='train[50%:52%](pct1_dropremainder)')
-    >>> train_52_54pct1_ds = datasets.load_dataset('bookcorpus', split='train[52%:54%](pct1_dropremainder)')
+   # 18 records, from 450 (included) to 468 (excluded).
+   >>> train_50_52pct1_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction( 'train', from_=50, to=52, unit='%', rounding='pct1_dropremainder'))
+   # 18 records, from 468 (included) to 486 (excluded).
+   >>> train_52_54pct1_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train',from_=52, to=54, unit='%', rounding='pct1_dropremainder'))
+   # Or equivalently:
+   >>> train_50_52pct1_ds = datasets.load_dataset('bookcorpus', split='train[50%:52%](pct1_dropremainder)')
+   >>> train_52_54pct1_ds = datasets.load_dataset('bookcorpus', split='train[52%:54%](pct1_dropremainder)')
 
 .. important::
 
-    Using ``pct1_dropremainder`` rounding may truncate the last examples in a dataset if the number of examples in your dataset don't divide evenly by 100.
+   Using ``pct1_dropremainder`` rounding may truncate the last examples in a dataset if the number of examples in your dataset don't divide evenly by 100.
 
 .. _troubleshoot:
 
@@ -270,11 +268,11 @@ For example, if you try to download a configuration from the `MATINF <https://hu
 
 .. code-block::
 
-    >>> dataset = load_dataset("matinf", "summarization")
-    Downloading and preparing dataset matinf/summarization (download: Unknown size, generated: 246.89 MiB, post-processed: Unknown size, total: 246.89 MiB) to /root/.cache/huggingface/datasets/matinf/summarization/1.0.0/82eee5e71c3ceaf20d909bca36ff237452b4e4ab195d3be7ee1c78b53e6f540e...
-    AssertionError: The dataset matinf with config summarization requires manual data. 
-    Please follow the manual download instructions: To use MATINF you have to download it manually. Please fill this google form (https://forms.gle/nkH4LVE4iNQeDzsc9). You will receive a download link and a password once you complete the form. Please extract all files in one folder and load the dataset with: `datasets.load_dataset('matinf', data_dir='path/to/folder/folder_name')`. 
-    Manual data can be loaded with `datasets.load_dataset(matinf, data_dir='<path/to/manual/data>')
+   >>> dataset = load_dataset("matinf", "summarization")
+   Downloading and preparing dataset matinf/summarization (download: Unknown size, generated: 246.89 MiB, post-processed: Unknown size, total: 246.89 MiB) to /root/.cache/huggingface/datasets/matinf/summarization/1.0.0/82eee5e71c3ceaf20d909bca36ff237452b4e4ab195d3be7ee1c78b53e6f540e...
+   AssertionError: The dataset matinf with config summarization requires manual data. 
+   Please follow the manual download instructions: To use MATINF you have to download it manually. Please fill this google form (https://forms.gle/nkH4LVE4iNQeDzsc9). You will receive a download link and a password once you complete the form. Please extract all files in one folder and load the dataset with: `datasets.load_dataset('matinf', data_dir='path/to/folder/folder_name')`. 
+   Manual data can be loaded with `datasets.load_dataset(matinf, data_dir='<path/to/manual/data>')
 
 Specify features
 ^^^^^^^^^^^^^^^^
@@ -285,39 +283,43 @@ The following example shows how you can add custom labels with :class:`datasets.
 
 .. code-block::
 
-    >>> class_names = ["sadness", "joy", "love", "anger", "fear", "surprise"]
-    >>> emotion_features = Features({'text': Value('string'), 'label': ClassLabel(names=class_names)})
+   >>> class_names = ["sadness", "joy", "love", "anger", "fear", "surprise"]
+   >>> emotion_features = Features({'text': Value('string'), 'label': ClassLabel(names=class_names)})
 
 Next, specify the ``features`` argument in :func:`datasets.load_dataset` with the features you just created:
 
 .. code::
 
-    >>> dataset = load_dataset('csv', data_files=file_dict, delimiter=';', column_names=['text', 'label'], features=emotion_features)
+   >>> dataset = load_dataset('csv', data_files=file_dict, delimiter=';', column_names=['text', 'label'], features=emotion_features)
 
 Now when you look at your dataset features, you can see it uses the custom labels you defined:
 
 .. code::
 
-    >>> dataset['train'].features
-    {'text': Value(dtype='string', id=None),
-    'label': ClassLabel(num_classes=6, names=['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'], names_file=None, id=None)}
+   >>> dataset['train'].features
+   {'text': Value(dtype='string', id=None),
+   'label': ClassLabel(num_classes=6, names=['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'], names_file=None, id=None)}
 
 Metrics
 -------
 
-When the metric you want to use is not supported by 🤗 Datasets, you can write and use your own metric script. Load your own metric by providing the path to your local metric loading script:
+When the metric you want to use is not supported by 🤗 Datasets, you can write and use your own metric script. Load your metric by providing the path to your local metric loading script:
 
 .. code-block::
 
-    >>> from datasets import load_metric
-    >>> metric = load_metric('PATH/TO/MY/METRIC/SCRIPT')
-    
-    >>> # Example of typical usage
-    >>> for batch in dataset:
-    ...     inputs, references = batch
-    ...     predictions = model(inputs)
-    ...     metric.add_batch(predictions=predictions, references=references)
-    >>> score = metric.compute()
+   >>> from datasets import load_metric
+   >>> metric = load_metric('PATH/TO/MY/METRIC/SCRIPT')
+
+   >>> # Example of typical usage
+   >>> for batch in dataset:
+   ...     inputs, references = batch
+   ...     predictions = model(inputs)
+   ...     metric.add_batch(predictions=predictions, references=references)
+   >>> score = metric.compute()
+
+.. seealso::
+
+   See the :ref:`metric_script` guide for more details on how to write your own metric loading script.
 
 Load configurations
 ^^^^^^^^^^^^^^^^^^^
@@ -326,16 +328,16 @@ It is possible for a metric to have different configurations. The configurations
 
 .. code-block::
 
-    >>> from datasets import load_metric
-    >>> metric = load_metric('bleurt', name='bleurt-base-128')
-    >>> metric = load_metric('bleurt', name='bleurt-base-512')
+   >>> from datasets import load_metric
+   >>> metric = load_metric('bleurt', name='bleurt-base-128')
+   >>> metric = load_metric('bleurt', name='bleurt-base-512')
 
 Distributed setup
 ^^^^^^^^^^^^^^^^^
 
 When you work in a distributed or parallel processing environment, loading and computing a metric can be tricky because these processes are executed in parallel on separate subsets of the data. 🤗 Datasets supports distributed usage with a few additional arguments when you load a metric.
 
-For example, imagine you are training and evaluating eight parallel processes. Here's how you would load a metric in this distributed setting:
+For example, imagine you are training and evaluating on eight parallel processes. Here's how you would load a metric in this distributed setting:
 
 1. Define the total number of processes with the ``num_process`` argument.
 
@@ -350,7 +352,7 @@ For example, imagine you are training and evaluating eight parallel processes. H
 
 .. tip::
 
-    Once you've loaded a metric for distributed usage, you can compute the metric as usual. Behind the scenes, :func:`datasets.Metric.compute` gathers all the predictions and references from the nodes, and computes the final metric.
+   Once you've loaded a metric for distributed usage, you can compute the metric as usual. Behind the scenes, :func:`datasets.Metric.compute` gathers all the predictions and references from the nodes, and computes the final metric.
 
 In some instances, you may be simultaneously running multiple independent distributed evaluations on the same server and files. To avoid any conflicts, it is important to provide an ``experiment_id`` to distinguish the separate evaluations:
 

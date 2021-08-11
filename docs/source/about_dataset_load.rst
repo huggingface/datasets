@@ -1,9 +1,9 @@
 Build and Load
 ==============
 
-Nearly every deep learning workflow begins with loading a dataset, which makes it one of the most important steps. With 🤗 Datasets, there are more than 900 datasets available. All you have to do is invoke a simple command: :func:`datasets.load_dataset`. This function is a true workhorse because it builds and loads every dataset you use.
+Nearly every deep learning workflow begins with loading a dataset, which makes it one of the most important steps. With 🤗 Datasets, there are more than 900 datasets available to help you get started with your NLP task. All you have to do is call: :func:`datasets.load_dataset` to take your first step. This function is a true workhorse in every sense because it builds and loads every dataset you use.
 
-ELI5: ``datasets.load_dataset``
+ELI5: ``load_dataset``
 -------------------------------
 
 Let's begin with a basic Explain Like I'm Five.
@@ -16,7 +16,7 @@ At first, :func:`datasets.load_dataset` downloads and imports the dataset loadin
 
 The loading script downloads the dataset files from the original URL, and caches the dataset in an Arrow table on your drive. If you've downloaded the dataset before, then 🤗 Datasets will reload it from the cache to save you the trouble of downloading it again. Finally, 🤗 Datasets will generate the dataset according to the code defined in the loading script.
 
-Now that you have a high-level understanding about how datasets are built, let's get a little deeper into the nuts and bolts of how all this works.
+Now that you have a high-level understanding about how datasets are built, let's take a closer look at the nuts and bolts of how all this works.
 
 Building a dataset
 ------------------
@@ -71,7 +71,7 @@ There are three main methods in :class:`datasets.DatasetBuilder`:
 
    .. tip::
 
-       :func:`datasets.DownloadManager.download_and_extract` can download files from a wide range of sources. If the data files are hosted on a special access server, you should use :func:`datasets.DownloadManger.download_custom`. Refer to the package reference of :class:`datasets.DownloadManager` for more details.
+       :func:`datasets.DownloadManager.download_and_extract` can download files from a wide range of sources. If the data files are hosted on a special access server, you should use :func:`datasets.DownloadManger.download_custom`. Refer to the reference of :class:`datasets.DownloadManager` for more details.
 
 3. :func:`datasets.DatasetBuilder._generate_examples` reads and parses the data files for a split. Then it yields dataset examples according to the format specified in the ``features`` from :func:`datasets.DatasetBuilder._info`. The input of :func:`datasets.DatasetBuilder._generate_examples` is actually the ``filepath`` provided in the keyword arguments of the last method. 
 
@@ -82,7 +82,7 @@ Without loading scripts
 
 As a user, you want to be able to quickly use a dataset. Implementing a dataset loading script can sometimes get in the way, or it may be a barrier for some people without a developer background. 🤗 Datasets removes this barrier by making it possible to load any dataset from the Hub without a dataset loading script. All a user has to do is upload the data files to a dataset repository on the Hub, and they will be able to load that dataset without having to create a loading script. This doesn't mean we are moving away from loading scripts because they still offer the most flexibility in controlling how a dataset is generated.
 
-The no loading script method uses the `huggingface_hub <https://github.com/huggingface/huggingface_hub>`_ library to list the files in a dataset repository. You can also provide a path to a local directory instead of a repository name, in which case 🤗 Datasets will use `glob <https://docs.python.org/3/library/glob.html>`_ instead. Depending on the data files available, one of the data file builders will create your dataset for you. If you have a CSV file, the CSV builder will be used and if you have a Parquet file, the Parquet builder will be used. The drawback of this approach is it's not possible to simultaneously load a CSV and JSON file. In this case, you will need to load the two file types separately, and then concatenate them.
+The loading script-free method uses the `huggingface_hub <https://github.com/huggingface/huggingface_hub>`_ library to list the files in a dataset repository. You can also provide a path to a local directory instead of a repository name, in which case 🤗 Datasets will use `glob <https://docs.python.org/3/library/glob.html>`_ instead. Depending on the data files available, one of the data file builders will create your dataset for you. If you have a CSV file, the CSV builder will be used and if you have a Parquet file, the Parquet builder will be used. The drawback of this approach is it's not possible to simultaneously load a CSV and JSON file. You will need to load the two file types separately, and then concatenate them.
 
 Maintaining integrity
 ---------------------
