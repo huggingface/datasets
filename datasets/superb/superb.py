@@ -441,7 +441,7 @@ def _get_speakers(rec, data, args):
 
 def _split_ks_files(archive_path, split):
     audio_path = os.path.join(archive_path, "**/*.wav")
-    audio_paths = sorted(glob.glob(audio_path))
+    audio_paths = glob.glob(audio_path)
     if split == "test":
         # use all available files for the test archive
         return {"test": audio_paths}
