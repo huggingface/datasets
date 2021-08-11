@@ -287,8 +287,7 @@ class Superb(datasets.GeneratorBasedBuilder):
         elif self.config.name == "ks":
             words = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go"]
             splits = _split_ks_files(archive_path, split)
-            key = 0
-            for audio_file in sorted(splits[split]):
+            for key, audio_file in enumerate(sorted(splits[split])):
                 base_dir, file_name = os.path.split(audio_file)
                 _, word = os.path.split(base_dir)
                 id_ = "{}_{}".format(word, file_name)
@@ -299,7 +298,6 @@ class Superb(datasets.GeneratorBasedBuilder):
                 else:
                     label = "_unknown_"
                 yield key, {"id": id_, "file": audio_file, "label": label}
-                key += 1
         elif self.config.name == "sd":
             data = SdData(archive_path)
             args = SdArgs()

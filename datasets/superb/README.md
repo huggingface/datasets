@@ -260,9 +260,9 @@ An example from each split looks like:
 
 #### ks
 
-- `id` (`string`) ID of the record.
-- `file` (`string`) Path to the WAV audio file.
-- `label` (`string`) Label of the spoken command.
+- `id` (`string`): ID of the record.
+- `file` (`string`): Path to the WAV audio file.
+- `label` (`string`): Label of the spoken command.
 
 #### qbe
 
