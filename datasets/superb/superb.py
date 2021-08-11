@@ -161,8 +161,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "label": datasets.Value("string"),
-                    "id": datasets.Value("string"),
+                    "label": datasets.Value("string")
                 }
             ),
             supervised_keys=("file", "label"),
@@ -290,14 +289,13 @@ class Superb(datasets.GeneratorBasedBuilder):
             for key, audio_file in enumerate(sorted(splits[split])):
                 base_dir, file_name = os.path.split(audio_file)
                 _, word = os.path.split(base_dir)
-                id_ = "{}_{}".format(word, file_name)
                 if word in words:
                     label = word
                 elif word == "_silence_" or word == "_background_noise_":
                     label = "_silence_"
                 else:
                     label = "_unknown_"
-                yield key, {"id": id_, "file": audio_file, "label": label}
+                yield key, {"file": audio_file, "label": label}
         elif self.config.name == "sd":
             data = SdData(archive_path)
             args = SdArgs()
