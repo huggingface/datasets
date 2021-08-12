@@ -70,6 +70,13 @@ Parts-of-speech tagging, dependency parsing and named entitity recognition.
 Danish
 
 ## Dataset Structure
+### Data Splits
+
+
+|                            | Tain   | Dev | Test |
+| -----                      | ------ | ----- | ---- |
+| # sentences            | 4383 | 564 | 565 |
+| # tokens   | 80 378 | 10 322 | 10 023 |
 
 ### Data Instances
 
