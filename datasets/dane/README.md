@@ -18,7 +18,7 @@ task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
 paperswithcode_id: dane
-pretty_name: Danish Dependency Treebank (DaNE)
+pretty_name: DaNE
 ---
 
 # Dataset Card for DaNE
