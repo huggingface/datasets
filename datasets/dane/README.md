@@ -21,7 +21,7 @@ paperswithcode_id: dane
 pretty_name: Danish Dependency Treebank (DaNE)
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for DaNE
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
