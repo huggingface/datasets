@@ -57,7 +57,7 @@ pretty_name: DaNE
 
 ### Dataset Summary
 
-Danish Dependency Treebank (DaNE)
+The Danish Dependency Treebank (DaNE) is a named entity annotation for the Danish Universal Dependencies treebank using the CoNLL-2003 annotation scheme.
 
 The Danish UD treebank (Johannsen et al., 2015, UD-DDT) is a conversion of the Danish Dependency Treebank (Buch-Kromann et al. 2003) based on texts from Parole (Britt, 1998). UD-DDT has annotations for dependency parsing and part-of-speech (POS) tagging. The dataset was annotated with Named Entities for PER, ORG, and LOC by the Alexandra Institute in the DaNE dataset (Hvingelby et al. 2020). 
 
