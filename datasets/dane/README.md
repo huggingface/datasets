@@ -73,7 +73,21 @@ Danish
 
 ### Data Instances
 
-[More Information Needed]
+This is an example in the "train" split:
+```python
+{
+  'sent_id': 'train-v2-0\n', 
+  'lemmas': ['på', 'fredag', 'have', 'SiD', 'invitere', 'til', 'reception', 'i', 'SID-hus', 'i', 'anledning', 'af', 'at', 'formand', 'Kjeld', 'Christensen', 'gå', 'ind', 'i', 'den', 'glad', 'tresser', '.'],
+  'dep_labels': [35, 16, 28, 33, 19, 35, 16, 35, 18, 35, 18, 1, 1, 33, 22, 12, 32, 11, 35, 10, 30, 16, 34],
+  'ner_tags': [0, 0, 0, 3, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0],
+  'morph_tags': ['AdpType=Prep', 'Definite=Ind|Gender=Com|Number=Sing', 'Mood=Ind|Tense=Pres|VerbForm=Fin|Voice=Act', '_', 'Definite=Ind|Number=Sing|Tense=Past|VerbForm=Part', 'AdpType=Prep', 'Definite=Ind|Gender=Com|Number=Sing', 'AdpType=Prep', 'Definite=Def|Gender=Neut|Number=Sing', 'AdpType=Prep', 'Definite=Ind|Gender=Com|Number=Sing', 'AdpType=Prep', '_', 'Definite=Def|Gender=Com|Number=Sing', '_', '_', 'Mood=Ind|Tense=Pres|VerbForm=Fin|Voice=Act', '_', 'AdpType=Prep', 'Number=Plur|PronType=Dem', 'Degree=Pos|Number=Plur', 'Definite=Ind|Gender=Com|Number=Plur', '_'], 
+  'dep_ids': [2, 5, 5, 5, 0, 7, 5, 9, 7, 11, 7, 17, 17, 17, 14, 15, 11, 17, 22, 22, 22, 18, 5], 
+  'pos_tags': [11, 12, 5, 7, 3, 11, 12, 11, 12, 11, 12, 11, 16, 12, 7, 7, 3, 9, 11, 14, 6, 12, 10], 
+  'text': 'På fredag har SID inviteret til reception i SID-huset i anledning af at formanden Kjeld Christensen går ind i de glade tressere.\n', 
+  'tokens': ['På', 'fredag', 'har', 'SID', 'inviteret', 'til', 'reception', 'i', 'SID-huset', 'i', 'anledning', 'af', 'at', 'formanden', 'Kjeld', 'Christensen', 'går', 'ind', 'i', 'de', 'glade', 'tressere', '.'], 
+  'tok_ids': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+}
+```
 
 ### Data Fields
 
