@@ -49,7 +49,7 @@ pretty_name: DaNE
 
 ## Dataset Description
 
-- **Homepage:** [Github](https://github.com/alexandrainst/danlp/blob/master/docs/docs/datasets.md#dane)
+- **Homepage:** [DaNE homepage](https://danlp-alexandra.readthedocs.io/en/latest/docs/datasets.html#dane)
 - **Repository:** [Github](https://github.com/alexandrainst/danlp)
 - **Paper:** [Aclweb](https://www.aclweb.org/anthology/2020.lrec-1.565)
 - **Leaderboard:**
