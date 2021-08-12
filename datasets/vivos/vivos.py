@@ -113,8 +113,7 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
         # The `key` is here for legacy reason (tfds) and is not important in itself.
 
         with open(filepath, encoding="utf-8") as f:
-            lines = f.readlines()
-            for id_, row in enumerate(lines):
+            for id_, row in enumerate(f):
                 data = row.strip().split(" ", 1)
                 speaker_id = data[0].split("_")[0]
                 yield id_, {

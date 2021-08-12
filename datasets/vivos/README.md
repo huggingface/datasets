@@ -1,5 +1,5 @@
 ---
-pretty_name: vivos
+pretty_name: VIVOS
 annotations_creators:
 - expert-generated
 language_creators:
@@ -57,15 +57,16 @@ task_ids:
 
 - **Homepage:** https://ailab.hcmus.edu.vn/vivos
 - **Repository:** [Needs More Information]
-- **Paper:** [Needs More Information]
+- **Paper:** [A non-expert Kaldi recipe for Vietnamese Speech Recognition System](https://ailab.hcmus.edu.vn/assets/WLSI3_2016_Luong_non_expert.pdf)
 - **Leaderboard:** [Needs More Information]
-- **Point of Contact:** ailab@hcmus.edu.vn
+- **Point of Contact:** [AILAB](mailto:ailab@hcmus.edu.vn)
 
 ### Dataset Summary
 
-VIVOS is a free Vietnamese speech corpus consisting of 15 hours of recording speech prepared for
-Vietnamese Automatic Speech Recognition task.
+VIVOS is a free Vietnamese speech corpus consisting of 15 hours of recording speech prepared for Vietnamese Automatic Speech Recognition task.
+
 The corpus was prepared by AILAB, a computer science lab of VNUHCM - University of Science, with Prof. Vu Hai Quan is the head of.
+
 We publish this corpus in hope to attract more scientists to solve Vietnamese speech recognition problems.
 
 ### Supported Tasks and Leaderboards
@@ -83,18 +84,16 @@ Vietnamese
 A typical data point comprises the path to the audio file, called `path` and its transcription, called `sentence`. Some additional information about the speaker and the passage which contains the transcription is provided.
 
 ```
-{'speaker_id': VIVOSSPK01,
+{'speaker_id': 'VIVOSSPK01',
  'path': '/home/admin/.cache/huggingface/datasets/downloads/extracted/b7ded9969e09942ab65313e691e6fc2e12066192ee8527e21d634aca128afbe2/vivos/train/waves/VIVOSSPK01/VIVOSSPK01_R001.wav',
  'sentence': 'KHÁCH SẠN'}
 ```
 
 ### Data Fields
 
-speaker_id: An id for which speaker (voice) made the recording
-
-path: The path to the audio file
-
-sentence: The sentence the user was prompted to speak
+- speaker_id: An id for which speaker (voice) made the recording
+- path: The path to the audio file
+- sentence: The sentence the user was prompted to speak
 
 ### Data Splits
 
