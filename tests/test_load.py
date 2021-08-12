@@ -255,7 +255,7 @@ def test_load_dataset_streaming_compressed_files(path):
     ds = load_dataset("json", split="train", data_files=data_files, streaming=True)
     assert isinstance(ds, IterableDataset)
     ds_item = next(iter(ds))
-    ds_item == {
+    assert ds_item == {
         "tokens": ["Ministeri", "de", "Justícia", "d'Espanya"],
         "ner_tags": [1, 2, 2, 2],
         "langs": ["ca", "ca", "ca", "ca"],
