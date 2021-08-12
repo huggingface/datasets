@@ -108,11 +108,14 @@ Here is the dominant types in the current dataset:
 
 ### Data Splits
 
-This dataset is split into train set. Number of samples in train set is given below:
+Number of samples in train/validation/test set are given below:
 
-|                            | Train  |
-| -----                      | ------ |
-| Gooaq                      | 5030530|
+| Split      | Number of samples |
+|------------|-------------------|
+| Train      | 3112679           |
+| Validation | 2500              |
+| Test       | 2500              |
+
 
 ## Dataset Creation
 
