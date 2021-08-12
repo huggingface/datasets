@@ -84,7 +84,7 @@ def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
     }
 
 
-def get_pachakged_dataset_config_attributes(dataset_name):
+def get_packaged_dataset_attributes(dataset_name):
     if dataset_name == "json":
         # The json dummy data are formatted as the squad format
         # which has the list of examples in the field named "data".
@@ -158,7 +158,7 @@ class DatasetTester:
                     dataset_builder.config.data_files = get_packaged_dataset_dummy_data_files(
                         builder_name, path_to_dummy_data
                     )
-                    for config_attr, value in get_pachakged_dataset_config_attributes(builder_name).items():
+                    for config_attr, value in get_packaged_dataset_attributes(builder_name).items():
                         setattr(dataset_builder.config, config_attr, value)
 
                 # mock size needed for dummy data instead of actual dataset
