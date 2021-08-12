@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- da-DA
+- da
 licenses:
 - cc-by-sa-4.0
 multilinguality:
