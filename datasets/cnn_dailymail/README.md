@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: cnn-daily-mail-1
+pretty_name: CNN / Daily Mail
 ---
 # Dataset Card for CNN Dailymail Dataset
 
