@@ -11,7 +11,8 @@ multilinguality:
 - monolingual
 size_categories:
 - 1K<n<10K
-source_datasets: []
+source_datasets:
+- extended|other-Danish-Universal-Dependencies-treebank
 task_categories:
 - structure-prediction
 task_ids:
