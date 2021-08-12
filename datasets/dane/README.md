@@ -164,6 +164,14 @@ Data Fields:
 
 ### Citation Information
 
+@inproceedings{hvingelby2020dane,
+  title={DaNE: A named entity resource for danish},
+  author={Hvingelby, Rasmus and Pauli, Amalie Brogaard and Barrett, Maria and Rosted, Christina and Lidegaard, Lasse Malm and S{\o}gaard, Anders},
+  booktitle={Proceedings of the 12th Language Resources and Evaluation Conference},
+  pages={4597--4604},
+  year={2020}
+}
+
 ### Contributions
 
 Thanks to [@ophelielacroix](https://github.com/ophelielacroix), [@lhoestq](https://github.com/lhoestq) for adding this dataset.
