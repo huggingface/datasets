@@ -174,21 +174,27 @@ Data Fields:
 
 ### Citation Information
 
-@inproceedings{hvingelby2020dane,
-  title={DaNE: A named entity resource for danish},
-  author={Hvingelby, Rasmus and Pauli, Amalie Brogaard and Barrett, Maria and Rosted, Christina and Lidegaard, Lasse Malm and S{\o}gaard, Anders},
-  booktitle={Proceedings of the 12th Language Resources and Evaluation Conference},
-  pages={4597--4604},
-  year={2020}
+```
+@inproceedings{hvingelby-etal-2020-dane,
+    title = "{D}a{NE}: A Named Entity Resource for {D}anish",
+    author = "Hvingelby, Rasmus  and
+      Pauli, Amalie Brogaard  and
+      Barrett, Maria  and
+      Rosted, Christina  and
+      Lidegaard, Lasse Malm  and
+      S{\o}gaard, Anders",
+    booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
+    month = may,
+    year = "2020",
+    address = "Marseille, France",
+    publisher = "European Language Resources Association",
+    url = "https://aclanthology.org/2020.lrec-1.565",
+    pages = "4597--4604",
+    abstract = "We present a named entity annotation for the Danish Universal Dependencies treebank using the CoNLL-2003 annotation scheme: DaNE. It is the largest publicly available, Danish named entity gold annotation. We evaluate the quality of our annotations intrinsically by double annotating the entire treebank and extrinsically by comparing our annotations to a recently released named entity annotation of the validation and test sections of the Danish Universal Dependencies treebank. We benchmark the new resource by training and evaluating competitive architectures for supervised named entity recognition (NER), including FLAIR, monolingual (Danish) BERT and multilingual BERT. We explore cross-lingual transfer in multilingual BERT from five related languages in zero-shot and direct transfer setups, and we show that even with our modestly-sized training set, we improve Danish NER over a recent cross-lingual approach, as well as over zero-shot transfer from five related languages. Using multilingual BERT, we achieve higher performance by fine-tuning on both DaNE and a larger Bokm{\aa}l (Norwegian) training set compared to only using DaNE. However, the highest performance isachieved by using a Danish BERT fine-tuned on DaNE. Our dataset enables improvements and applicability for Danish NER beyond cross-lingual methods. We employ a thorough error analysis of the predictions of the best models for seen and unseen entities, as well as their robustness on un-capitalized text. The annotated dataset and all the trained models are made publicly available.",
+    language = "English",
+    ISBN = "979-10-95546-34-4",
 }
-
-@inproceedings{hvingelby2020dane,
-  title={DaNE: A named entity resource for danish},
-  author={Hvingelby, Rasmus and Pauli, Amalie Brogaard and Barrett, Maria and Rosted, Christina and Lidegaard, Lasse Malm and S{\o}gaard, Anders},
-  booktitle={Proceedings of the 12th Language Resources and Evaluation Conference},
-  pages={4597--4604},
-  year={2020}
-}
+```
 
 ### Contributions
 
