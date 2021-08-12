@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: gooaq
+pretty_name: 'GooAQ: Open Question Answering with Diverse Answer Types'
 ---
 
 # Dataset Card for GooAQ
