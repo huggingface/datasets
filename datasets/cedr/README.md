@@ -10,7 +10,8 @@ licenses:
 - apache-2.0
 multilinguality:
 - monolingual
-pretty_name: CEDR
+paperswithcode_id: null
+pretty_name: cedr
 size_categories:
 - unknown
 source_datasets:
@@ -19,7 +20,6 @@ task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
-- emotion-classification
 - sentiment-classification
 ---
 
