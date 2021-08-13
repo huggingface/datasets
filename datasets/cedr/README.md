@@ -1,5 +1,4 @@
 ---
-YAML tags:
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -10,8 +9,7 @@ licenses:
 - apache-2.0
 multilinguality:
 - monolingual
-paperswithcode_id: null
-pretty_name: cedr
+pretty_name: The Corpus for Emotions Detecting in Russian-language text sentences
 size_categories:
 - unknown
 source_datasets:
@@ -19,11 +17,11 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- multi-class-classification
-- sentiment-classification
+- emotion-classification
+- multi-label-classification
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for [cedr]
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
