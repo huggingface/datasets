@@ -17,8 +17,9 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- emotion-classification
+- sentiment-classification
 - multi-label-classification
+- text-classification-other-emotion-classification
 ---
 
 # Dataset Card for [cedr]
