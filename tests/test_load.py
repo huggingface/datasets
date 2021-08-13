@@ -248,7 +248,7 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
 
 
 @require_streaming
-@pytest.mark.parametrize("path", ["sample.jsonl", "sample.jsonl.xz", "sample.jsonl.zst"])
+@pytest.mark.parametrize("path", ["sample.jsonl", "sample.jsonl.xz", "sample.zip", "sample.jsonl.zst"])
 def test_load_dataset_streaming_compressed_files(path):
     repo_id = "albertvillanova/datasets-tests-compression"
     data_files = f"https://huggingface.co/datasets/{repo_id}/resolve/main/{path}"
