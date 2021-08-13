@@ -163,8 +163,7 @@ Researchers at AI technology lab at NRC "Kurchatov Institute". See the author [l
 The GitHub repository which houses this dataset has an Apache License 2.0.
 
 ### Citation Information
-
-If you have found our results helpful in your work, feel free to cite our publication and this repository as
+If you have found our results helpful in your work, feel free to cite our publication. This is an updated version of the dataset, the collection and preparation of which is described here:
 ```
 @article{sboev2021data,
   title={Data-Driven Model for Emotion Detection in Russian Texts},
