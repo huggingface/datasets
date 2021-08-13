@@ -126,7 +126,7 @@ class StreamingDownloadManager(object):
             # there is one single file which is the uncompressed gzip file
             return f"{protocol}://{os.path.basename(urlpath.split('::')[0]).rstrip('.gz')}::{urlpath}"
         else:
-            return f"{protocol}://::{urlpath}"
+            return f"{protocol}://*::{urlpath}"
 
     def _get_extraction_protocol(self, urlpath) -> Optional[str]:
         path = urlpath.split("::")[0]
