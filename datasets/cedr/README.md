@@ -69,7 +69,7 @@ Dataset with predefined train/test splits.
 
 ### Supported Tasks and Leaderboards
 
-This dataset is intended for multi-class, multi-label emotion classification.
+This dataset is intended for multi-label emotion classification.
 
 ### Languages
 
@@ -124,13 +124,15 @@ Russian-speaking LiveJournal and Tweeter users, and authors of news articles on 
 
 Annotating sentences with labels of their emotions was performed with the help of [a crowdsourcing platform](https://yandex.ru/support/toloka/index.html?lang=en).
 
-The annotators’ task was: “What emotions did the author express in the sentence?”. The annotators were allowed to put an arbitrary number of the following emotion labels: "joy", "sadness", "anger", "fear", and "surprise"
+The annotators’ task was: “What emotions did the author express in the sentence?”. The annotators were allowed to put an arbitrary number of the following emotion labels: "joy", "sadness", "anger", "fear", and "surprise".
 
-Sentences were split into tasks and assigned to annotators so that each sentence was annotated at least three times.
+If the accuracy of an annotator on the control sentences (including the trial run) became less than 70%, or if the accuracy was less than 66% over the last six control samples, the annotator was dismissed. 
+
+Sentences were split into tasks and assigned to annotators so that each sentence was annotated at least three times. A label of a specific emotion was assigned to a sentence if put by more than half of the annotators.
 
 #### Who are the annotators?
 
-Only those of the 30% of the best-performing active users (by the platform’s internal rating) who spoke Russian and were over 18 years old were allowed into the annotation process.
+Only those of the 30% of the best-performing active users (by the platform’s internal rating) who spoke Russian and were over 18 years old were allowed into the annotation process. Moreover, before a platform user could be employed as an annotator, they underwent a training task, after which they were to mark 25 trial samples with more than 80% agreement compared to the annotation that we had performed ourselves.
 
 ### Personal and Sensitive Information
 
@@ -163,7 +165,7 @@ The GitHub repository which houses this dataset has an Apache License 2.0.
 ### Citation Information
 
 If you have found our results helpful in your work, feel free to cite our publication and this repository as
-'''
+```
 @article{sboev2021data,
   title={Data-Driven Model for Emotion Detection in Russian Texts},
   author={Sboev, Alexander and Naumov, Aleksandr and Rybka, Roman},
@@ -173,7 +175,7 @@ If you have found our results helpful in your work, feel free to cite our public
   year={2021},
   publisher={Elsevier}
 }
-'''
+```
 
 ### Contributions
 
