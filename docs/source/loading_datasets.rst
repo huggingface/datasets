@@ -175,11 +175,11 @@ Generic loading scripts are provided for:
 
 If you want to control better how your files are loaded, or if you have a file format exactly reproducing the file format for one of the datasets provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__, it can be more flexible and simpler to create **your own loading script**, from scratch or by adapting one of the provided loading scripts. In this case, please go check the :doc:`add_dataset` chapter.
 
-The :obj:`data_files` argument in :func:`datasets.load_dataset` is used to provide paths to one or several files. This argument currently accepts three types of inputs:
+The :obj:`data_files` argument in :func:`datasets.load_dataset` is used to provide paths to one or several data source files. This argument currently accepts three types of inputs:
 
-- :obj:`str`: a single string as the path to a single file (considered to constitute the `train` split by default)
-- :obj:`List[str]`: a list of strings as paths to a list of files (also considered to constitute the `train` split by default)
-- :obj:`Dict[Union[str, List[str]]]`: a dictionary mapping splits names to a single file or a list of files.
+- :obj:`str`: A single string as the path to a single file (considered to constitute the `train` split by default).
+- :obj:`Sequence[str]`: A list of strings as paths to a list of files (also considered to constitute the `train` split by default).
+- :obj:`Mapping[str, Union[str, Sequence[str]]`: A dictionary mapping splits names to a single file path or a list of file paths.
 
 Let's see an example of all the various ways you can provide files to :func:`datasets.load_dataset`:
 
@@ -490,9 +490,9 @@ For example, run the following to get the path to the cache directory of the IMD
     >>> dataset_builder = load_dataset_builder('imdb')
     >>> print(dataset_builder.cache_dir)
     /Users/thomwolf/.cache/huggingface/datasets/imdb/plain_text/1.0.0/fdc76b18d5506f14b0646729b8d371880ef1bc48a26d00835a7f3da44004b676
-    >>> print(dataset_builder.info.features)            
+    >>> print(dataset_builder.info.features)
     {'text': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None)}
-    >>> print(dataset_builder.info.splits)              
+    >>> print(dataset_builder.info.splits)
     {'train': SplitInfo(name='train', num_bytes=33432835, num_examples=25000, dataset_name='imdb'), 'test': SplitInfo(name='test', num_bytes=32650697, num_examples=25000, dataset_name='imdb'), 'unsupervised': SplitInfo(name='unsupervised', num_bytes=67106814, num_examples=50000, dataset_name='imdb')}
 
 You can see all the attributes of ``dataset_builder.info`` in the documentation of :class:`datasets.DatasetInfo`

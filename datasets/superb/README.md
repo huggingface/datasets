@@ -16,6 +16,7 @@ source_datasets:
 - original
 - extended|librispeech_asr
 - extended|other-librimix
+- extended|other-speech_commands
 task_categories:
 - speech-processing
 task_ids:
@@ -183,8 +184,14 @@ An example from each split looks like:
 
 #### ks
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+An example from each split looks like:
 
+```python
+{
+  'file': '/path/yes/af7a8296_nohash_1.wav', 
+  'label': 'yes'
+}
+```
 
 #### qbe
 
@@ -252,8 +259,8 @@ An example from each split looks like:
 
 #### ks
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+- `file` (`string`): Path to the WAV audio file.
+- `label` (`string`): Label of the spoken command.
 
 #### qbe
 
@@ -311,8 +318,9 @@ The data fields in all splits are:
 
 #### ks
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+|    | train | validation | test |
+|----|------:|-----------:|-----:|
+| ks | 51094 |       6798 | 3081 |
 
 #### qbe
 
@@ -447,4 +455,4 @@ the correct citation for each contained dataset.
 
 ### Contributions
 
-Thanks to [@lewtun](https://github.com/lewtun)  and [@albertvillanova](https://github.com/albertvillanova) for adding this dataset.
+Thanks to [@lewtun](https://github.com/lewtun), [@albertvillanova](https://github.com/albertvillanova) and [@anton-l](https://github.com/anton-l) for adding this dataset.
