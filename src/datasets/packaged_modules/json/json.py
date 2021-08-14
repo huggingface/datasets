@@ -1,14 +1,14 @@
 # coding=utf-8
-
+import io
 import json
 from dataclasses import dataclass
-from io import BytesIO
 from typing import Optional
 
 import pyarrow as pa
 import pyarrow.json as paj
 
 import datasets
+from datasets.utils.file_utils import readline
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -107,12 +107,16 @@ class Json(datasets.ArrowBasedBuilder):
                         batch = f.read(self.config.chunksize)
                         if not batch:
                             break
-                        batch += f.readline()  # finish current line
+                        # Finish current line
+                        try:
+                            batch += f.readline()
+                        except (AttributeError, io.UnsupportedOperation):
+                            batch += readline(f)
                         try:
                             while True:
                                 try:
                                     pa_table = paj.read_json(
-                                        BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
+                                        io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
                                     )
                                     break
                                 except pa.ArrowInvalid as e:
