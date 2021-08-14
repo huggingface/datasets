@@ -12,6 +12,8 @@ multilinguality:
 pretty_name: Books3
 size_categories:
 - unknown
+source_datasets:
+- original
 task_categories:
 - sequence-modeling
 task_ids:
