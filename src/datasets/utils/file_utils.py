@@ -424,7 +424,7 @@ def ftp_get(url, temp_file, timeout=10.0):
         raise ConnectionError(e)
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=10.0, max_retries=0):
+def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=100.0, max_retries=0):
     headers = copy.deepcopy(headers) or {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
