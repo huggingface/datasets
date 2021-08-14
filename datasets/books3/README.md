@@ -12,7 +12,6 @@ multilinguality:
 pretty_name: Books3
 size_categories:
 - unknown
-source_datasets: []
 task_categories:
 - sequence-modeling
 task_ids:
@@ -50,6 +49,7 @@ task_ids:
     - [Dataset Curators](#dataset-curators)
     - [Licensing Information](#licensing-information)
     - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -148,8 +148,20 @@ This dataset contains all of bibliotik in plain .txt form, aka 197,000 books pro
 
 ### Licensing Information
 
-[Needs More Information]
+MIT
 
 ### Citation Information
 
-[Needs More Information]
+```
+@article{pile,
+    title={The {P}ile: An 800GB Dataset of Diverse Text for Language Modeling},
+    author={Gao, Leo and Biderman, Stella and Black, Sid and Golding, Laurence and Hoppe, Travis and Foster, Charles and Phang, Jason and He, Horace and Thite, Anish and Nabeshima, Noa and Presser, Shawn and Leahy, Connor},
+    journal={arXiv preprint arXiv:2101.00027},
+    year={2020}
+}
+```
+
+### Contributions
+
+[@shawwn](https://github.com/shawwn) creates this dataset.
+[@richarddwang](https://github.com/richarddwang) adds this dataset.

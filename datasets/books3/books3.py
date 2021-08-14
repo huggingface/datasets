@@ -17,7 +17,6 @@
 """The BookCorpus dataset based on Shawn Presser's work https://github.com/soskek/bookcorpus/issues/27 """
 
 
-import os
 from pathlib import Path
 
 import datasets
