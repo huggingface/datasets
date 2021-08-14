@@ -110,7 +110,7 @@ class Json(datasets.ArrowBasedBuilder):
                         # Finish current line
                         try:
                             batch += f.readline()
-                        except io.UnsupportedOperation:
+                        except (AttributeError, io.UnsupportedOperation):
                             batch += readline(f)
                         try:
                             while True:

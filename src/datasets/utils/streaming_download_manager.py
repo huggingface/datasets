@@ -139,6 +139,8 @@ class StreamingDownloadManager(object):
             return None
         elif path.endswith(".gz") and not path.endswith(".tar.gz"):
             return "gzip"
+        elif path.endswith(".tar"):
+            return "tar"
         elif path.endswith(".zip"):
             return "zip"
         raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
