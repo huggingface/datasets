@@ -93,6 +93,7 @@ def xopen(file, mode="r", *args, **kwargs):
         _add_retries_to_file_obj_read_method(file_obj)
     else:
         file_obj = fsspec.open(file, mode=mode, compression=compression, *args, **kwargs)
+        file_obj = _add_retries_to_fsspec_open_file(file_obj)
     return file_obj
 
 
