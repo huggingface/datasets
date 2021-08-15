@@ -79,7 +79,7 @@ def _add_retries_to_fsspec_open_file(fsspec_open_file):
     return fsspec_open_file
 
 
-def xopen(file, mode="r", *args, **kwargs):
+def xopen(file, mode="r", compression="infer", *args, **kwargs):
     """
     This function extends the builtin `open` function to support remote files using fsspec.
 
@@ -88,14 +88,9 @@ def xopen(file, mode="r", *args, **kwargs):
     """
     if fsspec.get_fs_token_paths(file)[0].protocol == "https":
         kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=kwargs.pop("use_auth_token", None))
-    compression = fsspec.core.get_compression(file, "infer")
-    if not compression:
-        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
-        file_obj = _add_retries_to_file_obj_read_method(file_obj)
-    else:
-        file_obj = fsspec.open(file, mode=mode, compression=compression, *args, **kwargs)
-        file_obj = _add_retries_to_fsspec_open_file(file_obj)
-    return file_obj
+    fsspec_open_file = fsspec.open(file, mode=mode, compression=compression, *args, **kwargs)
+    fsspec_open_file = _add_retries_to_fsspec_open_file(fsspec_open_file)
+    return fsspec_open_file
 
 
 class StreamingDownloadManager(object):
