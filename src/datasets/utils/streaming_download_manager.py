@@ -68,14 +68,14 @@ def _add_retries_to_file_obj_read_method(file_obj):
 
 
 def _add_retries_to_fsspec_open_file(fsspec_open_file):
-    enter = fsspec_open_file.__enter__
+    open_ = fsspec_open_file.open
 
-    def new_enter():
-        file_obj = enter()
+    def open_with_retries():
+        file_obj = open_()
         _add_retries_to_file_obj_read_method(file_obj)
         return file_obj
 
-    fsspec_open_file.__enter__ = new_enter
+    fsspec_open_file.open = open_with_retries
     return fsspec_open_file
 
 
