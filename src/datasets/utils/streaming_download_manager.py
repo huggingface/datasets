@@ -64,6 +64,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
         return out
 
     file_obj.read = read_with_retries
+    return file_obj
 
 
 def _add_retries_to_fsspec_open_file(fsspec_open_file):
@@ -90,7 +91,7 @@ def xopen(file, mode="r", *args, **kwargs):
     compression = fsspec.core.get_compression(file, "infer")
     if not compression or compression in ["gzip", "zip"]:
         file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
-        _add_retries_to_file_obj_read_method(file_obj)
+        file_obj = _add_retries_to_file_obj_read_method(file_obj)
     else:
         file_obj = fsspec.open(file, mode=mode, compression=compression, *args, **kwargs)
         file_obj = _add_retries_to_fsspec_open_file(file_obj)
