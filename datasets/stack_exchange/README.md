@@ -51,7 +51,7 @@ task_ids:
     - [Dataset Curators](#dataset-curators)
     - [Licensing Information](#licensing-information)
     - [Citation Information](#citation-information)
-  - [Contributions](#contributions)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -87,9 +87,8 @@ This dataset is part of EleutherAI/The Pile dataset and is a dataset for Languag
 
 ### Data Fields
 
-- `title`
+- `domain`
 - `text`
-- `reddit_scores`
 
 ### Data Splits
 
@@ -162,5 +161,5 @@ This dataset is part of EleutherAI/The Pile dataset and is a dataset for Languag
 }
 ```
 
-## Contributions
+### Contributions
 [sdtblck](https://github.com/sdtblck) creates the dataset, and [richarddwang](https://github.com/richarddwang) adds the dataset.
