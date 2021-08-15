@@ -66,6 +66,18 @@ def _add_retries_to_file_obj_read_method(file_obj):
     file_obj.read = read_with_retries
 
 
+def _add_retries_to_fsspec_open_file(fsspec_open_file):
+    enter = fsspec_open_file.__enter__
+
+    def new_enter():
+        file_obj = enter()
+        _add_retries_to_file_obj_read_method(file_obj)
+        return file_obj
+
+    fsspec_open_file.__enter__ = new_enter
+    return fsspec_open_file
+
+
 def xopen(file, mode="r", *args, **kwargs):
     """
     This function extends the builtin `open` function to support remote files using fsspec.
