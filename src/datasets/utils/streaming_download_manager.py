@@ -15,7 +15,7 @@ from .logging import get_logger
 
 logger = get_logger(__name__)
 BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
-COMPRESSION_KNOWN_EXTENSIONS = ["bz2", "lz4", "xz", "zst"]
+COMPRESSION_KNOWN_EXTENSIONS = ["bz2", "gz", "lz4", "xz", "zip", "zst"]
 
 
 def xjoin(a, *p):
@@ -89,7 +89,7 @@ def xopen(file, mode="r", *args, **kwargs):
     if fsspec.get_fs_token_paths(file)[0].protocol == "https":
         kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=kwargs.pop("use_auth_token", None))
     compression = fsspec.core.get_compression(file, "infer")
-    if not compression or compression in ["gzip", "zip"]:
+    if not compression:
         file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
         file_obj = _add_retries_to_file_obj_read_method(file_obj)
     else:
@@ -141,9 +141,6 @@ class StreamingDownloadManager(object):
         if protocol is None:
             # no extraction
             return urlpath
-        elif protocol == "gzip":
-            # there is one single file which is the uncompressed gzip file
-            return f"{protocol}://{os.path.basename(urlpath.split('::')[0]).rstrip('.gz')}::{urlpath}"
         else:
             return f"{protocol}://*::{urlpath}"
 
@@ -151,12 +148,8 @@ class StreamingDownloadManager(object):
         path = urlpath.split("::")[0]
         if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS + COMPRESSION_KNOWN_EXTENSIONS:
             return None
-        elif path.endswith(".gz") and not path.endswith(".tar.gz"):
-            return "gzip"
         elif path.endswith(".tar"):
             return "tar"
-        elif path.endswith(".zip"):
-            return "zip"
         raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
 
     def download_and_extract(self, url_or_urls):
