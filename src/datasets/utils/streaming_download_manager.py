@@ -34,15 +34,19 @@ def xjoin(a, *p):
 
     Example::
 
-        >>> xjoin("zip://folder1::https://host.com/archive.zip", "file.txt")
+        >>> xjoin("https://host.com/archive.zip", "folder1/file.txt")
         zip://folder1/file.txt::https://host.com/archive.zip
     """
     a, *b = a.split("::")
     if is_local_path(a):
         a = Path(a, *p).as_posix()
     else:
-        a = posixpath.join(a, *p)
-    return "::".join([a] + b)
+        compression = fsspec.core.get_compression(a, "infer")
+        if compression in ["zip"]:
+            a = [posixpath.join(f"{compression}://", *p), a]
+        else:
+            a = [posixpath.join(a, *p)]
+    return "::".join(a + b)
 
 
 def _add_retries_to_file_obj_read_method(file_obj):
