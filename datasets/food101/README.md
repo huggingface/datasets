@@ -1,10 +1,15 @@
 ---
 annotations_creators:
 - crowdsourced
-languages: []
+language_creators:
+- crowdsourced
+languages:
+- en
 licenses:
 - unknown
-multilinguality: []
+multilinguality:
+- monolingual
+pretty_name: food101
 size_categories:
 - 10K<n<100K
 source_datasets:
@@ -67,11 +72,21 @@ English
 
 ### Data Instances
 
-[More Information Needed]
+A sample from the training set is provided below:
+
+```
+{
+  'image': '/root/.cache/huggingface/datasets/downloads/extracted/6e1e8c9052e9f3f7ecbcb4b90860668f81c1d36d86cc9606d49066f8da8bfb4f/food-101/images/churros/1004234.jpg',
+  'label': 23
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+The data instances have the following fields:
+
+- `image`: a `string` filepath to an image.
+- `label`: an `int` classification label.
 
 ### Data Splits
 
@@ -137,7 +152,14 @@ English
 
 ### Citation Information
 
-[More Information Needed]
+```
+ @inproceedings{bossard14,
+  title = {Food-101 -- Mining Discriminative Components with Random Forests},
+  author = {Bossard, Lukas and Guillaumin, Matthieu and Van Gool, Luc},
+  booktitle = {European Conference on Computer Vision},
+  year = {2014}
+}
+```
 
 ### Contributions
 
