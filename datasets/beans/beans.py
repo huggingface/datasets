@@ -19,6 +19,7 @@ from pathlib import Path
 import datasets
 from datasets.tasks import ImageClassification
 
+
 _HOMEPAGE = "https://github.com/AI-Lab-Makerere/ibean/"
 
 _CITATION = """\
@@ -40,12 +41,13 @@ Uganda and collected by the Makerere AI research lab.
 """
 
 _URLS = {
-    'train': "https://storage.googleapis.com/ibeans/train.zip",
-    'validation': "https://storage.googleapis.com/ibeans/validation.zip",
-    'test': "https://storage.googleapis.com/ibeans/test.zip"
+    "train": "https://storage.googleapis.com/ibeans/train.zip",
+    "validation": "https://storage.googleapis.com/ibeans/validation.zip",
+    "test": "https://storage.googleapis.com/ibeans/test.zip",
 }
 
 _NAMES = ["angular_leaf_spot", "bean_rust", "healthy"]
+
 
 class Beans(datasets.GeneratorBasedBuilder):
     """Beans plant leaf images dataset."""
@@ -53,16 +55,20 @@ class Beans(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({
-                "image_file_path":
-                    datasets.Value("string"),
-                "labels":
-                    datasets.features.ClassLabel(names=sorted(tuple(_NAMES))),
-            }),
+            features=datasets.Features(
+                {
+                    "image_file_path": datasets.Value("string"),
+                    "labels": datasets.features.ClassLabel(names=sorted(tuple(_NAMES))),
+                }
+            ),
             supervised_keys=("image_file_path", "labels"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
-            task_templates=[ImageClassification(image_file_path_column="image_file_path", label_column="labels", labels=sorted(tuple(_NAMES)))]
+            task_templates=[
+                ImageClassification(
+                    image_file_path_column="image_file_path", label_column="labels", labels=sorted(tuple(_NAMES))
+                )
+            ],
         )
 
     def _split_generators(self, dl_manager):
@@ -71,22 +77,25 @@ class Beans(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "archive": data_files['train'],
-                }),
+                    "archive": data_files["train"],
+                },
+            ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "archive": data_files['validation'],
-                }),
+                    "archive": data_files["validation"],
+                },
+            ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "archive": data_files['test'],
-                }),
+                    "archive": data_files["test"],
+                },
+            ),
         ]
 
     def _generate_examples(self, archive):
-        labels = self.info.features['labels']
-        for i, path in enumerate(Path(archive).glob('**/*')):
-            if path.suffix == '.jpg':
+        labels = self.info.features["labels"]
+        for i, path in enumerate(Path(archive).glob("**/*")):
+            if path.suffix == ".jpg":
                 yield i, dict(image_file_path=path.as_posix(), labels=labels.encode_example(path.parent.name.lower()))
