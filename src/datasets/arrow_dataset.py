@@ -202,9 +202,12 @@ class TensorflowDatasetMixIn:
         return signatures
 
     def to_tf_dataset(
-        self, columns, batch_size, shuffle, drop_remainder=None, collate_fn=None, label_cols=None, prefetch=True
+        self, columns, batch_size, shuffle, drop_remainder=None, collate_fn=None, collate_fn_args=None, label_cols=None, prefetch=True
     ):
         import tensorflow as tf
+
+        if collate_fn_args is None:
+            collate_fn_args = dict()
 
         if label_cols is None:
             label_cols = []
@@ -239,21 +242,23 @@ class TensorflowDatasetMixIn:
             num_batches = ceil(len(dataset) / batch_size)  # Division rounding up
 
         def tf_generator():
-            # Note that the 'tensorflow' return format uses ragged tensors, which are VERY unperformant
-            # right now (TF 2.5). This may or may not change in the future, but for now we stick to 'numpy'.
             if shuffle:
                 epoch_dataset = dataset.shuffle(load_from_cache_file=False)
             else:
                 epoch_dataset = dataset
             if collate_fn is None:
-                epoch_dataset.set_format("numpy")  # Automatic padding
+                epoch_dataset.set_format("tensorflow")  # Will return ragged tensors
             else:
                 epoch_dataset.set_format("python")  # List of possibly variable lists
             for i in range(num_batches):
                 batch = epoch_dataset[i * batch_size : (i + 1) * batch_size]
                 if collate_fn is not None:
-                    batch = collate_fn(batch)
-                    batch = {key: np.array(val) for key, val in batch.items()}
+                    batch = collate_fn(batch, **collate_fn_args)
+                    # In case the collate_fn returns something strange
+                    batch = {key: tf.convert_to_tensor(val) for key, val in batch.items()}
+                else:
+                    batch = {key: tensor.to_tensor() if isinstance(tensor, tf.RaggedTensor) else tensor
+                             for key, tensor in batch.items()}
                 yield batch
 
         tf_dataset = tf.data.Dataset.from_generator(tf_generator, output_signature=gen_signature)
