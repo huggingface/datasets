@@ -98,4 +98,4 @@ class Beans(datasets.GeneratorBasedBuilder):
         labels = self.info.features["labels"]
         for i, path in enumerate(Path(archive).glob("**/*")):
             if path.suffix == ".jpg":
-                yield i, dict(image_file_path=path.as_posix(), labels=labels.encode_example(path.parent.name.lower()))
+                yield i, dict(image_file_path=str(path), labels=labels.encode_example(path.parent.name.lower()))
