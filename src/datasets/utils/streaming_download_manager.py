@@ -13,7 +13,7 @@ from .file_utils import (
     get_authentication_headers_for_url,
     is_local_path,
     is_relative_path,
-    url_or_path_extension,
+    url_or_path_extensions,
     url_or_path_join,
 )
 from .logging import get_logger
@@ -47,10 +47,10 @@ def xjoin(a, *p):
     if is_local_path(a):
         a = Path(a, *p).as_posix()
     else:
-        extension = url_or_path_extension(a)
-        if extension in [".tar", ".zip"]:
+        extension = [extension for extension in url_or_path_extensions(a) if extension in [".tar", ".zip"]]
+        if extension:
             b = [a] + b
-            a = posixpath.join(f"{extension[1:]}://", *p)
+            a = posixpath.join(f"{extension[0][1:]}://", *p)
         else:
             a = a[:-1] if a == "tar://*" else a
             a = posixpath.join(a, *p)
