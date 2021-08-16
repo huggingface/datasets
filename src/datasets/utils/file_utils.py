@@ -185,6 +185,10 @@ def url_or_path_parent(url_or_path: str) -> str:
         return os.path.dirname(url_or_path)
 
 
+def url_or_path_extension(url_or_path: str) -> str:
+    return Path(url_or_path).suffix
+
+
 def hash_url_to_filename(url, etag=None):
     """
     Convert `url` into a hashed filename in a repeatable way.
