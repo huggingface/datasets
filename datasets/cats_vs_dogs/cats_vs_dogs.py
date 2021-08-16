@@ -74,7 +74,7 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
         labels = self.info.features["labels"]
         for i, filepath in enumerate(images_path.glob("**/*.jpg")):
             with filepath.open("rb") as f:
-                if not b"JFIF" in f.peek(10):
+                if b"JFIF" not in f.peek(10):
                     filepath.unlink()
                     continue
                 yield str(i), {
