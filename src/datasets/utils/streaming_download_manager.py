@@ -15,6 +15,7 @@ from .logging import get_logger
 
 logger = get_logger(__name__)
 BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
+COMPRESSION_KNOWN_EXTENSIONS = ["bz2", "lz4", "xz", "zst"]
 
 
 def xjoin(a, *p):
@@ -63,6 +64,19 @@ def _add_retries_to_file_obj_read_method(file_obj):
         return out
 
     file_obj.read = read_with_retries
+    return file_obj
+
+
+def _add_retries_to_fsspec_open_file(fsspec_open_file):
+    open_ = fsspec_open_file.open
+
+    def open_with_retries():
+        file_obj = open_()
+        _add_retries_to_file_obj_read_method(file_obj)
+        return file_obj
+
+    fsspec_open_file.open = open_with_retries
+    return fsspec_open_file
 
 
 def xopen(file, mode="r", *args, **kwargs):
@@ -74,8 +88,13 @@ def xopen(file, mode="r", *args, **kwargs):
     """
     if fsspec.get_fs_token_paths(file)[0].protocol == "https":
         kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=kwargs.pop("use_auth_token", None))
-    file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
-    _add_retries_to_file_obj_read_method(file_obj)
+    compression = fsspec.core.get_compression(file, "infer")
+    if not compression or compression in ["gzip", "zip"]:
+        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+        file_obj = _add_retries_to_file_obj_read_method(file_obj)
+    else:
+        file_obj = fsspec.open(file, mode=mode, compression=compression, *args, **kwargs)
+        file_obj = _add_retries_to_fsspec_open_file(file_obj)
     return file_obj
 
 
@@ -130,7 +149,7 @@ class StreamingDownloadManager(object):
 
     def _get_extraction_protocol(self, urlpath) -> Optional[str]:
         path = urlpath.split("::")[0]
-        if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS:
+        if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS + COMPRESSION_KNOWN_EXTENSIONS:
             return None
         elif path.endswith(".gz") and not path.endswith(".tar.gz"):
             return "gzip"
