@@ -96,12 +96,10 @@ class TypedSequence:
             type = self.type
         try:
             if isinstance(type, _ArrayXDExtensionType):
-                storage = pa.array(
-                    self.data,
-                    type.storage_dtype
-                    if not isinstance(self.data, np.ndarray)
-                    else numpy_to_pyarrow_listarray(self.data, type=type.value_type),
-                )
+                if isinstance(self.data, np.ndarray):
+                    storage = numpy_to_pyarrow_listarray(self.data, type=type.value_type)
+                else:
+                    storage = pa.array(self.data, type.storage_dtype)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
@@ -122,8 +120,11 @@ class TypedSequence:
             return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if trying_type:
-                try:
-                    return pa.array(self.data, type=None)  # second chance
+                try:  # second chance
+                    if isinstance(self.data, np.ndarray):
+                        return numpy_to_pyarrow_listarray(self.data, type=None)
+                    else:
+                        return pa.array(self.data, type=None)
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(
