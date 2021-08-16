@@ -10,6 +10,25 @@ TEST_URL_CONTENT = "foo\nbar\nfoobar"
 
 
 @require_streaming
+@pytest.mark.parametrize(
+    "input_path, paths_to_join, expected_path",
+    [
+        ("https://host.com/archive.zip", ("file.txt",), "zip://file.txt::https://host.com/archive.zip"),
+        (
+            "zip://folder::https://host.com/archive.zip",
+            ("file.txt",),
+            "zip://folder/file.txt::https://host.com/archive.zip",
+        ),
+    ],
+)
+def test_xjoin(input_path, paths_to_join, expected_path):
+    from datasets.utils.streaming_download_manager import xjoin
+
+    output_path = xjoin(input_path, *paths_to_join)
+    assert output_path == expected_path
+
+
+@require_streaming
 def test_xopen_local(text_path):
     from datasets.utils.streaming_download_manager import xopen
 
