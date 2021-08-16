@@ -9,7 +9,13 @@ from aiohttp.client_exceptions import ClientError
 
 from .. import config
 from .download_manager import DownloadConfig, map_nested
-from .file_utils import get_authentication_headers_for_url, is_local_path, is_relative_path, url_or_path_join
+from .file_utils import (
+    get_authentication_headers_for_url,
+    is_local_path,
+    is_relative_path,
+    url_or_path_extension,
+    url_or_path_join,
+)
 from .logging import get_logger
 
 
@@ -41,10 +47,10 @@ def xjoin(a, *p):
     if is_local_path(a):
         a = Path(a, *p).as_posix()
     else:
-        compression = fsspec.core.get_compression(a, "infer")
-        if compression in ["zip"]:
+        extension = url_or_path_extension(a)
+        if extension in [".tar", ".zip"]:
             b = [a] + b
-            a = posixpath.join(f"{compression}://", *p)
+            a = posixpath.join(f"{extension[1:]}://", *p)
         else:
             a = posixpath.join(a, *p)
     return "::".join([a] + b)
