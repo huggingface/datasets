@@ -189,6 +189,10 @@ def url_or_path_extension(url_or_path: str) -> str:
     return Path(url_or_path).suffix
 
 
+def url_or_path_extensions(url_or_path: str) -> List[str]:
+    return Path(url_or_path).suffixes
+
+
 def hash_url_to_filename(url, etag=None):
     """
     Convert `url` into a hashed filename in a repeatable way.
