@@ -39,7 +39,7 @@ def xjoin(a, *p):
     """
     a, *b = a.split("::")
     if is_local_path(a):
-        a = Path(a, *p).as_posix()
+        a = [Path(a, *p).as_posix()]
     else:
         compression = fsspec.core.get_compression(a, "infer")
         if compression in ["zip"]:
