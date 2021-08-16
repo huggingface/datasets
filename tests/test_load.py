@@ -247,6 +247,24 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
+@require_streaming
+@pytest.mark.parametrize(
+    "path", ["sample.jsonl", "sample.jsonl.gz", "sample.tar", "sample.jsonl.xz", "sample.zip", "sample.jsonl.zst"]
+)
+def test_load_dataset_streaming_compressed_files(path):
+    repo_id = "albertvillanova/datasets-tests-compression"
+    data_files = f"https://huggingface.co/datasets/{repo_id}/resolve/main/{path}"
+    ds = load_dataset("json", split="train", data_files=data_files, streaming=True)
+    assert isinstance(ds, IterableDataset)
+    ds_item = next(iter(ds))
+    assert ds_item == {
+        "tokens": ["Ministeri", "de", "Justícia", "d'Espanya"],
+        "ner_tags": [1, 2, 2, 2],
+        "langs": ["ca", "ca", "ca", "ca"],
+        "spans": ["PER: Ministeri de Justícia d'Espanya"],
+    }
+
+
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
         dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)

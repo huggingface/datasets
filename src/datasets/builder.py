@@ -22,10 +22,11 @@ import copy
 import inspect
 import os
 import shutil
+import textwrap
 import urllib
 from dataclasses import dataclass
 from functools import partial
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Mapping, Optional, Sequence, Tuple, Union
 
 from datasets.features import Features
 from datasets.utils.mock_download_manager import MockDownloadManager
@@ -54,6 +55,14 @@ class InvalidConfigName(ValueError):
     pass
 
 
+class DatasetBuildError(Exception):
+    pass
+
+
+class ManualDownloadError(DatasetBuildError):
+    pass
+
+
 @dataclass
 class BuilderConfig:
     """Base class for :class:`DatasetBuilder` data configuration.
@@ -65,14 +74,14 @@ class BuilderConfig:
         name (:obj:`str`, default ``"default"``):
         version (:class:`Version` or :obj:`str`, optional):
         data_dir (:obj:`str`, optional):
-        data_files (:obj:`str` or :obj:`dict` or :obj:`list` or :obj:`tuple`, optional):
+        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         description (:obj:`str`, optional):
     """
 
     name: str = "default"
     version: Optional[Union[str, utils.Version]] = "0.0.0"
     data_dir: Optional[str] = None
-    data_files: Optional[Union[str, Dict, List, Tuple]] = None
+    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None
     description: Optional[str] = None
 
     def __post_init__(self):
@@ -519,7 +528,6 @@ class DatasetBuilder:
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
         base_path = base_path if base_path is not None else self.base_path
-
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
@@ -589,12 +597,7 @@ class DatasetBuilder:
                 f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
             )
 
-            if self.manual_download_instructions is not None:
-                assert (
-                    dl_manager.manual_dir is not None
-                ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `datasets.load_dataset({}, data_dir='<path/to/manual/data>')".format(
-                    self.name, self.config.name, self.manual_download_instructions, self.name
-                )
+            self._check_manual_download(dl_manager)
 
             # Create a tmp dir and rename to self._cache_dir on successful exit.
             with incomplete_dir(self._cache_dir) as tmp_data_dir:
@@ -628,6 +631,18 @@ class DatasetBuilder:
             print(
                 f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
                 f"Subsequent calls will reuse this data."
+            )
+
+    def _check_manual_download(self, dl_manager):
+        if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
+            raise ManualDownloadError(
+                textwrap.dedent(
+                    f"""The dataset {self.name} with config {self.config.name} requires manual data.
+                    Please follow the manual download instructions:
+                     {self.manual_download_instructions}
+                    Manual data can be loaded with:
+                     datasets.load_dataset({self.name}, data_dir='<path/to/manual/data>')"""
+                )
             )
 
     def _download_prepared_from_hf_gcs(self, download_config: DownloadConfig):
@@ -921,6 +936,7 @@ class DatasetBuilder:
             dataset_name=self.name,
             data_dir=self.config.data_dir,
         )
+        self._check_manual_download(dl_manager)
         splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
         # By default, return all splits
         if split is None:
@@ -947,7 +963,7 @@ class DatasetBuilder:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
         return IterableDataset(ex_iterable, info=self.info, split=splits_generator.name)
 
-    def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
+    def _post_process(self, dataset: Dataset, resources_paths: Mapping[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
         return None
 
