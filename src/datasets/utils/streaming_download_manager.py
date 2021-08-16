@@ -52,6 +52,7 @@ def xjoin(a, *p):
             b = [a] + b
             a = posixpath.join(f"{extension[1:]}://", *p)
         else:
+            a = a[:-1] if a == "tar://*" else a
             a = posixpath.join(a, *p)
     return "::".join([a] + b)
 
