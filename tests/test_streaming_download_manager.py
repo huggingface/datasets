@@ -56,11 +56,13 @@ def test_streaming_dl_manager_download_and_extract_no_extraction(urlpath):
 
 @require_streaming
 def test_streaming_dl_manager_extract(text_gz_path):
-    from datasets.utils.streaming_download_manager import StreamingDownloadManager
+    from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
 
     dl_manager = StreamingDownloadManager()
-    path = os.path.basename(text_gz_path).rstrip(".gz")
-    assert dl_manager.extract(text_gz_path) == f"gzip://{path}::{text_gz_path}"
+    output_path = dl_manager.extract(text_gz_path)
+    assert output_path == text_gz_path
+    fsspec_open_file = xopen(output_path)
+    assert fsspec_open_file.compression == "gzip"
 
 
 @require_streaming
@@ -68,10 +70,11 @@ def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path,
     from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
 
     dl_manager = StreamingDownloadManager()
-    filename = os.path.basename(text_gz_path).rstrip(".gz")
-    out = dl_manager.download_and_extract(text_gz_path)
-    assert out == f"gzip://{filename}::{text_gz_path}"
-    with xopen(out, encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+    output_path = dl_manager.download_and_extract(text_gz_path)
+    assert output_path == text_gz_path
+    fsspec_open_file = xopen(output_path, encoding="utf-8")
+    assert output_path == text_gz_path
+    with fsspec_open_file as f, open(text_path, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
 
 
