@@ -99,7 +99,10 @@ def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path,
 @require_streaming
 @pytest.mark.parametrize(
     "input_path, filename, expected_path",
-    [("https://domain.org/archive.zip", "filename.jsonl", "zip://filename.jsonl::https://domain.org/archive.zip")],
+    [
+        ("https://domain.org/archive.tar", "filename.jsonl", "tar://filename.jsonl::https://domain.org/archive.tar"),
+        ("https://domain.org/archive.zip", "filename.jsonl", "zip://filename.jsonl::https://domain.org/archive.zip"),
+    ],
 )
 def test_streaming_dl_manager_download_and_extract_with_join(input_path, filename, expected_path):
     from datasets.utils.streaming_download_manager import StreamingDownloadManager, xjoin
