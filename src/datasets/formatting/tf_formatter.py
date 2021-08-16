@@ -57,7 +57,6 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
             except ValueError:
                 return tf.ragged.constant(value, **{**default_dtype, **self.tf_tensor_kwargs})
 
-
     def _recursive_tensorize(self, data_struct: dict):
         # support for nested types like struct of list of struct
         if isinstance(data_struct, (list, np.ndarray)):

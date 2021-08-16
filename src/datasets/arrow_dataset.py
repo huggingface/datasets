@@ -202,7 +202,15 @@ class TensorflowDatasetMixIn:
         return signatures
 
     def to_tf_dataset(
-        self, columns, batch_size, shuffle, drop_remainder=None, collate_fn=None, collate_fn_args=None, label_cols=None, prefetch=True
+        self,
+        columns,
+        batch_size,
+        shuffle,
+        drop_remainder=None,
+        collate_fn=None,
+        collate_fn_args=None,
+        label_cols=None,
+        prefetch=True,
     ):
         import tensorflow as tf
 
@@ -257,8 +265,10 @@ class TensorflowDatasetMixIn:
                     # In case the collate_fn returns something strange
                     batch = {key: tf.convert_to_tensor(val) for key, val in batch.items()}
                 else:
-                    batch = {key: tensor.to_tensor() if isinstance(tensor, tf.RaggedTensor) else tensor
-                             for key, tensor in batch.items()}
+                    batch = {
+                        key: tensor.to_tensor() if isinstance(tensor, tf.RaggedTensor) else tensor
+                        for key, tensor in batch.items()
+                    }
                 yield batch
 
         tf_dataset = tf.data.Dataset.from_generator(tf_generator, output_signature=gen_signature)
