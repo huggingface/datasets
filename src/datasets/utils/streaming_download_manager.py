@@ -39,14 +39,15 @@ def xjoin(a, *p):
     """
     a, *b = a.split("::")
     if is_local_path(a):
-        a = [Path(a, *p).as_posix()]
+        a = Path(a, *p).as_posix()
     else:
         compression = fsspec.core.get_compression(a, "infer")
         if compression in ["zip"]:
-            a = [posixpath.join(f"{compression}://", *p), a]
+            b = [a] + b
+            a = posixpath.join(f"{compression}://", *p)
         else:
-            a = [posixpath.join(a, *p)]
-    return "::".join(a + b)
+            a = posixpath.join(a, *p)
+    return "::".join([a] + b)
 
 
 def _add_retries_to_file_obj_read_method(file_obj):
