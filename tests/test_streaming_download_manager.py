@@ -12,6 +12,8 @@ TEST_URL_CONTENT = "foo\nbar\nfoobar"
     "input_path, paths_to_join, expected_path",
     [
         ("https://host.com/archive.tar", ("file.txt",), "tar://file.txt::https://host.com/archive.tar"),
+        ("https://host.com/archive.tar.bz2", ("file.txt",), "tar://file.txt::https://host.com/archive.tar.bz2"),
+        ("https://host.com/archive.tar.gz", ("file.txt",), "tar://file.txt::https://host.com/archive.tar.gz"),
         ("https://host.com/archive.zip", ("file.txt",), "zip://file.txt::https://host.com/archive.zip"),
         (
             "zip://folder::https://host.com/archive.zip",
@@ -101,6 +103,16 @@ def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path,
     "input_path, filename, expected_path",
     [
         ("https://domain.org/archive.tar", "filename.jsonl", "tar://filename.jsonl::https://domain.org/archive.tar"),
+        (
+            "https://domain.org/archive.tar.bz2",
+            "filename.jsonl",
+            "tar://filename.jsonl::https://domain.org/archive.tar.bz2",
+        ),
+        (
+            "https://domain.org/archive.tar.gz",
+            "filename.jsonl",
+            "tar://filename.jsonl::https://domain.org/archive.tar.gz",
+        ),
         ("https://domain.org/archive.zip", "filename.jsonl", "zip://filename.jsonl::https://domain.org/archive.zip"),
     ],
 )
