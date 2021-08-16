@@ -11,6 +11,7 @@ TEST_URL_CONTENT = "foo\nbar\nfoobar"
 @pytest.mark.parametrize(
     "input_path, paths_to_join, expected_path",
     [
+        ("https://host.com/archive.tar", ("file.txt",), "tar://file.txt::https://host.com/archive.tar"),
         ("https://host.com/archive.zip", ("file.txt",), "zip://file.txt::https://host.com/archive.zip"),
         (
             "zip://folder::https://host.com/archive.zip",
