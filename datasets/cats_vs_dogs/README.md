@@ -12,6 +12,8 @@ multilinguality:
 pretty_name: Cats and Dogs
 size_categories:
 - 10K<n<100K
+source_datasets:
+- original
 task_categories:
 - other
 task_ids:
