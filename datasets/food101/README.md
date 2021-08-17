@@ -91,9 +91,9 @@ The data instances have the following fields:
 ### Data Splits
 
  
-|   name   |train|validation|
+|   |train|validation|
 |----------|----:|---------:|
-|food101|75750|25250|
+|# of examples|75750|25250|
 
 
 ## Dataset Creation
