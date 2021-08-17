@@ -15,8 +15,6 @@
 """Wikipedia-based Image Text (WIT) Dataset is a large multimodal multilingual dataset"""
 
 
-import os
-
 import pandas as pd
 
 import datasets
@@ -128,4 +126,4 @@ class WIT(datasets.GeneratorBasedBuilder):
             for _, row in df.iterrows():
                 id_ += 1
 
-                yield id_, {k: row[k] for k in column_names}
+                yield id_, {k: "" if str(row[k]) == "nan" else str(row[k]) for k in column_names}
