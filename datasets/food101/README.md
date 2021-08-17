@@ -50,9 +50,9 @@ paperswithcode_id: food-101
 
 ## Dataset Description
 
-- **Homepage:**[Food-101 Dataset](https://data.vision.ee.ethz.ch/cvl/datasets_extra/food-101/)
+- **Homepage:** [Food-101 Dataset](https://data.vision.ee.ethz.ch/cvl/datasets_extra/food-101/)
 - **Repository:**
-- **Paper:**[Paper](https://data.vision.ee.ethz.ch/cvl/datasets_extra/food-101/static/bossard_eccv14_food-101.pdf)
+- **Paper:** [Paper](https://data.vision.ee.ethz.ch/cvl/datasets_extra/food-101/static/bossard_eccv14_food-101.pdf)
 - **Leaderboard:**
 - **Point of Contact:**
 
