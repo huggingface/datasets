@@ -183,10 +183,9 @@ class Food101(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, json_file_path, image_dir_path):
         """Generate images and labels for splits."""
-        labels = self.info.features["label"]
         data = json.loads(json_file_path.read_text())
         for label, images in data.items():
             for image_name in images:
                 image = image_dir_path / f"{image_name}.jpg"
-                features = {"image": str(image), "label": labels.encode_example(label)}
+                features = {"image": str(image), "label": label}
                 yield image_name, features
