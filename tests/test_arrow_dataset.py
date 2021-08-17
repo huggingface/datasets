@@ -991,7 +991,6 @@ class BaseDatasetTest(TestCase):
                         self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
                         self.assertEqual(len(dset_test2.cache_files), (1 - int(in_memory)) * 2)
                         self.assertNotIn("Loading cached processed dataset", self._caplog.text)
-                        # TODO: check that dset_test2 didn't use multiprocess
 
         if not in_memory:
             try:
