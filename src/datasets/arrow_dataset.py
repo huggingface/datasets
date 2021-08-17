@@ -1847,7 +1847,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
             disable_tqdm (:obj:`bool`, defaults to `False`): Whether to silence tqdm's output.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
-            cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDataset` exception,
+            cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
         """
         assert (
             not keep_in_memory or cache_file_name is None
@@ -1892,7 +1892,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
 
-        # Return cached version if available
+        # Check if we've already cached this computation (indexed by a hash)
         if self.cache_files:
             if cache_file_name is None:
                 # we create a unique hash from the function,
