@@ -1767,12 +1767,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         for i, (kwds, cached_shard) in enumerate(zip(kwds_per_shard, transformed_shards))
                         if cached_shard is None
                     }
-                    assert len(results) == nb_of_missing_shards, "The number of missing cached shards needs to correspond to the number of `_map_single` we're running"
+                    assert (
+                        len(results) == nb_of_missing_shards
+                    ), "The number of missing cached shards needs to correspond to the number of `_map_single` we're running"
 
                     for index, async_result in results.items():
                         transformed_shards[index] = async_result.get()
 
-            assert transformed_shards.count(None) == 0, "All shards have to be defined Datasets, none should still be missing."
+            assert (
+                transformed_shards.count(None) == 0
+            ), "All shards have to be defined Datasets, none should still be missing."
 
             logger.info("Concatenating {} shards".format(num_proc))
             result = concatenate_datasets(transformed_shards)
