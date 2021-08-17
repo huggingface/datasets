@@ -233,6 +233,12 @@ def _check_table(table) -> Table:
         raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
 
 
+class NonExistentDatasetError(Exception):
+    """Used when we expect the existence of a dataset"""
+
+    pass
+
+
 class Dataset(DatasetInfoMixin, IndexableMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -1578,7 +1584,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
-        sequential: Optional[bool] = None,
         suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
@@ -1619,9 +1624,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `True`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
-            num_proc (`Optional[int]`, default `None`): Number of processes when generating cache. By default it doesn't use multiprocessing.
-            sequential (`Optional[bool]`, by default `None`): Flag in order to determine whether to use multiprocessing or not when
-                `num_proc is not None and num_proc > 0`. By default, it uses multiprocessing if `num_proc > 0`.
+            num_proc (`Optional[int]`, default `None`): Max number of processes when generating cache. Already cached shards are loaded sequentially
             suffix_template (:obj:`str`):
                 If cache_file_name is specified, then this suffix
                 will be added at the end of the base name of each: defaults to "_{rank:05d}_of_{num_proc:05d}". For example, if cache_file_name is "processed.arrow", then for
@@ -1742,22 +1745,35 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for rank in range(num_proc)
             ]
 
-            # Upon mapping using multiple processes, we can choose to load them on a single process instead by doing it
-            # sequentially. This is useful when preprocessing can be done on multiple processes and loading has to be
-            # done on a single process.
-            if sequential:
-                logger.warning(
-                    "Running map on shards sequentially, despite having `num_proc={}`. This is generally used to load a"
-                    " multiprocessed cached mapping.".format(num_proc)
-                )
-                os.environ = prev_env
-                transformed_shards = [self.__class__._map_single(**dill.copy(kwds)) for kwds in kwds_per_shard]
-            else:
-                with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
+            # We search for already cached shards
+            def catch_non_existent_error(func, kwargs):
+                try:
+                    return func(**kwargs)
+                except NonExistentDatasetError:
+                    return None
+
+            transformed_shards = [
+                catch_non_existent_error(self.__class__._map_single, dict(cache_only=True, **kwds))
+                for kwds in kwds_per_shard
+            ]
+
+            # We try to create a pool with as many workers as dataset not yet cached.
+            nb_of_missing_shards = transformed_shards.count(None)
+            if nb_of_missing_shards > 0:
+                with Pool(nb_of_missing_shards, initargs=initargs, initializer=initializer) as pool:
                     os.environ = prev_env
                     logger.info("Spawning {} processes".format(num_proc))
-                    results = [pool.apply_async(self.__class__._map_single, kwds=kwds) for kwds in kwds_per_shard]
-                    transformed_shards = [r.get() for r in results]
+                    results = {
+                        i: pool.apply_async(self.__class__._map_single, kwds=kwds)
+                        for i, (kwds, cached_shard) in enumerate(zip(kwds_per_shard, transformed_shards))
+                        if cached_shard is None
+                    }
+                    assert len(results) == nb_of_missing_shards
+
+                    for index, async_result in results.items():
+                        transformed_shards[index] = async_result.get()
+
+            assert transformed_shards.count(None) == 0
 
             logger.info("Concatenating {} shards".format(num_proc))
             result = concatenate_datasets(transformed_shards)
@@ -1766,7 +1782,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return result
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"])
+    @fingerprint_transform(
+        inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc", "cache_only"]
+    )
     def _map_single(
         self,
         function: Optional[Callable] = None,
@@ -1788,6 +1806,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         offset: int = 0,
         disable_tqdm: bool = False,
         desc: Optional[str] = None,
+        cache_only: bool = False,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -1828,6 +1847,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
             disable_tqdm (:obj:`bool`, defaults to `False`): Whether to silence tqdm's output.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDataset` exception,
         """
         assert (
             not keep_in_memory or cache_file_name is None
@@ -1851,6 +1871,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
+        assert load_from_cache_file is True or cache_only is False, ""
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -1871,7 +1892,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
 
-        # Check if we've already cached this computation (indexed by a hash)
+        # Return cached version if available
         if self.cache_files:
             if cache_file_name is None:
                 # we create a unique hash from the function,
@@ -1882,6 +1903,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 info = self.info.copy()
                 info.features = features
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
+
+        # Return none if we were supposed to return a cached dataset and none was found
+        if cache_only:
+            raise NonExistentDatasetError
 
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.

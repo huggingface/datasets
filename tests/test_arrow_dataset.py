@@ -834,27 +834,6 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
 
-        with tempfile.TemporaryDirectory() as tmp_dir:  # sequential version
-            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                fingerprint = dset._fingerprint
-                with dset.map(picklable_map_function, num_proc=2) as dset_reference:
-                    with dset.map(picklable_map_function, num_proc=2, sequential=True) as dset_test:
-                        self.assertEqual(len(dset_test), 30)
-                        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-                        self.assertDictEqual(
-                            dset_test.features,
-                            Features({"filename": Value("string"), "id": Value("int64")}),
-                        )
-                        self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
-                        self.assertListEqual(dset_test["id"], list(range(30)))
-                        self.assertNotEqual(dset_test._fingerprint, fingerprint)
-                        assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
-
-                        self.assertEqual(dset_test._fingerprint, dset_reference._fingerprint)
-                        for ref, value in zip(dset_reference, dset_test):
-                            self.assertEqual(value, ref)
-
         with tempfile.TemporaryDirectory() as tmp_dir:  # num_proc > num rows
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
@@ -995,11 +974,12 @@ class BaseDatasetTest(TestCase):
                 with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                     with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
                         dset_test1_data_files = list(dset_test1.cache_files)
-                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2, sequential=True) as dset_test2:
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
                         self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
                         self.assertTrue(
                             (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2) ^ in_memory
                         )
+                        # TODO: check that dset_test2 didn't use multiprocess
 
         if not in_memory:
             try:
