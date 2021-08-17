@@ -31,7 +31,6 @@ from math import ceil, floor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
-import dill
 import fsspec
 import numpy as np
 import pandas as pd
