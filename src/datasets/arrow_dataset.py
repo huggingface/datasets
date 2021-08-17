@@ -1870,7 +1870,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
-        assert load_from_cache_file is True or cache_only is False, ""
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]

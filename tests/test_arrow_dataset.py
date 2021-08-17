@@ -981,6 +981,18 @@ class BaseDatasetTest(TestCase):
                         )
                         # TODO: check that dset_test2 didn't use multiprocess
 
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._caplog.clear()
+            with self._caplog.at_level(WARNING):
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
+                        dset_test1_data_files = list(dset_test1.cache_files)
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2, load_from_cache_file=False) as dset_test2:
+                        self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                        self.assertEqual(len(dset_test2.cache_files), (1 - int(in_memory)) * 2)
+                        self.assertNotIn("Loading cached processed dataset", self._caplog.text)
+                        # TODO: check that dset_test2 didn't use multiprocess
+
         if not in_memory:
             try:
                 self._caplog.clear()
