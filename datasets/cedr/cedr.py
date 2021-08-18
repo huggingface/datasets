@@ -55,8 +55,8 @@ _HOMEPAGE = "https://github.com/sag111/CEDR"
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    "main": "https://drive.google.com/u/0/uc?id=14W03yKPvsTW6_pHkSw7vWi7T80wLAkJL&export=download",
-    "enriched": "https://drive.google.com/u/0/uc?id=1PsSr0PkIhXNQxXBjfPJ9RoPklH0zDnRv&export=download",
+    "main": "https://drive.google.com/u/0/uc?id=1flukWj075o7InAlBZm7htXEqZM6D-LfA&export=download",
+    "enriched": "https://drive.google.com/u/0/uc?id=1w9fJf9SwxtEABy5uhougn_2ZlxKBbZHV&export=download",
 }
 
 
