@@ -11,7 +11,7 @@ multilinguality:
 - monolingual
 pretty_name: Stack Exchange
 size_categories:
-- unknown
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -55,9 +55,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/EleutherAI/stackexchange-dataset
+- **Homepage:** [GitHub](https://github.com/EleutherAI/stackexchange-dataset)
 - **Repository:** [Needs More Information]
-- **Paper:** https://arxiv.org/abs/2101.00027
+- **Paper:** [arXiv](https://arxiv.org/abs/2101.00027)
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [Needs More Information]
 
@@ -70,11 +70,11 @@ This dataset is part of EleutherAI/The Pile dataset and is a dataset for Languag
 
 ### Supported Tasks and Leaderboards
 
-- `lm`
+The dataset is used for Language Modeling.
 
 ### Languages
 
-- `en`
+The dataset is in English.
 
 ## Dataset Structure
 
@@ -87,8 +87,8 @@ This dataset is part of EleutherAI/The Pile dataset and is a dataset for Languag
 
 ### Data Fields
 
-- `domain`
-- `text`
+- `domain`: Stack Exchange domain of the sample
+- `text`: Text content containing both the question and the answer
 
 ### Data Splits
 
@@ -162,4 +162,5 @@ This dataset is part of EleutherAI/The Pile dataset and is a dataset for Languag
 ```
 
 ### Contributions
-[sdtblck](https://github.com/sdtblck) creates the dataset, and [richarddwang](https://github.com/richarddwang) adds the dataset.
+Thanks to [sdtblck](https://github.com/sdtblck) for creating the dataset.
+Thanks to [richarddwang](https://github.com/richarddwang) for adding the dataset.
