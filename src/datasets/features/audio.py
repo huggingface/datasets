@@ -35,4 +35,4 @@ class Audio:
 
         with open(value, "rb") as f:
             array, sample_rate = librosa.load(f, sr=self.sampling_rate)
-        return {"array": array.reshape(-1), "sampling_rate": sample_rate}
+        return {"array": array, "sampling_rate": sample_rate}

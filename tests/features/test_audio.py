@@ -22,7 +22,7 @@ def test_audio_decode_example(shared_datadir):
     audio = Audio()
     decoded_example = audio.decode_example(audio_path)
     assert decoded_example.keys() == {"array", "sampling_rate"}
-    assert decoded_example["array"].shape == (404622,)  # TODO: (202311, 2)
+    assert decoded_example["array"].shape == (202311, 2)  # TODO: (404622,)
     assert decoded_example["sampling_rate"] == 44100
 
 
@@ -38,5 +38,5 @@ def test_dataset_with_audio_feature(shared_datadir):
     assert dset.column_names == ["file"]
     assert isinstance(dset[0]["file"], dict)
     assert dset[0]["file"].keys() == {"array", "sampling_rate"}
-    assert len(dset[0]["file"]["array"]) == 404622  # TODO: to numpy? .shape == (202311, 2)
+    assert len(dset[0]["file"]["array"]) == (202311, 2)  # TODO: to numpy? .shape == 404622
     assert dset[0]["file"]["sampling_rate"] == 44100
