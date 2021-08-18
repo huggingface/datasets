@@ -21,9 +21,9 @@ def test_audio_decode_example(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     audio = Audio()
     decoded_example = audio.decode_example(audio_path)
-    assert decoded_example.keys() == {"array", "sample_rate"}
+    assert decoded_example.keys() == {"array", "sampling_rate"}
     assert decoded_example["array"].shape == (404622,)  # TODO: (202311, 2)
-    assert decoded_example["sample_rate"] == 44100
+    assert decoded_example["sampling_rate"] == 44100
 
 
 @pytest.mark.skipif(
@@ -37,6 +37,6 @@ def test_dataset_with_audio_feature(shared_datadir):
     assert dset.shape == (1, 1)
     assert dset.column_names == ["file"]
     assert isinstance(dset[0]["file"], dict)
-    assert dset[0]["file"].keys() == {"array", "sample_rate"}
+    assert dset[0]["file"].keys() == {"array", "sampling_rate"}
     assert len(dset[0]["file"]["array"]) == 404622  # TODO: to numpy? .shape == (202311, 2)
-    assert dset[0]["file"]["sample_rate"] == 44100
+    assert dset[0]["file"]["sampling_rate"] == 44100

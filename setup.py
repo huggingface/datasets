@@ -91,7 +91,7 @@ REQUIRED_PKGS = [
 ]
 
 AUDIO_REQUIRE = [
-    "soundfile",
+    "librosa",
 ]
 
 BENCHMARKS_REQUIRE = [
