@@ -561,10 +561,4 @@ def parquet_to_arrow(sources, destination):
                     df[col] = df[col].apply(json.loads)
                 reconstructed_table = pa.Table.from_pandas(df)
                 writer.write_table(reconstructed_table)
-    # Collect the gc or the tqdm progress bar keeps references to the open files
-    # and it causes permission errors on windows
-    # see https://app.circleci.com/pipelines/github/huggingface/datasets/6365/workflows/24f7c960-3176-43a5-9652-7830a23a981e/jobs/39232
-    import gc
-
-    gc.collect()
     return destination
