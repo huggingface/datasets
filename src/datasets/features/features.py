@@ -789,10 +789,12 @@ def encode_nested_example(schema, obj):
 # TODO: implement more cases
 def decode_nested_example(feature, example):
     if isinstance(feature, dict):
-        return {
-            col: decode_nested_example(col_feature, col_example)
-            for col, (col_feature, col_example) in utils.zip_dict(feature, example)
-        }
+        result = {}
+        for col, (col_feature, col_example) in utils.zip_dict(feature, example):
+            decoded_nested_example = decode_nested_example(col_feature, col_example)
+            if decoded_nested_example:
+                result.update(decoded_nested_example)
+        return result
     elif isinstance(feature, Audio):
         return feature.decode_example(example)
 
