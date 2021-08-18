@@ -53,7 +53,7 @@ _SPLITS_URL = "https://github.com/allenai/gooaq/raw/main/data/split.json"
 class Gooaq(datasets.GeneratorBasedBuilder):
     """GooAQ - Question-answers, collected from Google"""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.2.0")
 
     def _info(self):
         features = datasets.Features(
