@@ -1,11 +1,31 @@
 ---
+pretty_name: C4
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+languages:
+- en
+licenses:
+- odc-by-1.0
+multilinguality:
+- multilingual
+size_categories:
+- 100M<n<1B
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- language-modeling
 paperswithcode_id: c4
 ---
 
 # Dataset Card for C4
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
+
+- [Dataset Card for C4](#dataset-card-for-c4)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -36,38 +56,62 @@ paperswithcode_id: c4
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** https://huggingface.co/datasets/allenai/c4
+- **Paper:** https://arxiv.org/abs/1910.10683
 
 ### Dataset Summary
 
-A colossal, cleaned version of Common Crawl's web crawl corpus. Based on Common Crawl dataset: "https://commoncrawl.org"
-Due to the overhead of cleaning the dataset, it is recommend you prepare it with a distributed service like Cloud Dataflow. More info at https://www.tensorflow.org/datasets/beam_datasets.
+A colossal, cleaned version of Common Crawl's web crawl corpus. Based on Common Crawl dataset: "https://commoncrawl.org".
+
+This is the version prepared by AllenAI, hosted at this address: https://huggingface.co/datasets/allenai/c4
+
+It comes in four variants:
+
+- `en`: 305GB in JSON format
+- `en.noblocklist`: 380GB in JSON format
+- `en.noclean`: 2.3TB in JSON format
+- `realnewslike`: 15GB in JSON format
+
+The `en.noblocklist` variant is exactly the same as the `en` variant, except we turned off the so-called "badwords filter", which removes all documents that contain words from the lists at https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+C4 is mainly intended to pretrain language models and word representations.
 
 ### Languages
 
-[More Information Needed]
+The dataset is in English.
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+An example form the `en` config is:
+
+```
+{
+  'url': 'https://klyq.com/beginners-bbq-class-taking-place-in-missoula/',
+  'text': 'Beginners BBQ Class Taking Place in Missoula!\nDo you want to get better at making delicious BBQ? You will have the opportunity, put this on your calendar now. Thursday, September 22nd join World Class BBQ Champion, Tony Balay from Lonestar Smoke Rangers. He will be teaching a beginner level class for everyone who wants to get better with their culinary skills.\nHe will teach you everything you need to know to compete in a KCBS BBQ competition, including techniques, recipes, timelines, meat selection and trimming, plus smoker and fire information.\nThe cost to be in the class is $35 per person, and for spectators it is free. Included in the cost will be either a t-shirt or apron and you will be tasting samples of each meat that is prepared.',
+  'timestamp': '2019-04-25T12:57:54Z'
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+The data have several fields:
+
+- `url`: url of the source as a string
+- `text`: text content as a string
+- `timestamp`: timestamp as a string
 
 ### Data Splits
 
-[More Information Needed]
+|      name      |  train  |validation|
+|----------------|--------:|---------:|
+| en             |364868892|    364608|
+| en.noblocklist |393391519|    393226|
+| en.noclean     |        ?|         ?|
+| realnewslike   | 13799838|     13863|
 
 ## Dataset Creation
 
@@ -79,7 +123,9 @@ Due to the overhead of cleaning the dataset, it is recommend you prepare it with
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+C4 dataset is a collection of about 750GB of English-language text sourced from the public Common Crawl web scrape. It includes heuristics to extract only natural language (as opposed to boilerplate and other gibberish) in addition to extensive deduplication. You can find the code that has been used to build this dataset in [c4.py](https://github.com/tensorflow/datasets/blob/5952d3d60d60e1727786fa7a9a23d24bb463d4d6/tensorflow_datasets/text/c4.py) by Tensorflow Datasets.
+
+The dataset was explicitly designed to be English only: any page that was not given a probability of at least 99% of being English by [langdetect](https://github.com/Mimino666/langdetect) was discarded.
 
 #### Who are the source language producers?
 
@@ -121,7 +167,7 @@ Due to the overhead of cleaning the dataset, it is recommend you prepare it with
 
 ### Licensing Information
 
-[More Information Needed]
+AllenAI are releasing this dataset under the terms of ODC-BY. By using this, you are also bound by the Common Crawl terms of use in respect of the content contained in the dataset.
 
 ### Citation Information
 
@@ -138,6 +184,4 @@ Due to the overhead of cleaning the dataset, it is recommend you prepare it with
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
-
-Thanks to @thomwolf, @Narsil, @patrickvonplaten, @lhoestq, @lewtun for adding this dataset.
+Thanks to [@dirkgr](https://github.com/dirkgr) and [@lhoestq](https://github.com/lhoestq) for adding this dataset.

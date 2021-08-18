@@ -134,6 +134,9 @@ else:
     logger.info("Disabling rarfile because USE_RAR is set to False")
 
 
+ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
+
+
 # Cache location
 DEFAULT_XDG_CACHE_HOME = "~/.cache"
 XDG_CACHE_HOME = os.getenv("XDG_CACHE_HOME", DEFAULT_XDG_CACHE_HOME)

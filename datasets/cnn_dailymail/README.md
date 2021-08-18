@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: cnn-daily-mail-1
+pretty_name: CNN / Daily Mail
 ---
 # Dataset Card for CNN Dailymail Dataset
 
@@ -55,7 +56,7 @@ paperswithcode_id: cnn-daily-mail-1
 
 ### Dataset Summary
 
-The CNN / DailyMail Dataset is an English-language dataset containing just over 300k unique news aticles as written by journalists at CNN and the Daily Mail. The current version supports both extractive and abstractive summarization, though the original version was created for machine reading and comprehension and abstractive question answering. 
+The CNN / DailyMail Dataset is an English-language dataset containing just over 300k unique news articles as written by journalists at CNN and the Daily Mail. The current version supports both extractive and abstractive summarization, though the original version was created for machine reading and comprehension and abstractive question answering. 
 
 ### Supported Tasks and Leaderboards
 

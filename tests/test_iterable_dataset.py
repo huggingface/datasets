@@ -13,7 +13,9 @@ from datasets.iterable_dataset import (
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
-    ShuffingConfig,
+    ShufflingConfig,
+    SkipExamplesIterable,
+    TakeExamplesIterable,
     _batch_to_examples,
     _examples_to_batch,
     iterable_dataset,
@@ -44,6 +46,13 @@ def generate_examples_fn():
 def dataset(generate_examples_fn):
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
     return IterableDataset(ex_iterable, info=DatasetInfo(description="dummy"), split="train")
+
+
+################################
+#
+#   _BaseExampleIterable tests
+#
+################################
 
 
 def test_examples_iterable(generate_examples_fn):
@@ -181,6 +190,31 @@ def test_mapped_examples_iterable(generate_examples_fn, n, func, batch_size):
     assert list(ex_iterable) == expected
 
 
+def test_skip_examples_iterable(generate_examples_fn):
+    total, count = 10, 2
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": total})
+    skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
+    expected = list(generate_examples_fn(n=total))[count:]
+    assert list(skip_ex_iterable) == expected
+    assert skip_ex_iterable.shuffle_data_sources(42) is skip_ex_iterable, "skip examples makes the shards order fixed"
+
+
+def test_take_examples_iterable(generate_examples_fn):
+    total, count = 10, 2
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": total})
+    take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
+    expected = list(generate_examples_fn(n=total))[:count]
+    assert list(take_ex_iterable) == expected
+    assert take_ex_iterable.shuffle_data_sources(42) is take_ex_iterable, "skip examples makes the shards order fixed"
+
+
+############################
+#
+#   IterableDataset tests
+#
+############################
+
+
 def test_iterable_dataset(generate_examples_fn):
     dataset = IterableDataset(ExamplesIterable(generate_examples_fn, {}))
     expected = [x for _, x in generate_examples_fn()]
@@ -262,7 +296,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn
     buffer_size = 3
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
     dataset = dataset.shuffle(buffer_size, seed=seed)
-    assert isinstance(dataset._shuffling, ShuffingConfig)
+    assert isinstance(dataset._shuffling, ShufflingConfig)
     assert dataset._shuffling.seed == seed
     # Effective seed is sum of seed and epoch
     if epoch is None:
@@ -320,6 +354,36 @@ def test_iterable_dataset_with_format(dataset: IterableDataset, format_type):
         import torch
 
         assert isinstance(formatted_dataset, torch.utils.data.IterableDataset)
+
+
+@pytest.mark.parametrize("n", [0, 2, int(1e10)])
+def test_iterable_dataset_skip(dataset: IterableDataset, n):
+    skip_dataset = dataset.skip(n)
+    assert isinstance(skip_dataset._ex_iterable, SkipExamplesIterable)
+    assert skip_dataset._ex_iterable.n == n
+    assert list(skip_dataset) == list(dataset)[n:]
+
+
+@pytest.mark.parametrize("n", [0, 2, int(1e10)])
+def test_iterable_dataset_take(dataset: IterableDataset, n):
+    take_dataset = dataset.take(n)
+    assert isinstance(take_dataset._ex_iterable, TakeExamplesIterable)
+    assert take_dataset._ex_iterable.n == n
+    assert list(take_dataset) == list(dataset)[:n]
+
+
+@pytest.mark.parametrize("method", ["skip", "take"])
+def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, method):
+    seed = 42
+    n, n_shards = 3, 10
+    count = 7
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "filepaths": [f"{i}.txt" for i in range(n_shards)]})
+    dataset = IterableDataset(ex_iterable)
+    dataset = dataset.skip(n) if method == "skip" else dataset.take(count)
+    shuffled_dataset = dataset.shuffle(DEFAULT_N_EXAMPLES, seed=seed)
+    # shuffling a skip/take dataset should keep the same examples and don't shuffle the shards
+    key = lambda x: f"{x['filepath']}_{x['id']}"  # noqa: E731
+    assert sorted(dataset, key=key) == sorted(shuffled_dataset, key=key)
 
 
 @pytest.mark.parametrize(

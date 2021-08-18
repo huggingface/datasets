@@ -23,6 +23,7 @@ Even though the dataset is 1.2 terabytes of data, you can start using it right a
     The dataset that is returned is a :class:`datasets.IterableDataset`, not the classic map-style :class:`datasets.Dataset`. To get examples from an iterable dataset, you have to iterate over it using a for loop for example. To get the very last example of the dataset, you first have to iterate on all the previous examples.
     Therefore iterable datasets are mostly useful for iterative jobs like training a model, but not for jobs that require random access of examples.
 
+.. _iterable-dataset-shuffling:
 
 Shuffling the dataset: ``shuffle``
 --------------------------------------------------
@@ -51,6 +52,9 @@ Moreover, for larger datasets that are sharded into multiple files, :func:`datas
 
 In this example, the shuffle buffer contains 10,000 examples that were downloaded from one random shard of the dataset (here it actually comes from the 480-th shard out of 670).
 The example was selected randomly from this buffer, and replaced by the 10,001-st example of the dataset shard.
+
+Note that if the order of the shards has been fixed by using :func:`datasets.IterableDataset.skip` or :func:`datasets.IterableDataset.take` then the order of the shards is kept unchanged.
+
 
 Reshuffle the dataset at each epoch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -91,6 +95,30 @@ Tokenizers are written in Rust and use parallelism to speed up tokenization. To 
     >>> tokenized_dataset = dataset.map(lambda x: tokenizer(x["text"]), batched=True)  # default batch_size is 1000 but you can specify another batch_size if needed
     >>> print(next(iter(tokenized_dataset)))
     {'input_ids': [101, 11047, 10497, 7869, 2352...], 'token_type_ids': [0, 0, 0, 0, 0...], 'attention_mask': [1, 1, 1, 1, 1...]}
+
+
+Split your dataset with ``take`` and ``skip``
+--------------------------------------------------
+
+You can split your dataset by taking or skipping the first ``n`` examples.
+
+You can create a new dataset with the first ``n`` examples by using :func:`datasets.IterableDataset.take`, or you can create a dataset with the rest of the examples by skipping the first ``n`` examples with :func:`datasets.IterableDataset.skip`:
+
+
+.. code-block::
+
+    >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
+    >>> dataset_head = dataset.take(2)
+    >>> list(dataset_head)
+    [{'id': 0, 'text': 'Mtendere Village was...'}, '{id': 1, 'text': 'Lily James cannot fight the music...'}]
+    >>> # You can also create splits from a shuffled dataset
+    >>> train_dataset = shuffled_dataset.skip(1000)
+    >>> eval_dataset = shuffled_dataset.take(1000)
+
+Some things to keep in mind:
+
+- When you apply ``skip`` to a dataset, iterating on the new dataset will take some time to start. This is because under the hood it has to iterate over the skipped examples first.
+- Using ``take`` (or ``skip``) prevents future calls to ``shuffle`` from shuffling the dataset shards order, otherwise the taken examples could come from other shards. In this case it only uses the shuffle buffer. Therefore it is advised to shuffle the dataset before splitting using ``take`` or ``skip``. See more details in the :ref:`iterable-dataset-shuffling` section.
 
 
 Mix several iterable datasets together with ``interleave_datasets``

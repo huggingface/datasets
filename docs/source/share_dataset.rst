@@ -3,7 +3,7 @@ Sharing your dataset
 
 Once you've written a new dataset loading script as detailed on the :doc:`add_dataset` page, you may want to share it with the community for instance on the `HuggingFace Hub <https://huggingface.co/datasets>`__. There are two options to do that:
 
-- add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗Datasets <https://github.com/huggingface/datasets>`__,
+- add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗 Datasets <https://github.com/huggingface/datasets>`__,
 - directly upload it on the Hub as a community provided dataset.
 
 Here are the main differences between these two options.
@@ -31,7 +31,7 @@ Sharing a "canonical" dataset
 
 To add a "canonical" dataset to the library, you need to go through the following steps:
 
-**1. Fork the** `🤗Datasets repository <https://github.com/huggingface/datasets>`__ by clicking on the 'Fork' button on the repository's home page. This creates a copy of the code under your GitHub user account.
+**1. Fork the** `🤗 Datasets repository <https://github.com/huggingface/datasets>`__ by clicking on the 'Fork' button on the repository's home page. This creates a copy of the code under your GitHub user account.
 
 **2. Clone your fork** to your local disk, and add the base repository as a remote:
 
@@ -60,7 +60,7 @@ To add a "canonical" dataset to the library, you need to go through the followin
 
 .. note::
 
-   If 🤗Datasets was already installed in the virtual environment, remove
+   If 🤗 Datasets was already installed in the virtual environment, remove
    it with ``pip uninstall datasets`` before reinstalling it in editable
    mode with the ``-e`` flag.
 
@@ -103,7 +103,7 @@ Push the changes to your account using:
 Sharing a "community provided" dataset
 -----------------------------------------
 
-In this page, we will show you how to share a dataset with the community on the `datasets hub <https://huggingface.co/datasets>`__.
+In this page, we will show you how to share a dataset with the community on the `🤗 Datasets Hub <https://huggingface.co/datasets>`__.
 
 .. note::
 
@@ -115,12 +115,12 @@ Prepare your dataset for uploading
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We have seen in the :doc:`dataset script tutorial <add_dataset>`: how to write a dataset loading script. Let's see how you can share it on the
-`datasets hub <https://huggingface.co/datasets>`__.
+`🤗 Datasets Hub <https://huggingface.co/datasets>`__.
 
 Dataset versioning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Since version 2.0, the datasets hub has built-in dataset versioning based on git and git-lfs. It is based on the paradigm
+Since version 2.0, the 🤗 Datasets Hub has built-in dataset versioning based on git and git-lfs. It is based on the paradigm
 that one dataset *is* one repo.
 
 This allows:
@@ -144,7 +144,7 @@ For instance:
 Basic steps
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In order to upload a dataset, you'll need to first create a git repo. This repo will live on the datasets hub, allowing
+In order to upload a dataset, you'll need to first create a git repo. This repo will live on the 🤗 Datasets Hub, allowing
 users to clone it and you (and your organization members) to push to it.
 
 You can create a dataset repo directly from `the /new-dataset page on the website <https://huggingface.co/new-dataset>`__.
@@ -159,7 +159,7 @@ Datasets, since that command :obj:`huggingface-cli` comes from the library.
     huggingface-cli login
 
 
-Once you are logged in with your datasets hub credentials, you can start building your repositories. To create a repo:
+Once you are logged in with your 🤗 Datasets Hub credentials, you can start building your repositories. To create a repo:
 
 .. code-block:: bash
 
@@ -173,7 +173,7 @@ If you want to create a repo under a specific organization, you should add a `--
     huggingface-cli repo create your_dataset_name --type dataset --organization your-org-name
 
 
-This creates a repo on the datasets hub, which can be cloned.
+This creates a repo on the 🤗 Datasets Hub, which can be cloned.
 
 .. code-block:: bash
 
@@ -204,7 +204,7 @@ Additionally, if you want to change multiple repos at once, the `change_config.p
 <https://github.com/huggingface/efficient_scripts/blob/main/change_config.py>`__ can probably save you some time.
 
 
-Check the directory before pushing to the datasets hub.
+Check the directory before pushing to the 🤗 Datasets Hub.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Make sure there are no garbage files in the directory you'll upload. It should only have:
