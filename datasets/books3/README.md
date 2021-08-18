@@ -11,7 +11,7 @@ multilinguality:
 - monolingual
 pretty_name: Books3
 size_categories:
-- unknown
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
@@ -55,9 +55,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/soskek/bookcorpus/issues/27#issuecomment-716104208
+- **Homepage:** [GitHub](https://github.com/soskek/bookcorpus/issues/27#issuecomment-716104208)
 - **Repository:** [Needs More Information]
-- **Paper:** https://arxiv.org/abs/2101.00027
+- **Paper:** [arXiv](https://arxiv.org/abs/2101.00027)
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [Needs More Information]
 
@@ -72,11 +72,11 @@ This dataset contains all of bibliotik in plain .txt form, aka 197,000 books pro
 
 ### Supported Tasks and Leaderboards
 
-- `lm`
+This dataset is used for Language Modeling.
 
 ### Languages
 
-- `en`
+The dataset is in English.
 
 ## Dataset Structure
 
@@ -89,8 +89,8 @@ This dataset contains all of bibliotik in plain .txt form, aka 197,000 books pro
 
 ### Data Fields
 
-- `title`
-- `text`
+- `title`: title of the book
+- `text`: text content of the book
 
 ### Data Splits
 
