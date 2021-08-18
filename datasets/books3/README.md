@@ -165,5 +165,5 @@ MIT
 
 ### Contributions
 
-[@shawwn](https://github.com/shawwn) creates this dataset.
-[@richarddwang](https://github.com/richarddwang) adds this dataset.
+Thanks to [@shawwn](https://github.com/shawwn) for creating this dataset.
+Thanks to [@richarddwang](https://github.com/richarddwang) for adding this dataset.
