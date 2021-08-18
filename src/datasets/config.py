@@ -1,6 +1,6 @@
 import importlib
 import os
-import sys
+import platform
 from pathlib import Path
 
 from packaging import version
@@ -24,9 +24,9 @@ REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{vers
 HUB_DATASETS_URL = "https://huggingface.co/datasets/{path}/resolve/{version}/{name}"
 HUB_DEFAULT_VERSION = "main"
 
-PY_VERSION: str = sys.version.split()[0]
+PY_VERSION = version.parse(platform.python_version())
 
-if int(PY_VERSION.split(".")[0]) == 3 and int(PY_VERSION.split(".")[1]) < 8:
+if PY_VERSION < version.parse("3.8"):
     import importlib_metadata
 else:
     import importlib.metadata as importlib_metadata
@@ -37,7 +37,7 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 
 # Imports
-PYARROW_VERSION = importlib_metadata.version("pyarrow")
+PYARROW_VERSION = version.parse(importlib_metadata.version("pyarrow"))
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
@@ -50,7 +50,7 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
     TORCH_AVAILABLE = importlib.util.find_spec("torch") is not None
     if TORCH_AVAILABLE:
         try:
-            TORCH_VERSION = importlib_metadata.version("torch")
+            TORCH_VERSION = version.parse(importlib_metadata.version("torch"))
             logger.info(f"PyTorch version {TORCH_VERSION} available.")
         except importlib_metadata.PackageNotFoundError:
             pass
@@ -76,13 +76,13 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             "tensorflow-macos",
         ]:
             try:
-                TF_VERSION = importlib_metadata.version(package)
+                TF_VERSION = version.parse(importlib_metadata.version(package))
             except importlib_metadata.PackageNotFoundError:
                 continue
             else:
                 break
     if TF_AVAILABLE:
-        if version.parse(TF_VERSION) < version.parse("2"):
+        if TF_VERSION.major < 2:
             logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
             TF_AVAILABLE = False
         else:
@@ -98,7 +98,7 @@ if USE_JAX in ENV_VARS_TRUE_AND_AUTO_VALUES:
     JAX_AVAILABLE = importlib.util.find_spec("jax") is not None
     if JAX_AVAILABLE:
         try:
-            JAX_VERSION = importlib_metadata.version("jax")
+            JAX_VERSION = version.parse(importlib_metadata.version("jax"))
             logger.info(f"JAX version {JAX_VERSION} available.")
         except importlib_metadata.PackageNotFoundError:
             pass
@@ -111,7 +111,7 @@ BEAM_VERSION = "N/A"
 BEAM_AVAILABLE = False
 if USE_BEAM in ("1", "ON", "YES", "AUTO"):
     try:
-        BEAM_VERSION = importlib_metadata.version("apache_beam")
+        BEAM_VERSION = version.parse(importlib_metadata.version("apache_beam"))
         BEAM_AVAILABLE = True
         logger.info("Apache Beam version {} available.".format(BEAM_VERSION))
     except importlib_metadata.PackageNotFoundError:
@@ -125,7 +125,7 @@ RARFILE_VERSION = "N/A"
 RARFILE_AVAILABLE = False
 if USE_RAR in ("1", "ON", "YES", "AUTO"):
     try:
-        RARFILE_VERSION = importlib_metadata.version("rarfile")
+        RARFILE_VERSION = version.parse(importlib_metadata.version("rarfile"))
         RARFILE_AVAILABLE = True
         logger.info("rarfile available.")
     except importlib_metadata.PackageNotFoundError:
