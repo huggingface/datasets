@@ -61,7 +61,7 @@ _URLs = {
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
-class cedr(datasets.GeneratorBasedBuilder):
+class Cedr(datasets.GeneratorBasedBuilder):
     """This dataset is designed to solve emotion recognition task for text data in Russian."""
 
     VERSION = datasets.Version("0.1.1")
