@@ -20,10 +20,10 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for books3
+# Dataset Card for the_pile_books3
 
 ## Table of Contents
-- [Dataset Card for books3](#dataset-card-for-books3)
+- [Dataset Card for the_pile_books3](#dataset-card-for-the_pile_books3)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
