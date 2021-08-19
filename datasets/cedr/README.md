@@ -55,7 +55,7 @@ task_ids:
 - **Repository:** https://github.com/sag111/CEDR
 - **Paper:** https://www.sciencedirect.com/science/article/pii/S1877050921013247
 - **Leaderboard:**
-- **Point of Contact:** sag111@mail.ru
+- **Point of Contact:** [@sag111](mailto:sag111@mail.ru)
 
 ### Dataset Summary
 
