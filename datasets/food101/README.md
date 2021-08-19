@@ -9,7 +9,7 @@ licenses:
 - unknown
 multilinguality:
 - monolingual
-pretty_name: food101
+pretty_name: Food-101
 size_categories:
 - 10K<n<100K
 source_datasets:
