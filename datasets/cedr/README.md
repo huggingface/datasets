@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- ru-RU
+- ru
 licenses:
 - apache-2.0
 multilinguality:
