@@ -11,7 +11,7 @@ multilinguality:
 - monolingual
 pretty_name: The Corpus for Emotions Detecting in Russian-language text sentences (CEDR)
 size_categories:
-- unknown
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
