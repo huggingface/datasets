@@ -55,8 +55,8 @@ _HOMEPAGE = "https://github.com/sag111/CEDR"
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    "main": "https://drive.google.com/u/0/uc?id=1flukWj075o7InAlBZm7htXEqZM6D-LfA&export=download",
-    "enriched": "https://drive.google.com/u/0/uc?id=1w9fJf9SwxtEABy5uhougn_2ZlxKBbZHV&export=download",
+    "main": "https://sagteam.ru/cedr/main.zip",
+    "enriched": "https://sagteam.ru/cedr/enriched.zip",
 }
 
 
@@ -94,7 +94,9 @@ class Cedr(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "labels": datasets.features.Sequence(datasets.ClassLabel(names=["joy", "sadness", "surprise", "fear", "anger"])),
+                    "labels": datasets.features.Sequence(
+                        datasets.ClassLabel(names=["joy", "sadness", "surprise", "fear", "anger"])
+                    ),
                     "source": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
@@ -103,9 +105,18 @@ class Cedr(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "labels": datasets.features.Sequence(datasets.ClassLabel(names=["joy", "sadness", "surprise", "fear", "anger"])),
+                    "labels": datasets.features.Sequence(
+                        datasets.ClassLabel(names=["joy", "sadness", "surprise", "fear", "anger"])
+                    ),
                     "source": datasets.Value("string"),
-                    "sentences": [[{"forma": datasets.Value("string"), "lemma": datasets.Value("string"),}]]
+                    "sentences": [
+                        [
+                            {
+                                "forma": datasets.Value("string"),
+                                "lemma": datasets.Value("string"),
+                            }
+                        ]
+                    ]
                     # These are the features of your dataset like images, labels ...
                 }
             )
@@ -140,7 +151,10 @@ class Cedr(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, self.config.name, "train.jsonl"), "split": "train",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, self.config.name, "train.jsonl"),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
