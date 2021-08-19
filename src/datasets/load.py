@@ -247,7 +247,7 @@ def prepare_module(
             If specified, the module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
-            - it will also try to load it from the master branch if it's not available at the local version fo the lib.
+            - it will also try to load it from the master branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
@@ -601,7 +601,7 @@ def load_metric(
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         script_version (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
-            at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
+            at this version. By default it is set to the local version of the lib. Specifying a version that is different from
             your local version of the lib might cause compatibility issues.
 
     Returns:
@@ -666,7 +666,7 @@ def load_dataset_builder(
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
-            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
+            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
@@ -781,7 +781,7 @@ def load_dataset(
         save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
-            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
+            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
