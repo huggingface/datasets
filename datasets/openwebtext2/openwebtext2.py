@@ -19,7 +19,7 @@ import glob
 import io
 import os
 
-import jsonlines
+import json
 import zstandard
 
 import datasets
@@ -99,8 +99,8 @@ class Reader:
             self.fh = fh
             cctx = zstandard.ZstdDecompressor()
             reader = io.BufferedReader(cctx.stream_reader(fh))
-            rdr = jsonlines.Reader(reader)
-            for ob in rdr:
+            for line in reader.readlines():
+                ob = json.loads(line)
                 # naive jsonl where each object is just the string itself, with no meta. For legacy compatibility.
                 if isinstance(ob, str):
                     assert not get_meta
