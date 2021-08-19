@@ -34,19 +34,14 @@ def xjoin(a, *p):
 
     Example::
 
-        >>> xjoin("https://host.com/archive.zip", "folder1/file.txt")
+        >>> xjoin("zip://folder1::https://host.com/archive.zip", "file.txt")
         zip://folder1/file.txt::https://host.com/archive.zip
     """
     a, *b = a.split("::")
     if is_local_path(a):
         a = Path(a, *p).as_posix()
     else:
-        compression = fsspec.core.get_compression(a, "infer")
-        if compression in ["zip"]:
-            b = [a] + b
-            a = posixpath.join(f"{compression}://", *p)
-        else:
-            a = posixpath.join(a, *p)
+        a = posixpath.join(a, *p)
     return "::".join([a] + b)
 
 
@@ -69,22 +64,9 @@ def _add_retries_to_file_obj_read_method(file_obj):
         return out
 
     file_obj.read = read_with_retries
-    return file_obj
 
 
-def _add_retries_to_fsspec_open_file(fsspec_open_file):
-    open_ = fsspec_open_file.open
-
-    def open_with_retries():
-        file_obj = open_()
-        _add_retries_to_file_obj_read_method(file_obj)
-        return file_obj
-
-    fsspec_open_file.open = open_with_retries
-    return fsspec_open_file
-
-
-def xopen(file, mode="r", compression="infer", *args, **kwargs):
+def xopen(file, mode="r", *args, **kwargs):
     """
     This function extends the builtin `open` function to support remote files using fsspec.
 
@@ -93,9 +75,9 @@ def xopen(file, mode="r", compression="infer", *args, **kwargs):
     """
     if fsspec.get_fs_token_paths(file)[0].protocol == "https":
         kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=kwargs.pop("use_auth_token", None))
-    fsspec_open_file = fsspec.open(file, mode=mode, compression=compression, *args, **kwargs)
-    fsspec_open_file = _add_retries_to_fsspec_open_file(fsspec_open_file)
-    return fsspec_open_file
+    file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+    _add_retries_to_file_obj_read_method(file_obj)
+    return file_obj
 
 
 class StreamingDownloadManager(object):
@@ -141,15 +123,20 @@ class StreamingDownloadManager(object):
         if protocol is None:
             # no extraction
             return urlpath
+        elif protocol == "gzip":
+            # there is one single file which is the uncompressed gzip file
+            return f"{protocol}://{os.path.basename(urlpath.split('::')[0]).rstrip('.gz')}::{urlpath}"
         else:
-            return f"{protocol}://*::{urlpath}"
+            return f"{protocol}://::{urlpath}"
 
     def _get_extraction_protocol(self, urlpath) -> Optional[str]:
         path = urlpath.split("::")[0]
-        if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS + COMPRESSION_KNOWN_EXTENSIONS:
+        if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS:
             return None
-        elif path.endswith(".tar"):
-            return "tar"
+        elif path.endswith(".gz") and not path.endswith(".tar.gz"):
+            return "gzip"
+        elif path.endswith(".zip"):
+            return "zip"
         raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
 
     def download_and_extract(self, url_or_urls):

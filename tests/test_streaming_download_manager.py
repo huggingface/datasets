@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from .utils import require_streaming
@@ -11,7 +13,12 @@ TEST_URL_CONTENT = "foo\nbar\nfoobar"
 @pytest.mark.parametrize(
     "input_path, paths_to_join, expected_path",
     [
-        ("https://host.com/archive.zip", ("file.txt",), "zip://file.txt::https://host.com/archive.zip"),
+        ("https://host.com/archive.zip", ("file.txt",), "https://host.com/archive.zip/file.txt"),
+        (
+            "zip://::https://host.com/archive.zip",
+            ("file.txt",),
+            "zip://file.txt::https://host.com/archive.zip",
+        ),
         (
             "zip://folder::https://host.com/archive.zip",
             ("file.txt",),
@@ -72,14 +79,16 @@ def test_streaming_dl_manager_download_and_extract_no_extraction(urlpath):
 
 
 @require_streaming
-def test_streaming_dl_manager_extract(text_gz_path):
+def test_streaming_dl_manager_extract(text_gz_path, text_path):
     from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
 
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.extract(text_gz_path)
-    assert output_path == text_gz_path
-    fsspec_open_file = xopen(output_path)
-    assert fsspec_open_file.compression == "gzip"
+    path = os.path.basename(text_gz_path).rstrip(".gz")
+    assert output_path == f"gzip://{path}::{text_gz_path}"
+    fsspec_open_file = xopen(output_path, encoding="utf-8")
+    with fsspec_open_file as f, open(text_path, encoding="utf-8") as expected_file:
+        assert f.read() == expected_file.read()
 
 
 @require_streaming
@@ -88,9 +97,9 @@ def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path,
 
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.download_and_extract(text_gz_path)
-    assert output_path == text_gz_path
+    path = os.path.basename(text_gz_path).rstrip(".gz")
+    assert output_path == f"gzip://{path}::{text_gz_path}"
     fsspec_open_file = xopen(output_path, encoding="utf-8")
-    assert output_path == text_gz_path
     with fsspec_open_file as f, open(text_path, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
 
