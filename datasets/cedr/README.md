@@ -9,7 +9,7 @@ licenses:
 - apache-2.0
 multilinguality:
 - monolingual
-pretty_name: The Corpus for Emotions Detecting in Russian-language text sentences
+pretty_name: The Corpus for Emotions Detecting in Russian-language text sentences (CEDR)
 size_categories:
 - unknown
 source_datasets:
