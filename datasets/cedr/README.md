@@ -132,7 +132,7 @@ Sentences were split into tasks and assigned to annotators so that each sentence
 
 #### Who are the annotators?
 
-Only those of the 30% of the best-performing active users (by the platform’s internal rating) who spoke Russian and were over 18 years old were allowed into the annotation process. Moreover, before a platform user could be employed as an annotator, they underwent a training task, after which they were to mark 25 trial samples with more than 80% agreement compared to the annotation that we had performed ourselves.
+Only those of the 30% of the best-performing active users (by the platform’s internal rating) who spoke Russian and were over 18 years old were allowed into the annotation process. Moreover, before a platform user could be employed as an annotator, they underwent a training task, after which they were to mark 25 trial samples with more than 80% agreement compared to the annotation that the authors had performed themselves.
 
 ### Personal and Sensitive Information
 
