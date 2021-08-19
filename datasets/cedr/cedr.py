@@ -94,7 +94,7 @@ class Cedr(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "labels": datasets.features.Sequence(datasets.Value("string")),
+                    "labels": datasets.features.Sequence(datasets.ClassLabel(names=["joy," "sadness", "surprise", "fear", "anger"])),
                     "source": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
