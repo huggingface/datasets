@@ -110,7 +110,7 @@ The formed dataset of examples consists of sentences in Russian from several sou
 
 Data was collected from several sources: posts of the Live Journal social network, texts of the online news agency Lenta.ru, and Twitter microblog posts.
 
-Only those sentences were selected that contained marker words from the dictionary of [the emotive vocabulary of the Russian language](http://lexrus.ru/default.aspx?p=2876). We manually formed a list of marker words for each emotion by choosing words from different categories of the dictionary.
+Only those sentences were selected that contained marker words from the dictionary of [the emotive vocabulary of the Russian language](http://lexrus.ru/default.aspx?p=2876). The authors manually formed a list of marker words for each emotion by choosing words from different categories of the dictionary.
 
 In total, 3098 sentences were selected from LiveJournal posts, 2847 sentences from Lenta.Ru, and 3465 sentencesfrom Twitter. After selection, sentences were offered to annotators for labeling.
 
