@@ -23,7 +23,7 @@ task_ids:
 # Dataset Card for Stack Exchange
 
 ## Table of Contents
-- [Dataset Card for Stack Exchange](#dataset-card-for-stack-exchange)
+- [Dataset Card for Stack Exchange](#dataset-card-for-the_pile_stack_exchange)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
