@@ -79,7 +79,33 @@ The data is in Russian.
 
 ### Data Instances
 
-Each instance is a text sentence in Russian from several sources with one or more emotion annotations.
+Each instance is a text sentence in Russian from several sources with one or more emotion annotations (or no emotion at all).
+
+An example for an instance from the dataset is shown below:
+```
+{
+  'text': 'Забавно как люди в возрасте удивляются входящим звонкам на мобильник)',
+  'labels': [0],
+  'source': 'twitter',
+  'sentences': [
+    [
+      {'forma': 'Забавно', 'lemma': 'Забавно'},
+      {'forma': 'как', 'lemma': 'как'},
+      {'forma': 'люди', 'lemma': 'человек'},
+      {'forma': 'в', 'lemma': 'в'},
+      {'forma': 'возрасте', 'lemma': 'возраст'},
+      {'forma': 'удивляются', 'lemma': 'удивляться'},
+      {'forma': 'входящим', 'lemma': 'входить'},
+      {'forma': 'звонкам', 'lemma': 'звонок'},
+      {'forma': 'на', 'lemma': 'на'},
+      {'forma': 'мобильник', 'lemma': 'мобильник'},
+      {'forma': ')', 'lemma': ')'}
+    ]
+  ]
+}
+```
+
+Emotion label codes: {0: "joy", 1: "sadness", 2: "surprise", 3: "fear", 4: "anger"}
 
 ### Data Fields
 
@@ -112,7 +138,7 @@ Data was collected from several sources: posts of the Live Journal social networ
 
 Only those sentences were selected that contained marker words from the dictionary of [the emotive vocabulary of the Russian language](http://lexrus.ru/default.aspx?p=2876). The authors manually formed a list of marker words for each emotion by choosing words from different categories of the dictionary.
 
-In total, 3098 sentences were selected from LiveJournal posts, 2847 sentences from Lenta.Ru, and 3465 sentencesfrom Twitter. After selection, sentences were offered to annotators for labeling.
+In total, 3069 sentences were selected from LiveJournal posts, 2851 sentences from Lenta.Ru, and 3490 sentencesfrom Twitter. After selection, sentences were offered to annotators for labeling.
 
 #### Who are the source language producers?
 
