@@ -88,8 +88,8 @@ class TempSeedTest(TestCase):
 
 
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
-def test_cached_path_extract(compression_format, gz_path, xz_file, zstd_path, tmp_path, text_file):
-    input_paths = {"gzip": gz_path, "xz": xz_file, "zstd": zstd_path}
+def test_cached_path_extract(compression_format, gz_file, xz_file, zstd_path, tmp_path, text_file):
+    input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_path}
     input_path = str(input_paths[compression_format])
     cache_dir = tmp_path / "cache"
     download_config = DownloadConfig(cache_dir=cache_dir, extract_compressed_file=True)

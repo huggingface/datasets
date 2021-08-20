@@ -22,6 +22,8 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
     # archive compression
     "zip": "zip",
+    "tar": "tar",
+    "tgz": "tar",
 }
 
 SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
@@ -117,17 +119,17 @@ class StreamingDownloadManager(object):
         url_or_urls = map_nested(self._download, url_or_urls, map_tuple=True)
         return url_or_urls
 
-    def _download(self, url_or_filename):
-        if is_relative_path(url_or_filename):
+    def _download(self, urlpath: str) -> str:
+        if is_relative_path(urlpath):
             # append the relative path to the base_path
-            url_or_filename = url_or_path_join(self._base_path, url_or_filename)
-        return url_or_filename
+            urlpath = url_or_path_join(self._base_path, urlpath)
+        return urlpath
 
     def extract(self, path_or_paths):
         urlpaths = map_nested(self._extract, path_or_paths, map_tuple=True)
         return urlpaths
 
-    def _extract(self, urlpath):
+    def _extract(self, urlpath: str) -> str:
         protocol = self._get_extraction_protocol(urlpath)
         if protocol is None:
             # no extraction
@@ -136,7 +138,11 @@ class StreamingDownloadManager(object):
             # there is one single file which is the uncompressed file
             inner_file = os.path.basename(urlpath.split("::")[0])
             inner_file = inner_file[: inner_file.rindex(".")]
-            return f"{protocol}://{inner_file}::{urlpath}"
+            # check for tar.gz, tar.bz2 etc.
+            if inner_file.endswith(".tar"):
+                return f"tar://::{urlpath}"
+            else:
+                return f"{protocol}://{inner_file}::{urlpath}"
         else:
             return f"{protocol}://::{urlpath}"
 
