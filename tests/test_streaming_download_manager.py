@@ -2,7 +2,9 @@ import os
 
 import pytest
 
-from .utils import require_streaming
+from datasets.filesystems import COMPRESSION_FILESYSTEMS
+
+from .utils import require_lz4, require_streaming, require_zstandard
 
 
 TEST_URL = "https://huggingface.co/datasets/lhoestq/test/raw/main/some_text.txt"
@@ -116,3 +118,24 @@ def test_streaming_dl_manager_download_and_extract_with_join(input_path, filenam
     extracted_path = dl_manager.download_and_extract(input_path)
     output_path = xjoin(extracted_path, filename)
     assert output_path == expected_path
+
+
+@require_streaming
+@require_zstandard
+@require_lz4
+@pytest.mark.parametrize("compression_fs_class", COMPRESSION_FILESYSTEMS)
+def test_streaming_dl_manager_extract_all_supported_single_file_compression_types(
+    compression_fs_class, gz_file, xz_file, zstd_file, bz2_file, lz4_file, text_file
+):
+    from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
+
+    input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_file, "bz2": bz2_file, "lz4": lz4_file}
+    input_path = str(input_paths[compression_fs_class.protocol])
+    dl_manager = StreamingDownloadManager()
+    output_path = dl_manager.extract(input_path)
+    path = os.path.basename(input_path)
+    path = path[: path.rindex(".")]
+    assert output_path == f"{compression_fs_class.protocol}://{path}::{input_path}"
+    fsspec_open_file = xopen(output_path, encoding="utf-8")
+    with fsspec_open_file as f, open(text_file, encoding="utf-8") as expected_file:
+        assert f.read() == expected_file.read()

@@ -120,21 +120,10 @@ else:
     logger.info("Disabling Apache Beam because USE_BEAM is set to False")
 
 
-USE_RAR = os.environ.get("USE_RAR", "AUTO").upper()
-RARFILE_VERSION = "N/A"
-RARFILE_AVAILABLE = False
-if USE_RAR in ("1", "ON", "YES", "AUTO"):
-    try:
-        RARFILE_VERSION = version.parse(importlib_metadata.version("rarfile"))
-        RARFILE_AVAILABLE = True
-        logger.info("rarfile available.")
-    except importlib_metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling rarfile because USE_RAR is set to False")
-
-
+# Optional compression tools
+RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
 ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
+LZ4_AVAILABLE = importlib.util.find_spec("lz4") is not None
 
 
 # Cache location

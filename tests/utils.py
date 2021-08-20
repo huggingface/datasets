@@ -137,6 +137,30 @@ def require_jax(test_case):
     return test_case
 
 
+def require_zstandard(test_case):
+    """
+    Decorator marking a test that requires zstandard.
+
+    These tests are skipped when zstandard isn't installed.
+
+    """
+    if not config.ZSTANDARD_AVAILABLE:
+        test_case = unittest.skip("test requires zstandard")(test_case)
+    return test_case
+
+
+def require_lz4(test_case):
+    """
+    Decorator marking a test that requires lz4.
+
+    These tests are skipped when lz4 isn't installed.
+
+    """
+    if not config.LZ4_AVAILABLE:
+        test_case = unittest.skip("test requires lz4")(test_case)
+    return test_case
+
+
 def require_transformers(test_case):
     """
     Decorator marking a test that requires transformers.
