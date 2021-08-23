@@ -80,7 +80,7 @@ class Bz2FileSystem(BaseCompressedFileFileSystem):
     extension = ".bz2"
 
 
-class GZipFileSystem(BaseCompressedFileFileSystem):
+class GzipFileSystem(BaseCompressedFileFileSystem):
     """Read contents of GZIP file as a filesystem with one file inside."""
 
     protocol = "gzip"
@@ -89,7 +89,7 @@ class GZipFileSystem(BaseCompressedFileFileSystem):
 
 
 class Lz4FileSystem(BaseCompressedFileFileSystem):
-    """Read contents of Lz4 file as a filesystem with one file inside."""
+    """Read contents of LZ4 file as a filesystem with one file inside."""
 
     protocol = "lz4"
     compression = "lz4"

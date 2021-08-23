@@ -13,7 +13,7 @@ if _has_s3fs:
 
 COMPRESSION_FILESYSTEMS: List[compression.BaseCompressedFileFileSystem] = [
     compression.Bz2FileSystem,
-    compression.GZipFileSystem,
+    compression.GzipFileSystem,
     compression.Lz4FileSystem,
     compression.XzFileSystem,
     compression.ZstdFileSystem,
