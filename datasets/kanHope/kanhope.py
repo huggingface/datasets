@@ -36,7 +36,7 @@ Numerous methods have been developed to monitor the spread of negativity in mode
 eliminating vulgar, offensive, and fierce comments from social media platforms. However, there are relatively
 lesser amounts of study that converges on embracing positivity, reinforcing supportive and reassuring content in online forums. 
 Consequently, we propose creating an English-Kannada Hope speech dataset, KanHope and comparing several experiments to benchmark the dataset. 
-The dataset consists of 6,176 user-generated comments in code mixed Kannada scraped from YouTube and manually annotated as bearing hope
+The dataset consists of 6,176 usergenerated comments in code mixed Kannada scraped from YouTube and manually annotated as bearing hope
 speech or Not-hope speech.
 This dataset was prepared for hope-speech text classification benchmark on code-mixed Kannada, an under-resourced language.
 """
@@ -45,8 +45,9 @@ _HOMEPAGE = "https://github.com/adeepH/KanHope"
 
 _LICENSE = "Creative Commons Attribution 4.0 International Licence"
 
-_TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/mhjabreel/CharCnn_Keras/master/data/ag_news_csv/train.csv"
-_TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/mhjabreel/CharCnn_Keras/master/data/ag_news_csv/test.csv"
+_TRAIN_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1-ERBok4Sy2ruF-Om-YBrrmb_TmrR9wVy"
+# _VAL_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1-CuB6UBkdoqWTJGTowEayMRku8PNfo6M"
+_TEST_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1-0wIcM_ScKibQfZzk6tbjogD8JkpsgNq"
 
 
 class KanHopeSpeech(datasets.GeneratorBasedBuilder):
@@ -56,9 +57,7 @@ class KanHopeSpeech(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "text": datasets.Value("string"),
-                "label": datasets.features.ClassLabel(
-                    names=["Hope", "Not-Hope"]
-                ),
+                "label": datasets.features.ClassLabel(names=["Hope", "Not-Hope"]),
             }
         )
         return datasets.DatasetInfo(
@@ -74,9 +73,11 @@ class KanHopeSpeech(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
+        #        val_path = dl_manager.download_and_extract(_VAL_DOWNLOAD_URL)
         test_path = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
+            #            datasets.SplitGenerator(name=datasets.Split.VAL, gen_kwargs={"filepath": val_path}),
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
@@ -84,10 +85,8 @@ class KanHopeSpeech(datasets.GeneratorBasedBuilder):
         """Generate Kannada Hope Speech examples."""
 
         with open(filepath, encoding="utf-8") as csv_file:
-            reader = csv.reader(
-                csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
-            )
+            reader = csv.reader(csv_file, quotechar='"', delimiter="\t", quoting=csv.QUOTE_ALL, skipinitialspace=True)
             next(reader, None)
             for id_, row in enumerate(reader):
-                text, label = row
+                dummy, text, label = row
                 yield id_, {"text": text, "label": label}
