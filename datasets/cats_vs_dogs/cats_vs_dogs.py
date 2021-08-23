@@ -73,10 +73,10 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
         logger.info("generating examples from = %s", images_path)
         for i, filepath in enumerate(images_path.glob("**/*.jpg")):
             with filepath.open("rb") as f:
-                if b"JFIF" not in f.peek(10):
-                    filepath.unlink()
+                if b"JFIF" in f.peek(10):
+                    yield str(i), {
+                        "image_file_path": str(filepath),
+                        "labels": filepath.parent.name.lower(),
+                    }
                     continue
-                yield str(i), {
-                    "image_file_path": str(filepath),
-                    "labels": filepath.parent.name.lower(),
-                }
+            filepath.unlink()
