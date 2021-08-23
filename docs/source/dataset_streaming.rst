@@ -267,4 +267,4 @@ Now that you are aware of how dataset streaming works, you can make sure your da
 Currently a few python functions or classes are not supported for dataset streaming:
 
 - ``pathlib.Path`` and all its methods are not supported, please use ``os.path.join`` and string objects
-- ``os.walk``, ``os.listdir``, ``glob.glob`` are not supportet yet
+- ``os.walk``, ``os.listdir``, ``glob.glob`` are not supported yet
