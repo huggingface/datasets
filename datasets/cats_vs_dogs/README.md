@@ -9,7 +9,7 @@ licenses:
 - unknown
 multilinguality:
 - monolingual
-pretty_name: Cats and Dogs
+pretty_name: Cats-vs-Dogs
 size_categories:
 - 10K<n<100K
 source_datasets:
@@ -49,9 +49,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**[Cats vs Dogs Dataset](https://www.microsoft.com/en-us/download/details.aspx?id=54765)
+- **Homepage:** [Cats vs Dogs Dataset](https://www.microsoft.com/en-us/download/details.aspx?id=54765)
 - **Repository:** N/A
-- **Paper:**[Paper](https://www.microsoft.com/en-us/research/wp-content/uploads/2007/10/CCS2007.pdf)
+- **Paper:** [Paper](https://www.microsoft.com/en-us/research/wp-content/uploads/2007/10/CCS2007.pdf)
 - **Leaderboard:** N/A
 - **Point of Contact:** N/A
 
@@ -87,12 +87,21 @@ The data instances have the following fields:
 - `image_file_path`: a `string` filepath to an image.
 - `labels`: an `int` classification label.
 
+Class Label Mappings:
+
+```
+{
+  "cat": 0,
+  "dog": 1,
+}
+```
+
 ### Data Splits
 
  
-|   name   |train|
-|----------|----:|
-|cats_and_dogs|23410|
+|               | train |
+|---------------|------:|
+| # of examples | 23410 |
 
 ## Dataset Creation
 

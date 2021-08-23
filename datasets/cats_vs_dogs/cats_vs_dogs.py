@@ -71,7 +71,6 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, images_path):
         logger.info("generating examples from = %s", images_path)
-        labels = self.info.features["labels"]
         for i, filepath in enumerate(images_path.glob("**/*.jpg")):
             with filepath.open("rb") as f:
                 if b"JFIF" not in f.peek(10):
@@ -79,5 +78,5 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
                     continue
                 yield str(i), {
                     "image_file_path": str(filepath),
-                    "labels": labels.encode_example(filepath.parent.name.lower()),
+                    "labels": filepath.parent.name.lower(),
                 }
