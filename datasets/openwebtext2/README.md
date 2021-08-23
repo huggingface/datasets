@@ -11,7 +11,7 @@ multilinguality:
 - monolingual
 pretty_name: OpenWebText2
 size_categories:
-- unknown
+- 10M<n<100M
 source_datasets:
 - original
 task_categories:
@@ -58,7 +58,7 @@ task_ids:
 ## Dataset Description
 
 - **Homepage:** https://openwebtext2.readthedocs.io/en/latest/
-- **Repository:** [Needs More Information]
+- **Repository:** [GitHub](https://github.com/EleutherAI/openwebtext2)
 - **Paper:** https://arxiv.org/abs/2101.00027
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [Needs More Information]
@@ -72,11 +72,11 @@ OpenWebText2 is part of EleutherAi/The Pile dataset and is an enhanced version o
 
 ### Supported Tasks and Leaderboards
 
-- `lm`
+This dataset is used for Language Modeling.
 
 ### Languages
 
-- `en`
+This dataset is in English.
 
 ## Dataset Structure
 
@@ -174,4 +174,4 @@ OpenWebText2 is part of EleutherAi/The Pile dataset and is an enhanced version o
 [The Eye](http://the-eye.eu/) host our processed datasets.<br />
 [Read The Docs](https://readthedocs.org/) host our documentation.<br />
 
-[@richarddwang](https://github.com/richarddwang) adds this dataset to HF/datasets.
+[@richarddwang](https://github.com/richarddwang) added this dataset to HF/datasets.
