@@ -22,10 +22,10 @@ task_ids:
 - text-scoring-other-rating
 ---
 
-# Dataset Card for openwebtext2
+# Dataset Card for the_pile_openwebtext2
 
 ## Table of Contents
-- [Dataset Card for openwebtext2](#dataset-card-for-openwebtext2)
+- [Dataset Card for the_pile_openwebtext2](#dataset-card-for-the_pile_openwebtext2)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
