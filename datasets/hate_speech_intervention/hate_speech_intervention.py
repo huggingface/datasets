@@ -18,6 +18,7 @@
 import csv
 import json
 import os
+import re
 
 import datasets
 
@@ -74,9 +75,9 @@ class HateSpeechIntervention(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "id": datasets.Value("string"),
-                "text": datasets.Value("string"),
-                "hate_speech_idx": datasets.features.Sequence(datasets.Value("string")),
+                "id": datasets.features.Sequence(datasets.Value("string")),
+                "text": datasets.features.Sequence(datasets.Value("string")),
+                "hate_speech_idx": datasets.features.Sequence(datasets.Value("int32")),
                 "response": datasets.features.Sequence(datasets.Value("string"))
             }
         )
@@ -128,15 +129,27 @@ class HateSpeechIntervention(datasets.GeneratorBasedBuilder):
 
         with open(filepath, encoding="utf-8", newline='') as f:
             csv_reader = csv.reader(
-                f, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=False
+                f, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True, 
             )
+            comment_end = re.compile('[\"\'], [\'\"]')
             for id_, row in enumerate(csv_reader):
                 if id_ == 0:
                     keys = row[:]
                 else:
                     res = dict([(k, v) for k, v in zip(keys, row)])
-                    for j in ['hate_speech_idx', 'response']:
-                        res[j] = res[j].strip('][').split(', ')
-                        if res[j] == ['n/a']:
-                            res[j] = []
+                    # remove number bullets and put in list
+                    for feat in ['id', 'text']:
+                        temp = res[feat].strip().split("\n")
+                        for ind in range(len(temp)):
+                            temp[ind] = temp[ind][2:].strip()
+                        res[feat] = temp
+                    for feat in ['hate_speech_idx', 'response']:
+                        if res[feat] == 'n/a':
+                            res[feat] = []
+                        else:
+                            res[feat] = res[feat].strip('][')
+                            if feat == 'hate_speech_idx':
+                                res[feat] = [int(x) for x in res[feat].split(',')]
+                            if feat == 'response':
+                                res[feat] = re.split('[\"\'], [\'\"]', res[feat])
                     yield (id_ - 1), res

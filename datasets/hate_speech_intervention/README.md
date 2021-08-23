@@ -1,6 +1,23 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: hate_speech_intervention
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- text-classification-other-hate-speech-detection
 ---
 
 # Dataset Card for [Dataset Name]
