@@ -177,7 +177,7 @@ The standard (i.e. non-streaming) way of loading a dataset has two steps:
 1. download and extract the raw data files of the dataset by using the :class:`datasets.DownloadManager`
 2. process the data files to generate the Arrow file used to load the :class:`datasets.Dataset` object.
 
-For example in non-streaming mode a file is simply downloaded like this:
+For example, in non-streaming mode a file is simply downloaded like this:
 
 .. code-block::
 
@@ -189,10 +189,10 @@ For example in non-streaming mode a file is simply downloaded like this:
     >>> with open(filepath) as f:
     ...     print(f.read())
 
-When you load a dataset in streaming mode, the download manager being used instead is the :class:`datasets.StreamingDownloadManager`.
+When you load a dataset in streaming mode, the download manager that is used instead is the :class:`datasets.StreamingDownloadManager`.
 Instead of actually downloading and extracting all the data when you load the dataset, it is done lazily.
 The file starts to be downloaded and extracted only when ``open`` is called.
-This is made possible by extending ``open`` to support opening remote files via http.
+This is made possible by extending ``open`` to support opening remote files via HTTP.
 In each dataset script, ``open`` is replaced by our function ``xopen`` that extends ``open`` to be able to stream data from remote files.
 
 Here is a sample code that shows what is done under the hood:
@@ -210,12 +210,13 @@ Here is a sample code that shows what is done under the hood:
 As you can see, since it's possible to open remote files via an URL, the streaming download manager just returns the URL instead of the path to the local downloaded file.
 
 Then the file is downloaded in a streaming fashion: it is downloaded progessively as you iterate over the data file.
-This is made possible because it is based on ``fsspec``, a library that allows to open and iterate on remote files. You can find more infos about ``fsspec`` in `its documentation <https://filesystem-spec.readthedocs.io/>`_
+This is made possible because it is based on ``fsspec``, a library that allows to open and iterate on remote files.
+You can find more information about ``fsspec`` in `its documentation <https://filesystem-spec.readthedocs.io/>`_
 
 Compressed files and archives
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You noticed that the streaming download manager returns the exact same URL that was given as input for a text file.
+You may have noticed that the streaming download manager returns the exact same URL that was given as input for a text file.
 However if you use ``download_and_extract`` on a compressed file instead, then the output url will be a chained URL.
 Chained URLs are used by ``fsspec`` to navigate in remote compressed archives.
 
