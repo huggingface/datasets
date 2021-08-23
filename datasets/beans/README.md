@@ -49,8 +49,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**[Beans Homepage](https://github.com/AI-Lab-Makerere/ibean/)
-- **Repository:**[AI-Lab-Makerere/ibean](https://github.com/AI-Lab-Makerere/ibean/)
+- **Homepage:** [Beans Homepage](https://github.com/AI-Lab-Makerere/ibean/)
+- **Repository:** [AI-Lab-Makerere/ibean](https://github.com/AI-Lab-Makerere/ibean/)
 - **Paper:** N/A
 - **Leaderboard:** N/A
 - **Point of Contact:** N/A
@@ -87,12 +87,22 @@ The data instances have the following fields:
 - `image_file_path`: a `string` filepath to an image.
 - `labels`: an `int` classification label.
 
+Class Label Mappings:
+
+```json
+{
+  "angular_leaf_spot": 0,
+  "bean_rust": 1,
+  "healthy": 2,
+}
+```
+
 ### Data Splits
 
  
-|   name   |train|validation|test|
-|----------|----:|----:|----:|
-|beans|1034|133|128|
+|             |train|validation|test|
+|-------------|----:|---------:|---:|
+|# of examples|1034 |133       |128 |
 
 ## Dataset Creation
 
