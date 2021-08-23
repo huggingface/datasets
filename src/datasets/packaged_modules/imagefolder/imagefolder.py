@@ -12,7 +12,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 @dataclass
 class ImageFolderConfig(datasets.BuilderConfig):
-    """BuilderConfig for JSON."""
+    """BuilderConfig for ImageFolder."""
 
     features: Optional[datasets.Features] = None
 
