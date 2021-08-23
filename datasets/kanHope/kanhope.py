@@ -22,7 +22,7 @@ import datasets
 
 _CITATION = """\
 @misc{hande2021hope,
-      title={Hope Speech detection in under-resourced Kannada language}, 
+      title={Hope Speech detection in under-resourced Kannada language},
       author={Adeep Hande and Ruba Priyadharshini and Anbukkarasi Sampath and Kingston Pal Thamburaj and Prabakaran Chandran and Bharathi Raja Chakravarthi},
       year={2021},
       eprint={2108.04616},
@@ -32,10 +32,10 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Numerous methods have been developed to monitor the spread of negativity in modern years by 
+Numerous methods have been developed to monitor the spread of negativity in modern years by
 eliminating vulgar, offensive, and fierce comments from social media platforms. However, there are relatively
-lesser amounts of study that converges on embracing positivity, reinforcing supportive and reassuring content in online forums. 
-Consequently, we propose creating an English-Kannada Hope speech dataset, KanHope and comparing several experiments to benchmark the dataset. 
+lesser amounts of study that converges on embracing positivity, reinforcing supportive and reassuring content in online forums.
+Consequently, we propose creating an English Kannada Hope speech dataset, KanHope and comparing several experiments to benchmark the dataset.
 The dataset consists of 6,176 usergenerated comments in code mixed Kannada scraped from YouTube and manually annotated as bearing hope
 speech or Not-hope speech.
 This dataset was prepared for hope-speech text classification benchmark on code-mixed Kannada, an under-resourced language.
@@ -73,11 +73,9 @@ class KanHopeSpeech(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
-        #        val_path = dl_manager.download_and_extract(_VAL_DOWNLOAD_URL)
         test_path = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-            #            datasets.SplitGenerator(name=datasets.Split.VAL, gen_kwargs={"filepath": val_path}),
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
