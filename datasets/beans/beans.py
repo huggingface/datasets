@@ -95,7 +95,6 @@ class Beans(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, archive):
-        labels = self.info.features["labels"]
         for i, path in enumerate(Path(archive).glob("**/*")):
             if path.suffix == ".jpg":
-                yield i, dict(image_file_path=str(path), labels=labels.encode_example(path.parent.name.lower()))
+                yield i, dict(image_file_path=str(path), labels=path.parent.name.lower())
