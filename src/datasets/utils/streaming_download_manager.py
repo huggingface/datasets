@@ -8,6 +8,7 @@ import posixpath
 from aiohttp.client_exceptions import ClientError
 
 from .. import config
+from ..filesystems import COMPRESSION_FILESYSTEMS
 from .download_manager import DownloadConfig, map_nested
 from .file_utils import get_authentication_headers_for_url, is_local_path, is_relative_path, url_or_path_join
 from .logging import get_logger
@@ -15,7 +16,17 @@ from .logging import get_logger
 
 logger = get_logger(__name__)
 BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
-COMPRESSION_KNOWN_EXTENSIONS = ["bz2", "gz", "lz4", "xz", "zip", "zst"]
+
+COMPRESSION_EXTENSION_TO_PROTOCOL = {
+    # single file compression
+    **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
+    # archive compression
+    "zip": "zip",
+    "tar": "tar",
+    "tgz": "tar",
+}
+
+SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
 
 
 def xjoin(a, *p):
@@ -34,19 +45,14 @@ def xjoin(a, *p):
 
     Example::
 
-        >>> xjoin("https://host.com/archive.zip", "folder1/file.txt")
+        >>> xjoin("zip://folder1::https://host.com/archive.zip", "file.txt")
         zip://folder1/file.txt::https://host.com/archive.zip
     """
     a, *b = a.split("::")
     if is_local_path(a):
         a = Path(a, *p).as_posix()
     else:
-        compression = fsspec.core.get_compression(a, "infer")
-        if compression in ["zip"]:
-            b = [a] + b
-            a = posixpath.join(f"{compression}://", *p)
-        else:
-            a = posixpath.join(a, *p)
+        a = posixpath.join(a, *p)
     return "::".join([a] + b)
 
 
@@ -69,22 +75,9 @@ def _add_retries_to_file_obj_read_method(file_obj):
         return out
 
     file_obj.read = read_with_retries
-    return file_obj
 
 
-def _add_retries_to_fsspec_open_file(fsspec_open_file):
-    open_ = fsspec_open_file.open
-
-    def open_with_retries():
-        file_obj = open_()
-        _add_retries_to_file_obj_read_method(file_obj)
-        return file_obj
-
-    fsspec_open_file.open = open_with_retries
-    return fsspec_open_file
-
-
-def xopen(file, mode="r", compression="infer", *args, **kwargs):
+def xopen(file, mode="r", *args, **kwargs):
     """
     This function extends the builtin `open` function to support remote files using fsspec.
 
@@ -93,9 +86,9 @@ def xopen(file, mode="r", compression="infer", *args, **kwargs):
     """
     if fsspec.get_fs_token_paths(file)[0].protocol == "https":
         kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=kwargs.pop("use_auth_token", None))
-    fsspec_open_file = fsspec.open(file, mode=mode, compression=compression, *args, **kwargs)
-    fsspec_open_file = _add_retries_to_fsspec_open_file(fsspec_open_file)
-    return fsspec_open_file
+    file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+    _add_retries_to_file_obj_read_method(file_obj)
+    return file_obj
 
 
 class StreamingDownloadManager(object):
@@ -126,30 +119,42 @@ class StreamingDownloadManager(object):
         url_or_urls = map_nested(self._download, url_or_urls, map_tuple=True)
         return url_or_urls
 
-    def _download(self, url_or_filename):
-        if is_relative_path(url_or_filename):
+    def _download(self, urlpath: str) -> str:
+        if is_relative_path(urlpath):
             # append the relative path to the base_path
-            url_or_filename = url_or_path_join(self._base_path, url_or_filename)
-        return url_or_filename
+            urlpath = url_or_path_join(self._base_path, urlpath)
+        return urlpath
 
     def extract(self, path_or_paths):
         urlpaths = map_nested(self._extract, path_or_paths, map_tuple=True)
         return urlpaths
 
-    def _extract(self, urlpath):
+    def _extract(self, urlpath: str) -> str:
         protocol = self._get_extraction_protocol(urlpath)
         if protocol is None:
             # no extraction
             return urlpath
+        elif protocol in SINGLE_FILE_COMPRESSION_PROTOCOLS:
+            # there is one single file which is the uncompressed file
+            inner_file = os.path.basename(urlpath.split("::")[0])
+            inner_file = inner_file[: inner_file.rindex(".")]
+            # check for tar.gz, tar.bz2 etc.
+            if inner_file.endswith(".tar"):
+                return f"tar://::{urlpath}"
+            else:
+                return f"{protocol}://{inner_file}::{urlpath}"
         else:
-            return f"{protocol}://*::{urlpath}"
+            return f"{protocol}://::{urlpath}"
 
-    def _get_extraction_protocol(self, urlpath) -> Optional[str]:
+    def _get_extraction_protocol(self, urlpath: str) -> Optional[str]:
         path = urlpath.split("::")[0]
-        if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS + COMPRESSION_KNOWN_EXTENSIONS:
+        extension = path.split(".")[-1]
+        if extension in BASE_KNOWN_EXTENSIONS:
             return None
-        elif path.endswith(".tar"):
-            return "tar"
+        elif path.endswith(".tar.gz"):
+            pass
+        elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
+            return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
         raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
 
     def download_and_extract(self, url_or_urls):

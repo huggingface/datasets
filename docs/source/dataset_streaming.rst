@@ -164,3 +164,108 @@ It is possible to get a ``torch.utils.data.IterableDataset`` from a :class:`data
     {'input_ids': tensor([[101, 11047, 10497, 7869, 2352...]]), 'token_type_ids': tensor([[0, 0, 0, 0, 0...]]), 'attention_mask': tensor([[1, 1, 1, 1, 1...]])}
 
 For now, only the PyTorch format is supported but support for TensorFlow and others will be added soon.
+
+
+How does dataset streaming work ?
+--------------------------------------------------
+
+The StreamingDownloadManager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The standard (i.e. non-streaming) way of loading a dataset has two steps:
+
+1. download and extract the raw data files of the dataset by using the :class:`datasets.DownloadManager`
+2. process the data files to generate the Arrow file used to load the :class:`datasets.Dataset` object.
+
+For example, in non-streaming mode a file is simply downloaded like this:
+
+.. code-block::
+
+    >>> from datasets import DownloadManager
+    >>> url = "https://huggingface.co/datasets/lhoestq/test/resolve/main/some_text.txt"
+    >>> filepath = DownloadManager().download(url)  # the file is downloaded here
+    >>> print(filepath)
+    '/Users/user/.cache/huggingface/datasets/downloads/16b702620cad8d485bafea59b1d2ed69e796196e6f2c73f005dee935a413aa19.ab631f60c6cb31a079ecf1ad910005a7c009ef0f1e4905b69d489fb2bd162683'
+    >>> with open(filepath) as f:
+    ...     print(f.read())
+
+When you load a dataset in streaming mode, the download manager that is used instead is the :class:`datasets.StreamingDownloadManager`.
+Instead of actually downloading and extracting all the data when you load the dataset, it is done lazily.
+The file starts to be downloaded and extracted only when ``open`` is called.
+This is made possible by extending ``open`` to support opening remote files via HTTP.
+In each dataset script, ``open`` is replaced by our function ``xopen`` that extends ``open`` to be able to stream data from remote files.
+
+Here is a sample code that shows what is done under the hood:
+
+.. code-block::
+
+    >>> from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
+    >>> url = "https://huggingface.co/datasets/lhoestq/test/resolve/main/some_text.txt"
+    >>> urlpath = StreamingDownloadManager().download(url)
+    >>> print(urlpath)
+    'https://huggingface.co/datasets/lhoestq/test/resolve/main/some_text.txt'
+    >>> with xopen(urlpath) as f:
+    ...     print(f.read())  # the file is actually downloaded here
+
+As you can see, since it's possible to open remote files via an URL, the streaming download manager just returns the URL instead of the path to the local downloaded file.
+
+Then the file is downloaded in a streaming fashion: it is downloaded progessively as you iterate over the data file.
+This is made possible because it is based on ``fsspec``, a library that allows to open and iterate on remote files.
+You can find more information about ``fsspec`` in `its documentation <https://filesystem-spec.readthedocs.io/>`_
+
+Compressed files and archives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You may have noticed that the streaming download manager returns the exact same URL that was given as input for a text file.
+However if you use ``download_and_extract`` on a compressed file instead, then the output url will be a chained URL.
+Chained URLs are used by ``fsspec`` to navigate in remote compressed archives.
+
+Some examples of chained URL are:
+
+.. code-block::
+
+    >>> from datasets.utils.streaming_download_manager import xopen
+    >>> chained_url = "zip://combined/train.json::https://adversarialqa.github.io/data/aqa_v1.0.zip"
+    >>> with xopen(chained_url) as f:
+    ...     print(f.read()[:100])
+    '{"data": [{"title": "Brain", "paragraphs": [{"context": "Another approach to brain function is to ex'
+    >>> chained_url2 = "gzip://mkqa.jsonl::https://github.com/apple/ml-mkqa/raw/master/dataset/mkqa.jsonl.gz"
+    >>> with xopen(chained_url2) as f:
+    ...     print(f.readline()[:100])
+    '{"query": "how long did it take the twin towers to be built", "answers": {"en": [{"type": "number_wi'
+
+We also extended some functions from ``os.path`` to work with chained URLs.
+For example ``os.path.join`` is replaced by our function ``xjoin`` that extends ``os.path.join`` to work with chained URLs:
+
+.. code-block::
+
+    >>> from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen, xjoin
+    >>> url = "https://adversarialqa.github.io/data/aqa_v1.0.zip"
+    >>> archive_path = StreamingDownloadManager().download_and_extract(url)
+    >>> print(archive_path)
+    'zip://::https://adversarialqa.github.io/data/aqa_v1.0.zip'
+    >>> filepath = xjoin(archive_path, "combined", "train.json")
+    >>> print(filepath)
+    'zip://combined/train.json::https://adversarialqa.github.io/data/aqa_v1.0.zip'
+    >>> with xopen(filepath) as f:
+    ...     print(f.read()[:100])
+    '{"data": [{"title": "Brain", "paragraphs": [{"context": "Another approach to brain function is to ex'
+
+You can also take a look at the ``fsspec`` documentation about URL chaining `here <https://filesystem-spec.readthedocs.io/en/latest/features.html#url-chaining>`_
+
+.. note::
+
+    Streaming data from TAR archives is currently highly inefficient and requires a lot of bandwidth. We are working on optimizing this to offer you the best performance, stay tuned !
+
+Dataset script compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that you are aware of how dataset streaming works, you can make sure your dataset script work in streaming mode:
+
+1. make sure you use ``open`` to open the data files: it is extended to work with remote files
+2. if you have to deal with archives like ZIP files, make sure you use ``os.path.join`` to navigate in the archive
+
+Currently a few python functions or classes are not supported for dataset streaming:
+
+- ``pathlib.Path`` and all its methods are not supported, please use ``os.path.join`` and string objects
+- ``os.walk``, ``os.listdir``, ``glob.glob`` are not supported yet
