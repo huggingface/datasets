@@ -83,16 +83,18 @@ This dataset is in English.
 ### Data Instances
 
 ```
-{'title': 'title',
-'text': 'some text',
+This example was too long and was cropped:
+
+{'title': Xiaomi Mi Note 10 Gearbest Coupon Promo Code [6+128GB] [France Warehouse],
+'text': '27% off Xiaomi Mi Note 10 (CC9 Pro) 108MP Penta Camera Mobile Phone Global Version Online Smartphone – Black Gearbest Coupon Promo Code\n\nGearbest Coupon Price :$439.99\n\nRegular Price : $603.19 Your Save : $163.20 Coupon Limit: 100 times Warehouse: France Expires : September 30, 2020 Coupon Valid for...',
 'reddit_scores': [6],}
 ```
 
 ### Data Fields
 
-- `title`
-- `text`
-- `reddit_scores`
+- `title`: title of the web page
+- `text`: text content of the web page
+- `reddit_scores`: scores of the reddit submissions that mention this web page, as a list of integers
 
 ### Data Splits
 
@@ -170,8 +172,8 @@ This dataset is in English.
 [researcher2](https://github.com/researcher2) Wrote much of this code, with inspiration and some straight copying of the scraping code found [here](https://github.com/yet-another-account/openwebtext/).<br/>
 [sdtblck](https://github.com/sdtblck/) kindly put together the Colab notebook, and performed a chunk of the scraping. <br/>
 [leogao2](https://github.com/leogao2/) provided overall design guidance, lm_dataformat, and performed another chunk of scraping. <br />
-[Colaboratory](https://colab.research.google.com/) VMs helped us with about 10% of our overall scraping. <br />
-[The Eye](http://the-eye.eu/) host our processed datasets.<br />
+[Colaboratory](https://colab.research.google.com/) VMs helped with about 10% of our overall scraping. <br />
+[The Eye](http://the-eye.eu/) host the processed datasets.<br />
 [Read The Docs](https://readthedocs.org/) host our documentation.<br />
 
 [@richarddwang](https://github.com/richarddwang) added this dataset to HF/datasets.
