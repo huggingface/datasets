@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ which is an anonymized dump of all user-contributed content on the Stack Exchang
 _URL = "https://the-eye.eu/public/AI/pile_preliminary_components/stackexchange_dataset.tar"
 
 
-class StackExchange(datasets.GeneratorBasedBuilder):
+class ThePileStackExchange(datasets.GeneratorBasedBuilder):
     """The StackExchange dataset."""
 
     BUILDER_CONFIGS = [
