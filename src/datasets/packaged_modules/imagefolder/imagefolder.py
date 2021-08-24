@@ -27,12 +27,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         return datasets.DatasetInfo(
-            features=datasets.Features(
-                {
-                    "image_file": datasets.Value("string"),
-                    "labels": datasets.Value("string")
-                }
-            ),
+            features=datasets.Features({"image_file": datasets.Value("string"), "labels": datasets.Value("string")}),
         )
 
     def _split_generators(self, dl_manager):
