@@ -172,6 +172,7 @@ Generic loading scripts are provided for:
 - JSON files (with the :obj:`json` script),
 - text files (read as a line-by-line dataset with the :obj:`text` script),
 - pandas pickled dataframe (with the :obj:`pandas` script).
+- image folder (a directory containing folders named after each class with images within) 
 
 If you want to control better how your files are loaded, or if you have a file format exactly reproducing the file format for one of the datasets provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__, it can be more flexible and simpler to create **your own loading script**, from scratch or by adapting one of the provided loading scripts. In this case, please go check the :doc:`add_dataset` chapter.
 
@@ -289,6 +290,33 @@ This is simply done using the ``text`` loading script which will generate a data
     >>> from datasets import load_dataset
     >>> dataset = load_dataset('text', data_files={'train': ['my_text_1.txt', 'my_text_2.txt'], 'test': 'my_test_file.txt'})
 
+Image folders
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+🤗 Datasets can read folders containing class-specific images.
+
+Your folder structure should look like this:
+
+.. code-block::
+
+    root/dog/xxx.png
+    root/dog/xxy.png
+    root/dog/[...]/xxz.png
+
+    root/cat/123.png
+    root/cat/nsdf3.png
+    root/cat/[...]/asd932_.png
+
+
+To read this in as an ``imagefolder`` dataset, simply pass the path to the root directory to the ``data_files`` kwarg of ``load_dataset()``.
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('imagefolder', data_files='/path/to/root/')
+
+
+The resulting examples will include an ``image_file`` feature - this is a string filepath to an image file.
 
 Specifying the features of the dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
