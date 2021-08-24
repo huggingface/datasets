@@ -27,7 +27,9 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         return datasets.DatasetInfo(
-            features=datasets.Features({"image_file": datasets.Value("string"), "labels": datasets.Value("string")}),
+            features=datasets.Features(
+                {"image_file_path": datasets.Value("string"), "labels": datasets.Value("string")}
+            ),
         )
 
     def _split_generators(self, dl_manager):
@@ -48,4 +50,4 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         extensions = {".jpg", ".jpeg", ".png", ".ppm", ".bmp", ".pgm", ".tif", ".tiff", ".webp"}
         for i, path in enumerate(Path(archive_path).glob("**/*")):
             if path.suffix in extensions:
-                yield i, {"image_file": path.as_posix(), "labels": path.parent.name.lower()}
+                yield i, {"image_file_path": path.as_posix(), "labels": path.parent.name.lower()}
