@@ -26,27 +26,26 @@ import shutil
 import time
 from collections import Counter
 from pathlib import Path, PurePath
-from typing import Dict, List, Mapping, Optional, Tuple, Type, Union
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
 from urllib.parse import urlparse
 
 import fsspec
 import huggingface_hub
 from huggingface_hub import HfApi
 
-from datasets.features import Features, Sequence
-from datasets.iterable_dataset import IterableDataset
-from datasets.naming import camelcase_to_snakecase
-from datasets.splits import Split
-from datasets.utils.py_utils import NestedDataStructure
-
 from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
-from .dataset_dict import DatasetDict
+from .dataset_dict import DatasetDict, IterableDatasetDict
+from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .iterable_dataset import IterableDataset
 from .metric import Metric
+from .naming import camelcase_to_snakecase
 from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, hash_python_lines
+from .splits import Split
 from .streaming import extend_module_for_streaming
+from .tasks import TaskTemplate
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
     DownloadConfig,
@@ -64,6 +63,7 @@ from .utils.file_utils import (
 from .utils.filelock import FileLock
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
+from .utils.py_utils import NestedDataStructure
 from .utils.version import Version
 
 
