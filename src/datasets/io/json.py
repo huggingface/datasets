@@ -1,7 +1,5 @@
 import multiprocessing
 import os
-from contextlib import closing
-from multiprocessing import Pool
 from typing import BinaryIO, Optional, Union
 
 from .. import Dataset, Features, NamedSplit, config, utils
