@@ -1,5 +1,7 @@
-import multiprocessing as mp
+import multiprocessing
 import os
+from contextlib import closing
+from multiprocessing import Pool
 from typing import BinaryIO, Optional, Union
 
 from .. import Dataset, Features, NamedSplit, config, utils
@@ -69,7 +71,12 @@ class JsonDatasetWriter:
     ):
         self.dataset = dataset
         self.path_or_buf = path_or_buf
-        self.batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
+        if batch_size:
+            self.batch_size = batch_size
+        elif num_proc is not None:
+            self.batch_size = 100_000
+        else:
+            self.batch_size = config.DEFAULT_MAX_BATCH_SIZE
         self.num_proc = num_proc
         self.encoding = "utf-8"
         self.to_json_kwargs = to_json_kwargs
@@ -92,7 +99,7 @@ class JsonDatasetWriter:
         batch = query_table(
             table=self.dataset.data,
             key=slice(offset, offset + self.batch_size),
-            indices=self.dataset._indices if self.dataset._indices is not None else None,
+            indices=self.dataset._indices,
         )
         var = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **self.to_json_kwargs)
         return var.encode(self.encoding)
@@ -127,20 +134,21 @@ class JsonDatasetWriter:
                     json_str += "\n"
                 written += file_obj.write(json_str.encode(self.encoding))
         else:
-            pool = mp.Pool(processes=self.num_proc)
-            json_list = list(
-                utils.tqdm(
-                    pool.imap(
-                        self._batch_json,
-                        [(offset, orient, lines) for offset in range(0, len(self.dataset), self.batch_size)],
-                    ),
-                    total=(len(self.dataset) // self.batch_size) + 1,
-                    unit="ba",
-                    disable=bool(logging.get_verbosity() == logging.NOTSET),
-                    desc="Creating json from Arrow format",
-                )
-            )
+            pool = multiprocessing.Pool(processes=self.num_proc)
+
+            for json_str in utils.tqdm(
+                pool.imap(
+                    self._batch_json,
+                    [(offset, orient, lines) for offset in range(0, len(self.dataset), self.batch_size)],
+                ),
+                total=(len(self.dataset) // self.batch_size) + 1,
+                unit="ba",
+                disable=bool(logging.get_verbosity() == logging.NOTSET),
+                desc="Creating json from Arrow format",
+            ):
+                written += file_obj.write((json_str))
+
             pool.close()
-            written = file_obj.writelines(json_list)
+            pool.join()
 
         return written
