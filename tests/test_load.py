@@ -334,7 +334,6 @@ def test_load_dataset_streaming_gz_json(jsonl_gz_path):
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
-@require_streaming
 @pytest.mark.parametrize(
     "path", ["sample.jsonl", "sample.jsonl.gz", "sample.tar", "sample.jsonl.xz", "sample.zip", "sample.jsonl.zst"]
 )
