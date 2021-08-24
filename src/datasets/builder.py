@@ -26,7 +26,7 @@ import textwrap
 import urllib
 from dataclasses import dataclass
 from functools import partial
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Mapping, Optional, Sequence, Tuple, Union
 
 from datasets.features import Features
 from datasets.utils.mock_download_manager import MockDownloadManager
@@ -74,14 +74,14 @@ class BuilderConfig:
         name (:obj:`str`, default ``"default"``):
         version (:class:`Version` or :obj:`str`, optional):
         data_dir (:obj:`str`, optional):
-        data_files (:obj:`str` or :obj:`dict` or :obj:`list` or :obj:`tuple`, optional):
+        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         description (:obj:`str`, optional):
     """
 
     name: str = "default"
     version: Optional[Union[str, utils.Version]] = "0.0.0"
     data_dir: Optional[str] = None
-    data_files: Optional[Union[str, Dict, List, Tuple]] = None
+    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None
     description: Optional[str] = None
 
     def __post_init__(self):
@@ -836,11 +836,6 @@ class DatasetBuilder:
             }
             post_processed = self._post_process(ds, resources_paths)
             if post_processed is not None:
-                del ds
-                # collect the gc to make sure the windows file lock on arrow files is gone
-                import gc
-
-                gc.collect()
                 ds = post_processed
                 recorded_checksums = {}
                 for resource_name, resource_path in resources_paths.items():
@@ -963,7 +958,7 @@ class DatasetBuilder:
         ex_iterable = self._get_examples_iterable_for_split(splits_generator)
         return IterableDataset(ex_iterable, info=self.info, split=splits_generator.name)
 
-    def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Optional[Dataset]:
+    def _post_process(self, dataset: Dataset, resources_paths: Mapping[str, str]) -> Optional[Dataset]:
         """Run dataset transforms or add indexes"""
         return None
 

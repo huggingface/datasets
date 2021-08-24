@@ -293,7 +293,7 @@ def _generate_examples_from_tables_wrapper(generate_tables_fn):
 
 
 @dataclass
-class ShuffingConfig:
+class ShufflingConfig:
     seed: Optional[int] = None
 
 
@@ -306,7 +306,7 @@ class IterableDataset(DatasetInfoMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         format_type: Optional[str] = None,
-        shuffling: Optional[ShuffingConfig] = None,
+        shuffling: Optional[ShufflingConfig] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
@@ -425,7 +425,7 @@ class IterableDataset(DatasetInfoMixin):
             buffer_size (:obj:`int`): size of the buffer.
             seed (:obj:`int`, optional, default None): random seed that will be used to create the distribution.
         """
-        shuffling = ShuffingConfig(seed=seed)
+        shuffling = ShufflingConfig(seed=seed)
         return iterable_dataset(
             ex_iterable=BufferShuffledExamplesIterable(self._ex_iterable, buffer_size, seed=seed).shuffle_data_sources(
                 seed=seed
@@ -477,7 +477,7 @@ def iterable_dataset(
     info: Optional[DatasetInfo] = None,
     split: Optional[NamedSplit] = None,
     format_type: Optional[str] = None,
-    shuffling: Optional[ShuffingConfig] = None,
+    shuffling: Optional[ShufflingConfig] = None,
 ):
     if format_type is not None and format_type == "torch":
         import torch

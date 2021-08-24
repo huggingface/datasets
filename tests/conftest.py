@@ -7,6 +7,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
+from datasets import config
 from datasets.arrow_dataset import Dataset
 from datasets.features import ClassLabel, Features, Sequence, Value
 
@@ -80,7 +81,7 @@ def text_file(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def xz_file(tmp_path_factory):
-    filename = tmp_path_factory.mktemp("data") / "file.xz"
+    filename = tmp_path_factory.mktemp("data") / "file.txt.xz"
     data = bytes(FILE_CONTENT, "utf-8")
     with lzma.open(filename, "wb") as f:
         f.write(data)
@@ -88,14 +89,49 @@ def xz_file(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def gz_path(tmp_path_factory, text_path):
+def gz_file(tmp_path_factory):
     import gzip
 
-    path = str(tmp_path_factory.mktemp("data") / "file.gz")
+    path = str(tmp_path_factory.mktemp("data") / "file.txt.gz")
     data = bytes(FILE_CONTENT, "utf-8")
     with gzip.open(path, "wb") as f:
         f.write(data)
     return path
+
+
+@pytest.fixture(scope="session")
+def bz2_file(tmp_path_factory):
+    import bz2
+
+    path = tmp_path_factory.mktemp("data") / "file.txt.bz2"
+    data = bytes(FILE_CONTENT, "utf-8")
+    with bz2.open(path, "wb") as f:
+        f.write(data)
+    return path
+
+
+@pytest.fixture(scope="session")
+def zstd_file(tmp_path_factory):
+    if config.ZSTANDARD_AVAILABLE:
+        import zstandard as zstd
+
+        path = tmp_path_factory.mktemp("data") / "file.txt.zst"
+        data = bytes(FILE_CONTENT, "utf-8")
+        with zstd.open(path, "wb") as f:
+            f.write(data)
+        return path
+
+
+@pytest.fixture(scope="session")
+def lz4_file(tmp_path_factory):
+    if config.LZ4_AVAILABLE:
+        import lz4.frame
+
+        path = tmp_path_factory.mktemp("data") / "file.txt.lz4"
+        data = bytes(FILE_CONTENT, "utf-8")
+        with lz4.frame.open(path, "wb") as f:
+            f.write(data)
+        return path
 
 
 @pytest.fixture(scope="session")

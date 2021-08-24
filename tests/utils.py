@@ -8,7 +8,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pyarrow as pa
-from packaging import version
 
 from datasets import config
 
@@ -43,7 +42,7 @@ def require_pyarrow_at_least_3(test_case):
     These tests are skipped when the PyArrow version is outdated.
 
     """
-    if version.parse(config.PYARROW_VERSION) < version.parse("3.0.0"):
+    if config.PYARROW_VERSION.major < 3:
         test_case = unittest.skip("test requires PyArrow>=3.0.0")(test_case)
     return test_case
 
@@ -135,6 +134,30 @@ def require_jax(test_case):
     """
     if not config.JAX_AVAILABLE:
         test_case = unittest.skip("test requires JAX")(test_case)
+    return test_case
+
+
+def require_zstandard(test_case):
+    """
+    Decorator marking a test that requires zstandard.
+
+    These tests are skipped when zstandard isn't installed.
+
+    """
+    if not config.ZSTANDARD_AVAILABLE:
+        test_case = unittest.skip("test requires zstandard")(test_case)
+    return test_case
+
+
+def require_lz4(test_case):
+    """
+    Decorator marking a test that requires lz4.
+
+    These tests are skipped when lz4 isn't installed.
+
+    """
+    if not config.LZ4_AVAILABLE:
+        test_case = unittest.skip("test requires lz4")(test_case)
     return test_case
 
 

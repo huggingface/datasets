@@ -3,7 +3,6 @@ from typing import BinaryIO, Optional, Union
 
 import pyarrow as pa
 import pyarrow.parquet as pq
-from packaging import version
 
 from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
@@ -23,7 +22,7 @@ class ParquetDatasetReader(AbstractDatasetReader):
         keep_in_memory: bool = False,
         **kwargs,
     ):
-        if version.parse(pa.__version__) < version.parse("3.0.0"):
+        if config.PYARROW_VERSION.major < 3:
             raise ImportError(
                 "PyArrow >= 3.0.0 is required to used the ParquetDatasetReader: pip install --upgrade pyarrow"
             )
@@ -71,7 +70,7 @@ class ParquetDatasetWriter:
         batch_size: Optional[int] = None,
         **parquet_writer_kwargs,
     ):
-        if version.parse(pa.__version__) < version.parse("3.0.0"):
+        if config.PYARROW_VERSION.major < 3:
             raise ImportError(
                 "PyArrow >= 3.0.0 is required to used the ParquetDatasetWriter: pip install --upgrade pyarrow"
             )
