@@ -293,9 +293,9 @@ This is simply done using the ``text`` loading script which will generate a data
 Image folders
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-🤗 Datasets can read folders containing class-specific images.
+🤗 Datasets can also load generic image folders.
 
-Your folder structure should look like this:
+The folder structure should look like this:
 
 .. code-block::
 
@@ -308,7 +308,7 @@ Your folder structure should look like this:
     root/cat/[...]/asd932_.png
 
 
-To read this in as an ``imagefolder`` dataset, simply pass the path to the root directory to the ``data_files`` kwarg of ``load_dataset()``.
+To load an ``imagefolder`` dataset, simply pass the root path of the image folder to the ``data_files`` kwarg of ``load_dataset()``.
 
 .. code-block::
 
@@ -316,7 +316,32 @@ To read this in as an ``imagefolder`` dataset, simply pass the path to the root 
     >>> dataset = load_dataset('imagefolder', data_files='/path/to/root/')
 
 
-The resulting examples will include an ``image_file`` feature - this is a string filepath to an image file.
+The resulting dataset will include an ``image_file_path`` feature - this is a string filepath to an image file. To convert this to ``PIL.Image``, you can write a simple transform and apply it to your dataset.
+
+
+.. code-block::
+
+    >>> from PIL import Image
+    >>> from datasets import load_dataset
+
+    >>> def pil_loader(path: str):
+    ...     with open(path, 'rb') as f:
+    ...         im = Image.open(f)
+    ...         return im.convert('RGB')
+
+    >>> def image_loader(example_batch):
+    ...     example_batch['image'] = [pil_loader(f) for f in example_batch['image_file_path']]
+    ...     return example_batch
+
+    >>> dataset = load_dataset('imagefolder', data_files='/path/to/root/')
+    >>> dataset = dataset.with_transform(image_loader)
+    >>> print(dataset['train'])
+    {
+     'image': <PIL.Image.Image image mode=RGB size=307x500 at 0x7FDB314C9D10>,
+     'image_file': 'PetImages/Dog/576.jpg',
+     'labels': 'dog'
+    }
+
 
 Specifying the features of the dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
