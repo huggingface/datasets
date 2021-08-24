@@ -20,6 +20,7 @@ from collections import Counter
 
 import sacrebleu
 import sacremoses
+from packaging import version
 
 import datasets
 
@@ -266,7 +267,10 @@ def normalize(sentence, lowercase: bool = True, tokenizer: str = "13a", return_s
         sentence = sentence.lower()
 
     if tokenizer in ["13a", "intl"]:
-        normalized_sent = sacrebleu.TOKENIZERS[tokenizer]()(sentence)
+        if version.parse(sacrebleu.__version__).major >= 2:
+            normalized_sent = sacrebleu.metrics.bleu._get_tokenizer(tokenizer)()(sentence)
+        else:
+            normalized_sent = sacrebleu.TOKENIZERS[tokenizer]()(sentence)
     elif tokenizer == "moses":
         normalized_sent = sacremoses.MosesTokenizer().tokenize(sentence, return_str=True, escape=False)
     elif tokenizer == "penn":
@@ -298,7 +302,6 @@ def compute_sacrebleu(
     smooth_value=None,
     force=False,
     lowercase=False,
-    tokenize=sacrebleu.DEFAULT_TOKENIZER,
     use_effective_order=False,
 ):
     references_per_prediction = len(references[0])
@@ -306,13 +309,12 @@ def compute_sacrebleu(
         raise ValueError("Sacrebleu requires the same number of references for each prediction")
     transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
     output = sacrebleu.corpus_bleu(
-        sys_stream=predictions,
-        ref_streams=transformed_references,
+        predictions,
+        transformed_references,
         smooth_method=smooth_method,
         smooth_value=smooth_value,
         force=force,
         lowercase=lowercase,
-        tokenize=tokenize,
         use_effective_order=use_effective_order,
     )
     return output.score

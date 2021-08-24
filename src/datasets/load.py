@@ -24,8 +24,9 @@ import os
 import re
 import shutil
 import time
+from collections import Counter
 from pathlib import Path, PurePath
-from typing import Counter, Dict, List, Optional, Tuple, Type, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import urlparse
 
 import fsspec
@@ -38,15 +39,11 @@ from datasets.utils.py_utils import NestedDataStructure
 from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
-from .dataset_dict import DatasetDict, IterableDatasetDict
-from .features import Features
+from .dataset_dict import DatasetDict
 from .filesystems import extract_path_from_uri, is_remote_filesystem
-from .iterable_dataset import IterableDataset
 from .metric import Metric
 from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, hash_python_lines
-from .splits import Split
 from .streaming import extend_module_for_streaming
-from .tasks import TaskTemplate
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
     DownloadConfig,
@@ -388,7 +385,7 @@ def prepare_module(
             If specified, the module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
-            - it will also try to load it from the master branch if it's not available at the local version fo the lib.
+            - it will also try to load it from the master branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
@@ -406,7 +403,8 @@ def prepare_module(
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
-    Return: Tuple[``str``, ``str``] with
+    Returns:
+        Tuple[``str``, ``str``]:
         1. The module path being
             - the import path of the dataset/metric package if force_local_path is False: e.g. 'datasets.datasets.squad'
             - the local path to the dataset/metric file if force_local_path is True: e.g. '/User/huggingface/datasets/datasets/squad/squad.py'
@@ -804,7 +802,7 @@ def load_metric(
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         script_version (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
-            at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
+            at this version. By default it is set to the local version of the lib. Specifying a version that is different from
             your local version of the lib might cause compatibility issues.
 
     Returns:
@@ -838,7 +836,7 @@ def load_dataset_builder(
     path: str,
     name: Optional[str] = None,
     data_dir: Optional[str] = None,
-    data_files: Optional[Union[Dict, List, str]] = None,
+    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
     cache_dir: Optional[str] = None,
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
@@ -881,14 +879,14 @@ def load_dataset_builder(
 
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
-        data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
+        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
-            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
+            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
@@ -966,7 +964,7 @@ def load_dataset(
     path: str,
     name: Optional[str] = None,
     data_dir: Optional[str] = None,
-    data_files: Optional[Union[Dict, List, str]] = None,
+    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
     split: Optional[Union[str, Split]] = None,
     cache_dir: Optional[str] = None,
     features: Optional[Features] = None,
@@ -1035,7 +1033,7 @@ def load_dataset(
 
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
-        data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
+        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         split (:class:`Split` or :obj:`str`): Which split of the data to load.
             If None, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
             If given, will return a single Dataset.
@@ -1051,7 +1049,7 @@ def load_dataset(
         save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
         script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
-            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version fo the lib.
+            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
@@ -1068,11 +1066,13 @@ def load_dataset(
 
     Returns:
         :class:`Dataset` or :class:`DatasetDict`:
-            if `split` is not None: the dataset requested,
-            if `split` is None, a ``datasets.DatasetDict`` with each split.
-        or :class:`IterableDataset` or :class:`IterableDatasetDict` if streaming=True:
-            if `split` is not None: the dataset requested,
-            if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
+        - if `split` is not None: the dataset requested,
+        - if `split` is None, a ``datasets.DatasetDict`` with each split.
+
+        or :class:`IterableDataset` or :class:`IterableDatasetDict`: if streaming=True
+
+        - if `split` is not None: the dataset requested,
+        - if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
 
     """
     ignore_verifications = ignore_verifications or save_infos

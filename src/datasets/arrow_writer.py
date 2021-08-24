@@ -20,10 +20,11 @@ import socket
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import pyarrow as pa
 
 from . import config, utils
-from .features import Features, _ArrayXDExtensionType
+from .features import Features, _ArrayXDExtensionType, numpy_to_pyarrow_listarray
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .utils import logging
@@ -86,14 +87,22 @@ class TypedSequence:
         """This function is called when calling pa.array(typed_sequence)"""
         assert type is None, "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
         trying_type = False
-        if type is None and self.try_type:
+        if type is not None:  # user explicitly passed the feature
+            pass
+        elif type is None and self.try_type:
             type = self.try_type
             trying_type = True
         else:
             type = self.type
         try:
             if isinstance(type, _ArrayXDExtensionType):
-                out = pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
+                if isinstance(self.data, np.ndarray):
+                    storage = numpy_to_pyarrow_listarray(self.data, type=type.value_type)
+                else:
+                    storage = pa.array(self.data, type.storage_dtype)
+                out = pa.ExtensionArray.from_storage(type, storage)
+            elif isinstance(self.data, np.ndarray):
+                out = numpy_to_pyarrow_listarray(self.data)
             else:
                 out = pa.array(self.data, type=type)
             if trying_type and out[0].as_py() != self.data[0]:
@@ -111,8 +120,11 @@ class TypedSequence:
             return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if trying_type:
-                try:
-                    return pa.array(self.data, type=None)  # second chance
+                try:  # second chance
+                    if isinstance(self.data, np.ndarray):
+                        return numpy_to_pyarrow_listarray(self.data, type=None)
+                    else:
+                        return pa.array(self.data, type=None)
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(
@@ -549,10 +561,4 @@ def parquet_to_arrow(sources, destination):
                     df[col] = df[col].apply(json.loads)
                 reconstructed_table = pa.Table.from_pandas(df)
                 writer.write_table(reconstructed_table)
-    # Collect the gc or the tqdm progress bar keeps references to the open files
-    # and it causes permission errors on windows
-    # see https://app.circleci.com/pipelines/github/huggingface/datasets/6365/workflows/24f7c960-3176-43a5-9652-7830a23a981e/jobs/39232
-    import gc
-
-    gc.collect()
     return destination
