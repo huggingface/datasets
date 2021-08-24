@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from datasets.utils.streaming_download_manager import xopen
 from datasets.filesystems import COMPRESSION_FILESYSTEMS
+from datasets.utils.streaming_download_manager import xopen
 
 from .utils import require_lz4, require_zstandard
 

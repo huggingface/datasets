@@ -26,14 +26,17 @@ import shutil
 import time
 from collections import Counter
 from pathlib import Path, PurePath
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import Dict, List, Mapping, Optional, Tuple, Type, Union
 from urllib.parse import urlparse
 
 import fsspec
 import huggingface_hub
 from huggingface_hub import HfApi
 
+from datasets.features import Features, Sequence
+from datasets.iterable_dataset import IterableDataset
 from datasets.naming import camelcase_to_snakecase
+from datasets.splits import Split
 from datasets.utils.py_utils import NestedDataStructure
 
 from . import config
