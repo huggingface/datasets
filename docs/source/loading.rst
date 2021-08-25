@@ -18,19 +18,50 @@ Hugging Face Hub
 
 In the tutorial, you learned how to load a dataset from the Hub. This method relies on a dataset loading script that downloads and builds the dataset. However, you can also load a dataset from any dataset repository on the Hub **without** a loading script! 
 
-First, create a dataset repository and upload your data files. Then you can use :func:`datasets.load_dataset` like you learned in the tutorial. 
+First, create a dataset repository and upload your data files. Then you can use :func:`datasets.load_dataset` like you learned in the tutorial. For example, load the files from this `demo repository <https://huggingface.co/datasets/lhoestq/demo1>`_ by providing the repository namespace and dataset name:
+
+.. code-block::
+
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset('lhoestq/demo1')
+
+Some datasets may have more than one version. Use the ``script_version`` flag to specifiy which dataset you want to load:
+
+.. code-block::
+
+   >>> dataset = load_dataset(
+   >>>   "lhoestq/custom_squad",
+   >>>   script_version="main"  # tag name, or branch name, or commit hash
+   >>>)
 
 .. seealso::
 
    Refer to the :ref:`upload_dataset_repo` guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
 
-The only extra step you need to take is to specify the files for each split with the ``data_files`` argument:
+If the dataset doesn't have a dataset loading script, then by default, all the data will be loaded in the ``train`` split. Use the ``data_files`` parameter to map data files to splits like ``train`` and ``test``:
+
+.. code-block::
+
+   >>> data_files = {"train": "train.csv", "test": "test.csv"}
+   >>> dataset = load_dataset("namespace/your_dataset_name", data_files=data_files)
+
+.. important::
+
+   If you don't specify which data files to use, ``load_dataset`` will return all the data files. This can take a long time if you are loading a large dataset like C4, which is approximately 13TB of data.
+
+You can also load a specific subset of the files with the ``data_files`` parameter. The example below loads files from the `C4 dataset <https://huggingface.co/datasets/allenai/c4>`_:
 
 .. code-block::
 
    >>> from datasets import load_dataset
-   >>> data_files = {"train": "en/c4-train.*.json.gz"}
-   >>> c4 = load_dataset("allenai/c4", data_files=data_files, split="train", streaming=True)
+   >>> c4 = c4_subset = load_dataset('allenai/c4', data_files='en/c4-train.0000*-of-01024.json.gz')
+
+Specify a custom split with the ``split`` parameter:
+
+.. code-block::
+
+   >>> data_files = {"validation": "en/c4-validation.*.json.gz"}
+   >>> c4_validation = load_dataset("allenai/c4", data_files=data_files, split="validation")
 
 Local files
 -----------
@@ -146,7 +177,7 @@ Load Pandas DataFrames with :func:`datasets.Dataset.from_pandas`:
 Offline
 -------
 
-Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub or 🤗 Datasets Github repository, it should be cached. This means you can reload the dataset from the cache and use it offline.
+Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub or 🤗 Datasets Github repository before, it should be cached. This means you can reload the dataset from the cache and use it offline.
 
 If you know you won't have internet access, you can run 🤗 Datasets in full offline mode. This saves time because instead of waiting for the Dataset builder download to time out, 🤗 Datasets will look directly in the cache. Set the environment variable ``HF_DATASETS_OFFLINE`` to ``1`` to enable full offline mode.
 

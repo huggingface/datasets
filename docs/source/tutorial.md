@@ -8,7 +8,7 @@ The goal of the tutorials are to help new users build up a basic understanding o
 * Load a dataset.
 * Explore what's inside a Dataset object.
 * Use a dataset with PyTorch and TensorFlow.
-* Evaluate your model prediction's with a metric.
+* Evaluate your model predictions with a metric.
 
 After completing the tutorials, we hope you will have the necessary skills to start using our library in your own projects!
 

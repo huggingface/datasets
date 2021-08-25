@@ -33,7 +33,7 @@ Once you are happy with the dataset you want, load it in a single line with :fun
 Select a split
 --------------
 
-A split is a specific subset of the dataset like ``train`` and ``test``. Make sure you always select a split when you load a dataset. If you don't supply a ``split`` argument, 🤗 Datasets will only return a dictionary containing the subsets of the dataset.
+A split is a specific subset of the dataset like ``train`` and ``test``. Make sure you select a split when you load a dataset. If you don't supply a ``split`` argument, 🤗 Datasets will only return a dictionary containing the subsets of the dataset.
 
 .. code-block::
 

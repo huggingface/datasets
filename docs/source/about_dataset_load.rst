@@ -94,5 +94,3 @@ To ensure a dataset is complete, :func:`datasets.load_dataset` will perform a se
 * The SHA256 checksums of the downloaded files.
 * The number of splits in the generated ``DatasetDict``.
 * The number of samples in each split of the generated ``DatasetDict``.
-
-TO DO: Explain why you would want to disable the verifications or override the information used to perform the verifications.

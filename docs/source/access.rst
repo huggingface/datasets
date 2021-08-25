@@ -13,7 +13,7 @@ A :class:`datasets.Dataset` object is returned when you load an instance of a da
 Metadata
 --------
 
-The :class:`datasets.Dataset` object contains a lot of useful information about your dataset. For example, call :attr:`dataset.info` to return a short description of the dataset, the authors, and even its size. This will give you a quick snapshot of the datasets most important attributes.
+The :class:`datasets.Dataset` object contains a lot of useful information about your dataset. For example, call :attr:`dataset.info` to return a short description of the dataset, the authors, and even the dataset size. This will give you a quick snapshot of the datasets most important attributes.
 
 .. code-block::
 

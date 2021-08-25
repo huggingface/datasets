@@ -32,5 +32,3 @@ An example of when 🤗 Datasets recomputes everything is when caching is disabl
 
    When caching is disabled, use :func:`datasets.Dataset.save_to_disk` to save your transformed dataset or it will be deleted once the session ends.
 
-TO DO: Explain why it needs to be picklable to give the user more context. 
-

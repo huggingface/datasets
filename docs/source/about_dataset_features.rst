@@ -49,7 +49,3 @@ The ``answers`` field is constructed using the :class:`datasets.Sequence` featur
 .. tip::
 
    See the :ref:`flatten` section to learn how you can extract the nested subfields as their own independent columns.
-
-Lastly, there are two specific features for machine translation: :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`. 
-
-[I think for the translation features, we should either add some example code like we did for the other features or remove it all together.]

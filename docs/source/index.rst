@@ -37,7 +37,7 @@ Find your dataset today on the `Hugging Face Hub <https://huggingface.co/dataset
         :classes: btn-primary btn-block
 
     ^^^
-    High-level explanations for building a better understanding about important topics such as the underlying data format, thecache, and how datasets are generated.
+    High-level explanations for building a better understanding about important topics such as the underlying data format, the cache, and how datasets are generated.
     ---
     .. link-button:: package_reference/main_classes
         :type: ref

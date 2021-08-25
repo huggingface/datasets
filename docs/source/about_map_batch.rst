@@ -22,7 +22,3 @@ In other words, your input can be a batch of size ``N`` and return a batch of si
 
 However, you need to remember that each field in the output dictionary must contain the **same number of elements** as the other fields in the output dictionary. Otherwise, it is not possible to define the number of examples in the output returned by the mapped function. The number can vary between successive batches processed by the mapped function. For a single batch though, all fields of the output dictionary should have the same number of elements.
 
-TO DO:
-
-Maybe add a code example of when the number of elements in the field of an output dictionary aren't the same, so the user knows what not to do.
-

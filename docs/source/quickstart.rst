@@ -14,7 +14,7 @@ Get started by installing 🤗 Datasets:
 Load the dataset and model
 --------------------------
 
-Begin by loading the `Microsoft Research Paraphrase Corpus (MRPC) <https://huggingface.co/datasets/viewer/?dataset=glue&config=mrpc>`_ training dataset from the `General Language Understanding Evaluation (GLUE) benchmark <https://huggingface.co/datasets/glue>`_. MRPC is a corpus of human annotated sentence pairs that is used to train a model to determine whether sentence pairs are semantically equivalent.
+Begin by loading the `Microsoft Research Paraphrase Corpus (MRPC) <https://huggingface.co/datasets/viewer/?dataset=glue&config=mrpc>`_ training dataset from the `General Language Understanding Evaluation (GLUE) benchmark <https://huggingface.co/datasets/glue>`_. MRPC is a corpus of human annotated sentence pairs used to train a model to determine whether sentence pairs are semantically equivalent.
 
 .. code-block::
 

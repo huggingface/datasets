@@ -10,8 +10,6 @@ Loading a dataset and loading a metric share many similiarites. This was an inte
 
 The metric loading script will instantiate and return a :class:`datasets.Metric` object. This stores the predictions and references, which you need to compute the metric values. The :class:`datasets.Metric` object is stored as an Apache Arrow table. As a result, the predictions and references are stored directly on disk with memory-mapping. This enables 🤗 Datasets to do a lazy computation of the metric, and makes it easier to gather all the predictions in a distributed setting.
 
-TO DO: Briefly explain what lazy computation is.
-
 Distributed evaluation
 ----------------------
 
@@ -19,10 +17,6 @@ Computing metrics in a distributed environment can be tricky. Metric evaluation 
 
 A common way to overcome this issue is to fallback on single process evaluation. The metrics are evaluated on a single GPU, which becomes inefficient.
 
-TO DO: Briefly explain what distributed reduce operations are.
-
 🤗 Datasets solves this issue by only computing the final metric on the first node. The predictions and references are computed and provided to the metric separately for each node. These are temporarily stored in an Apache Arrow table, avoiding cluttering the GPU or CPU memory. When you are ready to :func:`datasets.Metric.compute` the final metric, the first node is able to access the predictions and references stored on all the other nodes. Once it has gathered all the predictions and references, :func:`datasets.Metric.compute` will perform the final metric evaluation.
 
 This solution allows 🤗 Datasets to perform distributed predictions, which is important for evaluation speed in distributed settings. At the same time, you can also use complex non-additive metrics without wasting valuable GPU or CPU memory.
-
-TO DO: More explanation on how the file locks perform the synchronization, or remove this part.
