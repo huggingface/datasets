@@ -184,7 +184,15 @@ In the following example we specify which subset of the files to use with the ``
     >>> from datasets import load_dataset
     >>> c4_subset = load_dataset('allenai/c4', data_files='en/c4-train.0000*-of-01024.json.gz')
 
-In this example, ``load_dataset`` will return all the files that match the Unix style pattern passed in ``data_files``.
+
+You can also specify custom splits:
+
+.. code-block::
+
+    >>> data_files = {"validation": "en/c4-validation.*.json.gz"}
+    >>> c4_validation = load_dataset("allenai/c4", data_files=data_files, split="validation")
+
+In these examples, ``load_dataset`` will return all the files that match the Unix style pattern passed in ``data_files``.
 If you don't specify which data files to use, it will use all the data files (here all C4 is about 13TB of data).
 
 
