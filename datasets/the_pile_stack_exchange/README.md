@@ -9,23 +9,21 @@ licenses:
 - mit
 multilinguality:
 - monolingual
-pretty_name: OpenWebText2
+pretty_name: Stack Exchange
 size_categories:
-- 10M<n<100M
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
 - sequence-modeling
-- text-scoring
 task_ids:
 - language-modeling
-- text-scoring-other-rating
 ---
 
-# Dataset Card for openwebtext2
+# Dataset Card for Stack Exchange
 
 ## Table of Contents
-- [Dataset Card for openwebtext2](#dataset-card-for-openwebtext2)
+- [Dataset Card for Stack Exchange](#dataset-card-for-the_pile_stack_exchange)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -57,50 +55,46 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://openwebtext2.readthedocs.io/en/latest/
-- **Repository:** [GitHub](https://github.com/EleutherAI/openwebtext2)
-- **Paper:** https://arxiv.org/abs/2101.00027
+- **Homepage:** [GitHub](https://github.com/EleutherAI/stackexchange-dataset)
+- **Repository:** [Needs More Information]
+- **Paper:** [arXiv](https://arxiv.org/abs/2101.00027)
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [Needs More Information]
 
 ### Dataset Summary
 
-OpenWebText2 is part of EleutherAi/The Pile dataset and is an enhanced version of the original OpenWebTextCorpus covering all Reddit submissions from 2005 up until April 2020, with further months becoming available after the corresponding PushShift dump files are released.
+This dataset is part of EleutherAI/The Pile dataset and is a dataset for Language Models from processing stackexchange data dump, which is an anonymized dump of all user-contributed content on the Stack Exchange network.
 
-|download_size|27.3 Gib|
-|dataset_size|63.8 Gib|
+|download_size|34.28 Gib|
+|dataset_size|10.3 Gib|
 
 ### Supported Tasks and Leaderboards
 
-This dataset is used for Language Modeling.
+The dataset is used for Language Modeling.
 
 ### Languages
 
-This dataset is in English.
+The dataset is in English.
 
 ## Dataset Structure
 
 ### Data Instances
 
 ```
-This example was too long and was cropped:
-
-{'title': Xiaomi Mi Note 10 Gearbest Coupon Promo Code [6+128GB] [France Warehouse],
-'text': '27% off Xiaomi Mi Note 10 (CC9 Pro) 108MP Penta Camera Mobile Phone Global Version Online Smartphone – Black Gearbest Coupon Promo Code\n\nGearbest Coupon Price :$439.99\n\nRegular Price : $603.19 Your Save : $163.20 Coupon Limit: 100 times Warehouse: France Expires : September 30, 2020 Coupon Valid for...',
-'reddit_scores': [6],}
+{'domain': 'chemistry',
+'text':"\nQ:                                                                                                                                            \n                                                                                                                                              \nReviving old questions or asking a new one?                                                                                                   \n                                                                                                                                              \nI'm relatively new to the Chemistry SE community, and sometimes when I go to ask a question, I notice that the same (or similar) question has \nalready been asked. However, the previous question doesn't have a good answer (or is unanswered). In this case, is it better to ask the questi\non again in a new post (which might be marked as duplicate) or comment on the old post (which might be several years old)? In other words, wha\nt are the customs of this site in regards to reviving old questions/discussions?\n\nA:\n\nAs Martin commented, it really depends on the type of question. In any case, you always have the following possibilities:\n\nAsk a new question\nEdit the question to bump it to the first page\nAdd a bounty\nBring it to the attention of people in chat\n\nConsider the following cases:\n\nI have exactly the same question as asked and unanswered before!\n\nIf you ask a new question which turns out to be the same question, it may be closed as a dupe (depending on whether users remember the old que\nstion). Not the ideal option.\nIf you can find something substantial to edit and bump the question, do so. Maybe add a comment that you would really love an answer.\nIf you can spare some rep for a bounty (50 is usually enough), do so.\nYou can always bring it to the attention of people in chat.\n",}
 ```
 
 ### Data Fields
 
-- `title`: title of the web page
-- `text`: text content of the web page
-- `reddit_scores`: scores of the reddit submissions that mention this web page, as a list of integers
+- `domain`: Stack Exchange domain of the sample
+- `text`: Text content containing both the question and the answer
 
 ### Data Splits
 
 |split|num examples|
 --------------------------------
-|train|17103059|
+|train|5096117|
 
 ## Dataset Creation
 
@@ -168,12 +162,5 @@ This example was too long and was cropped:
 ```
 
 ### Contributions
-
-[researcher2](https://github.com/researcher2) Wrote much of this code, with inspiration and some straight copying of the scraping code found [here](https://github.com/yet-another-account/openwebtext/).<br/>
-[sdtblck](https://github.com/sdtblck/) kindly put together the Colab notebook, and performed a chunk of the scraping. <br/>
-[leogao2](https://github.com/leogao2/) provided overall design guidance, lm_dataformat, and performed another chunk of scraping. <br />
-[Colaboratory](https://colab.research.google.com/) VMs helped with about 10% of our overall scraping. <br />
-[The Eye](http://the-eye.eu/) host the processed datasets.<br />
-[Read The Docs](https://readthedocs.org/) host our documentation.<br />
-
-[@richarddwang](https://github.com/richarddwang) added this dataset to HF/datasets.
+Thanks to [sdtblck](https://github.com/sdtblck) for creating the dataset.
+Thanks to [richarddwang](https://github.com/richarddwang) for adding the dataset.

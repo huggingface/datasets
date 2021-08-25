@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
+# Copyright 2021 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,17 +43,17 @@ _DOWNLOAD_URL = "https://the-eye.eu/public/AI/pile_preliminary_components/books3
 
 
 class Books3Config(datasets.BuilderConfig):
-    """BuilderConfig for Books3."""
+    """BuilderConfig for ThePileBooks3."""
 
     def __init__(self, **kwargs):
-        """BuilderConfig for Books3.
+        """BuilderConfig for ThePileBooks3.
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
         super(Books3Config, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class Books3(datasets.GeneratorBasedBuilder):
+class ThePileBooks3(datasets.GeneratorBasedBuilder):
     """Books3 dataset."""
 
     BUILDER_CONFIGS = [

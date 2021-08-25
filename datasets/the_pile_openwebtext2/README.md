@@ -9,21 +9,23 @@ licenses:
 - mit
 multilinguality:
 - monolingual
-pretty_name: Books3
+pretty_name: OpenWebText2
 size_categories:
-- 100K<n<1M
+- 10M<n<100M
 source_datasets:
 - original
 task_categories:
 - sequence-modeling
+- text-scoring
 task_ids:
 - language-modeling
+- text-scoring-other-rating
 ---
 
-# Dataset Card for books3
+# Dataset Card for the_pile_openwebtext2
 
 ## Table of Contents
-- [Dataset Card for books3](#dataset-card-for-books3)
+- [Dataset Card for the_pile_openwebtext2](#dataset-card-for-the_pile_openwebtext2)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -55,20 +57,18 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [GitHub](https://github.com/soskek/bookcorpus/issues/27#issuecomment-716104208)
-- **Repository:** [Needs More Information]
-- **Paper:** [arXiv](https://arxiv.org/abs/2101.00027)
+- **Homepage:** https://openwebtext2.readthedocs.io/en/latest/
+- **Repository:** [GitHub](https://github.com/EleutherAI/openwebtext2)
+- **Paper:** https://arxiv.org/abs/2101.00027
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [Needs More Information]
 
 ### Dataset Summary
 
-This dataset is Shawn Presser's work and is part of EleutherAi/The Pile dataset. 
+OpenWebText2 is part of EleutherAi/The Pile dataset and is an enhanced version of the original OpenWebTextCorpus covering all Reddit submissions from 2005 up until April 2020, with further months becoming available after the corresponding PushShift dump files are released.
 
-This dataset contains all of bibliotik in plain .txt form, aka 197,000 books processed in exactly  the same way as did for bookcorpusopen (a.k.a. books1). seems to be similar to OpenAI's mysterious  "books2" dataset referenced in their papers. Unfortunately OpenAI will not give details, so we know very little about any differences. People suspect it's "all of libgen", but it's purely conjecture.
-
-|download_size|36.8 Gib|
-|dataset_size|100.9 Gib|
+|download_size|27.3 Gib|
+|dataset_size|63.8 Gib|
 
 ### Supported Tasks and Leaderboards
 
@@ -76,27 +76,31 @@ This dataset is used for Language Modeling.
 
 ### Languages
 
-The dataset is in English.
+This dataset is in English.
 
 ## Dataset Structure
 
 ### Data Instances
 
 ```
-{'title': '07 LEGO Ninjago - The Search For Zane (Scholastic) - Kate Howard (retail)'
-'text': '\n\nTITLE PAGE\n\nFROM THE JOURNAL OF SENSEI GARMADON\n\nCHAPTER 1\n\nCHAPTER 2\n\nCHAPTER 3\n\nCHAPTER 4\n\nCHAPTER 5\n\nCHAPTER 6\n\nCHAPTER 7\n\nCHAPTER 8\n\nCHAPTER 9\n\nCOPYRIGHT\n\nThroughout Ninjago", five ninja are well-known for their speed, strength, and  of course  the elemental powers that help them protect our world from evil. But there are others who possess some of the same powers as the ninja. Others who may not always use their powers for good.\n\nBefore now, the ninja believed they were special. They di.......'}
+This example was too long and was cropped:
+
+{'title': Xiaomi Mi Note 10 Gearbest Coupon Promo Code [6+128GB] [France Warehouse],
+'text': '27% off Xiaomi Mi Note 10 (CC9 Pro) 108MP Penta Camera Mobile Phone Global Version Online Smartphone – Black Gearbest Coupon Promo Code\n\nGearbest Coupon Price :$439.99\n\nRegular Price : $603.19 Your Save : $163.20 Coupon Limit: 100 times Warehouse: France Expires : September 30, 2020 Coupon Valid for...',
+'reddit_scores': [6],}
 ```
 
 ### Data Fields
 
-- `title`: title of the book
-- `text`: text content of the book
+- `title`: title of the web page
+- `text`: text content of the web page
+- `reddit_scores`: scores of the reddit submissions that mention this web page, as a list of integers
 
 ### Data Splits
 
 |split|num examples|
 --------------------------------
-|train|196640|
+|train|17103059|
 
 ## Dataset Creation
 
@@ -150,7 +154,7 @@ The dataset is in English.
 
 ### Licensing Information
 
-MIT
+[Needs More Information]
 
 ### Citation Information
 
@@ -165,5 +169,11 @@ MIT
 
 ### Contributions
 
-Thanks to [@shawwn](https://github.com/shawwn) for creating this dataset.
-Thanks to [@richarddwang](https://github.com/richarddwang) for adding this dataset.
+[researcher2](https://github.com/researcher2) Wrote much of this code, with inspiration and some straight copying of the scraping code found [here](https://github.com/yet-another-account/openwebtext/).<br/>
+[sdtblck](https://github.com/sdtblck/) kindly put together the Colab notebook, and performed a chunk of the scraping. <br/>
+[leogao2](https://github.com/leogao2/) provided overall design guidance, lm_dataformat, and performed another chunk of scraping. <br />
+[Colaboratory](https://colab.research.google.com/) VMs helped with about 10% of our overall scraping. <br />
+[The Eye](http://the-eye.eu/) host the processed datasets.<br />
+[Read The Docs](https://readthedocs.org/) host our documentation.<br />
+
+[@richarddwang](https://github.com/richarddwang) added this dataset to HF/datasets.

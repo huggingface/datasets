@@ -9,9 +9,9 @@ licenses:
 - mit
 multilinguality:
 - monolingual
-pretty_name: Stack Exchange
+pretty_name: Books3
 size_categories:
-- 1M<n<10M
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
@@ -20,10 +20,10 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for Stack Exchange
+# Dataset Card for the_pile_books3
 
 ## Table of Contents
-- [Dataset Card for Stack Exchange](#dataset-card-for-stack-exchange)
+- [Dataset Card for the_pile_books3](#dataset-card-for-the_pile_books3)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -55,7 +55,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [GitHub](https://github.com/EleutherAI/stackexchange-dataset)
+- **Homepage:** [GitHub](https://github.com/soskek/bookcorpus/issues/27#issuecomment-716104208)
 - **Repository:** [Needs More Information]
 - **Paper:** [arXiv](https://arxiv.org/abs/2101.00027)
 - **Leaderboard:** [Needs More Information]
@@ -63,14 +63,16 @@ task_ids:
 
 ### Dataset Summary
 
-This dataset is part of EleutherAI/The Pile dataset and is a dataset for Language Models from processing stackexchange data dump, which is an anonymized dump of all user-contributed content on the Stack Exchange network.
+This dataset is Shawn Presser's work and is part of EleutherAi/The Pile dataset. 
 
-|download_size|34.28 Gib|
-|dataset_size|10.3 Gib|
+This dataset contains all of bibliotik in plain .txt form, aka 197,000 books processed in exactly  the same way as did for bookcorpusopen (a.k.a. books1). seems to be similar to OpenAI's mysterious  "books2" dataset referenced in their papers. Unfortunately OpenAI will not give details, so we know very little about any differences. People suspect it's "all of libgen", but it's purely conjecture.
+
+|download_size|36.8 Gib|
+|dataset_size|100.9 Gib|
 
 ### Supported Tasks and Leaderboards
 
-The dataset is used for Language Modeling.
+This dataset is used for Language Modeling.
 
 ### Languages
 
@@ -81,20 +83,20 @@ The dataset is in English.
 ### Data Instances
 
 ```
-{'domain': 'chemistry',
-'text':"\nQ:                                                                                                                                            \n                                                                                                                                              \nReviving old questions or asking a new one?                                                                                                   \n                                                                                                                                              \nI'm relatively new to the Chemistry SE community, and sometimes when I go to ask a question, I notice that the same (or similar) question has \nalready been asked. However, the previous question doesn't have a good answer (or is unanswered). In this case, is it better to ask the questi\non again in a new post (which might be marked as duplicate) or comment on the old post (which might be several years old)? In other words, wha\nt are the customs of this site in regards to reviving old questions/discussions?\n\nA:\n\nAs Martin commented, it really depends on the type of question. In any case, you always have the following possibilities:\n\nAsk a new question\nEdit the question to bump it to the first page\nAdd a bounty\nBring it to the attention of people in chat\n\nConsider the following cases:\n\nI have exactly the same question as asked and unanswered before!\n\nIf you ask a new question which turns out to be the same question, it may be closed as a dupe (depending on whether users remember the old que\nstion). Not the ideal option.\nIf you can find something substantial to edit and bump the question, do so. Maybe add a comment that you would really love an answer.\nIf you can spare some rep for a bounty (50 is usually enough), do so.\nYou can always bring it to the attention of people in chat.\n",}
+{'title': '07 LEGO Ninjago - The Search For Zane (Scholastic) - Kate Howard (retail)'
+'text': '\n\nTITLE PAGE\n\nFROM THE JOURNAL OF SENSEI GARMADON\n\nCHAPTER 1\n\nCHAPTER 2\n\nCHAPTER 3\n\nCHAPTER 4\n\nCHAPTER 5\n\nCHAPTER 6\n\nCHAPTER 7\n\nCHAPTER 8\n\nCHAPTER 9\n\nCOPYRIGHT\n\nThroughout Ninjago", five ninja are well-known for their speed, strength, and  of course  the elemental powers that help them protect our world from evil. But there are others who possess some of the same powers as the ninja. Others who may not always use their powers for good.\n\nBefore now, the ninja believed they were special. They di.......'}
 ```
 
 ### Data Fields
 
-- `domain`: Stack Exchange domain of the sample
-- `text`: Text content containing both the question and the answer
+- `title`: title of the book
+- `text`: text content of the book
 
 ### Data Splits
 
 |split|num examples|
 --------------------------------
-|train|5096117|
+|train|196640|
 
 ## Dataset Creation
 
@@ -148,7 +150,7 @@ The dataset is in English.
 
 ### Licensing Information
 
-[Needs More Information]
+MIT
 
 ### Citation Information
 
@@ -162,5 +164,6 @@ The dataset is in English.
 ```
 
 ### Contributions
-Thanks to [sdtblck](https://github.com/sdtblck) for creating the dataset.
-Thanks to [richarddwang](https://github.com/richarddwang) for adding the dataset.
+
+Thanks to [@shawwn](https://github.com/shawwn) for creating this dataset.
+Thanks to [@richarddwang](https://github.com/richarddwang) for adding this dataset.
