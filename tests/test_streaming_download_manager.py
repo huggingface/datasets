@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -15,6 +16,7 @@ TEST_URL_CONTENT = "foo\nbar\nfoobar"
 @pytest.mark.parametrize(
     "input_path, paths_to_join, expected_path",
     [
+        (str(Path(__file__).resolve().parent), (Path(__file__).name,), str(Path(__file__).resolve())),
         ("https://host.com/archive.zip", ("file.txt",), "https://host.com/archive.zip/file.txt"),
         (
             "zip://::https://host.com/archive.zip",
@@ -32,6 +34,28 @@ def test_xjoin(input_path, paths_to_join, expected_path):
     from datasets.utils.streaming_download_manager import xjoin
 
     output_path = xjoin(input_path, *paths_to_join)
+    assert output_path == expected_path
+
+
+@pytest.mark.parametrize(
+    "input_path, expected_path",
+    [
+        (str(Path(__file__).resolve()), str(Path(__file__).resolve().parent)),
+        ("https://host.com/archive.zip", "https://host.com"),
+        (
+            "zip://file.txt::https://host.com/archive.zip",
+            "zip://::https://host.com/archive.zip",
+        ),
+        (
+            "zip://folder/file.txt::https://host.com/archive.zip",
+            "zip://folder::https://host.com/archive.zip",
+        ),
+    ],
+)
+def test_xdirname(input_path, expected_path):
+    from datasets.utils.streaming_download_manager import xdirname
+
+    output_path = xdirname(input_path)
     assert output_path == expected_path
 
 
@@ -79,7 +103,8 @@ def test_streaming_dl_manager_extract(text_gz_path, text_path):
 
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.extract(text_gz_path)
-    path = os.path.basename(text_gz_path).rstrip(".gz")
+    path = os.path.basename(text_gz_path)
+    path = path[: path.rindex(".")]
     assert output_path == f"gzip://{path}::{text_gz_path}"
     fsspec_open_file = xopen(output_path, encoding="utf-8")
     with fsspec_open_file as f, open(text_path, encoding="utf-8") as expected_file:
@@ -91,7 +116,8 @@ def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path,
 
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.download_and_extract(text_gz_path)
-    path = os.path.basename(text_gz_path).rstrip(".gz")
+    path = os.path.basename(text_gz_path)
+    path = path[: path.rindex(".")]
     assert output_path == f"gzip://{path}::{text_gz_path}"
     fsspec_open_file = xopen(output_path, encoding="utf-8")
     with fsspec_open_file as f, open(text_path, encoding="utf-8") as expected_file:

@@ -56,6 +56,37 @@ def xjoin(a, *p):
     return "::".join([a] + b)
 
 
+def xdirname(a, *p):
+    """
+    This function extends os.path.dirname to support the "::" hop separator. It supports both paths and urls.
+
+    A shorthand, particularly useful where you have multiple hops, is to “chain” the URLs with the special separator "::".
+    This is used to access files inside a zip file over http for example.
+
+    Let's say you have a zip file at https://host.com/archive.zip, and you want to access the file inside the zip file at /folder1/file.txt.
+    Then you can just chain the url this way:
+
+        zip://folder1/file.txt::https://host.com/archive.zip
+
+    The xdirname function allows you to apply the dirname on the first path of the chain.
+
+    Example::
+
+        >>> xdirname("zip://folder1/file.txt::https://host.com/archive.zip")
+        zip://folder1::https://host.com/archive.zip
+    """
+    a, *b = a.split("::")
+    if is_local_path(a):
+        a = os.path.dirname(a)
+    else:
+        a = posixpath.dirname(a)
+    # if we end up at the root of the protocol, we get for example a = 'http:'
+    # so we have to fix it by adding the '//' that was removed:
+    if a.endswith(":"):
+        a += "//"
+    return "::".join([a] + b)
+
+
 def _add_retries_to_file_obj_read_method(file_obj):
     read = file_obj.read
     max_retries = config.STREAMING_READ_MAX_RETRIES
