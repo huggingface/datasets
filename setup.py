@@ -97,9 +97,11 @@ REQUIRED_PKGS = [
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
     # minimum 2021.05.0 to have the AbstractArchiveFileSystem
-    "fsspec>=2021.05.0",
+    "fsspec[http]>=2021.05.0",
+    # for data streaming via http
+    "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub<0.1.0",
+    "huggingface_hub>=0.0.14,<0.1.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
 ]
@@ -117,7 +119,6 @@ TESTS_REQUIRE = [
     "pytest",
     "pytest-xdist",
     # optional dependencies
-    "aiohttp",
     "apache-beam>=2.26.0",
     "elasticsearch",
     "aiobotocore==1.2.2",
@@ -192,7 +193,7 @@ EXTRAS_REQUIRE = {
         "botocore==1.19.52",
         "s3fs",
     ],
-    "streaming": ["aiohttp"],
+    "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,

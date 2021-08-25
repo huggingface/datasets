@@ -26,10 +26,12 @@ import textwrap
 import urllib
 from dataclasses import dataclass
 from functools import partial
-from typing import Dict, Mapping, Optional, Sequence, Tuple, Union
+from pathlib import PurePath
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 from datasets.features import Features
 from datasets.utils.mock_download_manager import MockDownloadManager
+from datasets.utils.py_utils import map_nested
 
 from . import config, utils
 from .arrow_dataset import Dataset
@@ -43,9 +45,10 @@ from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
 from .utils.download_manager import DownloadManager, GenerateMode
-from .utils.file_utils import DownloadConfig, is_remote_url, request_etags
+from .utils.file_utils import DownloadConfig, is_relative_path, is_remote_url, request_etags, url_or_path_join
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
+from .utils.streaming_download_manager import StreamingDownloadManager
 
 
 logger = logging.get_logger(__name__)
@@ -109,6 +112,7 @@ class BuilderConfig:
         config_kwargs: dict,
         custom_features: Optional[Features] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
+        base_path: Optional[Union[bool, str]] = None,
     ) -> str:
         """
         The config id is used to build the cache directory.
@@ -163,6 +167,12 @@ class BuilderConfig:
                 }
             else:
                 raise ValueError("Please provide a valid `data_files` in `DatasetBuilder`")
+
+            def abspath(data_file) -> str:
+                data_file = data_file.as_posix() if isinstance(data_file, PurePath) else str(data_file)
+                return url_or_path_join(base_path, data_file) if is_relative_path(data_file) else data_file
+
+            data_files: Dict[str, List[str]] = map_nested(abspath, data_files)
             remote_urls = [
                 data_file for key in data_files for data_file in data_files[key] if is_remote_url(data_file)
             ]
@@ -392,7 +402,10 @@ class DatasetBuilder:
 
         # compute the config id that is going to be used for caching
         config_id = builder_config.create_config_id(
-            config_kwargs, custom_features=custom_features, use_auth_token=self.use_auth_token
+            config_kwargs,
+            custom_features=custom_features,
+            use_auth_token=self.use_auth_token,
+            base_path=self.base_path if self.base_path is not None else "",
         )
         is_custom = config_id not in self.builder_configs
         if is_custom:
@@ -590,12 +603,17 @@ class DatasetBuilder:
             # Print is intentional: we want this to always go to stdout so user has
             # information needed to cancel download/preparation if needed.
             # This comes right before the progress bar.
-            print(
-                f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
-                f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
-                f"post-processed: {utils.size_str(self.info.post_processing_size)}, "
-                f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
-            )
+            if self.info.size_in_bytes:
+                print(
+                    f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
+                    f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
+                    f"post-processed: {utils.size_str(self.info.post_processing_size)}, "
+                    f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
+                )
+            else:
+                print(
+                    f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} to {self._cache_dir}..."
+                )
 
             self._check_manual_download(dl_manager)
 
@@ -917,13 +935,6 @@ class DatasetBuilder:
     ) -> Union[Dict[str, IterableDataset], IterableDataset]:
         if not isinstance(self, (GeneratorBasedBuilder, ArrowBasedBuilder)):
             raise ValueError(f"Builder {self.name} is not streamable.")
-        if not config.AIOHTTP_AVAILABLE:
-            raise ImportError(
-                f"To be able to use dataset streaming, you need to install dependencies like aiohttp "
-                f'using "pip install \'datasets[streaming]\'" or "pip install aiohttp" for instance'
-            )
-
-        from .utils.streaming_download_manager import StreamingDownloadManager
 
         dl_manager = StreamingDownloadManager(
             base_path=base_path or self.base_path,

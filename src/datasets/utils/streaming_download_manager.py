@@ -120,6 +120,7 @@ class StreamingDownloadManager(object):
         return url_or_urls
 
     def _download(self, urlpath: str) -> str:
+        urlpath = str(urlpath)
         if is_relative_path(urlpath):
             # append the relative path to the base_path
             urlpath = url_or_path_join(self._base_path, urlpath)
@@ -130,6 +131,7 @@ class StreamingDownloadManager(object):
         return urlpaths
 
     def _extract(self, urlpath: str) -> str:
+        urlpath = str(urlpath)
         protocol = self._get_extraction_protocol(urlpath)
         if protocol is None:
             # no extraction
@@ -151,7 +153,7 @@ class StreamingDownloadManager(object):
         extension = path.split(".")[-1]
         if extension in BASE_KNOWN_EXTENSIONS:
             return None
-        elif path.endswith(".tar.gz"):
+        elif path.endswith(".tar.gz") or path.endswith(".tgz"):
             pass
         elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
             return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
