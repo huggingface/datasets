@@ -45,9 +45,8 @@ _HOMEPAGE = "https://github.com/adeepH/KanHope"
 
 _LICENSE = "Creative Commons Attribution 4.0 International Licence"
 
-_TRAIN_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1-ERBok4Sy2ruF-Om-YBrrmb_TmrR9wVy"
-# _VAL_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1-CuB6UBkdoqWTJGTowEayMRku8PNfo6M"
-_TEST_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=1-0wIcM_ScKibQfZzk6tbjogD8JkpsgNq"
+_TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/adeepH/KanHope/main/dataset/KanHope_train.csv"
+_TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/adeepH/KanHope/main/dataset/KanHope_test.csv"
 
 
 class KanHopeSpeech(datasets.GeneratorBasedBuilder):
