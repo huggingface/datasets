@@ -34,7 +34,7 @@ def test_xjoin(input_path, paths_to_join, expected_path):
     from datasets.utils.streaming_download_manager import xjoin
 
     output_path = xjoin(input_path, *paths_to_join)
-    assert output_path == expected_path
+    assert output_path == Path(expected_path).as_posix()
 
 
 @pytest.mark.parametrize(
@@ -56,7 +56,7 @@ def test_xdirname(input_path, expected_path):
     from datasets.utils.streaming_download_manager import xdirname
 
     output_path = xdirname(input_path)
-    assert output_path == expected_path
+    assert output_path == Path(expected_path).as_posix()
 
 
 def test_xopen_local(text_path):
