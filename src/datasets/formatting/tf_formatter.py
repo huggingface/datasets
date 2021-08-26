@@ -35,7 +35,7 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
     def _tensorize(self, value):
         import tensorflow as tf
 
-        if 'dtype' not in self.tf_tensor_kwargs:
+        if "dtype" not in self.tf_tensor_kwargs:
             if np.issubdtype(value.dtype, np.integer):
                 np_dtype = np.int64
                 tf_dtype = tf.int64
@@ -49,7 +49,7 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
                 tf_dtype = None
                 default_dtype = {}
         else:
-            tf_dtype = self.tf_tensor_kwargs['dtype']
+            tf_dtype = self.tf_tensor_kwargs["dtype"]
             np_dtype = tf_dtype.as_numpy_dtype
             default_dtype = {}
 
