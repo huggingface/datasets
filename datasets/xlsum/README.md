@@ -26,7 +26,7 @@ languages:
 - om
 - ps
 - fa
-- pidgin
+- pcm
 - pt
 - pa
 - ru
@@ -56,6 +56,11 @@ multilinguality:
 source_datasets:
 - original
 paperswithcode_id: xl-sum
+annotations_creators:
+- found
+language_creators:
+- found
+pretty_name: XL-Sum
 ---
 
 # Dataset Card for "XL-Sum"
