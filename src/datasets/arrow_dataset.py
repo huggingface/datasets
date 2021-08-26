@@ -29,6 +29,7 @@ from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
+from random import randint
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import fsspec
@@ -38,7 +39,6 @@ import pyarrow as pa
 import pyarrow.compute as pc
 from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
-from random import randint
 
 from datasets.tasks.text_classification import TextClassification
 
@@ -205,8 +205,8 @@ class TensorflowDatasetMixIn:
         for column, tensor in test_batch.items():
             if column in signatures:
                 continue
-            if column.startswith('label') and 'input_ids' in signatures:
-                shape = signatures['input_ids'].shape
+            if column.startswith("label") and "input_ids" in signatures:
+                shape = signatures["input_ids"].shape
             else:
                 # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
                 # about the dimensions we're unsure of
@@ -260,7 +260,7 @@ class TensorflowDatasetMixIn:
 
         def tf_generator():
             if shuffle:
-                epoch_dataset = dataset.shuffle(load_from_cache_file=False, seed=randint(0, 2**32 - 1))
+                epoch_dataset = dataset.shuffle(load_from_cache_file=False, seed=randint(0, 2 ** 32 - 1))
             else:
                 epoch_dataset = dataset
             if collate_fn is None:
@@ -294,8 +294,9 @@ class TensorflowDatasetMixIn:
 
         test_batch = next(tf_generator())
 
-        gen_signature = self._get_output_signature(dataset, test_batch=test_batch,
-                                                   batch_size=batch_size if drop_remainder else None)
+        gen_signature = self._get_output_signature(
+            dataset, test_batch=test_batch, batch_size=batch_size if drop_remainder else None
+        )
 
         tf_dataset = tf.data.Dataset.from_generator(tf_generator, output_signature=gen_signature)
 
