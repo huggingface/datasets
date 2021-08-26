@@ -38,6 +38,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
+from random import randint
 
 from datasets.tasks.text_classification import TextClassification
 
@@ -164,7 +165,7 @@ class TensorflowDatasetMixIn:
         pass
 
     @staticmethod
-    def _get_output_signature(dataset, batch_size):
+    def _get_output_signature(dataset, test_batch, batch_size):
         import tensorflow as tf
 
         signatures = dict()
@@ -174,7 +175,7 @@ class TensorflowDatasetMixIn:
             else:
                 dtype_str = col_feature.dtype
             if dtype_str.startswith("int") or dtype_str.startswith("uint"):
-                dtype = tf.int32
+                dtype = tf.int64
             elif dtype_str.startswith("float"):
                 dtype = tf.float32
             else:
@@ -199,6 +200,18 @@ class TensorflowDatasetMixIn:
             shape = [dim if dim != -1 else None for dim in shape]
 
             signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
+
+        # Catching columns added by the collate_fn, such as MLM labels
+        for column, tensor in test_batch.items():
+            if column in signatures:
+                continue
+            if column.startswith('label') and 'input_ids' in signatures:
+                shape = signatures['input_ids'].shape
+            else:
+                # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
+                # about the dimensions we're unsure of
+                shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
+            signatures[column] = tf.TensorSpec(shape=shape, dtype=tensor.dtype)
         return signatures
 
     def to_tf_dataset(
@@ -241,17 +254,13 @@ class TensorflowDatasetMixIn:
             drop_remainder = shuffle
         dataset = self.remove_columns([col for col in self.features if col not in cols_to_retain])
         if drop_remainder:
-            gen_signature = self._get_output_signature(dataset, batch_size=batch_size)
             num_batches = floor(len(dataset) / batch_size)  # Division rounding down ( // still returns a float!)
         else:
-            gen_signature = self._get_output_signature(
-                dataset, batch_size=None
-            )  # Because batches can be variable here
             num_batches = ceil(len(dataset) / batch_size)  # Division rounding up
 
         def tf_generator():
             if shuffle:
-                epoch_dataset = dataset.shuffle(load_from_cache_file=False)
+                epoch_dataset = dataset.shuffle(load_from_cache_file=False, seed=randint(0, 2**32 - 1))
             else:
                 epoch_dataset = dataset
             if collate_fn is None:
@@ -261,15 +270,32 @@ class TensorflowDatasetMixIn:
             for i in range(num_batches):
                 batch = epoch_dataset[i * batch_size : (i + 1) * batch_size]
                 if collate_fn is not None:
+                    actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
+                    # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
+                    batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
                     batch = collate_fn(batch, **collate_fn_args)
-                    # In case the collate_fn returns something strange
-                    batch = {key: tf.convert_to_tensor(val) for key, val in batch.items()}
+                    for key in list(batch.keys()):
+                        # In case the collate_fn returns something strange
+                        tensor = tf.convert_to_tensor(batch[key])
+                        cast_dtype = tf.int64 if tensor.dtype.is_integer else tf.float32
+                        if tensor.dtype != cast_dtype:
+                            tensor = tf.cast(tensor, cast_dtype)
+                        batch[key] = tensor
                 else:
-                    batch = {
-                        key: tensor.to_tensor() if isinstance(tensor, tf.RaggedTensor) else tensor
-                        for key, tensor in batch.items()
-                    }
-                yield batch
+                    for key in list(batch.keys()):
+                        tensor = batch[key]
+                        if isinstance(tensor, tf.RaggedTensor):
+                            tensor = tensor.to_tensor()
+                        cast_dtype = tf.int64 if tensor.dtype.is_integer else tf.float32
+                        if tensor.dtype != cast_dtype:
+                            tensor = tf.cast(tensor, cast_dtype)
+                        batch[key] = tensor
+                yield dict(batch)
+
+        test_batch = next(tf_generator())
+
+        gen_signature = self._get_output_signature(dataset, test_batch=test_batch,
+                                                   batch_size=batch_size if drop_remainder else None)
 
         tf_dataset = tf.data.Dataset.from_generator(tf_generator, output_signature=gen_signature)
 
