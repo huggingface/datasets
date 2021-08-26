@@ -55,6 +55,7 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
             try:
                 return tf.ragged.stack([np.array(subarr, dtype=np_dtype) for subarr in value])
             except ValueError:
+                # tf.ragged.constant is orders of magnitude slower than tf.ragged.stack
                 return tf.ragged.constant(value, **{**default_dtype, **self.tf_tensor_kwargs})
 
     def _recursive_tensorize(self, data_struct: dict):
