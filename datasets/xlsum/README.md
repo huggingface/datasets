@@ -53,7 +53,6 @@ licenses:
 - cc-by-nc-sa-4.0
 multilinguality:
 - multilingual
-size_categories:
 source_datasets:
 - original
 paperswithcode_id: xl-sum
