@@ -58,7 +58,7 @@ class Beans(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "image_file_path": datasets.Value("string"),
-                    "labels": datasets.features.ClassLabel(names=sorted(tuple(_NAMES))),
+                    "labels": datasets.features.ClassLabel(names=_NAMES),
                 }
             ),
             supervised_keys=("image_file_path", "labels"),
@@ -66,7 +66,7 @@ class Beans(datasets.GeneratorBasedBuilder):
             citation=_CITATION,
             task_templates=[
                 ImageClassification(
-                    image_file_path_column="image_file_path", label_column="labels", labels=sorted(tuple(_NAMES))
+                    image_file_path_column="image_file_path", label_column="labels", labels=_NAMES
                 )
             ],
         )
