@@ -24,6 +24,7 @@ class JsonConfig(datasets.BuilderConfig):
     block_size: Optional[int] = None  # deprecated
     chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
+    error_bad_chunk: bool = True
 
     @property
     def schema(self):
@@ -100,6 +101,7 @@ class Json(datasets.ArrowBasedBuilder):
             else:
                 with open(file, "rb") as f:
                     batch_idx = 0
+                    current_char = 0
                     # Use block_size equal to the chunk size divided by 32 to leverage multithreading
                     # Set a default minimum value of 16kB if the chunk size is really small
                     block_size = max(self.config.chunksize // 32, 16 << 10)
@@ -112,6 +114,7 @@ class Json(datasets.ArrowBasedBuilder):
                             batch += f.readline()
                         except (AttributeError, io.UnsupportedOperation):
                             batch += readline(f)
+                        current_char += len(batch)
                         try:
                             while True:
                                 try:
@@ -129,21 +132,19 @@ class Json(datasets.ArrowBasedBuilder):
                                             f"Batch of {len(batch)} bytes couldn't be parsed with block_size={block_size}. Retrying with block_size={block_size * 2}."
                                         )
                                         block_size *= 2
+                            # Uncomment for debugging (will print the Arrow table size and elements)
+                            # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                            # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                            yield (file_idx, batch_idx), self._cast_classlabels(pa_table)
+                            batch_idx += 1
                         except pa.ArrowInvalid as e:
-                            logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
-                            try:
-                                with open(file, encoding="utf-8") as f:
-                                    dataset = json.load(f)
-                            except json.JSONDecodeError:
-                                raise e
-                            raise ValueError(
-                                f"Not able to read records in the JSON file at {file}. "
-                                f"You should probably indicate the field of the JSON file containing your records. "
-                                f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
-                                f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
+                            start, end = current_char - len(batch), current_char
+                            logger.error(
+                                f"Failed to read chunk from file '{file}' (from char {start} to {end}) with error {type(e)}: {e}"
                             )
-                        # Uncomment for debugging (will print the Arrow table size and elements)
-                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), self._cast_classlabels(pa_table)
-                        batch_idx += 1
+                            if self.config.error_bad_chunk:
+                                raise ValueError(
+                                    f"Not able to read records in the JSON file at {file}. "
+                                    f"You should probably indicate the field of the JSON file containing your records. "
+                                    f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
+                                )
