@@ -65,9 +65,7 @@ class Beans(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             citation=_CITATION,
             task_templates=[
-                ImageClassification(
-                    image_file_path_column="image_file_path", label_column="labels", labels=_NAMES
-                )
+                ImageClassification(image_file_path_column="image_file_path", label_column="labels", labels=_NAMES)
             ],
         )
 
