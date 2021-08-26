@@ -22,7 +22,7 @@ languages:
 - ko
 - ky
 - mr
-- np
+- ne
 - om
 - ps
 - fa
