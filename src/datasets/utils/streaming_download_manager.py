@@ -150,7 +150,7 @@ class StreamingDownloadManager(object):
 
     def _get_extraction_protocol(self, urlpath: str) -> Optional[str]:
         path = urlpath.split("::")[0]
-        extension = path.split(".")[-1]
+        extension = path.split(".")[-1].split("?")[0]  # https://foo.bar/train.json.gz?dl=1 -> gz
         if extension in BASE_KNOWN_EXTENSIONS:
             return None
         elif path.endswith(".tar.gz") or path.endswith(".tgz"):
