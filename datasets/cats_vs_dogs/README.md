@@ -9,7 +9,7 @@ licenses:
 - unknown
 multilinguality:
 - monolingual
-pretty_name: Cats-vs-Dogs
+pretty_name: Cats Vs. Dogs
 size_categories:
 - 10K<n<100K
 source_datasets:
