@@ -79,4 +79,3 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
                         "labels": filepath.parent.name.lower(),
                     }
                     continue
-            filepath.unlink()
