@@ -250,7 +250,7 @@ class RicoDataset(datasets.GeneratorBasedBuilder):
                 for idx, row in enumerate(csv_reader):
                     yield idx, {k: v for k, v in zip(header, row)}
         elif self.config.name == "layout_vectors":
-            with open(os.path.join(filepath, "ui_names.json"), "r") as f:
+            with open(os.path.join(filepath, "ui_names.json"), "r", encoding="utf-8") as f:
                 ui_names = json.load(f)["ui_names"]
 
             ui_vectors = np.load(os.path.join(filepath, "ui_vectors.npy"))
