@@ -235,7 +235,7 @@ class RicoDataset(datasets.GeneratorBasedBuilder):
             for idx, (screen_filepath, hierarchy_filepath) in enumerate(
                 zip(screen_glob, hierarchy_glob)
             ):
-                with open(hierarchy_filepath, "r") as f:
+                with open(hierarchy_filepath, "r", encoding="utf-8") as f:
                     hierarchy = f.read()
 
                 yield idx, {"screenshot_path": screen_filepath, "hierarchy": hierarchy}
