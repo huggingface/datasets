@@ -149,7 +149,11 @@ class StreamingDownloadManager(object):
             return f"{protocol}://::{urlpath}"
 
     def _get_extraction_protocol(self, urlpath: str) -> Optional[str]:
+        # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
         path = urlpath.split("::")[0]
+        # remove query params: https://foo.bar/train.json.gz?dl=1 -> https://foo.bar/train.json.gz
+        path = path.split("?")[0]
+        # Get extension: https://foo.bar/train.json.gz -> gz
         extension = path.split(".")[-1]
         if extension in BASE_KNOWN_EXTENSIONS:
             return None
