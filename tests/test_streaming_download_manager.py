@@ -129,3 +129,32 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
     fsspec_open_file = xopen(output_path, encoding="utf-8")
     with fsspec_open_file as f, open(text_file, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
+
+
+@pytest.mark.parametrize(
+    "urlpath, expected_protocol",
+    [
+        ("zip://train-00000.json.gz::https://foo.bar/data.zip", "gzip"),
+        ("https://foo.bar/train.json.gz?dl=1", "gzip"),
+        ("http://opus.nlpl.eu/download.php?f=Bianet/v1/moses/en-ku.txt.zip", "zip"),
+    ],
+)
+def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
+    from datasets.utils.streaming_download_manager import _get_extraction_protocol
+
+    assert _get_extraction_protocol(urlpath) == expected_protocol
+
+
+@pytest.mark.parametrize(
+    "urlpath",
+    [
+        "zip://train-00000.tar.gz::https://foo.bar/data.zip",
+        "https://foo.bar/train.tar.gz",
+        "https://foo.bar/train.tar",
+    ],
+)
+@pytest.mark.xfail(raises=NotImplementedError)
+def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
+    from datasets.utils.streaming_download_manager import _get_extraction_protocol
+
+    _get_extraction_protocol(urlpath)

@@ -77,6 +77,25 @@ def _add_retries_to_file_obj_read_method(file_obj):
     file_obj.read = read_with_retries
 
 
+def _get_extraction_protocol(urlpath: str) -> Optional[str]:
+    # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
+    path = urlpath.split("::")[0]
+    # remove "dl=1" query param: https://foo.bar/train.json.gz?dl=1 -> https://foo.bar/train.json.gz
+    suf = "?dl=1"
+    if path.endswith(suf):
+        path = path[: -len(suf)]
+
+    # Get extension: https://foo.bar/train.json.gz -> gz
+    extension = path.split(".")[-1]
+    if extension in BASE_KNOWN_EXTENSIONS:
+        return None
+    elif path.endswith(".tar.gz") or path.endswith(".tgz"):
+        pass
+    elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
+        return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
+    raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
+
+
 def xopen(file, mode="r", *args, **kwargs):
     """
     This function extends the builtin `open` function to support remote files using fsspec.
@@ -132,7 +151,7 @@ class StreamingDownloadManager(object):
 
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
-        protocol = self._get_extraction_protocol(urlpath)
+        protocol = _get_extraction_protocol(urlpath)
         if protocol is None:
             # no extraction
             return urlpath
@@ -147,21 +166,6 @@ class StreamingDownloadManager(object):
                 return f"{protocol}://{inner_file}::{urlpath}"
         else:
             return f"{protocol}://::{urlpath}"
-
-    def _get_extraction_protocol(self, urlpath: str) -> Optional[str]:
-        # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
-        path = urlpath.split("::")[0]
-        # remove query params: https://foo.bar/train.json.gz?dl=1 -> https://foo.bar/train.json.gz
-        path = path.split("?")[0]
-        # Get extension: https://foo.bar/train.json.gz -> gz
-        extension = path.split(".")[-1]
-        if extension in BASE_KNOWN_EXTENSIONS:
-            return None
-        elif path.endswith(".tar.gz") or path.endswith(".tgz"):
-            pass
-        elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
-            return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
-        raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
 
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
