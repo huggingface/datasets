@@ -57,7 +57,7 @@ jobs:
             name: win/default
             shell: powershell
         steps:
-            - checkoutcheckout
+            - checkout
             - run: conda update anaconda
             - run: conda install python=3.6 --yes
             - run: conda install pytorch --yes
