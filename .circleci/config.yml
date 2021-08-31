@@ -39,6 +39,7 @@ jobs:
             shell: powershell
         steps:
             - checkout
+            - run: conda update conda
             - run: conda install python=3.6 --yes
             - run: conda install pytorch --yes
             - run: pip install virtualenv
@@ -57,6 +58,7 @@ jobs:
             shell: powershell
         steps:
             - checkout
+            - run: conda update conda
             - run: conda install python=3.6 --yes
             - run: conda install pytorch --yes
             - run: pip install virtualenv
