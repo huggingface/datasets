@@ -1,5 +1,5 @@
 ---
-pretty_name: LibriSpeech
+pretty_name: AMI Corpus
 annotations_creators:
 - expert-generated
 language_creators:
@@ -22,7 +22,7 @@ task_ids:
 - automatic-speech-recognition
 ---
 
-# Dataset Card for librispeech_asr
+# Dataset Card for AMI Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
