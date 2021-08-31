@@ -97,7 +97,7 @@ REQUIRED_PKGS = [
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
     # minimum 2021.05.0 to have the AbstractArchiveFileSystem
-    "fsspec[http]>=2021.05.0",
+    "fsspec[http]==2021.08.1",
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
@@ -128,7 +128,7 @@ TESTS_REQUIRE = [
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
-    "s3fs>=2021.05.0",
+    "s3fs==2021.08.1",
     "tensorflow>=2.3",
     "torch",
     "transformers",
@@ -191,7 +191,7 @@ EXTRAS_REQUIRE = {
         "fsspec",
         "boto3==1.16.43",
         "botocore==1.19.52",
-        "s3fs>=2021.05.0",
+        "s3fs==2021.08.1",
     ],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
@@ -207,7 +207,7 @@ EXTRAS_REQUIRE = {
         "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
         "fsspec",
-        "s3fs>=2021.05.0",
+        "s3fs==2021.08.1",
     ],
 }
 
