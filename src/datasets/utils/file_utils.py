@@ -5,6 +5,7 @@ Copyright by the AllenNLP authors.
 """
 
 import copy
+import io
 import json
 import os
 import re
@@ -172,7 +173,7 @@ def hf_hub_url(path: str, name: str, version: Optional[str] = None) -> str:
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
     if is_remote_url(base_name):
-        return posixpath.join(base_name, *pathnames)
+        return posixpath.join(base_name, *(str(pathname).lstrip("/") for pathname in pathnames))
     else:
         return Path(base_name, *pathnames).as_posix()
 
@@ -423,7 +424,7 @@ def ftp_get(url, temp_file, timeout=10.0):
         raise ConnectionError(e)
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=1000.0, max_retries=0):
+def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=100.0, max_retries=0):
     headers = copy.deepcopy(headers) or {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
@@ -506,7 +507,7 @@ def get_from_cache(
     cache_dir=None,
     force_download=False,
     proxies=None,
-    etag_timeout=1000,
+    etag_timeout=100,
     resume_download=False,
     user_agent=None,
     local_files_only=False,
@@ -682,3 +683,16 @@ def add_end_docstrings(*docstr):
 
 def estimate_dataset_size(paths):
     return sum(path.stat().st_size for path in paths)
+
+
+def readline(f: io.RawIOBase):
+    # From: https://github.com/python/cpython/blob/d27e2f4d118e7a9909b6a3e5da06c5ff95806a85/Lib/_pyio.py#L525
+    res = bytearray()
+    while True:
+        b = f.read(1)
+        if not b:
+            break
+        res += b
+        if res.endswith(b"\n"):
+            break
+    return bytes(res)
