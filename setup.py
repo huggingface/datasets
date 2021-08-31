@@ -189,9 +189,9 @@ EXTRAS_REQUIRE = {
     "torch": ["torch"],
     "s3": [
         "fsspec",
-        "boto3==1.16.43",
-        "botocore==1.19.52",
-        "s3fs==2021.08.1",
+        "boto3",
+        "botocore",
+        "s3fs",
     ],
     "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
@@ -207,7 +207,7 @@ EXTRAS_REQUIRE = {
         "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
         "fsspec",
-        "s3fs==2021.08.1",
+        "s3fs",
     ],
 }
 
