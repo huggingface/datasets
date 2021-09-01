@@ -544,7 +544,7 @@ def prepare_module(
                         dataset_info = hf_api.dataset_info(
                             repo_id=path, revision=script_version, token=download_config.use_auth_token
                         )
-                    except Exception:
+                    except FileNotFoundError:
                         raise FileNotFoundError(
                             f"Couldn't find a directory or a {resource_type} named '{path}'. "
                             f"It doesn't exist locally at {expected_dir_for_combined_path_abs} or remotely on {hf_api.endpoint}/datasets"
