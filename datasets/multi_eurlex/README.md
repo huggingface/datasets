@@ -97,19 +97,18 @@ EUROVOC has eight levels of concepts. Each document is assigned one or more conc
 We created three alternative sets of labels per document, by replacing each assigned concept by its ancestor from level 1, 2, or 3, respectively. Thus, we provide four sets of gold labels per document, one for each of the first three levels of the hierarchy, plus the original sparse label assignment. Levels 4 to 8 cannot be used independently, as many documents have gold concepts from the third level; thus many documents will be mislabeled, if we discard level 3.
 
 **Data Split and Concept Drift**
+
 MultiEURLEX is *chronologically* split in training (55k, 1958-2010), development (5k, 2010-2012), test (5k, 2012-2016) subsets, using the English documents. The test subset contains the same 5k documents in all 23 languages. The development subset also contains the same 5k documents in 23 languages, except Croatian. Croatia is the most recent EU member (2013); older laws are gradually translated.
 For the official languages of the seven oldest member countries, the same 55k training documents are available; for the other languages, only a subset of the 55k training documents is available.
 Compared to EUR-LEX (Chalkidis et al., 2019), MultiEURLEX is not only larger (8k more documents) and multilingual; it is also more challenging, as the chronological split leads to temporal real-world *concept drift* across the training, development, test subsets, i.e., differences in label distribution and phrasing, representing a realistic *temporal generalization* problem (Huang et al., 2019; Lazaridou et al., 2021). Recently, Søgaard et al. (2021) showed this setup is more realistic, as it does not over-estimate real performance, contrary to random splits (Gorman and Bedrick, 2019).
 
-**Supported Tasks and Leaderboards**
+### Supported Tasks and Leaderboards
 
 Similarly to EUR-LEX (Chalkidis et al., 2019), MultiEURLEX can be used for legal topic classification, a multi-label classification task where legal documents need to be assigned concepts (in our case, from EUROVOC) reflecting their topics. Unlike EUR-LEX, however, MultiEURLEX supports labels from three different granularities (EUROVOC levels). More importantly, apart from monolingual (*one-to-one*) experiments, it can be used to study cross-lingual transfer scenarios, including *one-to-many* (systems trained in one language and used in other languages with no training data), and *many-to-one* or *many-to-many* (systems jointly trained in multiple languages and used in one or more other languages).
 
-**Languages**
+The dataset is not yet part of an established benchmark.
 
-MultiEURLEX covers 23 languages from 7 families. EU laws are published in all official EU languages, except for Irish for resource-related reasons (Read more at https://europa.eu/european-union/about-eu/eu-languages_en). This wide coverage makes the dataset a valuable testbed for cross-lingual transfer. All languages use the Latin script, except for Bulgarian (Cyrillic script) and Greek.
-
-## Languages
+### Languages
 
 The EU has 24 official languages. When new members join the EU, the set of official languages usually expands, except the languages are already included. MultiEURLEX covers 23 languages from seven language families (Germanic, Romance, Slavic, Uralic, Baltic, Semitic, Hellenic). EU laws are published in all official languages, except Irish, for resource-related reasons (Read more at https://europa.eu/european-union/about-eu/eu-languages_en). This wide coverage makes MultiEURLEX a valuable testbed for cross-lingual transfer. All languages use the Latin script, except for Bulgarian (Cyrillic script) and Greek. Several other languages are also spoken in EU countries. The EU is home to over 60 additional indigenous regional or minority languages, e.g., Basque, Catalan, Frisian, Saami, and Yiddish, among others, spoken by approx. 40 million people, but these additional languages are not considered official (in terms of EU), and EU laws are not translated to them.
 
@@ -214,11 +213,6 @@ Slovene     | **sl**   |Slovenia (2004) | <1/<1\% | 23,184 / 5,000 / 5,000 |
 Estonian    | **et**   |Estonia (2004) | <1/<1\% | 23,126 / 5,000 / 5,000 |
 Latvian     | **lv**   |Latvia (2004) | <1/<1\% | 23,188 / 5,000 / 5,000 | 
 Maltese     | **mt**   |Malta (2004) | <1/<1\% | 17,521 / 5,000 / 5,000 | 
-
-
-### Supported Tasks and Leaderboards
-
-The dataset is not yer part of an established benchmark.
 
 ## Dataset Creation
 
