@@ -174,8 +174,8 @@ Please refer to Section 7 in the [source paper](https://aclanthology.org/2021.na
 
 ### Dataset Curators
 
-Corresponding Author: Kushal Chawla (`kchawla@usc.edu`)
-Affiliation: University of Southern California
+Corresponding Author: Kushal Chawla (`kchawla@usc.edu`)\
+Affiliation: University of Southern California\
 Please refer to the [source paper](https://aclanthology.org/2021.naacl-main.254.pdf) for the complete author list.
 
 ### Licensing Information
