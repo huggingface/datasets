@@ -167,7 +167,7 @@ class Casino(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split="train"):
         """Yields examples."""
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             all_data = json.load(f)
 
         for idx, item in enumerate(all_data):
