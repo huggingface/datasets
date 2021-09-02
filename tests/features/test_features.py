@@ -335,9 +335,10 @@ class CastToPythonObjectsTest(TestCase):
             "col_1": [{"vec": jnp.array(np.arange(1, 4)), "txt": "foo"}] * 3,
             "col_2": jnp.array(np.arange(1, 7).reshape(3, 2)),
         }
+        assert obj["col_2"].dtype == jnp.int32
         expected_obj = {
-            "col_1": [{"vec": np.array([1, 2, 3]), "txt": "foo"}] * 3,
-            "col_2": np.array([[1, 2], [3, 4], [5, 6]]),
+            "col_1": [{"vec": np.array([1, 2, 3], dtype=np.int32), "txt": "foo"}] * 3,
+            "col_2": np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32),
         }
         casted_obj = cast_to_python_objects(obj)
         dict_diff(casted_obj, expected_obj)

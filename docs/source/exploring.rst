@@ -43,7 +43,7 @@ You can get the number of rows and columns of the dataset with various standard 
     >>> len(dataset)
     3668
 
-You can list the column names with :func:`datasets.Dataset.column_names` and get their detailed types (called ``features``) with :attr:`datasets.Dataset.features`:
+You can list the column names with :attr:`datasets.Dataset.column_names` and get their detailed types (called ``features``) with :attr:`datasets.Dataset.features`:
 
 .. code-block::
 

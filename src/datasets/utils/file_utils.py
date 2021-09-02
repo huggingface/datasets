@@ -173,7 +173,7 @@ def hf_hub_url(path: str, name: str, version: Optional[str] = None) -> str:
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
     if is_remote_url(base_name):
-        return posixpath.join(base_name, *pathnames)
+        return posixpath.join(base_name, *(str(pathname).lstrip("/") for pathname in pathnames))
     else:
         return Path(base_name, *pathnames).as_posix()
 
@@ -424,7 +424,7 @@ def ftp_get(url, temp_file, timeout=10.0):
         raise ConnectionError(e)
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=10.0, max_retries=0):
+def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=100.0, max_retries=0):
     headers = copy.deepcopy(headers) or {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
