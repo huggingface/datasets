@@ -23,10 +23,10 @@ import datasets
 
 _CITATION = """\
 @InProceedings{chalkidis-etal-2021-multieurlex,
-  author = {Chalkidis, Ilias  
+  author = {Chalkidis, Ilias
                 and Fergadiotis, Manos
                 and Androutsopoulos, Ion},
-  title = {MultiEURLEX -- A multi-lingual and multi-label legal document 
+  title = {MultiEURLEX -- A multi-lingual and multi-label legal document
                classification dataset for zero-shot cross-lingual transfer},
   booktitle = {Proceedings of the 2021 Conference on Empirical Methods
                in Natural Language Processing},
@@ -36,10 +36,10 @@ _CITATION = """\
 }"""
 
 _DESCRIPTION = """\
-MultiEURLEX comprises 65k EU laws in 23 official EU languages (some low-ish resource). 
+MultiEURLEX comprises 65k EU laws in 23 official EU languages (some low-ish resource).
 Each EU law has been annotated with EUROVOC concepts (labels) by the Publication Office of EU.
 As with the English EURLEX, the goal is to predict the relevant EUROVOC concepts (labels);
-this it is multi-label classification task (given the text, predict multiple labels).
+this is multi-label classification task (given the text, predict multiple labels).
 """
 
 DATA_URL = "https://zenodo.org/record/5363165/files/multi_eurlex.tar.gz"
@@ -145,7 +145,7 @@ class MultiEURLEX(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "train.jsonl"), "split": "train",},
+                gen_kwargs={"filepath": os.path.join(data_dir, "train.jsonl"), "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -155,7 +155,7 @@ class MultiEURLEX(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "dev.jsonl"), "split": "dev",},
+                gen_kwargs={"filepath": os.path.join(data_dir, "dev.jsonl"), "split": "dev"},
             ),
         ]
 
