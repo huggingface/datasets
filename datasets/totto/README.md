@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - table-to-text
 paperswithcode_id: totto
+pretty_name: ToTTo
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ToTTo
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
