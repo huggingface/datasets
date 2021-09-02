@@ -60,14 +60,9 @@ task_ids:
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
-  - [Multilingual use of the dataset](#multilingual-use)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Monolingual use of the dataset](#monolingual-use)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
@@ -93,29 +88,33 @@ task_ids:
 
 ### Dataset Summary
 
-####Documents
+**Documents**
+
 MultiEURLEX comprises 65k EU laws in 23 official EU languages. Each EU law has been annotated with EUROVOC concepts (labels) by the Publication Office of EU. Each EUROVOC label ID is associated with a *label descriptor*, e.g., [60, agri-foodstuffs],  [6006, plant product], [1115, fruit]. The descriptors are also available in the 23 languages. Chalkidis et al. (2019) published a monolingual (English) version of this dataset, called EUR-LEX, comprising 57k EU laws with the originally assigned gold labels.
 
-####Multi-granular Labeling
+**Multi-granular Labeling**
+
 EUROVOC has eight levels of concepts. Each document is assigned one or more concepts (labels). If a document is assigned a concept, the ancestors and descendants of that concept are typically not assigned to the same document. The documents were originally annotated with concepts from levels 3 to 8. 
 We created three alternative sets of labels per document, by replacing each assigned concept by its ancestor from level 1, 2, or 3, respectively. Thus, we provide four sets of gold labels per document, one for each of the first three levels of the hierarchy, plus the original sparse label assignment. Levels 4 to 8 cannot be used independently, as many documents have gold concepts from the third level; thus many documents will be mislabeled, if we discard level 3.
 
-####Data Split and Concept Drift
+**Data Split and Concept Drift**
 MultiEURLEX is *chronologically* split in training (55k, 1958-2010), development (5k, 2010-2012), test (5k, 2012-2016) subsets, using the English documents. The test subset contains the same 5k documents in all 23 languages. The development subset also contains the same 5k documents in 23 languages, except Croatian. Croatia is the most recent EU member (2013); older laws are gradually translated.
 For the official languages of the seven oldest member countries, the same 55k training documents are available; for the other languages, only a subset of the 55k training documents is available.
 Compared to EUR-LEX (Chalkidis et al., 2019), MultiEURLEX is not only larger (8k more documents) and multilingual; it is also more challenging, as the chronological split leads to temporal real-world *concept drift* across the training, development, test subsets, i.e., differences in label distribution and phrasing, representing a realistic *temporal generalization* problem (Huang et al., 2019; Lazaridou et al., 2021). Recently, Søgaard et al. (2021) showed this setup is more realistic, as it does not over-estimate real performance, contrary to random splits (Gorman and Bedrick, 2019).
 
-### Supported Tasks and Leaderboards
+**Supported Tasks and Leaderboards**
 
 Similarly to EUR-LEX (Chalkidis et al., 2019), MultiEURLEX can be used for legal topic classification, a multi-label classification task where legal documents need to be assigned concepts (in our case, from EUROVOC) reflecting their topics. Unlike EUR-LEX, however, MultiEURLEX supports labels from three different granularities (EUROVOC levels). More importantly, apart from monolingual (*one-to-one*) experiments, it can be used to study cross-lingual transfer scenarios, including *one-to-many* (systems trained in one language and used in other languages with no training data), and *many-to-one* or *many-to-many* (systems jointly trained in multiple languages and used in one or more other languages).
 
-### Languages
+**Languages**
 
 MultiEURLEX covers 23 languages from 7 families. EU laws are published in all official EU languages, except for Irish for resource-related reasons (Read more at https://europa.eu/european-union/about-eu/eu-languages_en). This wide coverage makes the dataset a valuable testbed for cross-lingual transfer. All languages use the Latin script, except for Bulgarian (Cyrillic script) and Greek.
 
 ## Dataset Structure
 
-### Multilingual use of the dataset
+### Data Instances
+
+**Multilingual use of the dataset**
 
 When the dataset is used in a multilingual setting selecting the the 'all_languages' flag:
 
@@ -123,8 +122,6 @@ When the dataset is used in a multilingual setting selecting the the 'all_langua
 from datasets import load_dataset
 dataset = load_dataset('multi_eurlex', 'all_languages')
 ```
-
-#### Data Instances
 
 ```json
 {
@@ -144,15 +141,7 @@ dataset = load_dataset('multi_eurlex', 'all_languages')
 }
 ```
 
-#### Data Fields
-
-The following data fields are provided for documents (`train`, `dev`, `test`):
-
-`celex_id`: (**str**)  The official ID of the document. The CELEX number is the unique identifier for all publications in both Eur-Lex and CELLAR.\
-`text`: (dict[**str**])  A dictionary with the 23 languages as keys and the full content of each document as values.\
-`labels`: (**List[str]**) The relevant EUROVOC concepts (labels).
-
-### Monolingual use of the dataset
+**Monolingual use of the dataset**
 
 When the dataset is used in a monolingual setting selecting the ISO language code for one of the 23 supported languages. For example:
 
@@ -160,8 +149,6 @@ When the dataset is used in a monolingual setting selecting the ISO language cod
 from datasets import load_dataset
 dataset = load_dataset('multi_eurlex', 'en')
 ```
-
-#### Data Instances
 
 ```json
 {
@@ -177,14 +164,24 @@ dataset = load_dataset('multi_eurlex', 'en')
 }
 ```
 
-#### Data Fields
+### Data Fields
+
+**Multilingual use of the dataset**
+
+The following data fields are provided for documents (`train`, `dev`, `test`):
+
+`celex_id`: (**str**)  The official ID of the document. The CELEX number is the unique identifier for all publications in both Eur-Lex and CELLAR.\
+`text`: (dict[**str**])  A dictionary with the 23 languages as keys and the full content of each document as values.\
+`labels`: (**List[str]**) The relevant EUROVOC concepts (labels).
+
+
+**Monolingual use of the dataset**
 
 The following data fields are provided for documents (`train`, `dev`, `test`):
 
 `celex_id`: (**str**)  The official ID of the document. The CELEX number is the unique identifier for all publications in both Eur-Lex and CELLAR.\
 `text`: (**str**)  The full content of each document across languages.\
 `labels`: (**List[str]**) The relevant EUROVOC concepts (labels).
-
 
 
 ### Data Splits
@@ -231,7 +228,9 @@ The original data are available at the EUR-LEX portal (https://eur-lex.europa.eu
 We stripped HTML mark-up to provide the documents in plain text format.
 We inferred the labels for EUROVOC levels 1--3, by backtracking the EUROVOC hierarchy branches, from the originally assigned labels to their ancestors in levels 1--3, respectively.
 
-#### Available languages
+### Who are the source language producers?
+
+**Available languages**
 
 The EU has 24 official languages. When new members join the EU, the set of official languages usually expands, except the languages are already included. MultiEURLEX covers 23 languages from seven language families (Germanic, Romance, Slavic, Uralic, Baltic, Semitic, Hellenic). EU laws are published in all official languages, except Irish, for resource-related reasons (Read more at https://europa.eu/european-union/about-eu/eu-languages_en). This wide coverage makes MultiEURLEX a valuable testbed for cross-lingual transfer. All languages use the Latin script, except for Bulgarian (Cyrillic script) and Greek. Several other languages are also spoken in EU countries. The EU is home to over 60 additional indigenous regional or minority languages, e.g., Basque, Catalan, Frisian, Saami, and Yiddish, among others, spoken by approx. 40 million people, but these additional languages are not considered official (in terms of EU), and EU laws are not translated to them.
 
