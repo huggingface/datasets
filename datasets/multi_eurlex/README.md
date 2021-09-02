@@ -1,4 +1,6 @@
 ---
+pretty_name: MultiEURLEX
+
 annotations_creators:
 - found
 
