@@ -29,7 +29,6 @@ from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from pathlib import Path
-from random import randint
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import fsspec
@@ -45,7 +44,7 @@ from datasets.tasks.text_classification import TextClassification
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, Sequence, Value, _ArrayXD, cast_to_python_objects
+from .features import ClassLabel, Features, Value, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
