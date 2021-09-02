@@ -164,56 +164,6 @@ class TensorflowDatasetMixIn:
     def __init__(self):
         pass
 
-    @staticmethod
-    def _get_output_signature(dataset, test_batch, batch_size):
-        import tensorflow as tf
-
-        signatures = dict()
-        for column, col_feature in dataset.features.items():
-            if hasattr(col_feature, "feature"):
-                dtype_str = col_feature.feature.dtype
-            else:
-                dtype_str = col_feature.dtype
-            if dtype_str.startswith("int") or dtype_str.startswith("uint"):
-                dtype = tf.int64
-            elif dtype_str.startswith("float"):
-                dtype = tf.float32
-            else:
-                raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
-
-            if isinstance(col_feature, (Value, ClassLabel)):
-                shape = [batch_size]
-            elif isinstance(col_feature, _ArrayXD):
-                shape = [batch_size] + list(col_feature.shape)
-            elif isinstance(col_feature, Sequence):
-                shape = [batch_size, col_feature.length]
-            else:
-                raise ValueError(
-                    f"Couldn't parse feature {column} with type {type(col_feature)}! "
-                    "This may indicate a column was included with an unusual datatype "
-                    "that we were unable to process correctly. "
-                    "If you're getting this error with one of our datasets, and you're "
-                    "sure the column should be convertable to tf.Tensor, please "
-                    "file an issue at github.com/huggingface/datasets and tag "
-                    "@rocketknight1!"
-                )
-            shape = [dim if dim != -1 else None for dim in shape]
-
-            signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
-
-        # Catching columns added by the collate_fn, such as MLM labels
-        for column, tensor in test_batch.items():
-            if column in signatures:
-                continue
-            if column.startswith("label") and "input_ids" in signatures:
-                shape = signatures["input_ids"].shape
-            else:
-                # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
-                # about the dimensions we're unsure of
-                shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
-            signatures[column] = tf.TensorSpec(shape=shape, dtype=tensor.dtype)
-        return signatures
-
     def to_tf_dataset(
         self,
         columns,
@@ -253,52 +203,59 @@ class TensorflowDatasetMixIn:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
         dataset = self.remove_columns([col for col in self.features if col not in cols_to_retain])
-        if drop_remainder:
-            num_batches = floor(len(dataset) / batch_size)  # Division rounding down ( // still returns a float!)
-        else:
-            num_batches = ceil(len(dataset) / batch_size)  # Division rounding up
+        self.set_format("numpy")
 
-        def tf_generator():
-            if shuffle:
-                epoch_dataset = dataset.shuffle(load_from_cache_file=False, seed=randint(0, 2 ** 32 - 1))
+        def numpy_pad(data):
+            # Get lengths of each row of data
+            lens = np.array([len(i) for i in data])
+
+            # Mask of valid places in each row
+            mask = np.arange(lens.max()) < lens[:, None]
+
+            # Setup output array and put elements from data into masked positions
+            out = np.zeros(mask.shape, dtype=data.dtype)
+            out[mask] = np.concatenate(data)
+            return out
+
+        def np_get_batch(indices):
+            batch = self[indices]
+            out_batch = []
+            if collate_fn is not None:
+                actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
+                # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
+                batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
+                batch = collate_fn(batch, **collate_fn_args)
+                for key in cols_to_retain:
+                    # In case the collate_fn returns something strange
+                    array = np.array(batch[key])
+                    cast_dtype = np.int64 if np.issubdtype(array.dtype, np.integer) else np.float32
+                    array = array.astype(cast_dtype)
+                    out_batch.append(array)
             else:
-                epoch_dataset = dataset
-            if collate_fn is None:
-                epoch_dataset.set_format("tensorflow")  # Will return ragged tensors
-            else:
-                epoch_dataset.set_format("python")  # List of possibly variable lists
-            for i in range(num_batches):
-                batch = epoch_dataset[i * batch_size : (i + 1) * batch_size]
-                if collate_fn is not None:
-                    actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
-                    # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
-                    batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
-                    batch = collate_fn(batch, **collate_fn_args)
-                    for key in list(batch.keys()):
-                        # In case the collate_fn returns something strange
-                        tensor = tf.convert_to_tensor(batch[key])
-                        cast_dtype = tf.int64 if tensor.dtype.is_integer else tf.float32
-                        if tensor.dtype != cast_dtype:
-                            tensor = tf.cast(tensor, cast_dtype)
-                        batch[key] = tensor
-                else:
-                    for key in list(batch.keys()):
-                        tensor = batch[key]
-                        if isinstance(tensor, tf.RaggedTensor):
-                            tensor = tensor.to_tensor()
-                        cast_dtype = tf.int64 if tensor.dtype.is_integer else tf.float32
-                        if tensor.dtype != cast_dtype:
-                            tensor = tf.cast(tensor, cast_dtype)
-                        batch[key] = tensor
-                yield dict(batch)
+                for key in cols_to_retain:
+                    array = batch[key]
+                    if array.dtype == np.object:
+                        array = numpy_pad(array)
+                    cast_dtype = np.int64 if np.issubdtype(array.dtype, np.integer) else np.float32
+                    array = array.astype(cast_dtype)
+                    out_batch.append(array)
+            return [tf.convert_to_tensor(arr) for arr in out_batch]
 
-        test_batch = next(tf_generator())
+        test_batch = np_get_batch(np.arange(batch_size))
 
-        gen_signature = self._get_output_signature(
-            dataset, test_batch=test_batch, batch_size=batch_size if drop_remainder else None
+        @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
+        def fetch_function(indices):
+            output = tf.numpy_function(
+                np_get_batch, inp=[indices], Tout=[tf.dtypes.as_dtype(arr.dtype) for arr in test_batch]
+            )
+            return {key: output[i] for i, key in enumerate(cols_to_retain)}
+
+        tf_dataset = (
+            tf.data.Dataset.from_tensor_slices(np.arange(len(dataset)))
+            .shuffle(len(dataset))
+            .batch(batch_size, drop_remainder=drop_remainder)
+            .map(fetch_function)
         )
-
-        tf_dataset = tf.data.Dataset.from_generator(tf_generator, output_signature=gen_signature)
 
         if label_cols:
 
@@ -316,7 +273,6 @@ class TensorflowDatasetMixIn:
         elif len(columns) == 1:
             tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
 
-        tf_dataset = tf_dataset.apply(tf.data.experimental.assert_cardinality(num_batches))
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.AUTOTUNE)
         return tf_dataset
