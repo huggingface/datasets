@@ -44,7 +44,7 @@ from datasets.tasks.text_classification import TextClassification
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, Value, cast_to_python_objects
+from .features import ClassLabel, Features, Value, cast_to_python_objects, _ArrayXD, Sequence
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -163,6 +163,56 @@ class TensorflowDatasetMixIn:
     def __init__(self):
         pass
 
+    @staticmethod
+    def _get_output_signature(dataset, test_batch, batch_size):
+        import tensorflow as tf
+
+        signatures = dict()
+        for column, col_feature in dataset.features.items():
+            if hasattr(col_feature, "feature"):
+                dtype_str = col_feature.feature.dtype
+            else:
+                dtype_str = col_feature.dtype
+            if dtype_str.startswith("int") or dtype_str.startswith("uint"):
+                dtype = tf.int64
+            elif dtype_str.startswith("float"):
+                dtype = tf.float32
+            else:
+                raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
+
+            if isinstance(col_feature, (Value, ClassLabel)):
+                shape = [batch_size]
+            elif isinstance(col_feature, _ArrayXD):
+                shape = [batch_size] + list(col_feature.shape)
+            elif isinstance(col_feature, Sequence):
+                shape = [batch_size, col_feature.length]
+            else:
+                raise ValueError(
+                    f"Couldn't parse feature {column} with type {type(col_feature)}! "
+                    "This may indicate a column was included with an unusual datatype "
+                    "that we were unable to process correctly. "
+                    "If you're getting this error with one of our datasets, and you're "
+                    "sure the column should be convertable to tf.Tensor, please "
+                    "file an issue at github.com/huggingface/datasets and tag "
+                    "@rocketknight1!"
+                )
+            shape = [dim if dim != -1 else None for dim in shape]
+
+            signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
+
+        # Catching columns added by the collate_fn, such as MLM labels
+        for column, tensor in test_batch.items():
+            if column in signatures:
+                continue
+            if column.startswith("label") and "input_ids" in signatures:
+                shape = signatures["input_ids"].shape
+            else:
+                # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
+                # about the dimensions we're unsure of
+                shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
+            signatures[column] = tf.TensorSpec(shape=shape, dtype=tensor.dtype)
+        return signatures
+
     def to_tf_dataset(
         self,
         columns,
@@ -242,6 +292,7 @@ class TensorflowDatasetMixIn:
 
         test_batch = np_get_batch(np.arange(batch_size))
 
+
         @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
         def fetch_function(indices):
             output = tf.numpy_function(
@@ -249,11 +300,20 @@ class TensorflowDatasetMixIn:
             )
             return {key: output[i] for i, key in enumerate(cols_to_retain)}
 
+        test_batch_dict = {key: test_batch[i] for i, key in enumerate(cols_to_retain)}
+        output_signature = self._get_output_signature(dataset, test_batch_dict,
+                                                      batch_size=batch_size if drop_remainder else None)
+
+        def ensure_shapes(input_dict):
+            return {key: tf.ensure_shape(val, output_signature[key].shape)
+                    for key, val in input_dict.items()}
+
         tf_dataset = (
             tf.data.Dataset.from_tensor_slices(np.arange(len(dataset)))
             .shuffle(len(dataset))
             .batch(batch_size, drop_remainder=drop_remainder)
             .map(fetch_function)
+            .map(ensure_shapes)
         )
 
         if label_cols:
