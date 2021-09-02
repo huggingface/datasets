@@ -49,7 +49,6 @@ task_categories:
 
 task_ids:
 - multi-label-classification
-- text-classification-legal-topic-classification
 ---
 
 # Dataset Card for "MultiEURLEX"
@@ -109,6 +108,10 @@ Similarly to EUR-LEX (Chalkidis et al., 2019), MultiEURLEX can be used for legal
 **Languages**
 
 MultiEURLEX covers 23 languages from 7 families. EU laws are published in all official EU languages, except for Irish for resource-related reasons (Read more at https://europa.eu/european-union/about-eu/eu-languages_en). This wide coverage makes the dataset a valuable testbed for cross-lingual transfer. All languages use the Latin script, except for Bulgarian (Cyrillic script) and Greek.
+
+## Languages
+
+The EU has 24 official languages. When new members join the EU, the set of official languages usually expands, except the languages are already included. MultiEURLEX covers 23 languages from seven language families (Germanic, Romance, Slavic, Uralic, Baltic, Semitic, Hellenic). EU laws are published in all official languages, except Irish, for resource-related reasons (Read more at https://europa.eu/european-union/about-eu/eu-languages_en). This wide coverage makes MultiEURLEX a valuable testbed for cross-lingual transfer. All languages use the Latin script, except for Bulgarian (Cyrillic script) and Greek. Several other languages are also spoken in EU countries. The EU is home to over 60 additional indigenous regional or minority languages, e.g., Basque, Catalan, Frisian, Saami, and Yiddish, among others, spoken by approx. 40 million people, but these additional languages are not considered official (in terms of EU), and EU laws are not translated to them.
 
 ## Dataset Structure
 
@@ -213,6 +216,10 @@ Latvian     | **lv**   |Latvia (2004) | <1/<1\% | 23,188 / 5,000 / 5,000 |
 Maltese     | **mt**   |Malta (2004) | <1/<1\% | 17,521 / 5,000 / 5,000 | 
 
 
+### Supported Tasks and Leaderboards
+
+The dataset is not yer part of an established benchmark.
+
 ## Dataset Creation
 
 ### Curation Rationale
@@ -228,9 +235,7 @@ The original data are available at the EUR-LEX portal (https://eur-lex.europa.eu
 We stripped HTML mark-up to provide the documents in plain text format.
 We inferred the labels for EUROVOC levels 1--3, by backtracking the EUROVOC hierarchy branches, from the originally assigned labels to their ancestors in levels 1--3, respectively.
 
-### Who are the source language producers?
-
-**Available languages**
+#### Who are the source language producers?
 
 The EU has 24 official languages. When new members join the EU, the set of official languages usually expands, except the languages are already included. MultiEURLEX covers 23 languages from seven language families (Germanic, Romance, Slavic, Uralic, Baltic, Semitic, Hellenic). EU laws are published in all official languages, except Irish, for resource-related reasons (Read more at https://europa.eu/european-union/about-eu/eu-languages_en). This wide coverage makes MultiEURLEX a valuable testbed for cross-lingual transfer. All languages use the Latin script, except for Bulgarian (Cyrillic script) and Greek. Several other languages are also spoken in EU countries. The EU is home to over 60 additional indigenous regional or minority languages, e.g., Basque, Catalan, Frisian, Saami, and Yiddish, among others, spoken by approx. 40 million people, but these additional languages are not considered official (in terms of EU), and EU laws are not translated to them.
 
