@@ -113,7 +113,7 @@ class Sacrebleu(datasets.Metric):
         smooth_value=None,
         force=False,
         lowercase=False,
-        tokenize=scb.DEFAULT_TOKENIZER,
+        tokenize=None,
         use_effective_order=False,
     ):
         references_per_prediction = len(references[0])
@@ -121,14 +121,14 @@ class Sacrebleu(datasets.Metric):
             raise ValueError("Sacrebleu requires the same number of references for each prediction")
         transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
         output = scb.corpus_bleu(
-            sys_stream=predictions,
-            ref_streams=transformed_references,
+            predictions,
+            transformed_references,
             smooth_method=smooth_method,
             smooth_value=smooth_value,
             force=force,
             lowercase=lowercase,
-            tokenize=tokenize,
             use_effective_order=use_effective_order,
+            **(dict(tokenize=tokenize) if tokenize else {}),
         )
         output_dict = {
             "score": output.score,

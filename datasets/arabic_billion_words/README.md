@@ -6,7 +6,7 @@ language_creators:
 languages:
 - ar
 licenses:
-- unkown
+- unknown
 multilinguality:
 - monolingual
 size_categories:
@@ -37,6 +37,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: null
+pretty_name: Arabic Billion Words
 ---
 
 # Dataset Card for Arabic Billion Words Corpus
@@ -92,7 +93,18 @@ Arabic
 
 ### Data Instances
 
-[More Information Needed]
+This is an example of the "Almasryalyoum" configuration subset:
+```python
+{
+  "url": "http://today.almasryalyoum.com/printerfriendly.aspx?ArticleID=61300",
+  "head_line": "رئيس وزراء المجر: عنصرية جماهير أوجبيست جلبت العار للبلاد",
+  "date": "19/5/2007",
+  "text": """قال متحدث باسم الحكومة المجرية: إن رئيس الوزراء فيرنك جيوركساني رحب بقرار اتحاد كرة القدم المجري بخصم ثلاث نقاط من نادي أوجبيست بسبب السلوك العنصري الذي صدر من جماهيره.
+وعاقب الاتحاد المجري فريق أوجبيست بعد أن سخرت جماهيره من إبراهيم سيديبي مهاجم فريق ديبرينسين الأسود أثناء مباراة الفريقين أوائل مايو الجاري.
+يذكر أن الاتحاد فرض أيضا غرامة مالية قدرها 20 ألف دولار علي أوجبيست في عام 2005 بعد أن رددت جماهيره شعارات معادية للسامية خلال مباراة بالدوري المجري.
+وأوضح جيوركساني في خطاب إلي إيستفان كيستليكي رئيس الاتحاد المجري لكرة القدم، أن هذا السلوك العنصري من الجماهير «جلب العار لكرة القدم وللمجر». يذكر أن المجر بها مجموعة من مشجعي كرة القدم المشاغبين «الهوليجانز»، وشارك الكثير منهم في أعمال شغب معادية للحكومة في العام الماضي.""",
+}
+```
 
 ### Data Fields
 
@@ -104,7 +116,20 @@ The data fields are:
 
 ### Data Splits
 
-[More Information Needed]
+There is only one "training" split for all configuration subsets, containing the following number of examples:
+
+|                | Number of examples |
+|:---------------|-------------------:|
+| Alittihad      |              11551 |
+| Almasryalyoum  |               3170 |
+| Almustaqbal    |              12627 |
+| Alqabas        |              16449 |
+| Echoroukonline |              34931 |
+| Ryiadh         |              13112 |
+| Sabanews       |              23036 |
+| SaudiYoum      |              73922 |
+| Techreen       |              37491 |
+| Youm7          |              33460 |
 
 ## Dataset Creation
 

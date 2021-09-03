@@ -18,6 +18,7 @@ from collections import Counter
 
 import sacrebleu
 import sacremoses
+from packaging import version
 
 import datasets
 
@@ -239,7 +240,10 @@ def normalize(sentence, lowercase: bool = True, tokenizer: str = "13a", return_s
         sentence = sentence.lower()
 
     if tokenizer in ["13a", "intl"]:
-        normalized_sent = sacrebleu.TOKENIZERS[tokenizer]()(sentence)
+        if version.parse(sacrebleu.__version__).major >= 2:
+            normalized_sent = sacrebleu.metrics.bleu._get_tokenizer(tokenizer)()(sentence)
+        else:
+            normalized_sent = sacrebleu.TOKENIZERS[tokenizer]()(sentence)
     elif tokenizer == "moses":
         normalized_sent = sacremoses.MosesTokenizer().tokenize(sentence, return_str=True, escape=False)
     elif tokenizer == "penn":

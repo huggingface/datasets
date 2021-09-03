@@ -28,7 +28,7 @@
 🤗 Datasets is a lightweight library providing **two** main features:
 
 - **one-line dataloaders for many public datasets**: one liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (in 467 languages and dialects!) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
-- **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the above public datasets as well as your own local datasets in CSV/JSON/text. With simple commands like `tokenized_dataset = dataset.map(tokenize_exemple)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
+- **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the above public datasets as well as your own local datasets in CSV/JSON/text. With simple commands like `tokenized_dataset = dataset.map(tokenize_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
 
 [🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🕹 **Colab tutorial**](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb)
 
@@ -150,10 +150,10 @@ If you're a dataset owner and wish to update any part of it (description, citati
 If you want to cite this framework you can use this:
 
 ```bibtex
-@software{quentin_lhoest_2021_5121423,
+@software{quentin_lhoest_2021_5148649,
   author       = {Quentin Lhoest and
-                  Patrick von Platen and
                   Albert Villanova del Moral and
+                  Patrick von Platen and
                   Thomas Wolf and
                   Yacine Jernite and
                   Abhishek Thakur and
@@ -172,17 +172,17 @@ If you want to cite this framework you can use this:
                   Philipp Schmid and
                   Sylvain Gugger and
                   Steven Liu and
-                  Clément Delangue and
-                  Théo Matussière and
+                  Sylvain Lesage and
                   Lysandre Debut and
-                  Stas Bekman and
-                  François Lagunas},
-  title        = {huggingface/datasets: 1.10.2},
+                  Théo Matussière and
+                  Clément Delangue and
+                  Stas Bekman},
+  title        = {huggingface/datasets: 1.11.0},
   month        = jul,
   year         = 2021,
   publisher    = {Zenodo},
-  version      = {1.10.2},
-  doi          = {10.5281/zenodo.5121423},
-  url          = {https://doi.org/10.5281/zenodo.5121423}
+  version      = {1.11.0},
+  doi          = {10.5281/zenodo.5148649},
+  url          = {https://doi.org/10.5281/zenodo.5148649}
 }
 ```

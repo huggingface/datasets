@@ -9,22 +9,23 @@ Compatible with NumPy, Pandas, PyTorch and TensorFlow
 
 🤗 Datasets has many interesting features (beside easy sharing and accessing datasets/metrics):
 
-Built-in interoperability with Numpy, Pandas, PyTorch and Tensorflow 2
-Lightweight and fast with a transparent and pythonic API
-Strive on large datasets: 🤗 Datasets naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
-Smart caching: never wait for your data to process several times
-🤗 Datasets currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the live 🤗 Datasets viewer.
+- Built-in interoperability with Numpy, Pandas, PyTorch and Tensorflow 2
+- Lightweight and fast with a transparent and pythonic API
+- Strive on large datasets: 🤗 Datasets naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
+- Smart caching: never wait for your data to process several times
+- 🤗 Datasets currently provides access to ~1,000 datasets and ~30 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the live `🤗 Datasets viewer <https://huggingface.co/datasets/viewer/>`_.
 
 🤗 Datasets originated from a fork of the awesome TensorFlow Datasets and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section Main differences between 🤗 Datasets and `tfds`.
 
 Contents
 ---------------------------------
 
-The documentation is organized in five parts:
+The documentation is organized in six parts:
 
 - **GET STARTED** contains a quick tour and the installation instructions.
 - **USING DATASETS** contains general tutorials on how to use and contribute to the datasets in the library.
 - **USING METRICS** contains general tutorials on how to use and contribute to the metrics in the library.
+- **ADDING NEW DATASETS/METRICS** explains how to create your own dataset or metric loading script.
 - **ADVANCED GUIDES** contains more advanced guides that are more specific to a part of the library.
 - **PACKAGE REFERENCE** contains the documentation of each public class and function.
 
@@ -58,8 +59,8 @@ The documentation is organized in five parts:
     :maxdepth: 2
     :caption: Adding new datasets/metrics
 
-    add_dataset
     share_dataset
+    add_dataset
     add_metric
 
 .. toctree::
