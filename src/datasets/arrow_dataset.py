@@ -1838,6 +1838,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if rank is not None and not disable_tqdm and "notebook" in tqdm.__name__:
             print(" ", end="", flush=True)
 
+        if fn_kwargs is None:
+            fn_kwargs = {}
+
         # If we do batch computation but no batch size is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
