@@ -2842,7 +2842,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+            batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
@@ -2907,7 +2907,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+            batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
