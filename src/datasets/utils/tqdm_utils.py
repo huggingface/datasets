@@ -21,6 +21,8 @@ import contextlib
 
 from tqdm import auto as tqdm_lib
 
+from datasets.utils.deprecation_utils import deprecated
+
 
 class EmptyTqdm:
     """Dummy tqdm which doesn't do anything."""
@@ -76,13 +78,24 @@ def async_tqdm(*args, **kwargs):
         return EmptyTqdm(*args, **kwargs)
 
 
-def is_progress_bar_enabled():
+def set_progress_bar_enabled(boolean: bool):
+    """Enable/disable tqdm progress bars."""
+    global _active
+    _active = bool(boolean)
+
+
+def is_progress_bar_enabled() -> bool:
+    """Return a boolean indicating whether tqdm progress bars are enabled."""
     global _active
     return bool(_active)
 
 
+@deprecated("Use set_progress_bar_enabled(False) instead.")
 def disable_progress_bar():
     """Disable tqdm progress bar.
+
+    .. deprecated:: 1.4.0
+        Use set_progress_bar_enabled(False) instead.
 
     Usage:
 
