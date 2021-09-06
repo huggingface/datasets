@@ -159,7 +159,7 @@ class Wikicorpus(datasets.GeneratorBasedBuilder):
                             pass
                         elif row.startswith("ENDOFARTICLE") or row.startswith("\n"):
                             if len(words) > 1:  # some content besides only (. . Fp 0)
-                                yield (file_idx, row_idx), {
+                                yield f"{file_idx}_{row_idx}", {
                                     "id": example["id"],
                                     "title": example["title"],
                                     "sentence": words,
