@@ -86,7 +86,7 @@ REQUIRED_PKGS = [
     # for downloading datasets over HTTPS
     "requests>=2.19.0",
     # progress bars in download and scripts
-    "tqdm>=4.42",  # tqdm.contrib.concurrent
+    "tqdm>=4.62.1",
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
     # for fast hashing
@@ -97,9 +97,11 @@ REQUIRED_PKGS = [
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
     # minimum 2021.05.0 to have the AbstractArchiveFileSystem
-    "fsspec>=2021.05.0",
+    "fsspec[http]>=2021.05.0",
+    # for data streaming via http
+    "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub<0.1.0",
+    "huggingface_hub>=0.0.14,<0.1.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
 ]
@@ -117,17 +119,16 @@ TESTS_REQUIRE = [
     "pytest",
     "pytest-xdist",
     # optional dependencies
-    "aiohttp",
     "apache-beam>=2.26.0",
     "elasticsearch",
-    "aiobotocore==1.2.2",
-    "boto3==1.16.43",
-    "botocore==1.19.52",
+    "aiobotocore",
+    "boto3",
+    "botocore",
     "faiss-cpu",
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
-    "s3fs",
+    "s3fs==2021.08.1",
     "tensorflow>=2.3",
     "torch",
     "transformers",
@@ -188,11 +189,11 @@ EXTRAS_REQUIRE = {
     "torch": ["torch"],
     "s3": [
         "fsspec",
-        "boto3==1.16.43",
-        "botocore==1.19.52",
+        "boto3",
+        "botocore",
         "s3fs",
     ],
-    "streaming": ["aiohttp"],
+    "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,

@@ -21,10 +21,11 @@
 __version__ = "1.11.1.dev0"
 
 import pyarrow
+from packaging import version as _version
 from pyarrow import total_allocated_bytes
 
 
-if tuple(int(i) for i in pyarrow.__version__.split(".")[:3]) < (1, 0, 0):
+if _version.parse(pyarrow.__version__).major < 1:
     raise ImportWarning(
         "To use `datasets`, the module `pyarrow>=1.0.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
@@ -76,4 +77,4 @@ from .splits import (
 from .utils import *
 
 
-SCRIPTS_VERSION = "master" if __version__.split(".")[-1].startswith("dev") else __version__
+SCRIPTS_VERSION = "master" if _version.parse(__version__).is_devrelease else __version__
