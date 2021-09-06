@@ -1,12 +1,9 @@
 ---
 pretty_name: MultiEURLEX
-
 annotations_creators:
 - found
-
 language_creators:
 - found
-
 languages:
 - en
 - da 
@@ -31,24 +28,19 @@ languages:
 - lv 
 - el 
 - mt
-
 licenses:
 - cc-by-sa-4.0
-
 multilinguality:
 - multilingual
-
 size_categories:
 - 10K<n<100K
-
 source_datasets:
 - original
-
 task_categories:
 - text-classification
-
 task_ids:
 - multi-label-classification
+- topic-classification
 ---
 
 # Dataset Card for "MultiEURLEX"
@@ -81,7 +73,7 @@ task_ids:
 
 - **Homepage:** https://github.com/nlpaueb/MultiEURLEX/
 - **Repository:** https://github.com/nlpaueb/MultiEURLEX/
-- **Paper:** -
+- **Paper:** https://arxiv.org/abs/2109.00904
 - **Leaderboard:** N/A
 - **Point of Contact:** [Ilias Chalkidis](mailto:ilias.chalkidis@di.ku.dk)
 
@@ -185,6 +177,26 @@ The following data fields are provided for documents (`train`, `dev`, `test`):
 `text`: (**str**)  The full content of each document across languages.\
 `labels`: (**List[str]**) The relevant EUROVOC concepts (labels).
 
+
+If you want to use the descriptors of the EUROVOC concepts, similar to [Chalkidis et al. (2020)](https://aclanthology.org/2020.emnlp-main.607/), please download the relevant JSON file [here](https://raw.githubusercontent.com/nlpaueb/multi-eurlex/master/data/eurovoc_descriptors.json).
+Then you may load it and use it:
+```python
+import json
+from datasets import load_dataset
+
+# Load the English part of the dataset
+dataset = load_dataset('multi_eurlex', 'en')
+
+# Load (label_id, descriptor) mapping 
+with open('./eurovoc_descriptors.json') as jsonl_file:
+    eurovoc_concepts =  json.load(jsonl_file)
+
+# Iterate over train subset and print labels
+for doc in dataset['train']:
+  for label in doc['labels']:
+    print(f"{label:<10}: {eurovoc_concepts[label]['en']}")
+
+```
 
 ### Data Splits
 
@@ -301,6 +313,7 @@ Read more:  https://eur-lex.europa.eu/content/help/faq/reuse-contents-eurlex.htm
   year = {2021},
   publisher = {Association for Computational Linguistics},
   location = {Punta Cana, Dominican Republic},
+  url = {https://arxiv.org/abs/2109.00904}
 }
 ```
 
