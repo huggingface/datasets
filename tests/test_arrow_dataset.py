@@ -976,6 +976,7 @@ class BaseDatasetTest(TestCase):
                     with patch("datasets.arrow_dataset.Pool", side_effect=datasets.arrow_dataset.Pool) as mock_pool:
                         with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
                             dset_test1_data_files = list(dset_test1.cache_files)
+                        self.assertEqual(mock_pool.call_count, 1)
                         with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
                             self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
                             self.assertTrue(
