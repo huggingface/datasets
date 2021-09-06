@@ -1665,7 +1665,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         disable_tqdm = bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
-
+        
         if num_proc is None or num_proc == 1:
             return self._map_single(
                 function=function,
