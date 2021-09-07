@@ -6,6 +6,7 @@ import pytest
 from datasets.filesystems import COMPRESSION_FILESYSTEMS
 from datasets.utils.streaming_download_manager import (
     StreamingDownloadManager,
+    _as_posix,
     _get_extraction_protocol,
     xjoin,
     xopen,
@@ -18,6 +19,14 @@ from .utils import require_lz4, require_zstandard
 
 TEST_URL = "https://huggingface.co/datasets/lhoestq/test/raw/main/some_text.txt"
 TEST_URL_CONTENT = "foo\nbar\nfoobar"
+
+
+@pytest.mark.parametrize(
+    "input_path, expected_path",
+    [("zip:/test.txt::/Users/username/bar.zip", "zip://test.txt::/Users/username/bar.zip")],
+)
+def test_as_posix(input_path, expected_path):
+    assert _as_posix(Path(input_path)) == expected_path
 
 
 @pytest.mark.parametrize(
