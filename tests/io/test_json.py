@@ -185,7 +185,6 @@ def load_json_lines(buffer):
     ],
 )
 class TestJsonDatasetWriter:
-
     def test_dataset_to_json_lines(self, lines, load_json_function, dataset):
         with io.BytesIO() as buffer:
             JsonDatasetWriter(dataset, buffer, lines=lines).write()
