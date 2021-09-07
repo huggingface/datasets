@@ -57,6 +57,7 @@ def test_xjoin(input_path, paths_to_join, expected_path):
     from datasets.utils.streaming_download_manager import xjoin
 
     output_path = xjoin(input_path, *paths_to_join)
+    output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
     assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
 
 
@@ -79,6 +80,7 @@ def test_xdirname(input_path, expected_path):
     from datasets.utils.streaming_download_manager import xdirname
 
     output_path = xdirname(input_path)
+    output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
     assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
 
 
