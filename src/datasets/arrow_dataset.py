@@ -252,11 +252,14 @@ class TensorflowDatasetMixIn:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
         dataset = self.remove_columns([col for col in self.features if col not in cols_to_retain])
-        self.set_format("numpy")
+        dataset.set_format("python")
 
         def numpy_pad(data):
             # Get lengths of each row of data
             lens = np.array([len(i) for i in data])
+            if np.all(lens == lens[0]):
+                # All data has the same length, no padding required
+                return np.array(data)
 
             # Mask of valid places in each row
             mask = np.arange(lens.max()) < lens[:, None]
@@ -267,7 +270,7 @@ class TensorflowDatasetMixIn:
             return out
 
         def np_get_batch(indices):
-            batch = self[indices]
+            batch = dataset[indices]
             out_batch = []
             if collate_fn is not None:
                 actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
