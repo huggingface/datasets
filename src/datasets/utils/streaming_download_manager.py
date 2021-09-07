@@ -56,6 +56,14 @@ def xjoin(a, *p):
     return "::".join([a] + b)
 
 
+def _as_posix(path):
+    return path.as_posix().replace(":/", "://")
+
+
+def xpathjoin(a, *p):
+    return type(a)(xjoin(_as_posix(a), *p))
+
+
 def _add_retries_to_file_obj_read_method(file_obj):
     read = file_obj.read
     max_retries = config.STREAMING_READ_MAX_RETRIES
