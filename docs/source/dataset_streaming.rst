@@ -263,7 +263,7 @@ Dataset script compatibility
 Now that you are aware of how dataset streaming works, you can make sure your dataset script work in streaming mode:
 
 1. make sure you use ``open`` to open the data files: it is extended to work with remote files
-2. if you have to deal with archives like ZIP files, make sure you use ``os.path.join`` to navigate in the archive
+2. if you have to deal with archives like ZIP files, make sure you use ``os.path.join`` and ``os.path.dirname`` to navigate in the archive
 
 Currently a few python functions or classes are not supported for dataset streaming:
 
