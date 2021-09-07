@@ -141,3 +141,9 @@ The base class ``Metric`` implements a Metric backed by one or several :class:`d
 .. autofunction:: datasets.filesystems.extract_path_from_uri
 
 .. autofunction:: datasets.filesystems.is_remote_filesystem
+
+``Fingerprint``
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: datasets.fingerprint.Hasher
+    :members:

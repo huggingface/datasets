@@ -16,32 +16,32 @@ This architecture allows for large datasets to be used on machines with relative
 
 For example, loading the full Wikipedia dataset (en) only takes a few MB of RAM:
 
-.. code::
+```python
+>>> import os; import psutil; import timeit
+>>> from datasets import load_dataset
 
-    >>> import os; import psutil; import timeit
-    >>> from datasets import load_dataset
+>>> mem_before = psutil.Process(os.getpid()).memory_info().rss >> 20
+>>> wiki = load_dataset("wikipedia", "20200501.en", split='train')
+>>> mem_after = psutil.Process(os.getpid()).memory_info().rss >> 20
 
-    >>> mem_before = psutil.Process(os.getpid()).memory_info().rss >> 20
-    >>> wiki = load_dataset("wikipedia", "20200501.en", split='train')
-    >>> mem_after = psutil.Process(os.getpid()).memory_info().rss >> 20
-
-    >>> print(f"RAM memory used: {(mem_after - mem_before)} MB")
-    'RAM memory used: 9 MB'
+>>> print(f"RAM memory used: {(mem_after - mem_before)} MB")
+'RAM memory used: 9 MB'
+```
 
 ## Performance
 
 Iterating over a memory-mapped dataset using Arrow is fast. Iterating over Wikipedia on a laptop gives you a speed of 1-3 Gbit/s:
 
-.. code::
+```python
+>>> s = """batch_size = 1000
+... for i in range(0, len(wiki), batch_size):
+...     batch = wiki[i:i + batch_size]
+... """
 
-    >>> s = """batch_size = 1000
-    ... for i in range(0, len(wiki), batch_size):
-    ...     batch = wiki[i:i + batch_size]
-    ... """
-
-    >>> time = timeit.timeit(stmt=s, number=1, globals=globals())
-    >>> print(f"Time to iterate over the {wiki.dataset_size >> 30} GB dataset: {time:.1f} sec, "
-    ...       f"ie. {float(wiki.dataset_size >> 27)/time:.1f} Gb/s")
-    'Time to iterate over the 17 GB dataset: 85 sec, ie. 1.7 Gb/s'
+>>> time = timeit.timeit(stmt=s, number=1, globals=globals())
+>>> print(f"Time to iterate over the {wiki.dataset_size >> 30} GB dataset: {time:.1f} sec, "
+...       f"ie. {float(wiki.dataset_size >> 27)/time:.1f} Gb/s")
+'Time to iterate over the 17 GB dataset: 85 sec, ie. 1.7 Gb/s'
+```
 
 You can obtain the best performance by accessing slices of data (or "batches"), in order to reduce the amount of look-ups on disk.

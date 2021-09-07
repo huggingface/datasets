@@ -32,3 +32,23 @@ An example of when 🤗 Datasets recomputes everything is when caching is disabl
 
    When caching is disabled, use :func:`datasets.Dataset.save_to_disk` to save your transformed dataset or it will be deleted once the session ends.
 
+Hashing
+-------
+
+The fingerprint of a dataset is updated by hashing the function passed to ``map`` as well as the ``map`` parameters (batch_size, remove_columns, etc.).
+
+You can check the hash of any python object using the :class:`datasets.fingerprint.Hasher`:
+
+.. code-block::
+
+   >>> from datasets.fingerprint import Hasher
+   >>> my_func = lambda example: {"length": len(example["text"])}
+   >>> print(Hasher.hash(my_func))
+   '3d35e2b3e94c81d6'
+
+The hash is computed by dumping the object using a ``dill`` pickler and hashing the dumped bytes.
+The pickler recursively dumps all the variables used in your function, so any change that you do to any object that is used in your function will cause the hash to change.
+
+If one of your functions doesn't seem to have the same hash across sessions, it means that at least one of its variables contains a python object that is not deterministic.
+If this happens, feel free to try to hash any object that you find suspiscious to try to find the one that causes the hash to change.
+For example if you use a list for which the order of its elements is not deterministic across sessions, then the hash won't be the same across sessions either.
