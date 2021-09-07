@@ -118,6 +118,10 @@ def xopen(file, mode="r", *args, **kwargs):
     return file_obj
 
 
+def xpathopen(path, **kwargs):
+    return xopen(_as_posix(path), **kwargs)
+
+
 class StreamingDownloadManager(object):
     """
     Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
