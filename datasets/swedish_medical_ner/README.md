@@ -20,7 +20,7 @@ task_ids:
 - named-entity-recognition
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for SwedMedNER
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
