@@ -1,10 +1,17 @@
 Sharing your dataset
 =============================================
 
-Once you've written a new dataset loading script as detailed on the :doc:`add_dataset` page, you may want to share it with the community for instance on the `HuggingFace Hub <https://huggingface.co/datasets>`__. There are two options to do that:
+Once you have your dataset, you may want to share it with the community for instance on the `HuggingFace Hub <https://huggingface.co/datasets>`__. There are two options to do that:
 
-- add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗 Datasets <https://github.com/huggingface/datasets>`__,
 - directly upload it on the Hub as a community provided dataset.
+- add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗 Datasets <https://github.com/huggingface/datasets>`__,
+
+Both options offer the same features such as:
+
+- dataset versioning
+- commit history and diffs
+- metadata for discoverability
+- dataset cards for documentation, licensing, limitations, etc.
 
 Here are the main differences between these two options.
 
@@ -12,7 +19,7 @@ Here are the main differences between these two options.
     * are faster to share (no reviewing process)
     * can contain the data files themselves on the Hub
     * are identified under the namespace of a user or organization: ``thomwolf/my_dataset`` or ``huggingface/our_dataset``
-    * are flagged as ``unsafe`` by default because a dataset contains executable code so the users need to inspect and opt-in to use the datasets
+    * are flagged as ``unsafe`` by default because a dataset may contain executable code so the users need to inspect and opt-in to use the datasets
 
 - **Canonical** datasets:
     * are slower to add (need to go through the reviewing process on the githup repo)
@@ -22,81 +29,7 @@ Here are the main differences between these two options.
 
 .. note::
 
-    The distinctions between "canonical" and "community provided" datasets is made purely based on the selected sharing workflow and don't involve any ranking, decision or opinion regarding the content of the dataset it-self.
-
-.. _canonical-dataset:
-
-Sharing a "canonical" dataset
---------------------------------
-
-To add a "canonical" dataset to the library, you need to go through the following steps:
-
-**1. Fork the** `🤗 Datasets repository <https://github.com/huggingface/datasets>`__ by clicking on the 'Fork' button on the repository's home page. This creates a copy of the code under your GitHub user account.
-
-**2. Clone your fork** to your local disk, and add the base repository as a remote:
-
-.. code::
-
-    git clone https://github.com/<your_Github_handle>/datasets
-    cd datasets
-    git remote add upstream https://github.com/huggingface/datasets.git
-
-
-**3. Create a new branch** to hold your development changes:
-
-.. code::
-
-    git checkout -b my-new-dataset
-
-.. note::
-
-    **Do not** work on the ``master`` branch.
-
-**4. Set up a development environment** by running the following command **in a virtual environment**:
-
-.. code::
-
-    pip install -e ".[dev]"
-
-.. note::
-
-   If 🤗 Datasets was already installed in the virtual environment, remove
-   it with ``pip uninstall datasets`` before reinstalling it in editable
-   mode with the ``-e`` flag.
-
-**5. Create a new folder with your dataset name** inside the `datasets folder <https://github.com/huggingface/datasets/tree/master/datasets>`__ of the repository and add the dataset script you wrote and tested while following the instructions on the :doc:`add_dataset` page.
-
-**6. Format your code.** Run black and isort so that your newly added files look nice with the following command:
-
-.. code::
-
-    make style
-    make quality
-
-
-**7.** Once you're happy with your dataset script file, add your changes and make a commit to **record your changes locally**:
-
-.. code::
-
-    git add datasets/<my-new-dataset>
-    git commit
-
-It is a good idea to sync your copy of the code with the original repository regularly. This way you can quickly account for changes:
-
-.. code::
-
-    git fetch upstream
-    git rebase upstream/master
-
-Push the changes to your account using:
-
-.. code::
-
-   git push -u origin my-new-dataset
-
-**8.** We also recommend adding **tests** and **metadata** to the dataset script if possible. Go through the :ref:`adding-tests` section to do so.
-
-**9.** Once you are satisfied with the dataset, go the webpage of your fork on GitHub and click on "Pull request" to **open a pull-request** on the `main github repository <https://github.com/huggingface/datasets>`__ for review.
+    The distinctions between "community provided" and "canonical" datasets is made purely based on the selected sharing workflow and don't involve any ranking, decision or opinion regarding the content of the dataset it-self.
 
 .. _community-dataset:
 
@@ -113,6 +46,18 @@ In this page, we will show you how to share a dataset with the community on the 
 
 Prepare your dataset for uploading
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can either have your dataset in a supported format (csv/jsonl/json/parquet/txt), or use a dataset script to define how to load your data.
+
+If your dataset is in a supported format, you're all set !
+Otherwise, you need a dataset script. It simply is a python script and its role is to define:
+
+- the feature types of your data
+- how your dataset is split into train/validation/test (or any other splits)
+- how to download the data
+- how to process the data
+
+The dataset script is mandatory if your dataset is not in the supported formats, or if you need more control on how to define our dataset.
 
 We have seen in the :doc:`dataset script tutorial <add_dataset>`: how to write a dataset loading script. Let's see how you can share it on the
 `🤗 Datasets Hub <https://huggingface.co/datasets>`__.
@@ -209,10 +154,10 @@ Check the directory before pushing to the 🤗 Datasets Hub.
 
 Make sure there are no garbage files in the directory you'll upload. It should only have:
 
-- a `your_dataset_name.py` file, which is the dataset script;
+- a `your_dataset_name.py` file, which is the dataset script (optional if your data files are already in the supported formats csv/jsonl/json/parquet/txt);
+- the raw data files (json, csv, txt, mp3, png, etc.) that you need for your dataset
 - an optional `dataset_infos.json` file, which contains metadata about your dataset like the split sizes;
 - optional dummy data files, which contains only a small subset from the dataset for tests and preview;
-- your raw data files (json, csv, txt, etc.) that you need for your dataset
 
 Other files can safely be deleted.
 
@@ -276,6 +221,18 @@ Anyone can load it from code:
     >>> dataset = load_dataset("namespace/your_dataset_name")
 
 
+If your dataset doesn't have a dataset script, then by default all your data will be loaded in the "train" split.
+You can specify which files goes to which split by specifying the ``data_files`` parameter.
+
+Let's say your dataset repository contains one CSV file for the train split, and one CSV file for your test split. Then you can load it with:
+
+
+.. code-block::
+
+    >>> data_files = {"train": "train.csv", "test": "test.csv"}
+    >>> dataset = load_dataset("namespace/your_dataset_name", data_files=data_files)
+
+
 You may specify a version by using the ``script_version`` flag in the ``load_dataset`` function:
 
 .. code-block::
@@ -285,11 +242,90 @@ You may specify a version by using the ``script_version`` flag in the ``load_dat
     >>>   script_version="main"  # tag name, or branch name, or commit hash
     >>> )
 
+You can find more information in the guide on :doc:`how to load a dataset </loading_datasets>`
+
+.. _canonical-dataset:
+
+Sharing a "canonical" dataset
+--------------------------------
+
+Add your dataset to the GitHub repository
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To add a "canonical" dataset to the library, you need to go through the following steps:
+
+**1. Fork the** `🤗 Datasets repository <https://github.com/huggingface/datasets>`__ by clicking on the 'Fork' button on the repository's home page. This creates a copy of the code under your GitHub user account.
+
+**2. Clone your fork** to your local disk, and add the base repository as a remote:
+
+.. code::
+
+    git clone https://github.com/<your_Github_handle>/datasets
+    cd datasets
+    git remote add upstream https://github.com/huggingface/datasets.git
+
+
+**3. Create a new branch** to hold your development changes:
+
+.. code::
+
+    git checkout -b my-new-dataset
+
+.. note::
+
+    **Do not** work on the ``master`` branch.
+
+**4. Set up a development environment** by running the following command **in a virtual environment**:
+
+.. code::
+
+    pip install -e ".[dev]"
+
+.. note::
+
+   If 🤗 Datasets was already installed in the virtual environment, remove
+   it with ``pip uninstall datasets`` before reinstalling it in editable
+   mode with the ``-e`` flag.
+
+**5. Create a new folder with your dataset name** inside the `datasets folder <https://github.com/huggingface/datasets/tree/master/datasets>`__ of the repository and add the dataset script you wrote and tested while following the instructions on the :doc:`add_dataset` page.
+
+**6. Format your code.** Run black and isort so that your newly added files look nice with the following command:
+
+.. code::
+
+    make style
+    make quality
+
+
+**7.** Once you're happy with your dataset script file, add your changes and make a commit to **record your changes locally**:
+
+.. code::
+
+    git add datasets/<my-new-dataset>
+    git commit
+
+It is a good idea to sync your copy of the code with the original repository regularly. This way you can quickly account for changes:
+
+.. code::
+
+    git fetch upstream
+    git rebase upstream/master
+
+Push the changes to your account using:
+
+.. code::
+
+   git push -u origin my-new-dataset
+
+**8.** We also recommend adding **tests** and **metadata** to the dataset script if possible. Go through the :ref:`adding-tests` section to do so.
+
+**9.** Once you are satisfied with the dataset, go the webpage of your fork on GitHub and click on "Pull request" to **open a pull-request** on the `main github repository <https://github.com/huggingface/datasets>`__ for review.
+
 
 .. _adding-tests:
 
 Adding tests and metadata to the dataset
----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We recommend adding testing data and checksum metadata to your dataset so its behavior can be tested and verified, and the generated dataset can be certified. In this section we'll explain how you can add two objects to the repository to do just that:
 
@@ -302,7 +338,7 @@ We recommend adding testing data and checksum metadata to your dataset so its be
     In the rest of this section, you should make sure that you run all of the commands **from the root** of your local ``datasets`` repository.
 
 1. Adding metadata
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can check that the new dataset loading script works correctly and create the ``dataset_infos.json`` file at the same time by running the command:
 
@@ -373,7 +409,7 @@ If the command was succesful, you should now have a ``dataset_infos.json`` file 
     }
 
 2. Adding dummy data
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now that we have the metadata prepared we can also create some dummy data for automated testing. You can use the following command to get in-detail instructions on how to create the dummy data:
 
@@ -465,7 +501,7 @@ Usage of the command:
 
 
 3. Testing
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now test that both the real data and the dummy data work correctly. Go back to the root of your datasets folder and use the following command:
 
@@ -496,3 +532,56 @@ and make sure you follow the exact instructions provided by the command.
 - Your datascript might require a difficult dummy data structure. In this case make sure you fully understand the data folder logit created by the function ``_split_generators(...)`` and expected by the function ``_generate_examples(...)`` of your dataset script. Also take a look at `tests/README.md` which lists different possible cases of how the dummy data should be created.
 
 - If the dummy data tests still fail, open a PR in the main repository on github and make a remark in the description that you need help creating the dummy data and we will be happy to help you.
+
+
+Add a Dataset Card
+--------------------------------
+
+Once your dataset is ready for sharing, feel free to write and add a Dataset Card to document your dataset.
+
+The Dataset Card is a file ``README.md`` file that you may add in your dataset repository.
+
+At the top of the Dataset Card, you can define the metadata of your dataset for discoverability:
+
+- annotations_creators
+- language_creators
+- languages
+- licenses
+- multilinguality
+- pretty_name
+- size_categories
+- source_datasets
+- task_categories
+- task_ids
+- paperswithcode_id
+
+It may contain diverse sections to document all the relevant aspects of your dataset:
+
+- Dataset Description
+    - Dataset Summary
+    - Supported Tasks and Leaderboards
+    - Languages
+- Dataset Structure
+    - Data Instances
+    - Data Fields
+    - Data Splits
+- Dataset Creation
+    - Curation Rationale
+    - Source Data
+        - Initial Data Collection and Normalization
+        - Who are the source language producers?
+    - Annotations
+        - Annotation process
+        - Who are the annotators?
+    - Personal and Sensitive Information
+- Considerations for Using the Data
+    - Social Impact of Dataset
+    - Discussion of Biases
+    - Other Known Limitations
+- Additional Information
+    - Dataset Curators
+    - Licensing Information
+    - Citation Information
+    - Contributions
+
+You can find more information about each section in the `Dataset Card guide <https://github.com/huggingface/datasets/blob/master/templates/README_guide.md>`_.

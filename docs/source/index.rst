@@ -59,8 +59,8 @@ The documentation is organized in six parts:
     :maxdepth: 2
     :caption: Adding new datasets/metrics
 
-    add_dataset
     share_dataset
+    add_dataset
     add_metric
 
 .. toctree::
