@@ -1,7 +1,8 @@
 import os
+import re
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import fsspec
 import posixpath
@@ -15,8 +16,8 @@ from .logging import get_logger
 
 
 logger = get_logger(__name__)
-BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
 
+BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
@@ -25,8 +26,8 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     "tar": "tar",
     "tgz": "tar",
 }
-
 SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
+SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
 
 
 def xjoin(a, *p):
@@ -87,6 +88,31 @@ def xdirname(a, *p):
     return "::".join([a] + b)
 
 
+def _as_posix(path: Path):
+    """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slash after protocol.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        obj:`str`
+    """
+    return SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path.as_posix())
+
+
+def xpathjoin(a: Path, *p: Tuple[str, ...]):
+    """Extend :func:`xjoin` to support argument of type :obj:`~pathlib.Path`.
+
+    Args:
+        a (:obj:`~pathlib.Path`): Calling Path instance.
+        *p (:obj:`tuple` of :obj:`str`): Other path components.
+
+    Returns:
+        obj:`str`
+    """
+    return type(a)(xjoin(_as_posix(a), *p))
+
+
 def _add_retries_to_file_obj_read_method(file_obj):
     read = file_obj.read
     max_retries = config.STREAMING_READ_MAX_RETRIES
@@ -139,6 +165,19 @@ def xopen(file, mode="r", *args, **kwargs):
     file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
+
+
+def xpathopen(path: Path, **kwargs):
+    """Extend :func:`xopen` to support argument of type :obj:`~pathlib.Path`.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+        **kwargs: Keyword arguments passed to :func:`fsspec.open`.
+
+    Returns:
+        :obj:`io.FileIO`: File-like object.
+    """
+    return xopen(_as_posix(path), **kwargs)
 
 
 class StreamingDownloadManager(object):

@@ -118,7 +118,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
         timestamp[us, tz=America/New_York]
         """
         timestamp_internals = timestamp_matches.group(1)
-        internals_regex = re.compile(r"^(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+:]*)$")
+        internals_regex = re.compile(r"^(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+\-:]*)$")
         internals_matches = internals_regex.search(timestamp_internals)
         if timestamp_internals in ["s", "ms", "us", "ns"]:
             return pa.timestamp(timestamp_internals)

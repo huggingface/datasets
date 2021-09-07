@@ -5,7 +5,15 @@ from pathlib import Path
 import pytest
 
 from datasets.filesystems import COMPRESSION_FILESYSTEMS
-from datasets.utils.streaming_download_manager import xopen
+from datasets.utils.streaming_download_manager import (
+    StreamingDownloadManager,
+    _as_posix,
+    _get_extraction_protocol,
+    xjoin,
+    xopen,
+    xpathjoin,
+    xpathopen,
+)
 
 from .utils import require_lz4, require_zstandard
 
@@ -37,6 +45,14 @@ def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
 
 
 @pytest.mark.parametrize(
+    "input_path, expected_path",
+    [("zip:/test.txt::/Users/username/bar.zip", "zip://test.txt::/Users/username/bar.zip")],
+)
+def test_as_posix(input_path, expected_path):
+    assert _as_posix(Path(input_path)) == expected_path
+
+
+@pytest.mark.parametrize(
     "input_path, paths_to_join, expected_path",
     [
         (str(Path(__file__).resolve().parent), (Path(__file__).name,), str(Path(__file__).resolve())),
@@ -51,14 +67,24 @@ def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
             ("file.txt",),
             "zip://folder/file.txt::https://host.com/archive.zip",
         ),
+        (
+            ".",
+            ("file.txt",),
+            "file.txt",
+        ),
+        (
+            Path().resolve().as_posix(),
+            ("file.txt",),
+            (Path().resolve() / "file.txt").as_posix(),
+        ),
     ],
 )
 def test_xjoin(input_path, paths_to_join, expected_path):
-    from datasets.utils.streaming_download_manager import xjoin
-
     output_path = xjoin(input_path, *paths_to_join)
     output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
     assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    output_path = xpathjoin(Path(input_path), *paths_to_join)
+    assert output_path == Path(expected_path)
 
 
 @pytest.mark.parametrize(
@@ -85,29 +111,26 @@ def test_xdirname(input_path, expected_path):
 
 
 def test_xopen_local(text_path):
-
     with xopen(text_path, encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+        assert list(f) == list(expected_file)
+    with xpathopen(Path(text_path), encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
         assert list(f) == list(expected_file)
 
 
 def test_xopen_remote():
-    from datasets.utils.streaming_download_manager import xopen
-
     with xopen(TEST_URL, encoding="utf-8") as f:
+        assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
+    with xpathopen(Path(TEST_URL), encoding="utf-8") as f:
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
 
 
 @pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
 def test_streaming_dl_manager_download_dummy_path(urlpath):
-    from datasets.utils.streaming_download_manager import StreamingDownloadManager
-
     dl_manager = StreamingDownloadManager()
     assert dl_manager.download(urlpath) == urlpath
 
 
 def test_streaming_dl_manager_download(text_path):
-    from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
-
     dl_manager = StreamingDownloadManager()
     out = dl_manager.download(text_path)
     assert out == text_path
@@ -117,15 +140,11 @@ def test_streaming_dl_manager_download(text_path):
 
 @pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
 def test_streaming_dl_manager_download_and_extract_no_extraction(urlpath):
-    from datasets.utils.streaming_download_manager import StreamingDownloadManager
-
     dl_manager = StreamingDownloadManager()
     assert dl_manager.download_and_extract(urlpath) == urlpath
 
 
 def test_streaming_dl_manager_extract(text_gz_path, text_path):
-    from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
-
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.extract(text_gz_path)
     path = os.path.basename(text_gz_path)
@@ -137,8 +156,6 @@ def test_streaming_dl_manager_extract(text_gz_path, text_path):
 
 
 def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path, text_path):
-    from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
-
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.download_and_extract(text_gz_path)
     path = os.path.basename(text_gz_path)
@@ -154,8 +171,6 @@ def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path,
     [("https://domain.org/archive.zip", "filename.jsonl", "zip://filename.jsonl::https://domain.org/archive.zip")],
 )
 def test_streaming_dl_manager_download_and_extract_with_join(input_path, filename, expected_path):
-    from datasets.utils.streaming_download_manager import StreamingDownloadManager, xjoin
-
     dl_manager = StreamingDownloadManager()
     extracted_path = dl_manager.download_and_extract(input_path)
     output_path = xjoin(extracted_path, filename)
@@ -168,8 +183,6 @@ def test_streaming_dl_manager_download_and_extract_with_join(input_path, filenam
 def test_streaming_dl_manager_extract_all_supported_single_file_compression_types(
     compression_fs_class, gz_file, xz_file, zstd_file, bz2_file, lz4_file, text_file
 ):
-    from datasets.utils.streaming_download_manager import StreamingDownloadManager, xopen
-
     input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_file, "bz2": bz2_file, "lz4": lz4_file}
     input_path = str(input_paths[compression_fs_class.protocol])
     dl_manager = StreamingDownloadManager()
@@ -191,8 +204,6 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
     ],
 )
 def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
-    from datasets.utils.streaming_download_manager import _get_extraction_protocol
-
     assert _get_extraction_protocol(urlpath) == expected_protocol
 
 
@@ -206,6 +217,4 @@ def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol
 )
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
-    from datasets.utils.streaming_download_manager import _get_extraction_protocol
-
     _get_extraction_protocol(urlpath)
