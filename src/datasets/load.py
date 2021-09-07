@@ -798,7 +798,7 @@ def load_metric(
         config_name (Optional ``str``): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
         process_id (Optional ``int``): for distributed evaluation: id of the process
         num_process (Optional ``int``): for distributed evaluation: total number of processes
-        cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.cache/metrics/`)
+        cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.cache/huggingface/metrics/`)
         experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         keep_in_memory (bool): Whether to store the temporary results in memory (defaults to False)
@@ -883,7 +883,7 @@ def load_dataset_builder(
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
-        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/datasets".
+        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
@@ -1041,7 +1041,7 @@ def load_dataset(
             If None, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
             If given, will return a single Dataset.
             Splits can be combined and specified like in tensorflow-datasets.
-        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/datasets".
+        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
