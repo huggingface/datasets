@@ -19,6 +19,7 @@ task_ids:
 - abstractive-qa
 - open-domain-qa
 paperswithcode_id: eli5
+pretty_name: ELI5
 ---
 
 # Dataset Card for ELI5
