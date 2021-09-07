@@ -11,7 +11,7 @@ There are two options to add a new dataset:
 - add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗 Datasets <https://github.com/huggingface/datasets>`__,
 
 Community vs. Canonical
-----------------------
+-----------------------
 
 Both options offer the same features such as:
 
