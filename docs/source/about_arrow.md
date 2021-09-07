@@ -6,8 +6,42 @@ Arrow enables large amounts of data to be processed and moved quickly. It is a s
 
 * Arrow's standard format allows zero copy reads which removes virtually all serialization overhead.
 * Arrow is language-agnostic so it supports different programming languages.
-* Arrow is column-oriented so it is faster at querying and processing data.
+* Arrow is column-oriented so it is faster at querying and processing slices or columns of data.
+* Arrow allows for copy-free hand-offs to standard machine learning tools such as NumPy, Pandas, Torch, and TensorFlow.
+
+## Memory
+
+🤗 Datasets uses Arrow for its local caching system that allows datasets to be backed by an on-disk cache, which is memory-mapped for fast lookup.
+This architecture allows for large datasets to be used on machines with relatively small device memory.
+
+For example, loading the full Wikipedia dataset (en) only takes a few MB of RAM:
+
+.. code::
+
+    >>> import os; import psutil; import timeit
+    >>> from datasets import load_dataset
+
+    >>> mem_before = psutil.Process(os.getpid()).memory_info().rss >> 20
+    >>> wiki = load_dataset("wikipedia", "20200501.en", split='train')
+    >>> mem_after = psutil.Process(os.getpid()).memory_info().rss >> 20
+
+    >>> print(f"RAM memory used: {(mem_after - mem_before)} MB")
+    'RAM memory used: 9 MB'
 
 ## Performance
 
-## Memory
+Iterating over a memory-mapped dataset using Arrow is fast. Iterating over Wikipedia on a laptop gives you a speed of 1-3 Gbit/s:
+
+.. code::
+
+    >>> s = """batch_size = 1000
+    ... for i in range(0, len(wiki), batch_size):
+    ...     batch = wiki[i:i + batch_size]
+    ... """
+
+    >>> time = timeit.timeit(stmt=s, number=1, globals=globals())
+    >>> print(f"Time to iterate over the {wiki.dataset_size >> 30} GB dataset: {time:.1f} sec, "
+    ...       f"ie. {float(wiki.dataset_size >> 27)/time:.1f} Gb/s")
+    'Time to iterate over the 17 GB dataset: 85 sec, ie. 1.7 Gb/s'
+
+You can obtain the best performance by accessing slices of data (or "batches"), in order to reduce the amount of look-ups on disk.
