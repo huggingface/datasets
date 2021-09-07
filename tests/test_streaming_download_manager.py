@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,28 @@ from .utils import require_lz4, require_zstandard
 
 TEST_URL = "https://huggingface.co/datasets/lhoestq/test/raw/main/some_text.txt"
 TEST_URL_CONTENT = "foo\nbar\nfoobar"
+
+
+def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
+    """Path(...) on an url path like zip://file.txt::http://host.com/data.zip
+    converts the :// to :/
+    This function readds the ://
+
+    It handles cases like:
+
+    - https://host.com/data.zip
+    - C://data.zip
+    - zip://file.txt::https://host.com/data.zip
+    - zip://file.txt::/Users/username/data.zip
+    - zip://file.txt::C://data.zip
+
+    Args:
+        path_as_posix (str): output of Path(...).as_posix()
+
+    Returns:
+        str: the url path with :// instead of :/
+    """
+    return re.sub("([A-z]:/)([A-z:])", "\g<1>/\g<2>", path_as_posix)
 
 
 @pytest.mark.parametrize(
@@ -34,7 +57,7 @@ def test_xjoin(input_path, paths_to_join, expected_path):
     from datasets.utils.streaming_download_manager import xjoin
 
     output_path = xjoin(input_path, *paths_to_join)
-    assert output_path == Path(expected_path).as_posix()
+    assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
 
 
 @pytest.mark.parametrize(
@@ -56,7 +79,7 @@ def test_xdirname(input_path, expected_path):
     from datasets.utils.streaming_download_manager import xdirname
 
     output_path = xdirname(input_path)
-    assert output_path == Path(expected_path).as_posix()
+    assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
 
 
 def test_xopen_local(text_path):
