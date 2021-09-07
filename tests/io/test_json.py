@@ -172,19 +172,8 @@ def load_json_lines(buffer):
     return [json.loads(line) for line in buffer]
 
 
-@pytest.mark.parametrize("lines, load_json_function", [(True, load_json_lines), (False, load_json)])
-@pytest.mark.parametrize(
-    "orient, container, keys, len_at",
-    [
-        ("records", list, {"tokens", "labels", "answers", "id"}, None),
-        ("split", dict, {"index", "columns", "data"}, "data"),
-        ("index", dict, set("0123456789"), None),
-        ("columns", dict, {"tokens", "labels", "answers", "id"}, "tokens"),
-        ("values", list, None, None),
-        ("table", dict, {"schema", "data"}, "data"),
-    ],
-)
 class TestJsonDatasetWriter:
+    @pytest.mark.parametrize("lines, load_json_function", [(True, load_json_lines), (False, load_json)])
     def test_dataset_to_json_lines(self, lines, load_json_function, dataset):
         with io.BytesIO() as buffer:
             JsonDatasetWriter(dataset, buffer, lines=lines).write()
@@ -194,6 +183,17 @@ class TestJsonDatasetWriter:
         assert isinstance(exported_content[0], dict)
         assert len(exported_content) == 10
 
+    @pytest.mark.parametrize(
+        "orient, container, keys, len_at",
+        [
+            ("records", list, {"tokens", "labels", "answers", "id"}, None),
+            ("split", dict, {"index", "columns", "data"}, "data"),
+            ("index", dict, set("0123456789"), None),
+            ("columns", dict, {"tokens", "labels", "answers", "id"}, "tokens"),
+            ("values", list, None, None),
+            ("table", dict, {"schema", "data"}, "data"),
+        ],
+    )
     def test_dataset_to_json_orient(self, orient, container, keys, len_at, dataset):
         with io.BytesIO() as buffer:
             JsonDatasetWriter(dataset, buffer, lines=False, orient=orient).write()
@@ -212,6 +212,7 @@ class TestJsonDatasetWriter:
         else:
             assert len(exported_content) == 10
 
+    @pytest.mark.parametrize("lines, load_json_function", [(True, load_json_lines), (False, load_json)])
     def test_dataset_to_json_lines_multiproc(self, lines, load_json_function, dataset):
         with io.BytesIO() as buffer:
             JsonDatasetWriter(dataset, buffer, lines=lines, num_proc=2).write()
@@ -221,6 +222,17 @@ class TestJsonDatasetWriter:
         assert isinstance(exported_content[0], dict)
         assert len(exported_content) == 10
 
+    @pytest.mark.parametrize(
+        "orient, container, keys, len_at",
+        [
+            ("records", list, {"tokens", "labels", "answers", "id"}, None),
+            ("split", dict, {"index", "columns", "data"}, "data"),
+            ("index", dict, set("0123456789"), None),
+            ("columns", dict, {"tokens", "labels", "answers", "id"}, "tokens"),
+            ("values", list, None, None),
+            ("table", dict, {"schema", "data"}, "data"),
+        ],
+    )
     def test_dataset_to_json_orient_multiproc(self, orient, container, keys, len_at, dataset):
         with io.BytesIO() as buffer:
             JsonDatasetWriter(dataset, buffer, lines=False, orient=orient, num_proc=2).write()
