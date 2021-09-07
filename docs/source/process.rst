@@ -88,9 +88,9 @@ There are two options for filtering rows in a dataset: :func:`datasets.Dataset.s
 .. code-block::
 
    >>> even_dataset = dataset.filter(lambda example, indice: indice % 2 == 0, with_indices=True)
-   len(even_dataset)
+   >>> len(even_dataset)
    1834
-   len(dataset) / 2
+   >>> len(dataset) / 2
    1834.0
 
 ``Split``
@@ -499,6 +499,12 @@ Separate datasets can be concatenated if they share the same column types. Conca
 
    You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving, and you can use it with :func:`datasets.interleave_datasets`. Both :func:`datasets.interleave_datasets` and :func:`datasets.concatenate_datasets` will work with regular :class:`datasets.Dataset` and :class:`datasets.IterableDataset` objects. Refer to the :ref:`interleave_datasets` section for an example of how it's used.
 
+You can also concatenate two datasets horizontally (axis=1) as long as they have the same number of rows:
+
+   >>> from datasets import Dataset
+   >>> bookcorpus_ids = Dataset.from_dict({"ids": list(range(len(bookcorpus)))})
+   >>> bookcorpus_with_ids = concatenate_datasets([bookcorpus, bookcorpus_ids], axis=1)
+
 Format
 ------
 
@@ -534,6 +540,8 @@ Format transform
    {'type': 'custom', 'format_kwargs': {'transform': <function __main__.encode(batch)>}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}
    >>> dataset[:2]
    {'input_ids': tensor([[  101,  2572,  3217, ... 102]]), 'token_type_ids': tensor([[0, 0, 0, ... 0]]), 'attention_mask': tensor([[1, 1, 1, ... 1]])}
+
+In this case, the tokenization is applied only when the examples are accessed.
 
 
 Save
@@ -591,4 +599,4 @@ For example, export your dataset to a CSV file like this:
 
 .. code::
 
-   >>> encoded_dataset.to_csv("path/of/my/dataset/directory")
+   >>> encoded_dataset.to_csv("path/of/my/dataset.csv")

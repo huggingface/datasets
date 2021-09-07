@@ -102,4 +102,4 @@ Define sampling probabilities from each of the original datasets for more contro
    >>> print(list(islice(multilingual_dataset_with_oversampling, 2)))
    [{'text': 'Mtendere Village was inspired by the vision...}, {'text': 'Lily James cannot fight the music...}]
 
-The final dataset contains 80% of the ``en_dataset``, and 20% of the ``fr_dataset``.
+Around 80% of the final dataset is made of the ``en_dataset``, and 20% of the ``fr_dataset``.

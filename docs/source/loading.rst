@@ -25,14 +25,16 @@ First, create a dataset repository and upload your data files. Then you can use 
    >>> from datasets import load_dataset
    >>> dataset = load_dataset('lhoestq/demo1')
 
-Some datasets may have more than one version. Use the ``script_version`` flag to specifiy which dataset you want to load:
+This dataset repository contains CSV files, and this code loads all the data from the CSV files.
+
+Some datasets may have more than one version, based on git. Use the ``script_version`` flag to specifiy which dataset you want to load:
 
 .. code-block::
 
    >>> dataset = load_dataset(
    >>>   "lhoestq/custom_squad",
    >>>   script_version="main"  # tag name, or branch name, or commit hash
-   >>>)
+   >>> )
 
 .. seealso::
 
@@ -63,10 +65,10 @@ Specify a custom split with the ``split`` parameter:
    >>> data_files = {"validation": "en/c4-validation.*.json.gz"}
    >>> c4_validation = load_dataset("allenai/c4", data_files=data_files, split="validation")
 
-Local files
------------
+Local and remote files
+-----------------------
 
-🤗 Datasets can be loaded from local files stored on your computer. The datasets are most likely stored as a ``csv``, ``json``, ``txt`` or ``parquet`` file. The :func:`datasets.load_dataset` method is able to load each of these file types.
+🤗 Datasets can be loaded from local files stored on your computer, and also from remote files. The datasets are most likely stored as a ``csv``, ``json``, ``txt`` or ``parquet`` file. The :func:`datasets.load_dataset` method is able to load each of these file types.
 
 CSV
 ^^^
@@ -89,6 +91,13 @@ You can also map the training and test splits to specific CSV files:
 .. code::
 
    >>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'] 'test': 'my_test_file.csv'})
+
+To load remote CSV files via HTTP, you can pass the URLs:
+
+.. code::
+
+   >>> base_url = "https://huggingface.co/datasets/lhoestq/demo1/resolve/main/data/"
+   >>> dataset = load_dataset('csv', data_files={'train': base_url + 'train.csv', 'test': base_url + 'test.csv'})
 
 JSON
 ^^^^
@@ -119,6 +128,13 @@ Another format you may encounter is a nested field, in which case you will need 
    >>> from datasets import load_dataset
    >>> dataset = load_dataset('json', data_files='my_file.json', field='data')
 
+To load remote JSON files via HTTP, you can pass the URLs:
+
+.. code-block::
+
+   >>> base_url = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
+   >>> dataset = load_dataset('json', data_files={'train': base_url + 'train-v1.1.json', 'validation': base_url + 'dev-v1.1.json'}, field="data")
+
 While these are the most common formats, you will see other datasets that are formatted differently. 🤗 Datasets recognizes these other formats, and will fallback accordingly on the Python JSON loading methods to handle them.
 
 Text files
@@ -131,6 +147,12 @@ Text files are one of the most common file types for storing a dataset. 🤗 Dat
    >>> from datasets import load_dataset
    >>> dataset = load_dataset('text', data_files={'train': ['my_text_1.txt', 'my_text_2.txt'], 'test': 'my_test_file.txt'})
 
+To load remote TXT files via HTTP, you can pass the URLs:
+
+.. code-block::
+
+   >>> dataset = load_dataset('text', data_files='https://huggingface.co/datasets/lhoestq/test/resolve/main/some_text.txt')
+
 Parquet
 ^^^^^^^
 
@@ -139,9 +161,13 @@ Parquet files are stored in a columnar format unlike row-based files like CSV. L
 .. code-block::
 
    >>> from datasets import load_dataset
+   >>> dataset = load_dataset("parquet", data_files={'train': 'train.parquet', 'test': 'test.parquet'})
+
+To load remote parquet files via HTTP, you can pass the URLs:
+
    >>> base_url = "https://storage.googleapis.com/huggingface-nlp/cache/datasets/wikipedia/20200501.en/1.0.0/"
    >>> data_files = {"train": base_url + "wikipedia-train.parquet"}
-   >>> wiki = load_dataset("parquet", data_files=data_files, split="train", streaming=True)
+   >>> wiki = load_dataset("parquet", data_files=data_files, split="train")
 
 In-memory data
 --------------
@@ -156,6 +182,7 @@ Load Python dictionaries with :func:`datasets.Dataset.from_dict`:
 .. code-block::
 
    >>> from datasets import Dataset
+   >>> my_dict = {"a": [1, 2, 3]}
    >>> dataset = Dataset.from_dict(my_dict)
 
 Pandas DataFrame
