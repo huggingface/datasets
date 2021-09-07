@@ -44,7 +44,7 @@ from datasets.tasks.text_classification import TextClassification
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, Value, cast_to_python_objects, _ArrayXD, Sequence
+from .features import ClassLabel, Features, Sequence, Value, _ArrayXD, cast_to_python_objects
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -295,7 +295,6 @@ class TensorflowDatasetMixIn:
 
         test_batch = np_get_batch(np.arange(batch_size))
 
-
         @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
         def fetch_function(indices):
             output = tf.numpy_function(
@@ -304,12 +303,12 @@ class TensorflowDatasetMixIn:
             return {key: output[i] for i, key in enumerate(cols_to_retain)}
 
         test_batch_dict = {key: test_batch[i] for i, key in enumerate(cols_to_retain)}
-        output_signature = self._get_output_signature(dataset, test_batch_dict,
-                                                      batch_size=batch_size if drop_remainder else None)
+        output_signature = self._get_output_signature(
+            dataset, test_batch_dict, batch_size=batch_size if drop_remainder else None
+        )
 
         def ensure_shapes(input_dict):
-            return {key: tf.ensure_shape(val, output_signature[key].shape)
-                    for key, val in input_dict.items()}
+            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
 
         tf_dataset = (
             tf.data.Dataset.from_tensor_slices(np.arange(len(dataset)))
