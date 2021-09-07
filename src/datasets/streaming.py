@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from .utils.logging import get_logger
 from .utils.patching import patch_submodule
-from .utils.streaming_download_manager import xjoin, xopen, xpathjoin, xpathopen
+from .utils.streaming_download_manager import xjoin, xopen, xpathglob, xpathjoin, xpathopen
 
 
 logger = get_logger(__name__)
@@ -42,3 +42,4 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
         patch.object(module.Path, "joinpath", xpathjoin).start()
         patch.object(module.Path, "__truediv__", xpathjoin).start()
         patch.object(module.Path, "open", xpathopen).start()
+        patch.object(module.Path, "glob", xpathglob).start()
