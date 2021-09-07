@@ -149,6 +149,31 @@ def xpathopen(path: Path, **kwargs):
     return xopen(_as_posix(path), **kwargs)
 
 
+def xpathglob(path, pattern):
+    """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+        pattern (:obj:`str`): Pattern that resulting paths must match.
+
+    Yields:
+        :obj:str
+    """
+    posix_path = _as_posix(path)
+    main_hop, *rest_hops = posix_path.split("::")
+    if is_local_path(main_hop):
+        yield from Path(main_hop).glob(pattern)
+    else:
+        main_hop_protocol, main_hop_path = main_hop.split("://")
+        all_glob = "/".join(["*"] * (pattern.count("/") + 1))
+        all_glob_path = xjoin(posix_path, all_glob)
+        files = fsspec.open_files(all_glob_path)
+        path_pattern = re.compile("/".join([main_hop_path, pattern]))
+        for file in files:
+            if path_pattern.match(file.path):
+                yield type(path)("::".join([f"{main_hop_protocol}://{file.path}"] + rest_hops))
+
+
 class StreamingDownloadManager(object):
     """
     Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
