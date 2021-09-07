@@ -36,9 +36,9 @@ paperswithcode_id: openwebtext
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Size of downloaded dataset files:** 12283.35 MB
-- **Size of the generated dataset:** 37927.15 MB
-- **Total amount of disk used:** 50210.50 MB
+- **Size of downloaded dataset files:** 12880.03 MB
+- **Size of the generated dataset:** 39769.50 MB
+- **Total amount of disk used:** 52649.52 MB
 
 ### Dataset Summary
 
@@ -60,9 +60,9 @@ We show detailed information for up to 5 configurations of the dataset.
 
 #### plain_text
 
-- **Size of downloaded dataset files:** 12283.35 MB
-- **Size of the generated dataset:** 37927.15 MB
-- **Total amount of disk used:** 50210.50 MB
+- **Size of downloaded dataset files:** 12880.03 MB
+- **Size of the generated dataset:** 39769.50 MB
+- **Total amount of disk used:** 52649.52 MB
 
 An example of 'train' looks as follows.
 ```
