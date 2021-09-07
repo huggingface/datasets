@@ -195,10 +195,11 @@ def xpathglob(path, pattern):
     if is_local_path(main_hop):
         yield from Path(main_hop).glob(pattern)
     else:
-        fs, fs_token, paths = fsspec.get_fs_token_paths(xjoin(posix_path, pattern))
-        files = fs.glob(paths[0])
-        for file in files:
-            yield type(path)("::".join([f"{fs.protocol}://{file}"] + rest_hops))
+        fs, fs_token, globbed_paths = fsspec.get_fs_token_paths(xjoin(posix_path, pattern))
+        if "*" not in pattern:
+            globbed_paths = fs.glob(globbed_paths[0])
+        for globbed_path in globbed_paths:
+            yield type(path)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
 
 
 class StreamingDownloadManager(object):
