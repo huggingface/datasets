@@ -1,4 +1,5 @@
 import os
+import re
 import time
 from pathlib import Path
 from typing import Optional
@@ -15,8 +16,8 @@ from .logging import get_logger
 
 
 logger = get_logger(__name__)
-BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
 
+BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
@@ -25,8 +26,8 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     "tar": "tar",
     "tgz": "tar",
 }
-
 SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
+SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
 
 
 def xjoin(a, *p):
@@ -57,7 +58,7 @@ def xjoin(a, *p):
 
 
 def _as_posix(path):
-    return path.as_posix().replace(":/", "://")
+    return SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path.as_posix())
 
 
 def xpathjoin(a, *p):
