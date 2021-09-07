@@ -2,7 +2,7 @@ import os
 import re
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import fsspec
 import posixpath
@@ -57,11 +57,28 @@ def xjoin(a, *p):
     return "::".join([a] + b)
 
 
-def _as_posix(path):
+def _as_posix(path: Path):
+    """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slash after protocol.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        obj:`str`
+    """
     return SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path.as_posix())
 
 
-def xpathjoin(a, *p):
+def xpathjoin(a: Path, *p: Tuple[str, ...]):
+    """Extend :func:`xjoin` to support argument of type :obj:`~pathlib.Path`.
+
+    Args:
+        a (:obj:`~pathlib.Path`): Calling Path instance.
+        *p (:obj:`tuple` of :obj:`str`): Other path components.
+
+    Returns:
+        obj:`str`
+    """
     return type(a)(xjoin(_as_posix(a), *p))
 
 
@@ -119,7 +136,16 @@ def xopen(file, mode="r", *args, **kwargs):
     return file_obj
 
 
-def xpathopen(path, **kwargs):
+def xpathopen(path: Path, **kwargs):
+    """Extend :func:`xopen` to support argument of type :obj:`~pathlib.Path`.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+        **kwargs: Keyword arguments passed to :func:`fsspec.open`.
+
+    Returns:
+        :obj:`io.FileIO`: File-like object.
+    """
     return xopen(_as_posix(path), **kwargs)
 
 
