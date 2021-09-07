@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -29,10 +30,13 @@ TEST_URL_CONTENT = "foo\nbar\nfoobar"
     ],
 )
 def test_xjoin(input_path, paths_to_join, expected_path):
-    from datasets.utils.streaming_download_manager import xjoin
+    from datasets.utils.streaming_download_manager import xjoin, xpathjoin
 
     output_path = xjoin(input_path, *paths_to_join)
     assert output_path == expected_path
+
+    output_path = xpathjoin(Path(input_path), *paths_to_join)
+    assert output_path == Path(expected_path)
 
 
 def test_xopen_local(text_path):
