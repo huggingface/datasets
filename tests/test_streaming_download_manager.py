@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from datasets.filesystems import COMPRESSION_FILESYSTEMS
-from datasets.utils.streaming_download_manager import xopen
+from datasets.utils.streaming_download_manager import xopen, xpathopen
 
 from .utils import require_lz4, require_zstandard
 
@@ -43,12 +43,16 @@ def test_xopen_local(text_path):
 
     with xopen(text_path, encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
         assert list(f) == list(expected_file)
+    with xpathopen(Path(text_path), encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+        assert list(f) == list(expected_file)
 
 
 def test_xopen_remote():
-    from datasets.utils.streaming_download_manager import xopen
+    from datasets.utils.streaming_download_manager import xopen, xpathopen
 
     with xopen(TEST_URL, encoding="utf-8") as f:
+        assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
+    with xpathopen(Path(TEST_URL), encoding="utf-8") as f:
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
 
 
