@@ -16,6 +16,7 @@
 
 
 import re
+
 import datasets
 
 
@@ -71,7 +72,7 @@ class SwedishMedicalNer(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        if self.config.name == "wiki":  
+        if self.config.name == "wiki":
             features = datasets.Features(
                 {
                     "sid": datasets.Value("string"),
@@ -118,7 +119,7 @@ class SwedishMedicalNer(datasets.GeneratorBasedBuilder):
             )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=features,  
+            features=features,
             supervised_keys=None,
             homepage=_URL,
             license=_LICENSE,
