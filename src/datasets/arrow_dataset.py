@@ -2879,7 +2879,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+                use multiprocessing. ``batch_size`` in this case defaults to
+                :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
+                value if you have sufficient compute power.
             lines (:obj:`bool`, default ``True``): Whether output JSON lines format.
                 Only possible if ``orient="records"`. It will throw ValueError with ``orient`` different from
                 ``"records"``, since the others are not list-like.

@@ -69,12 +69,7 @@ class JsonDatasetWriter:
     ):
         self.dataset = dataset
         self.path_or_buf = path_or_buf
-        if batch_size:
-            self.batch_size = batch_size
-        elif num_proc is not None:
-            self.batch_size = 100_000
-        else:
-            self.batch_size = config.DEFAULT_MAX_BATCH_SIZE
+        self.batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         self.num_proc = num_proc
         self.encoding = "utf-8"
         self.to_json_kwargs = to_json_kwargs
