@@ -11,6 +11,7 @@ from datasets.utils.streaming_download_manager import (
     _get_extraction_protocol,
     xjoin,
     xopen,
+    xpathglob,
     xpathjoin,
     xpathopen,
 )
@@ -122,6 +123,17 @@ def test_xopen_remote():
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
     with xpathopen(Path(TEST_URL), encoding="utf-8") as f:
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
+
+
+@pytest.mark.parametrize("input_path, pattern, expected_paths", [("tmp_path", "*.txt", ["file1.txt", "file2.txt"])])
+def test_xpath_glob(input_path, pattern, expected_paths, tmp_path):
+    if input_path == "tmp_path":
+        input_path = tmp_path
+        expected_paths = [tmp_path / file for file in expected_paths]
+        for file in ["file1.txt", "file2.txt", "README.md"]:
+            (tmp_path / file).touch()
+        output_path = sorted(xpathglob(input_path, pattern))
+    assert output_path == expected_paths
 
 
 @pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
