@@ -77,7 +77,7 @@ def xdirname(a, *p):
     """
     a, *b = a.split("::")
     if is_local_path(a):
-        a = os.path.dirname(a)
+        a = os.path.dirname(Path(a).as_posix())
     else:
         a = posixpath.dirname(a)
     # if we end up at the root of the protocol, we get for example a = 'http:'
