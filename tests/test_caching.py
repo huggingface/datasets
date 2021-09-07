@@ -1,5 +1,8 @@
 import pickle
+import subprocess
 from hashlib import md5
+from pathlib import Path
+from textwrap import dedent
 from types import CodeType, FunctionType
 from unittest import TestCase
 from unittest.mock import patch
@@ -258,3 +261,28 @@ class HashingTest(TestCase):
     def test_hash_unpicklable(self):
         with self.assertRaises(pickle.PicklingError):
             Hasher.hash(UnpicklableCallable(Foo("hello")))
+
+
+def test_move_script_doesnt_change_hash(tmp_path: Path):
+    dir1 = tmp_path / "dir1"
+    dir2 = tmp_path / "dir2"
+    dir1.mkdir()
+    dir2.mkdir()
+    script_filename = "script.py"
+    code = dedent(
+        """
+    from datasets.fingerprint import Hasher
+    def foo():
+        pass
+    print(Hasher.hash(foo))
+    """
+    )
+    script_path1 = dir1 / script_filename
+    script_path2 = dir2 / script_filename
+    with script_path1.open("w") as f:
+        f.write(code)
+    with script_path2.open("w") as f:
+        f.write(code)
+    fingerprint1 = subprocess.check_output(["python", str(script_path1)])
+    fingerprint2 = subprocess.check_output(["python", str(script_path2)])
+    assert fingerprint1 == fingerprint2

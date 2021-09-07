@@ -24,7 +24,7 @@ import re
 import datasets
 
 
-_CITATION = """
+_CITATION = """\
 @misc{koupaee2018wikihow,
     title={WikiHow: A Large Scale Text Summarization Dataset},
     author={Mahnaz Koupaee and William Yang Wang},
@@ -35,7 +35,7 @@ _CITATION = """
 }
 """
 
-_DESCRIPTION = """
+_DESCRIPTION = """\
 WikiHow is a new large-scale dataset using the online WikiHow
 (http://www.wikihow.com/) knowledge base.
 

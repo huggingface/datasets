@@ -1,14 +1,17 @@
 # coding=utf-8
-
+import io
 import json
 from dataclasses import dataclass
-from io import BytesIO
 from typing import Optional
 
 import pyarrow as pa
 import pyarrow.json as paj
 
 import datasets
+from datasets.utils.file_utils import readline
+
+
+logger = datasets.utils.logging.get_logger(__name__)
 
 
 @dataclass
@@ -17,17 +20,10 @@ class JsonConfig(datasets.BuilderConfig):
 
     features: Optional[datasets.Features] = None
     field: Optional[str] = None
-    use_threads: bool = True
-    block_size: Optional[int] = None
+    use_threads: bool = True  # deprecated
+    block_size: Optional[int] = None  # deprecated
+    chunksize: int = 10 << 20  # 10MB
     newlines_in_values: Optional[bool] = None
-
-    @property
-    def pa_read_options(self):
-        return paj.ReadOptions(use_threads=self.use_threads, block_size=self.block_size)
-
-    @property
-    def pa_parse_options(self):
-        return paj.ParseOptions(newlines_in_values=self.newlines_in_values)
 
     @property
     def schema(self):
@@ -38,6 +34,15 @@ class Json(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = JsonConfig
 
     def _info(self):
+        if self.config.block_size is not None:
+            logger.warning("The JSON loader parameter `block_size` is deprecated. Please use `chunksize` instead")
+            self.config.chunksize = self.config.block_size
+        if self.config.use_threads is not True:
+            logger.warning(
+                "The JSON loader parameter `use_threads` is deprecated and doesn't have any effect anymore."
+            )
+        if self.config.newlines_in_values is not None:
+            raise ValueError("The JSON loader parameter `newlines_in_values` is no longer supported")
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
@@ -57,8 +62,25 @@ class Json(datasets.ArrowBasedBuilder):
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
+    def _cast_classlabels(self, pa_table: pa.Table) -> pa.Table:
+        if self.config.features:
+            # Encode column if ClassLabel
+            for i, col in enumerate(self.config.features.keys()):
+                if isinstance(self.config.features[col], datasets.ClassLabel):
+                    pa_table = pa_table.set_column(
+                        i, self.config.schema.field(col), [self.config.features[col].str2int(pa_table[col])]
+                    )
+            # Cast allows str <-> int/float
+            # Before casting, rearrange JSON field names to match passed features schema field names order
+            pa_table = pa.Table.from_arrays(
+                [pa_table[name] for name in self.config.features], schema=self.config.schema
+            )
+        return pa_table
+
     def _generate_tables(self, files):
-        for i, file in enumerate(files):
+        for file_idx, file in enumerate(files):
+
+            # If the file is one json object and if we need to look at the list of items in one specific field
             if self.config.field is not None:
                 with open(file, encoding="utf-8") as f:
                     dataset = json.load(f)
@@ -68,38 +90,60 @@ class Json(datasets.ArrowBasedBuilder):
 
                 # We accept two format: a list of dicts or a dict of lists
                 if isinstance(dataset, (list, tuple)):
-                    pa_table = paj.read_json(
-                        BytesIO("\n".join(json.dumps(row) for row in dataset).encode("utf-8")),
-                        read_options=self.config.pa_read_options,
-                        parse_options=self.config.pa_parse_options,
-                    )
+                    mapping = {col: [dataset[i][col] for i in range(len(dataset))] for col in dataset[0].keys()}
                 else:
-                    pa_table = pa.Table.from_pydict(mapping=dataset)
+                    mapping = dataset
+                pa_table = pa.Table.from_pydict(mapping=mapping)
+                yield file_idx, self._cast_classlabels(pa_table)
+
+            # If the file has one json object per line
             else:
-                try:
-                    with open(file, "rb") as f:
-                        pa_table = paj.read_json(
-                            f, read_options=self.config.pa_read_options, parse_options=self.config.pa_parse_options
-                        )
-                except pa.ArrowInvalid:
-                    with open(file, encoding="utf-8") as f:
-                        dataset = json.load(f)
-                    raise ValueError(
-                        f"Not able to read records in the JSON file at {file}. "
-                        f"You should probably indicate the field of the JSON file containing your records. "
-                        f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
-                        f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
-                    )
-            if self.config.features:
-                # Encode column if ClassLabel
-                for i, col in enumerate(self.config.features.keys()):
-                    if isinstance(self.config.features[col], datasets.ClassLabel):
-                        pa_table = pa_table.set_column(
-                            i, self.config.schema.field(col), [self.config.features[col].str2int(pa_table[col])]
-                        )
-                # Cast allows str <-> int/float, while parse_option explicit_schema does NOT
-                # Before casting, rearrange JSON field names to match passed features schema field names order
-                pa_table = pa.Table.from_arrays(
-                    [pa_table[name] for name in self.config.features], schema=self.config.schema
-                )
-            yield i, pa_table
+                with open(file, "rb") as f:
+                    batch_idx = 0
+                    # Use block_size equal to the chunk size divided by 32 to leverage multithreading
+                    # Set a default minimum value of 16kB if the chunk size is really small
+                    block_size = max(self.config.chunksize // 32, 16 << 10)
+                    while True:
+                        batch = f.read(self.config.chunksize)
+                        if not batch:
+                            break
+                        # Finish current line
+                        try:
+                            batch += f.readline()
+                        except (AttributeError, io.UnsupportedOperation):
+                            batch += readline(f)
+                        try:
+                            while True:
+                                try:
+                                    pa_table = paj.read_json(
+                                        io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
+                                    )
+                                    break
+                                except pa.ArrowInvalid as e:
+                                    if "straddling" not in str(e) or block_size > len(batch):
+                                        raise
+                                    else:
+                                        # Increase the block size in case it was too small.
+                                        # The block size will be reset for the next file.
+                                        logger.debug(
+                                            f"Batch of {len(batch)} bytes couldn't be parsed with block_size={block_size}. Retrying with block_size={block_size * 2}."
+                                        )
+                                        block_size *= 2
+                        except pa.ArrowInvalid as e:
+                            logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
+                            try:
+                                with open(file, encoding="utf-8") as f:
+                                    dataset = json.load(f)
+                            except json.JSONDecodeError:
+                                raise e
+                            raise ValueError(
+                                f"Not able to read records in the JSON file at {file}. "
+                                f"You should probably indicate the field of the JSON file containing your records. "
+                                f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
+                                f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
+                            )
+                        # Uncomment for debugging (will print the Arrow table size and elements)
+                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                        yield (file_idx, batch_idx), self._cast_classlabels(pa_table)
+                        batch_idx += 1

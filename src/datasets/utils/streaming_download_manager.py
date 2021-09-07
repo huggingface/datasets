@@ -1,20 +1,33 @@
 import os
+import re
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import fsspec
 import posixpath
 from aiohttp.client_exceptions import ClientError
 
 from .. import config
+from ..filesystems import COMPRESSION_FILESYSTEMS
 from .download_manager import DownloadConfig, map_nested
 from .file_utils import get_authentication_headers_for_url, is_local_path, is_relative_path, url_or_path_join
 from .logging import get_logger
 
 
 logger = get_logger(__name__)
-BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll"]
+
+BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
+COMPRESSION_EXTENSION_TO_PROTOCOL = {
+    # single file compression
+    **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
+    # archive compression
+    "zip": "zip",
+    "tar": "tar",
+    "tgz": "tar",
+}
+SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
+SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
 
 
 def xjoin(a, *p):
@@ -44,6 +57,31 @@ def xjoin(a, *p):
     return "::".join([a] + b)
 
 
+def _as_posix(path: Path):
+    """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slash after protocol.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        obj:`str`
+    """
+    return SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path.as_posix())
+
+
+def xpathjoin(a: Path, *p: Tuple[str, ...]):
+    """Extend :func:`xjoin` to support argument of type :obj:`~pathlib.Path`.
+
+    Args:
+        a (:obj:`~pathlib.Path`): Calling Path instance.
+        *p (:obj:`tuple` of :obj:`str`): Other path components.
+
+    Returns:
+        obj:`str`
+    """
+    return type(a)(xjoin(_as_posix(a), *p))
+
+
 def _add_retries_to_file_obj_read_method(file_obj):
     read = file_obj.read
     max_retries = config.STREAMING_READ_MAX_RETRIES
@@ -55,7 +93,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
                 break
             except ClientError:
                 logger.warning(
-                    f"Got diconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
+                    f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
                 )
                 time.sleep(config.STREAMING_READ_RETRY_INTERVAL)
         else:
@@ -63,6 +101,25 @@ def _add_retries_to_file_obj_read_method(file_obj):
         return out
 
     file_obj.read = read_with_retries
+
+
+def _get_extraction_protocol(urlpath: str) -> Optional[str]:
+    # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
+    path = urlpath.split("::")[0]
+    # remove "dl=1" query param: https://foo.bar/train.json.gz?dl=1 -> https://foo.bar/train.json.gz
+    suf = "?dl=1"
+    if path.endswith(suf):
+        path = path[: -len(suf)]
+
+    # Get extension: https://foo.bar/train.json.gz -> gz
+    extension = path.split(".")[-1]
+    if extension in BASE_KNOWN_EXTENSIONS:
+        return None
+    elif path.endswith(".tar.gz") or path.endswith(".tgz"):
+        pass
+    elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
+        return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
+    raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
 
 
 def xopen(file, mode="r", *args, **kwargs):
@@ -79,9 +136,22 @@ def xopen(file, mode="r", *args, **kwargs):
     return file_obj
 
 
+def xpathopen(path: Path, **kwargs):
+    """Extend :func:`xopen` to support argument of type :obj:`~pathlib.Path`.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+        **kwargs: Keyword arguments passed to :func:`fsspec.open`.
+
+    Returns:
+        :obj:`io.FileIO`: File-like object.
+    """
+    return xopen(_as_posix(path), **kwargs)
+
+
 class StreamingDownloadManager(object):
     """
-    Download manager that uses the "::" separator to naviguate through (possibly remote) compressed archives.
+    Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
     Contrary to the regular DownloadManager, the `download` and `extract` methods don't actually download nor extract
     data, but they rather return the path or url that could be opened using the `xopen` function which extends the
     builtin `open` function to stream data from remote files.
@@ -107,36 +177,34 @@ class StreamingDownloadManager(object):
         url_or_urls = map_nested(self._download, url_or_urls, map_tuple=True)
         return url_or_urls
 
-    def _download(self, url_or_filename):
-        if is_relative_path(url_or_filename):
+    def _download(self, urlpath: str) -> str:
+        urlpath = str(urlpath)
+        if is_relative_path(urlpath):
             # append the relative path to the base_path
-            url_or_filename = url_or_path_join(self._base_path, url_or_filename)
-        return url_or_filename
+            urlpath = url_or_path_join(self._base_path, urlpath)
+        return urlpath
 
     def extract(self, path_or_paths):
         urlpaths = map_nested(self._extract, path_or_paths, map_tuple=True)
         return urlpaths
 
-    def _extract(self, urlpath):
-        protocol = self._get_extraction_protocol(urlpath)
+    def _extract(self, urlpath: str) -> str:
+        urlpath = str(urlpath)
+        protocol = _get_extraction_protocol(urlpath)
         if protocol is None:
             # no extraction
             return urlpath
-        elif protocol == "gzip":
-            # there is one single file which is the uncompressed gzip file
-            return f"{protocol}://{os.path.basename(urlpath.split('::')[0]).rstrip('.gz')}::{urlpath}"
+        elif protocol in SINGLE_FILE_COMPRESSION_PROTOCOLS:
+            # there is one single file which is the uncompressed file
+            inner_file = os.path.basename(urlpath.split("::")[0])
+            inner_file = inner_file[: inner_file.rindex(".")]
+            # check for tar.gz, tar.bz2 etc.
+            if inner_file.endswith(".tar"):
+                return f"tar://::{urlpath}"
+            else:
+                return f"{protocol}://{inner_file}::{urlpath}"
         else:
             return f"{protocol}://::{urlpath}"
-
-    def _get_extraction_protocol(self, urlpath) -> Optional[str]:
-        path = urlpath.split("::")[0]
-        if path.split(".")[-1] in BASE_KNOWN_EXTENSIONS:
-            return None
-        elif path.endswith(".gz") and not path.endswith(".tar.gz"):
-            return "gzip"
-        elif path.endswith(".zip"):
-            return "zip"
-        raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
 
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))

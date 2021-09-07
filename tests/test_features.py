@@ -236,6 +236,30 @@ def test_classlabel_int2str():
         classlabel.int2str(len(names))
 
 
+def iternumpy(key1, value1, value2):
+    if value1.dtype != value2.dtype:  # check only for dtype
+        raise AssertionError(
+            f"dtype of '{key1}' key for casted object: {value1.dtype} and expected object: {value2.dtype} not matching"
+        )
+
+
+def dict_diff(d1: dict, d2: dict):  # check if 2 dictionaries are equal
+
+    np.testing.assert_equal(d1, d2)  # sanity check if dict values are equal or not
+
+    for (k1, v1), (k2, v2) in zip(d1.items(), d2.items()):  # check if their values have same dtype or not
+        if isinstance(v1, dict):  # nested dictionary case
+            dict_diff(v1, v2)
+        elif isinstance(v1, np.ndarray):  # checks if dtype and value of np.ndarray is equal
+            iternumpy(k1, v1, v2)
+        elif isinstance(v1, list):
+            for (element1, element2) in zip(v1, v2):  # iterates over all elements of list
+                if isinstance(element1, dict):
+                    dict_diff(element1, element2)
+                elif isinstance(element1, np.ndarray):
+                    iternumpy(k1, element1, element2)
+
+
 class CastToPythonObjectsTest(TestCase):
     def test_cast_to_python_objects_list(self):
         obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
@@ -249,11 +273,14 @@ class CastToPythonObjectsTest(TestCase):
         casted_obj = cast_to_python_objects(obj)
         self.assertDictEqual(casted_obj, expected_obj)
 
-    def test_cast_to_python_objects_numpy(self):
+    def test_cast_to_python_or_numpy(self):
         obj = {"col_1": [{"vec": np.arange(1, 4), "txt": "foo"}] * 3, "col_2": np.arange(1, 7).reshape(3, 2)}
-        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        expected_obj = {
+            "col_1": [{"vec": np.array([1, 2, 3]), "txt": "foo"}] * 3,
+            "col_2": np.array([[1, 2], [3, 4], [5, 6]]),
+        }
         casted_obj = cast_to_python_objects(obj)
-        self.assertDictEqual(casted_obj, expected_obj)
+        dict_diff(casted_obj, expected_obj)
 
     def test_cast_to_python_objects_series(self):
         obj = {
@@ -278,9 +305,12 @@ class CastToPythonObjectsTest(TestCase):
             "col_1": [{"vec": torch.tensor(np.arange(1, 4)), "txt": "foo"}] * 3,
             "col_2": torch.tensor(np.arange(1, 7).reshape(3, 2)),
         }
-        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        expected_obj = {
+            "col_1": [{"vec": np.array([1, 2, 3]), "txt": "foo"}] * 3,
+            "col_2": np.array([[1, 2], [3, 4], [5, 6]]),
+        }
         casted_obj = cast_to_python_objects(obj)
-        self.assertDictEqual(casted_obj, expected_obj)
+        dict_diff(casted_obj, expected_obj)
 
     @require_tf
     def test_cast_to_python_objects_tf(self):
@@ -290,9 +320,12 @@ class CastToPythonObjectsTest(TestCase):
             "col_1": [{"vec": tf.constant(np.arange(1, 4)), "txt": "foo"}] * 3,
             "col_2": tf.constant(np.arange(1, 7).reshape(3, 2)),
         }
-        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        expected_obj = {
+            "col_1": [{"vec": np.array([1, 2, 3]), "txt": "foo"}] * 3,
+            "col_2": np.array([[1, 2], [3, 4], [5, 6]]),
+        }
         casted_obj = cast_to_python_objects(obj)
-        self.assertDictEqual(casted_obj, expected_obj)
+        dict_diff(casted_obj, expected_obj)
 
     @require_jax
     def test_cast_to_python_objects_jax(self):
@@ -302,9 +335,13 @@ class CastToPythonObjectsTest(TestCase):
             "col_1": [{"vec": jnp.array(np.arange(1, 4)), "txt": "foo"}] * 3,
             "col_2": jnp.array(np.arange(1, 7).reshape(3, 2)),
         }
-        expected_obj = {"col_1": [{"vec": [1, 2, 3], "txt": "foo"}] * 3, "col_2": [[1, 2], [3, 4], [5, 6]]}
+        assert obj["col_2"].dtype == jnp.int32
+        expected_obj = {
+            "col_1": [{"vec": np.array([1, 2, 3], dtype=np.int32), "txt": "foo"}] * 3,
+            "col_2": np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32),
+        }
         casted_obj = cast_to_python_objects(obj)
-        self.assertDictEqual(casted_obj, expected_obj)
+        dict_diff(casted_obj, expected_obj)
 
     @patch("datasets.features._cast_to_python_objects", side_effect=_cast_to_python_objects)
     def test_dont_iterate_over_each_element_in_a_list(self, mocked_cast):

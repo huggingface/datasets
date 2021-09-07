@@ -41,7 +41,7 @@ from tqdm.auto import tqdm
 
 from datasets.tasks.text_classification import TextClassification
 
-from . import config
+from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import ClassLabel, Features, Value, cast_to_python_objects
@@ -81,7 +81,7 @@ if TYPE_CHECKING:
 
 logger = logging.get_logger(__name__)
 
-if int(config.PYARROW_VERSION.split(".")[0]) == 0:
+if config.PYARROW_VERSION.major == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
@@ -973,7 +973,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
+            lambda t: t.cast(schema)
+            if config.PYARROW_VERSION.major >= 4
+            else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1032,7 +1034,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         format = self.format
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
+            lambda t: t.cast(schema)
+            if config.PYARROW_VERSION.major >= 4
+            else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1568,7 +1572,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[List[str]] = None,
+        remove_columns: Optional[Union[str, List[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
@@ -1602,7 +1606,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`.
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[List[str]]`, default `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`Optional[Union[str, List[str]]]`, default `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (:obj:`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
@@ -1627,6 +1631,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
+        assert (
+            not keep_in_memory or cache_file_name is None
+        ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
         assert num_proc is None or num_proc > 0, "num_proc must be an integer > 0."
 
         # If the array is empty we do nothing
@@ -1648,6 +1655,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         )
                     )
 
+        if isinstance(remove_columns, str):
+            remove_columns = [remove_columns]
+
+        if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
+            raise ValueError(
+                "Column to remove {} not in the dataset. Current columns in the dataset: {}".format(
+                    list(filter(lambda col: col not in self._data.column_names, remove_columns)),
+                    self._data.column_names,
+                )
+            )
+
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
         if fn_kwargs is None:
@@ -1658,6 +1676,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             logger.warning(
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
+
+        disable_tqdm = bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
 
         if num_proc is None or num_proc == 1:
             return self._map_single(
@@ -1676,6 +1696,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
+                disable_tqdm=disable_tqdm,
                 desc=desc,
             )
         else:
@@ -1701,7 +1722,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             ):
                 logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
             os.environ["TOKENIZERS_PARALLELISM"] = "false"
-            with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
+            initargs, initializer = None, None
+            if not disable_tqdm:
+                initargs, initializer = (RLock(),), tqdm.set_lock
+            with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
                 os.environ = prev_env
                 shards = [
                     self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
@@ -1728,6 +1752,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         fn_kwargs=fn_kwargs,
                         rank=rank,
                         offset=sum(len(s) for s in shards[:rank]),
+                        disable_tqdm=disable_tqdm,
                         desc=desc,
                     )
                     for rank in range(num_proc)
@@ -1747,7 +1772,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[List[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
@@ -1762,6 +1787,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
+        disable_tqdm: bool = False,
         desc: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
@@ -1775,7 +1801,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
                 If no function is provided, default to identity function: lambda x: x
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
+            input_columns (`Optional[List[str]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
@@ -1800,43 +1826,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
-            offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`
+            offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
+            disable_tqdm (:obj:`bool`, defaults to `False`): Whether to silence tqdm's output.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
-        assert (
-            not keep_in_memory or cache_file_name is None
-        ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
-
         # Reduce logging to keep things readable in multiprocessing with tqdm
         if rank is not None and logging.get_verbosity() < logging.WARNING:
             logging.set_verbosity_warning()
         # Print at least one thing to fix tqdm in notebooks in multiprocessing
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-        if rank is not None and "notebook" in tqdm.__name__:
+        if rank is not None and not disable_tqdm and "notebook" in tqdm.__name__:
             print(" ", end="", flush=True)
-
-        # Select the columns (arrow columns) to process
-        if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
-            raise ValueError(
-                "Column to remove {} not in the dataset. Current columns in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, remove_columns)),
-                    self._data.column_names,
-                )
-            )
-
-        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
-
-        if isinstance(input_columns, str):
-            input_columns = [input_columns]
-
-        if input_columns is not None:
-            for input_column in input_columns:
-                if input_column not in self._data.column_names:
-                    raise ValueError(
-                        "Input column {} not in the dataset. Current columns in the dataset: {}".format(
-                            input_column, self._data.column_names
-                        )
-                    )
 
         if fn_kwargs is None:
             fn_kwargs = {}
@@ -1976,9 +1976,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
-                pbar = tqdm(
+                pbar = utils.tqdm(
                     pbar_iterable,
-                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    disable=disable_tqdm,
                     position=rank,
                     unit=pbar_unit,
                     desc=pbar_desc,
@@ -2829,7 +2829,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+            batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
@@ -2894,7 +2894,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+            batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
