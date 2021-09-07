@@ -188,7 +188,7 @@ def xpathglob(path, pattern):
         pattern (:obj:`str`): Pattern that resulting paths must match.
 
     Yields:
-        :obj:str
+        :obj:`~pathlib.Path`
     """
     posix_path = _as_posix(path)
     main_hop, *rest_hops = posix_path.split("::")
