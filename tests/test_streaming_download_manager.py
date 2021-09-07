@@ -33,7 +33,7 @@ def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
     Returns:
         str: the url path with :// instead of :/
     """
-    return re.sub("([A-z]:/)([A-z:])", "\g<1>/\g<2>", path_as_posix)
+    return re.sub("([A-z]:/)([A-z:])", r"\g<1>/\g<2>", path_as_posix)
 
 
 @pytest.mark.parametrize(
