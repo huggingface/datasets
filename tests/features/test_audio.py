@@ -33,8 +33,8 @@ def test_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"file": [audio_path]}
     features = Features({"file": Audio()})
-    dset = Dataset.from_dict(data, features=features).map(features.decode_example)
-    assert dset.shape == (1, 3)
-    assert dset.column_names == ["file", "array", "sampling_rate"]
-    assert len(dset[0]["array"]) == 202311  # TODO: to numpy?
-    assert dset[0]["sampling_rate"] == 44100
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {'array', 'sampling_rate'}
+    assert item["array"].shape == (202311,)
+    assert item["sampling_rate"] == 44100
