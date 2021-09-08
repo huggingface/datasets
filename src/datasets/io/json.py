@@ -67,6 +67,7 @@ class JsonDatasetWriter:
         num_proc: Optional[int] = None,
         **to_json_kwargs,
     ):
+        assert (num_proc is None or num_proc > 0, "num_proc must be an integer > 0.")
         self.dataset = dataset
         self.path_or_buf = path_or_buf
         self.batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
@@ -127,21 +128,20 @@ class JsonDatasetWriter:
                     json_str += "\n"
                 written += file_obj.write(json_str.encode(self.encoding))
         else:
-            pool = multiprocessing.Pool(processes=self.num_proc)
+            with multiprocessing.Pool(self.num_proc) as pool:
+                for json_str in utils.tqdm(
+                    pool.imap(
+                        self._batch_json,
+                        [(offset, orient, lines) for offset in range(0, len(self.dataset), self.batch_size)],
+                    ),
+                    total=(len(self.dataset) // self.batch_size) + 1,
+                    unit="ba",
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    desc="Creating json from Arrow format",
+                ):
+                    written += file_obj.write((json_str))
 
-            for json_str in utils.tqdm(
-                pool.imap(
-                    self._batch_json,
-                    [(offset, orient, lines) for offset in range(0, len(self.dataset), self.batch_size)],
-                ),
-                total=(len(self.dataset) // self.batch_size) + 1,
-                unit="ba",
-                disable=bool(logging.get_verbosity() == logging.NOTSET),
-                desc="Creating json from Arrow format",
-            ):
-                written += file_obj.write((json_str))
-
-            pool.close()
-            pool.join()
+                pool.close()
+                pool.join()
 
         return written
