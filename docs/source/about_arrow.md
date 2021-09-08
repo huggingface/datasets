@@ -2,16 +2,17 @@
 
 ## What is Arrow?
 
-Arrow enables large amounts of data to be processed and moved quickly. It is a specific data format that stores data in a columnar memory layout. This provides several significant advantages:
+[Arrow](https://arrow.apache.org/) enables large amounts of data to be processed and moved quickly. It is a specific data format that stores data in a columnar memory layout. This provides several significant advantages:
 
 * Arrow's standard format allows zero copy reads which removes virtually all serialization overhead.
 * Arrow is language-agnostic so it supports different programming languages.
 * Arrow is column-oriented so it is faster at querying and processing slices or columns of data.
 * Arrow allows for copy-free hand-offs to standard machine learning tools such as NumPy, Pandas, Torch, and TensorFlow.
+* Arrow supports many, possibly nested, column types.
 
 ## Memory
 
-🤗 Datasets uses Arrow for its local caching system that allows datasets to be backed by an on-disk cache, which is memory-mapped for fast lookup.
+🤗 Datasets uses Arrow for its local caching system. It allows datasets to be backed by an on-disk cache, which is memory-mapped for fast lookup.
 This architecture allows for large datasets to be used on machines with relatively small device memory.
 
 For example, loading the full Wikipedia dataset (en) only takes a few MB of RAM:
@@ -27,6 +28,9 @@ For example, loading the full Wikipedia dataset (en) only takes a few MB of RAM:
 >>> print(f"RAM memory used: {(mem_after - mem_before)} MB")
 'RAM memory used: 9 MB'
 ```
+
+This is possible because the Arrow data are actually memory-mapped from disk, and not loaded in memory.
+Memory-mapping allows to access data on disk and to leverage virtual memory capabilities for fast lookups.
 
 ## Performance
 
