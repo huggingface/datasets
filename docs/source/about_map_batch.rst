@@ -22,3 +22,22 @@ In other words, your input can be a batch of size ``N`` and return a batch of si
 
 However, you need to remember that each field in the output dictionary must contain the **same number of elements** as the other fields in the output dictionary. Otherwise, it is not possible to define the number of examples in the output returned by the mapped function. The number can vary between successive batches processed by the mapped function. For a single batch though, all fields of the output dictionary should have the same number of elements.
 
+For example, from a dataset of 1 column and 3 rows, if you use ``map`` to return a new column with twice as many rows, then you will have an error.
+Indeed in this case you end up with one column with 3 rows and one column with 6 rows, so the table is not valid:
+
+.. code-block::
+
+    >>> from datasets import Dataset
+    >>> dataset = Dataset.from_dict({"a": [0, 1, 2]})
+    >>> dataset.map(lambda batch: {"b": batch["a"] * 2}, batched=True)  # new column with 6 elements: [0, 1, 2, 0, 1, 2]
+    'ArrowInvalid: Column 1 named b expected length 3 but got length 6'
+
+To make it valid, you have to drop one of the columns:
+
+.. code-block::
+
+    >>> from datasets import Dataset
+    >>> dataset = Dataset.from_dict({"a": [0, 1, 2]})
+    >>> dataset_with_duplicates = dataset.map(lambda batch: {"b": batch["a"] * 2}, remove_columns=["a"], batched=True)
+    >>> len(dataset_with_duplicates)
+    6
