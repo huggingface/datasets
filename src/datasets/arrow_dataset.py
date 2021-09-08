@@ -165,9 +165,12 @@ class TensorflowDatasetMixIn:
 
     @staticmethod
     def _get_output_signature(dataset, test_batch, batch_size):
-        import tensorflow as tf
+        if config.TF_AVAILABLE:
+            import tensorflow as tf
+        else:
+            raise ImportError("Called a Tensorflow-specific function but could not import it!")
 
-        signatures = dict()
+        signatures = {}
         for column, col_feature in dataset.features.items():
             if hasattr(col_feature, "feature"):
                 dtype_str = col_feature.feature.dtype
@@ -224,10 +227,13 @@ class TensorflowDatasetMixIn:
         label_cols=None,
         prefetch=True,
     ):
-        import tensorflow as tf
+        if config.TF_AVAILABLE:
+            import tensorflow as tf
+        else:
+            raise ImportError("Called a Tensorflow-specific function but could not import it!")
 
         if collate_fn_args is None:
-            collate_fn_args = dict()
+            collate_fn_args = {}
 
         if label_cols is None:
             label_cols = []
@@ -265,7 +271,7 @@ class TensorflowDatasetMixIn:
             mask = np.arange(lens.max()) < lens[:, None]
 
             # Setup output array and put elements from data into masked positions
-            out = np.zeros(mask.shape, dtype=data.dtype)
+            out = np.zeros(mask.shape, dtype=np.array(data[0]).dtype)
             out[mask] = np.concatenate(data)
             return out
 
@@ -286,8 +292,7 @@ class TensorflowDatasetMixIn:
             else:
                 for key in cols_to_retain:
                     array = batch[key]
-                    if array.dtype == np.object:
-                        array = numpy_pad(array)
+                    array = numpy_pad(array)
                     cast_dtype = np.int64 if np.issubdtype(array.dtype, np.integer) else np.float32
                     array = array.astype(cast_dtype)
                     out_batch.append(array)
