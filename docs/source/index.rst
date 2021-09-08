@@ -71,12 +71,14 @@ Find your dataset today on the `Hugging Face Hub <https://huggingface.co/dataset
     loading
     process
     stream
-    beam
-    how_to_metrics
     share
+    dataset_script
+    dataset_card
     cache
     filesystems
     faiss_es
+    how_to_metrics
+    beam
 
 .. toctree::
     :hidden:

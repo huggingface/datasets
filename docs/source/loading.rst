@@ -13,6 +13,8 @@ This guide will show you how to load a dataset from:
 
 You will also learn how to troubleshoot common errors, and how to load specific configurations of a metric.
 
+.. _load-from-the-hub:
+
 Hugging Face Hub
 ----------------
 
