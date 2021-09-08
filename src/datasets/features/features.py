@@ -954,6 +954,13 @@ class Features(dict):
         # TODO
         return decode_nested_example(self, example)
 
+    def decode_batch(self, batch):
+        # TODO
+        decoded_batch = {}
+        for key, column in batch.items():
+            decoded_batch[key] = [decode_nested_example(self[key], obj) for obj in column]
+        return decoded_batch
+
     def copy(self) -> "Features":
         """
         Make a deep copy of Features.
