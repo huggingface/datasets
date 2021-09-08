@@ -56,6 +56,7 @@ from .fingerprint import (
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting.formatting import key_to_query_type
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split
@@ -1497,6 +1498,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset = dataset.cast(features=template.features)
         return dataset
 
+    def _features_decode(self, output, key):
+        query_type = key_to_query_type(key)
+        if query_type == "row":
+            return self.features.decode_example(output)
+        elif query_type == "batch":
+            return self.features.decode_batch(output)
+        else:
+            return output
+
     def _getitem(
         self,
         key: Union[int, slice, str],
@@ -1514,7 +1524,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         formatted_output = format_table(
             pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
         )
-        return formatted_output
+        output = self._features_decode(formatted_output, key)
+        return output
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
