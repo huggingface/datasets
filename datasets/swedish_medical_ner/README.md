@@ -20,7 +20,7 @@ task_ids:
 - named-entity-recognition
 ---
 
-# Dataset Card for SwedMedNER
+# Dataset Card for swedish_medical_ner
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -87,6 +87,12 @@ Tags are as follows:
 
 ### Data Fields
 
+- `sentence`
+- `entities`
+    - `start`: the start index
+    - `end`: the end index
+    - `text`: the text of the entity
+    - `type`: entity type (Disorder and Finding / Pharmaceutical Drug / Body Structure)
 
 ### Data Splits
 
