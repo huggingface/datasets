@@ -18,6 +18,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+pretty_name: SwedMedNER
 ---
 
 # Dataset Card for swedish_medical_ner
