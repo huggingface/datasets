@@ -1,7 +1,8 @@
 import os
+import re
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import fsspec
 import posixpath
@@ -15,8 +16,8 @@ from .logging import get_logger
 
 
 logger = get_logger(__name__)
-BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
 
+BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
@@ -25,8 +26,8 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
     "tar": "tar",
     "tgz": "tar",
 }
-
 SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
+SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
 
 
 def xjoin(a, *p):
@@ -54,6 +55,62 @@ def xjoin(a, *p):
     else:
         a = posixpath.join(a, *p)
     return "::".join([a] + b)
+
+
+def xdirname(a, *p):
+    """
+    This function extends os.path.dirname to support the "::" hop separator. It supports both paths and urls.
+
+    A shorthand, particularly useful where you have multiple hops, is to “chain” the URLs with the special separator "::".
+    This is used to access files inside a zip file over http for example.
+
+    Let's say you have a zip file at https://host.com/archive.zip, and you want to access the file inside the zip file at /folder1/file.txt.
+    Then you can just chain the url this way:
+
+        zip://folder1/file.txt::https://host.com/archive.zip
+
+    The xdirname function allows you to apply the dirname on the first path of the chain.
+
+    Example::
+
+        >>> xdirname("zip://folder1/file.txt::https://host.com/archive.zip")
+        zip://folder1::https://host.com/archive.zip
+    """
+    a, *b = a.split("::")
+    if is_local_path(a):
+        a = os.path.dirname(Path(a).as_posix())
+    else:
+        a = posixpath.dirname(a)
+    # if we end up at the root of the protocol, we get for example a = 'http:'
+    # so we have to fix it by adding the '//' that was removed:
+    if a.endswith(":"):
+        a += "//"
+    return "::".join([a] + b)
+
+
+def _as_posix(path: Path):
+    """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slash after protocol.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        obj:`str`
+    """
+    return SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path.as_posix())
+
+
+def xpathjoin(a: Path, *p: Tuple[str, ...]):
+    """Extend :func:`xjoin` to support argument of type :obj:`~pathlib.Path`.
+
+    Args:
+        a (:obj:`~pathlib.Path`): Calling Path instance.
+        *p (:obj:`tuple` of :obj:`str`): Other path components.
+
+    Returns:
+        obj:`str`
+    """
+    return type(a)(xjoin(_as_posix(a), *p))
 
 
 def _add_retries_to_file_obj_read_method(file_obj):
@@ -108,6 +165,19 @@ def xopen(file, mode="r", *args, **kwargs):
     file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
+
+
+def xpathopen(path: Path, **kwargs):
+    """Extend :func:`xopen` to support argument of type :obj:`~pathlib.Path`.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+        **kwargs: Keyword arguments passed to :func:`fsspec.open`.
+
+    Returns:
+        :obj:`io.FileIO`: File-like object.
+    """
+    return xopen(_as_posix(path), **kwargs)
 
 
 class StreamingDownloadManager(object):
