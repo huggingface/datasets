@@ -94,3 +94,8 @@ To ensure a dataset is complete, :func:`datasets.load_dataset` will perform a se
 * The SHA256 checksums of the downloaded files.
 * The number of splits in the generated ``DatasetDict``.
 * The number of samples in each split of the generated ``DatasetDict``.
+
+If the dataset doesn't pass the verifications, it is likely that the original host of the dataset does some changes in the data files.
+In this case, an error is raised to alert that the dataset changed.
+To ignore the error, one needs to specify ``ignore_verifications=True`` in ``load_dataset()``.
+Anytime you see a verification error, feel free to `open an issue on GitHub <https://github.com/huggingface/datasets/issues>`_ so that we can update the integrity checks for this dataset.
