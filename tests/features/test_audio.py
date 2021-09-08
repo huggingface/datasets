@@ -35,6 +35,6 @@ def test_dataset_with_audio_feature(shared_datadir):
     features = Features({"file": Audio()})
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
-    assert item.keys() == {'array', 'sampling_rate'}
+    assert item.keys() == {"array", "sampling_rate"}
     assert item["array"].shape == (202311,)
     assert item["sampling_rate"] == 44100
