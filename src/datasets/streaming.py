@@ -5,7 +5,16 @@ from unittest.mock import patch
 
 from .utils.logging import get_logger
 from .utils.patching import patch_submodule
-from .utils.streaming_download_manager import xdirname, xjoin, xopen, xpathglob, xpathjoin, xpathopen, xpathstem, xpathsuffix
+from .utils.streaming_download_manager import (
+    xdirname,
+    xjoin,
+    xopen,
+    xpathglob,
+    xpathjoin,
+    xpathopen,
+    xpathstem,
+    xpathsuffix,
+)
 
 
 logger = get_logger(__name__)
