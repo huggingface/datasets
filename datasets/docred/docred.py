@@ -29,7 +29,7 @@ from Wikipedia and Wikidata with three features:
 
 _URLS = {
     "dev": "https://drive.google.com/uc?export=download&id=1fDmfUUo5G7gfaoqWWvK81u08m71TK2g7",
-    "train_distant": "https://drive.google.com/uc?export=download&id=1fDmfUUo5G7gfaoqWWvK81u08m71TK2g7",
+    "train_distant": "https://drive.google.com/uc?export=download&id=1Qr4Jct2IJ9BVI86_mCk_Pz0J32ww9dYw",
     "train_annotated": "https://drive.google.com/uc?export=download&id=1NN33RzyETbanw4Dg2sRrhckhWpzuBQS9",
     "test": "https://drive.google.com/uc?export=download&id=1lAVDcD94Sigx7gR3jTfStI66o86cflum",
     "rel_info": "https://drive.google.com/uc?id=1y9A0zKrvETc1ddUFuFhBg3Xfr7FEL4dW&export=download",
