@@ -59,6 +59,17 @@ Select a configuration
 
 Some datasets, like the `General Language Understanding Evaluation (GLUE) <https://huggingface.co/datasets/glue>`_ benchmark, are actually made up of several datasets. These sub-datasets are called **configurations**, and you must explicitly select one when you load the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a ``ValueError`` and remind you to select a configuration.
 
+Use ``get_dataset_config_names`` to retrieve a a list of all the possible configurations available to your dataset:
+
+.. code-block::
+
+   from datasets import get_dataset_config_names
+
+   configs = get_dataset_config_names("glue")
+   print(configs)
+   # ['cola', 'sst2', 'mrpc', 'qqp', 'stsb', 'mnli', 'mnli_mismatched', 'mnli_matched', 'qnli', 'rte', 'wnli', 'ax']
+
+
 ❌ Incorrect way to load a configuration:
 
 .. code-block::

@@ -1,4 +1,4 @@
-Build and Load
+Build and load
 ==============
 
 Nearly every deep learning workflow begins with loading a dataset, which makes it one of the most important steps. With 🤗 Datasets, there are more than 900 datasets available to help you get started with your NLP task. All you have to do is call: :func:`datasets.load_dataset` to take your first step. This function is a true workhorse in every sense because it builds and loads every dataset you use.

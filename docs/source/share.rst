@@ -10,7 +10,7 @@ There are two options to add a new dataset:
 - Directly upload it on the Hub as a community provided dataset.
 - Add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗 Datasets <https://github.com/huggingface/datasets>`__.
 
-Community vs. Canonical
+Community vs. canonical
 -----------------------
 
 Both options offer the same features such as:
@@ -48,7 +48,7 @@ On the other hand, a dataset script is always required for canonical datasets.
 
 .. _upload_dataset_repo:
 
-Add a Community dataset
+Add a community dataset
 -----------------------
 
 You can share your dataset with the community with a dataset repository on the Hugging Face Hub.
@@ -157,7 +157,7 @@ Congratulations, your dataset has now been uploaded to the Hugging Face Hub wher
 
    dataset = load_dataset("namespace/your_dataset_name")
 
-Add a Canonical dataset
+Add a canonical dataset
 -----------------------
 
 Canonical datasets are dataset scripts hosted in the GitHub repository of the 🤗 Dataset library.

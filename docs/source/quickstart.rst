@@ -5,6 +5,10 @@ The quick start is intended for developers who are ready to dive in to the code,
 
 In the quick start, you will walkthrough all the steps to fine-tune `BERT <https://huggingface.co/bert-base-cased>`_ on a paraphrase classification task. Depending on the specific dataset you use, these steps may vary, but the general steps of how to load a dataset and process it are the same.
 
+.. tip::
+
+   For more detailed information on loading and processing a dataset, take a look at `Chapter 3 <https://huggingface.co/course/chapter3/1?fw=pt>`_ of the Hugging Face course! It covers additional important topics like dynamic padding, and fine-tuning with the Trainer API. 
+
 Get started by installing 🤗 Datasets:
 
 .. code::
@@ -56,7 +60,6 @@ The next step is to tokenize the text in order to build sequences of integers th
    ...     return tokenizer(examples['sentence1'], examples['sentence2'], truncation=True, padding='max_length')
    
    >>> dataset = dataset.map(encode, batched=True)
-   100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4/4 [00:02<00:00,  1.75it/s]
    >>> dataset[0]
    {'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
    'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
@@ -71,7 +74,7 @@ Notice how there are three new columns in the dataset: ``input_ids``, ``token_ty
 Format the dataset
 ------------------
 
-Depending on whether you are using PyTorch or TensorFlow, you will need to format the dataset accordingly. There are three changes you need to make to the dataset:
+Depending on whether you are using PyTorch, TensorFlow, or JAX, you will need to format the dataset accordingly. There are three changes you need to make to the dataset:
 
 1. Rename the ``label`` column to ``labels``, the expected input name in `BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#transformers.BertForSequenceClassification.forward>`__ or `TFBertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#tfbertforsequenceclassification>`__:
    

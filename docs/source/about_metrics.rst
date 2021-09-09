@@ -1,4 +1,4 @@
-All About Metrics
+All about metrics
 =================
 
 🤗 Datasets provides access to a wide range of NLP metrics. You can load metrics associated with benchmark datasets like GLUE or SQuAD, and complex metrics like BLEURT or BERTScore, with a single command: :func:`datasets.load_metric`. Once you've loaded a metric, easily compute and evaluate a model's performance.

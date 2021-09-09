@@ -10,7 +10,7 @@
 * Arrow allows for copy-free hand-offs to standard machine learning tools such as NumPy, Pandas, PyTorch, and TensorFlow.
 * Arrow supports many, possibly nested, column types.
 
-## Memory
+## Memory-mapping
 
 🤗 Datasets uses Arrow for its local caching system. It allows datasets to be backed by an on-disk cache, which is memory-mapped for fast lookup.
 This architecture allows for large datasets to be used on machines with relatively small device memory.
