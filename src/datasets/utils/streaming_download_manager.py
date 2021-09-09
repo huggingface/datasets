@@ -1,7 +1,7 @@
 import os
 import re
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Optional, Tuple
 
 import fsspec
@@ -178,6 +178,30 @@ def xpathopen(path: Path, **kwargs):
         :obj:`io.FileIO`: File-like object.
     """
     return xopen(_as_posix(path), **kwargs)
+
+
+def xpathstem(path: Path):
+    """Stem function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        :obj:`str`
+    """
+    return PurePosixPath(_as_posix(path).split("::")[0]).stem
+
+
+def xpathsuffix(path: Path):
+    """Suffix function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        :obj:`str`
+    """
+    return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
 class StreamingDownloadManager(object):
