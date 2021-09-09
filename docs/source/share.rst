@@ -7,18 +7,18 @@ This guide will show you how to add a dataset that can be easily accessed by any
 
 There are two options to add a new dataset:
 
-- directly upload it on the Hub as a community provided dataset.
-- add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗 Datasets <https://github.com/huggingface/datasets>`__,
+- Directly upload it on the Hub as a community provided dataset.
+- Add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗 Datasets <https://github.com/huggingface/datasets>`__.
 
 Community vs. Canonical
 -----------------------
 
 Both options offer the same features such as:
 
-- dataset versioning
-- commit history and diffs
-- metadata for discoverability
-- dataset cards for documentation, licensing, limitations, etc.
+- Dataset versioning
+- Commit history and diffs
+- Metadata for discoverability
+- Dataset cards for documentation, licensing, limitations, etc.
 
 The main differences between the two are highlighted in the table below:
 
@@ -38,11 +38,9 @@ The main differences between the two are highlighted in the table below:
     * - Flagged as **unsafe** because the dataset contains executable code.
       - Flagged as **safe** because the dataset has been reviewed.
 
-For community datasets, you can either have your dataset in a supported format (csv/jsonl/json/parquet/txt), or use a dataset script to define how to load your data.
-If your dataset is in a supported format, you're all set ! In this case you can directly skip the dataset script guide and go the Dataset card and Upload sections.
-Otherwise, you need a dataset script. It simply is a python script and its role is to define the dataset splits, the feature types and how to download and process the data.
+For community datasets, if your dataset is a supported format, you can skip directly below to learn how to upload your files and add a :ref:`dataset_card`. There is no need to write your own dataset script (unless you want more control over how to load your dataset). However, if the dataset isn't one of the supported formats, you will need to write a `dataset script <dataset_script.html>`_. The dataset script is a Python script that defines the dataset splits, feature types, and how to download and process the data.
 
-On the other hand for canonical datasets, the dataset script is always mandatory.
+On the other hand, a dataset script is always required for canonical datasets.
 
 .. important::
 
@@ -57,18 +55,17 @@ You can share your dataset with the community with a dataset repository on the H
 In a dataset repository, you can either host all your data files and/or use a dataset script.
 
 The dataset script is optional if your dataset is in one of the following formats: CSV, JSON, JSON lines, text or Parquet.
-It also supports many kinds of compression such as GZ, BZ2, LZ4, LZMA or ZSTD.
-For example your dataset can be made of ``.json.gz`` files.
+The script also supports many kinds of compressed file types such as: GZ, BZ2, LZ4, LZMA or ZSTD.
+For example, your dataset can be made of ``.json.gz`` files.
 
-On the other hand, if you dataset is not in the supported format, or if you want more control over your dataset, you can use a dataset script.
-The dataset script is used to define the different configurations or splits or your datasets, and also to define how to download and process the data.
+On the other hand, if your dataset is not in the supported format or if you want more control over how your dataset is loaded, you can write your own dataset script.
 
 When loading a dataset from the Hub:
 
-- if there's no dataset script, all the files in the supported formats are loaded.
-- if there is a dataset script, it is downloaded and executed to download and prepare the dataset.
+- If there's no dataset script, all the files in the supported formats are loaded.
+- If there's a dataset script, it is downloaded and executed to download and prepare the dataset.
 
-To can find more information on how to load a dataset, see how to load from the :ref:`load-from-the-hub`
+For more information on how to load a dataset from the Hub, see how to load from the :ref:`load-from-the-hub`.
 
 Create the repository
 ^^^^^^^^^^^^^^^^^^^^^
@@ -164,7 +161,7 @@ Add a Canonical dataset
 -----------------------
 
 Canonical datasets are dataset scripts hosted in the GitHub repository of the 🤗 Dataset library.
-The code of these datasets are reviewed by the HF team, and they require test data in order to be regularly tested.
+The code of these datasets are reviewed by the Hugging Face team, and they require test data in order to be regularly tested.
 
 Clone the repository
 ^^^^^^^^^^^^^^^^^^^^

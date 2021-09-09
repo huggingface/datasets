@@ -1,10 +1,9 @@
 Dataset script
 ==============
 
-To be able to load and share your own dataset, you can write a dataset script.
-It is a python file that defines the different configurations and splits of your dataset, as well as how to download and process the data.
+Write a dataset script to load and share your own datasets. It is a Python file that defines the different configurations and splits of your dataset, as well as how to download and process the data.
 
-Any dataset script ``my_dataset.py`` can be placed in a folder or a repository named ``my_dataset`` and be loaded with
+Any dataset script, for example ``my_dataset.py``, can be placed in a folder or a repository named ``my_dataset`` and be loaded with:
 
 .. code-block::
 

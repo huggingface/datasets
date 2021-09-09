@@ -1,3 +1,5 @@
+.. _dataset_card:
+
 Dataset card
 ============
 
@@ -20,7 +22,7 @@ This guide shows you how to create your own Dataset card.
 
 7. Once you are done filling out the card with the online form, click the **Export** button to download the Dataset card. Place it in the same folder as your dataset.
 
-Feel free to take a look at these exampels of good Dataset cards:
+Feel free to take a look at these examples of good Dataset cards for inspiration:
 
 - `SNLI <https://huggingface.co/datasets/snli>`_
 - `CNN / DailyMail <https://huggingface.co/datasets/cnn_dailymail>`_

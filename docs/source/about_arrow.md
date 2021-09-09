@@ -4,10 +4,10 @@
 
 [Arrow](https://arrow.apache.org/) enables large amounts of data to be processed and moved quickly. It is a specific data format that stores data in a columnar memory layout. This provides several significant advantages:
 
-* Arrow's standard format allows zero copy reads which removes virtually all serialization overhead.
+* Arrows standard format allows zero copy reads which removes virtually all serialization overhead.
 * Arrow is language-agnostic so it supports different programming languages.
 * Arrow is column-oriented so it is faster at querying and processing slices or columns of data.
-* Arrow allows for copy-free hand-offs to standard machine learning tools such as NumPy, Pandas, Torch, and TensorFlow.
+* Arrow allows for copy-free hand-offs to standard machine learning tools such as NumPy, Pandas, PyTorch, and TensorFlow.
 * Arrow supports many, possibly nested, column types.
 
 ## Memory
@@ -29,12 +29,12 @@ For example, loading the full Wikipedia dataset (en) only takes a few MB of RAM:
 'RAM memory used: 9 MB'
 ```
 
-This is possible because the Arrow data are actually memory-mapped from disk, and not loaded in memory.
-Memory-mapping allows to access data on disk and to leverage virtual memory capabilities for fast lookups.
+This is possible because the Arrow data is actually memory-mapped from disk, and not loaded in memory.
+Memory-mapping allows access to data on disk, and leverages virtual memory capabilities for fast lookups.
 
 ## Performance
 
-Iterating over a memory-mapped dataset using Arrow is fast. Iterating over Wikipedia on a laptop gives you a speed of 1-3 Gbit/s:
+Iterating over a memory-mapped dataset using Arrow is fast. Iterating over Wikipedia on a laptop gives you speeds of 1-3 Gbit/s:
 
 ```python
 >>> s = """batch_size = 1000
