@@ -345,6 +345,7 @@ def fingerprint_transform(
         if randomized_function:  # randomized function have seed and generator parameters
             assert "seed" in func.__code__.co_varnames, "'seed' must be in {}'s signature".format(func)
             assert "generator" in func.__code__.co_varnames, "'generator' must be in {}'s signature".format(func)
+        # this has to be outside the wrapper or since __qualname__ changes in multiprocessing
         transform = func.__module__ + "." + func.__qualname__
 
         @wraps(func)
