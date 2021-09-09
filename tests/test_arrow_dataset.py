@@ -3,9 +3,11 @@ import itertools
 import json
 import os
 import pickle
+import re
 import tempfile
 from functools import partial
 from unittest import TestCase
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -965,6 +967,33 @@ class BaseDatasetTest(TestCase):
                     with dset.map(lambda x: {"foo": "bar"}, load_from_cache_file=False) as dset_test2:
                         self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
                         self.assertEqual(len(dset_test2.cache_files), 1 - int(in_memory))
+                        self.assertNotIn("Loading cached processed dataset", self._caplog.text)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._caplog.clear()
+            with self._caplog.at_level(WARNING):
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    with patch("datasets.arrow_dataset.Pool", side_effect=datasets.arrow_dataset.Pool) as mock_pool:
+                        with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
+                            dset_test1_data_files = list(dset_test1.cache_files)
+                        self.assertEqual(mock_pool.call_count, 1)
+                        with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
+                            self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                            self.assertTrue(
+                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2)
+                                ^ in_memory
+                            )
+                        self.assertEqual(mock_pool.call_count, 2 if in_memory else 1)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._caplog.clear()
+            with self._caplog.at_level(WARNING):
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
+                        dset_test1_data_files = list(dset_test1.cache_files)
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2, load_from_cache_file=False) as dset_test2:
+                        self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                        self.assertEqual(len(dset_test2.cache_files), (1 - int(in_memory)) * 2)
                         self.assertNotIn("Loading cached processed dataset", self._caplog.text)
 
         if not in_memory:
