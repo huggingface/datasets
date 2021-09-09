@@ -172,10 +172,10 @@ class TensorflowDatasetMixIn:
 
         signatures = {}
         for column, col_feature in dataset.features.items():
-            if hasattr(col_feature, "feature"):
-                dtype_str = col_feature.feature.dtype
-            else:
-                dtype_str = col_feature.dtype
+            dtype_feature = col_feature
+            while hasattr(dtype_feature, "feature"):  # Descend this godforsaken nested rabbit hole as long as it takes
+                dtype_feature = dtype_feature.feature
+            dtype_str = dtype_feature.dtype
             if dtype_str.startswith("int") or dtype_str.startswith("uint"):
                 dtype = tf.int64
             elif dtype_str.startswith("float"):
@@ -251,6 +251,9 @@ class TensorflowDatasetMixIn:
             cols_to_retain = list(set(columns + label_cols))
         else:
             cols_to_retain = columns
+        # Special casing when the dataset has 'label' and the model expects 'labels' and the collator fixes it up for us
+        if "labels" in cols_to_retain and "labels" not in self.features and "label" in self.features:
+            cols_to_retain[cols_to_retain.index("labels")] = "label"
         for col in cols_to_retain:
             if col not in self.features:
                 raise ValueError(f"Couldn't find column {col} in dataset!")
@@ -283,6 +286,10 @@ class TensorflowDatasetMixIn:
                 # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
                 batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
                 batch = collate_fn(batch, **collate_fn_args)
+                # Special casing when the dataset has 'label' and the model
+                # expects 'labels' and the collator fixes it up for us
+                if "label" in cols_to_retain and "label" not in batch and "labels" in batch:
+                    cols_to_retain[cols_to_retain.index("label")] = "labels"
                 for key in cols_to_retain:
                     # In case the collate_fn returns something strange
                     array = np.array(batch[key])
