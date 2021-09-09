@@ -1,7 +1,7 @@
 Logging methods
 ----------------------------------------------------
 
-🤗 Datasets strives to be transparent and explicit about how it works, but this can be quite verbose at times.We have included a series of logging methods which allow you to easily adjust the level of verbosity of the entire library. Currently the default verbosity of the library is set to ``WARNING``.
+🤗 Datasets strives to be transparent and explicit about how it works, but this can be quite verbose at times. We have included a series of logging methods which allow you to easily adjust the level of verbosity of the entire library. Currently the default verbosity of the library is set to ``WARNING``.
 
 To change the level of verbosity, use one of the direct setters. For instance, here is how to change the verbosity to the ``INFO`` level:
 

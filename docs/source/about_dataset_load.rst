@@ -65,7 +65,7 @@ There are three main methods in :class:`datasets.DatasetBuilder`:
 
 1. :func:`datasets.DatasetBuilder._info` is in charge of defining the dataset attributes. When you call ``dataset.info``, 🤗 Datasets returns the information stored here. Likewise, the :class:`datasets.Features` are also specified here. Remember, the :class:`datasets.Features` are like the skeleton of the dataset. It provides the names and types of each column.
 
-2. :func:`datasets.DatasetBuilder._split_generator` downloads or retrieves the requested data files, organizes them into splits, and defines specific arguments for the generation process. This method has a :class:`datasets.DownloadManager` that downloads files or fetches them from your local filesystem. Within the :class:`datasets.DownloadManager`, there is a :func:`datasets.DownloadManager.download_and_extract` method that accepts a dictionary of URLs to the original data files, and downloads the requested files. Accepted inputs include: a single URL or path, or a list/dictionary of URLs or paths. Any compressed file types like tar, gzip and zip archives will be automatically extracted.
+2. :func:`datasets.DatasetBuilder._split_generator` downloads or retrieves the requested data files, organizes them into splits, and defines specific arguments for the generation process. This method has a :class:`datasets.DownloadManager` that downloads files or fetches them from your local filesystem. Within the :class:`datasets.DownloadManager`, there is a :func:`datasets.DownloadManager.download_and_extract` method that accepts a dictionary of URLs to the original data files, and downloads the requested files. Accepted inputs include: a single URL or path, or a list/dictionary of URLs or paths. Any compressed file types like TAR, GZIP and ZIP archives will be automatically extracted.
 
    Once the files are downloaded, :class:`datasets.SplitGenerator` organizes them into splits. The :class:`datasets.SplitGenerator` contains the name of the split, and any keyword arguments that are provided to the :func:`datasets.DatasetBuilder._generate_examples` method. The keyword arguments can be specific to each split, and typically comprise at least the local path to the data files for each split.
 
@@ -95,7 +95,7 @@ To ensure a dataset is complete, :func:`datasets.load_dataset` will perform a se
 * The number of splits in the generated ``DatasetDict``.
 * The number of samples in each split of the generated ``DatasetDict``.
 
-If the dataset doesn't pass the verifications, it is likely that the original host of the dataset does some changes in the data files.
-In this case, an error is raised to alert that the dataset changed.
+If the dataset doesn't pass the verifications, it is likely that the original host of the dataset made some changes in the data files.
+In this case, an error is raised to alert that the dataset has changed.
 To ignore the error, one needs to specify ``ignore_verifications=True`` in ``load_dataset()``.
 Anytime you see a verification error, feel free to `open an issue on GitHub <https://github.com/huggingface/datasets/issues>`_ so that we can update the integrity checks for this dataset.
