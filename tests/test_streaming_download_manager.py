@@ -17,6 +17,8 @@ from datasets.utils.streaming_download_manager import (
     xpathglob,
     xpathjoin,
     xpathopen,
+    xpathstem,
+    xpathsuffix,
 )
 
 from .utils import require_lz4, require_zstandard
@@ -255,6 +257,30 @@ def test_xpathglob(input_path, pattern, expected_paths, tmp_path):
         with patch.dict(datasets.utils.streaming_download_manager.fsspec.registry.target, dummy_registry):
             output_path = sorted(xpathglob(Path(input_path), pattern))
     assert output_path == expected_paths
+
+
+@pytest.mark.parametrize(
+    "input_path, expected",
+    [
+        ("zip://file.txt::https://host.com/archive.zip", "file"),
+        ("file.txt", "file"),
+        ((Path().resolve() / "file.txt").as_posix(), "file"),
+    ],
+)
+def test_xpathstem(input_path, expected):
+    assert xpathstem(Path(input_path)) == expected
+
+
+@pytest.mark.parametrize(
+    "input_path, expected",
+    [
+        ("zip://file.txt::https://host.com/archive.zip", ".txt"),
+        ("file.txt", ".txt"),
+        ((Path().resolve() / "file.txt").as_posix(), ".txt"),
+    ],
+)
+def test_xpathsuffix(input_path, expected):
+    assert xpathsuffix(Path(input_path)) == expected
 
 
 @pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])

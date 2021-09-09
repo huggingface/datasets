@@ -1,7 +1,7 @@
 import os
 import re
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Optional, Tuple
 
 import fsspec
@@ -200,6 +200,30 @@ def xpathglob(path, pattern):
             globbed_paths = fs.glob(globbed_paths[0])
         for globbed_path in globbed_paths:
             yield type(path)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
+
+
+def xpathstem(path: Path):
+    """Stem function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        :obj:`str`
+    """
+    return PurePosixPath(_as_posix(path).split("::")[0]).stem
+
+
+def xpathsuffix(path: Path):
+    """Suffix function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        :obj:`str`
+    """
+    return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
 class StreamingDownloadManager(object):
