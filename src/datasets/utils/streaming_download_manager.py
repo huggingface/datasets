@@ -196,6 +196,8 @@ def xpathglob(path, pattern):
         yield from Path(main_hop).glob(pattern)
     else:
         fs, fs_token, globbed_paths = fsspec.get_fs_token_paths(xjoin(posix_path, pattern))
+        # if there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
+        # so to be able to glob patterns like "[0-9]", we have to call `fs.glob`
         if "*" not in pattern:
             globbed_paths = fs.glob(globbed_paths[0])
         for globbed_path in globbed_paths:
