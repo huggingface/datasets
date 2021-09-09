@@ -6,11 +6,11 @@ language_creators:
 languages:
   - en-US
 licenses:
-- gnu-gpl-v3.0
+- gpl-3.0
 multilinguality:
 - monolingual
 size_categories:
-- <n<1K
+- n<1K
 source_datasets:
 - original
 task_categories:
