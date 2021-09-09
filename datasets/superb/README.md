@@ -87,6 +87,34 @@ Automatic Speech Recognition (ASR) transcribes utterances into words. While PR a
 
 Keyword Spotting (KS) detects preregistered keywords by classifying utterances into a predefined set of words. The task is usually performed on-device for the fast response time. Thus, accuracy, model size, and inference time are all crucial. SUPERB uses the widely used [Speech Commands dataset v1.0](https://www.tensorflow.org/datasets/catalog/speech_commands) for the task. The dataset consists of ten classes of keywords, a class for silence, and an unknown class to include the false positive. The evaluation metric is accuracy (ACC)
 
+##### Example of usage:
+
+Use these auxillary functions to:
+- load the audio file into an audio data array
+- sample from long `_silence_` audio clips
+
+```python
+def map_to_array(example):
+    import soundfile as sf
+
+    speech_array, sample_rate = sf.read(example["file"])
+    example["speech"] = speech_array
+    example["sample_rate"] = sample_rate
+    return example
+
+
+def sample_noise(example):
+    # Use this function to extract random 1 sec slices of each _silence_ utterance,
+    # e.g. inside `torch.utils.data.Dataset.__iter__()`
+    from random import randint
+
+    if example["label"] == "_silence_":
+        random_offset = randint(0, len(example["speech"]) - example["sample_rate"] - 1)
+        example["speech"] = example["speech"][random_offset : random_offset + example["sample_rate"]]
+
+    return example
+```
+
 #### qbe
 
 Query by Example Spoken Term Detection (QbE) detects a spoken term (query) in an audio database (documents) by binary discriminating a given pair of query and document into a match or not. The English subset in [QUESST 2014 challenge](https://github.com/s3prl/s3prl/tree/master/downstream#qbe-query-by-example-spoken-term-detection) is adopted since we focus on investigating English as the first step. The evaluation metric is maximum term weighted value (MTWV) which balances misses and false alarms.
@@ -189,7 +217,7 @@ An example from each split looks like:
 ```python
 {
   'file': '/path/yes/af7a8296_nohash_1.wav', 
-  'label': 'yes'
+  'label': 0  # 'yes'
 }
 ```
 
@@ -200,8 +228,16 @@ An example from each split looks like:
 
 #### ic
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+```python
+{
+  'file': "/path/wavs/speakers/2BqVo8kVB2Skwgyb/063aa8f0-4479-11e9-a9a5-5dbec3b8816a.wav",
+  'speaker_id': '2BqVo8kVB2Skwgyb',
+  'text': 'Turn the bedroom lights off',
+  'action': 3,  # 'deactivate'
+  'object': 7,  # 'lights'
+  'location': 0  # 'bedroom'
+}
+```
 
 #### sf
 
@@ -210,8 +246,12 @@ An example from each split looks like:
 
 #### si
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+```python
+{
+  'file': '/path/wav/id10003/na8-QEFmj44/00003.wav', 
+  'label': 2  # 'id10003'
+}
+```
 
 #### asv
 
@@ -260,17 +300,20 @@ An example from each split looks like:
 #### ks
 
 - `file` (`string`): Path to the WAV audio file.
-- `label` (`string`): Label of the spoken command.
+- `label` (`ClassLabel`): Label of the spoken command.
 
 #### qbe
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
-
 #### ic
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+- `file` (`string`): Path to the WAV audio file.
+- `speaker_id` (`string`): ID of the speaker.
+- `text` (`string`): Transcription of the spoken command.
+- `action` (`ClassLabel`): Label of the command's action.
+- `object` (`ClassLabel`): Label of the command's object.
+- `location` (`ClassLabel`): Label of the command's location.
 
 #### sf
 
@@ -279,8 +322,8 @@ An example from each split looks like:
 
 #### si
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+- `file` (`string`): Path to the WAV audio file.
+- `label` (`ClassLabel`): Label (ID) of the speaker.
 
 #### asv
 
@@ -301,7 +344,8 @@ The data fields in all splits are:
 
 #### er
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- `file` (`string`): Path to the WAV audio file.
+- `label` (`string`): Label of the speech emotion.
 
 ### Data Splits
 
@@ -329,8 +373,9 @@ The data fields in all splits are:
 
 #### ic
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+|    | train | validation | test |
+|----|------:|-----------:|-----:|
+| ic | 23132 |       3118 | 3793 |
 
 #### sf
 
@@ -339,8 +384,9 @@ The data fields in all splits are:
 
 #### si
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-
+|    | train  | validation | test |
+|----|-------:|-----------:|-----:|
+| si | 138361 | 6904       | 8251 |
 
 #### asv
 
@@ -357,7 +403,11 @@ The data is split into "train", "dev" and "test" sets, each containing the follo
 
 #### er
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The data is split into 5 sets intended for 5-fold cross-validation:
+
+|    | session1 | session2 | session3 | session4 | session5 |
+|----|---------:|---------:|---------:|---------:|---------:|
+| er | 1085     | 1023     | 1151     | 1031     | 1241     |
 
 ## Dataset Creation
 
