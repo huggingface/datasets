@@ -96,6 +96,8 @@ For each instance, there are two sentences (i.e. sentence 1 and 2), and its corr
 
 ### Data Splits
 
+[More Information Needed]
+
 ## Dataset Creation
 
 ### Curation Rationale
