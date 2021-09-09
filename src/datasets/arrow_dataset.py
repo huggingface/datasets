@@ -1897,7 +1897,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 info.features = features
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
-        # Return none if we were supposed to return a cached dataset and none was found
+        # Raise an error if we were supposed to return a cached dataset and none was found
         if cache_only:
             raise NonExistentDatasetError
 
