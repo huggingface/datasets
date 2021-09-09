@@ -100,8 +100,8 @@ class DocRed(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, rel_info):
         """Generate DocRED examples."""
-        relation_name_map = json.load(open(rel_info))
-        data = json.load(open(filepath))
+        relation_name_map = json.load(open(rel_info, encoding="utf-8"))
+        data = json.load(open(filepath, encoding="utf-8"))
 
         for idx, example in enumerate(data):
 
