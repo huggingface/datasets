@@ -21,7 +21,7 @@ Now that you have a high-level understanding about how datasets are built, let's
 Building a dataset
 ------------------
 
-When you load a dataset for the first time, 🤗 Datasets takes the raw data file and builds it into a table of rows and typed columns. There are two main classes responsible for building a dataset: :class:`datasets.BuilderConfig` and :class:`datasets.DatasetBuilder`. 
+When you load a dataset for the first time, 🤗 Datasets takes the raw data file and builds it into a table of rows and typed columns. There are two main classes responsible for building a dataset: :class:`datasets.BuilderConfig` and :class:`datasets.DatasetBuilder`.
 
 .. image:: /imgs/builderconfig.png
    :align: center
@@ -58,7 +58,7 @@ You can also set the :attr:`datasets.DatasetBuilder.BUILDER_CONFIG_CLASS` to any
 :class:`datasets.DatasetBuilder`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:class:`datasets.DatasetBuilder` accesses all the attributes inside :class:`datasets.BuilderConfig` to build the actual dataset. 
+:class:`datasets.DatasetBuilder` accesses all the attributes inside :class:`datasets.BuilderConfig` to build the actual dataset.
 
 .. image:: /imgs/datasetbuilder.png
    :align: center
@@ -75,7 +75,7 @@ There are three main methods in :class:`datasets.DatasetBuilder`:
 
        :func:`datasets.DownloadManager.download_and_extract` can download files from a wide range of sources. If the data files are hosted on a special access server, you should use :func:`datasets.DownloadManger.download_custom`. Refer to the reference of :class:`datasets.DownloadManager` for more details.
 
-3. :func:`datasets.DatasetBuilder._generate_examples` reads and parses the data files for a split. Then it yields dataset examples according to the format specified in the ``features`` from :func:`datasets.DatasetBuilder._info`. The input of :func:`datasets.DatasetBuilder._generate_examples` is actually the ``filepath`` provided in the keyword arguments of the last method. 
+3. :func:`datasets.DatasetBuilder._generate_examples` reads and parses the data files for a split. Then it yields dataset examples according to the format specified in the ``features`` from :func:`datasets.DatasetBuilder._info`. The input of :func:`datasets.DatasetBuilder._generate_examples` is actually the ``filepath`` provided in the keyword arguments of the last method.
 
    The dataset is generated with a Python generator, which doesn't load all the data in memory. As a result, the generator can handle large datasets. However, before the generated samples are flushed to the dataset file on disk, they are stored in an ``ArrowWriter`` buffer. This means the generated samples are written by batch. If your dataset samples consumes a lot of memory (images or videos), then make sure to specify a low value for the ``DEFAULT_WRITER_BATCH_SIZE`` attribute in :class:`datasets.DatasetBuilder`. We recommend not exceeding a size of 200 MB.
 
