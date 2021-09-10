@@ -53,7 +53,7 @@ If you want to add additional attributes to your dataset such as the class label
 
 * When you call :func:`datasets.load_dataset`, any keyword arguments that are not specific to the method will be used to set the associated attributes of the :class:`datasets.BuilderConfig` class. This will override the predefined attributes if a specific configuration was selected.
 
-You can also set the :attr:`datasets.DatasetBuilder. BUILDER_CONFIG_CLASS` to any custom subclass of :class:`datasets.BuilderConfig`
+You can also set the :attr:`datasets.DatasetBuilder.BUILDER_CONFIG_CLASS` to any custom subclass of :class:`datasets.BuilderConfig`.
 
 :class:`datasets.DatasetBuilder`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
