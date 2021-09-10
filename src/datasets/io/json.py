@@ -141,7 +141,4 @@ class JsonDatasetWriter:
                 ):
                     written += file_obj.write((json_str))
 
-                pool.close()
-                pool.join()
-
         return written
