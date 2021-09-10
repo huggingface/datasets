@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - table-to-text
 paperswithcode_id: totto
+pretty_name: ToTTo
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for ToTTo
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -56,7 +57,8 @@ paperswithcode_id: totto
 
 ### Dataset Summary
 
-[More Information Needed]
+ToTTo is an open-domain English table-to-text dataset with over 120,000 training examples that proposes a controlled 
+generation task: given a Wikipedia table and a set of highlighted table cells, produce a one-sentence description.
 
 ### Supported Tasks and Leaderboards
 
@@ -69,25 +71,6 @@ paperswithcode_id: totto
 ## Dataset Structure
 
 ### Data Instances
-
-```
-DatasetDict({
-    train: Dataset({
-        features: ['id', 'table_page_title', 'table_webpage_url', 'table_section_title', 'table_section_text', 'table', 'highlighted_cells', 'example_id', 'sentence_annotations', 'overlap_subset'],
-        num_rows: 120761
-    })
-    validation: Dataset({
-        features: ['id', 'table_page_title', 'table_webpage_url', 'table_section_title', 'table_section_text', 'table', 'highlighted_cells', 'example_id', 'sentence_annotations', 'overlap_subset'],
-        num_rows: 7700
-    })
-    test: Dataset({
-        features: ['id', 'table_page_title', 'table_webpage_url', 'table_section_title', 'table_section_text', 'table', 'highlighted_cells', 'example_id', 'sentence_annotations', 'overlap_subset'],
-        num_rows: 7700
-    })
-})
-```
-
-### Data Fields
 
 A sample training set is provided below
 
@@ -385,9 +368,40 @@ A sample training set is provided below
 
 Please note that in test set sentence annotations are not available and thus values inside `sentence_annotations` can be safely ignored.
 
+### Data Fields
+
+- `table_webpage_url` (`str`): Table webpage URL.
+- `table_page_title` (`str`): Table metadata with context about the table.
+- `table_section_title` (`str`): Table metadata with context about the table.
+- `table_section_text` (`str`): Table metadata with context about the table.
+- `table` (`List[List[Dict]]`): The outer lists represents rows and the inner lists columns. Each Dict has the fields:
+  - `column_span` (`int`)
+  - `is_header` (`bool`)
+  - `row_span` (`int`)
+  - `value` (`str`)
+- `highlighted_cells` (`List[[row_index, column_index]]`): Where each `[row_index, column_index]` pair indicates that `table[row_index][column_index]` is highlighted.
+- `example_id` (`int`): A unique id for this example.
+- `sentence_annotations`: Consists of the `original_sentence` and the sequence of revised sentences performed in order to produce the `final_sentence`.
+
 ### Data Splits
 
-[More Information Needed]
+```
+DatasetDict({
+    train: Dataset({
+        features: ['id', 'table_page_title', 'table_webpage_url', 'table_section_title', 'table_section_text', 'table', 'highlighted_cells', 'example_id', 'sentence_annotations', 'overlap_subset'],
+        num_rows: 120761
+    })
+    validation: Dataset({
+        features: ['id', 'table_page_title', 'table_webpage_url', 'table_section_title', 'table_section_text', 'table', 'highlighted_cells', 'example_id', 'sentence_annotations', 'overlap_subset'],
+        num_rows: 7700
+    })
+    test: Dataset({
+        features: ['id', 'table_page_title', 'table_webpage_url', 'table_section_title', 'table_section_text', 'table', 'highlighted_cells', 'example_id', 'sentence_annotations', 'overlap_subset'],
+        num_rows: 7700
+    })
+})
+```
+
 ## Dataset Creation
 
 ### Curation Rationale
@@ -448,7 +462,14 @@ Please note that in test set sentence annotations are not available and thus val
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{parikh2020totto,
+  title={{ToTTo}: A Controlled Table-To-Text Generation Dataset},
+  author={Parikh, Ankur P and Wang, Xuezhi and Gehrmann, Sebastian and Faruqui, Manaal and Dhingra, Bhuwan and Yang, Diyi and Das, Dipanjan},
+  booktitle={Proceedings of EMNLP},
+  year={2020}
+ }
+```
 
 ### Contributions
 

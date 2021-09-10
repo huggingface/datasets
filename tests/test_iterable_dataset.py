@@ -13,7 +13,7 @@ from datasets.iterable_dataset import (
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
-    ShuffingConfig,
+    ShufflingConfig,
     SkipExamplesIterable,
     TakeExamplesIterable,
     _batch_to_examples,
@@ -296,7 +296,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn
     buffer_size = 3
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
     dataset = dataset.shuffle(buffer_size, seed=seed)
-    assert isinstance(dataset._shuffling, ShuffingConfig)
+    assert isinstance(dataset._shuffling, ShufflingConfig)
     assert dataset._shuffling.seed == seed
     # Effective seed is sum of seed and epoch
     if epoch is None:

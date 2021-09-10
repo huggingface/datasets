@@ -1,11 +1,17 @@
 import pickle
+import subprocess
 from hashlib import md5
+from pathlib import Path
+from textwrap import dedent
 from types import CodeType, FunctionType
 from unittest import TestCase
 from unittest.mock import patch
 
+from multiprocess import Pool
+
 import datasets
-from datasets.fingerprint import Hasher
+from datasets.fingerprint import Hasher, fingerprint_transform
+from datasets.table import InMemoryTable
 
 from .utils import require_regex, require_transformers
 
@@ -16,6 +22,16 @@ class Foo:
 
     def __call__(self):
         return self.foo
+
+
+class DatasetChild(datasets.Dataset):
+    @fingerprint_transform(inplace=False)
+    def func1(self, new_fingerprint, *args, **kwargs):
+        return DatasetChild(self.data, fingerprint=new_fingerprint)
+
+    @fingerprint_transform(inplace=False)
+    def func2(self, new_fingerprint, *args, **kwargs):
+        return DatasetChild(self.data, fingerprint=new_fingerprint)
 
 
 class UnpicklableCallable:
@@ -258,3 +274,40 @@ class HashingTest(TestCase):
     def test_hash_unpicklable(self):
         with self.assertRaises(pickle.PicklingError):
             Hasher.hash(UnpicklableCallable(Foo("hello")))
+
+
+def test_move_script_doesnt_change_hash(tmp_path: Path):
+    dir1 = tmp_path / "dir1"
+    dir2 = tmp_path / "dir2"
+    dir1.mkdir()
+    dir2.mkdir()
+    script_filename = "script.py"
+    code = dedent(
+        """
+    from datasets.fingerprint import Hasher
+    def foo():
+        pass
+    print(Hasher.hash(foo))
+    """
+    )
+    script_path1 = dir1 / script_filename
+    script_path2 = dir2 / script_filename
+    with script_path1.open("w") as f:
+        f.write(code)
+    with script_path2.open("w") as f:
+        f.write(code)
+    fingerprint1 = subprocess.check_output(["python", str(script_path1)])
+    fingerprint2 = subprocess.check_output(["python", str(script_path2)])
+    assert fingerprint1 == fingerprint2
+
+
+def test_fingerprint_in_multiprocessing():
+    data = {"a": [0, 1, 2]}
+    dataset = DatasetChild(InMemoryTable.from_pydict(data))
+    expected_fingerprint = dataset.func1()._fingerprint
+    assert expected_fingerprint == dataset.func1()._fingerprint
+    assert expected_fingerprint != dataset.func2()._fingerprint
+
+    with Pool(2) as p:
+        assert expected_fingerprint == p.apply_async(dataset.func1).get()._fingerprint
+        assert expected_fingerprint != p.apply_async(dataset.func2).get()._fingerprint

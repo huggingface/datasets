@@ -3,9 +3,11 @@ import itertools
 import json
 import os
 import pickle
+import re
 import tempfile
 from functools import partial
 from unittest import TestCase
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -28,6 +30,7 @@ from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
+    require_jax,
     require_pyarrow_at_least_3,
     require_s3,
     require_tf,
@@ -966,6 +969,33 @@ class BaseDatasetTest(TestCase):
                         self.assertEqual(len(dset_test2.cache_files), 1 - int(in_memory))
                         self.assertNotIn("Loading cached processed dataset", self._caplog.text)
 
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._caplog.clear()
+            with self._caplog.at_level(WARNING):
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    with patch("datasets.arrow_dataset.Pool", side_effect=datasets.arrow_dataset.Pool) as mock_pool:
+                        with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
+                            dset_test1_data_files = list(dset_test1.cache_files)
+                        self.assertEqual(mock_pool.call_count, 1)
+                        with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test2:
+                            self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                            self.assertTrue(
+                                (len(re.findall("Loading cached processed dataset", self._caplog.text)) == 2)
+                                ^ in_memory
+                            )
+                        self.assertEqual(mock_pool.call_count, 2 if in_memory else 1)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._caplog.clear()
+            with self._caplog.at_level(WARNING):
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2) as dset_test1:
+                        dset_test1_data_files = list(dset_test1.cache_files)
+                    with dset.map(lambda x: {"foo": "bar"}, num_proc=2, load_from_cache_file=False) as dset_test2:
+                        self.assertEqual(dset_test1_data_files, dset_test2.cache_files)
+                        self.assertEqual(len(dset_test2.cache_files), (1 - int(in_memory)) * 2)
+                        self.assertNotIn("Loading cached processed dataset", self._caplog.text)
+
         if not in_memory:
             try:
                 self._caplog.clear()
@@ -998,7 +1028,7 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))}),
+                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
@@ -1015,7 +1045,24 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(
                         dset_test.features,
-                        Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))}),
+                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
+                    )
+                    self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
+
+    @require_jax
+    def test_map_jax(self, in_memory):
+        import jax.numpy as jnp
+
+        def func(example):
+            return {"tensor": jnp.asarray([1.0, 2, 3])}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                with dset.map(func) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"filename": Value("string"), "tensor": Sequence(Value("float32"))}),
                     )
                     self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 

@@ -81,7 +81,7 @@ if TYPE_CHECKING:
 
 logger = logging.get_logger(__name__)
 
-if int(config.PYARROW_VERSION.split(".")[0]) == 0:
+if config.PYARROW_VERSION.major == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
@@ -230,6 +230,12 @@ def _check_table(table) -> Table:
         return table
     else:
         raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
+
+
+class NonExistentDatasetError(Exception):
+    """Used when we expect the existence of a dataset"""
+
+    pass
 
 
 class Dataset(DatasetInfoMixin, IndexableMixin):
@@ -973,7 +979,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
+            lambda t: t.cast(schema)
+            if config.PYARROW_VERSION.major >= 4
+            else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1032,7 +1040,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         format = self.format
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: t.cast(schema) if config.PYARROW_VERSION >= "4" else cast_with_sliced_list_support(t, schema),
+            lambda t: t.cast(schema)
+            if config.PYARROW_VERSION.major >= 4
+            else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1568,7 +1578,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
-        remove_columns: Optional[List[str]] = None,
+        remove_columns: Optional[Union[str, List[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = None,
         cache_file_name: Optional[str] = None,
@@ -1602,7 +1612,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`.
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
-            remove_columns (`Optional[List[str]]`, default `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`Optional[Union[str, List[str]]]`, default `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (:obj:`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
@@ -1617,8 +1627,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `True`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
-            num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+            num_proc (`Optional[int]`, default `None`): Max number of processes when generating cache. Already cached shards are loaded sequentially
             suffix_template (:obj:`str`):
                 If cache_file_name is specified, then this suffix
                 will be added at the end of the base name of each: defaults to "_{rank:05d}_of_{num_proc:05d}". For example, if cache_file_name is "processed.arrow", then for
@@ -1627,6 +1636,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
+        assert (
+            not keep_in_memory or cache_file_name is None
+        ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
         assert num_proc is None or num_proc > 0, "num_proc must be an integer > 0."
 
         # If the array is empty we do nothing
@@ -1647,6 +1659,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             input_column, self._data.column_names
                         )
                     )
+
+        if isinstance(remove_columns, str):
+            remove_columns = [remove_columns]
+
+        if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
+            raise ValueError(
+                "Column to remove {} not in the dataset. Current columns in the dataset: {}".format(
+                    list(filter(lambda col: col not in self._data.column_names, remove_columns)),
+                    self._data.column_names,
+                )
+            )
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
 
@@ -1707,54 +1730,87 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             initargs, initializer = None, None
             if not disable_tqdm:
                 initargs, initializer = (RLock(),), tqdm.set_lock
-            with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
-                os.environ = prev_env
-                shards = [
-                    self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
-                    for rank in range(num_proc)
-                ]
-                kwds_per_shard = [
-                    dict(
-                        self=shards[rank],
-                        function=function,
-                        with_indices=with_indices,
-                        input_columns=input_columns,
-                        batched=batched,
-                        batch_size=batch_size,
-                        drop_last_batch=drop_last_batch,
-                        remove_columns=remove_columns,
-                        keep_in_memory=keep_in_memory,
-                        load_from_cache_file=load_from_cache_file,
-                        cache_file_name=format_cache_file_name(cache_file_name, rank)
-                        if cache_file_name is not None
-                        else None,
-                        writer_batch_size=writer_batch_size,
-                        features=features.copy() if features is not None else None,
-                        disable_nullable=disable_nullable,
-                        fn_kwargs=fn_kwargs,
-                        rank=rank,
-                        offset=sum(len(s) for s in shards[:rank]),
-                        disable_tqdm=disable_tqdm,
-                        desc=desc,
-                    )
-                    for rank in range(num_proc)
-                ]
-                logger.info("Spawning {} processes".format(num_proc))
-                results = [pool.apply_async(self.__class__._map_single, kwds=kwds) for kwds in kwds_per_shard]
-                transformed_shards = [r.get() for r in results]
-                logger.info("Concatenating {} shards from multiprocessing".format(num_proc))
-                result = concatenate_datasets(transformed_shards)
-                if new_fingerprint is not None:
-                    result._fingerprint = new_fingerprint
-                return result
+
+            shards = [
+                self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
+                for rank in range(num_proc)
+            ]
+            kwds_per_shard = [
+                dict(
+                    self=shards[rank],
+                    function=function,
+                    with_indices=with_indices,
+                    input_columns=input_columns,
+                    batched=batched,
+                    batch_size=batch_size,
+                    drop_last_batch=drop_last_batch,
+                    remove_columns=remove_columns,
+                    keep_in_memory=keep_in_memory,
+                    load_from_cache_file=load_from_cache_file,
+                    cache_file_name=format_cache_file_name(cache_file_name, rank)
+                    if cache_file_name is not None
+                    else None,
+                    writer_batch_size=writer_batch_size,
+                    features=features.copy() if features is not None else None,
+                    disable_nullable=disable_nullable,
+                    fn_kwargs=fn_kwargs,
+                    rank=rank,
+                    offset=sum(len(s) for s in shards[:rank]),
+                    disable_tqdm=disable_tqdm,
+                    desc=desc,
+                )
+                for rank in range(num_proc)
+            ]
+
+            # We search for already cached shards
+            def catch_non_existent_error(func, kwargs):
+                try:
+                    return func(**kwargs)
+                except NonExistentDatasetError:
+                    return None
+
+            transformed_shards = [
+                catch_non_existent_error(self.__class__._map_single, dict(cache_only=True, **kwds))
+                for kwds in kwds_per_shard
+            ]
+
+            # We try to create a pool with as many workers as dataset not yet cached.
+            nb_of_missing_shards = transformed_shards.count(None)
+            if nb_of_missing_shards > 0:
+                with Pool(nb_of_missing_shards, initargs=initargs, initializer=initializer) as pool:
+                    os.environ = prev_env
+                    logger.info("Spawning {} processes".format(num_proc))
+                    results = {
+                        i: pool.apply_async(self.__class__._map_single, kwds=kwds)
+                        for i, (kwds, cached_shard) in enumerate(zip(kwds_per_shard, transformed_shards))
+                        if cached_shard is None
+                    }
+                    assert (
+                        len(results) == nb_of_missing_shards
+                    ), "The number of missing cached shards needs to correspond to the number of `_map_single` we're running"
+
+                    for index, async_result in results.items():
+                        transformed_shards[index] = async_result.get()
+
+            assert (
+                transformed_shards.count(None) == 0
+            ), "All shards have to be defined Datasets, none should still be missing."
+
+            logger.info("Concatenating {} shards".format(num_proc))
+            result = concatenate_datasets(transformed_shards)
+            if new_fingerprint is not None:
+                result._fingerprint = new_fingerprint
+            return result
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"])
+    @fingerprint_transform(
+        inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc", "cache_only"]
+    )
     def _map_single(
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[List[str]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
@@ -1771,6 +1827,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         offset: int = 0,
         disable_tqdm: bool = False,
         desc: Optional[str] = None,
+        cache_only: bool = False,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -1783,7 +1840,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
                 If no function is provided, default to identity function: lambda x: x
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
+            input_columns (`Optional[List[str]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
@@ -1811,11 +1868,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
             disable_tqdm (:obj:`bool`, defaults to `False`): Whether to silence tqdm's output.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
         """
-        assert (
-            not keep_in_memory or cache_file_name is None
-        ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
-
         # Reduce logging to keep things readable in multiprocessing with tqdm
         if rank is not None and logging.get_verbosity() < logging.WARNING:
             logging.set_verbosity_warning()
@@ -1823,29 +1877,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
         if rank is not None and not disable_tqdm and "notebook" in tqdm.__name__:
             print(" ", end="", flush=True)
-
-        # Select the columns (arrow columns) to process
-        if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
-            raise ValueError(
-                "Column to remove {} not in the dataset. Current columns in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, remove_columns)),
-                    self._data.column_names,
-                )
-            )
-
-        load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
-
-        if isinstance(input_columns, str):
-            input_columns = [input_columns]
-
-        if input_columns is not None:
-            for input_column in input_columns:
-                if input_column not in self._data.column_names:
-                    raise ValueError(
-                        "Input column {} not in the dataset. Current columns in the dataset: {}".format(
-                            input_column, self._data.column_names
-                        )
-                    )
 
         if fn_kwargs is None:
             fn_kwargs = {}
@@ -1865,6 +1896,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 info = self.info.copy()
                 info.features = features
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
+
+        # Raise an error if we were supposed to return a cached dataset and none was found
+        if cache_only:
+            raise NonExistentDatasetError
 
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.
@@ -2838,7 +2873,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+            batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
@@ -2903,7 +2938,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            bacth_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+            batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
