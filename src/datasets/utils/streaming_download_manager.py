@@ -89,7 +89,7 @@ def xdirname(a, *p):
 
 
 def _as_posix(path: Path):
-    """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slash after protocol.
+    """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slashes after protocol.
 
     Args:
         path (:obj:`~pathlib.Path`): Calling Path instance.
@@ -97,7 +97,10 @@ def _as_posix(path: Path):
     Returns:
         obj:`str`
     """
-    return SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path.as_posix())
+    path_as_posix = path.as_posix()
+    path_as_posix = SINGLE_SLASH_AFTER_PROTOCOL_PATTERN.sub("://", path_as_posix)
+    path_as_posix += "//" if path_as_posix.endswith(":") else ""  # Add slashes to root of the protocol
+    return path_as_posix
 
 
 def xpathjoin(a: Path, *p: Tuple[str, ...]):
