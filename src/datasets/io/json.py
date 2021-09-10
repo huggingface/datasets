@@ -88,15 +88,17 @@ class JsonDatasetWriter:
         return written
 
     def _batch_json(self, args):
-        offset, orient, lines = args
+        offset, orient, lines, to_json_kwargs = args
 
         batch = query_table(
             table=self.dataset.data,
             key=slice(offset, offset + self.batch_size),
             indices=self.dataset._indices,
         )
-        var = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **self.to_json_kwargs)
-        return var.encode(self.encoding)
+        json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
+        if not json_str.endswith("\n"):
+            json_str += "\n"
+        return json_str.encode(self.encoding)
 
     def _write(
         self,
@@ -118,27 +120,23 @@ class JsonDatasetWriter:
                 disable=bool(logging.get_verbosity() == logging.NOTSET),
                 desc="Creating json from Arrow format",
             ):
-                batch = query_table(
-                    table=self.dataset.data,
-                    key=slice(offset, offset + self.batch_size),
-                    indices=self.dataset._indices if self.dataset._indices is not None else None,
-                )
-                json_str = batch.to_pandas().to_json(path_or_buf=None, orient=orient, lines=lines, **to_json_kwargs)
-                if not json_str.endswith("\n"):
-                    json_str += "\n"
-                written += file_obj.write(json_str.encode(self.encoding))
+                json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
+                written += file_obj.write(json_str)
         else:
             with multiprocessing.Pool(self.num_proc) as pool:
                 for json_str in utils.tqdm(
                     pool.imap(
                         self._batch_json,
-                        [(offset, orient, lines) for offset in range(0, len(self.dataset), self.batch_size)],
+                        [
+                            (offset, orient, lines, to_json_kwargs)
+                            for offset in range(0, len(self.dataset), self.batch_size)
+                        ],
                     ),
                     total=(len(self.dataset) // self.batch_size) + 1,
                     unit="ba",
                     disable=bool(logging.get_verbosity() == logging.NOTSET),
                     desc="Creating json from Arrow format",
                 ):
-                    written += file_obj.write((json_str))
+                    written += file_obj.write(json_str)
 
         return written
