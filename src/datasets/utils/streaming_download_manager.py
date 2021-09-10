@@ -202,9 +202,23 @@ def xpathglob(path, pattern):
         # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
         # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
+        # - If there is "**" in the pattern, `fs.glob` must be called anyway.
         globbed_paths = fs.glob(xjoin(main_hop, pattern))
         for globbed_path in globbed_paths:
             yield type(path)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
+
+
+def xpathrglob(path, pattern):
+    """Rglob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+        pattern (:obj:`str`): Pattern that resulting paths must match.
+
+    Yields:
+        :obj:`~pathlib.Path`
+    """
+    return xpathglob(path, "**/" + pattern)
 
 
 def xpathstem(path: Path):
