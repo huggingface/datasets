@@ -35,7 +35,7 @@ An example of when 🤗 Datasets recomputes everything is when caching is disabl
 Hashing
 -------
 
-The fingerprint of a dataset is updated by hashing the function passed to ``map`` as well as the ``map`` parameters (batch_size, remove_columns, etc.).
+The fingerprint of a dataset is updated by hashing the function passed to ``map`` as well as the ``map`` parameters (``batch_size``, ``remove_columns``, etc.).
 
 You can check the hash of any Python object using the :class:`datasets.fingerprint.Hasher`:
 
