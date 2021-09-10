@@ -8,11 +8,13 @@ ELI5: ``load_dataset``
 
 Let's begin with a basic Explain Like I'm Five.
 
-At first, :func:`datasets.load_dataset` downloads and imports the dataset loading script associated with the requested dataset from the Hugging Face Hub. The Hub is a central repository where all the Hugging Face datasets and models are stored. Code in the loading script defines the dataset information (description, features, URL to the original files, etc.), and tells 🤗 Datasets how to generate and display examples from it.
+For community datasets, :func:`datasets.load_dataset` downloads and imports the dataset loading script associated with the requested dataset from the Hugging Face Hub. The Hub is a central repository where all the Hugging Face datasets and models are stored. Code in the loading script defines the dataset information (description, features, URL to the original files, etc.), and tells 🤗 Datasets how to generate and display examples from it.
+
+If you are working with a canonical dataset, :func:`datasets.load_dataset` downloads and imports the dataset loading script from Github.
 
 .. seealso::
 
-   Read the :doc:`Share <./share>` section for a step-by-step guide on how to write your own dataset loading script!
+   Read the :doc:`Share <./share>` section to learn more about the difference between community and canonical datasets. This section also provides a step-by-step guide on how to write your own dataset loading script!
 
 The loading script downloads the dataset files from the original URL, generates the dataset and caches it in an Arrow table on your drive. If you've downloaded the dataset before, then 🤗 Datasets will reload it from the cache to save you the trouble of downloading it again.
 
@@ -82,7 +84,7 @@ There are three main methods in :class:`datasets.DatasetBuilder`:
 Without loading scripts
 -----------------------
 
-As a user, you want to be able to quickly use a dataset. Implementing a dataset loading script can sometimes get in the way, or it may be a barrier for some people without a developer background. 🤗 Datasets removes this barrier by making it possible to load any dataset from the Hub without a dataset loading script. All a user has to do is upload the data files to a dataset repository on the Hub, and they will be able to load that dataset without having to create a loading script. This doesn't mean we are moving away from loading scripts because they still offer the most flexibility in controlling how a dataset is generated.
+As a user, you want to be able to quickly use a dataset. Implementing a dataset loading script can sometimes get in the way, or it may be a barrier for some people without a developer background. 🤗 Datasets removes this barrier by making it possible to load any dataset from the Hub without a dataset loading script. All a user has to do is upload the data files (see :ref:`upload_dataset_repo` for a list of supported file formats) to a dataset repository on the Hub, and they will be able to load that dataset without having to create a loading script. This doesn't mean we are moving away from loading scripts because they still offer the most flexibility in controlling how a dataset is generated.
 
 The loading script-free method uses the `huggingface_hub <https://github.com/huggingface/huggingface_hub>`_ library to list the files in a dataset repository. You can also provide a path to a local directory instead of a repository name, in which case 🤗 Datasets will use `glob <https://docs.python.org/3/library/glob.html>`_ instead. Depending on the format of the data files available, one of the data file builders will create your dataset for you. If you have a CSV file, the CSV builder will be used and if you have a Parquet file, the Parquet builder will be used. The drawback of this approach is it's not possible to simultaneously load a CSV and JSON file. You will need to load the two file types separately, and then concatenate them.
 
@@ -99,5 +101,5 @@ To ensure a dataset is complete, :func:`datasets.load_dataset` will perform a se
 
 If the dataset doesn't pass the verifications, it is likely that the original host of the dataset made some changes in the data files.
 In this case, an error is raised to alert that the dataset has changed.
-To ignore the error, one needs to specify ``ignore_verifications=True`` in ``load_dataset()``.
+To ignore the error, one needs to specify ``ignore_verifications=True`` in :func:`load_dataset`.
 Anytime you see a verification error, feel free to `open an issue on GitHub <https://github.com/huggingface/datasets/issues>`_ so that we can update the integrity checks for this dataset.
