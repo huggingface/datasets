@@ -222,6 +222,8 @@ def test_xopen_remote():
     "input_path, pattern, expected_paths",
     [
         ("tmp_path", "*.txt", ["file1.txt", "file2.txt"]),
+        ("mock://", "*", ["mock://glob_test", "mock://misc", "mock://top_level"]),
+        ("mock://", "top_*", ["mock://top_level"]),
         (
             "mock://top_level/second_level",
             "date=2019-10-0[1-4]",
