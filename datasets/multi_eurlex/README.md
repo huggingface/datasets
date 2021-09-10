@@ -126,11 +126,9 @@ dataset = load_dataset('multi_eurlex', 'all_languages')
            "bg": "..."
   },
   "labels": [
-    "192",
-    "2356",
-    "2560",
-    "862",
-    "863"
+    1,
+    13,
+    47
   ]
 }
 ```
@@ -149,11 +147,9 @@ dataset = load_dataset('multi_eurlex', 'en')
   "celex_id": "31979D0509",
   "text": "COUNCIL DECISION  of 24 May 1979  on financial aid from the Community for the eradication of African swine fever in Spain  (79/509/EEC)\nTHE COUNCIL OF THE EUROPEAN COMMUNITIES\nHaving regard to the Treaty establishing the European Economic Community, and in particular Article 43 thereof,\nHaving regard to the proposal from the Commission (1),\nHaving regard to the opinion of the European Parliament (2),\nWhereas the Community should take all appropriate measures to protect itself against the appearance of African swine fever on its territory;\nWhereas to this end the Community has undertaken, and continues to undertake, action designed to contain outbreaks of this type of disease far from its frontiers by helping countries affected to reinforce their preventive measures ; whereas for this purpose Community subsidies have already been granted to Spain;\nWhereas these measures have unquestionably made an effective contribution to the protection of Community livestock, especially through the creation and maintenance of a buffer zone north of the river Ebro;\nWhereas, however, in the opinion of the Spanish authorities themselves, the measures so far implemented must be reinforced if the fundamental objective of eradicating the disease from the entire country is to be achieved;\nWhereas the Spanish authorities have asked the Community to contribute to the expenses necessary for the efficient implementation of a total eradication programme;\nWhereas a favourable response should be given to this request by granting aid to Spain, having regard to the undertaking given by that country to protect the Community against African swine fever and to eliminate completely this disease by the end of a five-year eradication plan;\nWhereas this eradication plan must include certain measures which guarantee the effectiveness of the action taken, and it must be possible to adapt these measures to developments in the situation by means of a procedure establishing close cooperation between the Member States and the Commission;\nWhereas it is necessary to keep the Member States regularly informed as to the progress of the action undertaken,",
   "labels": [
-    "192",
-    "2356",
-    "2560",
-    "862",
-    "863"
+    1,
+    13,
+    47
   ]
 }
 ```
@@ -166,7 +162,7 @@ The following data fields are provided for documents (`train`, `dev`, `test`):
 
 `celex_id`: (**str**)  The official ID of the document. The CELEX number is the unique identifier for all publications in both Eur-Lex and CELLAR.\
 `text`: (dict[**str**])  A dictionary with the 23 languages as keys and the full content of each document as values.\
-`labels`: (**List[str]**) The relevant EUROVOC concepts (labels).
+`labels`: (**List[int]**) The relevant EUROVOC concepts (labels).
 
 
 **Monolingual use of the dataset**
@@ -175,7 +171,7 @@ The following data fields are provided for documents (`train`, `dev`, `test`):
 
 `celex_id`: (**str**)  The official ID of the document. The CELEX number is the unique identifier for all publications in both Eur-Lex and CELLAR.\
 `text`: (**str**)  The full content of each document across languages.\
-`labels`: (**List[str]**) The relevant EUROVOC concepts (labels).
+`labels`: (**List[int]**) The relevant EUROVOC concepts (labels).
 
 
 If you want to use the descriptors of the EUROVOC concepts, similar to [Chalkidis et al. (2020)](https://aclanthology.org/2020.emnlp-main.607/), please download the relevant JSON file [here](https://raw.githubusercontent.com/nlpaueb/multi-eurlex/master/data/eurovoc_descriptors.json).
@@ -185,17 +181,23 @@ import json
 from datasets import load_dataset
 
 # Load the English part of the dataset
-dataset = load_dataset('multi_eurlex', 'en')
+dataset = load_dataset('multi_eurlex', 'en', split='train')
 
 # Load (label_id, descriptor) mapping 
 with open('./eurovoc_descriptors.json') as jsonl_file:
     eurovoc_concepts =  json.load(jsonl_file)
 
-# Iterate over train subset and print labels
-for doc in dataset['train']:
-  for label in doc['labels']:
-    print(f"{label:<10}: {eurovoc_concepts[label]['en']}")
+# Get feature map info
+classlabel = dataset.features["labels"].feature
 
+# Retrieve IDs and descriptors from dataset
+for sample in dataset:
+  print(f'DOCUMENT: {sample["celex_id"]}')
+  # DOCUMENT: 32006D0213
+  for label_id in sample['labels']:
+    print(f'LABEL: id:{label_id}, eurovoc_id: {classlabel._int2str[label_id]}, \
+            eurovoc_desc:{eurovoc_concepts[classlabel._int2str[label_id]]}')
+    # LABEL: id: 1, eurovoc_id: '100160', eurovoc_desc: 'industry'
 ```
 
 ### Data Splits
