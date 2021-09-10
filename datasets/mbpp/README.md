@@ -120,10 +120,17 @@ DatasetDict({
         ]
 }
 ```
+### Data Fields
+
+- `source_file`: unknown
+- `text`/`prompt`: description of programming task
+- `code`: solution for programming task
+- `test_setup_code`/`test_imports`: necessary code imports to execute tests
+- `test_list`: list of tests to verify solution
+- `challenge_test_list`: list of more challenging test to further probe solution
 
 ### Data Splits
 There are two version of the dataset (full and sanitized) which only one split each (test).
-
 ## Dataset Creation
 See section 2.1 of original [paper](https://arxiv.org/abs/2108.07732).
 
@@ -131,15 +138,26 @@ See section 2.1 of original [paper](https://arxiv.org/abs/2108.07732).
 In order to evaluate code generation functions a set of simple programming tasks as well as solutions is necessary which this dataset provides.
 
 ### Source Data
-The dataset was manually created from scratch
+
+#### Initial Data Collection and Normalization
+The dataset was manually created from scratch.
+
+#### Who are the source language producers?
+The dataset was created with an internal crowdsourcing effort at Google.
 
 ### Annotations
+
+#### Annotation Process
+The full dataset was created first and a subset then underwent a second round to improve the task descriptions.
+
+#### Who are the annotators?
 The dataset was created with an internal crowdsourcing effort at Google.
 
 ### Personal and Sensitive Information
 None.
 
 ## Considerations for Using the Data
+Make sure you execute generated Python code in a safe environment when evauating against this dataset as generated code could be harmful.
 
 ### Social Impact of Dataset
 With this dataset code generating models can be better evaluated which leads to fewer issues introduced when using such models.
@@ -148,9 +166,6 @@ With this dataset code generating models can be better evaluated which leads to 
 
 ### Other Known Limitations
 Since the task descriptions might not be expressive enough to solve the task. The `sanitized` split aims at addressing this issue by having a second round of annotators improve the dataset.
-
-### Security Considerations
-Make sure you execute generated Python code in a safe environment when evauating against this dataset as generated code could be harmful.
 
 ## Additional Information
 
