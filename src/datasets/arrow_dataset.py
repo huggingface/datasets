@@ -215,8 +215,7 @@ def update_metadata_with_features(table: Table, features: Features):
         else:
             metadata["info"]["features"] = asdict(DatasetInfo(features=features))["features"]
         pa_metadata = {"huggingface": json.dumps(metadata)}
-    new_schema = table.schema.with_metadata(pa_metadata)
-    table = table.cast(new_schema)
+    table = table.replace_schema_metadata(pa_metadata)
     return table
 
 
