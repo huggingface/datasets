@@ -147,7 +147,7 @@ The dataset was created with an internal crowdsourcing effort at Google.
 
 ### Annotations
 
-#### Annotation Process
+#### Annotation process
 The full dataset was created first and a subset then underwent a second round to improve the task descriptions.
 
 #### Who are the annotators?
