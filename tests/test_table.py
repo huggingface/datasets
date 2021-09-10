@@ -782,7 +782,7 @@ def test_concatenation_table_cast(
 
 
 @pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
-def test_concatenation_table_cast(
+def test_concatenation_table_replace_schema_metadata(
     blocks_type, in_memory_pa_table, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
 ):
     blocks = {
