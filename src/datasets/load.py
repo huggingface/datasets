@@ -453,7 +453,7 @@ def prepare_module(
     if force_local_path is None:
         main_folder_path = os.path.join(datasets_modules_path if dataset else metrics_modules_path, short_name)
         # Create the lock file where we know we have write permissions.
-        lock_path = os.path.join(datasets_modules_path if dataset else metrics_modules_path, short_name + ".lock")
+        lock_path = main_folder_path + ".lock"
         os.makedirs(main_folder_path, exist_ok=True)
     else:
         main_folder_path = force_local_path
