@@ -12,6 +12,7 @@ from .utils.streaming_download_manager import (
     xpathglob,
     xpathjoin,
     xpathopen,
+    xpathrglob,
     xpathstem,
     xpathsuffix,
 )
@@ -53,5 +54,6 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
         patch.object(module.Path, "__truediv__", xpathjoin).start()
         patch.object(module.Path, "open", xpathopen).start()
         patch.object(module.Path, "glob", xpathglob).start()
+        patch.object(module.Path, "rglob", xpathrglob).start()
         patch.object(module.Path, "stem", property(fget=xpathstem)).start()
         patch.object(module.Path, "suffix", property(fget=xpathsuffix)).start()
