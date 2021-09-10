@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - crowdsourced
 - expert-generated
@@ -19,8 +20,39 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - conditional-text-generation-other-code-generation
+---
 
 # Dataset Card for Mostly Basic Python Problems (mbpp)
+
+## Table of Contents
+- [Dataset Card for Mostly Basic Python Problems (mbpp)](#dataset-card-for-mostly-basic-python-problems-(mbpp))
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+    - [Data Fields](#data-fields)
+    - [Data Splits](#data-splits)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 - **Repository: https://github.com/google-research/google-research/tree/master/mbpp**
@@ -31,10 +63,13 @@ The benchmark consists of around 1,000 crowd-sourced Python programming problems
 
 Released [here](https://github.com/google-research/google-research/tree/master/mbpp) as part of [Program Synthesis with Large Language Models, Austin et. al., 2021](https://arxiv.org/abs/2108.07732).
 
+### Supported Tasks and Leaderboards
+This dataset is used to evaluate code generations.
+
 ### Languages
 English - Python code
 
-## Data Structure
+## Dataset Structure
 
 ```python
 dataset_full = load_dataset("mbpp")
@@ -92,7 +127,47 @@ There are two version of the dataset (full and sanitized) which only one split e
 ## Dataset Creation
 See section 2.1 of original [paper](https://arxiv.org/abs/2108.07732).
 
-## Considerations of Using the Data
+### Curation Rationale
+In order to evaluate code generation functions a set of simple programming tasks as well as solutions is necessary which this dataset provides.
+
+### Source Data
+The dataset was manually created from scratch
+
+### Annotations
+The dataset was created with an internal crowdsourcing effort at Google.
+
+### Personal and Sensitive Information
+None.
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+With this dataset code generating models can be better evaluated which leads to fewer issues introduced when using such models.
+
+### Discussion of Biases
+
+### Other Known Limitations
+Since the task descriptions might not be expressive enough to solve the task. The `sanitized` split aims at addressing this issue by having a second round of annotators improve the dataset.
 
 ### Security Considerations
 Make sure you execute generated Python code in a safe environment when evauating against this dataset as generated code could be harmful.
+
+## Additional Information
+
+### Dataset Curators
+Google Research
+
+### Licensing Information
+CC-BY-4.0
+
+### Citation Information
+```
+@article{austin2021program,
+  title={Program Synthesis with Large Language Models},
+  author={Austin, Jacob and Odena, Augustus and Nye, Maxwell and Bosma, Maarten and Michalewski, Henryk and Dohan, David and Jiang, Ellen and Cai, Carrie and Terry, Michael and Le, Quoc and others},
+  journal={arXiv preprint arXiv:2108.07732},
+  year={2021}
+```
+### Contributions
+Thanks to [@lvwerra](https://github.com/lvwerra) for adding this dataset.
+
