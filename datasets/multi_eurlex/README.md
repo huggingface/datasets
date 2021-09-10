@@ -195,8 +195,8 @@ for sample in dataset:
   print(f'DOCUMENT: {sample["celex_id"]}')
   # DOCUMENT: 32006D0213
   for label_id in sample['labels']:
-    print(f'LABEL: id:{label_id}, eurovoc_id: {classlabel._int2str[label_id]}, \
-            eurovoc_desc:{eurovoc_concepts[classlabel._int2str[label_id]]}')
+    print(f'LABEL: id:{label_id}, eurovoc_id: {classlabel.int2str(label_id)}, \
+            eurovoc_desc:{eurovoc_concepts[classlabel.int2str(label_id)]}')
     # LABEL: id: 1, eurovoc_id: '100160', eurovoc_desc: 'industry'
 ```
 
