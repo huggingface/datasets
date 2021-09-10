@@ -183,22 +183,26 @@ class TensorflowDatasetMixIn:
             else:
                 raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
 
-            if isinstance(col_feature, (Value, ClassLabel)):
-                shape = [batch_size]
-            elif isinstance(col_feature, _ArrayXD):
-                shape = [batch_size] + list(col_feature.shape)
-            elif isinstance(col_feature, Sequence):
-                shape = [batch_size, col_feature.length]
-            else:
-                raise ValueError(
-                    f"Couldn't parse feature {column} with type {type(col_feature)}! "
-                    "This may indicate a column was included with an unusual datatype "
-                    "that we were unable to process correctly. "
-                    "If you're getting this error with one of our datasets, and you're "
-                    "sure the column should be convertable to tf.Tensor, please "
-                    "file an issue at github.com/huggingface/datasets and tag "
-                    "@rocketknight1!"
+            shape = []
+            shape_feature = col_feature
+            while not isinstance(shape_feature, (Value, ClassLabel)):
+                if isinstance(shape_feature, _ArrayXD):
+                    shape.extend(list(shape_feature.shape))
+                    break
+                elif isinstance(shape_feature, Sequence):
+                    shape.insert(0, shape_feature.length)
+                    shape_feature = shape_feature.feature
+                else:
+                    raise ValueError(
+                        f"Couldn't parse feature {column} with type {type(col_feature)}! "
+                        "This may indicate a column was included with an unusual datatype "
+                        "that we were unable to process correctly. "
+                        "If you're getting this error with one of our datasets, and you're "
+                        "sure the column should be convertable to tf.Tensor, please "
+                        "file an issue at github.com/huggingface/datasets and tag "
+                        "@rocketknight1!"
                 )
+            shape = [batch_size] + shape
             shape = [dim if dim != -1 else None for dim in shape]
 
             signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
@@ -207,8 +211,13 @@ class TensorflowDatasetMixIn:
         for column, tensor in test_batch.items():
             if column in signatures:
                 continue
-            if column.startswith("label") and "input_ids" in signatures:
-                shape = signatures["input_ids"].shape
+            if column.startswith("label"):
+                if "input_ids" in signatures and test_batch[column].shape == test_batch['input_ids'].shape:
+                    shape = signatures["input_ids"].shape
+                else:
+                    # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
+                    # about the dimensions we're unsure of
+                    shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
             else:
                 # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
                 # about the dimensions we're unsure of
@@ -322,13 +331,12 @@ class TensorflowDatasetMixIn:
         def ensure_shapes(input_dict):
             return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
 
-        tf_dataset = (
-            tf.data.Dataset.from_tensor_slices(np.arange(len(dataset)))
-            .shuffle(len(dataset))
-            .batch(batch_size, drop_remainder=drop_remainder)
-            .map(fetch_function)
-            .map(ensure_shapes)
-        )
+        tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(dataset)))
+
+        if shuffle:
+            tf_dataset = tf_dataset.shuffle(len(dataset))
+
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function).map(ensure_shapes)
 
         if label_cols:
 
