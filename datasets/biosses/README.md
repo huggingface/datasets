@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  - en-US
+- en
 licenses:
 - gpl-3.0
 multilinguality:
@@ -90,9 +90,9 @@ For each instance, there are two sentences (i.e. sentence 1 and 2), and its corr
 
 ### Data Fields
 
-- `sentence 1`
-- `sentence 2`
-- `score`
+- `sentence 1`: string
+- `sentence 2`: string
+- `score`: float ranging from 0 (no relation) to 4 (equivalent)
 
 ### Data Splits
 
