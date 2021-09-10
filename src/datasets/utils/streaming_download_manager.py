@@ -198,11 +198,11 @@ def xpathglob(path, pattern):
     if is_local_path(main_hop):
         yield from Path(main_hop).glob(pattern)
     else:
-        fs, fs_token, globbed_paths = fsspec.get_fs_token_paths(xjoin(posix_path, pattern))
-        # if there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
-        # so to be able to glob patterns like "[0-9]", we have to call `fs.glob`
-        if "*" not in pattern:
-            globbed_paths = fs.glob(globbed_paths[0])
+        fs, *_ = fsspec.get_fs_token_paths(xjoin(posix_path, pattern))
+        # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
+        #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
+        # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
+        globbed_paths = fs.glob(xjoin(main_hop, pattern))
         for globbed_path in globbed_paths:
             yield type(path)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
 
