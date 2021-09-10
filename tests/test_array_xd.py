@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+import random
 
 import numpy as np
 import pandas as pd
@@ -15,11 +16,13 @@ from datasets.formatting.formatting import NumpyArrowExtractor
 
 SHAPE_TEST_1 = (30, 487)
 SHAPE_TEST_2 = (36, 1024)
+SHAPE_TEST_3 = (None, 100)
 SPEED_TEST_SHAPE = (100, 100)
 SPEED_TEST_N_EXAMPLES = 100
 
 DEFAULT_FEATURES = datasets.Features(
-    {"text": Array2D(SHAPE_TEST_1, dtype="float32"), "image": Array2D(SHAPE_TEST_2, dtype="float32")}
+    {"text": Array2D(SHAPE_TEST_1, dtype="float32"), "image": Array2D(SHAPE_TEST_2, dtype="float32"),
+     "dynamic": Array2D(SHAPE_TEST_3, dtype="float32")}
 )
 
 
@@ -30,7 +33,11 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
         example = {}
         for col_id, (k, v) in enumerate(features.items()):
             if isinstance(v, _ArrayXD):
-                data = np.random.rand(*v.shape).astype(v.dtype)
+                if k == 'dynamic':
+                    first_dim = random.randint(1, 3)
+                    data = np.random.rand(first_dim, *v.shape[1:]).astype(v.dtype)
+                else:
+                    data = np.random.rand(*v.shape).astype(v.dtype)
             elif isinstance(v, datasets.Value):
                 data = "foo"
             elif isinstance(v, datasets.Sequence):
@@ -79,8 +86,10 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             row = dataset[0]
             first_len = len(row["image"].shape)
             second_len = len(row["text"].shape)
+            third_len = len(row["dynamic"].shape)
             self.assertEqual(first_len, 2, "use a sequence type if dim is  < 2")
             self.assertEqual(second_len, 2, "use a sequence type if dim is  < 2")
+            self.assertEqual(third_len, 2, "use a sequence type if dim is  < 2")
             del dataset
 
     def test_compatability_with_string_values(self):

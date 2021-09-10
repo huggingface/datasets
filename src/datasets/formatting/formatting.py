@@ -154,16 +154,15 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         return {col: self._arrow_array_to_numpy(pa_table[col]) for col in pa_table.column_names}
 
     def _arrow_array_to_numpy(self, pa_array: pa.Array) -> np.ndarray:
-        zero_copy_only = _is_zero_copy_only(pa_array.type)
         if isinstance(pa_array, pa.ChunkedArray):
             # don't call to_numpy() directly or we end up with a np.array with dtype object
             # call to_numpy on the chunks instead
             array: List[np.ndarray] = [
-                row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
+                row for chunk in pa_array.chunks for row in chunk.to_pylist()
             ]
         else:
             # cast to list of arrays or we end up with a np.array with dtype object
-            array: List[np.ndarray] = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
+            array: List[np.ndarray] = pa_array.to_pylist()
         return np.array(array, copy=False, **self.np_array_kwargs)
 
 
