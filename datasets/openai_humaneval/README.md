@@ -20,7 +20,7 @@ task_ids:
 - conditional-text-generation-other-code-generation
 ---
 
-# OpenAI HumanEval
+# Dataset Card for OpenAI HumanEval
 
 ## Table of Contents
 - [OpenAI HumanEval](#openai-humaneval)
