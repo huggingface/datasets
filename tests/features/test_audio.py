@@ -31,10 +31,11 @@ def test_audio_decode_example(shared_datadir):
 )
 def test_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
-    data = {"file": [audio_path]}
-    features = Features({"file": Audio()})
+    data = {"audio": [audio_path]}
+    features = Features({"audio": Audio()})
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
-    assert item.keys() == {"array", "sampling_rate"}
-    assert item["array"].shape == (202311,)
-    assert item["sampling_rate"] == 44100
+    assert item.keys() == {"audio"}
+    assert item["audio"].keys() == {"array", "sampling_rate"}
+    assert item["audio"]["array"].shape == (202311,)
+    assert item["audio"]["sampling_rate"] == 44100
