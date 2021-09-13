@@ -178,6 +178,14 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
         return pa_table.to_pandas(types_mapper=pandas_types_mapper)
 
 
+class PythonFeaturesDecoder:
+    def __init__(self, features):
+        self.features = features
+
+    def decode_row(self, row: dict) -> dict:
+        return self.features.decode_example(row)
+
+
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
     A formatter is an object that extracts and formats data from pyarrow tables.
