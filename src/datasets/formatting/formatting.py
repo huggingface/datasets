@@ -418,12 +418,13 @@ def format_table(
         - the TorchFormatter returns a dictionary for a row or a batch, and a torch.Tensor for a column.
         - the TFFormatter returns a dictionary for a row or a batch, and a tf.Tensor for a column.
     """
+    # import pdb;pdb.set_trace()
     if isinstance(table, Table):
         pa_table = table.table
     else:
         pa_table = table
     query_type = key_to_query_type(key)
-    python_formatter = PythonFormatter(features=formatter.features)
+    python_formatter = PythonFormatter(features=None)
     if format_columns is None:
         return formatter(pa_table, query_type=query_type)
     elif query_type == "column":
