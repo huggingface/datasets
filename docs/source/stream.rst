@@ -15,18 +15,18 @@ For example, the English split of the `OSCAR <https://huggingface.co/datasets/os
    >>> print(next(iter(dataset)))
    {'text': 'Mtendere Village was inspired by the vision of Chief Napoleon Dzombe, which he shared with John Blanchard during his first visit to Malawi. Chief Napoleon conveyed the desperate need for a program to intervene and care for the orphans and vulnerable children (OVC) in Malawi, and John committed to help...
 
-Loading a dataset in streaming mode creates a unique instance of the classic :class:`datasets.Dataset` object, known as an :class:`datasets.IterableDataset`. This special type of dataset has it's own set of processing methods shown below.
+Loading a dataset in streaming mode creates a new dataset type instance (instead of the classic :class:`datasets.Dataset` object), known as an :class:`datasets.IterableDataset`. This special type of dataset has its own set of processing methods shown below.
 
 .. tip::
 
-    An :class:`datasets.IterableDataset` is useful for iterative jobs like training a model. You shouldn't use an :class:`datasets.IterableDataset` for jobs that require random access to examples because you have to iterate over it using a for loop. Getting the last example in a dataset would require you to iterate over all the previous examples.
+    An :class:`datasets.IterableDataset` is useful for iterative jobs like training a model. You shouldn't use a :class:`datasets.IterableDataset` for jobs that require random access to examples because you have to iterate all over it using a for loop. Getting the last example in an iterable dataset would require you to iterate over all the previous examples.
 
 ``Shuffle``
 ^^^^^^^^^^^
 
-Like a regular :class:`datasets.Dataset` object, you can also shuffle an :class:`datasets.IterableDataset` with :func:`datasets.IterableDataset.shuffle`. 
+Like a regular :class:`datasets.Dataset` object, you can also shuffle a :class:`datasets.IterableDataset` with :func:`datasets.IterableDataset.shuffle`. 
 
-The ``buffer_size`` argument controls the size of the buffer to randomly sample examples from. Let's say your dataset has one million examples, and you set the ``buffer_size`` to ten thousand. :func:`datasets.IterableDataset.shuffle` will randomly select examples from the first ten thousand examples in the buffer. Selected examples in the buffer are replaced by new examples.
+The ``buffer_size`` argument controls the size of the buffer to randomly sample examples from. Let's say your dataset has one million examples, and you set the ``buffer_size`` to ten thousand. :func:`datasets.IterableDataset.shuffle` will randomly select examples from the first ten thousand examples in the buffer. Selected examples in the buffer are replaced with new examples.
 
 .. code-block::
 
@@ -41,7 +41,7 @@ The ``buffer_size`` argument controls the size of the buffer to randomly sample 
 Reshuffle
 ^^^^^^^^^
 
-Sometimes you may want to reshuffle the dataset after each epoch. This will require you to set a different seed for each epoch. Use ``set_epoch()`` in between epochs to tell the dataset what epoch you're on. 
+Sometimes you may want to reshuffle the dataset after each epoch. This will require you to set a different seed for each epoch. Use :func:`datasets.IterableDataset.set_epoch` in between epochs to tell the dataset what epoch you're on. 
 
 Your seed effectively becomes: ``initial seed + current epoch``.
 
@@ -74,7 +74,7 @@ You can split your dataset one of two ways:
 
 .. important::
 
-   ``take`` and ``skip`` prevents future calls to ``shuffle`` because they lock in the order of the shards. You should ``shuffle`` your dataset before splitting it.
+   ``take`` and ``skip`` prevent future calls to ``shuffle`` because they lock in the order of the shards. You should ``shuffle`` your dataset before splitting it.
 
 .. _interleave_datasets:
 

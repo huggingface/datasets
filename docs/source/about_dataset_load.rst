@@ -10,7 +10,7 @@ Let's begin with a basic Explain Like I'm Five.
 
 For community datasets, :func:`datasets.load_dataset` downloads and imports the dataset loading script associated with the requested dataset from the Hugging Face Hub. The Hub is a central repository where all the Hugging Face datasets and models are stored. Code in the loading script defines the dataset information (description, features, URL to the original files, etc.), and tells 🤗 Datasets how to generate and display examples from it.
 
-If you are working with a canonical dataset, :func:`datasets.load_dataset` downloads and imports the dataset loading script from Github.
+If you are working with a canonical dataset, :func:`datasets.load_dataset` downloads and imports the dataset loading script from GitHub.
 
 .. seealso::
 

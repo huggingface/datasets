@@ -1,5 +1,3 @@
-.. _dataset_card:
-
 Dataset card
 ============
 
