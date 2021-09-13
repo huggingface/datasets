@@ -197,7 +197,7 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    def __init__(self, features):
+    def __init__(self, features=None):
         self.features = features
         self.python_features_decoder = PythonFeaturesDecoder(self.features)
 
@@ -243,7 +243,8 @@ class PythonFormatter(Formatter[dict, list, dict]):
 
 
 class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
-    def __init__(self, **np_array_kwargs):
+    def __init__(self, features=None, **np_array_kwargs):
+        super().__init__(features=features)
         self.np_array_kwargs = np_array_kwargs
 
     def format_row(self, pa_table: pa.Table) -> dict:
