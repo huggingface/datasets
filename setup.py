@@ -30,6 +30,8 @@ To create the package for pypi.
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
 
+   First, delete any "build" directory that may exist from previous builds.
+
    For the wheel, run: "python setup.py bdist_wheel" in the top level directory.
    (this will build a wheel for the python version you use to build it).
 
@@ -41,8 +43,7 @@ To create the package for pypi.
    twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
 
    Check that you can install it in a virtualenv/notebook by running:
-   pip install huggingface_hub
-   pip install fsspec
+   pip install huggingface_hub fsspec aiohttp
    pip install -U tqdm
    pip install -i https://testpypi.python.org/pypi datasets
 
@@ -216,9 +217,10 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.12.0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.12.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
+    long_description_content_type='text/markdown',
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",
     url="https://github.com/huggingface/datasets",
