@@ -1162,9 +1162,20 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_filter_first_ten), 10)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
-                    # only one cache file since the there is only 10 examples from the 1 processed shard
-                    self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 1)
+                    self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 2)
                     self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
+
+    def test_filter_caching(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._caplog.clear()
+            with self._caplog.at_level(WARNING):
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    with dset.filter(lambda x, i: i < 5, with_indices=True) as dset_filter_first_five1:
+                        dset_test1_data_files = list(dset_filter_first_five1.cache_files)
+                    with dset.filter(lambda x, i: i < 5, with_indices=True) as dset_filter_first_five2:
+                        self.assertEqual(dset_test1_data_files, dset_filter_first_five2.cache_files)
+                        self.assertEqual(len(dset_filter_first_five2.cache_files), 0 if in_memory else 2)
+                        self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
 
     def test_keep_features_after_transform_specified(self, in_memory):
         features = Features(

@@ -22,7 +22,7 @@ import json
 import os
 import shutil
 import tempfile
-from collections import Counter, defaultdict
+from collections import Counter
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import asdict
@@ -69,7 +69,7 @@ from .table import (
     list_table_cache_files,
 )
 from .tasks import TaskTemplate
-from .utils import logging, map_nested
+from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
@@ -2111,6 +2111,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         function: Optional[Callable] = None,
         with_indices=False,
         input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
         batch_size: Optional[int] = 1000,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
@@ -2135,12 +2136,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             input_columns (:obj:`str` or `List[str]`, optional): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+            batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (:obj:`int`, optional, default `1000`): Number of examples per batch provided to `function` if
-                ``batched = True``. If ``batch_size <= 0`` or ``batch_size == None``: provide the full dataset as a
-                single batch to `function`
-            remove_columns (`List[str]`, optional): Remove a selection of columns while doing the mapping.
-                Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
-                columns with names in `remove_columns`, these columns will be kept.
+                ``batched = True``. If ``batched = False``, one example per batch is passed to ``function``.
+                If ``batch_size <= 0`` or ``batch_size == None``: provide the full dataset as a single batch to `function`
             keep_in_memory (:obj:`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
@@ -2168,30 +2167,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if function is None:
             function = lambda x: True  # noqa: E731
 
-        if isinstance(input_columns, str):
-            input_columns = [input_columns]
+        if remove_columns is not None:
+            raise ValueError("Parameter `remove_columns` passed to .filter() is no longer supported.")
 
-        if input_columns is not None:
-            for input_column in input_columns:
-                if input_column not in self._data.column_names:
-                    raise ValueError(
-                        "Input column {} not in the dataset. Current columns in the dataset: {}".format(
-                            input_column, self._data.column_names
-                        )
-                    )
-
-        if fn_kwargs is None:
-            fn_kwargs = {}
-        fn_kwargs["input_columns"] = input_columns
-
-        # return map function
-        return self.map(
-            partial(map_function, function=function, with_indices=with_indices),
+        indices = self.map(
+            function=partial(get_indices_from_mask_function, function, batched, with_indices, input_columns),
+            with_indices=True,
+            features=Features({"indices": Value("uint64")}),
             batched=True,
-            with_indices=with_indices,
-            features=self.features,
             batch_size=batch_size,
-            remove_columns=remove_columns,
+            remove_columns=self.column_names,
             keep_in_memory=keep_in_memory,
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
@@ -2200,7 +2185,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             num_proc=num_proc,
             suffix_template=suffix_template,
             new_fingerprint=new_fingerprint,
+            input_columns=input_columns,
         )
+        new_dataset = copy.deepcopy(self)
+        new_dataset._indices = indices.data
+        new_dataset._fingerprint = new_fingerprint
+        return new_dataset
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
@@ -3369,35 +3359,29 @@ def concatenate_datasets(
 
 # This is outside Dataset.filter as it needs to be picklable for multiprocessing
 
-# transform the filter function into the map function
-def map_function(batch, *args, function=None, with_indices=None, **fn_kwargs):
-    assert function is not None and with_indices is not None
-    result = defaultdict(list)
-    num_examples = len(batch[next(iter(batch.keys()))])
-    input_columns = fn_kwargs.pop("input_columns", None)
 
-    # create single examples
-    for i in range(num_examples):
-        example = map_nested(lambda x: x[i], batch, dict_only=True)
-        fn_args = [example] if input_columns is None else [example[col] for col in input_columns]
-
-        # check if example should be filtered or not
-        if with_indices:
-            keep_example = function(*fn_args, args[0][i], **fn_kwargs)
+def get_indices_from_mask_function(
+    function: Callable, batched: bool, with_indices: bool, input_columns: Optional[Union[str, List[str]]], *args
+):
+    if batched:
+        mask = function(*args)
+    else:
+        # we get batched data (to do less look-ups) but `function` only accepts one example
+        # therefore we need to call `function` on each example of the batch to get the mask
+        *inputs, indices = args
+        mask = []
+        if input_columns is None:
+            # inputs only contains a batch of examples
+            batch: dict = inputs[0]
+            num_examples = len(batch[next(iter(batch.keys()))])
+            for i in range(num_examples):
+                example = {key: batch[key][i] for key in batch}
+                mask.append(function(example, indices[i]) if with_indices else function(example))
         else:
-            keep_example = function(*fn_args, **fn_kwargs)
-
-        assert isinstance(
-            keep_example, bool
-        ), f"The filter function returns a variable of type {type(keep_example)}, but should return a variable of type `bool`."
-        # if example shall be kept add to result
-        if keep_example:
-            for key in batch.keys():
-                result[key].append(example[key])
-
-    # if no example shall be kept, init with empty list
-    if bool(result) is False:
-        for key in batch.keys():
-            result[key] = []
-
-    return result
+            # inputs is a list of columns
+            columns: List[List[Any]] = inputs
+            num_examples = len(columns[0])
+            for i in range(num_examples):
+                input = [column[i] for column in columns]
+                mask.append(function(*input, indices[i]) if with_indices else function(*input))
+    return {"indices": [i for i, to_keep in zip(indices, mask) if to_keep]}
