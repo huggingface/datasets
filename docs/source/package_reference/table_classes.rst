@@ -1,9 +1,9 @@
 Table Classes
 ----------------------------------------------------
 
-Each :obj:`datasets.Dataset` object is backed by a pyarrow Table.
-A Table can be loaded either from the disk (memory mapped) or in memory.
-Several Table types are available, and they all inherit from datasets.table.Table.
+Each :obj:`datasets.Dataset` object is backed by a PyArrow Table.
+A Table can be loaded from either the disk (memory mapped) or in memory.
+Several Table types are available, and they all inherit from :class:`datasets.table.Table`.
 
 
 .. autoclass:: datasets.table.Table

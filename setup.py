@@ -208,6 +208,9 @@ EXTRAS_REQUIRE = {
         "sphinx-copybutton",
         "fsspec",
         "s3fs",
+        "sphinx-panels",
+        "sphinx-inline-tabs",
+        "myst-parser",
     ],
 }
 
