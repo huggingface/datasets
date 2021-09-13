@@ -232,7 +232,8 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 
 class PythonFormatter(Formatter[dict, list, dict]):
     def format_row(self, pa_table: pa.Table) -> dict:
-        return self.python_arrow_extractor().extract_row(pa_table)
+        row = self.python_arrow_extractor().extract_row(pa_table)
+        return self.python_features_decoder.decode_row(row)
 
     def format_column(self, pa_table: pa.Table) -> list:
         return self.python_arrow_extractor().extract_column(pa_table)
