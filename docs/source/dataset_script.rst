@@ -17,7 +17,7 @@ The following guide includes instructions for dataset scripts for how to:
 * Generate samples.
 * Test if your dataset was generated correctly.
 * Create a Dataset card.
-* Upload a dataset to the Hugging Face Hub or Github.
+* Upload a dataset to the Hugging Face Hub or GitHub.
 
 Open the `SQuAD dataset loading script <https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py>`_ template to follow along on how to share a dataset.
 
@@ -52,9 +52,9 @@ The first step is to add some information, or attributes, about your dataset in 
        }
    )
 
-3. :obj:`datasets.DatasetInfo.homepage` contains a URL to the datasets homepage so users can find more details about the dataset.
+3. :obj:`datasets.DatasetInfo.homepage` contains the URL to the dataset homepage so users can find more details about the dataset.
 
-4. :obj:`datasets.DatasetInfo.citation` contains a BibTex citation for the dataset.
+4. :obj:`datasets.DatasetInfo.citation` contains a BibTeX citation for the dataset.
 
 After you've filled out all these fields in the template, it should look like the following example from the SQuAD loading script:
 
@@ -88,7 +88,7 @@ In some cases, your dataset may have multiple configurations. For example, the `
 
 Let's study the `SuperGLUE loading script <https://github.com/huggingface/datasets/blob/master/datasets/super_glue/super_glue.py>`_ to see how you can define several configurations.
 
-1. Create a :class:`datasets.BuilderConfig` class with attributes about your dataset. These attributes can be the features of your dataset, label classes, and a URL to the data files.
+1. Create a :class:`datasets.BuilderConfig` subclass with attributes about your dataset. These attributes can be the features of your dataset, label classes, and a URL to the data files.
 
 .. code-block::
 
@@ -198,11 +198,11 @@ After you've defined the attributes of your dataset, the next step is to downloa
 .. tip::
     If the data files live in the same folder or repository of the dataset script, you can just pass the relative paths to the files instead of URLs.
 
-2. :obj:`datasets.DownloadManager.download_and_extract` takes this dictionary and downloads the data files. Once the files are downloaded, :func:`datasets.SplitGenerator` organizes each split in the dataset. This is a simple class that contains:
+2. :func:`datasets.DownloadManager.download_and_extract` takes this dictionary and downloads the data files. Once the files are downloaded, use :class:`datasets.SplitGenerator` to organize each split in the dataset. This is a simple class that contains:
 
-* The :obj:`name` of each split. You should use the standard split names: :obj:`datasets.Split.TRAIN`, :obj:`datasets.Split.TEST`, and :obj:`datasets.Split.VALIDATION`.
+  * The :obj:`name` of each split. You should use the standard split names: :obj:`datasets.Split.TRAIN`, :obj:`datasets.Split.TEST`, and :obj:`datasets.Split.VALIDATION`.
 
-* :obj:`gen_kwargs` provides the file paths to the data files to load for each split.
+  * :obj:`gen_kwargs` provides the file paths to the data files to load for each split.
 
 Your :obj:`datasets.DatasetBuilder._split_generator()` should look like this now:
 
@@ -235,30 +235,30 @@ The next step is to actually generate the samples in each split.
 .. code-block::
 
    def _generate_examples(self, filepath):
-   """This function returns the examples in the raw (text) form."""
-   logger.info("generating examples from = %s", filepath)
-   with open(filepath) as f:
-       squad = json.load(f)
-       for article in squad["data"]:
-           title = article.get("title", "").strip()
-           for paragraph in article["paragraphs"]:
-               context = paragraph["context"].strip()
-               for qa in paragraph["qas"]:
-                   question = qa["question"].strip()
-                   id_ = qa["id"]
+       """This function returns the examples in the raw (text) form."""
+       logger.info("generating examples from = %s", filepath)
+       with open(filepath) as f:
+           squad = json.load(f)
+           for article in squad["data"]:
+               title = article.get("title", "").strip()
+               for paragraph in article["paragraphs"]:
+                   context = paragraph["context"].strip()
+                   for qa in paragraph["qas"]:
+                       question = qa["question"].strip()
+                       id_ = qa["id"]
 
-                   answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-                   answers = [answer["text"].strip() for answer in qa["answers"]]
+                       answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+                       answers = [answer["text"].strip() for answer in qa["answers"]]
 
-                   # Features currently used are "context", "question", and "answers".
-                   # Others are extracted here for the ease of future expansions.
-                   yield id_, {
-                       "title": title,
-                       "context": context,
-                       "question": question,
-                       "id": id_,
-                       "answers": {"answer_start": answer_starts, "text": answers,},
-                }
+                       # Features currently used are "context", "question", and "answers".
+                       # Others are extracted here for the ease of future expansions.
+                       yield id_, {
+                           "title": title,
+                           "context": context,
+                           "question": question,
+                           "id": id_,
+                           "answers": {"answer_start": answer_starts, "text": answers,},
+                       }
 
 Testing data and checksum metadata
 ----------------------------------

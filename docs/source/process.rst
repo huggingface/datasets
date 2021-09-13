@@ -12,7 +12,7 @@ This guide will show you how to:
 * Apply a custom formatting transform.
 * Save and export processed datasets.
 
-Load the MRPC dataset to follow along with our examples:
+Load the MRPC dataset from the GLUE benchmark to follow along with our examples:
 
 .. code-block::
 
@@ -21,7 +21,7 @@ Load the MRPC dataset to follow along with our examples:
 
 .. attention::
 
-   All the processing methods in this guide returns a new :class:`datasets.Dataset`. Modification is not done in-place. Be careful about overriding your previous dataset!
+   All the processing methods in this guide return a new :class:`datasets.Dataset`. Modification is not done in-place. Be careful about overriding your previous dataset!
 
 Sort, shuffle, select, split, and shard
 ---------------------------------------
@@ -59,7 +59,7 @@ The :func:`datasets.Dataset.shuffle` method randomly rearranges the values of a 
 
 There are two options for filtering rows in a dataset: :func:`datasets.Dataset.select` and :func:`datasets.Dataset.filter`.
 
-* :func:`datasets.Dataset.select` filters rows according to a list of indices:
+* :func:`datasets.Dataset.select` returns rows according to a list of indices:
 
 .. code-block::
 
@@ -151,6 +151,11 @@ Provide :func:`datasets.Dataset.rename_column` with the name of the original col
 
 .. code-block::
 
+   >>> dataset
+   Dataset({
+       features: ['sentence1', 'sentence2', 'label', 'idx'],
+       num_rows: 3668
+   })
    >>> dataset = dataset.rename_column("sentence1", "sentenceA")
    >>> dataset = dataset.rename_column("sentence2", "sentenceB")
    >>> dataset
@@ -236,7 +241,7 @@ The ``answers`` field contains two subfields: ``text`` and ``answer_start``. Fla
     num_rows: 87599
    })
 
-Notice how the subfields are now their own independent columns.
+Notice how the subfields are now their own independent columns: ``answers.text`` and ``answers.answer_start``.
 
 .. _map:
 
@@ -267,7 +272,7 @@ Next, apply this function to the dataset with :func:`datasets.Dataset.map`:
 
 Let's take a look at another example, except this time, you will remove a column with :func:`datasets.Dataset.map`. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed. 
 
-Specify the column to remove with the ``remove_columns=List[str]`` argument in :func:`datasets.Dataset.map`:
+Specify the column to remove with the ``remove_columns`` argument in :func:`datasets.Dataset.map`:
 
 .. code-block::
 
@@ -279,7 +284,7 @@ Specify the column to remove with the ``remove_columns=List[str]`` argument in :
 
    🤗 Datasets also has a :func:`datasets.Dataset.remove_columns` method that is functionally identical, but faster, because it doesn't copy the data of the remaining columns.
 
-You can also use :func:`datasets.Dataset.map` with indices if you set ``with_indices=True``. The sample below adds the index to the beginning of each sentence:
+You can also use :func:`datasets.Dataset.map` with indices if you set ``with_indices=True``. The example below adds the index to the beginning of each sentence:
 
 .. code-block::
 
@@ -547,17 +552,7 @@ In this case, the tokenization is applied only when the examples are accessed.
 Save
 ----
 
-Once you are done processing your dataset, you can save and reuse it later. The following table shows which save method you should use depending on your :class:`datasets.Dataset` object:
-
-.. list-table::
-    :header-rows: 1
-
-    * - Object type
-      - Save method
-    * - :obj:`datasets.Dataset`
-      - :func:`datasets.Dataset.save_to_disk`
-    * - :obj:`datasets.DatasetDict`
-      - :func:`datasets.DatasetDict.save_to_disk`
+Once you are done processing your dataset, you can save and reuse it later with :func:`datasets.Dataset.save_to_disk`.
 
 Save your dataset by providing the path to the directory you wish to save it to:
 
@@ -565,7 +560,7 @@ Save your dataset by providing the path to the directory you wish to save it to:
 
    >>> encoded_dataset.save_to_disk("path/of/my/dataset/directory")
 
-When you want to use your dataset again, use :func:`load_from_disk` to reload it:
+When you want to use your dataset again, use :func:`datasets.load_from_disk` to reload it:
 
 .. code-block::
 
@@ -592,7 +587,7 @@ Export
       - :func:`datasets.Dataset.to_json`
     * - Parquet
       - :func:`datasets.Dataset.to_parquet`
-    * - Python object
+    * - In-memory Python object
       - :func:`datasets.Dataset.to_pandas` or :func:`datasets.Dataset.to_dict`
 
 For example, export your dataset to a CSV file like this:

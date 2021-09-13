@@ -29,7 +29,7 @@ First, create a dataset repository and upload your data files. Then you can use 
 
 This dataset repository contains CSV files, and this code loads all the data from the CSV files.
 
-Some datasets may have more than one version, based on git. Use the ``script_version`` flag to specifiy which dataset you want to load:
+Some datasets may have more than one version, based on Git tags, branches or commits. Use the ``script_version`` flag to specifiy which dataset version you want to load:
 
 .. code-block::
 
@@ -42,7 +42,7 @@ Some datasets may have more than one version, based on git. Use the ``script_ver
 
    Refer to the :ref:`upload_dataset_repo` guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
 
-If the dataset doesn't have a dataset loading script, then by default, all the data will be loaded in the ``train`` split. Use the ``data_files`` parameter to map data files to splits like ``train`` and ``test``:
+If the dataset doesn't have a dataset loading script, then by default, all the data will be loaded in the ``train`` split. Use the ``data_files`` parameter to map data files to splits like ``train``, ``validation`` and ``test``:
 
 .. code-block::
 
@@ -58,7 +58,7 @@ You can also load a specific subset of the files with the ``data_files`` paramet
 .. code-block::
 
    >>> from datasets import load_dataset
-   >>> c4 = c4_subset = load_dataset('allenai/c4', data_files='en/c4-train.0000*-of-01024.json.gz')
+   >>> c4_subset = load_dataset('allenai/c4', data_files='en/c4-train.0000*-of-01024.json.gz')
 
 Specify a custom split with the ``split`` parameter:
 
@@ -118,7 +118,7 @@ JSON files can have diverse formats, but we think the most efficient format is t
    {"a": 1, "b": 2.0, "c": "foo", "d": false}
    {"a": 4, "b": -5.5, "c": null, "d": true}
 
-Another format you may encounter is a nested field, in which case you will need to specify the ``field`` argument as shown in the following:
+Another JSON format you may encounter is a nested field, in which case you will need to specify the ``field`` argument as shown in the following:
 
 .. code-block::
 
@@ -137,7 +137,7 @@ To load remote JSON files via HTTP, you can pass the URLs:
    >>> base_url = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
    >>> dataset = load_dataset('json', data_files={'train': base_url + 'train-v1.1.json', 'validation': base_url + 'dev-v1.1.json'}, field="data")
 
-While these are the most common formats, you will see other datasets that are formatted differently. 🤗 Datasets recognizes these other formats, and will fallback accordingly on the Python JSON loading methods to handle them.
+While these are the most common JSON formats, you will see other datasets that are formatted differently. 🤗 Datasets recognizes these other formats, and will fallback accordingly on the Python JSON loading methods to handle them.
 
 Text files
 ^^^^^^^^^^
@@ -206,14 +206,14 @@ Load Pandas DataFrames with :func:`datasets.Dataset.from_pandas`:
 Offline
 -------
 
-Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub or 🤗 Datasets Github repository before, it should be cached. This means you can reload the dataset from the cache and use it offline.
+Even if you don't have an internet connection, it is still possible to load a dataset. As long as you've downloaded a dataset from the Hub or 🤗 Datasets GitHub repository before, it should be cached. This means you can reload the dataset from the cache and use it offline.
 
 If you know you won't have internet access, you can run 🤗 Datasets in full offline mode. This saves time because instead of waiting for the Dataset builder download to time out, 🤗 Datasets will look directly in the cache. Set the environment variable ``HF_DATASETS_OFFLINE`` to ``1`` to enable full offline mode.
 
 Slice splits
 ------------
 
-For even greater control over how to load a split, you can choose to only load specific slices of a split. There are two options for slicing a split: using strings or ``ReadInstruction``. Strings are more compact and readable for simple cases, while ``ReadInstruction`` is easier to use with variable slicing parameters.
+For even greater control over how to load a split, you can choose to only load specific slices of a split. There are two options for slicing a split: using strings or :class:`datasets.ReadInstruction`. Strings are more compact and readable for simple cases, while :class:`datasets.ReadInstruction` is easier to use with variable slicing parameters.
 
 Concatenate the ``train`` and ``test`` split by:
 
@@ -419,4 +419,4 @@ In some instances, you may be simultaneously running multiple independent distri
 .. code-block::
 
    >>> from datasets import load_metric
-   >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=process_id,experiment_id="My_experiment_10")
+   >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=process_id, experiment_id="My_experiment_10")
