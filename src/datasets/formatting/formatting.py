@@ -183,7 +183,7 @@ class PythonFeaturesDecoder:
         self.features = features
 
     def decode_row(self, row: dict) -> dict:
-        return self.features.decode_example(row)
+        return self.features.decode_example(row) if self.features else row
 
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
