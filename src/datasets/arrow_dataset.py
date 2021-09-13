@@ -1498,15 +1498,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dataset = dataset.cast(features=template.features)
         return dataset
 
-    def _features_decode(self, output, key):
-        query_type = key_to_query_type(key)
-        if query_type == "row":
-            return self.features.decode_example(output)
-        elif query_type == "batch":
-            return self.features.decode_batch(output)
-        else:
-            return output
-
     def _getitem(
         self,
         key: Union[int, slice, str],
@@ -1519,13 +1510,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
         """
         format_kwargs = format_kwargs if format_kwargs is not None else {}
-        formatter = get_formatter(format_type, **format_kwargs)
+        formatter = get_formatter(format_type, features=self.features, **format_kwargs)
         pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
         formatted_output = format_table(
             pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
         )
-        output = self._features_decode(formatted_output, key)
-        return output
+        return formatted_output
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""

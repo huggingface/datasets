@@ -422,7 +422,7 @@ def format_table(
     else:
         pa_table = table
     query_type = key_to_query_type(key)
-    python_formatter = PythonFormatter()
+    python_formatter = PythonFormatter(features=formatter.features)
     if format_columns is None:
         return formatter(pa_table, query_type=query_type)
     elif query_type == "column":
