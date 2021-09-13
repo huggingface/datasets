@@ -56,7 +56,6 @@ from .fingerprint import (
     update_fingerprint,
 )
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
-from .formatting.formatting import key_to_query_type
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split
