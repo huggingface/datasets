@@ -232,6 +232,12 @@ def _check_table(table) -> Table:
         raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
 
 
+class NonExistentDatasetError(Exception):
+    """Used when we expect the existence of a dataset"""
+
+    pass
+
+
 class Dataset(DatasetInfoMixin, IndexableMixin):
     """A Dataset backed by an Arrow table."""
 
@@ -1621,8 +1627,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `True`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
-            num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
+            num_proc (`Optional[int]`, default `None`): Max number of processes when generating cache. Already cached shards are loaded sequentially
             suffix_template (:obj:`str`):
                 If cache_file_name is specified, then this suffix
                 will be added at the end of the base name of each: defaults to "_{rank:05d}_of_{num_proc:05d}". For example, if cache_file_name is "processed.arrow", then for
@@ -1725,49 +1730,82 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             initargs, initializer = None, None
             if not disable_tqdm:
                 initargs, initializer = (RLock(),), tqdm.set_lock
-            with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
-                os.environ = prev_env
-                shards = [
-                    self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
-                    for rank in range(num_proc)
-                ]
-                kwds_per_shard = [
-                    dict(
-                        self=shards[rank],
-                        function=function,
-                        with_indices=with_indices,
-                        input_columns=input_columns,
-                        batched=batched,
-                        batch_size=batch_size,
-                        drop_last_batch=drop_last_batch,
-                        remove_columns=remove_columns,
-                        keep_in_memory=keep_in_memory,
-                        load_from_cache_file=load_from_cache_file,
-                        cache_file_name=format_cache_file_name(cache_file_name, rank)
-                        if cache_file_name is not None
-                        else None,
-                        writer_batch_size=writer_batch_size,
-                        features=features.copy() if features is not None else None,
-                        disable_nullable=disable_nullable,
-                        fn_kwargs=fn_kwargs,
-                        rank=rank,
-                        offset=sum(len(s) for s in shards[:rank]),
-                        disable_tqdm=disable_tqdm,
-                        desc=desc,
-                    )
-                    for rank in range(num_proc)
-                ]
-                logger.info("Spawning {} processes".format(num_proc))
-                results = [pool.apply_async(self.__class__._map_single, kwds=kwds) for kwds in kwds_per_shard]
-                transformed_shards = [r.get() for r in results]
-                logger.info("Concatenating {} shards from multiprocessing".format(num_proc))
-                result = concatenate_datasets(transformed_shards)
-                if new_fingerprint is not None:
-                    result._fingerprint = new_fingerprint
-                return result
+
+            shards = [
+                self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
+                for rank in range(num_proc)
+            ]
+            kwds_per_shard = [
+                dict(
+                    self=shards[rank],
+                    function=function,
+                    with_indices=with_indices,
+                    input_columns=input_columns,
+                    batched=batched,
+                    batch_size=batch_size,
+                    drop_last_batch=drop_last_batch,
+                    remove_columns=remove_columns,
+                    keep_in_memory=keep_in_memory,
+                    load_from_cache_file=load_from_cache_file,
+                    cache_file_name=format_cache_file_name(cache_file_name, rank)
+                    if cache_file_name is not None
+                    else None,
+                    writer_batch_size=writer_batch_size,
+                    features=features.copy() if features is not None else None,
+                    disable_nullable=disable_nullable,
+                    fn_kwargs=fn_kwargs,
+                    rank=rank,
+                    offset=sum(len(s) for s in shards[:rank]),
+                    disable_tqdm=disable_tqdm,
+                    desc=desc,
+                )
+                for rank in range(num_proc)
+            ]
+
+            # We search for already cached shards
+            def catch_non_existent_error(func, kwargs):
+                try:
+                    return func(**kwargs)
+                except NonExistentDatasetError:
+                    return None
+
+            transformed_shards = [
+                catch_non_existent_error(self.__class__._map_single, dict(cache_only=True, **kwds))
+                for kwds in kwds_per_shard
+            ]
+
+            # We try to create a pool with as many workers as dataset not yet cached.
+            nb_of_missing_shards = transformed_shards.count(None)
+            if nb_of_missing_shards > 0:
+                with Pool(nb_of_missing_shards, initargs=initargs, initializer=initializer) as pool:
+                    os.environ = prev_env
+                    logger.info("Spawning {} processes".format(num_proc))
+                    results = {
+                        i: pool.apply_async(self.__class__._map_single, kwds=kwds)
+                        for i, (kwds, cached_shard) in enumerate(zip(kwds_per_shard, transformed_shards))
+                        if cached_shard is None
+                    }
+                    assert (
+                        len(results) == nb_of_missing_shards
+                    ), "The number of missing cached shards needs to correspond to the number of `_map_single` we're running"
+
+                    for index, async_result in results.items():
+                        transformed_shards[index] = async_result.get()
+
+            assert (
+                transformed_shards.count(None) == 0
+            ), "All shards have to be defined Datasets, none should still be missing."
+
+            logger.info("Concatenating {} shards".format(num_proc))
+            result = concatenate_datasets(transformed_shards)
+            if new_fingerprint is not None:
+                result._fingerprint = new_fingerprint
+            return result
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"])
+    @fingerprint_transform(
+        inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc", "cache_only"]
+    )
     def _map_single(
         self,
         function: Optional[Callable] = None,
@@ -1789,6 +1827,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         offset: int = 0,
         disable_tqdm: bool = False,
         desc: Optional[str] = None,
+        cache_only: bool = False,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does update examples).
@@ -1829,6 +1868,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
             disable_tqdm (:obj:`bool`, defaults to `False`): Whether to silence tqdm's output.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
         """
         # Reduce logging to keep things readable in multiprocessing with tqdm
         if rank is not None and logging.get_verbosity() < logging.WARNING:
@@ -1856,6 +1896,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 info = self.info.copy()
                 info.features = features
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
+
+        # Raise an error if we were supposed to return a cached dataset and none was found
+        if cache_only:
+            raise NonExistentDatasetError
 
         # We set this variable to True after processing the first example/batch in
         # `apply_function_on_filtered_inputs` if the map function returns a dict.
@@ -2856,6 +2900,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self,
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
+        num_proc: Optional[int] = None,
         **to_json_kwargs,
     ) -> int:
         """Export the dataset to JSON Lines or JSON.
@@ -2864,6 +2909,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
             batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing. ``batch_size`` in this case defaults to
+                :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
+                value if you have sufficient compute power.
             lines (:obj:`bool`, default ``True``): Whether output JSON lines format.
                 Only possible if ``orient="records"`. It will throw ValueError with ``orient`` different from
                 ``"records"``, since the others are not list-like.
@@ -2884,7 +2933,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetWriter
 
-        return JsonDatasetWriter(self, path_or_buf, batch_size=batch_size, **to_json_kwargs).write()
+        return JsonDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_json_kwargs).write()
 
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = False
