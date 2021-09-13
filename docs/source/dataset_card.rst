@@ -1,5 +1,5 @@
-Dataset card
-============
+Create a dataset card
+=====================
 
 Each dataset should be accompanied with a Dataset card to promote responsible usage, and alert the user to any potential biases within the dataset.
 This idea is inspired by the Model Cards proposed by `Mitchell, 2018 <https://arxiv.org/abs/1810.03993>`_.

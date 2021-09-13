@@ -1,7 +1,7 @@
 Load
 ====
 
-You have already seen how to load a dataset from the Hugging Face Hub. But datasets are stored in a variety of places, and sometimes you won't find the one you want on the Hub. A dataset can be on your local machine, in a Github repository, and in data structures like Python dictionaries and Pandas DataFrames. Wherever your dataset may be stored, 🤗 Datasets provides a way for you to load and use it for training.
+You have already seen how to load a dataset from the Hugging Face Hub. But datasets are stored in a variety of places, and sometimes you won't find the one you want on the Hub. A dataset can be on disk on your local machine, in a Github repository, and in in-memory data structures like Python dictionaries and Pandas DataFrames. Wherever your dataset may be stored, 🤗 Datasets provides a way for you to load and use it for training.
 
 This guide will show you how to load a dataset from:
 
@@ -201,7 +201,7 @@ Load Pandas DataFrames with :func:`datasets.Dataset.from_pandas`:
 
 .. important::
 
-   An object data type in `pandas.Series <https://pandas.pydata.org/docs/reference/api/pandas.Series.html>`_ doesn't always carry enough information for Arrow to automatically infer a data type. Avoid potential errors by constructing an explicit schema with :class:`datasets.Features` using the ``from_dict`` or ``from_pandas`` methods. See the :ref:`troubleshoot` for more details on how to explicitly specify your own features.
+   An object data type in `pandas.Series <https://pandas.pydata.org/docs/reference/api/pandas.Series.html>`_ doesn't always carry enough information for Arrow to automatically infer a data type. For example, if a DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to null. Avoid potential errors by constructing an explicit schema with :class:`datasets.Features` using the ``from_dict`` or ``from_pandas`` methods. See the :ref:`troubleshoot` for more details on how to explicitly specify your own features.
 
 Offline
 -------

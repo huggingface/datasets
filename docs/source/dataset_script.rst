@@ -1,5 +1,5 @@
-Dataset script
-==============
+Create a dataset loading script
+===============================
 
 Write a dataset script to load and share your own datasets. It is a Python file that defines the different configurations and splits of your dataset, as well as how to download and process the data.
 
@@ -122,7 +122,7 @@ Let's study the `SuperGLUE loading script <https://github.com/huggingface/datase
        self.citation = citation
        self.url = url
 
-2. Sub-class the base :class:`datasets.BuilderConfig` to add additional attributes of a configuration. This gives you more flexibility to specify the name and description of each configuration. These sub-classes should be listed under :obj:`datasets.DatasetBuilder.BUILDER_CONFIGS`:
+2. Create instances of your config to specify the values of the attributes of each configuration. This gives you the flexibility to specify all the name and description of each configuration. These sub-class instances should be listed under :obj:`datasets.DatasetBuilder.BUILDER_CONFIGS`:
 
 .. code-block::
 
