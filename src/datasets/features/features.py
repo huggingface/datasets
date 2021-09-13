@@ -793,10 +793,15 @@ def decode_nested_example(feature, example):
         for col, (col_feature, col_example) in utils.zip_dict(feature, example):
             decoded_nested_example = decode_nested_example(col_feature, col_example)
             if decoded_nested_example:
-                result.update(decoded_nested_example)
+                if isinstance(decoded_nested_example, dict):
+                    result.update(decoded_nested_example)
+                else:
+                    result[col] = decoded_nested_example
         return result
     elif isinstance(feature, Audio):
         return feature.decode_example(example)
+    else:
+        return example
 
 
 def generate_from_dict(obj: Any):
