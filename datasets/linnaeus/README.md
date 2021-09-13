@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: linnaeus
+pretty_name: LINNAEUS
 ---
 
 # Dataset Card for [Dataset Name]
@@ -56,21 +57,27 @@ paperswithcode_id: linnaeus
 
 ### Dataset Summary
 
-[More Information Needed]
+LINNAEUS is a general-purpose dictionary matching software, capable of processing multiple types of document formats in the biomedical domain (MEDLINE, PMC, BMC, OTMI, text, etc.). It can produce multiple types of output (XML, HTML, tab-separated-value file, or save to a database). It also contains methods for acting as a server (including load balancing across several servers), allowing clients to request matching over a network. A package with files for recognizing and identifying species names is available for LINNAEUS, showing 94% recall and 97% precision compared to LINNAEUS-species-corpus.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+This dataset is used for species Named Entity Recognition.
 
 ### Languages
 
-[More Information Needed]
+The dataset is in English.
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+An example from the dataset is:
+
+```
+{'id': '2',
+'tokens': ['Scp160p', 'is', 'a', '160', 'kDa', 'protein', 'in', 'the', 'yeast', 'Saccharomyces', 'cerevisiae', 'that', 'contains', '14', 'repeats', 'of', 'the', 'hnRNP', 'K', '-', 'homology', '(', 'KH', ')', 'domain', ',', 'and', 'demonstrates', 'significant', 'sequence', 'homology', 'to', 'a', 'family', 'of', 'proteins', 'collectively', 'known', 'as', 'vigilins', '.'],
+'ner_tags': [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
+```
 
 ### Data Fields
 
@@ -80,7 +87,10 @@ paperswithcode_id: linnaeus
 
 ### Data Splits
 
-[More Information Needed]
+
+|   name   |train|validation|test|
+|----------|----:|---------:|---:|
+| linnaeus |11936|      4079|7143|
 
 ## Dataset Creation
 
@@ -138,7 +148,22 @@ paperswithcode_id: linnaeus
 
 ### Citation Information
 
-[More Information Needed]
+```bibtex
+@article{Gerner2010,
+abstract = {The task of recognizing and identifying species names in biomedical literature has recently been regarded as critical for a number of applications in text and data mining, including gene name recognition, species-specific document retrieval, and semantic enrichment of biomedical articles.},
+author = {Gerner, Martin and Nenadic, Goran and Bergman, Casey M},
+doi = {10.1186/1471-2105-11-85},
+issn = {1471-2105},
+journal = {BMC Bioinformatics},
+number = {1},
+pages = {85},
+title = {{LINNAEUS: A species name identification system for biomedical literature}},
+url = {https://doi.org/10.1186/1471-2105-11-85},
+volume = {11},
+year = {2010}
+}
+```
+
 ### Contributions
 
 Thanks to [@edugp](https://github.com/edugp) for adding this dataset.

@@ -42,8 +42,7 @@ _CITATION = """@inproceedings{pan-etal-2017-cross,
 
 _DESCRIPTION = """WikiANN (sometimes called PAN-X) is a multilingual named entity recognition dataset consisting of Wikipedia articles annotated with LOC (location), PER (person), and ORG (organisation) tags in the IOB2 format. This version corresponds to the balanced train, dev, and test splits of Rahimi et al. (2019), which supports 176 of the 282 languages from the original WikiANN corpus."""
 
-# use ?dl=1 to force browser to download data instead of displaying it
-_DATA_URL = "https://www.dropbox.com/s/12h3qqog6q4bjve/panx_dataset.tar?dl=1"
+_DATA_URL = "https://s3.amazonaws.com/datasets.huggingface.co/wikiann/1.1.0/panx_dataset.zip"
 _HOMEPAGE = "https://github.com/afshinrahimi/mmner"
 _VERSION = "1.1.0"
 _LANGS = [

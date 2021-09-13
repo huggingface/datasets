@@ -22,10 +22,9 @@ from multiprocessing import Pool
 from typing import List, Optional
 from unittest import TestCase
 
-import pyarrow as pa
 from absl.testing import parameterized
-from packaging import version
 
+import datasets
 from datasets import cached_path, import_main_class, load_dataset, prepare_module
 from datasets.builder import BuilderConfig, DatasetBuilder
 from datasets.features import ClassLabel, Features, Value
@@ -82,6 +81,16 @@ def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
         "test": os.path.join(path_to_dummy_data, "test." + extensions[dataset_name]),
         "dev": os.path.join(path_to_dummy_data, "dev." + extensions[dataset_name]),
     }
+
+
+def get_packaged_dataset_config_attributes(dataset_name):
+    if dataset_name == "json":
+        # The json dummy data are formatted as the squad format
+        # which has the list of examples in the field named "data".
+        # Therefore we have to tell the json loader to load this field.
+        return {"field": "data"}
+    else:
+        return {}
 
 
 class DatasetTester:
@@ -141,12 +150,15 @@ class DatasetTester:
                 )
 
                 # packaged datasets like csv, text, json or pandas require some data files
-                if dataset_builder.__class__.__name__.lower() in _PACKAGED_DATASETS_MODULES:
+                builder_name = dataset_builder.__class__.__name__.lower()
+                if builder_name in _PACKAGED_DATASETS_MODULES:
                     mock_dl_manager.download_dummy_data()
                     path_to_dummy_data = mock_dl_manager.dummy_file
                     dataset_builder.config.data_files = get_packaged_dataset_dummy_data_files(
-                        dataset_builder.__class__.__name__.lower(), path_to_dummy_data
+                        builder_name, path_to_dummy_data
                     )
+                    for config_attr, value in get_packaged_dataset_config_attributes(builder_name).items():
+                        setattr(dataset_builder.config, config_attr, value)
 
                 # mock size needed for dummy data instead of actual dataset
                 if dataset_builder.info is not None:
@@ -273,7 +285,7 @@ class LocalDatasetTest(parameterized.TestCase):
 
 def get_packaged_dataset_names():
     packaged_datasets = [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
-    if version.parse(pa.__version__) < version.parse("3.0.0"):  # parquet is not supported for pyarrow<3.0.0
+    if datasets.config.PYARROW_VERSION.major < 3:  # parquet is not supported for pyarrow<3.0.0
         packaged_datasets = [pd for pd in packaged_datasets if pd["dataset_name"] != "parquet"]
     return packaged_datasets
 
