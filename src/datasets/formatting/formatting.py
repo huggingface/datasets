@@ -197,6 +197,10 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
+    def __init__(self, features):
+        self.features = features
+        self.python_features_decoder = PythonFeaturesDecoder(self.features)
+
     def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
         if query_type == "row":
             return self.format_row(pa_table)
