@@ -278,7 +278,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict]):
+    def __init__(self, transform: Callable[[dict], dict], **kwargs):
         self.transform = transform
 
     def format_row(self, pa_table: pa.Table) -> dict:
