@@ -170,7 +170,7 @@ def xopen(file, mode="r", *args, **kwargs):
     return file_obj
 
 
-def xpathopen(path: Path, **kwargs):
+def xpathopen(path: Path, *args, **kwargs):
     """Extend :func:`xopen` to support argument of type :obj:`~pathlib.Path`.
 
     Args:
@@ -180,7 +180,7 @@ def xpathopen(path: Path, **kwargs):
     Returns:
         :obj:`io.FileIO`: File-like object.
     """
-    return xopen(_as_posix(path), **kwargs)
+    return xopen(_as_posix(path), *args, **kwargs)
 
 
 def xpathglob(path, pattern):
