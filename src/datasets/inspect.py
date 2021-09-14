@@ -19,9 +19,10 @@
 from typing import Optional
 
 from .hf_api import HfApi
-from .load import import_main_class, prepare_module
+from .load import import_main_class, load_dataset_builder, prepare_module
 from .utils import DownloadConfig
 from .utils.logging import get_logger
+from .utils.streaming_download_manager import StreamingDownloadManager
 
 
 logger = get_logger(__name__)
@@ -129,3 +130,27 @@ def get_dataset_config_names(path: str):
     module_path, _ = prepare_module(path)
     builder_cls = import_main_class(module_path, dataset=True)
     return list(builder_cls.builder_configs.keys())
+
+
+def get_dataset_split_names(path: str, config_name: Optional[str] = None):
+    """Get the list of available splits for a particular config and dataset.
+
+    Args:
+        path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+
+            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
+                e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
+            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+                e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+        config_name (Optional ``str``): a config name
+    """
+    builder = load_dataset_builder(path, name=config_name)
+    if builder.info.splits is None:
+        try:
+            return [
+                split_generator.name
+                for split_generator in builder._split_generators(StreamingDownloadManager(base_path=builder.base_path))
+            ]
+        except Exception as err:
+            raise Exception("The split names could not be parsed from the dataset config.") from err
+    return list(builder.info.splits.keys())
