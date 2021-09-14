@@ -2056,7 +2056,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                                 check_same_num_examples=len(input_dataset.list_indexes()) > 0,
                                 offset=offset,
                             )
-                        except NumExamplesMismatchError as e:
+                        except NumExamplesMismatchError:
                             raise DatasetTransformationNotAllowedError(
                                 "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
                             ) from None

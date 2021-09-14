@@ -152,8 +152,8 @@ def head_hf_s3(
             hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
             max_retries=max_retries,
         )
-    except Exception as e:  # TODO: return or raise?
-        return e
+    except Exception as e:
+        return e  # TODO: return or raise?
 
 
 def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
