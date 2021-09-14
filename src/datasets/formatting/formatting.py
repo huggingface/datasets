@@ -185,6 +185,9 @@ class PythonFeaturesDecoder:
     def decode_row(self, row: dict) -> dict:
         return self.features.decode_example(row) if self.features else row
 
+    def decode_batch(self, batch: dict) -> dict:
+        return self.features.decode_batch(batch) if self.features else batch
+
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
