@@ -422,7 +422,6 @@ def format_table(
         - the TorchFormatter returns a dictionary for a row or a batch, and a torch.Tensor for a column.
         - the TFFormatter returns a dictionary for a row or a batch, and a tf.Tensor for a column.
     """
-    # import pdb;pdb.set_trace()
     if isinstance(table, Table):
         pa_table = table.table
     else:

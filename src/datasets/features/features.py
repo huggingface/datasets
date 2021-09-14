@@ -786,7 +786,6 @@ def encode_nested_example(schema, obj):
     return obj
 
 
-# TODO: implement more cases
 def decode_nested_example(feature, example):
     if isinstance(feature, dict):
         return {
@@ -951,11 +950,25 @@ class Features(dict):
         return encoded_batch
 
     def decode_example(self, example):
-        # TODO
+        """Decode example with custom feature decoding.
+
+        Args:
+            example (:obj:`dict[str, Any]`): Dataset row data.
+
+        Returns:
+            :obj:`dict[str, Any]`
+        """
         return decode_nested_example(self, example)
 
     def decode_batch(self, batch):
-        # TODO
+        """Decode batch with custom feature decoding.
+
+        Args:
+            batch (:obj:`dict[str, list[Any]]`): Dataset batch data.
+
+        Returns:
+            :obj:`dict[str, list[Any]]`
+        """
         decoded_batch = {}
         for key, column in batch.items():
             decoded_batch[key] = [decode_nested_example(self[key], obj) for obj in column]
