@@ -103,7 +103,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
     )
 
 
-def get_dataset_infos(path: str):
+def get_dataset_infos(path: str, **prepare_module_kwargs):
     """Get the meta information about a dataset, returned as a dict mapping config name to DatasetInfoDict.
 
     Args:
@@ -113,13 +113,14 @@ def get_dataset_infos(path: str):
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+        prepare_module_kwargs: optional attributes for prepare_module, for example ``use_auth_token``
     """
-    module_path, _ = prepare_module(path)
+    module_path, _ = prepare_module(path, **prepare_module_kwargs)
     builder_cls = import_main_class(module_path, dataset=True)
     return builder_cls.get_all_exported_dataset_infos()
 
 
-def get_dataset_config_names(path: str):
+def get_dataset_config_names(path: str, **prepare_module_kwargs):
     """Get the list of available config names for a particular dataset.
 
     Args:
@@ -129,8 +130,9 @@ def get_dataset_config_names(path: str):
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+        prepare_module_kwargs: optional attributes for prepare_module, for example ``use_auth_token``
     """
-    module_path, _ = prepare_module(path)
+    module_path, _ = prepare_module(path, **prepare_module_kwargs)
     builder_cls = import_main_class(module_path, dataset=True)
     return list(builder_cls.builder_configs.keys())
 
