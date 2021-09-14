@@ -513,7 +513,7 @@ def prepare_module(
                         raise FileNotFoundError(
                             f"Couldn't find a directory or a {resource_type} named '{path}' using version {script_version}. "
                             f"It doesn't exist locally at {expected_dir_for_combined_path_abs} or remotely at {file_path}"
-                        )
+                        ) from None
                     else:
                         github_file_path = file_path
                         file_path = hf_github_url(path=path, name=name, dataset=dataset, version="master")
@@ -527,7 +527,7 @@ def prepare_module(
                             raise FileNotFoundError(
                                 f"Couldn't find a directory or a {resource_type} named '{path}'. "
                                 f"It doesn't exist locally at {expected_dir_for_combined_path_abs} or remotely at {github_file_path}"
-                            )
+                            ) from None
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
                 file_path = hf_hub_url(path=path, name=name, version=script_version)
                 if not dataset:
@@ -544,11 +544,11 @@ def prepare_module(
                         dataset_info = hf_api.dataset_info(
                             repo_id=path, revision=script_version, token=download_config.use_auth_token
                         )
-                    except Exception:
+                    except Exception as exc:
                         raise FileNotFoundError(
                             f"Couldn't find a directory or a {resource_type} named '{path}'. "
                             f"It doesn't exist locally at {expected_dir_for_combined_path_abs} or remotely on {hf_api.endpoint}/datasets"
-                        )
+                        ) from exc
                     resolved_data_files = _resolve_data_files_in_dataset_repository(
                         dataset_info,
                         data_files if data_files is not None else "*",
@@ -558,7 +558,7 @@ def prepare_module(
                     if not infered_module_name:
                         raise FileNotFoundError(
                             f"No data files found in dataset repository '{path}'. Local directory at {expected_dir_for_combined_path_abs} doesn't exist either."
-                        )
+                        ) from None
                     output = prepare_packaged_module(infered_module_name)
                     if return_resolved_file_path:
                         output += (None,)

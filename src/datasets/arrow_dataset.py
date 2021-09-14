@@ -671,7 +671,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             try:
                 json.dumps(state["_format_kwargs"][k])
             except TypeError as e:
-                raise TypeError(str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't.")
+                raise TypeError(
+                    str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't."
+                ) from None
 
         # Get json serializable dataset info
         dataset_info = asdict(self._info)
@@ -1906,7 +1908,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # If set to False, no new arrow table will be created
         update_data = None
 
-        class NumExamplesMismatch(Exception):
+        class NumExamplesMismatchError(Exception):
             pass
 
         def validate_function_output(processed_inputs, indices):
@@ -1960,7 +1962,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 input_num_examples = len(inputs[next(iter(inputs.keys()))])
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
                 if input_num_examples != processed_inputs_num_examples:
-                    raise NumExamplesMismatch()
+                    raise NumExamplesMismatchError()
             if isinstance(inputs, dict) and isinstance(processed_inputs, Mapping):
                 inputs.update(processed_inputs)
                 return inputs
@@ -2054,10 +2056,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                                 check_same_num_examples=len(input_dataset.list_indexes()) > 0,
                                 offset=offset,
                             )
-                        except NumExamplesMismatch:
+                        except NumExamplesMismatchError as e:
                             raise DatasetTransformationNotAllowedError(
                                 "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
-                            )
+                            ) from None
                         if update_data:
                             if i == 0:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer()
