@@ -235,6 +235,7 @@ class TensorflowDatasetMixIn:
         collate_fn_args=None,
         label_cols=None,
         prefetch=True,
+        dummy_labels=True
     ):
         if config.TF_AVAILABLE:
             import tensorflow as tf
@@ -353,6 +354,16 @@ class TensorflowDatasetMixIn:
 
         elif len(columns) == 1:
             tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
+
+        if dummy_labels and not label_cols:
+            print("Warning: No label_cols specified - adding some dummy labels to ensure fit() works correctly. If you "
+                  "only want to use this dataset with predict() or custom training loops, you can disable this "
+                  "behaviour by setting dummy_labels to False.")
+
+            def add_dummy_labels(input_batch):
+                return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
+
+            tf_dataset = tf_dataset.map(add_dummy_labels)
 
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.AUTOTUNE)
