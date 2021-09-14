@@ -57,7 +57,6 @@ class ANLIConfig(datasets.BuilderConfig):
 
     def __init__(self, **kwargs):
         """BuilderConfig for ANLI.
-
             Args:
         .
               **kwargs: keyword arguments forwarded to super.
@@ -69,10 +68,9 @@ class ANLI(datasets.GeneratorBasedBuilder):
     """ANLI: The ANLI Dataset."""
 
     BUILDER_CONFIGS = [
-        ANLIConfig(
-            name="plain_text",
-            description="Plain text",
-        ),
+        ANLIConfig(name="R1",),
+        ANLIConfig(name="R2",),
+        ANLIConfig(name="R3",),
     ]
 
     def _info(self):
@@ -111,26 +109,15 @@ class ANLI(datasets.GeneratorBasedBuilder):
                 path_dict[round_tag][split_name] = os.path.join(anli_path, round_tag, f"{split_name}.jsonl")
 
         return [
-            # Round 1
-            datasets.SplitGenerator(name="train_r1", gen_kwargs={"filepath": path_dict["R1"]["train"]}),
-            datasets.SplitGenerator(name="dev_r1", gen_kwargs={"filepath": path_dict["R1"]["dev"]}),
-            datasets.SplitGenerator(name="test_r1", gen_kwargs={"filepath": path_dict["R1"]["test"]}),
-            # Round 2
-            datasets.SplitGenerator(name="train_r2", gen_kwargs={"filepath": path_dict["R2"]["train"]}),
-            datasets.SplitGenerator(name="dev_r2", gen_kwargs={"filepath": path_dict["R2"]["dev"]}),
-            datasets.SplitGenerator(name="test_r2", gen_kwargs={"filepath": path_dict["R2"]["test"]}),
-            # Round 3
-            datasets.SplitGenerator(name="train_r3", gen_kwargs={"filepath": path_dict["R3"]["train"]}),
-            datasets.SplitGenerator(name="dev_r3", gen_kwargs={"filepath": path_dict["R3"]["dev"]}),
-            datasets.SplitGenerator(name="test_r3", gen_kwargs={"filepath": path_dict["R3"]["test"]}),
+            datasets.SplitGenerator(name="train", gen_kwargs={"filepath": path_dict[self.config.name]["train"]}),
+            datasets.SplitGenerator(name="dev", gen_kwargs={"filepath": path_dict[self.config.name]["dev"]}),
+            datasets.SplitGenerator(name="test", gen_kwargs={"filepath": path_dict[self.config.name]["test"]}),
         ]
 
     def _generate_examples(self, filepath):
         """Generate mnli examples.
-
         Args:
           filepath: a string
-
         Yields:
           dictionaries containing "premise", "hypothesis" and "label" strings
         """

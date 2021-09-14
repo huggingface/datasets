@@ -93,9 +93,11 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|   name   |train_r1|dev_r1|train_r2|dev_r2|train_r3|dev_r3|test_r1|test_r2|test_r3|
-|----------|-------:|-----:|-------:|-----:|-------:|-----:|------:|------:|------:|
-|plain_text|   16946|  1000|   45460|  1000|  100459|  1200|   1000|   1000|   1200|
+|   name   |train   |dev   | test |
+|----------|-------:|-----:|-----:|
+|R1        |   16946|  1000|  1000|
+|R2        |   45460|  1000|  1000|
+|R3        |  100459|  1200| 1200|
 
 ## Dataset Creation
 
