@@ -206,16 +206,16 @@ def test_xdirname(input_path, expected_path):
 
 
 def test_xopen_local(text_path):
-    with xopen(text_path, encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+    with xopen(text_path, "r", encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
         assert list(f) == list(expected_file)
-    with xpathopen(Path(text_path), encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+    with xpathopen(Path(text_path), "r", encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
         assert list(f) == list(expected_file)
 
 
 def test_xopen_remote():
-    with xopen(TEST_URL, encoding="utf-8") as f:
+    with xopen(TEST_URL, "r", encoding="utf-8") as f:
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
-    with xpathopen(Path(TEST_URL), encoding="utf-8") as f:
+    with xpathopen(Path(TEST_URL), "r", encoding="utf-8") as f:
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
 
 
