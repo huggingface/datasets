@@ -201,7 +201,7 @@ class TensorflowDatasetMixIn:
                         "sure the column should be convertable to tf.Tensor, please "
                         "file an issue at github.com/huggingface/datasets and tag "
                         "@rocketknight1!"
-                )
+                    )
             shape = [batch_size] + shape
             shape = [dim if dim != -1 else None for dim in shape]
 
@@ -212,7 +212,7 @@ class TensorflowDatasetMixIn:
             if column in signatures:
                 continue
             if column.startswith("label"):
-                if "input_ids" in signatures and test_batch[column].shape == test_batch['input_ids'].shape:
+                if "input_ids" in signatures and test_batch[column].shape == test_batch["input_ids"].shape:
                     shape = signatures["input_ids"].shape
                 else:
                     # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
@@ -235,7 +235,7 @@ class TensorflowDatasetMixIn:
         collate_fn_args: Dict[str, Any] = None,
         label_cols: Union[str, List[str]] = None,
         dummy_labels: bool = True,
-        prefetch: bool = True
+        prefetch: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
         the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
@@ -381,9 +381,11 @@ class TensorflowDatasetMixIn:
             tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
 
         if dummy_labels and not label_cols:
-            print("Warning: No label_cols specified - adding some dummy labels to ensure fit() works correctly. If you "
-                  "only want to use this dataset with predict() or custom training loops, you can disable this "
-                  "behaviour by setting dummy_labels to False.")
+            print(
+                "Warning: No label_cols specified - adding some dummy labels to ensure fit() works correctly. If you "
+                "only want to use this dataset with predict() or custom training loops, you can disable this "
+                "behaviour by setting dummy_labels to False."
+            )
 
             def add_dummy_labels(input_batch):
                 return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
