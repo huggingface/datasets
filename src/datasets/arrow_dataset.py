@@ -484,7 +484,7 @@ class NonExistentDatasetError(Exception):
     pass
 
 
-class Dataset(DatasetInfoMixin, IndexableMixin):
+class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
     """A Dataset backed by an Arrow table."""
 
     def __init__(
