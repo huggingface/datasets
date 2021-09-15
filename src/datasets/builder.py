@@ -819,7 +819,7 @@ class DatasetBuilder:
             ),
             split,
             map_tuple=True,
-            disable_tqdm=False
+            disable_tqdm=False,
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
