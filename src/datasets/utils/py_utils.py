@@ -176,6 +176,7 @@ def map_nested(
     map_numpy: bool = False,
     num_proc: Optional[int] = None,
     types=None,
+    disable_tqdm: bool = True,
 ):
     """Apply a function recursively to each element of a nested data struct.
     If num_proc > 1 and the length of data_struct is longer than num_proc: use multi-processing
@@ -195,7 +196,7 @@ def map_nested(
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
         return function(data_struct)
 
-    disable_tqdm = bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
+    disable_tqdm = disable_tqdm or bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
     iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
 
     if num_proc is None:

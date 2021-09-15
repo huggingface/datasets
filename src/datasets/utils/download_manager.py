@@ -124,7 +124,7 @@ class DownloadManager:
 
         uploaded_path_or_paths = map_nested(
             lambda local_file_path: upload(local_file_path),
-            downloaded_path_or_paths,
+            downloaded_path_or_paths, disable_tqdm=False
         )
         return uploaded_path_or_paths
 
@@ -154,7 +154,7 @@ class DownloadManager:
         def url_to_downloaded_path(url):
             return os.path.join(cache_dir, hash_url_to_filename(url))
 
-        downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
+        downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls, disable_tqdm=False)
         url_or_urls = NestedDataStructure(url_or_urls)
         downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
         for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
@@ -199,6 +199,7 @@ class DownloadManager:
             url_or_urls,
             map_tuple=True,
             num_proc=download_config.num_proc,
+            disable_tqdm=False
         )
         duration = datetime.now() - start_time
         logger.info("Downloading took {} min".format(duration.total_seconds() // 60))
@@ -265,6 +266,7 @@ class DownloadManager:
             partial(cached_path, download_config=download_config),
             path_or_paths,
             num_proc=num_proc,
+            disable_tqdm=False
         )
         path_or_paths = NestedDataStructure(path_or_paths)
         extracted_paths = NestedDataStructure(extracted_paths)
