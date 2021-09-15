@@ -10,9 +10,11 @@ class Audio:
 
     Args:
         sampling_rate (:obj:`int`, optional): Target sampling rate. If `None`, the native sampling rate is used.
+        mono (:obj:`bool`, default ```True``): Whether to convert the audio signal to mono by averaging samples across channels.
     """
 
     sampling_rate: int = None
+    mono: bool = True
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -34,5 +36,5 @@ class Audio:
         import librosa
 
         with open(value, "rb") as f:
-            array, sample_rate = librosa.load(f, sr=self.sampling_rate)
+            array, sample_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
         return {"path": value, "array": array, "sampling_rate": sample_rate}
