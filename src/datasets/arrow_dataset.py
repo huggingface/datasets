@@ -300,8 +300,13 @@ class TensorflowDatasetMixIn:
 
         def numpy_pad(data):
             try:
-                return np.array(data)
-            except:
+                # When this is finally fully removed, remove this line
+                # Alternatively, find a more elegant way to do this whole thing
+                np.warnings.filterwarnings("error", category=np.VisibleDeprecationWarning)
+                data = np.array(data)
+                assert data.dtype != np.object
+                return data
+            except (np.VisibleDeprecationWarning, AssertionError):
                 pass
             # Get lengths of each row of data
             lens = np.array([len(i) for i in data])
