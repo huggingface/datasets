@@ -498,11 +498,13 @@ def prepare_module(
         return output
     else:
         # Try github (canonical datasets/metrics) and then HF Hub (community datasets)
-
         combined_path_abs = relative_to_absolute_path(combined_path)
         expected_dir_for_combined_path_abs = os.path.dirname(combined_path_abs)
         try:
-            head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
+            try:
+                head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
+            except Exception:
+                pass
             script_version = str(script_version) if script_version is not None else None
             if path.count("/") == 0:  # canonical datasets/metrics: github path
                 file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)

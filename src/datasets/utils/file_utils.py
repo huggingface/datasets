@@ -147,13 +147,10 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
 def head_hf_s3(
     identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
 ) -> Union[requests.Response, Exception]:
-    try:
-        return http_head(
-            hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
-            max_retries=max_retries,
-        )
-    except Exception as e:
-        return e  # TODO: return or raise?
+    return http_head(
+        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
+        max_retries=max_retries,
+    )
 
 
 def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
