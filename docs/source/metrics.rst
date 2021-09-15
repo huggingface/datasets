@@ -1,7 +1,7 @@
 Evaluate predictions
 ====================
 
-🤗 Datasets provides various common and NLP-specific `metrics <https://huggingface.co/metrics>`_ for you to measure your models performance. In the final part of the tutorials, you will load a metric and use it to evaluate your models predictions.
+🤗 Datasets provides various common and NLP-specific `metrics <https://huggingface.co/metrics>`_ for you to measure your models performance. In this section of the tutorials, you will load a metric and use it to evaluate your models predictions.
 
 You can see what metrics are available with :func:`datasets.list_metrics`:
 
@@ -82,12 +82,3 @@ Once you have loaded a metric, you are ready to use it to evaluate a models pred
 
    >>> model_predictions = model(model_inputs)
    >>> final_score = metric.compute(predictions=model_predictions, references=gold_references)
-
-What's next?
-------------
-
-Congratulations, you have completed your first 🤗 Datasets tutorial!
-
-Over the course of these tutorials, you learned the basic steps of using 🤗 Datasets. You loaded a dataset from the Hub, and learned how to access the information stored inside the dataset. Next, you tokenized the dataset into sequences of integers, and formatted it so you can use it with PyTorch or TensorFlow. Finally, you loaded a metric to evaluate your models predictions. This is all you need to get started with 🤗 Datasets! 
-
-Now that you have a solid grasp of what 🤗 Datasets can do, you can begin formulating your own questions about how you can use it with your dataset. Please take a look at our :doc:`How-to guides <./how_to>` for more practical help on solving common use-cases, or read our :doc:`Conceptual guides <./about_arrow>` to deepen your understanding about 🤗 Datasets.
