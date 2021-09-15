@@ -16,7 +16,7 @@
 # Lint as: python3
 """ List and inspect datasets and metrics."""
 
-from typing import List, Mapping, Optional, Sequence, Union
+from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 from .features import Features
 from .hf_api import HfApi
@@ -103,7 +103,18 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
     )
 
 
-def get_dataset_infos(path: str, **prepare_module_kwargs):
+def get_dataset_infos(
+    path: str,
+    script_version: Optional[Union[str, Version]] = None,
+    download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[GenerateMode] = None,
+    force_local_path: Optional[str] = None,
+    dynamic_modules_path: Optional[str] = None,
+    return_resolved_file_path: bool = False,
+    return_associated_base_path: bool = False,
+    data_files: Optional[Union[Dict, List, str]] = None,
+    **download_kwargs,
+):
     """Get the meta information about a dataset, returned as a dict mapping config name to DatasetInfoDict.
 
     Args:
@@ -113,14 +124,57 @@ def get_dataset_infos(path: str, **prepare_module_kwargs):
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-        prepare_module_kwargs: optional attributes for prepare_module, for example ``use_auth_token``
+        script_version (Optional ``Union[str, datasets.Version]``):
+            If specified, the dataset module will be loaded from the datasets repository at this version.
+            By default:
+            - it is set to the local version of the lib.
+            - it will also try to load it from the master branch if it's not available at the local version of the lib.
+            Specifying a version that is different from your local version of the lib might cause compatibility issues.
+        download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
+            Used to inspect or modify the script folder.
+        dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
+            Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
+            By default the datasets and metrics are stored inside the `datasets_modules` module.
+        return_resolved_file_path (Optional bool, defaults to False):
+            If True, the url or path to the resolved dataset is returned with the other outputs
+        return_associated_base_path (Optional bool, defaults to False):
+            If True, the base path associated to the dataset is returned with the other outputs.
+            It corresponds to the directory or base url where the dataset script/dataset repo is at.
+        data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
+        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
+            for example ``use_auth_token``
     """
-    module_path, _ = prepare_module(path, **prepare_module_kwargs)
+    module_path, _ = prepare_module(
+        path,
+        dataset=True,
+        script_version=script_version,
+        download_config=download_config,
+        download_mode=download_mode,
+        force_local_path=force_local_path,
+        dynamic_modules_path=dynamic_modules_path,
+        return_resolved_file_path=return_resolved_file_path,
+        return_associated_base_path=return_associated_base_path,
+        data_files=data_files,
+        **download_kwargs,
+    )
     builder_cls = import_main_class(module_path, dataset=True)
     return builder_cls.get_all_exported_dataset_infos()
 
 
-def get_dataset_config_names(path: str, **prepare_module_kwargs):
+def get_dataset_config_names(
+    path: str,
+    script_version: Optional[Union[str, Version]] = None,
+    download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[GenerateMode] = None,
+    force_local_path: Optional[str] = None,
+    dynamic_modules_path: Optional[str] = None,
+    return_resolved_file_path: bool = False,
+    return_associated_base_path: bool = False,
+    data_files: Optional[Union[Dict, List, str]] = None,
+    **download_kwargs,
+):
     """Get the list of available config names for a particular dataset.
 
     Args:
@@ -130,9 +184,41 @@ def get_dataset_config_names(path: str, **prepare_module_kwargs):
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-        prepare_module_kwargs: optional attributes for prepare_module, for example ``use_auth_token``
+        script_version (Optional ``Union[str, datasets.Version]``):
+            If specified, the dataset module will be loaded from the datasets repository at this version.
+            By default:
+            - it is set to the local version of the lib.
+            - it will also try to load it from the master branch if it's not available at the local version of the lib.
+            Specifying a version that is different from your local version of the lib might cause compatibility issues.
+        download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
+            Used to inspect or modify the script folder.
+        dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
+            Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
+            By default the datasets and metrics are stored inside the `datasets_modules` module.
+        return_resolved_file_path (Optional bool, defaults to False):
+            If True, the url or path to the resolved dataset is returned with the other outputs
+        return_associated_base_path (Optional bool, defaults to False):
+            If True, the base path associated to the dataset is returned with the other outputs.
+            It corresponds to the directory or base url where the dataset script/dataset repo is at.
+        data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
+        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
+            for example ``use_auth_token``
     """
-    module_path, _ = prepare_module(path, **prepare_module_kwargs)
+    module_path, _ = prepare_module(
+        path,
+        dataset=True,
+        script_version=script_version,
+        download_config=download_config,
+        download_mode=download_mode,
+        force_local_path=force_local_path,
+        dynamic_modules_path=dynamic_modules_path,
+        return_resolved_file_path=return_resolved_file_path,
+        return_associated_base_path=return_associated_base_path,
+        data_files=data_files,
+        **download_kwargs,
+    )
     builder_cls = import_main_class(module_path, dataset=True)
     return list(builder_cls.builder_configs.keys())
 
