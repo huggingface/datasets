@@ -16,13 +16,16 @@
 # Lint as: python3
 """ List and inspect datasets and metrics."""
 
-from typing import Optional
+from typing import List, Mapping, Optional, Sequence, Union
 
+from .features import Features
 from .hf_api import HfApi
 from .load import import_main_class, load_dataset_builder, prepare_module
 from .utils import DownloadConfig
+from .utils.download_manager import GenerateMode
 from .utils.logging import get_logger
 from .utils.streaming_download_manager import StreamingDownloadManager
+from .utils.version import Version
 
 
 logger = get_logger(__name__)
@@ -132,7 +135,19 @@ def get_dataset_config_names(path: str):
     return list(builder_cls.builder_configs.keys())
 
 
-def get_dataset_split_names(path: str, config_name: Optional[str] = None):
+def get_dataset_split_names(
+    path: str,
+    config_name: Optional[str] = None,
+    data_dir: Optional[str] = None,
+    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
+    cache_dir: Optional[str] = None,
+    features: Optional[Features] = None,
+    download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[GenerateMode] = None,
+    script_version: Optional[Union[str, Version]] = None,
+    use_auth_token: Optional[Union[bool, str]] = None,
+    **config_kwargs,
+):
     """Get the list of available splits for a particular config and dataset.
 
     Args:
@@ -142,9 +157,37 @@ def get_dataset_split_names(path: str, config_name: Optional[str] = None):
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-        config_name (Optional ``str``): a config name
+        config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
+        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
+        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
+        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
+        features (:class:`Features`, optional): Set the features type to use for this dataset.
+        download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
+
+            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
+              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+            - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
+              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
+        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
+        config_kwargs: optional attributes for builder class which will override the attributes if supplied.
+
     """
-    builder = load_dataset_builder(path, name=config_name)
+    builder = load_dataset_builder(
+        path,
+        name=config_name,
+        data_dir=data_dir,
+        data_files=data_files,
+        cache_dir=cache_dir,
+        features=features,
+        download_config=download_config,
+        download_mode=download_mode,
+        script_version=script_version,
+        use_auth_token=use_auth_token,
+        **config_kwargs,
+    )
     if builder.info.splits is None:
         try:
             return [
