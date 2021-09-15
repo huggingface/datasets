@@ -2012,7 +2012,6 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(batch.dtype.name, "int64")
 
 
-
 class MiscellaneousDatasetTest(TestCase):
     def test_from_pandas(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
