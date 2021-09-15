@@ -2010,6 +2010,7 @@ class BaseDatasetTest(TestCase):
                 batch = next(iter(tf_dataset))
                 self.assertEqual(batch.shape.as_list(), [4])
                 self.assertEqual(batch.dtype.name, "int64")
+            del tf_dataset  # For correct cleanup
 
 
 class MiscellaneousDatasetTest(TestCase):
