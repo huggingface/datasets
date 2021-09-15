@@ -1,83 +1,103 @@
-HuggingFace Datasets
-=======================================
+Datasets
+========
 
-Datasets and evaluation metrics for natural language processing
+.. image:: /imgs/datasets_logo.png
+   :align: center
 
-Compatible with NumPy, Pandas, PyTorch and TensorFlow
+🤗 Datasets is a library for easily accessing and sharing datasets, and evaluation metrics for Natural Language Processing (NLP), computer vision, and audio tasks.
 
-🤗 Datasets is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP).
+Load a dataset in a single line of code, and use our powerful data processing methods to quickly get your dataset ready for training in a deep learning model. Backed by the Apache Arrow format, process large datasets with zero-copy reads without any memory constraints for optimal speed and efficiency. We also feature a deep integration with the `Hugging Face Hub <https://huggingface.co/datasets>`_, allowing you to easily load and share a dataset with the wider NLP community. There are currently over 900 datasets, and more than 25 metrics available. 
 
-🤗 Datasets has many interesting features (beside easy sharing and accessing datasets/metrics):
+Find your dataset today on the `Hugging Face Hub <https://huggingface.co/datasets>`_, or take an in-depth look inside a dataset with the live `Datasets Viewer <https://huggingface.co/datasets/viewer/>`_.
 
-- Built-in interoperability with Numpy, Pandas, PyTorch and Tensorflow 2
-- Lightweight and fast with a transparent and pythonic API
-- Strive on large datasets: 🤗 Datasets naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
-- Smart caching: never wait for your data to process several times
-- 🤗 Datasets currently provides access to ~1,000 datasets and ~30 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the live `🤗 Datasets viewer <https://huggingface.co/datasets/viewer/>`_.
+.. panels::
+    :card: shadow
 
-🤗 Datasets originated from a fork of the awesome TensorFlow Datasets and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section Main differences between 🤗 Datasets and `tfds`.
+    .. link-button:: tutorial
+        :type: ref
+        :text: Tutorials
+        :classes: btn-primary btn-block
+    
+    ^^^
+    Learn the basics and become familiar with loading, accessing, and processing a dataset. Start here if you are using 🤗 Datasets for the first time!
 
-Contents
----------------------------------
+    ---
+    .. link-button:: how_to
+        :type: ref
+        :text: How-to guides
+        :classes: btn-primary btn-block
 
-The documentation is organized in six parts:
+    ^^^
+    Practical guides to help you achieve a specific goal. Take a look at these guides to learn how to use 🤗 Datasets to solve real-world problems.
 
-- **GET STARTED** contains a quick tour and the installation instructions.
-- **USING DATASETS** contains general tutorials on how to use and contribute to the datasets in the library.
-- **USING METRICS** contains general tutorials on how to use and contribute to the metrics in the library.
-- **ADDING NEW DATASETS/METRICS** explains how to create your own dataset or metric loading script.
-- **ADVANCED GUIDES** contains more advanced guides that are more specific to a part of the library.
-- **PACKAGE REFERENCE** contains the documentation of each public class and function.
+    ---
+    .. link-button:: about_arrow
+        :type: ref
+        :text: Conceptual guides
+        :classes: btn-primary btn-block
+
+    ^^^
+    High-level explanations for building a better understanding about important topics such as the underlying data format, the cache, and how datasets are generated.
+    ---
+    .. link-button:: package_reference/main_classes
+        :type: ref
+        :text: Reference
+        :classes: btn-primary btn-block
+
+    ^^^
+    Technical descriptions of how 🤗 Datasets classes and methods work.
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Get started
+    :hidden:
 
-    quicktour
+    quickstart
+
+.. toctree::
+    :hidden:
+    :caption: Tutorials
+
+    tutorial
     installation
-
+    load_hub
+    access
+    use_dataset
+    metrics
+    
 .. toctree::
-    :maxdepth: 2
-    :caption: Using datasets
+    :hidden:
+    :caption: How-to guides
 
-    loading_datasets
-    exploring
-    processing
-    torch_tensorflow
+    how_to
+    loading
+    process
+    stream
+    share
+    dataset_script
+    dataset_card
+    cache
     filesystems
-    faiss_and_ea
-    dataset_streaming
+    faiss_es
+    how_to_metrics
+    beam
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Using metrics
+    :hidden:
+    :caption: Conceptual guides
 
-    loading_metrics
-    using_metrics
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Adding new datasets/metrics
-
-    share_dataset
-    add_dataset
-    add_metric
+    about_arrow
+    about_cache
+    about_dataset_features
+    about_dataset_load
+    about_map_batch
+    about_metrics
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Advanced guides
+    :hidden:
+    :caption: Reference
 
-    features
-    splits
-    beam_dataset
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Package reference
-
-    package_reference/loading_methods
     package_reference/main_classes
     package_reference/builder_classes
+    package_reference/loading_methods
     package_reference/table_classes
     package_reference/logging_methods
     package_reference/task_templates

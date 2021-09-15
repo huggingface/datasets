@@ -55,6 +55,7 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
 
     Args:
         path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
@@ -79,6 +80,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
 
     Args:
         path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
@@ -102,6 +104,7 @@ def get_dataset_infos(path: str):
 
     Args:
         path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
@@ -117,6 +120,7 @@ def get_dataset_config_names(path: str):
 
     Args:
         path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
