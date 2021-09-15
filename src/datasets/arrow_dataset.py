@@ -164,7 +164,7 @@ class TensorflowDatasetMixIn:
         pass
 
     @staticmethod
-    def _get_output_signature(dataset, test_batch, batch_size):
+    def _get_output_signature(dataset, cols_to_retain, test_batch, batch_size):
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
@@ -172,6 +172,8 @@ class TensorflowDatasetMixIn:
 
         signatures = {}
         for column, col_feature in dataset.features.items():
+            if column not in cols_to_retain:
+                continue
             dtype_feature = col_feature
             while hasattr(dtype_feature, "feature"):  # Descend this godforsaken nested rabbit hole as long as it takes
                 dtype_feature = dtype_feature.feature
@@ -295,7 +297,7 @@ class TensorflowDatasetMixIn:
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
-        dataset.set_format("numpy", columns=cols_to_retain)
+        self.set_format("numpy", columns=cols_to_retain)
 
         def numpy_pad(data):
             try:
@@ -320,7 +322,7 @@ class TensorflowDatasetMixIn:
             return out
 
         def np_get_batch(indices):
-            batch = dataset[indices]
+            batch = self[indices]
             out_batch = []
             if collate_fn is not None:
                 actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
@@ -357,16 +359,16 @@ class TensorflowDatasetMixIn:
 
         test_batch_dict = {key: test_batch[i] for i, key in enumerate(cols_to_retain)}
         output_signature = self._get_output_signature(
-            dataset, test_batch_dict, batch_size=batch_size if drop_remainder else None
+            self, cols_to_retain, test_batch_dict, batch_size=batch_size if drop_remainder else None
         )
 
         def ensure_shapes(input_dict):
             return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
 
-        tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(dataset)))
+        tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(self)))
 
         if shuffle:
-            tf_dataset = tf_dataset.shuffle(len(dataset))
+            tf_dataset = tf_dataset.shuffle(len(self))
 
         tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function).map(ensure_shapes)
 
