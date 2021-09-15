@@ -1997,6 +1997,21 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset.format, dset2.format)
                     self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
 
+    @require_tf
+    def test_tf_dataset_conversion(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
+                tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=4, shuffle=False, dummy_labels=False)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch.shape.as_list(), [4, 4])
+                self.assertEqual(batch.dtype.name, "int64")
+            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+                tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=4, shuffle=False, dummy_labels=False)
+                batch = next(iter(tf_dataset))
+                self.assertEqual(batch.shape.as_list(), [4])
+                self.assertEqual(batch.dtype.name, "int64")
+
+
 
 class MiscellaneousDatasetTest(TestCase):
     def test_from_pandas(self):

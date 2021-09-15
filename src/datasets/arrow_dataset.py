@@ -299,11 +299,12 @@ class TensorflowDatasetMixIn:
         dataset.set_format("numpy")
 
         def numpy_pad(data):
+            try:
+                return np.array(data)
+            except:
+                pass
             # Get lengths of each row of data
             lens = np.array([len(i) for i in data])
-            if np.all(lens == lens[0]):
-                # All data has the same length, no padding required
-                return np.array(data)
 
             # Mask of valid places in each row
             mask = np.arange(lens.max()) < lens[:, None]
