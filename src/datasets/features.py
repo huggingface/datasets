@@ -174,24 +174,24 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
         import jax.numpy as jnp
 
     if isinstance(obj, np.ndarray):
-        if only_1d_for_numpy and obj.ndim == 1:
+        if not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
         else:
             return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in obj], True
     elif config.TORCH_AVAILABLE and "torch" in sys.modules and isinstance(obj, torch.Tensor):
-        if only_1d_for_numpy and obj.ndim == 1:
+        if not only_1d_for_numpy or obj.ndim == 1:
             return obj.detach().cpu().numpy(), True
         else:
             return [
                 _cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in obj.detach().cpu().numpy()
             ], True
     elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
-        if only_1d_for_numpy and obj.ndim == 1:
+        if not only_1d_for_numpy or obj.ndim == 1:
             return obj.numpy(), True
         else:
             return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in obj.numpy()], True
     elif config.JAX_AVAILABLE and "jax" in sys.modules and isinstance(obj, jnp.ndarray):
-        if only_1d_for_numpy and obj.ndim == 1:
+        if not only_1d_for_numpy or obj.ndim == 1:
             return np.asarray(obj), True
         else:
             return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in np.asarray(obj)], True
