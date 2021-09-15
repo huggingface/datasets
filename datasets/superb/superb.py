@@ -235,6 +235,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
+                    # VoxCeleb1 contains 1251 speaker IDs in range ["id10001",..."id11251"]
                     "label": datasets.ClassLabel(names=[f"id{i + 10001}" for i in range(1251)]),
                 }
             ),
