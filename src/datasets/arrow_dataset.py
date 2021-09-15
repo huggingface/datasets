@@ -227,16 +227,41 @@ class TensorflowDatasetMixIn:
 
     def to_tf_dataset(
         self,
-        columns,
-        batch_size,
-        shuffle,
-        drop_remainder=None,
-        collate_fn=None,
-        collate_fn_args=None,
-        label_cols=None,
-        prefetch=True,
-        dummy_labels=True
+        columns: Union[str, List[str]],
+        batch_size: int,
+        shuffle: bool,
+        drop_remainder: bool = None,
+        collate_fn: Callable = None,
+        collate_fn_args: Dict[str, Any] = None,
+        label_cols: Union[str, List[str]] = None,
+        dummy_labels: bool = True,
+        prefetch: bool = True
     ):
+        """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
+        the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
+
+        Args:
+            columns (:obj:`List[str]` or :obj:`str`): Dataset column(s) to load in the tf.data.Dataset. In general,
+            only columns that the model can use as input should be included here.
+            batch_size (:obj:`int`): Size of batches to load from the dataset.
+            shuffle(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
+             validation/evaluation.
+            drop_remainder(:obj:`bool`, default ``None``): Drop the last incomplete batch when loading. If not provided,
+             defaults to the same setting as shuffle.
+            collate_fn(:obj:`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+             lists of samples into a batch.
+            collate_fn_args (:obj:`Dict`, optional): An optional `dict` of keyword arguments to be passed to the
+             `collate_fn`.
+            label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
+             labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
+              not necessary to actually pass the labels here, as long as they're in the input `columns`.
+            dummy_labels (:obj:`bool`, default ``True``): If no `label_cols` are set, output an array of "dummy" labels
+             with each batch. This setting ensures that Keras `fit()` or `train_on_batch()` does not get confused
+             by the missing labels.
+            prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
+             a small buffer of batches for training. Improves performance by allowing data to be loaded in the
+             background while the model is training.
+        """
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
@@ -271,7 +296,7 @@ class TensorflowDatasetMixIn:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
         dataset = self.remove_columns([col for col in self.features if col not in cols_to_retain])
-        dataset.set_format("python")
+        dataset.set_format("numpy")
 
         def numpy_pad(data):
             # Get lengths of each row of data
