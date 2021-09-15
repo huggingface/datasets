@@ -365,7 +365,7 @@ class TensorflowDatasetMixIn:
         def ensure_shapes(input_dict):
             return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
 
-        tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(self)))
+        tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(self), dtype=np.int64))
 
         if shuffle:
             tf_dataset = tf_dataset.shuffle(len(self))
