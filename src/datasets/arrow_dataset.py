@@ -304,7 +304,8 @@ class TensorflowDatasetMixIn:
                 # Alternatively, find a more elegant way to do this whole thing
                 np.warnings.filterwarnings("error", category=np.VisibleDeprecationWarning)
                 data = np.array(data)
-                assert data.dtype != np.object
+                if data.dtype == np.object:
+                    raise AssertionError  # Do it this way so that the assert doesn't get optimized out
                 return data
             except (np.VisibleDeprecationWarning, AssertionError):
                 pass
