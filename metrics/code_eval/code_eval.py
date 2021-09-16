@@ -29,7 +29,7 @@ from .execute import check_correctness
 
 _CITATION = """\
 @misc{chen2021evaluating,
-      title={Evaluating Large Language Models Trained on Code}, 
+      title={Evaluating Large Language Models Trained on Code},
       author={Mark Chen and Jerry Tworek and Heewoo Jun and Qiming Yuan \
 and Henrique Ponde de Oliveira Pinto and Jared Kaplan and Harri Edwards \
 and Yuri Burda and Nicholas Joseph and Greg Brockman and Alex Ray \
@@ -69,7 +69,7 @@ Args:
         correctness of a code candidate.
     k: number of code candidates to consider in the evaluation (Default: [1, 10, 100])
     n_workers: number of workers used to evaluate the canidate programs (Default: 4).
-    timeout: 
+    timeout:
 Returns:
     pass_at_k: dict with pass rates for each k
 Examples:
