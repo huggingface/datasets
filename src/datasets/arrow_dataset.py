@@ -244,7 +244,7 @@ class TensorflowDatasetMixIn:
 
         Args:
             columns (:obj:`List[str]` or :obj:`str`): Dataset column(s) to load in the tf.data.Dataset. In general,
-            only columns that the model can use as input should be included here.
+            only columns that the model can use as input should be included here (numeric data only).
             batch_size (:obj:`int`): Size of batches to load from the dataset.
             shuffle(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
              validation/evaluation.
