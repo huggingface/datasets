@@ -1603,12 +1603,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         # Check filter column
         if isinstance(columns, str):
             columns = [columns]
+        if isinstance(columns, tuple):
+            columns = list(columns)
         if columns is not None and any(col not in self._data.column_names for col in columns):
             raise ValueError(
                 "Columns {} not in the dataset. Current columns in the dataset: {}".format(
                     list(filter(lambda col: col not in self._data.column_names, columns)), self._data.column_names
                 )
             )
+        if columns is not None:
+            columns = columns.copy()  # Ensures modifications made to the list after this call don't cause bugs
 
         self._format_type = type
         self._format_kwargs = format_kwargs
