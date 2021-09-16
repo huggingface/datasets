@@ -6,14 +6,14 @@ language_creators:
 - crowdsourced
 - expert-generated
 languages:
-- en-US
+- en
 licenses:
 - cc-by-4.0
 multilinguality:
 - monolingual
 pretty_name: Mostly Basic Python Problems
 size_categories:
-- unknown
+- n<1K
 source_datasets:
 - original
 task_categories:
