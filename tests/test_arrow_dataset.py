@@ -2000,12 +2000,12 @@ class BaseDatasetTest(TestCase):
     @require_tf
     def test_tf_dataset_conversion(self, in_memory):
         tmp_dir = tempfile.TemporaryDirectory()
-        with self._create_dummy_dataset(in_memory, tmp_dir, array_features=True) as dset:
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
             tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=4, shuffle=False, dummy_labels=False)
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [4, 4])
             self.assertEqual(batch.dtype.name, "int64")
-        with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
             tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=4, shuffle=False, dummy_labels=False)
             batch = next(iter(tf_dataset))
             self.assertEqual(batch.shape.as_list(), [4])
@@ -2014,7 +2014,7 @@ class BaseDatasetTest(TestCase):
         try:
             tmp_dir.cleanup()
         except PermissionError:
-            pass  # Just leave it, Windows temp dirs get cleaned out anyway
+            pass  # Just leave it, this usually only happens on the CI runner and will get cleaned up anyway
 
 
 class MiscellaneousDatasetTest(TestCase):
