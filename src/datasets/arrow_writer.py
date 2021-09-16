@@ -24,7 +24,13 @@ import numpy as np
 import pyarrow as pa
 
 from . import config, utils
-from .features import Features, _ArrayXDExtensionType, numpy_to_pyarrow_listarray
+from .features import (
+    Features,
+    _ArrayXDExtensionType,
+    cast_to_python_objects,
+    list_of_np_array_to_pyarrow_listarray,
+    numpy_to_pyarrow_listarray,
+)
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .utils import logging
@@ -103,8 +109,10 @@ class TypedSequence:
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
+            elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                out = list_of_np_array_to_pyarrow_listarray(self.data)
             else:
-                out = pa.array(self.data, type=type)
+                out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
             if trying_type and out[0].as_py() != self.data[0]:
                 raise TypeError(
                     "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."

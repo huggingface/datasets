@@ -96,11 +96,7 @@
         },
         {
             "affiliation": "Hugging Face",
-            "name": "Cl\u00e9ment Delangue"
-        },
-        {
-            "affiliation": "Hugging Face",
-            "name": "Stas Bekman"
+            "name": "Th\u00e9o Matussi\u00e8re"
         },
         {
             "affiliation": "Hugging Face",
@@ -108,7 +104,11 @@
         },
         {
             "affiliation": "Hugging Face",
-            "name": "Th\u00e9o Matussi\u00e8re"
+            "name": "Stas Bekman"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Cl\u00e9ment Delangue"
         }
     ]
 }

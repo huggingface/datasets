@@ -695,8 +695,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         info.features = features
         if features is not None:
             mapping = features.encode_batch(mapping)
-        else:
-            mapping = cast_to_python_objects(mapping)
         mapping = {
             col: OptimizedTypedSequence(data, type=features.type[col].type if features is not None else None, col=col)
             for col, data in mapping.items()
@@ -2287,7 +2285,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                             if isinstance(example, pa.Table):
                                 writer.write_row(example)
                             else:
-                                example = cast_to_python_objects(example)
                                 writer.write(example)
                 else:
                     for i in pbar:
@@ -2315,7 +2312,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                             if isinstance(batch, pa.Table):
                                 writer.write_table(batch)
                             else:
-                                batch = cast_to_python_objects(batch)
                                 writer.write_batch(batch)
                 if update_data and writer is not None:
                     writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
