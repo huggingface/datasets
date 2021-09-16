@@ -4,14 +4,14 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-- en-US
+- en
 licenses:
 - mit
 multilinguality:
 - monolingual
 pretty_name: OpenAI HumanEval
 size_categories:
-- unknown
+- n<1K
 source_datasets:
 - original
 task_categories:
