@@ -34,7 +34,7 @@
         "post_processed": null,
         "supervised_keys": null,
         "task_templates": null,
-        "builder_name": "open_ai_human_eval",
+        "builder_name": "openai_humaneval",
         "config_name": "openai_humaneval",
         "version": {
             "version_str": "1.0.0",
@@ -48,7 +48,7 @@
                 "name": "test",
                 "num_bytes": 194414,
                 "num_examples": 164,
-                "dataset_name": "open_ai_human_eval"
+                "dataset_name": "openai_humaneval"
             }
         },
         "download_checksums": {

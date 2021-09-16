@@ -23,7 +23,7 @@ _HOMEPAGE = "https://github.com/openai/human-eval"
 _LICENSE = "MIT"
 
 
-class OpenAIHumanEval(datasets.GeneratorBasedBuilder):
+class OpenaiHumaneval(datasets.GeneratorBasedBuilder):
     """HumanEval: A benchmark for code generation."""
 
     VERSION = datasets.Version("1.0.0")

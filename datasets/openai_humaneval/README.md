@@ -119,13 +119,23 @@ The dataset was handcrafted by engineers and researchers at OpenAI.
 
 #### Initial Data Collection and Normalization
 
+[More Information Needed]
+
 #### Who are the source language producers?
+
+[More Information Needed]
 
 ### Annotations
 
+[More Information Needed]
+
 #### Annotation process
 
+[More Information Needed]
+
 #### Who are the annotators?
+
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
@@ -139,7 +149,11 @@ With this dataset code generating models can be better evaluated which leads to 
 
 ### Discussion of Biases
 
+[More Information Needed]
+
 ### Other Known Limitations
+
+[More Information Needed]
 
 ## Additional Information
 
