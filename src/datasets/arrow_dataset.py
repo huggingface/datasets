@@ -44,7 +44,7 @@ from datasets.tasks.text_classification import TextClassification
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, Value
+from .features import ClassLabel, Features, Sequence, Value, _ArrayXD
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -159,6 +159,252 @@ class DatasetInfoMixin:
         return self._info.version
 
 
+class TensorflowDatasetMixIn:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def _get_output_signature(dataset, cols_to_retain, test_batch, batch_size):
+        if config.TF_AVAILABLE:
+            import tensorflow as tf
+        else:
+            raise ImportError("Called a Tensorflow-specific function but could not import it!")
+
+        signatures = {}
+        for column, col_feature in dataset.features.items():
+            if column not in cols_to_retain:
+                continue
+            dtype_feature = col_feature
+            while hasattr(dtype_feature, "feature"):  # Descend this godforsaken nested rabbit hole as long as it takes
+                dtype_feature = dtype_feature.feature
+            dtype_str = dtype_feature.dtype
+            if dtype_str.startswith("int") or dtype_str.startswith("uint"):
+                dtype = tf.int64
+            elif dtype_str.startswith("float"):
+                dtype = tf.float32
+            else:
+                raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
+
+            shape = []
+            shape_feature = col_feature
+            while not isinstance(shape_feature, (Value, ClassLabel)):
+                if isinstance(shape_feature, _ArrayXD):
+                    shape.extend(list(shape_feature.shape))
+                    break
+                elif isinstance(shape_feature, Sequence):
+                    shape.insert(0, shape_feature.length)
+                    shape_feature = shape_feature.feature
+                else:
+                    raise ValueError(
+                        f"Couldn't parse feature {column} with type {type(col_feature)}! "
+                        "This may indicate a column was included with an unusual datatype "
+                        "that we were unable to process correctly. "
+                        "If you're getting this error with one of our datasets, and you're "
+                        "sure the column should be convertable to tf.Tensor, please "
+                        "file an issue at github.com/huggingface/datasets and tag "
+                        "@rocketknight1!"
+                    )
+            shape = [batch_size] + shape
+            shape = [dim if dim != -1 else None for dim in shape]
+
+            signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
+
+        # Catching columns added by the collate_fn, such as MLM labels
+        for column, tensor in test_batch.items():
+            if column in signatures:
+                continue
+            if column.startswith("label"):
+                if "input_ids" in signatures and test_batch[column].shape == test_batch["input_ids"].shape:
+                    shape = signatures["input_ids"].shape
+                else:
+                    # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
+                    # about the dimensions we're unsure of
+                    shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
+            else:
+                # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
+                # about the dimensions we're unsure of
+                shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
+            signatures[column] = tf.TensorSpec(shape=shape, dtype=tensor.dtype)
+        return signatures
+
+    def to_tf_dataset(
+        self,
+        columns: Union[str, List[str]],
+        batch_size: int,
+        shuffle: bool,
+        drop_remainder: bool = None,
+        collate_fn: Callable = None,
+        collate_fn_args: Dict[str, Any] = None,
+        label_cols: Union[str, List[str]] = None,
+        dummy_labels: bool = True,
+        prefetch: bool = True,
+    ):
+        """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
+        the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
+
+        Args:
+            columns (:obj:`List[str]` or :obj:`str`): Dataset column(s) to load in the tf.data.Dataset. In general,
+            only columns that the model can use as input should be included here (numeric data only).
+            batch_size (:obj:`int`): Size of batches to load from the dataset.
+            shuffle(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
+             validation/evaluation.
+            drop_remainder(:obj:`bool`, default ``None``): Drop the last incomplete batch when loading. If not provided,
+             defaults to the same setting as shuffle.
+            collate_fn(:obj:`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+             lists of samples into a batch.
+            collate_fn_args (:obj:`Dict`, optional): An optional `dict` of keyword arguments to be passed to the
+             `collate_fn`.
+            label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
+             labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
+              not necessary to actually pass the labels here, as long as they're in the input `columns`.
+            dummy_labels (:obj:`bool`, default ``True``): If no `label_cols` are set, output an array of "dummy" labels
+             with each batch. This setting ensures that Keras `fit()` or `train_on_batch()` does not get confused
+             by the missing labels.
+            prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
+             a small buffer of batches for training. Improves performance by allowing data to be loaded in the
+             background while the model is training.
+        """
+        if config.TF_AVAILABLE:
+            import tensorflow as tf
+        else:
+            raise ImportError("Called a Tensorflow-specific function but could not import it!")
+
+        if collate_fn_args is None:
+            collate_fn_args = {}
+
+        if label_cols is None:
+            label_cols = []
+        elif isinstance(label_cols, str):
+            label_cols = [label_cols]
+        elif len(set(label_cols)) < len(label_cols):
+            raise ValueError("List of label_cols contains duplicates!")
+        if not columns:
+            raise ValueError("Need to specify at least one column!")
+        elif isinstance(columns, str):
+            columns = [columns]
+        elif len(set(columns)) < len(columns):
+            raise ValueError("List of columns contains duplicates!")
+        if label_cols is not None:
+            cols_to_retain = list(set(columns + label_cols))
+        else:
+            cols_to_retain = columns
+        # Special casing when the dataset has 'label' and the model expects 'labels' and the collator fixes it up for us
+        if "labels" in cols_to_retain and "labels" not in self.features and "label" in self.features:
+            cols_to_retain[cols_to_retain.index("labels")] = "label"
+        for col in cols_to_retain:
+            if col not in self.features:
+                raise ValueError(f"Couldn't find column {col} in dataset!")
+        if drop_remainder is None:
+            # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
+            drop_remainder = shuffle
+        self.set_format("numpy", columns=cols_to_retain)
+
+        def numpy_pad(data):
+            try:
+                # When this is finally fully removed, remove this line
+                # Alternatively, find a more elegant way to do this whole thing
+                np.warnings.filterwarnings("error", category=np.VisibleDeprecationWarning)
+                data = np.array(data)
+                if data.dtype == np.object:
+                    raise AssertionError  # Do it this way so that the assert doesn't get optimized out
+                return data
+            except (np.VisibleDeprecationWarning, AssertionError):
+                pass
+            # Get lengths of each row of data
+            lens = np.array([len(i) for i in data])
+
+            # Mask of valid places in each row
+            mask = np.arange(lens.max()) < lens[:, None]
+
+            # Setup output array and put elements from data into masked positions
+            out = np.zeros(mask.shape, dtype=np.array(data[0]).dtype)
+            out[mask] = np.concatenate(data)
+            return out
+
+        def np_get_batch(indices):
+            batch = self[indices]
+            out_batch = []
+            if collate_fn is not None:
+                actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
+                # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
+                batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
+                batch = collate_fn(batch, **collate_fn_args)
+                # Special casing when the dataset has 'label' and the model
+                # expects 'labels' and the collator fixes it up for us
+                if "label" in cols_to_retain and "label" not in batch and "labels" in batch:
+                    cols_to_retain[cols_to_retain.index("label")] = "labels"
+                for key in cols_to_retain:
+                    # In case the collate_fn returns something strange
+                    array = np.array(batch[key])
+                    cast_dtype = np.int64 if np.issubdtype(array.dtype, np.integer) else np.float32
+                    array = array.astype(cast_dtype)
+                    out_batch.append(array)
+            else:
+                for key in cols_to_retain:
+                    array = batch[key]
+                    array = numpy_pad(array)
+                    cast_dtype = np.int64 if np.issubdtype(array.dtype, np.integer) else np.float32
+                    array = array.astype(cast_dtype)
+                    out_batch.append(array)
+            return [tf.convert_to_tensor(arr) for arr in out_batch]
+
+        test_batch = np_get_batch(np.arange(batch_size))
+
+        @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
+        def fetch_function(indices):
+            output = tf.numpy_function(
+                np_get_batch, inp=[indices], Tout=[tf.dtypes.as_dtype(arr.dtype) for arr in test_batch]
+            )
+            return {key: output[i] for i, key in enumerate(cols_to_retain)}
+
+        test_batch_dict = {key: test_batch[i] for i, key in enumerate(cols_to_retain)}
+        output_signature = self._get_output_signature(
+            self, cols_to_retain, test_batch_dict, batch_size=batch_size if drop_remainder else None
+        )
+
+        def ensure_shapes(input_dict):
+            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+
+        tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(self), dtype=np.int64))
+
+        if shuffle:
+            tf_dataset = tf_dataset.shuffle(len(self))
+
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function).map(ensure_shapes)
+
+        if label_cols:
+
+            def split_features_and_labels(input_batch):
+                features = {key: tensor for key, tensor in input_batch.items() if key in columns}
+                labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
+                if len(features) == 1:
+                    features = list(features.values())[0]
+                if len(labels) == 1:
+                    labels = list(labels.values())[0]
+                return features, labels
+
+            tf_dataset = tf_dataset.map(split_features_and_labels)
+
+        elif len(columns) == 1:
+            tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
+
+        if dummy_labels and not label_cols:
+            print(
+                "Warning: No label_cols specified - adding some dummy labels to ensure fit() works correctly. If you "
+                "only want to use this dataset with predict() or custom training loops, you can disable this "
+                "behaviour by setting dummy_labels to False."
+            )
+
+            def add_dummy_labels(input_batch):
+                return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
+
+            tf_dataset = tf_dataset.map(add_dummy_labels)
+
+        if prefetch:
+            tf_dataset = tf_dataset.prefetch(tf.data.AUTOTUNE)
+        return tf_dataset
+
+
 class DatasetTransformationNotAllowedError(Exception):
     pass
 
@@ -238,7 +484,7 @@ class NonExistentDatasetError(Exception):
     pass
 
 
-class Dataset(DatasetInfoMixin, IndexableMixin):
+class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
     """A Dataset backed by an Arrow table."""
 
     def __init__(
@@ -1355,12 +1601,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Check filter column
         if isinstance(columns, str):
             columns = [columns]
+        if isinstance(columns, tuple):
+            columns = list(columns)
         if columns is not None and any(col not in self._data.column_names for col in columns):
             raise ValueError(
                 "Columns {} not in the dataset. Current columns in the dataset: {}".format(
                     list(filter(lambda col: col not in self._data.column_names, columns)), self._data.column_names
                 )
             )
+        if columns is not None:
+            columns = columns.copy()  # Ensures modifications made to the list after this call don't cause bugs
 
         self._format_type = type
         self._format_kwargs = format_kwargs
