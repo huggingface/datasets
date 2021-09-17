@@ -17,6 +17,7 @@ described in the paper "Evaluating Large Language Models Trained on Code"
 (https://arxiv.org/abs/2107.03374)."""
 
 import itertools
+import os
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -85,6 +86,30 @@ Examples:
 """
 
 
+_WARNING = """
+################################################################################
+                                  !!!WARNING!!!
+################################################################################
+The "code_eval" metric executes untrusted model-generated code in Python.
+Although it is highly unlikely that model-generated code will do something
+overtly malicious in response to this test suite, model-generated code may act
+destructively due to a lack of model capability or alignment.
+Users are strongly encouraged to sandbox this evaluation suite so that it
+does not perform destructive actions on their host or network. For more
+information on how OpenAI sandboxes its code, see the paper "Evaluating Large
+Language Models Trained on Code" (https://arxiv.org/abs/2107.03374).
+
+Once you have read this disclaimer and taken appropriate precautions,
+set the environment variable HF_ALLOW_CODE_EVAL="1". Within Python you can to this
+with:
+
+>>> import os
+>>> os.environ["HF_ALLOW_CODE_EVAL"] = "1"
+
+################################################################################\
+"""
+
+
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class CodeEval(datasets.Metric):
     """The CodeEval metric estimates the pass@k metric for code synthesis."""
@@ -109,6 +134,8 @@ class CodeEval(datasets.Metric):
 
     def _compute(self, predictions, references, k=[1, 10, 100], num_workers=4, timeout=3.0):
         """Returns the scores"""
+        if os.getenv("HF_ALLOW_CODE_EVAL", 0) != "1":
+            raise ValueError(_WARNING)
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
             futures = []
             completion_id = Counter()
