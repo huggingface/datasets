@@ -303,7 +303,8 @@ An example from each split looks like:
 #### ks
 
 - `file` (`string`): Path to the WAV audio file.
-- `label` (`ClassLabel`): Label of the spoken command.
+- `label` (`ClassLabel`): Label of the spoken command. Possible values:
+    - `0: "yes", 1: "no", 2: "up", 3: "down", 4: "left", 5: "right", 6: "on", 7: "off", 8: "stop", 9: "go", 10: "_silence_", 11: "_unknown_"`
 
 #### qbe
 
@@ -314,9 +315,12 @@ An example from each split looks like:
 - `file` (`string`): Path to the WAV audio file.
 - `speaker_id` (`string`): ID of the speaker.
 - `text` (`string`): Transcription of the spoken command.
-- `action` (`ClassLabel`): Label of the command's action.
-- `object` (`ClassLabel`): Label of the command's object.
-- `location` (`ClassLabel`): Label of the command's location.
+- `action` (`ClassLabel`): Label of the command's action. Possible values:
+    - `0: "activate", 1: "bring", 2: "change language", 3: "deactivate", 4: "decrease", 5: "increase"`
+- `object` (`ClassLabel`): Label of the command's object. Possible values:
+    - `0: "Chinese", 1: "English", 2: "German", 3: "Korean", 4: "heat", 5: "juice", 6: "lamp", 7: "lights", 8: "music", 9: "newspaper", 10: "none", 11: "shoes", 12: "socks", 13: "volume"`
+- `location` (`ClassLabel`): Label of the command's location. Possible values:
+    - `0: "bedroom", 1: "kitchen", 2: "none", 3: "washroom"`
 
 #### sf
 
@@ -326,7 +330,8 @@ An example from each split looks like:
 #### si
 
 - `file` (`string`): Path to the WAV audio file.
-- `label` (`ClassLabel`): Label (ID) of the speaker.
+- `label` (`ClassLabel`): Label (ID) of the speaker. Possible values: 
+    - `0: "id10001", 1: "id10002", 2: "id10003", ..., 1250: "id11251"`
 
 #### asv
 
@@ -348,7 +353,8 @@ The data fields in all splits are:
 #### er
 
 - `file` (`string`): Path to the WAV audio file.
-- `label` (`string`): Label of the speech emotion.
+- `label` (`ClassLabel`): Label of the speech emotion. Possible values:
+    - `0: "neu", 1: "hap", 2: "ang", 3: "sad"`
 
 ### Data Splits
 
