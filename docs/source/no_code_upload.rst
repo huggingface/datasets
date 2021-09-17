@@ -54,6 +54,25 @@ The last step is to create a Dataset card. The Dataset card is very important fo
 
 For a detailed example of what a good Dataset card should look like, take a look at the `CNN DailyMail Dataset card <https://huggingface.co/datasets/cnn_dailymail>`_.
 
+Load dataset
+------------
+
+Your dataset can now be loaded by anyone in a single line of code! 
+
+.. code-block::
+
+   >>> from datasets import load_dataset
+
+   >>> dataset = load_dataset("stevhliu/demo")
+
+You can even map your data files to a specific split with the `data_files` parameter:
+
+.. code-block::
+
+   >>> data_files = {"train": "train.csv", "test": "test.csv"}
+   >>> dataset = load_dataset("stevhliu/demo", data_files=data_files)
+   >>> print(dataset["train"][0])
+
 What's next?
 ------------
 
