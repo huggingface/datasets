@@ -98,6 +98,8 @@ A data point consists of an id, a comment, the main target, the other toxicity s
   - intellectual_or_learning_disability
   - psychiatric_or_mental_illness
   - other_disability
+- Other metadata related to the source of the comment, such as creation date, publication id, number of likes,
+number of annotators, etc.
 
 ### Data Splits
 

@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Comments from Jigsaw Toxic Comment Classification Kaggle Competition """
+"""Jigsaw Unintended Bias in Toxicity Classification dataset"""
 
 
 import os
@@ -23,26 +23,26 @@ import datasets
 
 
 _DESCRIPTION = """\
-This dataset consists of a large number of Wikipedia comments which have been labeled by human raters for toxic behavior.
+A collection of comments from the defunct Civil Comments platform that have been annotated for their toxicity.
 """
 
-_HOMEPAGE = "https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge/data"
+_HOMEPAGE = "https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/"
 
-_LICENSE = 'The "Toxic Comment Classification" dataset is released under CC0, with the underlying comment text being governed by Wikipedia\'s CC-SA-3.0.'
+_LICENSE = 'CC0 (both the dataset and underlying text)'
 
 
-class JigsawToxicityPred(datasets.GeneratorBasedBuilder):
-    """This is a dataset of comments from Wikipedia’s talk page edits which have been labeled by human raters for toxic behavior."""
+class JigsawUnintendedBias(datasets.GeneratorBasedBuilder):
+    """A collection of comments from the defunct Civil Comments platform that have been annotated for their toxicity."""
 
     VERSION = datasets.Version("1.1.0")
 
     @property
     def manual_download_instructions(self):
         return """\
-            To use jigsaw_toxicity_pred you have to download it manually from Kaggle: https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge/data
+            To use jigsaw_unintended_bias you have to download it manually from Kaggle: https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/data
             You can manually download the data from it's homepage or use the Kaggle CLI tool (follow the instructions here: https://www.kaggle.com/docs/api)
             Please extract all files in one folder and then load the dataset with:
-            `datasets.load_dataset('jigsaw_toxicity_pred', data_dir='/path/to/extracted/data/')`"""
+            `datasets.load_dataset('jigsaw_unintended_bias', data_dir='/path/to/extracted/data/')`"""
 
     def _info(self):
 
@@ -52,13 +52,50 @@ class JigsawToxicityPred(datasets.GeneratorBasedBuilder):
             # This defines the different columns of the dataset and their types
             features=datasets.Features(
                 {
+                    "target": datasets.Value("float32"),
                     "comment_text": datasets.Value("string"),
-                    "toxic": datasets.ClassLabel(names=["false", "true"]),
-                    "severe_toxic": datasets.ClassLabel(names=["false", "true"]),
-                    "obscene": datasets.ClassLabel(names=["false", "true"]),
-                    "threat": datasets.ClassLabel(names=["false", "true"]),
-                    "insult": datasets.ClassLabel(names=["false", "true"]),
-                    "identity_hate": datasets.ClassLabel(names=["false", "true"]),
+                    "severe_toxicity": datasets.Value("float32"),
+                    "obscene": datasets.Value("float32"),
+                    "identity_attack": datasets.Value("float32"),
+                    "insult": datasets.Value("float32"),
+                    "threat": datasets.Value("float32"),
+                    "asian": datasets.Value("float32"),
+                    "atheist": datasets.Value("float32"),
+                    "bisexual": datasets.Value("float32"),
+                    "black": datasets.Value("float32"),
+                    "buddhist": datasets.Value("float32"),
+                    "christian": datasets.Value("float32"),
+                    "female": datasets.Value("float32"),
+                    "heterosexual": datasets.Value("float32"),
+                    "hindu": datasets.Value("float32"),
+                    "homosexual_gay_or_lesbian": datasets.Value("float32"),
+                    "intellectual_or_learning_disability": datasets.Value("float32"),
+                    "jewish": datasets.Value("float32"),
+                    "latino": datasets.Value("float32"),
+                    "male": datasets.Value("float32"),
+                    "muslim": datasets.Value("float32"),
+                    "other_disability": datasets.Value("float32"),
+                    "other_gender": datasets.Value("float32"),
+                    "other_race_or_ethnicity": datasets.Value("float32"),
+                    "other_religion": datasets.Value("float32"),
+                    "other_sexual_orientation": datasets.Value("float32"),
+                    "physical_disability": datasets.Value("float32"),
+                    "psychiatric_or_mental_illness": datasets.Value("float32"),
+                    "transgender": datasets.Value("float32"),
+                    "white": datasets.Value("float32"),
+                    "created_date": datasets.Value("string"),
+                    "publication_id": datasets.Value("int32"),
+                    "parent_id": datasets.Value("float"),
+                    "article_id": datasets.Value("int32"),
+                    "rating": datasets.ClassLabel(names=["rejected", "approved"]),
+                    "funny": datasets.Value("int32"),
+                    "wow": datasets.Value("int32"),
+                    "sad": datasets.Value("int32"),
+                    "likes": datasets.Value("int32"),
+                    "disagree": datasets.Value("int32"),
+                    "sexual_explicit": datasets.Value("float"),
+                    "identity_annotator_count": datasets.Value("int32"),
+                    "toxicity_annotator_count": datasets.Value("int32"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -80,7 +117,7 @@ class JigsawToxicityPred(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('jigsaw_toxicity_pred', data_dir=...)`. Manual download instructions: {}".format(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('jigsaw_unintended_bias', data_dir=...)`. Manual download instructions: {}".format(
                     data_dir, self.manual_download_instructions
                 )
             )
@@ -89,39 +126,31 @@ class JigsawToxicityPred(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"train_path": os.path.join(data_dir, "train.csv"), "split": "train"},
+                gen_kwargs={"path": os.path.join(data_dir, "train.csv"), "split": "train"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
+                name=datasets.Split("test_private_leaderboard"),
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "test_text_path": os.path.join(data_dir, "test.csv"),
-                    "test_labels_path": os.path.join(data_dir, "test_labels.csv"),
-                    "split": "test",
-                },
+                gen_kwargs={"path": os.path.join(data_dir, "test_private_expanded.csv"), "split": "test"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split("test_public_leaderboard"),
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"path": os.path.join(data_dir, "test_public_expanded.csv"), "split": "test"},
             ),
         ]
 
-    def _generate_examples(self, split="train", train_path=None, test_text_path=None, test_labels_path=None):
+    def _generate_examples(self, split: str = "train", path: str = None):
         """Yields examples."""
         # This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
-        if split == "test":
-            df1 = pd.read_csv(test_text_path)
-            df2 = pd.read_csv(test_labels_path)
-            df3 = df1.merge(df2)
-            df4 = df3[df3["toxic"] != -1]
+        data = pd.read_csv(path)
+        if split != "train":
+            data = data.rename(columns={"toxicity": "target"})
 
-        elif split == "train":
-            df4 = pd.read_csv(train_path)
-
-        for _, row in df4.iterrows():
-            example = {}
-            example["comment_text"] = row["comment_text"]
-
-            for label in ["toxic", "severe_toxic", "obscene", "threat", "insult", "identity_hate"]:
-                if row[label] != -1:
-                    example[label] = int(row[label])
-            yield (row["id"], example)
+        for _, row in data.iterrows():
+            example = row.to_dict()
+            ex_id = example.pop("id")
+            yield (ex_id, example)
