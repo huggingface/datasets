@@ -1,9 +1,26 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- cc0-1.0
+multilinguality:
+- monolingual
+pretty_name: Jigsaw Unintended Bias in Toxicity Classification
+size_categories:
+- 1M<n<10M
+source_datasets:
+- original
+task_categories:
+- text-scoring
+task_ids:
+- text-scoring-other-toxicity-prediction
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Jigsaw Unintended Bias in Toxicity Classification
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
