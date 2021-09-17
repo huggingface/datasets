@@ -28,7 +28,7 @@ A collection of comments from the defunct Civil Comments platform that have been
 
 _HOMEPAGE = "https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/"
 
-_LICENSE = 'CC0 (both the dataset and underlying text)'
+_LICENSE = "CC0 (both the dataset and underlying text)"
 
 
 class JigsawUnintendedBias(datasets.GeneratorBasedBuilder):
