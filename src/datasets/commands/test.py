@@ -114,7 +114,11 @@ class TestCommand(BaseDatasetsCLICommand):
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
         path, name = self._dataset, self._name
-        module_path, hash = prepare_module(path)
+        module_path, hash, base_path, namespace = prepare_module(
+            path,
+            return_associated_base_path=True,
+            return_namespace=True,
+        )
         builder_cls = import_main_class(module_path)
 
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
@@ -128,11 +132,23 @@ class TestCommand(BaseDatasetsCLICommand):
                 for i, config in enumerate(builder_cls.BUILDER_CONFIGS):
                     if i % self._num_proc == self._proc_rank:
                         yield builder_cls(
-                            name=config.name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir
+                            name=config.name,
+                            hash=hash,
+                            cache_dir=self._cache_dir,
+                            data_dir=self._data_dir,
+                            base_path=base_path,
+                            namespace=namespace,
                         )
             else:
                 if self._proc_rank == 0:
-                    yield builder_cls(name=name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir)
+                    yield builder_cls(
+                        name=name,
+                        hash=hash,
+                        cache_dir=self._cache_dir,
+                        data_dir=self._data_dir,
+                        base_path=base_path,
+                        namespace=namespace,
+                    )
 
         for j, builder in enumerate(get_builders()):
             print(f"Testing builder '{builder.config.name}' ({j + 1}/{n_builders})")
