@@ -139,7 +139,7 @@ class TypedSequence:
                             "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
                                 type_(self.data), e
                             )
-                        )
+                        ) from None
                     else:
                         raise
             elif "overflow" in str(e):
@@ -147,7 +147,7 @@ class TypedSequence:
                     "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
                         type_(self.data), e
                     )
-                )
+                ) from None
             else:
                 raise
 
@@ -535,7 +535,7 @@ class BeamWriter:
                 parquet_to_arrow(sources, dest)
         except socket.error as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
             if e.errno != errno.EPIPE:  # not a broken pipe
-                raise e
+                raise
             logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
             local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
             os.makedirs(local_convert_dir, exist_ok=True)

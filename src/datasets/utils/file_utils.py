@@ -147,13 +147,10 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
 def head_hf_s3(
     identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
 ) -> Union[requests.Response, Exception]:
-    try:
-        return http_head(
-            hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
-            max_retries=max_retries,
-        )
-    except Exception as e:
-        return e
+    return http_head(
+        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
+        max_retries=max_retries,
+    )
 
 
 def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
@@ -421,7 +418,7 @@ def ftp_get(url, temp_file, timeout=10.0):
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
             shutil.copyfileobj(r, temp_file)
     except urllib.error.URLError as e:
-        raise ConnectionError(e)
+        raise ConnectionError(e) from None
 
 
 def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=100.0, max_retries=0):
