@@ -8,7 +8,12 @@ import signal
 import tempfile
 
 
-multiprocessing.set_start_method("fork")
+# patches issue with multiprocessing on Mac OS with Python 3.8+
+# see https://github.com/pytest-dev/pytest-flask/issues/104#issuecomment-577908228
+try:
+    multiprocessing.set_start_method("fork")
+except RuntimeError:
+    pass
 
 
 def check_correctness(check_program, timeout, task_id, completion_id):
