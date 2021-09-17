@@ -8,14 +8,6 @@ import signal
 import tempfile
 
 
-# patches issue with multiprocessing on Mac OS with Python 3.8+
-# see https://github.com/pytest-dev/pytest-flask/issues/104#issuecomment-577908228
-try:
-    multiprocessing.set_start_method("fork")
-except RuntimeError:
-    pass
-
-
 def check_correctness(check_program, timeout, task_id, completion_id):
     """
     Evaluates the functional correctness of a completion by running the test
@@ -24,43 +16,10 @@ def check_correctness(check_program, timeout, task_id, completion_id):
     :param completion_id: an optional completion ID so we can match
         the results later even if execution finishes asynchronously.
     """
-
-    def unsafe_execute():
-
-        with create_tempdir():
-
-            # These system calls are needed when cleaning up tempdir.
-            import os
-            import shutil
-
-            rmtree = shutil.rmtree
-            rmdir = os.rmdir
-            chdir = os.chdir
-
-            # Disable functionalities that can make destructive changes to the test.
-            reliability_guard()
-
-            # Run program.
-            try:
-                exec_globals = {}
-                with swallow_io():
-                    with time_limit(timeout):
-                        exec(check_program, exec_globals)
-                result.append("passed")
-            except TimeoutException:
-                result.append("timed out")
-            except BaseException as e:
-                result.append(f"failed: {e}")
-
-            # Needed for cleaning up.
-            shutil.rmtree = rmtree
-            os.rmdir = rmdir
-            os.chdir = chdir
-
     manager = multiprocessing.Manager()
     result = manager.list()
 
-    p = multiprocessing.Process(target=unsafe_execute)
+    p = multiprocessing.Process(target=unsafe_execute, args=(check_program, result, timeout))
     p.start()
     p.join(timeout=timeout + 1)
     if p.is_alive():
@@ -75,6 +34,39 @@ def check_correctness(check_program, timeout, task_id, completion_id):
         result=result[0],
         completion_id=completion_id,
     )
+
+
+def unsafe_execute(check_program, result, timeout):
+
+    with create_tempdir():
+
+        # These system calls are needed when cleaning up tempdir.
+        import os
+        import shutil
+
+        rmtree = shutil.rmtree
+        rmdir = os.rmdir
+        chdir = os.chdir
+
+        # Disable functionalities that can make destructive changes to the test.
+        reliability_guard()
+
+        # Run program.
+        try:
+            exec_globals = {}
+            with swallow_io():
+                with time_limit(timeout):
+                    exec(check_program, exec_globals)
+            result.append("passed")
+        except TimeoutException:
+            result.append("timed out")
+        except BaseException as e:
+            result.append(f"failed: {e}")
+
+        # Needed for cleaning up.
+        shutil.rmtree = rmtree
+        os.rmdir = rmdir
+        os.chdir = chdir
 
 
 @contextlib.contextmanager
