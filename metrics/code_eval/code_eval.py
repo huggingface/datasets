@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This is an evaluation harness for the HumanEval problem solving dataset
+"""The CodeEval metric estimates the pass@k metric for code synthesis. 
+This is an evaluation harness for the HumanEval problem solving dataset
 described in the paper "Evaluating Large Language Models Trained on Code"
 (https://arxiv.org/abs/2107.03374)."""
 
@@ -74,15 +75,14 @@ Args:
 Returns:
     pass_at_k: dict with pass rates for each k
 Examples:
+    >>> import os
+    >>> os.environ["HF_ALLOW_CODE_EVAL"] = "1"
     >>> code_eval = datasets.load_metric("code_eval")
-    >>> test_cases = ["assert add(1, 1)==2\nassert add(2,3)==5"]
-    >>> candidates = [["def add(a,b):\n\treturn a*b",
-                      "def add(a, b):\n\treturn a+b"]]
-    >>> results = code_eval.compute(references=test_cases,
-                                    predictions=candidates,
-                                    k=[1, 2])
+    >>> test_cases = ["assert add(2,3)==5"]
+    >>> candidates = [["def add(a,b): return a*b", "def add(a, b): return a+b"]]
+    >>> results = code_eval.compute(references=test_cases, predictions=candidates, k=[1, 2])
     >>> print(results)
-    {'pass_at_1': 0.5, 'pass_at_2': 1.0}
+    {'pass@1': 0.5, 'pass@2': 1.0}
 """
 
 
@@ -112,8 +112,6 @@ with:
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class CodeEval(datasets.Metric):
-    """The CodeEval metric estimates the pass@k metric for code synthesis."""
-
     def _info(self):
         return datasets.MetricInfo(
             # This is the description that will appear on the metrics page.
