@@ -24,6 +24,7 @@ import os
 import re
 import shutil
 import time
+import warnings
 from collections import Counter
 from pathlib import Path, PurePath
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, Union
@@ -341,7 +342,7 @@ def _infer_module_for_data_files(data_files: Union[PurePath, List[PurePath], Dic
 
 def prepare_module(
     path: str,
-    script_version: Optional[Union[str, Version]] = None,
+    revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     dataset: bool = True,
@@ -350,6 +351,7 @@ def prepare_module(
     return_resolved_file_path: bool = False,
     return_associated_base_path: bool = False,
     data_files: Optional[Union[Dict, List, str]] = None,
+    script_version="deprecated",
     **download_kwargs,
 ) -> Union[Tuple[str, str], Tuple[str, str, Optional[str]]]:
     r"""
@@ -384,7 +386,7 @@ def prepare_module(
               -> load the module from the dataset script in the dataset repository
               e.g. ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
-        script_version (Optional ``Union[str, datasets.Version]``):
+        revision (Optional ``Union[str, datasets.Version]``):
             If specified, the module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
@@ -404,6 +406,9 @@ def prepare_module(
             If True, the base path associated to the dataset is returned with the other ouputs.
             It corresponds to the directory or base url where the dataset script/dataset repo is at.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
+        script_version:
+            .. deprecated:: 1.13
+                'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
     Returns:
@@ -413,6 +418,11 @@ def prepare_module(
             - the local path to the dataset/metric file if force_local_path is True: e.g. '/User/huggingface/datasets/datasets/squad/squad.py'
         2. A hash string computed from the content of the dataset loading script.
     """
+    if script_version != "deprecated":
+        warnings.warn(
+            "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
+        )
+        revision = script_version
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
     download_config.extract_compressed_file = True
@@ -505,20 +515,20 @@ def prepare_module(
                 head_hf_s3(path, filename=name, dataset=dataset, max_retries=download_config.max_retries)
             except Exception:
                 pass
-            script_version = str(script_version) if script_version is not None else None
+            revision = str(revision) if revision is not None else None
             if path.count("/") == 0:  # canonical datasets/metrics: github path
-                file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
+                file_path = hf_github_url(path=path, name=name, dataset=dataset, revision=revision)
                 try:
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
-                    if script_version is not None:
+                    if revision is not None:
                         raise FileNotFoundError(
-                            f"Couldn't find a directory or a {resource_type} named '{path}' using version {script_version}. "
+                            f"Couldn't find a directory or a {resource_type} named '{path}' using version {revision}. "
                             f"It doesn't exist locally at {expected_dir_for_combined_path_abs} or remotely at {file_path}"
                         ) from None
                     else:
                         github_file_path = file_path
-                        file_path = hf_github_url(path=path, name=name, dataset=dataset, version="master")
+                        file_path = hf_github_url(path=path, name=name, dataset=dataset, revision="master")
                         try:
                             local_path = cached_path(file_path, download_config=download_config)
                             logger.warning(
@@ -531,7 +541,7 @@ def prepare_module(
                                 f"It doesn't exist locally at {expected_dir_for_combined_path_abs} or remotely at {github_file_path}"
                             ) from None
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
-                file_path = hf_hub_url(path=path, name=name, version=script_version)
+                file_path = hf_hub_url(path=path, name=name, revision=revision)
                 if not dataset:
                     # We don't have community metrics on the HF Hub
                     raise FileNotFoundError(
@@ -544,7 +554,7 @@ def prepare_module(
                     hf_api = HfApi(config.HF_ENDPOINT)
                     try:
                         dataset_info = hf_api.dataset_info(
-                            repo_id=path, revision=script_version, token=download_config.use_auth_token
+                            repo_id=path, revision=revision, token=download_config.use_auth_token
                         )
                     except Exception as exc:
                         raise FileNotFoundError(
@@ -784,7 +794,8 @@ def load_metric(
     keep_in_memory: bool = False,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
-    script_version: Optional[Union[str, Version]] = None,
+    revision: Optional[Union[str, Version]] = None,
+    script_version="deprecated",
     **metric_init_kwargs,
 ) -> Metric:
     r"""Load a `datasets.Metric`.
@@ -806,16 +817,24 @@ def load_metric(
         keep_in_memory (bool): Whether to store the temporary results in memory (defaults to False)
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        script_version (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
+        revision (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
             at this version. By default it is set to the local version of the lib. Specifying a version that is different from
             your local version of the lib might cause compatibility issues.
+        script_version:
+            .. deprecated:: 1.13
+                'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.
 
     Returns:
         `datasets.Metric`
     """
+    if script_version != "deprecated":
+        warnings.warn(
+            "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
+        )
+        revision = script_version
     module_path, _ = prepare_module(
         path,
-        script_version=script_version,
+        revision=revision,
         download_config=download_config,
         download_mode=download_mode,
         dataset=False,
@@ -846,8 +865,9 @@ def load_dataset_builder(
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
-    script_version: Optional[Union[str, Version]] = None,
+    revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
+    script_version="deprecated",
     **config_kwargs,
 ) -> DatasetBuilder:
     """Load a builder for the dataset. A dataset builder can be used to inspect general information that is required to build a dataset (cache directory, config, dataset info, etc.)
@@ -889,7 +909,7 @@ def load_dataset_builder(
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
+        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
@@ -897,15 +917,23 @@ def load_dataset_builder(
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
         use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
+        script_version:
+            .. deprecated:: 1.13
+                'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.
 
     Returns:
         :class:`DatasetBuilder`
 
     """
+    if script_version != "deprecated":
+        warnings.warn(
+            "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
+        )
+        revision = script_version
     # Download/copy dataset processing script
     module_path, hash, base_path = prepare_module(
         path,
-        script_version=script_version,
+        revision=revision,
         download_config=download_config,
         download_mode=download_mode,
         dataset=True,
@@ -930,7 +958,7 @@ def load_dataset_builder(
         ]
         data_files = data_files if data_files is not None else "*"
         if base_path.startswith(config.HF_ENDPOINT):
-            dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(path, revision=script_version, token=use_auth_token)
+            dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(path, revision=revision, token=use_auth_token)
             data_files = _resolve_data_files_in_dataset_repository(
                 dataset_info, data_files, allowed_extensions=allowed_extensions
             )
@@ -978,10 +1006,11 @@ def load_dataset(
     ignore_verifications: bool = False,
     keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
-    script_version: Optional[Union[str, Version]] = None,
+    revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     task: Optional[Union[str, TaskTemplate]] = None,
     streaming: bool = False,
+    script_version="deprecated",
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset, IterableDatasetDict, IterableDataset]:
     """Load a dataset.
@@ -1052,7 +1081,7 @@ def load_dataset(
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
             nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.
         save_infos (:obj:`bool`, default ``False``): Save the dataset information (checksums/size/splits/...).
-        script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
+        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
@@ -1067,6 +1096,9 @@ def load_dataset(
             Note that streaming works for datasets that use data formats that support being iterated over like txt, csv, jsonl for example.
             Json files may be downloaded completely. Also streaming from remote zip or gzip files is supported but other compressed formats
             like rar and xz are not yet supported. The tgz format doesn't allow streaming.
+        script_version:
+            .. deprecated:: 1.13
+                'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.
         **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
 
     Returns:
@@ -1080,6 +1112,11 @@ def load_dataset(
         - if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
 
     """
+    if script_version != "deprecated":
+        warnings.warn(
+            "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
+        )
+        revision = script_version
     ignore_verifications = ignore_verifications or save_infos
 
     # Create a dataset builder
@@ -1092,7 +1129,7 @@ def load_dataset(
         features=features,
         download_config=download_config,
         download_mode=download_mode,
-        script_version=script_version,
+        revision=revision,
         use_auth_token=use_auth_token,
         **config_kwargs,
     )
