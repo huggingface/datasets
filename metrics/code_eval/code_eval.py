@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""The CodeEval metric estimates the pass@k metric for code synthesis. 
+"""The CodeEval metric estimates the pass@k metric for code synthesis.
 This is an evaluation harness for the HumanEval problem solving dataset
 described in the paper "Evaluating Large Language Models Trained on Code"
 (https://arxiv.org/abs/2107.03374)."""
