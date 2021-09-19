@@ -2,7 +2,6 @@
 
 
 import json
-from pathlib import Path
 
 import datasets
 
@@ -79,9 +78,9 @@ class SEDE(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        train_path = dl_manager.download_and_extract(str(Path(self._DOWNLOAD_URL) / self._TRAIN_FILE))
-        val_path = dl_manager.download_and_extract(str(Path(self._DOWNLOAD_URL) / self._VAL_FILE))
-        test_path = dl_manager.download_and_extract(str(Path(self._DOWNLOAD_URL) / self._TEST_FILE))
+        train_path = dl_manager.download_and_extract(self._DOWNLOAD_URL + "/" + self._TRAIN_FILE)
+        val_path = dl_manager.download_and_extract(self._DOWNLOAD_URL + "/" + self._VAL_FILE)
+        test_path = dl_manager.download_and_extract(self._DOWNLOAD_URL + "/" + self._TEST_FILE)
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_filepath": train_path}),
             datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"data_filepath": val_path}),
