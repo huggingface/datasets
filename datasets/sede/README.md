@@ -1,4 +1,5 @@
 ---
+pretty_name: SEDE (Stack Exchange Data Explorer)
 annotations_creators:
 - no-annotation
 language_creators:
