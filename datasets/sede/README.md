@@ -7,7 +7,7 @@ language_creators:
 languages:
 - en
 licenses:
-- Apache-2.0
+- apache-2.0
 multilinguality:
 - monolingual
 size_categories:
@@ -15,9 +15,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- semantic-parsing
+- structure-prediction
 task_ids:
-- test-to-sql
+- parsing
 ---
 
 # Dataset Card for SEDE
@@ -58,7 +58,7 @@ SEDE (Stack Exchange Data Explorer) is a dataset for Text-to-SQL tasks with more
 
 ### Supported Tasks and Leaderboards
 
-- `text-to-sql`: The dataset can be used to train a model for Text-to-SQL task. A Seq2Seq model (e.g. T5) can be used to solve the task. A model with more inductive-bias (e.g. a model with a grammar-based decoder) or an interactive settings for Text-to-SQL (https://arxiv.org/abs/2005.02539) can improve the results further. The model performance is measured by how high its [PCM-F1](https://arxiv.org/abs/2106.05006) score is. A [t5-large](https://huggingface.co/t5-large) achieves a [PCM-F1 of 50.6](https://arxiv.org/abs/2106.05006).
+- `parsing`: The dataset can be used to train a model for Text-to-SQL task. A Seq2Seq model (e.g. T5) can be used to solve the task. A model with more inductive-bias (e.g. a model with a grammar-based decoder) or an interactive settings for Text-to-SQL (https://arxiv.org/abs/2005.02539) can improve the results further. The model performance is measured by how high its [PCM-F1](https://arxiv.org/abs/2106.05006) score is. A [t5-large](https://huggingface.co/t5-large) achieves a [PCM-F1 of 50.6](https://arxiv.org/abs/2106.05006).
 
 ### Languages
 
