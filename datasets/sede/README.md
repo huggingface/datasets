@@ -10,6 +10,7 @@ licenses:
 - apache-2.0
 multilinguality:
 - monolingual
+paperswithcode_id: sede
 size_categories:
 - 10K<n<100K
 source_datasets:

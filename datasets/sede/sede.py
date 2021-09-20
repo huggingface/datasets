@@ -63,7 +63,7 @@ class SEDE(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "QuerySetId": datasets.Value("string"),
+                    "QuerySetId": datasets.Value("uint32"),
                     "Title": datasets.Value("string"),
                     "Description": datasets.Value("string"),
                     "QueryBody": datasets.Value("string"),
@@ -91,14 +91,6 @@ class SEDE(datasets.GeneratorBasedBuilder):
         """Generate SEDE examples."""
         logger.info("generating examples from = %s", data_filepath)
         with open(data_filepath, encoding="utf-8") as f:
-            content = list(f)
-            for idx, sample_str in enumerate(content):
+            for idx, sample_str in enumerate(f):
                 sample_json = json.loads(sample_str)
-                yield idx, {
-                    "QuerySetId": str(sample_json["QuerySetId"]),
-                    "Title": sample_json["Title"],
-                    "Description": sample_json["Description"],
-                    "QueryBody": sample_json["QueryBody"],
-                    "CreationDate": sample_json["CreationDate"],
-                    "validated": sample_json["validated"],
-                }
+                yield idx, sample_json
