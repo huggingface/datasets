@@ -311,3 +311,30 @@ def test_fingerprint_in_multiprocessing():
     with Pool(2) as p:
         assert expected_fingerprint == p.apply_async(dataset.func1).get()._fingerprint
         assert expected_fingerprint != p.apply_async(dataset.func2).get()._fingerprint
+
+
+def test_fingerprint_when_transform_version_changes():
+    data = {"a": [0, 1, 2]}
+
+    class DummyDatasetChild(datasets.Dataset):
+        @fingerprint_transform(inplace=False)
+        def func(self, new_fingerprint):
+            return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
+
+    fingeprint_no_version = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+
+    class DummyDatasetChild(datasets.Dataset):
+        @fingerprint_transform(inplace=False, version="1.0.0")
+        def func(self, new_fingerprint):
+            return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
+
+    fingeprint_1 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+
+    class DummyDatasetChild(datasets.Dataset):
+        @fingerprint_transform(inplace=False, version="2.0.0")
+        def func(self, new_fingerprint):
+            return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
+
+    fingeprint_2 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+
+    assert len(set([fingeprint_no_version, fingeprint_1, fingeprint_2])) == 3
