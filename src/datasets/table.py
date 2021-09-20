@@ -800,7 +800,11 @@ class ConcatenationTable(Table):
 
     @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
     def replace_schema_metadata(self, *args, **kwargs):
-        return ConcatenationTable(self.table.replace_schema_metadata(*args, **kwargs), self.blocks)
+        table = self.table.replace_schema_metadata(*args, **kwargs)
+        blocks = []
+        for tables in self.blocks:
+            blocks.append([t.replace_schema_metadata(*args, **kwargs) for t in tables])
+        return ConcatenationTable(table, self.blocks)
 
     @inject_arrow_table_documentation(pa.Table.add_column)
     def add_column(self, *args, **kwargs):
