@@ -1,171 +1,147 @@
-FileSystems Integration for cloud storages
-====================================================================
+Cloud storage
+==============
 
-Supported Filesystems
----------------------
+🤗 Datasets supports access to cloud storage providers through a S3 filesystem implementation: :class:`datasets.filesystems.S3FileSystem`. You can save and load datasets from your Amazon S3 bucket in a Pythonic way. Take a look at the following table for other supported cloud storage providers:
 
-Currently ``datasets`` offers an s3 filesystem implementation with :class:`datasets.filesystems.S3FileSystem`. ``S3FileSystem`` is a subclass of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_, which is a known implementation of ``fsspec``.
+.. list-table::
+   :header-rows: 1
 
-Furthermore ``datasets`` supports all ``fsspec`` implementations. Currently known implementations are: 
+   * - Storage provider
+     - Filesystem implementation
+   * - Amazon S3
+     - `s3fs <https://s3fs.readthedocs.io/en/latest/>`_
+   * - Google Cloud Storage
+     - `gcsfs <https://gcsfs.readthedocs.io/en/latest/>`_
+   * - Azure DataLake
+     - `adl <https://github.com/dask/adlfs>`_
+   * - Azure Blob
+     - `abfs <https://github.com/dask/adlfs>`_
+   * - Dropbox
+     - `dropboxdrivefs <https://github.com/MarineChap/dropboxdrivefs>`_
+   * - Google Drive
+     - `gdrivefs <https://github.com/intake/gdrivefs>`_
 
-- `s3fs <https://s3fs.readthedocs.io/en/latest/>`_  for Amazon S3 and other compatible stores
-- `gcsfs <https://gcsfs.readthedocs.io/en/latest/>`_ for Google Cloud Storage
-- `adl <https://github.com/dask/adlfs>`_ for Azure DataLake storage
-- `abfs <https://github.com/dask/adlfs>`_ for Azure Blob service
-- `dropbox <https://github.com/MarineChap/dropboxdrivefs>`_ for access to dropbox shares
-- `gdrive <https://github.com/intake/gdrivefs>`_ to access Google Drive and shares (experimental)
+This guide will show you how to save and load datasets with **s3fs** to a S3 bucket, but other filesystem implementations can be used similarly.
 
-These known implementations are going to be natively added in the near future within ``datasets``, but you can use them already in a similar way to ``s3fs``.
+Listing datasets
+----------------
 
-**Examples:**	
+1. Install the S3 dependecy with 🤗 Datasets:
 
-Example using :class:`datasets.filesystems.S3FileSystem` within ``datasets``.
+.. code::
 
+   >>> pip install datasets[s3]
 
-.. code-block::
-
-    >>> pip install "datasets[s3]"
-
-Listing files from a public s3 bucket.
-
-.. code-block::
-
-      >>> import datasets
-      >>> s3 = datasets.filesystems.S3FileSystem(anon=True)  # doctest: +SKIP
-      >>> s3.ls('some-public-datasets/imdb/train')  # doctest: +SKIP
-      ['dataset_info.json.json','dataset.arrow','state.json']
-
-Listing files from a private s3 bucket using ``aws_access_key_id`` and ``aws_secret_access_key``.
+2. List files from a public S3 bucket with ``s3.ls``:
 
 .. code-block::
 
-      >>> import datasets
-      >>> s3 = datasets.filesystems.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
-      >>> s3.ls('my-private-datasets/imdb/train')  # doctest: +SKIP
-      ['dataset_info.json.json','dataset.arrow','state.json']
+   >>> import datasets
+   >>> s3 = datasets.filesystems.S3FileSystem(anon=True)  
+   >>> s3.ls('public-datasets/imdb/train')
+   ['dataset_info.json.json','dataset.arrow','state.json']
 
-Using ``S3FileSystem`` with ``botocore.session.Session`` and custom AWS ``profile``.
-
-.. code-block::
-
-      >>> import botocore 
-      >>> from datasets.filesystems import S3FileSystem
-      >>> s3_session = botocore.session.Session(profile='my_profile_name')
-      >>> s3 = S3FileSystem(session=s3_session)  # doctest: +SKIP
-
-
-
-Example using a another ``fsspec`` implementations, like ``gcsfs`` within ``datasets``.
+Access a private S3 bucket by entering your ``aws_access_key_id`` and ``aws_secret_access_key``:
 
 .. code-block::
 
-      >>> conda install -c conda-forge gcsfs
-      >>> # or
-      >>> pip install gcsfs
+   >>> import datasets
+   >>> s3 = datasets.filesystems.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  
+   >>> s3.ls('my-private-datasets/imdb/train')  
+   ['dataset_info.json.json','dataset.arrow','state.json']
+
+Google Cloud Storage
+^^^^^^^^^^^^^^^^^^^^
+
+Other filesystem implementations, like Google Cloud Storage, are used similarly:
+
+1. Install the Google Cloud Storage implementation:
 
 .. code-block::
 
-      >>> import gcsfs
-      >>> gcs = gcsfs.GCSFileSystem(project='my-google-project') # doctest: +SKIP
-      >>>
-      >>> # saves encoded_dataset to your s3 bucket
-      >>> encoded_dataset.save_to_disk('gcs://my-private-datasets/imdb/train', fs=gcs)  # doctest: +SKIP
+   >>> conda install -c conda-forge gcsfs
+   # or install with pip
+   >>> pip install gcsfs
 
-
-
-Saving a processed dataset to s3
---------------------------------
-
-Once you have your final dataset you can save it to s3 and reuse it later using :obj:`datasets.load_from_disk`.
-Saving a dataset to s3 will upload various files to your bucket:
-
-- ``arrow files``: they contain your dataset's data
-- ``dataset_info.json``: contains the description, citations, etc. of the dataset
-- ``state.json``: contains the list of the arrow files and other informations like the dataset format type, if any (torch or tensorflow for example)
-
-Saving ``encoded_dataset`` to a private s3 bucket using ``aws_access_key_id`` and ``aws_secret_access_key``.
+2. Load your dataset:
 
 .. code-block::
 
-      >>> from datasets.filesystems import S3FileSystem
-      >>>
-      >>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
-      >>> s3 = S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
-      >>>
-      >>> # saves encoded_dataset to your s3 bucket
-      >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
+   >>> import gcsfs
+   >>> gcs = gcsfs.GCSFileSystem(project='my-google-project') 
+   
+   >>> # saves encoded_dataset to your s3 bucket
+   >>> encoded_dataset.save_to_disk('gcs://my-private-datasets/imdb/train', fs=gcs)
 
-Saving ``encoded_dataset`` to a private s3 bucket using ``botocore.session.Session`` and custom AWS ``profile``.
+Saving datasets
+---------------
 
-.. code-block::
-
-      >>> import botocore 
-      >>> from datasets.filesystems import S3FileSystem
-      >>>
-      >>> # creates a botocore session with the provided AWS profile
-      >>> s3_session = botocore.session.Session(profile='my_profile_name')
-      >>>
-      >>> # create S3FileSystem instance with s3_session
-      >>> s3 = S3FileSystem(session=s3_session)  # doctest: +SKIP
-      >>>
-      >>> # saves encoded_dataset to your s3 bucket
-      >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
-
-
-Loading a processed dataset from s3
------------------------------------
-
-After you have saved your processed dataset to s3 you can load it using :obj:`datasets.load_from_disk`.
-You can only load datasets from s3, which are saved using :func:`datasets.Dataset.save_to_disk` 
-and :func:`datasets.DatasetDict.save_to_disk`. 
-
-Loading ``encoded_dataset`` from a public s3 bucket.
+After you have processed your dataset, you can save it to S3 with :func:`datasets.Dataset.save_to_disk`:
 
 .. code-block::
 
-      >>> from datasets import load_from_disk
-      >>> from datasets.filesystems import S3FileSystem
-      >>>
-      >>> # create S3FileSystem without credentials
-      >>> s3 = S3FileSystem(anon=True)  # doctest: +SKIP
-      >>>
-      >>> # load encoded_dataset from s3 bucket
-      >>> dataset = load_from_disk('s3://some-public-datasets/imdb/train',fs=s3)  # doctest: +SKIP
-      >>>
-      >>> print(len(dataset))
-      >>> # 25000
+   >>> from datasets.filesystems import S3FileSystem
+   
+   >>> # create S3FileSystem instance
+   >>> s3 = S3FileSystem(anon=True)  
+   
+   >>> # saves encoded_dataset to your s3 bucket
+   >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train', fs=s3)
 
-Loading ``encoded_dataset`` from a private s3 bucket using ``aws_access_key_id`` and ``aws_secret_access_key``.
+.. tip::
 
-.. code-block::
+    Remember to include your ``aws_access_key_id`` and ``aws_secret_access_key`` whenever you are interacting with a private S3 bucket.
 
-      >>> from datasets import load_from_disk
-      >>> from datasets.filesystems import S3FileSystem
-      >>>
-      >>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
-      >>> s3 = S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  # doctest: +SKIP
-      >>>
-      >>> # load encoded_dataset to from s3 bucket
-      >>> dataset = load_from_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
-      >>>
-      >>> print(len(dataset))
-      >>> # 25000
-
-Loading ``encoded_dataset`` from a private s3 bucket using ``botocore.session.Session`` and custom AWS ``profile``.
+Save your dataset with ``botocore.session.Session`` and a custom AWS profile:
 
 .. code-block::
 
-      >>> import botocore
-      >>> from datasets.filesystems import S3FileSystem
-      >>>
-      >>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
-      >>> s3_session = botocore.session.Session(profile='my_profile_name')
-      >>>
-      >>> # create S3FileSystem instance with s3_session
-      >>> s3 = S3FileSystem(session=s3_session)  
-      >>>
-      >>> # load encoded_dataset to from s3 bucket
-      >>> dataset = load_from_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
-      >>>
-      >>> print(len(dataset))
-      >>> # 25000
+   >>> import botocore
+   >>> from datasets.filesystems import S3FileSystem
+   
+   >>> # creates a botocore session with the provided AWS profile
+   >>> s3_session = botocore.session.Session(profile='my_profile_name')
+   
+   >>> # create S3FileSystem instance with s3_session
+   >>> s3 = S3FileSystem(session=s3_session)  
+   
+   >>> # saves encoded_dataset to your s3 bucket
+   >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)
+
+Loading datasets
+----------------
+
+When you are ready to use your dataset again, reload it with :obj:`datasets.load_from_disk`:
+
+.. code-block::
+
+   >>> from datasets import load_from_disk
+   >>> from datasets.filesystems import S3FileSystem
+   
+   >>> # create S3FileSystem without credentials
+   >>> s3 = S3FileSystem(anon=True)  
+   
+   >>> # load encoded_dataset to from s3 bucket
+   >>> dataset = load_from_disk('s3://a-public-datasets/imdb/train',fs=s3)  
+   
+   >>> print(len(dataset))
+   >>> # 25000
+
+Load with ``botocore.session.Session`` and custom AWS profile:
+
+.. code-block::
+
+   >>> import botocore
+   >>> from datasets.filesystems import S3FileSystem
+   
+   >>> # create S3FileSystem instance with aws_access_key_id and aws_secret_access_key
+   >>> s3_session = botocore.session.Session(profile='my_profile_name')
+   
+   >>> # create S3FileSystem instance with s3_session
+   >>> s3 = S3FileSystem(session=s3_session)
+   
+   >>> # load encoded_dataset to from s3 bucket
+   >>> dataset = load_from_disk('s3://my-private-datasets/imdb/train',fs=s3)  
+   
+   >>> print(len(dataset))
+   >>> # 25000
