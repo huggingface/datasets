@@ -131,11 +131,11 @@ class Scitldr(datasets.GeneratorBasedBuilder):
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         urls = {
-            "train": os.path.join(_URLs[self.config.name], _TRAIN_DATA),
-            "valid": os.path.join(_URLs[self.config.name], _VALID_DATA),
-            "test": os.path.join(_URLs[self.config.name], _TEST_DATA),
+            "train": _URLs[self.config.name] + _TRAIN_DATA,
+            "valid": _URLs[self.config.name] + _VALID_DATA,
+            "test": _URLs[self.config.name] + _TEST_DATA,
         }
-        data_dir = dl_manager.download_and_extract(urls)
+        data_dir = dl_manager.download(urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
