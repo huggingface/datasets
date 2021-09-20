@@ -3609,7 +3609,12 @@ def concatenate_datasets(
 
 
 def get_indices_from_mask_function(
-    function: Callable, batched: bool, with_indices: bool, input_columns: Optional[Union[str, List[str]]], *args
+    function: Callable,
+    batched: bool,
+    with_indices: bool,
+    input_columns: Optional[Union[str, List[str]]],
+    *args,
+    **fn_kwargs,
 ):
     if batched:
         mask = function(*args)
@@ -3624,12 +3629,16 @@ def get_indices_from_mask_function(
             num_examples = len(batch[next(iter(batch.keys()))])
             for i in range(num_examples):
                 example = {key: batch[key][i] for key in batch}
-                mask.append(function(example, indices[i]) if with_indices else function(example))
+                mask.append(
+                    function(example, indices[i], **fn_kwargs) if with_indices else function(example, **fn_kwargs)
+                )
         else:
             # inputs is a list of columns
             columns: List[List[Any]] = inputs
             num_examples = len(columns[0])
             for i in range(num_examples):
                 input = [column[i] for column in columns]
-                mask.append(function(*input, indices[i]) if with_indices else function(*input))
+                mask.append(
+                    function(*input, indices[i], **fn_kwargs) if with_indices else function(*input, **fn_kwargs)
+                )
     return {"indices": [i for i, to_keep in zip(indices, mask) if to_keep]}
