@@ -72,7 +72,7 @@ Examples:
     >>> references = ["It is a guide to action that ensures that the military will forever heed Party commands"]
     >>> results = meteor.compute(predictions=predictions, references=references)
     >>> print(round(results["meteor"], 4))
-    0.7398
+    0.6944
 """
 
 
