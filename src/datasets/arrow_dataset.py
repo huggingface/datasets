@@ -257,9 +257,9 @@ class TensorflowDatasetMixIn:
             label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
              labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
               not necessary to actually pass the labels here, as long as they're in the input `columns`.
-            dummy_labels (:obj:`bool`, default ``True``): If no `label_cols` are set, output an array of "dummy" labels
-             with each batch. This setting ensures that Keras `fit()` or `train_on_batch()` does not get confused
-             by the missing labels.
+            dummy_labels (:obj:`bool`, default ``False``): If no `label_cols` are set, output an array of "dummy" labels
+             with each batch. This can avoid problems with `fit()` or `train_on_batch()` that expect labels to be
+             a Tensor or np.ndarray, but should (hopefully) not be necessary with our standard train_step().
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
              a small buffer of batches for training. Improves performance by allowing data to be loaded in the
              background while the model is training.
@@ -389,12 +389,6 @@ class TensorflowDatasetMixIn:
             tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
 
         if dummy_labels and not label_cols:
-            print(
-                "Warning: No label_cols specified - adding some dummy labels to ensure fit() works correctly. If you "
-                "only want to use this dataset with predict() or custom training loops, you can disable this "
-                "behaviour by setting dummy_labels to False."
-            )
-
             def add_dummy_labels(input_batch):
                 return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
 
