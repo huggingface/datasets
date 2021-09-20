@@ -41,9 +41,9 @@ archivePrefix = {arXiv},
 }
 """
 _DOWNLOAD_URL_TMPL = "http://nlp.cs.washington.edu/triviaqa/data/triviaqa-{}.tar.gz"
-_TRAIN_FILE_FORMAT = "*-train.json"
-_VALIDATION_FILE_FORMAT = "*-dev.json"
-_TEST_FILE_FORMAT = "*test-without-answers.json"
+_TRAIN_FILE_FORMAT_TMPL = "{}-train.json"
+_VALIDATION_FILE_FORMAT_TMPL = "{}-dev.json"
+_TEST_FILE_FORMAT_TMPL = "{}-test-without-answers.json"
 _WEB_EVIDENCE_DIR = "evidence/web"
 _WIKI_EVIDENCE_DIR = "evidence/wikipedia"
 
@@ -80,7 +80,7 @@ def _wiki_evidence_dir(tmp_dir):
 class TriviaQaConfig(datasets.BuilderConfig):
     """BuilderConfig for TriviaQA."""
 
-    def __init__(self, unfiltered=False, exclude_context=False, **kwargs):
+    def __init__(self, source="all", unfiltered=False, exclude_context=False, **kwargs):
         """BuilderConfig for TriviaQA.
 
         Args:
@@ -91,14 +91,22 @@ class TriviaQaConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         name = "unfiltered" if unfiltered else "rc"
+
+        assert source in ["all", "web", "wikipedia"]
+
+        if source != "all":
+            name += f".{source}"
+
         if exclude_context:
             name += ".nocontext"
         description = _UNFILTERED_DESCRIPTION if unfiltered else _RC_DESCRIPTION
         if not exclude_context:
             description += _CONTEXT_ADDENDUM
         super(TriviaQaConfig, self).__init__(
-            name=name, description=description, version=datasets.Version("1.1.0"), **kwargs
+            name=name, description=description, version=datasets.Version("1.2.0"), **kwargs
         )
+
+        self.sources = ["web", "wikipedia"] if source == "all" else [source]
         self.unfiltered = unfiltered
         self.exclude_context = exclude_context
 
@@ -110,11 +118,18 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
     """
 
     BUILDER_CONFIGS = [
-        TriviaQaConfig(unfiltered=False, exclude_context=False),  # rc
-        TriviaQaConfig(unfiltered=False, exclude_context=True),  # rc.nocontext
-        TriviaQaConfig(unfiltered=True, exclude_context=False),  # unfiltered
-        TriviaQaConfig(unfiltered=True, exclude_context=True),
-        # unfilered.nocontext
+        TriviaQaConfig(source="all", unfiltered=False, exclude_context=False),  # rc
+        TriviaQaConfig(source="all", unfiltered=False, exclude_context=True),  # rc.nocontext
+        TriviaQaConfig(source="all", unfiltered=True, exclude_context=False),  # unfiltered
+        TriviaQaConfig(source="all", unfiltered=True, exclude_context=True),  # unfilered.nocontext
+        TriviaQaConfig(source="web", unfiltered=False, exclude_context=False),  # rc
+        TriviaQaConfig(source="web", unfiltered=False, exclude_context=True),  # rc.nocontext
+        TriviaQaConfig(source="web", unfiltered=True, exclude_context=False),  # unfiltered
+        TriviaQaConfig(source="web", unfiltered=True, exclude_context=True),  # unfilered.nocontext
+        TriviaQaConfig(source="wikipedia", unfiltered=False, exclude_context=False),  # rc
+        TriviaQaConfig(source="wikipedia", unfiltered=False, exclude_context=True),  # rc.nocontext
+        TriviaQaConfig(source="wikipedia", unfiltered=True, exclude_context=False),  # unfiltered
+        TriviaQaConfig(source="wikipedia", unfiltered=True, exclude_context=True),  # unfilered.nocontext
     ]
 
     def _info(self):
@@ -176,9 +191,20 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
             if cfg.unfiltered
             else os.path.join(file_paths["rc"], "qa")
         )
-        train_files = sorted(glob.glob(os.path.join(qa_dir, _TRAIN_FILE_FORMAT)))
-        valid_files = sorted(glob.glob(os.path.join(qa_dir, _VALIDATION_FILE_FORMAT)))
-        test_files = sorted(glob.glob(os.path.join(qa_dir, _TEST_FILE_FORMAT)))
+
+        files_per_split = {}
+        for split, template in [
+            ("train", _TRAIN_FILE_FORMAT_TMPL),
+            ("validation", _VALIDATION_FILE_FORMAT_TMPL),
+            ("test", _TEST_FILE_FORMAT_TMPL),
+        ]:
+            files = [
+                filename
+                for source in cfg.sources
+                for filename in glob.glob(os.path.join(qa_dir, template.format(source)))
+            ]
+            files = sorted(files)
+            files_per_split[split] = files
 
         if cfg.exclude_context:
             web_evidence_dir = None
@@ -190,15 +216,27 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"files": train_files, "web_dir": web_evidence_dir, "wiki_dir": wiki_evidence_dir},
+                gen_kwargs={
+                    "files": files_per_split["train"],
+                    "web_dir": web_evidence_dir,
+                    "wiki_dir": wiki_evidence_dir,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"files": valid_files, "web_dir": web_evidence_dir, "wiki_dir": wiki_evidence_dir},
+                gen_kwargs={
+                    "files": files_per_split["validation"],
+                    "web_dir": web_evidence_dir,
+                    "wiki_dir": wiki_evidence_dir,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"files": test_files, "web_dir": web_evidence_dir, "wiki_dir": wiki_evidence_dir},
+                gen_kwargs={
+                    "files": files_per_split["test"],
+                    "web_dir": web_evidence_dir,
+                    "wiki_dir": wiki_evidence_dir,
+                },
             ),
         ]
 
