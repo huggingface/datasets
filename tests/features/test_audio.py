@@ -14,6 +14,9 @@ def test_audio_instantiation():
     assert audio._type == "Audio"
 
 
+@pytest.mark.skipif(
+    sys.platform == "linux", reason="linux requires libsndfile installed using distribution package manager"
+)
 def test_audio_decode_example(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     audio = Audio()
@@ -24,6 +27,9 @@ def test_audio_decode_example(shared_datadir):
     assert decoded_example["sampling_rate"] == 44100
 
 
+@pytest.mark.skipif(
+    sys.platform == "linux", reason="linux requires libsndfile installed using distribution package manager"
+)
 def test_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path]}
@@ -44,6 +50,9 @@ def test_dataset_with_audio_feature(shared_datadir):
     assert batch["audio"][0]["sampling_rate"] == 44100
 
 
+@pytest.mark.skipif(
+    sys.platform == "linux", reason="linux requires libsndfile installed using distribution package manager"
+)
 def test_formatted_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path, audio_path]}
