@@ -55,7 +55,7 @@ _LICENSE = "For non-commercial use because some of the data sources like Ted tal
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://github.com/dadelani/menyo-20k_MT/raw/main/data/train.tsv"
+_URL = "https://raw.githubusercontent.com/uds-lsv/menyo-20k_MT/master/data/train.tsv"
 
 
 class Menyo20kMt(datasets.GeneratorBasedBuilder):
