@@ -285,7 +285,8 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
 
 class PandasFormatter(Formatter):
     def format_row(self, pa_table: pa.Table) -> pd.DataFrame:
-        return self.pandas_arrow_extractor().extract_row(pa_table)
+        row = self.pandas_arrow_extractor().extract_row(pa_table)
+        return self.pandas_features_decoder.decode_row(row)
 
     def format_column(self, pa_table: pa.Table) -> pd.Series:
         return self.pandas_arrow_extractor().extract_column(pa_table)
