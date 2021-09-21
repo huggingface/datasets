@@ -14,6 +14,7 @@ import sys
 import tempfile
 import time
 import urllib
+import warnings
 from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from functools import partial
@@ -153,19 +154,29 @@ def head_hf_s3(
     )
 
 
-def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
+def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None, version="deprecated") -> str:
     from .. import SCRIPTS_VERSION
 
-    version = version or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
+    if version != "deprecated":
+        warnings.warn(
+            "'version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
+        )
+        revision = version
+    revision = revision or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
     if dataset:
-        return config.REPO_DATASETS_URL.format(version=version, path=path, name=name)
+        return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
     else:
-        return config.REPO_METRICS_URL.format(version=version, path=path, name=name)
+        return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
 
 
-def hf_hub_url(path: str, name: str, version: Optional[str] = None) -> str:
-    version = version or config.HUB_DEFAULT_VERSION
-    return config.HUB_DATASETS_URL.format(path=path, name=name, version=version)
+def hf_hub_url(path: str, name: str, revision: Optional[str] = None, version="deprecated") -> str:
+    if version != "deprecated":
+        warnings.warn(
+            "'version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
+        )
+        revision = version
+    revision = revision or config.HUB_DEFAULT_VERSION
+    return config.HUB_DATASETS_URL.format(path=path, name=name, revision=revision)
 
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
