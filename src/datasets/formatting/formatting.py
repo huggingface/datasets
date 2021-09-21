@@ -263,6 +263,8 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
         self.np_array_kwargs = np_array_kwargs
 
     def format_row(self, pa_table: pa.Table) -> dict:
+        pa_table = self.simple_arrow_extractor().extract_row(pa_table)
+        pa_table = self.arrow_features_decoder.decode_row(pa_table)
         return self.numpy_arrow_extractor(**self.np_array_kwargs).extract_row(pa_table)
 
     def format_column(self, pa_table: pa.Table) -> np.ndarray:
