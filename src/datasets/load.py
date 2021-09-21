@@ -544,8 +544,8 @@ def prepare_module(
                 namespace = path[: path.index("/")]
                 if force_local_path is None:
                     main_folder_path = os.path.join(
-                        datasets_modules_path if dataset else metrics_modules_path, namespace, short_name
-                    )
+                        datasets_modules_path if dataset else metrics_modules_path, f"{namespace}___{short_name}"
+                    )  # we have to use three underscores as in DatasetBuilder._relative_data_dir
                 if not dataset:
                     # We don't have community metrics on the HF Hub
                     raise FileNotFoundError(
@@ -605,8 +605,7 @@ def prepare_module(
                         module_path = ".".join(
                             [
                                 datasets_modules_name if dataset else metrics_modules_name,
-                                namespace,
-                                short_name,
+                                f"{namespace}___{short_name}",
                                 hash,
                                 short_name,
                             ]
@@ -792,7 +791,12 @@ def prepare_module(
             )
         else:
             module_path = ".".join(
-                [datasets_modules_name if dataset else metrics_modules_name, namespace, short_name, hash, short_name]
+                [
+                    datasets_modules_name if dataset else metrics_modules_name,
+                    f"{namespace}___{short_name}",
+                    hash,
+                    short_name,
+                ]
             )
     else:
         module_path = local_file_path

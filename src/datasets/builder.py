@@ -452,10 +452,10 @@ class DatasetBuilder:
         Will be:
             self.name/self.config.version/self.hash/
         or if a namespace has been specified:
-            self.namespace/self.name/self.config.version/self.hash/
+            self.namespace___self.name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-        builder_data_dir = self.name if self.namespace is None else os.path.join(self.namespace, self.name)
+        builder_data_dir = self.name if self.namespace is None else f"{self.namespace}___{self.name})"
         builder_config = self.config
         hash = self.hash
         if builder_config:
