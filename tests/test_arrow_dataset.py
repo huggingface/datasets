@@ -946,6 +946,27 @@ class BaseDatasetTest(TestCase):
                         with dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}}) as dset:
                             self.assertEqual(dset[0], {"field": "a", "otherfield": {"append_x": "ax"}})
 
+    def test_map_fn_kwargs(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict({"id": range(10)}) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fn_kwargs = {"offset": 3}
+                    with dset.map(
+                        lambda example, offset: {"id+offset": example["id"] + offset}, fn_kwargs=fn_kwargs
+                    ) as mapped_dset:
+                        assert mapped_dset["id+offset"] == list(range(3, 13))
+                    with dset.map(
+                        lambda id, offset: {"id+offset": id + offset}, fn_kwargs=fn_kwargs, input_columns="id"
+                    ) as mapped_dset:
+                        assert mapped_dset["id+offset"] == list(range(3, 13))
+                    with dset.map(
+                        lambda id, i, offset: {"id+offset": i + offset},
+                        fn_kwargs=fn_kwargs,
+                        input_columns="id",
+                        with_indices=True,
+                    ) as mapped_dset:
+                        assert mapped_dset["id+offset"] == list(range(3, 13))
+
     def test_map_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
@@ -1154,6 +1175,27 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset_filter_even_num._fingerprint, fingerprint)
                     self.assertEqual(dset_filter_even_num.format["type"], "numpy")
 
+    def test_filter_fn_kwargs(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict({"id": range(10)}) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fn_kwargs = {"max_offset": 3}
+                    with dset.filter(
+                        lambda example, max_offset: example["id"] < max_offset, fn_kwargs=fn_kwargs
+                    ) as filtered_dset:
+                        assert len(filtered_dset) == 3
+                    with dset.filter(
+                        lambda id, max_offset: id < max_offset, fn_kwargs=fn_kwargs, input_columns="id"
+                    ) as filtered_dset:
+                        assert len(filtered_dset) == 3
+                    with dset.filter(
+                        lambda id, i, max_offset: i < max_offset,
+                        fn_kwargs=fn_kwargs,
+                        input_columns="id",
+                        with_indices=True,
+                    ) as filtered_dset:
+                        assert len(filtered_dset) == 3
+
     def test_filter_multiprocessing(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
@@ -1162,9 +1204,20 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset_filter_first_ten), 10)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
-                    # only one cache file since the there is only 10 examples from the 1 processed shard
-                    self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 1)
+                    self.assertEqual(len(dset_filter_first_ten.cache_files), 0 if in_memory else 2)
                     self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
+
+    def test_filter_caching(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self._caplog.clear()
+            with self._caplog.at_level(WARNING):
+                with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                    with dset.filter(lambda x, i: i < 5, with_indices=True) as dset_filter_first_five1:
+                        dset_test1_data_files = list(dset_filter_first_five1.cache_files)
+                    with dset.filter(lambda x, i: i < 5, with_indices=True) as dset_filter_first_five2:
+                        self.assertEqual(dset_test1_data_files, dset_filter_first_five2.cache_files)
+                        self.assertEqual(len(dset_filter_first_five2.cache_files), 0 if in_memory else 2)
+                        self.assertTrue(("Loading cached processed dataset" in self._caplog.text) ^ in_memory)
 
     def test_keep_features_after_transform_specified(self, in_memory):
         features = Features(
@@ -1805,8 +1858,8 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
                 self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
                 self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
-            self.assertEqual(tuple(dset[:2]["vec"].shape), (2, None))
-            self.assertEqual(tuple(dset["vec"][:2].shape), (2, None))
+            self.assertEqual(tuple(dset[:2]["vec"].shape), (2, 3))
+            self.assertEqual(tuple(dset["vec"][:2].shape), (2, 3))
 
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
@@ -1985,6 +2038,25 @@ class BaseDatasetTest(TestCase):
                     dset.reset_format()
                     self.assertNotEqual(dset.format, dset2.format)
                     self.assertNotEqual(dset._fingerprint, dset2._fingerprint)
+
+    @require_tf
+    def test_tf_dataset_conversion(self, in_memory):
+        tmp_dir = tempfile.TemporaryDirectory()
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, array_features=True) as dset:
+            tf_dataset = dset.to_tf_dataset(columns="col_3", batch_size=4, shuffle=False, dummy_labels=False)
+            batch = next(iter(tf_dataset))
+            self.assertEqual(batch.shape.as_list(), [4, 4])
+            self.assertEqual(batch.dtype.name, "int64")
+        with self._create_dummy_dataset(in_memory, tmp_dir.name, multiple_columns=True) as dset:
+            tf_dataset = dset.to_tf_dataset(columns="col_1", batch_size=4, shuffle=False, dummy_labels=False)
+            batch = next(iter(tf_dataset))
+            self.assertEqual(batch.shape.as_list(), [4])
+            self.assertEqual(batch.dtype.name, "int64")
+        del tf_dataset  # For correct cleanup
+        try:
+            tmp_dir.cleanup()
+        except PermissionError:
+            pass  # Just leave it, this usually only happens on the CI runner and will get cleaned up anyway
 
 
 class MiscellaneousDatasetTest(TestCase):

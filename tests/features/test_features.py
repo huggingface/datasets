@@ -16,6 +16,7 @@ from datasets.features import (
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
     cast_to_python_objects,
+    encode_nested_example,
     string_to_arrow,
 )
 from datasets.info import DatasetInfo
@@ -234,6 +235,13 @@ def test_classlabel_int2str():
         assert classlabel.int2str(i) == names[i]
     with pytest.raises(ValueError):
         classlabel.int2str(len(names))
+
+
+def test_encode_nested_example_sequence_with_none():
+    schema = Sequence(Value("int32"))
+    obj = None
+    result = encode_nested_example(schema, obj)
+    assert result is None
 
 
 def iternumpy(key1, value1, value2):

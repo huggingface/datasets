@@ -25,7 +25,7 @@ author = "HuggingFace"
 # The short X.Y version
 version = ""
 # The full version, including alpha/beta/rc tags
-release = "1.11.0"
+release = "1.12.1"
 
 
 # -- General configuration ---------------------------------------------------
@@ -37,11 +37,13 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
     "sphinx.ext.napoleon",
-    "recommonmark",
     "sphinx.ext.viewcode",
     "sphinx_markdown_tables",
     "sphinx_copybutton",
     "sphinxext.opengraph",
+    "sphinx_panels",
+    "myst_parser",
+    "sphinx_inline_tabs"
 ]
 
 

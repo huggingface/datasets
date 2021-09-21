@@ -24,7 +24,13 @@ import numpy as np
 import pyarrow as pa
 
 from . import config, utils
-from .features import Features, _ArrayXDExtensionType, numpy_to_pyarrow_listarray
+from .features import (
+    Features,
+    _ArrayXDExtensionType,
+    cast_to_python_objects,
+    list_of_np_array_to_pyarrow_listarray,
+    numpy_to_pyarrow_listarray,
+)
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .utils import logging
@@ -103,8 +109,10 @@ class TypedSequence:
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
+            elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                out = list_of_np_array_to_pyarrow_listarray(self.data)
             else:
-                out = pa.array(self.data, type=type)
+                out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
             if trying_type and out[0].as_py() != self.data[0]:
                 raise TypeError(
                     "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
@@ -131,7 +139,7 @@ class TypedSequence:
                             "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
                                 type_(self.data), e
                             )
-                        )
+                        ) from None
                     else:
                         raise
             elif "overflow" in str(e):
@@ -139,7 +147,7 @@ class TypedSequence:
                     "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
                         type_(self.data), e
                     )
-                )
+                ) from None
             else:
                 raise
 
@@ -527,7 +535,7 @@ class BeamWriter:
                 parquet_to_arrow(sources, dest)
         except socket.error as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
             if e.errno != errno.EPIPE:  # not a broken pipe
-                raise e
+                raise
             logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
             local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
             os.makedirs(local_convert_dir, exist_ok=True)
