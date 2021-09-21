@@ -80,6 +80,56 @@ English
 
 A data point consists of an id, a comment, the main target, the other toxicity subtypes as well as identity attributes.
 
+For instance, here's the first train example.
+```
+{
+    "article_id": 2006,
+    "asian": NaN,
+    "atheist": NaN,
+    "bisexual": NaN,
+    "black": NaN,
+    "buddhist": NaN,
+    "christian": NaN,
+    "comment_text": "This is so cool. It's like, 'would you want your mother to read this??' Really great idea, well done!",
+    "created_date": "2015-09-29 10:50:41.987077+00",
+    "disagree": 0,
+    "female": NaN,
+    "funny": 0,
+    "heterosexual": NaN,
+    "hindu": NaN,
+    "homosexual_gay_or_lesbian": NaN,
+    "identity_annotator_count": 0,
+    "identity_attack": 0.0,
+    "insult": 0.0,
+    "intellectual_or_learning_disability": NaN,
+    "jewish": NaN,
+    "latino": NaN,
+    "likes": 0,
+    "male": NaN,
+    "muslim": NaN,
+    "obscene": 0.0,
+    "other_disability": NaN,
+    "other_gender": NaN,
+    "other_race_or_ethnicity": NaN,
+    "other_religion": NaN,
+    "other_sexual_orientation": NaN,
+    "parent_id": NaN,
+    "physical_disability": NaN,
+    "psychiatric_or_mental_illness": NaN,
+    "publication_id": 2,
+    "rating": 0,
+    "sad": 0,
+    "severe_toxicity": 0.0,
+    "sexual_explicit": 0.0,
+    "target": 0.0,
+    "threat": 0.0,
+    "toxicity_annotator_count": 4,
+    "transgender": NaN,
+    "white": NaN,
+    "wow": 0
+}
+```
+
 ### Data Fields
 
 - `id`: id of the comment
@@ -91,32 +141,45 @@ A data point consists of an id, a comment, the main target, the other toxicity s
 - `insult`: value between 0(non-insult) or 1(insult) classifying the comment
 - `threat`: value between 0(non-threat) and 1(threat) classifying the comment
 - For a subset of rows, columns containing whether the comment mentions the entities: 
-  - male
-  - female
-  - transgender
-  - other_gender
-  - heterosexual
-  - homosexual_gay_or_lesbian
-  - bisexual
-  - other_sexual_orientation
-  - christian
-  - jewish
-  - muslim
-  - hindu
-  - buddhist
-  - atheist
-  - other_religion
-  - black
-  - white
-  - asian
-  - latino
-  - other_race_or_ethnicity
-  - physical_disability
-  - intellectual_or_learning_disability
-  - psychiatric_or_mental_illness
-  - other_disability
+  - `male`
+  - `female`
+  - `transgender`
+  - `other_gender`
+  - `heterosexual`
+  - `homosexual_gay_or_lesbian`
+  - `bisexual`
+  - `other_sexual_orientation`
+  - `christian`
+  - `jewish`
+  - `muslim`
+  - `hindu`
+  - `buddhist`
+  - `atheist`
+  - `other_religion`
+  - `black`
+  - `white`
+  - `asian`
+  - `latino`
+  - `other_race_or_ethnicity`
+  - `physical_disability`
+  - `intellectual_or_learning_disability`
+  - `psychiatric_or_mental_illness`
+  - `other_disability`
 - Other metadata related to the source of the comment, such as creation date, publication id, number of likes,
-number of annotators, etc.
+number of annotators, etc:
+  - `created_date`
+  - `publication_id`
+  - `parent_id`
+  - `article_id`
+  - `rating`
+  - `funny`
+  - `wow`
+  - `sad`
+  - `likes`
+  - `disagree`
+  - `sexual_explicit`
+  - `identity_annotator_count`
+  - `toxicity_annotator_count`
 
 ### Data Splits
 
