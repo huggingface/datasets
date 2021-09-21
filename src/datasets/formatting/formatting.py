@@ -14,14 +14,13 @@
 # limitations under the License.
 
 # Lint as: python3
-from functools import partial
 from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import _is_zero_copy_only, decode_nested_example, pandas_types_mapper
+from ..features import _is_zero_copy_only, pandas_types_mapper
 from ..table import Table
 
 
