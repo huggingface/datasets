@@ -39,17 +39,17 @@ _HOMEPAGE = "https://competitions.codalab.org/competitions/17751"
 _LICENSE = ""
 
 _URLs = {
-    "english": [
+    "subtask5.english": [
         "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/English/2018-E-c-En-train.zip",
         "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/English/2018-E-c-En-dev.zip",
         "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/AIT2018-TEST-DATA/semeval2018englishtestfiles/2018-E-c-En-test.zip",
     ],
-    "spanish": [
+    "subtask5.spanish": [
         "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/Spanish/2018-E-c-Es-train.zip",
         "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/Spanish/2018-E-c-Es-dev.zip",
         "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/AIT2018-TEST-DATA/semeval2018spanishtestfiles/2018-E-c-Es-test.zip",
     ],
-    "arabic": [
+    "subtask5.arabic": [
         "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/Arabic/2018-E-c-Ar-train.zip",
         "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/E-c/Arabic/2018-E-c-Ar-dev.zip",
         "http://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/AIT2018-TEST-DATA/semeval2018arabictestfiles/2018-E-c-Ar-test.zip",
@@ -57,17 +57,15 @@ _URLs = {
 }
 
 
-class SemEval2018Task5(datasets.GeneratorBasedBuilder):
+class SemEval2018Task1(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="english", version=VERSION, description="This is the English dataset."),
-        datasets.BuilderConfig(name="spanish", version=VERSION, description="This is the Spanish dataset."),
-        datasets.BuilderConfig(name="arabic", version=VERSION, description="This is the Arabic dataset."),
+        datasets.BuilderConfig(name="subtask5.english", version=VERSION, description="This is the English dataset of subtask 5: E-c: Detecting Emotions."),
+        datasets.BuilderConfig(name="subtask5.spanish", version=VERSION, description="This is the Spanish dataset of subtask 5: E-c: Detecting Emotions."),
+        datasets.BuilderConfig(name="subtask5.arabic", version=VERSION, description="This is the Arabic dataset of subtask 5: E-c: Detecting Emotions."),
     ]
-
-    DEFAULT_CONFIG_NAME = "english"
 
     def _info(self):
         features = datasets.Features(
@@ -100,11 +98,11 @@ class SemEval2018Task5(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = _URLs[self.config.name]
-        if self.config.name == "english":
+        if self.config.name == "subtask5.english":
             shortname = "En"
-        if self.config.name == "spanish":
+        if self.config.name == "subtask5.spanish":
             shortname = "Es"
-        if self.config.name == "arabic":
+        if self.config.name == "subtask5.arabic":
             shortname = "Ar"
         data_dir = dl_manager.download_and_extract(my_urls)
         return [

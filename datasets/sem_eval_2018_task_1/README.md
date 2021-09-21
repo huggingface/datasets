@@ -11,7 +11,7 @@ licenses:
 - unknown
 multilinguality:
 - multilingual
-pretty_name: 'SemEval-2018 Task 5 - E-c: Detecting Emotions'
+pretty_name: 'SemEval-2018 Task 1: Affect in Tweets'
 size_categories:
 - 1K<n<10K
 source_datasets:
@@ -23,7 +23,7 @@ task_ids:
 - text-classification-other-emotion-classification
 ---
 
-# Dataset Card for SemEval-2018 Task 5 - E-c: Detecting Emotions
+# Dataset Card for SemEval-2018 Task 1: Affect in Tweets
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -60,7 +60,24 @@ task_ids:
 
 ### Dataset Summary
 
-E-c task (an emotion classification task): Given a tweet, classify it as 'neutral or no emotion' or as one, or more, of eleven given emotions that best represent the mental state of the tweeter.
+Tasks: We present an array of tasks where systems have to automatically determine the intensity of emotions (E) and intensity of sentiment (aka valence V) of the tweeters from their tweets. (The term tweeter refers to the person who has posted the tweet.) We also include a multi-label emotion classification task for tweets. For each task, we provide separate training and test datasets for English, Arabic, and Spanish tweets. The individual tasks are described below:
+
+1. EI-reg (an emotion intensity regression task): Given a tweet and an emotion E, determine the  intensity of E that best represents the mental state of the tweeter—a real-valued score between 0 (least E) and 1 (most E).
+Separate datasets are provided for anger, fear, joy, and sadness.
+
+2. EI-oc (an emotion intensity ordinal classification task): Given a tweet and an emotion E, classify the tweet into one of four ordinal classes of intensity of E that best represents the mental state of the tweeter.
+Separate datasets are provided for anger, fear, joy, and sadness.
+
+3. V-reg (a sentiment intensity regression task): Given a tweet, determine the intensity of sentiment or valence (V) that best represents the mental state of the tweeter—a real-valued score between 0 (most negative) and 1 (most positive).
+
+4. V-oc (a sentiment analysis, ordinal classification, task): Given a tweet, classify it into one of seven ordinal classes, corresponding to various levels of positive and negative sentiment intensity, that best represents the mental state of the tweeter.
+
+5. E-c (an emotion classification task): Given a tweet, classify it as 'neutral or no emotion' or as one, or more, of eleven given emotions that best represent the mental state of the tweeter.
+Here, E refers to emotion, EI refers to emotion intensity, V refers to valence or sentiment intensity, reg refers to regression, oc refers to ordinal classification, c refers to classification. 
+
+Together, these tasks encompass various emotion and sentiment analysis tasks. You are free to participate in any number of tasks and on any of the datasets.
+
+**Currently only the subtask 5 (E-c) is available on the Hugging Face Dataset Hub.**
 
 ### Supported Tasks and Leaderboards
 
@@ -72,7 +89,7 @@ English, Arabic and Spanish
 
 ### Data Instances
 
-An example from the dataset is:
+An example from the `subtask5.english` config is:
 
 ```
 {'ID': '2017-En-21441',
@@ -92,6 +109,7 @@ An example from the dataset is:
 
 ### Data Fields
 
+For any config of the subtask 5:
 - ID: string id of the tweet
 - Tweet: text content of the tweet as a string
 - anger: boolean, True if anger represents the mental state of the tweeter
