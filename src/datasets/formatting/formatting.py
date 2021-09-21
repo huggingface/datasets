@@ -14,13 +14,14 @@
 # limitations under the License.
 
 # Lint as: python3
+from functools import partial
 from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import _is_zero_copy_only, pandas_types_mapper
+from ..features import _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
 
 
@@ -197,6 +198,14 @@ class PythonFeaturesDecoder:
 class ArrowFeaturesDecoder(PythonFeaturesDecoder):
     def decode_row(self, row: pa.Table) -> pa.Table:
         return pa.Table.from_pydict(_nest(super().decode_row(_unnest(row.to_pydict())))) if self.features else row
+
+
+class PandasFeaturesDecoder:
+    def __init__(self, features):
+        self.features = features
+
+    def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
+        return row.transform({key: partial(decode_nested_example, val) for key, val in self.features.items()})
 
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
