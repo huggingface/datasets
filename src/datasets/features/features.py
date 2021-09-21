@@ -809,7 +809,9 @@ def decode_nested_example(feature, example):
     if isinstance(feature, dict):
         return {
             col: decode_nested_example(col_feature, col_example)
-            for col, (col_feature, col_example) in utils.zip_dict(feature, example)
+            for col, (col_feature, col_example) in utils.zip_dict(
+                {key: value for key, value in feature.items() if key in example}, example
+            )
         }
     elif isinstance(feature, Audio):
         return feature.decode_example(example)
