@@ -246,7 +246,7 @@ This dataset is released under CC0, as is the underlying comment text.
 
 ### Citation Information
 
-[More Information Needed]
+No citation is available for this dataset, though you may link to the [kaggle](https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification) competition
 
 ### Contributions
 
