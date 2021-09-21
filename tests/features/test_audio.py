@@ -48,3 +48,20 @@ def test_dataset_with_audio_feature(shared_datadir):
     assert batch["audio"][0]["path"] == audio_path
     assert batch["audio"][0]["array"].shape == (202311,)
     assert batch["audio"][0]["sampling_rate"] == 44100
+
+
+@pytest.mark.skipif(
+    sys.platform == "linux", reason="linux requires libsndfile installed using distribution package manager"
+)
+def test_formatted_dataset_with_audio_feature(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data = {"audio": [audio_path, audio_path]}
+    features = Features({"audio": Audio()})
+    dset = Dataset.from_dict(data, features=features)
+    with dset.formatted_as("numpy"):
+        item = dset[0]
+        assert item.keys() == {"audio"}
+        assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+        assert item["audio"]["path"] == audio_path
+        assert item["audio"]["array"].shape == (202311,)
+        assert item["audio"]["sampling_rate"] == 44100
