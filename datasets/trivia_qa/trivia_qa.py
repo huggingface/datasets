@@ -41,9 +41,6 @@ archivePrefix = {arXiv},
 }
 """
 _DOWNLOAD_URL_TMPL = "http://nlp.cs.washington.edu/triviaqa/data/triviaqa-{}.tar.gz"
-_TRAIN_FILE_FORMAT_TMPL = "{}-train.json"
-_VALIDATION_FILE_FORMAT_TMPL = "{}-dev.json"
-_TEST_FILE_FORMAT_TMPL = "{}-test-without-answers.json"
 _WEB_EVIDENCE_DIR = "evidence/web"
 _WIKI_EVIDENCE_DIR = "evidence/wikipedia"
 
@@ -75,6 +72,31 @@ def _web_evidence_dir(tmp_dir):
 
 def _wiki_evidence_dir(tmp_dir):
     return sorted(glob.glob(os.path.join(tmp_dir, _WIKI_EVIDENCE_DIR)))
+
+
+def _qa_files(file_paths, sources, split, unfiltered):
+    qa_dir = (
+        os.path.join(file_paths["unfiltered"], "triviaqa-unfiltered")
+        if unfiltered
+        else os.path.join(file_paths["rc"], "qa")
+    )
+
+    suffix_mapping = {
+        datasets.Split.TRAIN: "train.json",
+        datasets.Split.VALIDATION: "dev.json",
+        datasets.Split.TEST: "test-without-answers.json"
+    }
+    suffix = suffix_mapping[split]
+
+    filenames = (
+        [f"unfiltered-web-{suffix}"]
+        if unfiltered
+        else [f"{source}-{suffix}" for source in sources]
+    )
+
+    filenames = [os.path.join(qa_dir, filename) for filename in filenames]
+
+    return sorted(filenames)
 
 
 class TriviaQaConfig(datasets.BuilderConfig):
@@ -185,27 +207,7 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
             download_urls["rc"] = _DOWNLOAD_URL_TMPL.format("rc")
         if cfg.unfiltered:
             download_urls["unfiltered"] = _DOWNLOAD_URL_TMPL.format("unfiltered")
-        file_paths = dl_manager.download_and_extract(download_urls)
-
-        qa_dir = (
-            os.path.join(file_paths["unfiltered"], "triviaqa-unfiltered")
-            if cfg.unfiltered
-            else os.path.join(file_paths["rc"], "qa")
-        )
-
-        files_per_split = {}
-        for split, template in [
-            ("train", _TRAIN_FILE_FORMAT_TMPL),
-            ("validation", _VALIDATION_FILE_FORMAT_TMPL),
-            ("test", _TEST_FILE_FORMAT_TMPL),
-        ]:
-            files = [
-                filename
-                for source in cfg.sources
-                for filename in glob.glob(os.path.join(qa_dir, template.format(source)))
-            ]
-            files = sorted(files)
-            files_per_split[split] = files
+        file_paths = dl_manager.download_and_extract(download_urls)            
 
         if cfg.exclude_context:
             web_evidence_dir = None
@@ -216,29 +218,14 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
+                name=name,
                 gen_kwargs={
-                    "files": files_per_split["train"],
+                    "files": _qa_files(file_paths, cfg.sources, name, cfg.unfiltered),
                     "web_dir": web_evidence_dir,
                     "wiki_dir": wiki_evidence_dir,
                 },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "files": files_per_split["validation"],
-                    "web_dir": web_evidence_dir,
-                    "wiki_dir": wiki_evidence_dir,
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "files": files_per_split["test"],
-                    "web_dir": web_evidence_dir,
-                    "wiki_dir": wiki_evidence_dir,
-                },
-            ),
+            )
+            for name in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
         ]
 
     def _generate_examples(self, files, web_dir, wiki_dir):
