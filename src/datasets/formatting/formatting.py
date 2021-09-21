@@ -205,13 +205,16 @@ class PandasFeaturesDecoder:
         self.features = features
 
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
-        return (
-            row.transform(
-                {key: partial(decode_nested_example, val) for key, val in self.features.items() if key in row.columns}
-            )
+        decode_example = (
+            {
+                column_name: feature.decode_example
+                for column_name, feature in self.features.items()
+                if column_name in row.columns and hasattr(feature, "decode_example")
+            }
             if self.features
-            else row
+            else {}
         )
+        return row.transform(decode_example) if decode_example else row
 
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
