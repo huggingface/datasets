@@ -223,6 +223,7 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
         self.features = features
         self.python_features_decoder = PythonFeaturesDecoder(self.features)
         self.arrow_features_decoder = ArrowFeaturesDecoder(self.features)
+        self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
     def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
         if query_type == "row":
