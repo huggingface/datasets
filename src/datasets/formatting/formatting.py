@@ -118,11 +118,6 @@ def _unnest(py_dict: Dict[str, List[T]]) -> Dict[str, T]:
     return {key: array[0] for key, array in py_dict.items()}
 
 
-def _nest(py_dict: Dict[str, T]) -> Dict[str, List[T]]:
-    """Return each value nested in a list."""
-    return {key: [value] for key, value in py_dict.items()}
-
-
 class SimpleArrowExtractor(BaseArrowExtractor[pa.Table, pa.Array, pa.Table]):
     def extract_row(self, pa_table: pa.Table) -> pa.Table:
         return pa_table
@@ -194,11 +189,6 @@ class PythonFeaturesDecoder:
         return self.features.decode_batch(batch) if self.features else batch
 
 
-class ArrowFeaturesDecoder(PythonFeaturesDecoder):
-    def decode_row(self, row: pa.Table) -> pa.Table:
-        return pa.Table.from_pydict(_nest(super().decode_row(_unnest(row.to_pydict())))) if self.features else row
-
-
 class PandasFeaturesDecoder:
     def __init__(self, features):
         self.features = features
@@ -230,7 +220,6 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     def __init__(self, features=None):
         self.features = features
         self.python_features_decoder = PythonFeaturesDecoder(self.features)
-        self.arrow_features_decoder = ArrowFeaturesDecoder(self.features)
         self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
     def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
