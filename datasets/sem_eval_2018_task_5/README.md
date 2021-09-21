@@ -54,7 +54,7 @@ task_ids:
 
 - **Homepage: https://competitions.codalab.org/competitions/17751**
 - **Repository:**
-- **Paper:h ttp://saifmohammad.com/WebDocs/semeval2018-task1.pdf**
+- **Paper: http://saifmohammad.com/WebDocs/semeval2018-task1.pdf**
 - **Leaderboard:**
 - **Point of Contact: https://www.saifmohammad.com/**
 
@@ -184,6 +184,8 @@ Crowdworkers on Figure Eight.
 Saif M. Mohammad, Felipe Bravo-Marquez, Mohammad Salameh and Svetlana Kiritchenko
 
 ### Licensing Information
+
+See the official [Terms and Conditions](https://competitions.codalab.org/competitions/17751#learn_the_details-terms_and_conditions)
 
 ### Citation Information
 
