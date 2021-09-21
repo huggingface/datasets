@@ -94,6 +94,11 @@ class TriviaQaConfig(datasets.BuilderConfig):
 
         assert source in ["all", "web", "wikipedia"]
 
+        # there is no unfiltered version for the wikipedia subset
+        # --> unfiltered subset for source="all" is the same as for source="web" 
+        # --> only accept source="all" if unfiltered is True
+        assert not unfiltered or source == 'all'
+
         if source != "all":
             name += f".{source}"
 
@@ -124,12 +129,8 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
         TriviaQaConfig(source="all", unfiltered=True, exclude_context=True),  # unfilered.nocontext
         TriviaQaConfig(source="web", unfiltered=False, exclude_context=False),  # rc
         TriviaQaConfig(source="web", unfiltered=False, exclude_context=True),  # rc.nocontext
-        TriviaQaConfig(source="web", unfiltered=True, exclude_context=False),  # unfiltered
-        TriviaQaConfig(source="web", unfiltered=True, exclude_context=True),  # unfilered.nocontext
         TriviaQaConfig(source="wikipedia", unfiltered=False, exclude_context=False),  # rc
         TriviaQaConfig(source="wikipedia", unfiltered=False, exclude_context=True),  # rc.nocontext
-        TriviaQaConfig(source="wikipedia", unfiltered=True, exclude_context=False),  # unfiltered
-        TriviaQaConfig(source="wikipedia", unfiltered=True, exclude_context=True),  # unfilered.nocontext
     ]
 
     def _info(self):
