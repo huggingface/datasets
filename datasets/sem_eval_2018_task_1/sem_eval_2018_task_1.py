@@ -62,9 +62,21 @@ class SemEval2018Task1(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="subtask5.english", version=VERSION, description="This is the English dataset of subtask 5: E-c: Detecting Emotions."),
-        datasets.BuilderConfig(name="subtask5.spanish", version=VERSION, description="This is the Spanish dataset of subtask 5: E-c: Detecting Emotions."),
-        datasets.BuilderConfig(name="subtask5.arabic", version=VERSION, description="This is the Arabic dataset of subtask 5: E-c: Detecting Emotions."),
+        datasets.BuilderConfig(
+            name="subtask5.english",
+            version=VERSION,
+            description="This is the English dataset of subtask 5: E-c: Detecting Emotions.",
+        ),
+        datasets.BuilderConfig(
+            name="subtask5.spanish",
+            version=VERSION,
+            description="This is the Spanish dataset of subtask 5: E-c: Detecting Emotions.",
+        ),
+        datasets.BuilderConfig(
+            name="subtask5.arabic",
+            version=VERSION,
+            description="This is the Arabic dataset of subtask 5: E-c: Detecting Emotions.",
+        ),
     ]
 
     def _info(self):
