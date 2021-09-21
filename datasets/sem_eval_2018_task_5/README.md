@@ -1,29 +1,29 @@
 ---
-YAML tags:
 annotations_creators:
 - crowdsourced
 language_creators:
 - found
 languages:
-- en-US
-- ar-SA
-- es-ES
-licenses: []
+- en
+- ar
+- es
+licenses:
+- unknown
 multilinguality:
 - multilingual
-pretty_name: 'E-c (an emotion classification task): Given a tweet, classify it as
-  ''neutral or no emotion'' or as one, or more, of eleven given emotions that best
-  represent the mental state of the tweeter.'
+pretty_name: 'SemEval-2018 Task 5 - E-c: Detecting Emotions'
 size_categories:
-- unknown
-source_datasets: []
+- 1K<n<10K
+source_datasets:
+- original
 task_categories:
 - text-classification
 task_ids:
 - multi-label-classification
+- text-classification-other-emotion-classification
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for SemEval-2018 Task 5 - E-c: Detecting Emotions
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -52,15 +52,15 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:https://competitions.codalab.org/competitions/17751**
+- **Homepage: https://competitions.codalab.org/competitions/17751**
 - **Repository:**
-- **Paper:http://saifmohammad.com/WebDocs/semeval2018-task1.pdf**
+- **Paper:h ttp://saifmohammad.com/WebDocs/semeval2018-task1.pdf**
 - **Leaderboard:**
-- **Point of Contact:https://www.saifmohammad.com/**
+- **Point of Contact: https://www.saifmohammad.com/**
 
 ### Dataset Summary
 
-E-c (an emotion classification task): Given a tweet, classify it as 'neutral or no emotion' or as one, or more, of eleven given emotions that best represent the mental state of the tweeter.
+E-c task (an emotion classification task): Given a tweet, classify it as 'neutral or no emotion' or as one, or more, of eleven given emotions that best represent the mental state of the tweeter.
 
 ### Supported Tasks and Leaderboards
 
@@ -72,75 +72,41 @@ English, Arabic and Spanish
 
 ### Data Instances
 
+An example from the dataset is:
+
+```
+{'ID': '2017-En-21441',
+ 'Tweet': "“Worry is a down payment on a problem you may never have'. \xa0Joyce Meyer.  #motivation #leadership #worry",
+ 'anger': False,
+ 'anticipation': True,
+ 'disgust': False,
+ 'fear': False,
+ 'joy': False,
+ 'love': False,
+ 'optimism': True,
+ 'pessimism': False,
+ 'sadness': False,
+ 'surprise': False,
+ 'trust': True}
+ ```
+
 ### Data Fields
 
-   "features": {
-      "ID": {
-        "dtype": "string",
-        "id": null,
-        "_type": "Value"
-      },
-      "Tweet": {
-        "dtype": "string",
-        "id": null,
-        "_type": "Value"
-      },
-      "anger": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      },
-      "anticipation": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      },
-      "disgust": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      },
-      "fear": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      },
-      "joy": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      },
-      "love": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      },
-      "optimism": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      },
-      "pessimism": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      },
-      "sadness": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      },
-      "surprise": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      },
-      "trust": {
-        "dtype": "bool",
-        "id": null,
-        "_type": "Value"
-      }
-    }
+- ID: string id of the tweet
+- Tweet: text content of the tweet as a string
+- anger: boolean, True if anger represents the mental state of the tweeter
+- anticipation: boolean, True if anticipation represents the mental state of the tweeter
+- disgust: boolean, True if disgust represents the mental state of the tweeter
+- fear: boolean, True if fear represents the mental state of the tweeter
+- joy: boolean, True if joy represents the mental state of the tweeter
+- love: boolean, True if love represents the mental state of the tweeter
+- optimism: boolean, True if optimism represents the mental state of the tweeter
+- pessimism: boolean, True if pessimism represents the mental state of the tweeter
+- sadness: boolean, True if sadness represents the mental state of the tweeter
+- surprise: boolean, True if surprise represents the mental state of the tweeter
+- trust: boolean, True if trust represents the mental state of the tweeter
+
+Note that the test set has no labels, and therefore all labels are set to False.
 
 ### Data Splits
 

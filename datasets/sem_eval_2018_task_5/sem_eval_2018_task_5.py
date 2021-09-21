@@ -135,20 +135,21 @@ class SemEval2018Task5(datasets.GeneratorBasedBuilder):
         """Yields examples as (key, example) tuples."""
 
         with open(filepath, encoding="utf-8") as f:
+            next(f)  # skip header
             for id_, row in enumerate(f):
                 data = row.split("\t")
                 yield id_, {
                     "ID": data[0],
                     "Tweet": data[1],
-                    "anger": data[2],
-                    "anticipation": data[3],
-                    "disgust": data[4],
-                    "fear": data[5],
-                    "joy": data[6],
-                    "love": data[7],
-                    "optimism": data[8],
-                    "pessimism": data[9],
-                    "sadness": data[10],
-                    "surprise": data[11],
-                    "trust": data[12],
+                    "anger": int(data[2]) if split != "test" else None,
+                    "anticipation": int(data[3]) if split != "test" else None,
+                    "disgust": int(data[4]) if split != "test" else None,
+                    "fear": int(data[5]) if split != "test" else None,
+                    "joy": int(data[6]) if split != "test" else None,
+                    "love": int(data[7]) if split != "test" else None,
+                    "optimism": int(data[8]) if split != "test" else None,
+                    "pessimism": int(data[9]) if split != "test" else None,
+                    "sadness": int(data[10]) if split != "test" else None,
+                    "surprise": int(data[11]) if split != "test" else None,
+                    "trust": int(data[12]) if split != "test" else None,
                 }
