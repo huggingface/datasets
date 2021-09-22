@@ -40,6 +40,16 @@ def test_audio_resampling(shared_datadir):
     assert decoded_example["sampling_rate"] == 16000
 
 
+def test_audio_decode_example_mp3(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    audio = Audio()
+    decoded_example = audio.decode_example(audio_path)
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] == audio_path
+    assert decoded_example["array"].shape == (73401,)
+    assert decoded_example["sampling_rate"] == 44100
+
+
 @pytest.mark.skipif(
     sys.platform == "linux", reason="linux requires libsndfile installed using distribution package manager"
 )
