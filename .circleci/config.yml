@@ -14,7 +14,7 @@ jobs:
 #            - run: python -m venv venv
 #            - run: source venv/bin/activate
             - run: pip install --upgrade pip
-            - run: pip install --only-binary=faiss-cpu .[tests]
+            - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow --upgrade
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
@@ -26,6 +26,7 @@ jobs:
         resource_class: medium
         steps:
             - checkout
+            - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
