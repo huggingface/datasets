@@ -7,7 +7,7 @@ jobs:
     run_dataset_script_tests_pyarrow_latest:
         working_directory: ~/datasets
         docker:
-            - image: circleci/python:3.6
+            - image: cimg/python:3.6
         resource_class: medium
         steps:
             - checkout
@@ -21,7 +21,7 @@ jobs:
     run_dataset_script_tests_pyarrow_1:
         working_directory: ~/datasets
         docker:
-            - image: circleci/python:3.6
+            - image: cimg/python:3.6
         resource_class: medium
         steps:
             - checkout
