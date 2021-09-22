@@ -11,9 +11,9 @@ jobs:
         resource_class: medium
         steps:
             - checkout
-#            - run: python -m venv venv
-#            - run: source venv/bin/activate
             - run: pip install --upgrade pip
+            - run: python -m venv venv
+            - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow --upgrade
