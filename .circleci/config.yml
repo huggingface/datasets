@@ -13,9 +13,9 @@ jobs:
             - checkout
 #            - run: python -m venv venv
 #            - run: source venv/bin/activate
-            - run: pip install --user .[tests]
-            - run: pip install --user -r additional-tests-requirements.txt --no-deps
-            - run: pip install --user pyarrow --upgrade
+            - run: pip install --only-binary=faiss-cpu .[tests]
+            - run: pip install -r additional-tests-requirements.txt --no-deps
+            - run: pip install pyarrow --upgrade
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
     run_dataset_script_tests_pyarrow_1:
