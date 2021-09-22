@@ -13,7 +13,7 @@ class Audio:
         mono (:obj:`bool`, default ```True``): Whether to convert the audio signal to mono by averaging samples across channels.
     """
 
-    sampling_rate: int = None
+    sampling_rate: Optional[int] = None
     mono: bool = True
     id: Optional[str] = None
     # Automatically constructed
@@ -38,6 +38,39 @@ class Audio:
         except ImportError:
             return value
 
+        try:
+            array, sample_rate = self._decode_example_with_librosa(value)
+        except RuntimeError:
+            if value.endswith(".mp3"):
+                array, sample_rate = self._decode_example_with_torchaudio(value)
+            else:
+                raise
+        return {"path": value, "array": array, "sampling_rate": sample_rate}
+
+    def _decode_example_with_librosa(self, value):
+        import librosa
+
         with open(value, "rb") as f:
             array, sample_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
-        return {"path": value, "array": array, "sampling_rate": sample_rate}
+        return array, sample_rate
+
+    def _decode_example_with_torchaudio(self, value):
+        try:
+            import torchaudio
+            import torchaudio.functional as F
+        except ImportError:
+            raise RuntimeError("To support decoding 'mp3' audio files, please install 'torchaudio'.")
+
+        array, sample_rate = torchaudio.load(value)
+        if self.sampling_rate and self.sampling_rate != sample_rate:
+            # kaiser_best (as librosa)
+            array = F.resample(
+                array,
+                sample_rate,
+                self.sampling_rate,
+                lowpass_filter_width=64,
+                rolloff=0.9475937167399596,
+                resampling_method="kaiser_window",
+                beta=14.769656459379492
+            )
+        return array, self.sampling_rate
