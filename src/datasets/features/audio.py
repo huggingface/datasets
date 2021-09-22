@@ -35,7 +35,7 @@ class Audio:
         """
         try:
             import librosa
-        except ImportError as err:
+        except ImportError:
             return value
 
         with open(value, "rb") as f:
