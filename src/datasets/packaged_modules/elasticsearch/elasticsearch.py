@@ -76,7 +76,7 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
         response = self.es_client.search(
             index=self.config.es_index_name,
             body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": 0},
-            params={point_in_time},
+            # params=point_in_time,
         )
         total_number_of_results = response["hits"]["total"]["value"]
 
@@ -94,12 +94,41 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, query, point_in_time, max_k):
         # TODO load results page by page eventually loading page in background while yielding
-        k = 10
+        body = {
+            "size": 100,
+            "query": {
+                "match": {
+                    "text": "query"
+                }
+            }
+            ,
+            "pit": {
+                "id": point_in_time,
+                "keep_alive": "1m"
+            }
+        }
+
+        # async_response = self.es_client.async_search.submit(
+        #     index=self.config.es_index_name,
+        #     body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": max_k},
+        # )
+        #
+        # print(async_response)
+        #
+        # response = self.es_client.async_search.get(id=async_response['id'])
+        # hits = response["response"]["hits"]
+
+
         response = self.es_client.search(
             index=self.config.es_index_name,
-            body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
+            body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": max_k},
         )
         hits = response["hits"]["hits"]
 
+        print(f'Found {len(hits)} results')
+
         for hit in hits:
-            yield f"biscience://{self.config.es_index_name}/{hit['_id']}", hit
+            yield hit['_id'], hit['_source']['text']
+
+        # TODO close point in time
+        self.es_client.close_point_in_time(point_in_time)
