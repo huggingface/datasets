@@ -118,7 +118,7 @@ TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
     "pytest",
-    "pytest-xdist",
+    "pytest-xdist[psutil]",
     # optional dependencies
     "apache-beam>=2.26.0",
     "elasticsearch",
