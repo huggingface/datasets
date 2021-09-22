@@ -4,7 +4,7 @@ from typing import Any, ClassVar, Optional
 import pyarrow as pa
 
 
-@dataclass
+@dataclass(frozen=True)
 class Audio:
     """Audio Feature to extract audio data from an audio file.
 
