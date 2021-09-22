@@ -33,7 +33,10 @@ class Audio:
         Returns:
             dict
         """
-        import librosa
+        try:
+            import librosa
+        except ImportError as err:
+            return value
 
         with open(value, "rb") as f:
             array, sample_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
