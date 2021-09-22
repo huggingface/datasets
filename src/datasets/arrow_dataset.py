@@ -3484,6 +3484,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         es_client: Optional["elasticsearch.Elasticsearch"] = None,  # noqa: F821
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
+        es_username: Optional[str] = None,
+        es_psw: Optional[str] = None,
     ):
         """Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
@@ -3540,6 +3542,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 es_client=es_client,
                 es_index_name=es_index_name,
                 es_index_config=es_index_config,
+                es_username=es_username,
+                es_psw=es_psw,
             )
         return self
 

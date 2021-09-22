@@ -102,9 +102,12 @@ class ElasticSearchIndex(BaseIndex):
         self,
         host: Optional[str] = None,
         port: Optional[int] = None,
+        cloud_id: Optional[str] = None,
         es_client: Optional["Elasticsearch"] = None,
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
+        es_username:  Optional[str] = None,
+        es_psw: Optional[str] = None,
     ):
         assert (
             _has_elasticsearch
@@ -118,7 +121,17 @@ class ElasticSearchIndex(BaseIndex):
         import elasticsearch.helpers  # noqa: need this to properly load all the es features
         from elasticsearch import Elasticsearch  # noqa: F811
 
-        self.es_client = es_client if es_client is not None else Elasticsearch([{"host": host, "port": str(port)}])
+        if es_client is not None:
+            self.es_client = es_client
+        elif es_username is None or es_psw is None:
+            self.es_client = Elasticsearch([{"host": host, "port": str(port)}])
+        else:
+            # authenticate user
+            self.es_client = Elasticsearch([{"host": host, "port": str(port)}], http_auth=(es_username, es_psw))
+
+        if not self.es_client.ping():
+            raise ValueError("Connection failed")
+
         self.es_index_name = (
             es_index_name
             if es_index_name is not None
@@ -206,8 +219,9 @@ class ElasticSearchIndex(BaseIndex):
             if column is not None:
                 for i, example in enumerate(documents):
                     yield {
+                        "_id": i,
                         "text": example[column],
-                        "_id": str(mmh3.hash128(example[column], hash_seed)),
+                        "mmh3.hash128": str(mmh3.hash128(example[column], hash_seed)),
                         "indexing_time": now,
                         "length": len(example[column]),
                     }
@@ -596,9 +610,12 @@ class IndexableMixin:
         index_name: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
+        cloud_id: Optional[str] = None,
         es_client: Optional["Elasticsearch"] = None,
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
+        es_username:  Optional[str] = None,
+        es_psw: Optional[str] = None,
     ):
         """Add a text index using ElasticSearch for fast retrieval.
 
@@ -639,9 +656,12 @@ class IndexableMixin:
         es_index = ElasticSearchIndex(
             host=host,
             port=port,
+            cloud_id=cloud_id,
             es_client=es_client,
             es_index_name=es_index_name,
             es_index_config=es_index_config,
+            es_username=es_username,
+            es_psw=es_psw,
         )
         es_index.add_documents(self, column=column)
         self._indexes[index_name] = es_index
@@ -690,8 +710,11 @@ class IndexableMixin:
         es_index_name: str,
         host: Optional[str] = None,
         port: Optional[int] = None,
+        cloud_id: Optional[str] = None,
         es_client: Optional["Elasticsearch"] = None,
         es_index_config: Optional[dict] = None,
+        es_username:  Optional[str] = None,
+        es_psw: Optional[str] = None,
     ):
         """Load an existing text index using ElasticSearch for fast retrieval.
 
@@ -727,9 +750,12 @@ class IndexableMixin:
         self._indexes[index_name] = ElasticSearchIndex(
             host=host,
             port=port,
+            cloud_id=cloud_id,
             es_client=es_client,
             es_index_name=es_index_name,
             es_index_config=es_index_config,
+            es_username=es_username,
+            es_psw=es_psw,
         )
 
     def drop_index(self, index_name: str):
