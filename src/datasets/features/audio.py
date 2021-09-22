@@ -71,6 +71,6 @@ class Audio:
                 lowpass_filter_width=64,
                 rolloff=0.9475937167399596,
                 resampling_method="kaiser_window",
-                beta=14.769656459379492
+                beta=14.769656459379492,
             )
         return array, self.sampling_rate
