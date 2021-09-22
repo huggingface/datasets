@@ -203,7 +203,9 @@ class PandasFeaturesDecoder:
             if self.features
             else {}
         )
-        return row.transform(decode_example) if decode_example else row
+        if decode_example:
+            row[list(decode_example.keys())] = row.transform(decode_example)
+        return row
 
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
