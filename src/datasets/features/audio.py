@@ -33,22 +33,19 @@ class Audio:
         Returns:
             dict
         """
-        try:
-            import librosa
-        except ImportError:
-            return value
-
-        try:
-            array, sample_rate = self._decode_example_with_librosa(value)
-        except RuntimeError:
-            if value.endswith(".mp3"):
-                array, sample_rate = self._decode_example_with_torchaudio(value)
-            else:
-                raise
+        # TODO: backard compatibility for users without audio dependencies
+        array, sample_rate = (
+            self._decode_example_with_torchaudio(value)
+            if value.endswith(".mp3")
+            else self._decode_example_with_librosa(value)
+        )
         return {"path": value, "array": array, "sampling_rate": sample_rate}
 
     def _decode_example_with_librosa(self, value):
-        import librosa
+        try:
+            import librosa
+        except ImportError as err:
+            raise ImportError("To support decoding audio files, please install 'librosa'.") from err
 
         with open(value, "rb") as f:
             array, sample_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
@@ -58,8 +55,8 @@ class Audio:
         try:
             import torchaudio
             import torchaudio.functional as F
-        except ImportError:
-            raise RuntimeError("To support decoding 'mp3' audio files, please install 'torchaudio'.")
+        except ImportError as err:
+            raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
 
         array, sample_rate = torchaudio.load(value)
         if self.sampling_rate and self.sampling_rate != sample_rate:
