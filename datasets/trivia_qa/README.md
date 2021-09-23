@@ -12,7 +12,7 @@ multilinguality:
 paperswithcode_id: triviaqa
 pretty_name: TriviaQA
 size_categories:
-- 10K<n<100k
+- 10K<n<100K
 - 100K<n<1M
 source_datasets:
 - original
