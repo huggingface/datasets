@@ -59,15 +59,14 @@ class Audio:
             raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
 
         array, sample_rate = torchaudio.load(value)
+        array = array.numpy()
+        if self.mono:
+            array = array.mean(axis=0)
         if self.sampling_rate and self.sampling_rate != sample_rate:
-            # kaiser_best (as librosa)
-            array = F.resample(
-                array,
-                sample_rate,
-                self.sampling_rate,
-                lowpass_filter_width=64,
-                rolloff=0.9475937167399596,
-                resampling_method="kaiser_window",
-                beta=14.769656459379492,
-            )
+            try:
+                import librosa
+            except ImportError as err:
+                raise ImportError("To support decoding audio files, please install 'librosa'.") from err
+
+            librosa.resample(array, sample_rate, self.sampling_rate)
         return array, self.sampling_rate
