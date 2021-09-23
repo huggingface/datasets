@@ -73,6 +73,27 @@ You can even map your data files to a specific split with the ``data_files`` par
    >>> dataset = load_dataset("stevhliu/demo", data_files=data_files)
    >>> print(dataset["train"][0])
 
+
+Share within your organization
+------------------------------
+
+Upload the dataset in your organization as "private" to make it only accessible to the members of your organization.
+Then anyone in your organization can login and use the dataset.
+
+First use the command line to login:
+
+.. code-block::
+
+   huggingface-cli login
+
+Then load the dataset with authentication:
+
+.. code-block::
+
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset("organization/dataset_name", use_auth_token=True)
+
+
 What's next?
 ------------
 
