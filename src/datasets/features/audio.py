@@ -54,7 +54,6 @@ class Audio:
     def _decode_example_with_torchaudio(self, value):
         try:
             import torchaudio
-            import torchaudio.functional as F
         except ImportError as err:
             raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
         try:
