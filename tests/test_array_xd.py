@@ -1,7 +1,7 @@
 import os
+import random
 import tempfile
 import unittest
-import random
 
 import numpy as np
 import pandas as pd
@@ -10,16 +10,9 @@ from absl.testing import parameterized
 
 import datasets
 from datasets.arrow_writer import ArrowWriter
-from datasets.features import (
-    Array2D,
-    Array3D,
-    Array4D,
-    Array5D,
-    Value,
-    _ArrayXD,
-    Array3DExtensionType,
-)
+from datasets.features import Array2D, Array3D, Array3DExtensionType, Array4D, Array5D, Value, _ArrayXD
 from datasets.formatting.formatting import NumpyArrowExtractor, SimpleArrowExtractor
+
 
 SHAPE_TEST_1 = (30, 487)
 SHAPE_TEST_2 = (36, 1024)
