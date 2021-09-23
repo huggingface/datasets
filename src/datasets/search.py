@@ -5,6 +5,8 @@ import tempfile
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
+import ssl
+
 import numpy as np
 
 from . import utils
@@ -102,16 +104,16 @@ class ElasticSearchIndex(BaseIndex):
         self,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        cloud_id: Optional[str] = None,
         es_client: Optional["Elasticsearch"] = None,
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
         es_username:  Optional[str] = None,
         es_psw: Optional[str] = None,
+        ssl_context: Optional[ssl.SSLContext] = None,
     ):
         assert (
             _has_elasticsearch
-        ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
+        ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.10.1 for example`"
         assert es_client is None or (
             host is None and port is None
         ), "Please specify either `es_client` or `(host, port)`, but not both."
@@ -121,13 +123,17 @@ class ElasticSearchIndex(BaseIndex):
         import elasticsearch.helpers  # noqa: need this to properly load all the es features
         from elasticsearch import Elasticsearch  # noqa: F811
 
+        server_url = ('https' if ssl_context is not None else 'http')+'://'+host+':'+str(port)
+
         if es_client is not None:
             self.es_client = es_client
         elif es_username is None or es_psw is None:
-            self.es_client = Elasticsearch([{"host": host, "port": str(port)}])
+            self.es_client = Elasticsearch([server_url], ssl_context=ssl_context)
         else:
             # authenticate user
-            self.es_client = Elasticsearch([{"host": host, "port": str(port)}], http_auth=(es_username, es_psw))
+            self.es_client = Elasticsearch([server_url], http_auth=(es_username, es_psw), ssl_context=ssl_context)
+
+        print(self.es_client.info())
 
         if not self.es_client.ping():
             raise ValueError("Connection failed")
@@ -610,12 +616,12 @@ class IndexableMixin:
         index_name: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        cloud_id: Optional[str] = None,
         es_client: Optional["Elasticsearch"] = None,
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
         es_username:  Optional[str] = None,
         es_psw: Optional[str] = None,
+        ssl_context: Optional[ssl.SSLContext] = None,
     ):
         """Add a text index using ElasticSearch for fast retrieval.
 
@@ -656,12 +662,12 @@ class IndexableMixin:
         es_index = ElasticSearchIndex(
             host=host,
             port=port,
-            cloud_id=cloud_id,
             es_client=es_client,
             es_index_name=es_index_name,
             es_index_config=es_index_config,
             es_username=es_username,
             es_psw=es_psw,
+            ssl_context=ssl_context,
         )
         es_index.add_documents(self, column=column)
         self._indexes[index_name] = es_index
@@ -710,11 +716,11 @@ class IndexableMixin:
         es_index_name: str,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        cloud_id: Optional[str] = None,
+        es_username: Optional[str] = None,
+        es_psw: Optional[str] = None,
+        ssl_context: Optional[ssl.SSLContext] = None,
         es_client: Optional["Elasticsearch"] = None,
         es_index_config: Optional[dict] = None,
-        es_username:  Optional[str] = None,
-        es_psw: Optional[str] = None,
     ):
         """Load an existing text index using ElasticSearch for fast retrieval.
 
@@ -725,6 +731,12 @@ class IndexableMixin:
                 host of where ElasticSearch is running
             port (Optional :obj:`str`, defaults to 9200):
                 port of where ElasticSearch is running
+            es_username(Optional :obj:`str`, defaults to None):
+                username for authentication on the elasticsearch server
+            es_psw(Optional :obj:`str`, defaults to None):
+                password for authentication on the elasticsearch server
+            ssl_context(Optional :obj:`ssl.SSLContext`, defaults to None):
+                ssl context for connexion over https
             es_client (Optional :obj:`elasticsearch.Elasticsearch`):
                 The elasticsearch client used to create the index if host and port are None.
             es_index_config (Optional :obj:`dict`):
@@ -750,12 +762,12 @@ class IndexableMixin:
         self._indexes[index_name] = ElasticSearchIndex(
             host=host,
             port=port,
-            cloud_id=cloud_id,
             es_client=es_client,
             es_index_name=es_index_name,
             es_index_config=es_index_config,
             es_username=es_username,
             es_psw=es_psw,
+            ssl_context=ssl_context
         )
 
     def drop_index(self, index_name: str):
