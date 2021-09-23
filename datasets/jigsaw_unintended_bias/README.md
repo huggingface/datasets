@@ -140,7 +140,7 @@ For instance, here's the first train example.
 - `identity_attack`: value between 0(non-identity_hate) or 1(identity_hate) classifying the comment
 - `insult`: value between 0(non-insult) or 1(insult) classifying the comment
 - `threat`: value between 0(non-threat) and 1(threat) classifying the comment
-- For a subset of rows, columns containing whether the comment mentions the entities: 
+- For a subset of rows, columns containing whether the comment mentions the entities (they may contain NaNs): 
   - `male`
   - `female`
   - `transgender`

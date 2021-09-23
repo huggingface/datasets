@@ -146,11 +146,14 @@ class JigsawUnintendedBias(datasets.GeneratorBasedBuilder):
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
-        data = pd.read_csv(path)
-        if split != "train":
-            data = data.rename(columns={"toxicity": "target"})
+        # Avoid loading everything into memory at once
+        all_data = pd.read_csv(path, chunksize=50000)
 
-        for _, row in data.iterrows():
-            example = row.to_dict()
-            ex_id = example.pop("id")
-            yield (ex_id, example)
+        for data in all_data:
+            if split != "train":
+                data = data.rename(columns={"toxicity": "target"})
+
+            for _, row in data.iterrows():
+                example = row.to_dict()
+                ex_id = example.pop("id")
+                yield (ex_id, example)
