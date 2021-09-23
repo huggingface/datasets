@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import _is_zero_copy_only, pandas_types_mapper
+from ..features import pandas_types_mapper
 from ..table import Table
 
 
