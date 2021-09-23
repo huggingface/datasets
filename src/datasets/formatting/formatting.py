@@ -157,9 +157,7 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         if isinstance(pa_array, pa.ChunkedArray):
             # don't call to_numpy() directly or we end up with a np.array with dtype object
             # call to_numpy on the chunks instead
-            array: List[np.ndarray] = [
-                row for chunk in pa_array.chunks for row in chunk.to_pylist()
-            ]
+            array: List[np.ndarray] = [row for chunk in pa_array.chunks for row in chunk.to_pylist()]
         else:
             # cast to list of arrays or we end up with a np.array with dtype object
             array: List[np.ndarray] = pa_array.to_pylist()

@@ -421,8 +421,8 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
         first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
         for i in range(len(storage)):
-            storage_el = storage[i:i+1]
-            first_dim = first_dim_offsets[i+1] - first_dim_offsets[i]
+            storage_el = storage[i : i + 1]
+            first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
             # flatten storage
             for dim in range(self.type.ndims):
                 storage_el = storage_el.flatten()
@@ -447,6 +447,11 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         self._value_type = value_type
 
     def __from_arrow__(self, array):
+        if array.type.shape[0] is None:
+            raise NotImplementedError(
+                "Dynamic first dimension is not supported for "
+                "PandasArrayExtensionDtype, dimension: {}".format(array.type.shape)
+            )
         zero_copy_only = _is_zero_copy_only(array.type)
         if isinstance(array, pa.ChunkedArray):
             numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
