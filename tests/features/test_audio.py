@@ -5,6 +5,8 @@ import pytest
 from datasets import Dataset
 from datasets.features import Audio, Features
 
+from ..utils import require_torch
+
 
 def test_audio_instantiation():
     audio = Audio()
@@ -40,6 +42,7 @@ def test_audio_resampling(shared_datadir):
     assert decoded_example["sampling_rate"] == 16000
 
 
+@require_torch
 def test_audio_decode_example_mp3(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     audio = Audio()
