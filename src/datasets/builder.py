@@ -35,7 +35,13 @@ from datasets.utils.py_utils import map_nested
 
 from . import config, utils
 from .arrow_dataset import Dataset
-from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs, ReadInstruction
+from .arrow_reader import (
+    HF_GCP_BASE_URL,
+    ArrowReader,
+    DatasetNotOnHfGcsError,
+    MissingFilesOnHfGcsError,
+    ReadInstruction,
+)
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .fingerprint import Hasher
@@ -628,7 +634,7 @@ class DatasetBuilder:
                         try:
                             self._download_prepared_from_hf_gcs(dl_manager._download_config)
                             downloaded_from_gcs = True
-                        except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
+                        except (DatasetNotOnHfGcsError, MissingFilesOnHfGcsError):
                             logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
                         except ConnectionError:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
@@ -730,7 +736,7 @@ class DatasetBuilder:
                     + (self.manual_download_instructions or "")
                     + "\nOriginal error:\n"
                     + str(e)
-                )
+                ) from None
 
             dl_manager.manage_extracted_files()
 
@@ -819,6 +825,7 @@ class DatasetBuilder:
             ),
             split,
             map_tuple=True,
+            disable_tqdm=False,
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)

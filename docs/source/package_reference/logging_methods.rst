@@ -1,37 +1,33 @@
 Logging methods
 ----------------------------------------------------
 
-🤗 Datasets tries to be very transparent and explicit about its inner working, but this can be quite verbose at times.
+🤗 Datasets strives to be transparent and explicit about how it works, but this can be quite verbose at times. We have included a series of logging methods which allow you to easily adjust the level of verbosity of the entire library. Currently the default verbosity of the library is set to ``WARNING``.
 
-A series of logging methods let you easily adjust the level of verbosity of the whole library.
-
-Currently the default verbosity of the library is ``WARNING``.
-
-To change the level of verbosity, just use one of the direct setters. For instance, here is how to change the verbosity to the INFO level.
+To change the level of verbosity, use one of the direct setters. For instance, here is how to change the verbosity to the ``INFO`` level:
 
 .. code-block:: python
 
     import datasets
     datasets.logging.set_verbosity_info()
 
-You can also use the environment variable ``DATASETS_VERBOSITY`` to override the default verbosity. You can set it to one of the following: ``debug``, ``info``, ``warning``, ``error``, ``critical``. For example:
+You can also use the environment variable ``DATASETS_VERBOSITY`` to override the default verbosity, and set it to one of the following: ``debug``, ``info``, ``warning``, ``error``, ``critical``:
 
 .. code-block:: bash
                
     DATASETS_VERBOSITY=error ./myprogram.py
 
-All the methods of this logging module are documented below, the main ones are
-:func:`datasets.logging.get_verbosity` to get the current level of verbosity in the logger and
-:func:`datasets.logging.set_verbosity` to set the verbosity to the level of your choice. In order (from the least
-verbose to the most verbose), those levels (with their corresponding int values in parenthesis) are:
+All the methods of this logging module are documented below. The main ones are:
 
-- :obj:`datasets.logging.CRITICAL` or :obj:`datasets.logging.FATAL` (int value, 50): only report the most
-  critical errors.
-- :obj:`datasets.logging.ERROR` (int value, 40): only report errors.
-- :obj:`datasets.logging.WARNING` or :obj:`datasets.logging.WARN` (int value, 30): only reports error and
-  warnings. This the default level used by the library.
-- :obj:`datasets.logging.INFO` (int value, 20): reports error, warnings and basic information.
-- :obj:`datasets.logging.DEBUG` (int value, 10): report all information.
+* :func:`datasets.logging.get_verbosity` to get the current level of verbosity in the logger
+* :func:`datasets.logging.set_verbosity` to set the verbosity to the level of your choice
+
+In order from the least to the most verbose (with their corresponding ``int`` values):
+
+1. :obj:`datasets.logging.CRITICAL` or :obj:`datasets.logging.FATAL` (int value, 50): only report the most critical errors.
+2. :obj:`datasets.logging.ERROR` (int value, 40): only report errors.
+3. :obj:`datasets.logging.WARNING` or :obj:`datasets.logging.WARN` (int value, 30): only reports error and warnings. This the default level used by the library.
+4. :obj:`datasets.logging.INFO` (int value, 20): reports error, warnings and basic information.
+5. :obj:`datasets.logging.DEBUG` (int value, 10): report all information.
 
 
 Functions

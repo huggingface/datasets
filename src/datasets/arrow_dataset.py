@@ -22,7 +22,7 @@ import json
 import os
 import shutil
 import tempfile
-from collections import Counter, defaultdict
+from collections import Counter
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import asdict
@@ -44,7 +44,7 @@ from datasets.tasks.text_classification import TextClassification
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, Value, cast_to_python_objects
+from .features import ClassLabel, Features, Sequence, Value, _ArrayXD
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -69,7 +69,7 @@ from .table import (
     list_table_cache_files,
 )
 from .tasks import TaskTemplate
-from .utils import logging, map_nested
+from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
@@ -159,6 +159,247 @@ class DatasetInfoMixin:
         return self._info.version
 
 
+class TensorflowDatasetMixIn:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def _get_output_signature(dataset, cols_to_retain, test_batch, batch_size):
+        if config.TF_AVAILABLE:
+            import tensorflow as tf
+        else:
+            raise ImportError("Called a Tensorflow-specific function but could not import it!")
+
+        signatures = {}
+        for column, col_feature in dataset.features.items():
+            if column not in cols_to_retain:
+                continue
+            dtype_feature = col_feature
+            while hasattr(dtype_feature, "feature"):  # Descend this godforsaken nested rabbit hole as long as it takes
+                dtype_feature = dtype_feature.feature
+            dtype_str = dtype_feature.dtype
+            if dtype_str.startswith("int") or dtype_str.startswith("uint"):
+                dtype = tf.int64
+            elif dtype_str.startswith("float"):
+                dtype = tf.float32
+            else:
+                raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
+
+            shape = []
+            shape_feature = col_feature
+            while not isinstance(shape_feature, (Value, ClassLabel)):
+                if isinstance(shape_feature, _ArrayXD):
+                    shape.extend(list(shape_feature.shape))
+                    break
+                elif isinstance(shape_feature, Sequence):
+                    shape.insert(0, shape_feature.length)
+                    shape_feature = shape_feature.feature
+                else:
+                    raise ValueError(
+                        f"Couldn't parse feature {column} with type {type(col_feature)}! "
+                        "This may indicate a column was included with an unusual datatype "
+                        "that we were unable to process correctly. "
+                        "If you're getting this error with one of our datasets, and you're "
+                        "sure the column should be convertable to tf.Tensor, please "
+                        "file an issue at github.com/huggingface/datasets and tag "
+                        "@rocketknight1!"
+                    )
+            shape = [batch_size] + shape
+            shape = [dim if dim != -1 else None for dim in shape]
+
+            signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
+
+        # Catching columns added by the collate_fn, such as MLM labels
+        for column, tensor in test_batch.items():
+            if column in signatures:
+                continue
+            if column.startswith("label"):
+                if "input_ids" in signatures and test_batch[column].shape == test_batch["input_ids"].shape:
+                    shape = signatures["input_ids"].shape
+                else:
+                    # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
+                    # about the dimensions we're unsure of
+                    shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
+            else:
+                # If this doesn't look like LM labels that got added by the collate_fn, let's not say anything
+                # about the dimensions we're unsure of
+                shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
+            signatures[column] = tf.TensorSpec(shape=shape, dtype=tensor.dtype)
+        return signatures
+
+    def to_tf_dataset(
+        self,
+        columns: Union[str, List[str]],
+        batch_size: int,
+        shuffle: bool,
+        drop_remainder: bool = None,
+        collate_fn: Callable = None,
+        collate_fn_args: Dict[str, Any] = None,
+        label_cols: Union[str, List[str]] = None,
+        dummy_labels: bool = True,
+        prefetch: bool = True,
+    ):
+        """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
+        the Dataset, and is suitable for passing to methods like model.fit() or model.predict().
+
+        Args:
+            columns (:obj:`List[str]` or :obj:`str`): Dataset column(s) to load in the tf.data.Dataset. In general,
+            only columns that the model can use as input should be included here (numeric data only).
+            batch_size (:obj:`int`): Size of batches to load from the dataset.
+            shuffle(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
+             validation/evaluation.
+            drop_remainder(:obj:`bool`, default ``None``): Drop the last incomplete batch when loading. If not provided,
+             defaults to the same setting as shuffle.
+            collate_fn(:obj:`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+             lists of samples into a batch.
+            collate_fn_args (:obj:`Dict`, optional): An optional `dict` of keyword arguments to be passed to the
+             `collate_fn`.
+            label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
+             labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
+              not necessary to actually pass the labels here, as long as they're in the input `columns`.
+            dummy_labels (:obj:`bool`, default ``False``): If no `label_cols` are set, output an array of "dummy" labels
+             with each batch. This can avoid problems with `fit()` or `train_on_batch()` that expect labels to be
+             a Tensor or np.ndarray, but should (hopefully) not be necessary with our standard train_step().
+            prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
+             a small buffer of batches for training. Improves performance by allowing data to be loaded in the
+             background while the model is training.
+        """
+        if config.TF_AVAILABLE:
+            import tensorflow as tf
+        else:
+            raise ImportError("Called a Tensorflow-specific function but could not import it!")
+
+        if collate_fn_args is None:
+            collate_fn_args = {}
+
+        if label_cols is None:
+            label_cols = []
+        elif isinstance(label_cols, str):
+            label_cols = [label_cols]
+        elif len(set(label_cols)) < len(label_cols):
+            raise ValueError("List of label_cols contains duplicates!")
+        if not columns:
+            raise ValueError("Need to specify at least one column!")
+        elif isinstance(columns, str):
+            columns = [columns]
+        elif len(set(columns)) < len(columns):
+            raise ValueError("List of columns contains duplicates!")
+        if label_cols is not None:
+            cols_to_retain = list(set(columns + label_cols))
+        else:
+            cols_to_retain = columns
+        # Special casing when the dataset has 'label' and the model expects 'labels' and the collator fixes it up for us
+        if "labels" in cols_to_retain and "labels" not in self.features and "label" in self.features:
+            cols_to_retain[cols_to_retain.index("labels")] = "label"
+        for col in cols_to_retain:
+            if col not in self.features:
+                raise ValueError(f"Couldn't find column {col} in dataset!")
+        if drop_remainder is None:
+            # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
+            drop_remainder = shuffle
+        dataset = self.with_format("numpy", columns=cols_to_retain)
+
+        def numpy_pad(data):
+            try:
+                # When this is finally fully removed, remove this line
+                # Alternatively, find a more elegant way to do this whole thing
+                np.warnings.filterwarnings("error", category=np.VisibleDeprecationWarning)
+                data = np.array(data)
+                if data.dtype == np.object:
+                    raise AssertionError  # Do it this way so that the assert doesn't get optimized out
+                return data
+            except (np.VisibleDeprecationWarning, AssertionError):
+                pass
+            # Get lengths of each row of data
+            lens = np.array([len(i) for i in data])
+
+            # Mask of valid places in each row
+            mask = np.arange(lens.max()) < lens[:, None]
+
+            # Setup output array and put elements from data into masked positions
+            out = np.zeros(mask.shape, dtype=np.array(data[0]).dtype)
+            out[mask] = np.concatenate(data)
+            return out
+
+        def np_get_batch(indices):
+            batch = dataset[indices]
+            out_batch = []
+            if collate_fn is not None:
+                actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
+                # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
+                batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
+                batch = collate_fn(batch, **collate_fn_args)
+                # Special casing when the dataset has 'label' and the model
+                # expects 'labels' and the collator fixes it up for us
+                if "label" in cols_to_retain and "label" not in batch and "labels" in batch:
+                    cols_to_retain[cols_to_retain.index("label")] = "labels"
+                for key in cols_to_retain:
+                    # In case the collate_fn returns something strange
+                    array = np.array(batch[key])
+                    cast_dtype = np.int64 if np.issubdtype(array.dtype, np.integer) else np.float32
+                    array = array.astype(cast_dtype)
+                    out_batch.append(array)
+            else:
+                for key in cols_to_retain:
+                    array = batch[key]
+                    array = numpy_pad(array)
+                    cast_dtype = np.int64 if np.issubdtype(array.dtype, np.integer) else np.float32
+                    array = array.astype(cast_dtype)
+                    out_batch.append(array)
+            return [tf.convert_to_tensor(arr) for arr in out_batch]
+
+        test_batch = np_get_batch(np.arange(batch_size))
+
+        @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
+        def fetch_function(indices):
+            output = tf.numpy_function(
+                np_get_batch, inp=[indices], Tout=[tf.dtypes.as_dtype(arr.dtype) for arr in test_batch]
+            )
+            return {key: output[i] for i, key in enumerate(cols_to_retain)}
+
+        test_batch_dict = {key: test_batch[i] for i, key in enumerate(cols_to_retain)}
+        output_signature = dataset._get_output_signature(
+            dataset, cols_to_retain, test_batch_dict, batch_size=batch_size if drop_remainder else None
+        )
+
+        def ensure_shapes(input_dict):
+            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+
+        tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(dataset), dtype=np.int64))
+
+        if shuffle:
+            tf_dataset = tf_dataset.shuffle(len(dataset))
+
+        tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function).map(ensure_shapes)
+
+        if label_cols:
+
+            def split_features_and_labels(input_batch):
+                features = {key: tensor for key, tensor in input_batch.items() if key in columns}
+                labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
+                if len(features) == 1:
+                    features = list(features.values())[0]
+                if len(labels) == 1:
+                    labels = list(labels.values())[0]
+                return features, labels
+
+            tf_dataset = tf_dataset.map(split_features_and_labels)
+
+        elif len(columns) == 1:
+            tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
+
+        if dummy_labels and not label_cols:
+
+            def add_dummy_labels(input_batch):
+                return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
+
+            tf_dataset = tf_dataset.map(add_dummy_labels)
+
+        if prefetch:
+            tf_dataset = tf_dataset.prefetch(tf.data.AUTOTUNE)
+        return tf_dataset
+
+
 class DatasetTransformationNotAllowedError(Exception):
     pass
 
@@ -215,8 +456,7 @@ def update_metadata_with_features(table: Table, features: Features):
         else:
             metadata["info"]["features"] = asdict(DatasetInfo(features=features))["features"]
         pa_metadata = {"huggingface": json.dumps(metadata)}
-    new_schema = table.schema.with_metadata(pa_metadata)
-    table = table.cast(new_schema)
+    table = table.replace_schema_metadata(pa_metadata)
     return table
 
 
@@ -238,7 +478,7 @@ class NonExistentDatasetError(Exception):
     pass
 
 
-class Dataset(DatasetInfoMixin, IndexableMixin):
+class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
     """A Dataset backed by an Arrow table."""
 
     def __init__(
@@ -449,8 +689,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info.features = features
         if features is not None:
             mapping = features.encode_batch(mapping)
-        else:
-            mapping = cast_to_python_objects(mapping)
         mapping = {
             col: OptimizedTypedSequence(data, type=features.type[col].type if features is not None else None, col=col)
             for col, data in mapping.items()
@@ -671,7 +909,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             try:
                 json.dumps(state["_format_kwargs"][k])
             except TypeError as e:
-                raise TypeError(str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't.")
+                raise TypeError(
+                    str(e) + f"\nThe format kwargs must be JSON serializable, but key '{k}' isn't."
+                ) from None
 
         # Get json serializable dataset info
         dataset_info = asdict(self._info)
@@ -1357,12 +1597,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Check filter column
         if isinstance(columns, str):
             columns = [columns]
+        if isinstance(columns, tuple):
+            columns = list(columns)
         if columns is not None and any(col not in self._data.column_names for col in columns):
             raise ValueError(
                 "Columns {} not in the dataset. Current columns in the dataset: {}".format(
                     list(filter(lambda col: col not in self._data.column_names, columns)), self._data.column_names
                 )
             )
+        if columns is not None:
+            columns = columns.copy()  # Ensures modifications made to the list after this call don't cause bugs
 
         self._format_type = type
         self._format_kwargs = format_kwargs
@@ -1906,7 +2150,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # If set to False, no new arrow table will be created
         update_data = None
 
-        class NumExamplesMismatch(Exception):
+        class NumExamplesMismatchError(Exception):
             pass
 
         def validate_function_output(processed_inputs, indices):
@@ -1960,7 +2204,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 input_num_examples = len(inputs[next(iter(inputs.keys()))])
                 processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
                 if input_num_examples != processed_inputs_num_examples:
-                    raise NumExamplesMismatch()
+                    raise NumExamplesMismatchError()
             if isinstance(inputs, dict) and isinstance(processed_inputs, Mapping):
                 inputs.update(processed_inputs)
                 return inputs
@@ -2037,7 +2281,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             if isinstance(example, pa.Table):
                                 writer.write_row(example)
                             else:
-                                example = cast_to_python_objects(example)
                                 writer.write(example)
                 else:
                     for i in pbar:
@@ -2054,10 +2297,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                                 check_same_num_examples=len(input_dataset.list_indexes()) > 0,
                                 offset=offset,
                             )
-                        except NumExamplesMismatch:
+                        except NumExamplesMismatchError:
                             raise DatasetTransformationNotAllowedError(
                                 "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
-                            )
+                            ) from None
                         if update_data:
                             if i == 0:
                                 buf_writer, writer, tmp_file = init_buffer_and_writer()
@@ -2065,7 +2308,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             if isinstance(batch, pa.Table):
                                 writer.write_table(batch)
                             else:
-                                batch = cast_to_python_objects(batch)
                                 writer.write_batch(batch)
                 if update_data and writer is not None:
                     writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
@@ -2105,12 +2347,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"], version="2.0.0")
     def filter(
         self,
         function: Optional[Callable] = None,
         with_indices=False,
         input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
         batch_size: Optional[int] = 1000,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
@@ -2135,12 +2378,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             input_columns (:obj:`str` or `List[str]`, optional): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+            batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (:obj:`int`, optional, default `1000`): Number of examples per batch provided to `function` if
-                ``batched = True``. If ``batch_size <= 0`` or ``batch_size == None``: provide the full dataset as a
-                single batch to `function`
-            remove_columns (`List[str]`, optional): Remove a selection of columns while doing the mapping.
-                Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
-                columns with names in `remove_columns`, these columns will be kept.
+                ``batched = True``. If ``batched = False``, one example per batch is passed to ``function``.
+                If ``batch_size <= 0`` or ``batch_size == None``: provide the full dataset as a single batch to `function`
             keep_in_memory (:obj:`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
@@ -2168,30 +2409,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if function is None:
             function = lambda x: True  # noqa: E731
 
-        if isinstance(input_columns, str):
-            input_columns = [input_columns]
+        if remove_columns is not None:
+            raise ValueError("Parameter `remove_columns` passed to .filter() is no longer supported.")
 
-        if input_columns is not None:
-            for input_column in input_columns:
-                if input_column not in self._data.column_names:
-                    raise ValueError(
-                        "Input column {} not in the dataset. Current columns in the dataset: {}".format(
-                            input_column, self._data.column_names
-                        )
-                    )
-
-        if fn_kwargs is None:
-            fn_kwargs = {}
-        fn_kwargs["input_columns"] = input_columns
-
-        # return map function
-        return self.map(
-            partial(map_function, function=function, with_indices=with_indices),
+        indices = self.map(
+            function=partial(get_indices_from_mask_function, function, batched, with_indices, input_columns),
+            with_indices=True,
+            features=Features({"indices": Value("uint64")}),
             batched=True,
-            with_indices=with_indices,
-            features=self.features,
             batch_size=batch_size,
-            remove_columns=remove_columns,
+            remove_columns=self.column_names,
             keep_in_memory=keep_in_memory,
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
@@ -2200,7 +2427,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             num_proc=num_proc,
             suffix_template=suffix_template,
             new_fingerprint=new_fingerprint,
+            input_columns=input_columns,
         )
+        new_dataset = copy.deepcopy(self)
+        new_dataset._indices = indices.data
+        new_dataset._fingerprint = new_fingerprint
+        return new_dataset
 
     @transmit_format
     @fingerprint_transform(inplace=False, ignore_kwargs=["cache_file_name"])
@@ -2900,6 +3132,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self,
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
+        num_proc: Optional[int] = None,
         **to_json_kwargs,
     ) -> int:
         """Export the dataset to JSON Lines or JSON.
@@ -2908,6 +3141,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
             batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing. ``batch_size`` in this case defaults to
+                :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
+                value if you have sufficient compute power.
             lines (:obj:`bool`, default ``True``): Whether output JSON lines format.
                 Only possible if ``orient="records"`. It will throw ValueError with ``orient`` different from
                 ``"records"``, since the others are not list-like.
@@ -2928,7 +3165,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Dynamic import to avoid circular dependency
         from .io.json import JsonDatasetWriter
 
-        return JsonDatasetWriter(self, path_or_buf, batch_size=batch_size, **to_json_kwargs).write()
+        return JsonDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_json_kwargs).write()
 
     def to_pandas(
         self, batch_size: Optional[int] = None, batched: bool = False
@@ -3364,35 +3601,38 @@ def concatenate_datasets(
 
 # This is outside Dataset.filter as it needs to be picklable for multiprocessing
 
-# transform the filter function into the map function
-def map_function(batch, *args, function=None, with_indices=None, **fn_kwargs):
-    assert function is not None and with_indices is not None
-    result = defaultdict(list)
-    num_examples = len(batch[next(iter(batch.keys()))])
-    input_columns = fn_kwargs.pop("input_columns", None)
 
-    # create single examples
-    for i in range(num_examples):
-        example = map_nested(lambda x: x[i], batch, dict_only=True)
-        fn_args = [example] if input_columns is None else [example[col] for col in input_columns]
-
-        # check if example should be filtered or not
-        if with_indices:
-            keep_example = function(*fn_args, args[0][i], **fn_kwargs)
+def get_indices_from_mask_function(
+    function: Callable,
+    batched: bool,
+    with_indices: bool,
+    input_columns: Optional[Union[str, List[str]]],
+    *args,
+    **fn_kwargs,
+):
+    if batched:
+        mask = function(*args)
+    else:
+        # we get batched data (to do less look-ups) but `function` only accepts one example
+        # therefore we need to call `function` on each example of the batch to get the mask
+        *inputs, indices = args
+        mask = []
+        if input_columns is None:
+            # inputs only contains a batch of examples
+            batch: dict = inputs[0]
+            num_examples = len(batch[next(iter(batch.keys()))])
+            for i in range(num_examples):
+                example = {key: batch[key][i] for key in batch}
+                mask.append(
+                    function(example, indices[i], **fn_kwargs) if with_indices else function(example, **fn_kwargs)
+                )
         else:
-            keep_example = function(*fn_args, **fn_kwargs)
-
-        assert isinstance(
-            keep_example, bool
-        ), f"The filter function returns a variable of type {type(keep_example)}, but should return a variable of type `bool`."
-        # if example shall be kept add to result
-        if keep_example:
-            for key in batch.keys():
-                result[key].append(example[key])
-
-    # if no example shall be kept, init with empty list
-    if bool(result) is False:
-        for key in batch.keys():
-            result[key] = []
-
-    return result
+            # inputs is a list of columns
+            columns: List[List[Any]] = inputs
+            num_examples = len(columns[0])
+            for i in range(num_examples):
+                input = [column[i] for column in columns]
+                mask.append(
+                    function(*input, indices[i], **fn_kwargs) if with_indices else function(*input, **fn_kwargs)
+                )
+    return {"indices": [i for i, to_keep in zip(indices, mask) if to_keep]}

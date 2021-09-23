@@ -211,3 +211,42 @@ class TestJsonDatasetWriter:
             assert len(exported_content[len_at]) == 10
         else:
             assert len(exported_content) == 10
+
+    @pytest.mark.parametrize("lines, load_json_function", [(True, load_json_lines), (False, load_json)])
+    def test_dataset_to_json_lines_multiproc(self, lines, load_json_function, dataset):
+        with io.BytesIO() as buffer:
+            JsonDatasetWriter(dataset, buffer, lines=lines, num_proc=2).write()
+            buffer.seek(0)
+            exported_content = load_json_function(buffer)
+        assert isinstance(exported_content, list)
+        assert isinstance(exported_content[0], dict)
+        assert len(exported_content) == 10
+
+    @pytest.mark.parametrize(
+        "orient, container, keys, len_at",
+        [
+            ("records", list, {"tokens", "labels", "answers", "id"}, None),
+            ("split", dict, {"index", "columns", "data"}, "data"),
+            ("index", dict, set("0123456789"), None),
+            ("columns", dict, {"tokens", "labels", "answers", "id"}, "tokens"),
+            ("values", list, None, None),
+            ("table", dict, {"schema", "data"}, "data"),
+        ],
+    )
+    def test_dataset_to_json_orient_multiproc(self, orient, container, keys, len_at, dataset):
+        with io.BytesIO() as buffer:
+            JsonDatasetWriter(dataset, buffer, lines=False, orient=orient, num_proc=2).write()
+            buffer.seek(0)
+            exported_content = load_json(buffer)
+        assert isinstance(exported_content, container)
+        if keys:
+            if container is dict:
+                assert exported_content.keys() == keys
+            else:
+                assert exported_content[0].keys() == keys
+        else:
+            assert not hasattr(exported_content, "keys") and not hasattr(exported_content[0], "keys")
+        if len_at:
+            assert len(exported_content[len_at]) == 10
+        else:
+            assert len(exported_content) == 10
