@@ -92,57 +92,6 @@
             "emotion-recognition"
         ]
     },
-    "semantic-segmentation": {
-        "description": "tasks related to linking pixels to class labels",
-        "options": [
-            "semantic-segmentation",
-            "3d-semantic-segmentation"
-        ]
-    },
-    "object-detection": {
-        "description": "tasks related to detecting instances of objects from a particular class in an image",
-        "options": [
-            "object-detection",
-            "3d-object-detection"
-        ]
-    },
-    "image-generation": {
-        "description": "tasks related to generating images from an existing dataset",
-        "options": [
-            "image-generation",
-            "image-inpainting",
-            "text-to-image-generation",
-            "image-interpolation"
-        ]
-    },
-    "optical-character-recognition": {
-        "description": "tasks related to recognizing characters from images",
-        "options": [
-            "optical-character-recognition",   
-            "handwritten-character-recognition"
-        ]
-    },
-    "instance-segmentation": {
-        "description": "tasks related to detecting and delineating distinct objects of interest appearing in images",
-        "options": [
-            "instance-segmentation",
-            "3d-instance-segmentation"
-        ]
-    },
-    "image-to-image-translation": {
-        "description": "tasks related to mapping images to images given image pairs",
-        "options": [
-            "image-to-image-translation"
-        ]
-    },
-    "image-classification": {
-        "description": "tasks related to identifying what images represent",
-        "options": [
-            "image-classification",
-            "multi-label-image-classification"
-        ]
-
-    },
     "other": {
         "description": "other task family not mentioned here",
         "options": [
