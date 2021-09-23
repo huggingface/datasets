@@ -137,6 +137,7 @@ TESTS_REQUIRE = [
     "s3fs==2021.08.1",
     "tensorflow>=2.3",
     "torch",
+    "torchaudio",
     "transformers",
     # datasets dependencies
     "bs4",
