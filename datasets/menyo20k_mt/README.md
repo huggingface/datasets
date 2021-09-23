@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: MENYO-20k
 ---
 
 # Dataset Card for MENYO-20k
