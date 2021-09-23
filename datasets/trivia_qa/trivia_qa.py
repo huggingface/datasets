@@ -84,15 +84,11 @@ def _qa_files(file_paths, sources, split, unfiltered):
     suffix_mapping = {
         datasets.Split.TRAIN: "train.json",
         datasets.Split.VALIDATION: "dev.json",
-        datasets.Split.TEST: "test-without-answers.json"
+        datasets.Split.TEST: "test-without-answers.json",
     }
     suffix = suffix_mapping[split]
 
-    filenames = (
-        [f"unfiltered-web-{suffix}"]
-        if unfiltered
-        else [f"{source}-{suffix}" for source in sources]
-    )
+    filenames = [f"unfiltered-web-{suffix}"] if unfiltered else [f"{source}-{suffix}" for source in sources]
 
     filenames = [os.path.join(qa_dir, filename) for filename in filenames]
 
@@ -117,9 +113,9 @@ class TriviaQaConfig(datasets.BuilderConfig):
         assert source in ["all", "web", "wikipedia"]
 
         # there is no unfiltered version for the wikipedia subset
-        # --> unfiltered subset for source="all" is the same as for source="web" 
+        # --> unfiltered subset for source="all" is the same as for source="web"
         # --> only accept source="all" if unfiltered is True
-        assert not unfiltered or source == 'all'
+        assert not unfiltered or source == "all"
 
         if source != "all":
             name += f".{source}"
@@ -207,7 +203,7 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
             download_urls["rc"] = _DOWNLOAD_URL_TMPL.format("rc")
         if cfg.unfiltered:
             download_urls["unfiltered"] = _DOWNLOAD_URL_TMPL.format("unfiltered")
-        file_paths = dl_manager.download_and_extract(download_urls)            
+        file_paths = dl_manager.download_and_extract(download_urls)
 
         if cfg.exclude_context:
             web_evidence_dir = None
