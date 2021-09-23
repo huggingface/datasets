@@ -57,6 +57,10 @@ class Audio:
             import torchaudio.functional as F
         except ImportError as err:
             raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
+        try:
+            torchaudio.set_audio_backend("sox_io")
+        except RuntimeError as err:
+            raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
 
         array, sample_rate = torchaudio.load(value)
         array = array.numpy()
