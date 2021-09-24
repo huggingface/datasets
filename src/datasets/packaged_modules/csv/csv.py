@@ -2,10 +2,10 @@
 
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Union
-from typing_extensions import Literal
 
 import pandas as pd
 import pyarrow as pa
+from typing_extensions import Literal
 
 import datasets
 
