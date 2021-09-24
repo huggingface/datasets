@@ -34,12 +34,12 @@ class Audio:
             dict
         """
         # TODO: backard compatibility for users without audio dependencies
-        array, sample_rate = (
+        array, sampling_rate = (
             self._decode_example_with_torchaudio(value)
             if value.endswith(".mp3")
             else self._decode_example_with_librosa(value)
         )
-        return {"path": value, "array": array, "sampling_rate": sample_rate}
+        return {"path": value, "array": array, "sampling_rate": sampling_rate}
 
     def _decode_example_with_librosa(self, value):
         try:
@@ -48,8 +48,8 @@ class Audio:
             raise ImportError("To support decoding audio files, please install 'librosa'.") from err
 
         with open(value, "rb") as f:
-            array, sample_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
-        return array, sample_rate
+            array, sampling_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
+        return array, sampling_rate
 
     def _decode_example_with_torchaudio(self, value):
         try:
@@ -62,10 +62,10 @@ class Audio:
         except RuntimeError as err:
             raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
 
-        array, sample_rate = torchaudio.load(value)
+        array, sampling_rate = torchaudio.load(value)
         array = array.numpy()
         if self.mono:
             array = array.mean(axis=0)
-        if self.sampling_rate and self.sampling_rate != sample_rate:
-            array = F.resample(array, sample_rate, self.sampling_rate)
+        if self.sampling_rate and self.sampling_rate != sampling_rate:
+            array = F.resample(array, sampling_rate, self.sampling_rate)
         return array, self.sampling_rate
