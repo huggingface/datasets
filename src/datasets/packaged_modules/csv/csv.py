@@ -121,8 +121,7 @@ class CsvConfig(datasets.BuilderConfig):
         # Remove 1.3 new arguments
         if not (pandas_version[0] >= 1 and pandas_version[1] >= 3):
             for read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
-                if read_csv_kwargs[read_csv_parameter] == getattr(CsvConfig(), read_csv_parameter):
-                    del read_csv_kwargs[read_csv_parameter]
+                del read_csv_kwargs[read_csv_parameter]
 
         return read_csv_kwargs
 
