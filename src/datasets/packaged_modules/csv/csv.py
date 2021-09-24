@@ -1,10 +1,10 @@
 # coding=utf-8
-
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
+from packaging import version
 from typing_extensions import Literal
 
 import datasets
@@ -15,10 +15,6 @@ logger = datasets.utils.logging.get_logger(__name__)
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
-
-
-def parse_semver(version: str) -> Tuple[int, ...]:
-    return tuple(int(part) for part in version.split(".")[:2])
 
 
 @dataclass
@@ -112,7 +108,7 @@ class CsvConfig(datasets.BuilderConfig):
             on_bad_lines=self.on_bad_lines,
         )
 
-        pandas_version = parse_semver(pd.__version__)
+        pandas_version = version.Version(pd.__version__)
         # some kwargs must not be passed if they don't have a default value
         # some others are deprecated and we can also not pass them if they are the default value
         for read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
@@ -120,7 +116,7 @@ class CsvConfig(datasets.BuilderConfig):
                 del read_csv_kwargs[read_csv_parameter]
 
         # Remove 1.3 new arguments
-        if not (pandas_version[0] >= 1 and pandas_version[1] >= 3):
+        if not (pandas_version.major >= 1 and pandas_version.minor >= 3):
             for read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
                 del read_csv_kwargs[read_csv_parameter]
 
