@@ -19,9 +19,11 @@ require_sndfile = pytest.mark.skipif(
     reason="Test requires 'sndfile': `pip install soundfile`; "
     "Linux requires sndfile installed with distribution package manager, e.g.: `sudo apt-get install libsndfile1`",
 )
-require_sox = pytest.mark.skipif(importlib.util.find_spec("sox") is None, reason="Test requires 'sox'")
 require_torchaudio = pytest.mark.skipif(
     importlib.util.find_spec("torchaudio") is None, reason="Test requires 'torchaudio'"
+require_sox = pytest.mark.skipif(
+    find_library("sox") is None,
+    reason="Test requires 'sox'; only available in non-Windows, e.g.: `sudo apt-get install sox`",
 )
 
 
