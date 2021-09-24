@@ -270,8 +270,8 @@ class PythonFormatter(Formatter[dict, list, dict]):
 
 
 class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
-    def __init__(self, features=None, **np_array_kwargs):
-        super().__init__(features=features)
+    def __init__(self, features=None, decoded=True, **np_array_kwargs):
+        super().__init__(features=features, decoded=decoded)
         self.np_array_kwargs = np_array_kwargs
 
     def format_row(self, pa_table: pa.Table) -> dict:
