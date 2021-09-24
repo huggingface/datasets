@@ -1519,6 +1519,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 format_columns=format_columns,
                 output_all_columns=output_all_columns,
                 format_kwargs=format_kwargs,
+                decoded=False,
             )
 
     def __repr__(self):
