@@ -54,6 +54,7 @@ class Audio:
     def _decode_example_with_torchaudio(self, value):
         try:
             import torchaudio
+            import torchaudio.functional as F
         except ImportError as err:
             raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
         try:
@@ -66,10 +67,13 @@ class Audio:
         if self.mono:
             array = array.mean(axis=0)
         if self.sampling_rate and self.sampling_rate != sample_rate:
-            try:
-                import librosa
-            except ImportError as err:
-                raise ImportError("To support decoding audio files, please install 'librosa'.") from err
-
-            librosa.resample(array, sample_rate, self.sampling_rate)
+            array = F.resample(
+                array,
+                sample_rate,
+                self.sampling_rate,
+                lowpass_filter_width=64,
+                rolloff=0.9475937167399596,
+                resampling_method="kaiser_window",
+                beta=14.769656459379492,
+            )
         return array, self.sampling_rate
