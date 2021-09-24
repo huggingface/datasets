@@ -13,7 +13,7 @@ pytestmark = pytest.mark.audio
 
 require_sndfile = pytest.mark.skipif(
     # In Windows and OS X, soundfile installs sndfile
-    (sys.platform != "linux" and find_spec("soundfile"))
+    (sys.platform != "linux" and find_spec("soundfile") is None)
     # In Linux, soundfile throws RuntimeError if sndfile not installed with distribution package manager
     or (sys.platform == "linux" and find_library("sndfile") is None),
     reason="Test requires 'sndfile': `pip install soundfile`; "
