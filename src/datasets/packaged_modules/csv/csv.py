@@ -105,6 +105,8 @@ class CsvConfig(datasets.BuilderConfig):
             memory_map=self.memory_map,
             float_precision=self.float_precision,
             chunksize=self.chunksize,
+            encoding_errors=self.encoding_errors,
+            on_bad_lines=self.on_bad_lines,
         )
 
         pandas_version = parse_semver(pd.__version__)
