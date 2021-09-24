@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import pyarrow as pa
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
-    def __init__(self, features: Features, **jnp_array_kwargs):
+    def __init__(self, features: Optional[Features] = None, **jnp_array_kwargs):
         super().__init__(features=features)
         self.jnp_array_kwargs = jnp_array_kwargs
         import jax.numpy as jnp  # noqa import jax at initialization

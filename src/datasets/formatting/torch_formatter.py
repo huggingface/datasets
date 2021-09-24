@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import pyarrow as pa
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
-    def __init__(self, features: Features, **torch_tensor_kwargs):
+    def __init__(self, features: Optional[Features] = None, **torch_tensor_kwargs):
         super().__init__(features=features)
         self.torch_tensor_kwargs = torch_tensor_kwargs
         import torch  # noqa import torch at initialization

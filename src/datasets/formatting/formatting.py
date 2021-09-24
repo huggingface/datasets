@@ -179,10 +179,12 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
 
 
 class _DictWithLazyDecoding(dict):
-    def __init__(self, d: dict, features: Features):
-        self.decode_functions = {
-            key: feature.decode_example for key, feature in features.items() if hasattr(feature, "decode_example")
-        }
+    def __init__(self, d: dict, features: Optional[Features] = None):
+        self.decode_functions = (
+            {key: feature.decode_example for key, feature in features.items() if hasattr(feature, "decode_example")}
+            if features is not None
+            else {}
+        )
         super().__init__(**d)
 
     def __getitem__(self, key):
@@ -236,7 +238,7 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    def __init__(self, features: Features):
+    def __init__(self, features: Optional[Features] = None):
         self.features = features
 
     def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
@@ -284,7 +286,7 @@ class PythonFormatter(Formatter[ExampleWithLazyDecoding, list, BatchWithLazyDeco
 
 
 class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
-    def __init__(self, features: Features, **np_array_kwargs):
+    def __init__(self, features: Optional[Features] = None, **np_array_kwargs):
         super().__init__(features=features)
         self.np_array_kwargs = np_array_kwargs
 

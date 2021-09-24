@@ -2266,7 +2266,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 }
                 # Only load the columns we actually need
                 if input_columns:
-                    getitem_kwargs["format_columns"] = (input_columns,)
+                    getitem_kwargs["format_columns"] = input_columns
                     if remove_columns:
                         remove_columns = list(set(remove_columns) & set(input_columns))
 

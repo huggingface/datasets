@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import pyarrow as pa
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
-    def __init__(self, features: Features, **tf_tensor_kwargs):
+    def __init__(self, features: Optional[Features] = None, **tf_tensor_kwargs):
         super().__init__(features=features)
         self.tf_tensor_kwargs = tf_tensor_kwargs
         import tensorflow as tf  # noqa: import tf at initialization
