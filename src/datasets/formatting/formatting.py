@@ -219,8 +219,9 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
 
-    def __init__(self, features=None):
+    def __init__(self, features=None, decoded=True):
         self.features = features
+        self.decoded = decoded
         self.python_features_decoder = PythonFeaturesDecoder(self.features)
         self.pandas_features_decoder = PandasFeaturesDecoder(self.features)
 
@@ -256,7 +257,9 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
 class PythonFormatter(Formatter[dict, list, dict]):
     def format_row(self, pa_table: pa.Table) -> dict:
         row = self.python_arrow_extractor().extract_row(pa_table)
-        return self.python_features_decoder.decode_row(row)
+        if self.decoded:
+            row = self.python_features_decoder.decode_row(row)
+        return row
 
     def format_column(self, pa_table: pa.Table) -> list:
         return self.python_arrow_extractor().extract_column(pa_table)
@@ -273,7 +276,9 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
 
     def format_row(self, pa_table: pa.Table) -> dict:
         row = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_row(pa_table)
-        return self.python_features_decoder.decode_row(row)
+        if self.decoded:
+            row = self.python_features_decoder.decode_row(row)
+        return row
 
     def format_column(self, pa_table: pa.Table) -> np.ndarray:
         return self.numpy_arrow_extractor(**self.np_array_kwargs).extract_column(pa_table)
@@ -285,7 +290,9 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
 class PandasFormatter(Formatter):
     def format_row(self, pa_table: pa.Table) -> pd.DataFrame:
         row = self.pandas_arrow_extractor().extract_row(pa_table)
-        return self.pandas_features_decoder.decode_row(row)
+        if self.decoded:
+            row = self.pandas_features_decoder.decode_row(row)
+        return row
 
     def format_column(self, pa_table: pa.Table) -> pd.Series:
         return self.pandas_arrow_extractor().extract_column(pa_table)
