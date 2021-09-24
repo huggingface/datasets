@@ -2168,12 +2168,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             elif isinstance(indices, list) and isinstance(processed_inputs, Mapping):
                 allowed_batch_return_types = (list, np.ndarray)
                 all_dict_values_are_lists = all(
-                    isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
-                )
+                    isinstance(value, allowed_batch_return_types) for value in dict(processed_inputs).values()
+                )  # cast to dict to avoid data decoding from BatchWithLazyDecoding
                 if all_dict_values_are_lists is False:
                     raise TypeError(
                         "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
-                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
+                            [type(x) for x in dict(processed_inputs).values()], allowed_batch_return_types
                         )
                     )
 
@@ -2200,6 +2200,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                     format_type=None,
                     format_columns=None,
                     format_kwargs=None,
+                    apply_decoding=False,
                 )
             if remove_columns is not None:
                 for column in remove_columns:
@@ -2210,6 +2211,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 if input_num_examples != processed_inputs_num_examples:
                     raise NumExamplesMismatchError()
             if isinstance(inputs, dict) and isinstance(processed_inputs, Mapping):
+                inputs = dict(inputs) if isinstance(inputs, _DictWithLazyDecoding) else inputs
                 inputs.update(processed_inputs)
                 return inputs
             else:
