@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from dataclasses import dataclass
-from typing import List, Optional, Union, Tuple, Literal
+from typing import List, Literal, Optional, Tuple, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -15,8 +15,10 @@ _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
 
+
 def parse_semver(version: str) -> Tuple[int, ...]:
     return tuple(int(part) for part in version.split(".")[:2])
+
 
 @dataclass
 class CsvConfig(datasets.BuilderConfig):
@@ -115,7 +117,7 @@ class CsvConfig(datasets.BuilderConfig):
         for read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
             if read_csv_kwargs[read_csv_parameter] == getattr(CsvConfig(), read_csv_parameter):
                 del read_csv_kwargs[read_csv_parameter]
-        
+
         # Remove 1.3 new arguments
         if not (pandas_version[0] >= 1 and pandas_version[1] >= 3):
             for read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
