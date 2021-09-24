@@ -1754,12 +1754,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         format_columns=None,
         output_all_columns=False,
         format_kwargs=None,
+        decoded: bool = True,
     ) -> Union[Dict, List]:
         """
         Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
         """
         format_kwargs = format_kwargs if format_kwargs is not None else {}
-        formatter = get_formatter(format_type, features=self.features, **format_kwargs)
+        formatter = get_formatter(format_type, features=self.features, decoded=decoded, **format_kwargs)
         pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
         formatted_output = format_table(
             pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
