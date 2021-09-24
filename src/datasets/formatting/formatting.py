@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import _is_zero_copy_only, pandas_types_mapper
+from ..features import Features, _is_zero_copy_only, pandas_types_mapper
 from ..table import Table
 
 
@@ -178,6 +178,53 @@ class PandasArrowExtractor(BaseArrowExtractor[pd.DataFrame, pd.Series, pd.DataFr
         return pa_table.to_pandas(types_mapper=pandas_types_mapper)
 
 
+class _DictWithLazyDecoding(dict):
+    def __init__(self, d: dict, features: Features):
+        self.decode_functions = {
+            key: feature.decode_example for key, feature in features.items() if hasattr(feature, "decode_example")
+        }
+        super().__init__(**d)
+
+    def __getitem__(self, key):
+        raise NotImplementedError
+
+    def __setitem__(self, key, val):
+        dict.__setitem__(self, key, val)
+        if key in self.decode_functions:
+            del self.decode_functions[key]
+
+    def __repr__(self):
+        dictrepr = dict.__repr__(self)
+        return "%s(%s)" % (type(self).__name__, dictrepr)
+
+    def update(self, *args, **kwargs):
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = v
+
+    def values(self):
+        for key in self:
+            yield self[key]
+
+    def items(self):
+        for key in self:
+            yield key, self[key]
+
+    def decode(self) -> dict:
+        return {k: v for k, v in self.items()}
+
+
+class ExampleWithLazyDecoding(_DictWithLazyDecoding):
+    def __getitem__(self, key):
+        val = dict.__getitem__(self, key)
+        return self.decode_functions[key](val) if key in self.decode_functions else val
+
+
+class BatchWithLazyDecoding(_DictWithLazyDecoding):
+    def __getitem__(self, key):
+        val = dict.__getitem__(self, key)
+        return [self.decode_functions[key](x) for x in val] if key in self.decode_functions else val
+
+
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
     A formatter is an object that extracts and formats data from pyarrow tables.
@@ -188,6 +235,9 @@ class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     python_arrow_extractor = PythonArrowExtractor
     numpy_arrow_extractor = NumpyArrowExtractor
     pandas_arrow_extractor = PandasArrowExtractor
+
+    def __init__(self, features: Features):
+        self.features = features
 
     def __call__(self, pa_table: pa.Table, query_type: str) -> Union[RowFormat, ColumnFormat, BatchFormat]:
         if query_type == "row":
@@ -218,15 +268,19 @@ class ArrowFormatter(Formatter[pa.Table, pa.Array, pa.Table]):
         return self.simple_arrow_extractor().extract_batch(pa_table)
 
 
-class PythonFormatter(Formatter[dict, list, dict]):
+class PythonFormatter(Formatter[ExampleWithLazyDecoding, list, BatchWithLazyDecoding]):
     def format_row(self, pa_table: pa.Table) -> dict:
-        return self.python_arrow_extractor().extract_row(pa_table)
+        row = self.python_arrow_extractor().extract_row(pa_table)
+        return ExampleWithLazyDecoding(row, self.features)
 
     def format_column(self, pa_table: pa.Table) -> list:
-        return self.python_arrow_extractor().extract_column(pa_table)
+        column = self.python_arrow_extractor().extract_column(pa_table)
+        feature = self.features[pa_table.column_names[0]]
+        return [feature.decode_example(x) for x in column] if hasattr(feature, "decode_example") else column
 
     def format_batch(self, pa_table: pa.Table) -> dict:
-        return self.python_arrow_extractor().extract_batch(pa_table)
+        batch = self.python_arrow_extractor().extract_batch(pa_table)
+        return BatchWithLazyDecoding(batch, self.features)
 
 
 class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
@@ -409,7 +463,7 @@ def format_table(
     else:
         pa_table = table
     query_type = key_to_query_type(key)
-    python_formatter = PythonFormatter()
+    python_formatter = PythonFormatter(formatter.features)
     if format_columns is None:
         return formatter(pa_table, query_type=query_type)
     elif query_type == "column":

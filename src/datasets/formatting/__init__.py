@@ -27,6 +27,7 @@ from .formatting import (
     NumpyFormatter,
     PandasFormatter,
     PythonFormatter,
+    _DictWithLazyDecoding,
     format_table,
     query_table,
 )
@@ -110,7 +111,7 @@ def get_format_type_from_alias(format_type: Optional[str]) -> Optional[str]:
         return format_type
 
 
-def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
+def get_formatter(format_type: Optional[str], features, **format_kwargs) -> Formatter:
     """
     Factory function to get a Formatter given its type name and keyword arguments.
     A formatter is an object that extracts and formats data from pyarrow table.
@@ -119,7 +120,7 @@ def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
     """
     format_type = get_format_type_from_alias(format_type)
     if format_type in _FORMAT_TYPES:
-        return _FORMAT_TYPES[format_type](**format_kwargs)
+        return _FORMAT_TYPES[format_type](features, **format_kwargs)
     if format_type in _FORMAT_TYPES_ALIASES_UNAVAILABLE:
         raise _FORMAT_TYPES_ALIASES_UNAVAILABLE[format_type]
     else:

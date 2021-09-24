@@ -55,7 +55,7 @@ from .fingerprint import (
     maybe_register_dataset_for_temp_dir_deletion,
     update_fingerprint,
 )
-from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
+from .formatting import _DictWithLazyDecoding, format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split
@@ -1592,7 +1592,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
 
         # Check that the format_type and format_kwargs are valid and make it possible to have a Formatter
         type = get_format_type_from_alias(type)
-        _ = get_formatter(type, **format_kwargs)
+        _ = get_formatter(type, self.features, **format_kwargs)
 
         # Check filter column
         if isinstance(columns, str):
@@ -1754,17 +1754,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         format_columns=None,
         output_all_columns=False,
         format_kwargs=None,
+        apply_decoding=True,
     ) -> Union[Dict, List]:
         """
         Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
         """
         format_kwargs = format_kwargs if format_kwargs is not None else {}
-        formatter = get_formatter(format_type, **format_kwargs)
+        formatter = get_formatter(format_type, self.features, **format_kwargs)
         pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
         formatted_output = format_table(
             pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
         )
-        return formatted_output
+        if apply_decoding and isinstance(formatted_output, _DictWithLazyDecoding):
+            return formatted_output.decode()
+        else:
+            return formatted_output
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
@@ -2250,18 +2254,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         # Optionally initialize the writer as a context manager
         with contextlib.ExitStack() as stack:
             try:
+                input_dataset = self
+                getitem_kwargs = {
+                    "format_type": self._format_type,
+                    "format_columns": self._format_columns,
+                    "output_all_columns": self._output_all_columns,
+                    "format_kwargs": self._format_kwargs,
+                    "apply_decoding": False,
+                }
                 # Only load the columns we actually need
                 if input_columns:
-                    input_dataset = self.with_format(
-                        self._format_type, columns=input_columns, output_all_columns=False, **self._format_kwargs
-                    )
+                    getitem_kwargs["format_columns"] = (input_columns,)
                     if remove_columns:
                         remove_columns = list(set(remove_columns) & set(input_columns))
-                else:
-                    input_dataset = self
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
+                pbar_iterable = range(len(input_dataset)) if not batched else range(0, len(input_dataset), batch_size)
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
                 pbar = utils.tqdm(
@@ -2272,7 +2280,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                     desc=pbar_desc,
                 )
                 if not batched:
-                    for i, example in enumerate(pbar):
+                    for i in pbar:
+                        example = input_dataset._getitem(i, **getitem_kwargs)
                         example = apply_function_on_filtered_inputs(example, i, offset=offset)
                         if update_data:
                             if i == 0:
@@ -2286,7 +2295,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                     for i in pbar:
                         if drop_last_batch and i + batch_size > input_dataset.num_rows:
                             continue
-                        batch = input_dataset[i : i + batch_size]
+                        batch = input_dataset._getitem(slice(i, i + batch_size), **getitem_kwargs)
                         indices = list(
                             range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
                         )  # Something simpler?

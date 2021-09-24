@@ -299,6 +299,20 @@ class Value:
             return value
 
 
+@dataclass
+class DummyTypeWithDecoding:
+    _type: str = field(default="DummyTypeWithDecoding", init=False, repr=False)
+
+    def __call__(self):
+        return pa.string()
+
+    def encode_example(self, value):
+        return value
+
+    def decode_example(self, value: str) -> List[int]:
+        return [ord(char) for char in value]
+
+
 class _ArrayXD:
     def __post_init__(self):
         self.shape = tuple(self.shape)
