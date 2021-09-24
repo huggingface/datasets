@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pyarrow as pa
 
+from ..features import Features
 from ..utils.py_utils import map_nested
 from .formatting import Formatter
 
@@ -28,7 +29,8 @@ if TYPE_CHECKING:
 
 
 class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
-    def __init__(self, **jnp_array_kwargs):
+    def __init__(self, features: Features, **jnp_array_kwargs):
+        super().__init__(features=features)
         self.jnp_array_kwargs = jnp_array_kwargs
         import jax.numpy as jnp  # noqa import jax at initialization
 

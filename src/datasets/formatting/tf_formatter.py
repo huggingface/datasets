@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pyarrow as pa
 
+from ..features import Features
 from ..utils.py_utils import map_nested
 from .formatting import Formatter
 
@@ -28,7 +29,8 @@ if TYPE_CHECKING:
 
 
 class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
-    def __init__(self, **tf_tensor_kwargs):
+    def __init__(self, features: Features, **tf_tensor_kwargs):
+        super().__init__(features=features)
         self.tf_tensor_kwargs = tf_tensor_kwargs
         import tensorflow as tf  # noqa: import tf at initialization
 

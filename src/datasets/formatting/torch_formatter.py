@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pyarrow as pa
 
+from ..features import Features
 from ..utils.py_utils import map_nested
 from .formatting import Formatter
 
@@ -28,7 +29,8 @@ if TYPE_CHECKING:
 
 
 class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
-    def __init__(self, **torch_tensor_kwargs):
+    def __init__(self, features: Features, **torch_tensor_kwargs):
+        super().__init__(features=features)
         self.torch_tensor_kwargs = torch_tensor_kwargs
         import torch  # noqa import torch at initialization
 

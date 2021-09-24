@@ -284,7 +284,8 @@ class PythonFormatter(Formatter[ExampleWithLazyDecoding, list, BatchWithLazyDeco
 
 
 class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
-    def __init__(self, **np_array_kwargs):
+    def __init__(self, features: Features, **np_array_kwargs):
+        super().__init__(features=features)
         self.np_array_kwargs = np_array_kwargs
 
     def format_row(self, pa_table: pa.Table) -> dict:
@@ -318,7 +319,8 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict]):
+    def __init__(self, features: Features, transform: Callable[[dict], dict]):
+        super().__init__(features=features)
         self.transform = transform
 
     def format_row(self, pa_table: pa.Table) -> dict:
