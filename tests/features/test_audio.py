@@ -5,7 +5,7 @@ from importlib.util import find_spec
 import pytest
 
 from datasets import Dataset
-from datasets.features import Audio, Features
+from datasets.features import Audio, Features, Value
 
 
 pytestmark = pytest.mark.audio
@@ -87,6 +87,27 @@ def test_dataset_with_audio_feature(shared_datadir):
     assert batch["audio"][0]["path"] == audio_path
     assert batch["audio"][0]["array"].shape == (202311,)
     assert batch["audio"][0]["sampling_rate"] == 44100
+
+
+@require_sndfile
+def test_dataset_with_audio_feature_not_decoded(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data = {"audio": [audio_path], "text": ["Hello"]}
+    features = Features({"audio": Audio(), "text": Value("string")})
+    dset = Dataset.from_dict(data, features=features)
+
+    for item in dset:
+        assert item.keys() == {"audio", "text"}
+        assert item == {"audio": audio_path, "text": "Hello"}
+
+    def process_text(example):
+        example["text"] = example["text"] + " World!"
+        return example
+
+    processed_dset = dset.map(process_text)
+    for item in processed_dset:
+        assert item.keys() == {"audio", "text"}
+        assert item == {"audio": audio_path, "text": "Hello World!"}
 
 
 @require_sndfile
