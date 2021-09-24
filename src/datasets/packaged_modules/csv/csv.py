@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple, Literal
 
 import pandas as pd
 import pyarrow as pa
@@ -13,7 +13,10 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
+_PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
 
+def parse_semver(version: str) -> Tuple[int, ...]:
+    return tuple(int(part) for part in version.split(".")[:2])
 
 @dataclass
 class CsvConfig(datasets.BuilderConfig):
@@ -56,6 +59,8 @@ class CsvConfig(datasets.BuilderConfig):
     float_precision: Optional[str] = None
     chunksize: int = 10_000
     features: Optional[datasets.Features] = None
+    encoding_errors: Optional[str] = "strict"
+    on_bad_lines: Literal["error", "warn", "skip"] = "error"
 
     def __post_init__(self):
         if self.delimiter is not None:
@@ -101,11 +106,20 @@ class CsvConfig(datasets.BuilderConfig):
             float_precision=self.float_precision,
             chunksize=self.chunksize,
         )
+
+        pandas_version = parse_semver(pd.__version__)
         # some kwargs must not be passed if they don't have a default value
         # some others are deprecated and we can also not pass them if they are the default value
         for read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
             if read_csv_kwargs[read_csv_parameter] == getattr(CsvConfig(), read_csv_parameter):
                 del read_csv_kwargs[read_csv_parameter]
+        
+        # Remove 1.3 new arguments
+        if not (pandas_version[0] >= 1 and pandas_version[1] >= 3):
+            for read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
+                if read_csv_kwargs[read_csv_parameter] == getattr(CsvConfig(), read_csv_parameter):
+                    del read_csv_kwargs[read_csv_parameter]
+
         return read_csv_kwargs
 
 
