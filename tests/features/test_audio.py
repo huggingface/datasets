@@ -1,4 +1,6 @@
 import importlib
+import sys
+from ctypes.util import find_library
 
 import pytest
 
@@ -8,9 +10,14 @@ from datasets.features import Audio, Features
 
 pytestmark = pytest.mark.audio
 
-require_soundfile = pytest.mark.skipif(
-    importlib.util.find_spec("soundfile") is None,
-    reason="Test requires 'soundfile'; Linux requires libsndfile installed using distribution package manager",
+
+require_sndfile = pytest.mark.skipif(
+    # In Windows and OS X, soundfile installs sndfile
+    (sys.platform != "linux" and importlib.util.find_spec("soundfile"))
+    # In Linux, soundfile throws RuntimeError if sndfile not installed with distribution package manager
+    or (sys.platform == "linux" and find_library("sndfile") is None),
+    reason="Test requires 'sndfile': `pip install soundfile`; "
+    "Linux requires sndfile installed with distribution package manager, e.g.: `sudo apt-get install libsndfile1`",
 )
 require_sox = pytest.mark.skipif(importlib.util.find_spec("sox") is None, reason="Test requires 'sox'")
 require_torchaudio = pytest.mark.skipif(
@@ -26,7 +33,7 @@ def test_audio_instantiation():
     assert audio._type == "Audio"
 
 
-@require_soundfile
+@require_sndfile
 def test_audio_decode_example(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     audio = Audio()
@@ -37,7 +44,7 @@ def test_audio_decode_example(shared_datadir):
     assert decoded_example["sampling_rate"] == 44100
 
 
-@require_soundfile
+@require_sndfile
 def test_audio_resampling(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     audio = Audio(sampling_rate=16000)
@@ -60,7 +67,7 @@ def test_audio_decode_example_mp3(shared_datadir):
     assert decoded_example["sampling_rate"] == 44100
 
 
-@require_soundfile
+@require_sndfile
 def test_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path]}
@@ -81,7 +88,7 @@ def test_dataset_with_audio_feature(shared_datadir):
     assert batch["audio"][0]["sampling_rate"] == 44100
 
 
-@require_soundfile
+@require_sndfile
 def test_formatted_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path, audio_path]}
