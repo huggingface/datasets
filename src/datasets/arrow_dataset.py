@@ -1920,7 +1920,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 # TODO: batched
                 decorated_item = LazyDict(item, features=self.features)
                 result = f(decorated_item, *args, **kwargs)
-                return result.data
+                return result.data if isinstance(result, LazyDict) else result
 
             return decorated
 
