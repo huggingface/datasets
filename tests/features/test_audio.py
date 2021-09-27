@@ -8,7 +8,7 @@ from datasets import Dataset
 from datasets.features import Audio, Features, Value
 
 
-pytestmark = pytest.mark.audio
+# pytestmark = pytest.mark.audio
 
 
 require_sndfile = pytest.mark.skipif(
