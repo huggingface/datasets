@@ -37,6 +37,9 @@ _DL_URL_ANNOTATIONS = "http://groups.inf.ed.ac.uk/ami/AMICorpusAnnotations/ami_p
 _DL_SAMPLE_FORMAT = "https://groups.inf.ed.ac.uk/ami/AMICorpusMirror//amicorpus/{}/audio/{}"
 
 _SPEAKERS = ["A", "B", "C", "D", "E"]
+
+# Commented out samples don't seem to exist
+
 _TRAIN_SAMPLE_IDS = [
     "ES2002a",
     "ES2002b",
@@ -339,6 +342,15 @@ class AMI(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
+
+        # multi-processing doesn't work for AMI
+        if dl_manager._download_config.num_proc != 1:
+            logger.warning(
+                "AMI corpus cannot be downloaded using multi-processing. "
+                "Setting number of downloaded processes `num_proc` to 1. "
+            )
+            dl_manager._download_config.num_proc = 1
+
         annotation_path = dl_manager.download_and_extract(_DL_URL_ANNOTATIONS)
 
         # train
@@ -397,11 +409,23 @@ class AMI(datasets.GeneratorBasedBuilder):
             with open(path, "r", encoding="utf-8") as words_file:
                 root = ET.parse(words_file).getroot()
                 for type_tag in root.findall("w"):
-                    word_ids.append(type_tag.get("{http://nite.sourceforge.net/}id"))
-                    word_start_times.append(float(type_tag.get("starttime")))
-                    word_end_times.append(float(type_tag.get("endtime")))
-                    words.append(type_tag.text)
-                    word_speakers.append(speaker)
+                    word_id = type_tag.get("{http://nite.sourceforge.net/}id")
+
+                    word_start_time = type_tag.get("starttime")
+                    word_end_time = type_tag.get("endtime")
+                    text = type_tag.text
+
+                    if word_start_time is not None and word_end_time is not None:
+                        word_ids.append(word_id)
+                        word_start_times.append(float(word_start_time))
+                        word_end_times.append(float(word_end_time))
+                        words.append(text)
+                        word_speakers.append(speaker)
+                    else:
+                        logger.warning(
+                            f"Annotation {word_id} of file {path} is missing information about"
+                            "either word_start_time or word_end_time. Skipping sample..."
+                        )
 
         return AMI._sort(word_start_times, [word_ids, word_start_times, word_end_times, words, word_speakers])
 
