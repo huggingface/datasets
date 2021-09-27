@@ -22,7 +22,7 @@ import json
 import os
 import shutil
 import tempfile
-from collections import Counter
+from collections import Counter, UserDict
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import asdict
@@ -85,6 +85,26 @@ if config.PYARROW_VERSION.major == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
+
+
+class LazyDict(UserDict):
+    def __init__(self, data, features=None):
+        # super().__init__(*args, **kwargs)
+        self.data = data
+        self.features = features
+
+    def __getitem__(self, key):
+        example = super().__getitem__(key)
+        if self.features and key in self.features and hasattr(self.features[key], "decode_example"):
+            example = self.features[key].decode_example(example)
+            self[key] = example
+        return example
+
+    def values(self):
+        return self.data.values()
+
+    def items(self):
+        return self.data.items()
 
 
 class DatasetInfoMixin:
@@ -1895,26 +1915,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             function = lambda x: x  # noqa: E731
 
         def decorate(f):
-            from collections import UserDict
-
-            class LazyDict(UserDict):
-                def __init__(self, *args, features=None, **kwargs):
-                    super().__init__(*args, **kwargs)
-                    self.features = features
-
-                def __getitem__(self, key):
-                    example = super().__getitem__(key)
-                    if self.features and key in self.features and hasattr(self.features[key], "decode_example"):
-                        example = self.features[key].decode_example(example)
-                        self[key] = example
-                    return example
-
-                def values(self):
-                    return self.data.values()
-
-                def items(self):
-                    return self.data.items()
-
             @wraps(f)
             def decorated(item, *args, **kwargs):
                 # TODO: batched
