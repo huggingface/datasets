@@ -1924,7 +1924,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
 
             return decorated
 
-        function = decorate(function)
+        function = decorate(function) if not self._format_type and not batched and not input_columns else function
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
