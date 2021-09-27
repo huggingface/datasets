@@ -1894,6 +1894,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         if function is None:
             function = lambda x: x  # noqa: E731
 
+        def decorate(f):
+            from collections import UserDict
+
+            class LazyDict(UserDict):
+                def __init__(self, *args, features=None, **kwargs):
+                    super().__init__(*args, **kwargs)
+                    self.features = features
+
+                def __getitem__(self, key):
+                    example = super().__getitem__(key)
+                    if self.features and key in self.features and hasattr(self.features[key], "decode_example"):
+                        example = self.features[key].decode_example(example)
+                        self[key] = example
+                    return example
+
+                def values(self):
+                    return self.data.values()
+
+                def items(self):
+                    return self.data.items()
+
+            @wraps(f)
+            def decorated(item, *args, **kwargs):
+                # TODO: batched
+                decorated_item = LazyDict(item, features=self.features)
+                result = f(decorated_item, *args, **kwargs)
+                return result.data
+
+            return decorated
+
+        function = decorate(function)
+
         if isinstance(input_columns, str):
             input_columns = [input_columns]
 
