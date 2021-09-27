@@ -207,7 +207,7 @@ EXTRAS_REQUIRE = {
         "sphinx-rtd-theme==0.4.3",
         "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
-        "fsspec",
+        "fsspec<2021.9.0",
         "s3fs",
         "sphinx-panels",
         "sphinx-inline-tabs",
