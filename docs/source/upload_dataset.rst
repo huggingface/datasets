@@ -8,7 +8,7 @@ Start by creating a Hugging Face Hub account at `hf.co <https://huggingface.co/j
 Create a repository
 -------------------
 
-A repository hosts all your dataset files, including the revision history, which makes it possible to store more than one version of a dataset.
+A repository hosts all your dataset files, including the revision history, making it possible to store more than one dataset version.
 
 1. Click on your profile and select **New Dataset** to create a new dataset repository. 
 2. Give your dataset a name, and select whether this is a public or private dataset. A public dataset is visible to anyone, whereas a private dataset can only be viewed by you or members of your organization.
@@ -37,7 +37,7 @@ Upload your files
 Create a Dataset card
 ---------------------
 
-The last step is to create a Dataset card. The Dataset card is very important for helping users understand how to use your dataset responsibly.
+The last step is to create a Dataset card. The Dataset card is essential for helping users find your dataset and understand how to use it responsibly.
 
 1. Click on the **Create Dataset Card** to create a Dataset card.
 
@@ -73,32 +73,33 @@ You can even map your data files to a specific split with the ``data_files`` par
    >>> dataset = load_dataset("stevhliu/demo", data_files=data_files)
    >>> print(dataset["train"][0])
 
-If the dataset is private, only you can access it. First use the command line to login:
+Privacy
+-------
+
+If your uploaded dataset is private, only you can access it:
+
+1. Login from the command line:
 
 .. code-block::
 
    huggingface-cli login
 
-Then load the dataset with authentication:
+2. Load the dataset with your authentication token:
 
 .. code-block::
 
    >>> from datasets import load_dataset
    >>> dataset = load_dataset("stevhliu/demo", use_auth_token=True)
 
-Share within your organization
-------------------------------
+Similarly, share a private dataset within your organization by uploading a dataset as **Private** to your organization. Then members of the organization can load the dataset like:
 
-Upload the dataset in your organization as "private" to make it only accessible to the members of your organization.
-Then anyone in your organization can login and use the dataset.
-
-First use the command line to login:
+1. Login from the command line:
 
 .. code-block::
 
    huggingface-cli login
 
-Then load the dataset with authentication:
+2. Load the dataset with your authentication token:
 
 .. code-block::
 
@@ -111,6 +112,6 @@ What's next?
 
 Congratulations, you have completed all of the 🤗 Datasets tutorials!
 
-Over the course of these tutorials, you learned the basic steps of using 🤗 Datasets. You loaded a dataset from the Hub, and learned how to access the information stored inside the dataset. Next, you tokenized the dataset into sequences of integers, and formatted it so you can use it with PyTorch or TensorFlow. Then you loaded a metric to evaluate your models predictions. Finally, you uploaded a dataset to the Hub without writing a single line of code. This is all you need to get started with 🤗 Datasets! 
+Throughout these tutorials, you learned the basic steps of using 🤗 Datasets. You loaded a dataset from the Hub and learned how to access the information stored inside the dataset. Next, you tokenized the dataset into sequences of integers and formatted it so you can use it with PyTorch or TensorFlow. Then you loaded a metric to evaluate your model's predictions. Finally, you uploaded a dataset to the Hub without writing a single line of code. This is all you need to get started with 🤗 Datasets! 
 
 Now that you have a solid grasp of what 🤗 Datasets can do, you can begin formulating your own questions about how you can use it with your dataset. Please take a look at our :doc:`How-to guides <./how_to>` for more practical help on solving common use-cases, or read our :doc:`Conceptual guides <./about_arrow>` to deepen your understanding about 🤗 Datasets.
