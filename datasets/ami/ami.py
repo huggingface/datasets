@@ -28,7 +28,35 @@ from datasets.tasks import AutomaticSpeechRecognition
 logger = datasets.logging.get_logger(__name__)
 
 _CITATION = """\
-
+@inproceedings{10.1007/11677482_3,
+author = {Carletta, Jean and Ashby, Simone and Bourban, Sebastien and Flynn, Mike and Guillemot, Mael and Hain, Thomas and Kadlec, Jaroslav and Karaiskos, Vasilis and Kraaij, Wessel and Kronenthal, Melissa and Lathoud, Guillaume and Lincoln, Mike and Lisowska, Agnes and McCowan, Iain and Post, Wilfried and Reidsma, Dennis and Wellner, Pierre},
+title = {The AMI Meeting Corpus: A Pre-Announcement},
+year = {2005},
+isbn = {3540325492},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+url = {https://doi.org/10.1007/11677482_3},
+doi = {10.1007/11677482_3},
+abstract = {The AMI Meeting Corpus is a multi-modal data set consisting of 100 hours of meeting
+recordings. It is being created in the context of a project that is developing meeting
+browsing technology and will eventually be released publicly. Some of the meetings
+it contains are naturally occurring, and some are elicited, particularly using a scenario
+in which the participants play different roles in a design team, taking a design project
+from kick-off to completion over the course of a day. The corpus is being recorded
+using a wide range of devices including close-talking and far-field microphones, individual
+and room-view video cameras, projection, a whiteboard, and individual pens, all of
+which produce output signals that are synchronized with each other. It is also being
+hand-annotated for many different phenomena, including orthographic transcription,
+discourse properties such as named entities and dialogue acts, summaries, emotions,
+and some head and hand gestures. We describe the data set, including the rationale
+behind using elicited material, and explain how the material is being recorded, transcribed
+and annotated.},
+booktitle = {Proceedings of the Second International Conference on Machine Learning for Multimodal Interaction},
+pages = {28–39},
+numpages = {12},
+location = {Edinburgh, UK},
+series = {MLMI'05}
+}
 """
 
 _URL = "https://groups.inf.ed.ac.uk/ami/corpus/"
@@ -227,24 +255,25 @@ synchronized to a common timeline. These include close-talking and far-field mic
 room-view video cameras, and output from a slide projector and an electronic whiteboard. During the meetings,
 the participants also have unsynchronized pens available to them that record what is written. The meetings
 were recorded in English using three different rooms with different acoustic properties, and include mostly
-non-native speakers.
+non-native speakers. \n
 """
 
 
 class AMIConfig(datasets.BuilderConfig):
     """BuilderConfig for LibriSpeechASR."""
 
-    def __init__(self, formats, **kwargs):
+    def __init__(self, formats, missing_files=None, **kwargs):
         """
         Args:
-          data_dir: `string`, the path to the folder containing the files in the
-            downloaded .tar
-          citation: `string`, citation for the data set
-          url: `string`, url for information about the data set
+          formats: `List[string]`, a list of audio file formats
+          missing_files: `List[string]`, a list of missing audio file ids
           **kwargs: keyword arguments forwarded to super.
         """
         self.dl_path_formats = [_DL_SAMPLE_FORMAT + "." + f + ".wav" for f in formats]
-        super(AMIConfig, self).__init__(version=datasets.Version("2.1.0", ""), **kwargs)
+
+        # for microphone configs some audio files are missing
+        self.missing_files = missing_files if missing_files is not None else []
+        super(AMIConfig, self).__init__(version=datasets.Version("1.6.2", ""), **kwargs)
 
 
 class AMI(datasets.GeneratorBasedBuilder):
@@ -255,7 +284,11 @@ class AMI(datasets.GeneratorBasedBuilder):
         AMIConfig(
             name="headphone-multi", formats=["Headset-0", "Headset-1", "Headset-2", "Headset-3"], description=""
         ),
-        AMIConfig(name="microphone-single", formats=["Array1-01"]),
+        AMIConfig(
+            name="microphone-single",
+            formats=["Array1-01"],
+            missing_files=["IS1003b", "IS1007d"],
+        ),
         AMIConfig(
             name="microphone-multi",
             formats=[
@@ -267,15 +300,8 @@ class AMI(datasets.GeneratorBasedBuilder):
                 "Array1-06",
                 "Array1-07",
                 "Array1-08",
-                "Array2-01",
-                "Array2-02",
-                "Array2-03",
-                "Array2-04",
-                "Array2-05",
-                "Array2-06",
-                "Array2-07",
-                "Array2-08",
             ],
+            missing_files=["IS1003b", "IS1007d"],
         ),
     ]
 
@@ -293,9 +319,22 @@ class AMI(datasets.GeneratorBasedBuilder):
             "channels": datasets.Sequence(datasets.Value("string")),
         }
 
-        if self.config.name in ["headphone-single", "microphone-single"]:
+        if self.config.name == "headphone-single":
             features_dict.update({"file": datasets.Value("string")})
             audio_file_path_column = "file"
+            config_description = (
+                "Close talking audio of single headset. "
+                "This configuration only includes audio belonging to the "
+                "headset of the person currently speaking."
+            )
+        elif self.config.name == "microphone-single":
+            features_dict.update({"file": datasets.Value("string")})
+            audio_file_path_column = "file"
+            config_description = (
+                "Far field audio of single microphone. "
+                "This configuration only includes audio belonging the first microphone, "
+                "*i.e.* 1-1, of the microphone array."
+            )
         elif self.config.name == "headphone-multi":
             features_dict.update(
                 {
@@ -306,6 +345,11 @@ class AMI(datasets.GeneratorBasedBuilder):
                 }
             )
             audio_file_path_column = "file-0"
+            config_description = (
+                "Close talking audio of four individual headset. "
+                "This configuration includes audio belonging to four individual headsets."
+                " For each annotation there are 4 audio files 0, 1, 2, 3."
+            )
         elif self.config.name == "microphone-multi":
             features_dict.update(
                 {
@@ -317,22 +361,19 @@ class AMI(datasets.GeneratorBasedBuilder):
                     "file-1-6": datasets.Value("string"),
                     "file-1-7": datasets.Value("string"),
                     "file-1-8": datasets.Value("string"),
-                    "file-2-1": datasets.Value("string"),
-                    "file-2-2": datasets.Value("string"),
-                    "file-2-3": datasets.Value("string"),
-                    "file-2-4": datasets.Value("string"),
-                    "file-2-5": datasets.Value("string"),
-                    "file-2-6": datasets.Value("string"),
-                    "file-2-7": datasets.Value("string"),
-                    "file-2-8": datasets.Value("string"),
                 }
             )
             audio_file_path_column = "file-1-1"
+            config_description = (
+                "Far field audio of microphone array. "
+                "This configuration includes audio of "
+                "the first microphone array 1-1, 1-2, ..., 1-8."
+            )
         else:
-            raise ValueError("...")
+            raise ValueError(f"Configuration {self.config.name} does not exist.")
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
+            description=_DESCRIPTION + config_description,
             features=datasets.Features(features_dict),
             homepage=_URL,
             citation=_CITATION,
@@ -354,36 +395,52 @@ class AMI(datasets.GeneratorBasedBuilder):
         annotation_path = dl_manager.download_and_extract(_DL_URL_ANNOTATIONS)
 
         # train
-        train_path = dl_manager.download_and_extract(
-            [path.format(_id, _id) for path in self.config.dl_path_formats for _id in _TRAIN_SAMPLE_IDS]
+        train_files = [path.format(_id, _id) for _id in _TRAIN_SAMPLE_IDS for path in self.config.dl_path_formats]
+        train_files = list(
+            filter(lambda f: f.split("/")[-1].split(".")[0] not in self.config.missing_files, train_files)
         )
+        train_ids = [f.split("/")[-1].split(".")[0] for f in train_files]
+        train_path = dl_manager.download_and_extract(train_files)
 
         # validation
-        validation_path = dl_manager.download_and_extract(
-            [path.format(_id, _id) for path in self.config.dl_path_formats for _id in _VALIDATION_SAMPLE_IDS]
-        )
+        validation_files = [
+            path.format(_id, _id) for _id in _VALIDATION_SAMPLE_IDS for path in self.config.dl_path_formats
+        ]
+        validation_ids = [f.split("/")[-1].split(".")[0] for f in validation_files]
+        validation_path = dl_manager.download_and_extract(validation_files)
 
         # test
-        eval_path = dl_manager.download_and_extract(
-            [path.format(_id, _id) for path in self.config.dl_path_formats for _id in _EVAL_SAMPLE_IDS]
-        )
+        eval_files = [path.format(_id, _id) for _id in _EVAL_SAMPLE_IDS for path in self.config.dl_path_formats]
+        eval_ids = [f.split("/")[-1].split(".")[0] for f in eval_files]
+        eval_path = dl_manager.download_and_extract(eval_files)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"annotation_path": annotation_path, "sample_paths": train_path, "ids": _TRAIN_SAMPLE_IDS},
+                gen_kwargs={
+                    "annotation_path": annotation_path,
+                    "samples_paths": train_path,
+                    "ids": _TRAIN_SAMPLE_IDS,
+                    "verification_ids": train_ids,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "annotation_path": annotation_path,
-                    "sample_paths": validation_path,
+                    "samples_paths": validation_path,
                     "ids": _VALIDATION_SAMPLE_IDS,
+                    "verification_ids": validation_ids,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"annotation_path": annotation_path, "sample_paths": eval_path, "ids": _EVAL_SAMPLE_IDS},
+                gen_kwargs={
+                    "annotation_path": annotation_path,
+                    "samples_paths": eval_path,
+                    "ids": _EVAL_SAMPLE_IDS,
+                    "verification_ids": eval_ids,
+                },
             ),
         ]
 
@@ -453,13 +510,29 @@ class AMI(datasets.GeneratorBasedBuilder):
             segment_start_times, [segment_ids, segment_start_times, segment_end_times, channels, segment_speakers]
         )
 
-    def _generate_examples(self, annotation_path, sample_paths, ids):
+    def _generate_examples(self, annotation_path, samples_paths, ids, verification_ids):
         logger.info(f"⏳ Generating {', '.join(ids)}")
 
+        # number of audio files of config
         num_audios = len(self.config.dl_path_formats)
 
+        # filter missing ids
+        ids = list(filter(lambda n: n not in self.config.missing_files, ids))
+
         # audio
-        sample_paths = {ids[i]: sample_paths[num_audios * i : num_audios * (i + 1)] for i in range(len(ids))}
+        samples_paths_dict = {}
+        for i, _id in enumerate(ids):
+            sample_paths = samples_paths[num_audios * i : num_audios * (i + 1)]
+            sample_verification_id = set(verification_ids[num_audios * i : num_audios * (i + 1)])
+
+            # make sure that multi microphone samples are correctly atttributed to labels
+            if len(sample_verification_id) > 1 or next(iter(sample_verification_id)) != _id:
+                raise ValueError(
+                    f"Incorrect dataset generation. The files {sample_paths} of id {_id} have incorrect verification_ids {sample_verification_id}."
+                )
+
+            # set correct files correctly
+            samples_paths_dict[_id] = sample_paths
 
         # words
         words_paths = {
@@ -505,12 +578,12 @@ class AMI(datasets.GeneratorBasedBuilder):
             }
 
             if self.config.name in ["headphone-single", "microphone-single"]:
-                result.update({"file": sample_paths[_id][0]})
+                result.update({"file": samples_paths_dict[_id][0]})
             elif self.config.name in ["headphone-multi"]:
-                result.update({f"file-{i}": sample_paths[_id][i] for i in range(num_audios)})
+                result.update({f"file-{i}": samples_paths_dict[_id][i] for i in range(num_audios)})
             elif self.config.name in ["microphone-multi"]:
-                result.update({f"file-{i // 8 + 1}-{i % 8 + 1}": sample_paths[_id][i] for i in range(num_audios)})
+                result.update({f"file-1-{i+1}": samples_paths_dict[_id][i] for i in range(num_audios)})
             else:
-                raise ValueError("...")
+                raise ValueError(f"Configuration {self.config.name} does not exist.")
 
             yield _id, result
