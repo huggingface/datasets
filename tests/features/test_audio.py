@@ -90,7 +90,7 @@ def test_dataset_with_audio_feature(shared_datadir):
 
 
 @require_sndfile
-def test_dataset_with_audio_feature_not_decoded(shared_datadir):
+def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path], "text": ["Hello"]}
     features = Features({"audio": Audio(), "text": Value("string")})
@@ -108,6 +108,23 @@ def test_dataset_with_audio_feature_not_decoded(shared_datadir):
     for item in processed_dset:
         assert item.keys() == {"audio", "text"}
         assert item == {"audio": audio_path, "text": "Hello World!"}
+
+
+@require_sndfile
+def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data = {"audio": [audio_path], "text": ["Hello"]}
+    features = Features({"audio": Audio(), "text": Value("string")})
+    dset = Dataset.from_dict(data, features=features)
+
+    def process_audio_sampling_rate(example):
+        example["double_sampling_rate"] = 2 * example["audio"]["sampling_rate"]
+        return example
+
+    decoded_dset = dset.map(process_audio_sampling_rate)
+    for item in decoded_dset:
+        assert item.keys() == {"audio", "text", "double_sampling_rate"}
+        assert item["double_sampling_rate"] == 88200
 
 
 @require_sndfile
