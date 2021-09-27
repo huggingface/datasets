@@ -185,8 +185,6 @@ else:
         ]
     )
 
-TESTS_REQUIRE += AUDIO_REQUIRE
-
 QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
 
 
