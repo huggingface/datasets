@@ -64,7 +64,7 @@ def test_audio_decode_example_mp3(shared_datadir):
     decoded_example = audio.decode_example(audio_path)
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
     assert decoded_example["path"] == audio_path
-    assert decoded_example["array"].shape == (73401,)
+    assert decoded_example["array"].shape == (109440,)
     assert decoded_example["sampling_rate"] == 44100
 
 
