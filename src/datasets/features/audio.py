@@ -68,4 +68,5 @@ class Audio:
             array = array.mean(axis=0)
         if self.sampling_rate and self.sampling_rate != sampling_rate:
             array = F.resample(array, sampling_rate, self.sampling_rate)
-        return array, self.sampling_rate
+            sampling_rate = self.sampling_rate
+        return array, sampling_rate
