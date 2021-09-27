@@ -22,7 +22,6 @@ import xml.etree.ElementTree as ET
 import numpy as np
 
 import datasets
-from datasets.tasks import AutomaticSpeechRecognition
 
 
 logger = datasets.logging.get_logger(__name__)
@@ -280,10 +279,8 @@ class AMI(datasets.GeneratorBasedBuilder):
     """AMI dataset."""
 
     BUILDER_CONFIGS = [
-        AMIConfig(name="headphone-single", formats=["Mix-Headset"], description=""),
-        AMIConfig(
-            name="headphone-multi", formats=["Headset-0", "Headset-1", "Headset-2", "Headset-3"], description=""
-        ),
+        AMIConfig(name="headset-single", formats=["Mix-Headset"], description=""),
+        AMIConfig(name="headset-multi", formats=["Headset-0", "Headset-1", "Headset-2", "Headset-3"], description=""),
         AMIConfig(
             name="microphone-single",
             formats=["Array1-01"],
@@ -319,9 +316,8 @@ class AMI(datasets.GeneratorBasedBuilder):
             "channels": datasets.Sequence(datasets.Value("string")),
         }
 
-        if self.config.name == "headphone-single":
+        if self.config.name == "headset-single":
             features_dict.update({"file": datasets.Value("string")})
-            audio_file_path_column = "file"
             config_description = (
                 "Close talking audio of single headset. "
                 "This configuration only includes audio belonging to the "
@@ -329,13 +325,12 @@ class AMI(datasets.GeneratorBasedBuilder):
             )
         elif self.config.name == "microphone-single":
             features_dict.update({"file": datasets.Value("string")})
-            audio_file_path_column = "file"
             config_description = (
                 "Far field audio of single microphone. "
                 "This configuration only includes audio belonging the first microphone, "
                 "*i.e.* 1-1, of the microphone array."
             )
-        elif self.config.name == "headphone-multi":
+        elif self.config.name == "headset-multi":
             features_dict.update(
                 {
                     "file-0": datasets.Value("string"),
@@ -344,7 +339,6 @@ class AMI(datasets.GeneratorBasedBuilder):
                     "file-3": datasets.Value("string"),
                 }
             )
-            audio_file_path_column = "file-0"
             config_description = (
                 "Close talking audio of four individual headset. "
                 "This configuration includes audio belonging to four individual headsets."
@@ -363,7 +357,6 @@ class AMI(datasets.GeneratorBasedBuilder):
                     "file-1-8": datasets.Value("string"),
                 }
             )
-            audio_file_path_column = "file-1-1"
             config_description = (
                 "Far field audio of microphone array. "
                 "This configuration includes audio of "
@@ -377,15 +370,12 @@ class AMI(datasets.GeneratorBasedBuilder):
             features=datasets.Features(features_dict),
             homepage=_URL,
             citation=_CITATION,
-            task_templates=[
-                AutomaticSpeechRecognition(audio_file_path_column=audio_file_path_column, transcription_column="words")
-            ],
         )
 
     def _split_generators(self, dl_manager):
 
         # multi-processing doesn't work for AMI
-        if dl_manager._download_config.num_proc != 1:
+        if hasattr(dl_manager, "_download_config") and dl_manager._download_config.num_proc != 1:
             logger.warning(
                 "AMI corpus cannot be downloaded using multi-processing. "
                 "Setting number of downloaded processes `num_proc` to 1. "
@@ -539,7 +529,8 @@ class AMI(datasets.GeneratorBasedBuilder):
             _id: [os.path.join(annotation_path, "words/{}.{}.words.xml".format(_id, speaker)) for speaker in _SPEAKERS]
             for _id in ids
         }
-        words_paths = {_id: filter(lambda path: os.path.isfile(path), words_paths[_id]) for _id in ids}
+        words_paths = {_id: list(filter(lambda path: os.path.isfile(path), words_paths[_id])) for _id in ids}
+        words_paths = {key: words_paths[key] for key in words_paths if len(words_paths[key]) > 0}
 
         # segments
         segments_paths = {
@@ -549,7 +540,8 @@ class AMI(datasets.GeneratorBasedBuilder):
             ]
             for _id in ids
         }
-        segments_paths = {_id: filter(lambda path: os.path.isfile(path), segments_paths[_id]) for _id in ids}
+        segments_paths = {_id: list(filter(lambda path: os.path.isfile(path), segments_paths[_id])) for _id in ids}
+        segments_paths = {key: segments_paths[key] for key in segments_paths if len(segments_paths[key]) > 0}
 
         for _id in words_paths.keys():
             word_ids, word_start_times, word_end_times, words, word_speakers = self._extract_words_annotations(
@@ -577,9 +569,9 @@ class AMI(datasets.GeneratorBasedBuilder):
                 "words": words,
             }
 
-            if self.config.name in ["headphone-single", "microphone-single"]:
+            if self.config.name in ["headset-single", "microphone-single"]:
                 result.update({"file": samples_paths_dict[_id][0]})
-            elif self.config.name in ["headphone-multi"]:
+            elif self.config.name in ["headset-multi"]:
                 result.update({f"file-{i}": samples_paths_dict[_id][i] for i in range(num_audios)})
             elif self.config.name in ["microphone-multi"]:
                 result.update({f"file-1-{i+1}": samples_paths_dict[_id][i] for i in range(num_audios)})
