@@ -233,7 +233,7 @@ def _resolve_data_files_locally_or_by_urls(
     Return the absolute paths to all the files that match the given patterns.
     It also supports absolute paths in patterns.
     If an URL is passed, it is returned as is."""
-    data_files_ignore = ["README.md", "config.json"]
+    data_files_ignore = ["README.md", "config.json", "dataset_infos.json"]
     if isinstance(patterns, str):
         if is_remote_url(patterns):
             return [patterns]
@@ -245,7 +245,10 @@ def _resolve_data_files_locally_or_by_urls(
         matched_paths = [
             filepath.resolve()
             for filepath in glob_iter
-            if filepath.name not in data_files_ignore and not filepath.name.startswith(".") and filepath.is_file()
+            if filepath.name not in data_files_ignore
+            and not filepath.name.startswith(".")
+            and not str(filepath.parent).endswith("dummy")
+            and filepath.is_file()
         ]
         if allowed_extensions is not None:
             out = [
@@ -286,7 +289,7 @@ def _resolve_data_files_in_dataset_repository(
     patterns: Union[str, List[str], Dict],
     allowed_extensions: Optional[list] = None,
 ) -> Union[List[PurePath], Dict]:
-    data_files_ignore = ["README.md", "config.json"]
+    data_files_ignore = ["README.md", "config.json", "dataset_infos.json"]
     if isinstance(patterns, str):
         all_data_files = [
             PurePath("/" + dataset_file.rfilename) for dataset_file in dataset_info.siblings
@@ -296,6 +299,7 @@ def _resolve_data_files_in_dataset_repository(
             for filepath in all_data_files
             if filepath.name not in data_files_ignore
             and not filepath.name.startswith(".")
+            and not str(filepath.parent).endswith("dummy")
             and filepath.match(patterns)
         ]
         if allowed_extensions is not None:
