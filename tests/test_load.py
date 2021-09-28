@@ -18,15 +18,16 @@ import datasets
 from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
+from datasets.data_files import (
+    DataFilesDict,
+    _resolve_patterns_in_dataset_repository,
+    _resolve_patterns_locally_or_by_urls,
+)
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
-from datasets.load import (
-    _resolve_data_files_in_dataset_repository,
-    _resolve_data_files_locally_or_by_urls,
-    prepare_module,
-)
-from datasets.utils.file_utils import DownloadConfig, is_remote_url
+from datasets.load import prepare_module
+from datasets.utils.file_utils import DownloadConfig, hf_hub_url, is_remote_url
 
 from .utils import (
     OfflineSimulationMode,
@@ -145,10 +146,9 @@ class LoadTest(TestCase):
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
             module_path = os.path.join(module_dir, "__dummy_module_name1__.py")
-            importable_module_path, module_hash, resolved_file_path = datasets.load.prepare_module(
-                module_path, dynamic_modules_path=self.dynamic_modules_path, return_resolved_file_path=True
+            importable_module_path, module_hash = datasets.load.prepare_module(
+                module_path, dynamic_modules_path=self.dynamic_modules_path
             )
-            self.assertEqual(resolved_file_path, module_path)
             dummy_module = importlib.import_module(importable_module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
             self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
@@ -216,7 +216,7 @@ class LoadTest(TestCase):
             str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
-            with offline(offline_simulation_mode):
+            with offline(OfflineSimulationMode.CONNECTION_TIMES_OUT):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("lhoestq/_dummy")
                 self.assertIn(
@@ -256,8 +256,8 @@ def test_load_dataset_builder_for_absolute_data_dir(complex_data_dir):
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
     assert builder.config.name == Path(complex_data_dir).name
-    assert isinstance(builder.config.data_files, list)
-    assert len(builder.config.data_files) > 0
+    assert isinstance(builder.config.data_files, DataFilesDict)
+    assert len(builder.config.data_files["train"]) > 0
 
 
 def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
@@ -268,8 +268,8 @@ def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
         assert isinstance(builder, DatasetBuilder)
         assert builder.name == "text"
         assert builder.config.name == relative_data_dir
-        assert isinstance(builder.config.data_files, list)
-        assert len(builder.config.data_files) > 0
+        assert isinstance(builder.config.data_files, DataFilesDict)
+        assert len(builder.config.data_files["train"]) > 0
 
 
 def test_load_dataset_builder_for_community_dataset_with_script():
@@ -283,9 +283,9 @@ def test_load_dataset_builder_for_community_dataset_without_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
-    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.split("/")[-1]
-    assert isinstance(builder.config.data_files, list)
-    assert len(builder.config.data_files) > 0
+    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.replace("/", "___")
+    assert isinstance(builder.config.data_files, DataFilesDict)
+    assert len(builder.config.data_files["train"]) > 0
 
 
 def test_load_dataset_builder_fail():
@@ -363,17 +363,17 @@ def test_loading_from_the_datasets_hub():
 
 
 def test_loading_from_the_datasets_hub_with_use_auth_token():
-    from datasets.utils.file_utils import http_head
+    from requests import get
 
     def assert_auth(url, *args, headers, **kwargs):
         assert headers["authorization"] == "Bearer foo"
-        return http_head(url, *args, headers=headers, **kwargs)
+        return get(url, *args, headers=headers, **kwargs)
 
-    with patch("datasets.utils.file_utils.http_head") as mock_head:
+    with patch("requests.get") as mock_head:
         mock_head.side_effect = assert_auth
         with tempfile.TemporaryDirectory() as tmp_dir:
             with offline():
-                with pytest.raises(ConnectionError):
+                with pytest.raises((ConnectionError, requests.exceptions.ConnectionError)):
                     load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
         mock_head.assert_called()
 
@@ -474,8 +474,8 @@ def test_load_dataset_deletes_extracted_files(deleted, jsonl_gz_path, tmp_path):
 @pytest.mark.parametrize(
     "pattern,size", [("*", 2), ("**/*", 2), ("*.txt", 2), ("data/*", 2), ("**/*.txt", 2), ("**/train.txt", 1)]
 )
-def test_resolve_data_files_locally_or_by_urls(complex_data_dir, pattern, size):
-    resolved_data_files = _resolve_data_files_locally_or_by_urls(complex_data_dir, pattern)
+def test_resolve_patterns_locally_or_by_urls(complex_data_dir, pattern, size):
+    resolved_data_files = _resolve_patterns_locally_or_by_urls(complex_data_dir, [pattern])
     files_to_ignore = {".dummy", "README.md"}
     expected_resolved_data_files = [
         path for path in Path(complex_data_dir).rglob(pattern) if path.name not in files_to_ignore and path.is_file()
@@ -486,75 +486,83 @@ def test_resolve_data_files_locally_or_by_urls(complex_data_dir, pattern, size):
     assert all(path.is_file() for path in resolved_data_files)
 
 
-def test_resolve_data_files_locally_or_by_urls_with_absolute_path(tmp_path, complex_data_dir):
+def test_resolve_patterns_locally_or_by_urls_with_absolute_path(tmp_path, complex_data_dir):
     abs_path = os.path.join(complex_data_dir, "data", "train.txt")
-    resolved_data_files = _resolve_data_files_locally_or_by_urls(str(tmp_path / "blabla"), abs_path)
+    resolved_data_files = _resolve_patterns_locally_or_by_urls(str(tmp_path / "blabla"), [abs_path])
     assert len(resolved_data_files) == 1
 
 
 @pytest.mark.parametrize("pattern,size,extensions", [("*", 2, ["txt"]), ("*", 2, None), ("*", 0, ["blablabla"])])
-def test_resolve_data_files_locally_or_by_urls_with_extensions(complex_data_dir, pattern, size, extensions):
+def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, pattern, size, extensions):
     if size > 0:
-        resolved_data_files = _resolve_data_files_locally_or_by_urls(
-            complex_data_dir, pattern, allowed_extensions=extensions
+        resolved_data_files = _resolve_patterns_locally_or_by_urls(
+            complex_data_dir, [pattern], allowed_extensions=extensions
         )
         assert len(resolved_data_files) == size
     else:
         with pytest.raises(FileNotFoundError):
-            _resolve_data_files_locally_or_by_urls(complex_data_dir, pattern, allowed_extensions=extensions)
+            _resolve_patterns_locally_or_by_urls(complex_data_dir, pattern, allowed_extensions=extensions)
 
 
-def test_fail_resolve_data_files_locally_or_by_urls(complex_data_dir):
+def test_fail_resolve_patterns_locally_or_by_urls(complex_data_dir):
     with pytest.raises(FileNotFoundError):
-        _resolve_data_files_locally_or_by_urls(complex_data_dir, "blablabla")
+        _resolve_patterns_locally_or_by_urls(complex_data_dir, ["blablabla"])
 
 
 @pytest.mark.parametrize(
     "pattern,size", [("*", 2), ("**/*", 2), ("*.txt", 2), ("data/*", 2), ("**/*.txt", 2), ("**/train.txt", 1)]
 )
-def test_resolve_data_files_in_dataset_repository(complex_data_dir, pattern, size):
+def test_resolve_patterns_in_dataset_repository(complex_data_dir, pattern, size):
     dataset_info = DatasetInfo(
         siblings=[
             {"rfilename": path.relative_to(complex_data_dir).as_posix()}
             for path in Path(complex_data_dir).rglob("*")
             if path.is_file()
-        ]
+        ],
+        sha="foobarfoobar",
+        id="foo",
     )
-    resolved_data_files = _resolve_data_files_in_dataset_repository(dataset_info, pattern)
+    resolved_data_files = _resolve_patterns_in_dataset_repository(dataset_info, [pattern])
     files_to_ignore = {".dummy", "README.md"}
-    expected_resolved_data_files = [
+    expected_data_files = [
         path.relative_to(complex_data_dir)
         for path in Path(complex_data_dir).rglob(pattern)
         if path.name not in files_to_ignore and path.is_file()
     ]
+    expected_resolved_data_files = [
+        hf_hub_url(dataset_info.id, "", revision=dataset_info.sha) + str(expected_data_file)
+        for expected_data_file in expected_data_files
+    ]
     assert len(resolved_data_files) == size
     assert sorted(resolved_data_files) == sorted(expected_resolved_data_files)
-    assert all(isinstance(path, PurePath) for path in resolved_data_files)
-    assert all((Path(complex_data_dir) / path).is_file() for path in resolved_data_files)
+    assert all(isinstance(path, str) for path in resolved_data_files)
+    assert all((Path(complex_data_dir) / path).is_file() for path in expected_data_files)
 
 
 @pytest.mark.parametrize("pattern,size,extensions", [("*", 2, ["txt"]), ("*", 2, None), ("*", 0, ["blablabla"])])
-def test_resolve_data_files_in_dataset_repository_with_extensions(complex_data_dir, pattern, size, extensions):
+def test_resolve_patterns_in_dataset_repository_with_extensions(complex_data_dir, pattern, size, extensions):
     dataset_info = DatasetInfo(
         siblings=[
             {"rfilename": path.relative_to(complex_data_dir).as_posix()}
             for path in Path(complex_data_dir).rglob("*")
             if path.is_file()
-        ]
+        ],
+        sha="foobarfoobar",
+        id="foo",
     )
     if size > 0:
-        resolved_data_files = _resolve_data_files_in_dataset_repository(
-            dataset_info, pattern, allowed_extensions=extensions
+        resolved_data_files = _resolve_patterns_in_dataset_repository(
+            dataset_info, [pattern], allowed_extensions=extensions
         )
         assert len(resolved_data_files) == size
     else:
         with pytest.raises(FileNotFoundError):
-            resolved_data_files = _resolve_data_files_in_dataset_repository(
-                dataset_info, pattern, allowed_extensions=extensions
+            resolved_data_files = _resolve_patterns_in_dataset_repository(
+                dataset_info, [pattern], allowed_extensions=extensions
             )
 
 
-def test_fail_resolve_data_files_in_dataset_repository(complex_data_dir):
+def test_fail_resolve_patterns_in_dataset_repository(complex_data_dir):
     dataset_info = DatasetInfo(
         siblings=[
             {"rfilename": path.relative_to(complex_data_dir).as_posix()}
@@ -563,4 +571,4 @@ def test_fail_resolve_data_files_in_dataset_repository(complex_data_dir):
         ]
     )
     with pytest.raises(FileNotFoundError):
-        _resolve_data_files_in_dataset_repository(dataset_info, "blablabla")
+        _resolve_patterns_in_dataset_repository(dataset_info, "blablabla")
