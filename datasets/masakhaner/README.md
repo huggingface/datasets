@@ -38,6 +38,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: MasakhaNER
 ---
 
 # Dataset Card for MasakhaNER
