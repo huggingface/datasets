@@ -19,7 +19,7 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- legal-judgment-prediction
+- other
 ---
 
 # Dataset Card for "SwissJudgmentPrediction"
