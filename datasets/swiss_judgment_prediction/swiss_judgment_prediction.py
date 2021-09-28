@@ -14,14 +14,12 @@
 # limitations under the License.
 """Swiss-Court-Predict: A Multilingual Legal Judgment Prediction Benchmark"""
 
-
 import json
 
 import datasets
 
 
 logger = datasets.logging.get_logger(__name__)
-
 
 _CITATION = """\
 @InProceedings{niklaus-etal-2021-swiss,
@@ -34,11 +32,8 @@ _CITATION = """\
   location = {Punta Cana, Dominican Republic},
 }"""
 
-_DESCRIPTION = """\
-Swiss-Judgment-Prediction is a multilingual, diachronic dataset of 85K Swiss Federal Supreme Court (FSCS) cases annotated with
-the respective binarized judgment outcome (approval/dismissal), posing a challenging text classification task.  
-We also provide additional metadata, i.e., the publication year, the legal area and the canton of origin per case,  
-to promote robustness and fairness studies on the critical area of legal NLP. 
+_DESCRIPTION = """
+Swiss-Judgment-Prediction is a multilingual, diachronic dataset of 85K Swiss Federal Supreme Court (FSCS) cases annotated with the respective binarized judgment outcome (approval/dismissal), posing a challenging text classification task. We also provide additional metadata, i.e., the publication year, the legal area and the canton of origin per case, to promote robustness and fairness studies on the critical area of legal NLP.
 """
 
 _LANGUAGES = [
