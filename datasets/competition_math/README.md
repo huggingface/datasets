@@ -74,15 +74,19 @@ models to generate answer derivations and explanations.
 
 ### Data Instances
 
-[More Information Needed]
+A data instance consists of a competition math problem and its step-by-step solution written in LaTeX and natural language. The step-by-step solution contains the final answer enclosed in LaTeX's `\boxed` tag.
 
 ### Data Fields
 
-[More Information Needed]
+* `problem`: The competition math problem.
+* `solution`: The step-by-step solution.
+* `level`: The problem's difficulty level from 'Level 1' to 'Level 5', where a subject's easiest problems for humans are assigned to 'Level 1' and a subject's hardest problems are assigned to 'Level 5'.
+* `type`: The subject of the problem: Algebra, Counting & Probability, Geometry, Intermediate Algebra, Number Theory, Prealgebra and Precalculus.
 
 ### Data Splits
 
-[More Information Needed]
+* train: 7,500 examples
+* test: 5,000 examples
 
 ## Dataset Creation
 
