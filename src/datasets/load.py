@@ -350,6 +350,7 @@ def prepare_module(
     dynamic_modules_path: Optional[str] = None,
     return_resolved_file_path: bool = False,
     return_associated_base_path: bool = False,
+    return_namespace: bool = False,
     data_files: Optional[Union[Dict, List, str]] = None,
     script_version="deprecated",
     **download_kwargs,
@@ -450,6 +451,8 @@ def prepare_module(
             output += (None,)
         if return_associated_base_path:
             output += (None,)
+        if return_namespace:
+            output += (None,)
         return output
 
     # otherwise the module is added to the dynamic modules
@@ -483,16 +486,19 @@ def prepare_module(
             file_path = path
             local_path = path
             base_path = os.path.dirname(path)
+            namespace = None
         else:
             raise FileNotFoundError(f"Couldn't find a {resource_type} script at {relative_to_absolute_path(path)}")
     elif os.path.isfile(combined_path):
         file_path = combined_path
         local_path = combined_path
         base_path = path
+        namespace = None
     elif os.path.isfile(path):
         file_path = path
         local_path = path
         base_path = os.path.dirname(path)
+        namespace = None
     elif os.path.isdir(path):
         resolved_data_files = _resolve_data_files_locally_or_by_urls(
             path, data_files or "*", allowed_extensions=_EXTENSION_TO_MODULE.keys()
@@ -505,6 +511,8 @@ def prepare_module(
             output += (None,)
         if return_associated_base_path:
             output += (path,)
+        if return_namespace:
+            output += (None,)
         return output
     else:
         # Try github (canonical datasets/metrics) and then HF Hub (community datasets)
@@ -518,6 +526,7 @@ def prepare_module(
             revision = str(revision) if revision is not None else None
             if path.count("/") == 0:  # canonical datasets/metrics: github path
                 file_path = hf_github_url(path=path, name=name, dataset=dataset, revision=revision)
+                namespace = None
                 try:
                     local_path = cached_path(file_path, download_config=download_config)
                 except FileNotFoundError:
@@ -542,6 +551,11 @@ def prepare_module(
                             ) from None
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
                 file_path = hf_hub_url(path=path, name=name, revision=revision)
+                namespace = path[: path.index("/")]
+                if force_local_path is None:
+                    main_folder_path = os.path.join(
+                        datasets_modules_path if dataset else metrics_modules_path, f"{namespace}___{short_name}"
+                    )  # we have to use three underscores as in DatasetBuilder._relative_data_dir
                 if not dataset:
                     # We don't have community metrics on the HF Hub
                     raise FileNotFoundError(
@@ -576,6 +590,8 @@ def prepare_module(
                         output += (None,)
                     if return_associated_base_path:
                         output += (url_or_path_parent(file_path),)
+                    if return_namespace:
+                        output += (namespace,)
                     return output
             else:
                 raise FileNotFoundError(
@@ -591,9 +607,19 @@ def prepare_module(
                         return (Path(main_folder_path) / module_hash / name).stat().st_mtime
 
                     hash = sorted(hashes, key=_get_modification_time)[-1]
-                    module_path = ".".join(
-                        [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
-                    )
+                    if namespace is None:
+                        module_path = ".".join(
+                            [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
+                        )
+                    else:
+                        module_path = ".".join(
+                            [
+                                datasets_modules_name if dataset else metrics_modules_name,
+                                f"{namespace}___{short_name}",
+                                hash,
+                                short_name,
+                            ]
+                        )
                     logger.warning(
                         f"Using the latest cached version of the module from {os.path.join(main_folder_path, hash)} "
                         f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
@@ -606,6 +632,8 @@ def prepare_module(
                         output += (file_path,)
                     if return_associated_base_path:
                         output += (url_or_path_parent(file_path),)
+                    if return_namespace:
+                        output += (namespace,)
                     return output
             raise
 
@@ -767,9 +795,19 @@ def prepare_module(
                 raise OSError(f"Error with local import at {import_path}")
 
     if force_local_path is None:
-        module_path = ".".join(
-            [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
-        )
+        if namespace is None:
+            module_path = ".".join(
+                [datasets_modules_name if dataset else metrics_modules_name, short_name, hash, short_name]
+            )
+        else:
+            module_path = ".".join(
+                [
+                    datasets_modules_name if dataset else metrics_modules_name,
+                    f"{namespace}___{short_name}",
+                    hash,
+                    short_name,
+                ]
+            )
     else:
         module_path = local_file_path
 
@@ -781,6 +819,8 @@ def prepare_module(
         output += (file_path,)
     if return_associated_base_path:
         output += (base_path,)
+    if return_namespace:
+        output += (namespace,)
     return output
 
 
@@ -931,13 +971,14 @@ def load_dataset_builder(
         )
         revision = script_version
     # Download/copy dataset processing script
-    module_path, hash, base_path = prepare_module(
+    module_path, hash, base_path, namespace = prepare_module(
         path,
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
         dataset=True,
         return_associated_base_path=True,
+        return_namespace=True,
         use_auth_token=use_auth_token,
         data_files=data_files,
     )
@@ -987,6 +1028,7 @@ def load_dataset_builder(
         base_path=base_path,
         features=features,
         use_auth_token=use_auth_token,
+        namespace=namespace,
         **config_kwargs,
     )
 
