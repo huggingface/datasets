@@ -2242,13 +2242,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 validate_function_output(processed_inputs, indices)
             if not update_data:
                 return None  # Nothing to update, let's move on
+            # import pdb;pdb.set_trace()
             if self._format_type is not None:
                 inputs = self._getitem(
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
                     format_type=None,
                     format_columns=None,
                     format_kwargs=None,
-                    decoding=False,
+                    decoded=False,
                 )
             if remove_columns is not None:
                 for column in remove_columns:
