@@ -1545,17 +1545,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
-        format_type = self._format_type
-        format_kwargs = self._format_kwargs
-        format_columns = self._format_columns
-        output_all_columns = self._output_all_columns
         for index in range(self.num_rows):
             yield self._getitem(
                 index,
-                format_type=format_type,
-                format_columns=format_columns,
-                output_all_columns=output_all_columns,
-                format_kwargs=format_kwargs,
+                format_type=self._format_type,
+                format_columns=self._format_columns,
+                output_all_columns=self._output_all_columns,
+                format_kwargs=self._format_kwargs,
                 decoded=False,
             )
 
