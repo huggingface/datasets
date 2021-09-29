@@ -7,30 +7,32 @@ jobs:
     run_dataset_script_tests_pyarrow_latest:
         working_directory: ~/datasets
         docker:
-            - image: circleci/python:3.6
+            - image: cimg/python:3.6
         resource_class: medium
         steps:
             - checkout
+            - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow --upgrade
-            - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
+            - run: HF_SCRIPTS_VERSION=master python -m pytest -d --tx 2*popen//python=python3.6 -sv ./tests/
 
     run_dataset_script_tests_pyarrow_1:
         working_directory: ~/datasets
         docker:
-            - image: circleci/python:3.6
+            - image: cimg/python:3.6
         resource_class: medium
         steps:
             - checkout
+            - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==1.0.0
-            - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
+            - run: HF_SCRIPTS_VERSION=master python -m pytest -d --tx 2*popen//python=python3.6 -sv ./tests/
 
     run_dataset_script_tests_pyarrow_latest_WIN:
         working_directory: ~/datasets
@@ -39,6 +41,7 @@ jobs:
             shell: powershell
         steps:
             - checkout
+            - run: conda update conda
             - run: conda install python=3.6 --yes
             - run: conda install pytorch --yes
             - run: pip install virtualenv
@@ -48,7 +51,7 @@ jobs:
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow --upgrade
             - run: $env:HF_SCRIPTS_VERSION="master"
-            - run: python -m pytest -sv ./tests/
+            - run: python -m pytest -n 2 -sv ./tests/
 
     run_dataset_script_tests_pyarrow_1_WIN:
         working_directory: ~/datasets
@@ -57,6 +60,7 @@ jobs:
             shell: powershell
         steps:
             - checkout
+            - run: conda update conda
             - run: conda install python=3.6 --yes
             - run: conda install pytorch --yes
             - run: pip install virtualenv
@@ -66,7 +70,7 @@ jobs:
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==1.0.0
             - run: $env:HF_SCRIPTS_VERSION="master"
-            - run: python -m pytest -sv ./tests/
+            - run: python -m pytest -n 2 -sv ./tests/
 
     check_code_quality:
         working_directory: ~/datasets

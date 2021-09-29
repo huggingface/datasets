@@ -16,6 +16,7 @@ from datasets.features import (
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
     cast_to_python_objects,
+    encode_nested_example,
     string_to_arrow,
 )
 from datasets.info import DatasetInfo
@@ -236,6 +237,13 @@ def test_classlabel_int2str():
         classlabel.int2str(len(names))
 
 
+def test_encode_nested_example_sequence_with_none():
+    schema = Sequence(Value("int32"))
+    obj = None
+    result = encode_nested_example(schema, obj)
+    assert result is None
+
+
 def iternumpy(key1, value1, value2):
     if value1.dtype != value2.dtype:  # check only for dtype
         raise AssertionError(
@@ -335,9 +343,10 @@ class CastToPythonObjectsTest(TestCase):
             "col_1": [{"vec": jnp.array(np.arange(1, 4)), "txt": "foo"}] * 3,
             "col_2": jnp.array(np.arange(1, 7).reshape(3, 2)),
         }
+        assert obj["col_2"].dtype == jnp.int32
         expected_obj = {
-            "col_1": [{"vec": np.array([1, 2, 3]), "txt": "foo"}] * 3,
-            "col_2": np.array([[1, 2], [3, 4], [5, 6]]),
+            "col_1": [{"vec": np.array([1, 2, 3], dtype=np.int32), "txt": "foo"}] * 3,
+            "col_2": np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32),
         }
         casted_obj = cast_to_python_objects(obj)
         dict_diff(casted_obj, expected_obj)

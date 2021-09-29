@@ -31,3 +31,12 @@ _PACKAGED_DATASETS_MODULES = {
     "parquet": (parquet.__name__, hash_python_lines(inspect.getsource(parquet).splitlines())),
     "text": (text.__name__, hash_python_lines(inspect.getsource(text).splitlines())),
 }
+
+_EXTENSION_TO_MODULE = {
+    "csv": "csv",
+    "tsv": "csv",
+    "json": "json",
+    "jsonl": "json",
+    "parquet": "parquet",
+    "txt": "text",
+}

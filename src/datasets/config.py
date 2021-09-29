@@ -13,15 +13,16 @@ logger = get_logger(__name__)
 # Datasets
 S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets"
 CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/datasets"
-REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/datasets/{path}/{name}"
+REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/datasets/{path}/{name}"
 
 # Metrics
 S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
-REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
+REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/metrics/{path}/{name}"
 
 # Hub
-HUB_DATASETS_URL = "https://huggingface.co/datasets/{path}/resolve/{version}/{name}"
+HF_ENDPOINT = os.environ.get("HF_ENDPOINT", "https://huggingface.co")
+HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{path}/resolve/{revision}/{name}"
 HUB_DEFAULT_VERSION = "main"
 
 PY_VERSION = version.parse(platform.python_version())
@@ -120,21 +121,10 @@ else:
     logger.info("Disabling Apache Beam because USE_BEAM is set to False")
 
 
-USE_RAR = os.environ.get("USE_RAR", "AUTO").upper()
-RARFILE_VERSION = "N/A"
-RARFILE_AVAILABLE = False
-if USE_RAR in ("1", "ON", "YES", "AUTO"):
-    try:
-        RARFILE_VERSION = version.parse(importlib_metadata.version("rarfile"))
-        RARFILE_AVAILABLE = True
-        logger.info("rarfile available.")
-    except importlib_metadata.PackageNotFoundError:
-        pass
-else:
-    logger.info("Disabling rarfile because USE_RAR is set to False")
-
-
+# Optional compression tools
+RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
 ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
+LZ4_AVAILABLE = importlib.util.find_spec("lz4") is not None
 
 
 # Cache location
@@ -195,6 +185,5 @@ MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255
 
 # Streaming
 
-AIOHTTP_AVAILABLE = importlib.util.find_spec("aiohttp") is not None
 STREAMING_READ_MAX_RETRIES = 3
 STREAMING_READ_RETRY_INTERVAL = 1
