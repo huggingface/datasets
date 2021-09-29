@@ -694,7 +694,9 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModuleFactoryResult:
         dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
-            self.name, revision=self.revision, token=self.download_config.use_auth_token
+            self.name,
+            revision=self.revision,
+            token=self.download_config.use_auth_token,  # TODO(QL): add timeout=100.0
         )
         data_files = DataFilesDict.from_hf_repo(
             _sanitize_patterns(self.data_files),
@@ -1007,7 +1009,9 @@ def dataset_module_factory(
                 hf_api = HfApi(config.HF_ENDPOINT)
                 try:
                     dataset_info = hf_api.dataset_info(
-                        repo_id=path, revision=revision, token=download_config.use_auth_token
+                        repo_id=path,
+                        revision=revision,
+                        token=download_config.use_auth_token,  # TODO(QL): add timeout=100.0
                     )
                 except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
                     if isinstance(
@@ -1018,8 +1022,12 @@ def dataset_module_factory(
                             requests.exceptions.ConnectionError,
                         ),
                     ):
-                        raise ConnectionError(f"Couldn't reach '{path}' on the Hub")
-                    raise FileNotFoundError(f"Dataset '{path}' doesn't exist on the Hub")
+                        raise ConnectionError(f"Couldn't reach '{path}' on the Hub ({type(e).__name__})")
+                    elif "404" in str(e):
+                        msg = f"Dataset '{path}' doesn't exist on the Hub"
+                        raise FileNotFoundError(msg + f" at revision '{revision}'" if revision else msg)
+                    else:
+                        raise e
                 if filename in [sibling.rfilename for sibling in dataset_info.siblings]:
                     return CommunityDatasetModuleFactoryWithScript(
                         path,
@@ -1045,7 +1053,7 @@ def dataset_module_factory(
                 if isinstance(e1, FileNotFoundError):
                     raise FileNotFoundError(
                         f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory. "
-                        f"Dataset '{path}' doesn't exist on the Hugging Face Hub either: {type(e1)}: {e1}"
+                        f"Couldn't find '{path}' on the Hugging Face Hub either: {type(e1).__name__}: {e1}"
                     ) from None
                 raise e1 from None
     else:
