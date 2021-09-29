@@ -172,7 +172,7 @@ class DataFilesList(List[Union[Path, Url]]):
     @staticmethod
     def from_hf_repo(
         patterns: List[str],
-        dataset_info: Optional[huggingface_hub.hf_api.DatasetInfo] = None,
+        dataset_info: huggingface_hub.hf_api.DatasetInfo,
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesList":
         data_files = _resolve_patterns_in_dataset_repository(dataset_info, patterns, allowed_extensions)
@@ -217,7 +217,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
     @staticmethod
     def from_hf_repo(
         patterns: Dict[str, Union[List[str], DataFilesList]],
-        dataset_info: Optional[huggingface_hub.hf_api.DatasetInfo] = None,
+        dataset_info: huggingface_hub.hf_api.DatasetInfo,
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesDict":
         out = DataFilesDict()
