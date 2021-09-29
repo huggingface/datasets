@@ -274,7 +274,11 @@ def test_load_dataset_builder_for_community_dataset_with_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
+    assert builder.config.name == "default"
     assert builder.info.features == Features({"text": Value("string")})
+    namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
+    assert builder._relative_data_dir().startswith(namespace)
+    assert SAMPLE_DATASET_IDENTIFIER.replace("/", "___") in builder.__module__
 
 
 def test_load_dataset_builder_for_community_dataset_without_script():

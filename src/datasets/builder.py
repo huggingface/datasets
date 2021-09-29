@@ -205,6 +205,7 @@ class DatasetBuilder:
         base_path: Optional[str] = None,
         features: Optional[Features] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
+        namespace: Optional[str] = None,
         data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
         data_dir: Optional[str] = None,
         **config_kwargs,
@@ -226,6 +227,12 @@ class DatasetBuilder:
                 It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
             use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
                 for remote files on the Datasets Hub. If True, will get token from ``"~/.huggingface"``.
+            namespace: `str`, used to separate builders with the same name but not coming from the same namespace.
+                For example to separate "squad" from "lhoestq/squad".
+            data_files: for builders like "csv" or "json" that need the user to specify data files. They can be either
+                local or remote files. For convenience you can use a DataFilesDict.
+            data_files: `str`, for builders that require manual download. It must be the path to the local directory containing
+                the manually downloaded data.
             config_kwargs: will override the defaults kwargs in config
 
         """
@@ -234,6 +241,7 @@ class DatasetBuilder:
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.use_auth_token = use_auth_token
+        self.namespace = namespace
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_local_or_remote(
@@ -404,9 +412,11 @@ class DatasetBuilder:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
+        or if a namespace has been specified:
+            self.namespace___self.name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-        builder_data_dir = self.name
+        builder_data_dir = self.name if self.namespace is None else f"{self.namespace}___{self.name})"
         builder_config = self.config
         hash = self.hash
         if builder_config:

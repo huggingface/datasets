@@ -713,7 +713,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "name": self.name.replace("/", "___"),
+            "namespace": self.name.split("/")[0],
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
         }
         return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
@@ -787,7 +787,7 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
                 self.name.split("/")[1],
             ]
         )
-        builder_kwargs = {"hash": hash, "base_path": hf_hub_url(self.name, "", revision=self.revision)}
+        builder_kwargs = {"hash": hash, "base_path": hf_hub_url(self.name, "", revision=self.revision), "namespace": self.name.split("/")[0]}
         return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
 
 
@@ -833,7 +833,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             ]
         )
         importlib.invalidate_caches()
-        builder_kwargs = {"hash": hash}
+        builder_kwargs = {"hash": hash, "namespace": self.name.split("/")[0]}
         return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
 
 
