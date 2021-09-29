@@ -248,13 +248,13 @@ class Metric(MetricInfoMixin):
                         f"Error in _create_cache_file: another metric instance is already using the local cache file at {file_path}. "
                         f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid collision "
                         f"between distributed metric instances."
-                    )
+                    ) from None
                 if i == self.max_concurrent_cache_files - 1:
                     raise ValueError(
                         f"Cannot acquire lock, too many metric instance are operating concurrently on this file system."
                         f"You should set a larger value of max_concurrent_cache_files when creating the metric "
                         f"(current value is {self.max_concurrent_cache_files})."
-                    )
+                    ) from None
                 # In other cases (allow to find new file name + not yet at max num of attempts) we can try to sample a new hashing name.
                 file_uuid = str(uuid.uuid4())
                 file_path = os.path.join(
@@ -292,7 +292,9 @@ class Metric(MetricInfoMixin):
                 try:
                     filelock.acquire(timeout=self.timeout)
                 except Timeout:
-                    raise ValueError(f"Cannot acquire lock on cached file {file_path} for process {process_id}.")
+                    raise ValueError(
+                        f"Cannot acquire lock on cached file {file_path} for process {process_id}."
+                    ) from None
                 else:
                     filelocks.append(filelock)
 
@@ -310,7 +312,7 @@ class Metric(MetricInfoMixin):
             except Timeout:
                 raise ValueError(
                     f"Expected to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
-                )
+                ) from None
             else:
                 nofilelock.release()
 
@@ -322,7 +324,7 @@ class Metric(MetricInfoMixin):
         except Timeout:
             raise ValueError(
                 f"Expected to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
-            )
+            ) from None
         else:
             nofilelock.release()
         lock_file_name = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock")
@@ -330,7 +332,7 @@ class Metric(MetricInfoMixin):
         try:
             rendez_vous_lock.acquire(timeout=self.timeout)
         except Timeout:
-            raise ValueError(f"Couldn't acquire lock on {lock_file_name} from process {self.process_id}.")
+            raise ValueError(f"Couldn't acquire lock on {lock_file_name} from process {self.process_id}.") from None
         else:
             rendez_vous_lock.release()
 
@@ -362,7 +364,7 @@ class Metric(MetricInfoMixin):
                 raise ValueError(
                     "Error in finalize: another metric instance is already using the local cache file. "
                     "Please specify an experiment_id to avoid collision between distributed metric instances."
-                )
+                ) from None
 
             # Store file paths and locks and we will release/delete them after the computation.
             self.file_paths = file_paths
@@ -439,7 +441,7 @@ class Metric(MetricInfoMixin):
                 f"Expected format: {self.features},\n"
                 f"Input predictions: {predictions},\n"
                 f"Input references: {references}"
-            )
+            ) from None
 
     def add(self, *, prediction=None, reference=None):
         """Add one prediction and reference for the metric's stack.
@@ -460,7 +462,7 @@ class Metric(MetricInfoMixin):
                 f"Expected format: {self.features},\n"
                 f"Input predictions: {prediction},\n"
                 f"Input references: {reference}"
-            )
+            ) from None
 
     def _init_writer(self, timeout=1):
         if self.num_process > 1:
@@ -474,7 +476,7 @@ class Metric(MetricInfoMixin):
                         f"Error in _init_writer: another metric instance is already using the local cache file at {file_path}. "
                         f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid collision "
                         f"between distributed metric instances."
-                    )
+                    ) from None
 
         if self.keep_in_memory:
             self.buf_writer = pa.BufferOutputStream()

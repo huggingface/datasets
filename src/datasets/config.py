@@ -13,15 +13,16 @@ logger = get_logger(__name__)
 # Datasets
 S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets"
 CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/datasets"
-REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/datasets/{path}/{name}"
+REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/datasets/{path}/{name}"
 
 # Metrics
 S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
-REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
+REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{revision}/metrics/{path}/{name}"
 
 # Hub
-HUB_DATASETS_URL = "https://huggingface.co/datasets/{path}/resolve/{version}/{name}"
+HF_ENDPOINT = os.environ.get("HF_ENDPOINT", "https://huggingface.co")
+HUB_DATASETS_URL = HF_ENDPOINT + "/datasets/{path}/resolve/{revision}/{name}"
 HUB_DEFAULT_VERSION = "main"
 
 PY_VERSION = version.parse(platform.python_version())
@@ -184,6 +185,5 @@ MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255
 
 # Streaming
 
-AIOHTTP_AVAILABLE = importlib.util.find_spec("aiohttp") is not None
 STREAMING_READ_MAX_RETRIES = 3
 STREAMING_READ_RETRY_INTERVAL = 1

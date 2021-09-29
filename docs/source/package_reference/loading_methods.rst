@@ -1,7 +1,7 @@
 Loading methods
-----------------------------------------------------
+---------------
 
-Methods are provided to list and load datasets and metrics.
+Methods for listing and loading datasets and metrics:
 
 Datasets
 ~~~~~~~~~~~~~~~~~~~~~
@@ -14,9 +14,17 @@ Datasets
 
 .. autofunction:: datasets.load_dataset_builder
 
+.. autofunction:: datasets.get_dataset_config_names
+
+.. autofunction:: datasets.get_dataset_infos
+
+.. autofunction:: datasets.inspect_dataset
+
 Metrics
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: datasets.list_metrics
 
 .. autofunction:: datasets.load_metric
+
+.. autofunction:: datasets.inspect_metric
