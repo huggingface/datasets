@@ -88,23 +88,40 @@ else:
 
 
 class LazyDict(UserDict):
-    def __init__(self, data, features=None):
-        # super().__init__(*args, **kwargs)
+    def __init__(self, data, features=None, decoding=True):
         self.data = data
-        self.features = features
-
-    def __getitem__(self, key):
-        example = super().__getitem__(key)
-        if self.features and key in self.features and hasattr(self.features[key], "decode_example"):
-            example = self.features[key].decode_example(example)
-            self[key] = example
-        return example
+        self.features = (
+            {key: feature for key, feature in features.items() if hasattr(feature, "decode_example")}
+            if features
+            else {}
+        )
+        self.decoding = decoding
 
     def values(self):
         return self.data.values()
 
     def items(self):
         return self.data.items()
+
+
+class Example(LazyDict):
+    def __getitem__(self, key):
+        value = super().__getitem__(key)
+        if self.decoding and self.features and key in self.features:
+            value = self.features[key].decode_example(value)
+            self[key] = value
+            del self.features[key]
+        return value
+
+
+class Batch(LazyDict):
+    def __getitem__(self, key):
+        values = super().__getitem__(key)
+        if self.decoding and self.features and key in self.features:
+            values = [self.features[key].decode_example(value) for value in values]
+            self[key] = values
+            del self.features[key]
+        return values
 
 
 class DatasetInfoMixin:
