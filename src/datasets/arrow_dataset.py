@@ -1934,14 +1934,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         def decorate(f):
             @wraps(f)
             def decorated(item, *args, **kwargs):
-                # TODO: batched
-                decorated_item = LazyDict(item, features=self.features)
+                decorated_item = (
+                    Example(item, features=self.features) if not batched else Batch(item, features=self.features)
+                )
                 result = f(decorated_item, *args, **kwargs)
                 return result.data if isinstance(result, LazyDict) else result
 
             return decorated
 
-        function = decorate(function) if not self._format_type and not batched and not input_columns else function
+        function = decorate(function) if not self._format_type and not input_columns else function
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
