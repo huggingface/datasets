@@ -5,7 +5,7 @@ annotations_creators:
 language_creators:
 - found
 languages:
-  - sv-SE
+- sv-SE
 licenses:
 - cc-by-sa-4.0
 multilinguality:

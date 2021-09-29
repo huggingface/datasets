@@ -82,7 +82,9 @@ class SwedishMedicalNer(datasets.GeneratorBasedBuilder):
                             "start": datasets.Value("int32"),
                             "end": datasets.Value("int32"),
                             "text": datasets.Value("string"),
-                            "type": datasets.Value("string"),
+                            "type": datasets.ClassLabel(
+                                names=["Disorder and Finding", "Pharmaceutical Drug", "Body Structure"]
+                            ),
                         }
                     ),
                 }
@@ -97,7 +99,9 @@ class SwedishMedicalNer(datasets.GeneratorBasedBuilder):
                             "start": datasets.Value("int32"),
                             "end": datasets.Value("int32"),
                             "text": datasets.Value("string"),
-                            "type": datasets.Value("string"),
+                            "type": datasets.ClassLabel(
+                                names=["Disorder and Finding", "Pharmaceutical Drug", "Body Structure"]
+                            ),
                         }
                     ),
                 }
@@ -112,7 +116,9 @@ class SwedishMedicalNer(datasets.GeneratorBasedBuilder):
                             "start": datasets.Value("int32"),
                             "end": datasets.Value("int32"),
                             "text": datasets.Value("string"),
-                            "type": datasets.Value("string"),
+                            "type": datasets.ClassLabel(
+                                names=["Disorder and Finding", "Pharmaceutical Drug", "Body Structure"]
+                            ),
                         }
                     ),
                 }
@@ -158,8 +164,6 @@ class SwedishMedicalNer(datasets.GeneratorBasedBuilder):
                 return "Pharmaceutical Drug"
             elif (s == "{") and (e == "}"):
                 return "Body Structure"
-            else:
-                return ""
 
         pattern = r"\[([^\[\]()]+)\]|\(([^\[\]()]+)\)|\{([^\[\]()]+)\}"
         with open(filepath, encoding="utf-8") as f:
@@ -179,7 +183,7 @@ class SwedishMedicalNer(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         "sid": self.config.name + "_" + str(id_),
                         "sentence": sentence,
-                        "entities": targets if targets else [{"start": 999, "end": 999, "text": "", "type": ""}],
+                        "entities": targets if targets else [],
                     }
                 else:
                     targets = [
@@ -194,5 +198,5 @@ class SwedishMedicalNer(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         "sid": self.config.name + "_" + str(id_),
                         "sentence": sentence,
-                        "entities": targets if targets else [{"start": 999, "end": 999, "text": "", "type": ""}],
+                        "entities": targets if targets else [],
                     }
