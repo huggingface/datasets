@@ -228,7 +228,7 @@ class DatasetBuilder:
             use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
                 for remote files on the Datasets Hub. If True, will get token from ``"~/.huggingface"``.
             namespace: `str`, used to separate builders with the same name but not coming from the same namespace.
-                For example to separate "squad" from "lhoestq/squad".
+                For example to separate "squad" from "lhoestq/squad" (the builder name would be "lhoestq___squad").
             data_files: for builders like "csv" or "json" that need the user to specify data files. They can be either
                 local or remote files. For convenience you can use a DataFilesDict.
             data_files: `str`, for builders that require manual download. It must be the path to the local directory containing

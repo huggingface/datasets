@@ -41,7 +41,7 @@ def _resolve_single_pattern_locally(
     Return the absolute paths to all the files that match the given patterns.
     It also supports absolute paths in patterns.
     If an URL is passed, it is returned as is."""
-    data_files_ignore = ["README.md", "config.json"]
+    data_files_ignore = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip"]
     if is_relative_path(pattern):
         glob_iter = list(Path(base_path).rglob(pattern))
     else:
@@ -90,7 +90,7 @@ def _exec_patterns_in_dataset_repository(
     patterns: List[str],
     allowed_extensions: Optional[list] = None,
 ) -> List[PurePath]:
-    data_files_ignore = ["README.md", "config.json"]
+    data_files_ignore = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip"]
     all_data_files = [
         PurePath("/" + dataset_file.rfilename) for dataset_file in dataset_info.siblings
     ]  # add a / at the beginning to make the pattern **/* match files at the root
