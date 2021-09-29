@@ -946,6 +946,27 @@ class BaseDatasetTest(TestCase):
                         with dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}}) as dset:
                             self.assertEqual(dset[0], {"field": "a", "otherfield": {"append_x": "ax"}})
 
+    def test_map_fn_kwargs(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict({"id": range(10)}) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fn_kwargs = {"offset": 3}
+                    with dset.map(
+                        lambda example, offset: {"id+offset": example["id"] + offset}, fn_kwargs=fn_kwargs
+                    ) as mapped_dset:
+                        assert mapped_dset["id+offset"] == list(range(3, 13))
+                    with dset.map(
+                        lambda id, offset: {"id+offset": id + offset}, fn_kwargs=fn_kwargs, input_columns="id"
+                    ) as mapped_dset:
+                        assert mapped_dset["id+offset"] == list(range(3, 13))
+                    with dset.map(
+                        lambda id, i, offset: {"id+offset": i + offset},
+                        fn_kwargs=fn_kwargs,
+                        input_columns="id",
+                        with_indices=True,
+                    ) as mapped_dset:
+                        assert mapped_dset["id+offset"] == list(range(3, 13))
+
     def test_map_caching(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self._caplog.clear()
@@ -1153,6 +1174,27 @@ class BaseDatasetTest(TestCase):
                     self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))
                     self.assertNotEqual(dset_filter_even_num._fingerprint, fingerprint)
                     self.assertEqual(dset_filter_even_num.format["type"], "numpy")
+
+    def test_filter_fn_kwargs(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Dataset.from_dict({"id": range(10)}) as dset:
+                with self._to(in_memory, tmp_dir, dset) as dset:
+                    fn_kwargs = {"max_offset": 3}
+                    with dset.filter(
+                        lambda example, max_offset: example["id"] < max_offset, fn_kwargs=fn_kwargs
+                    ) as filtered_dset:
+                        assert len(filtered_dset) == 3
+                    with dset.filter(
+                        lambda id, max_offset: id < max_offset, fn_kwargs=fn_kwargs, input_columns="id"
+                    ) as filtered_dset:
+                        assert len(filtered_dset) == 3
+                    with dset.filter(
+                        lambda id, i, max_offset: i < max_offset,
+                        fn_kwargs=fn_kwargs,
+                        input_columns="id",
+                        with_indices=True,
+                    ) as filtered_dset:
+                        assert len(filtered_dset) == 3
 
     def test_filter_multiprocessing(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:

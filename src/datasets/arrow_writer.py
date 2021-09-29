@@ -312,11 +312,13 @@ class ArrowWriter:
             inferred_type = pa_array.type
             first_example = pa.array(OptimizedTypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
-                raise OverflowError(
-                    "There was an overflow in the {}. Try to reduce writer_batch_size to have batches smaller than 2GB".format(
-                        type(pa_array)
+                # This check fails with FloatArrays with nans, which is not what we want, so account for that:
+                if not isinstance(pa_array[0], pa.lib.FloatScalar):
+                    raise OverflowError(
+                        "There was an overflow in the {}. Try to reduce writer_batch_size to have batches smaller than 2GB".format(
+                            type(pa_array)
+                        )
                     )
-                )
             arrays.append(pa_array)
             inferred_types.append(inferred_type)
         schema = pa.schema(zip(cols, inferred_types)) if self.pa_writer is None else self._schema
