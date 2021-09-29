@@ -121,7 +121,7 @@ class COMET(datasets.Metric):
                     "references": datasets.Value("string", id="sequence"),
                 }
             ),
-            codebase_urls=["hhttps://github.com/Unbabel/COMET"],
+            codebase_urls=["https://github.com/Unbabel/COMET"],
             reference_urls=[
                 "https://github.com/Unbabel/COMET",
                 "https://www.aclweb.org/anthology/2020.emnlp-main.213/",

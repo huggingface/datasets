@@ -26,7 +26,19 @@ from datasets.data_files import (
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
-from datasets.load import prepare_module
+from datasets.load import (
+    CachedDatasetModuleFactory,
+    CachedMetricModuleFactory,
+    CanonicalDatasetModuleFactory,
+    CanonicalMetricModuleFactory,
+    CommunityDatasetModuleFactoryWithoutScript,
+    CommunityDatasetModuleFactoryWithScript,
+    LocalDatasetModuleFactoryWithoutScript,
+    LocalDatasetModuleFactoryWithScript,
+    LocalMetricModuleFactory,
+    PackagedDatasetModuleFactory,
+    prepare_module,
+)
 from datasets.utils.file_utils import DownloadConfig, hf_hub_url, is_remote_url
 
 from .utils import (
@@ -64,10 +76,27 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
                 yield i, {"text": line.strip()}
 """
 
-SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"
-SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"
+SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
+SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"  # only has data files
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
+
+
+METRIC_LOADING_SCRIPT_NAME = "__dummy_metric1__"
+
+METRIC_LOADING_SCRIPT_CODE = """
+import datasets
+from datasets import MetricInfo, Features, Value
+
+
+class __DummyMetric1__(datasets.Metric):
+
+    def _info(self):
+        return MetricInfo(features=Features({"predictions": Value("int"), "references": Value("int")}))
+
+    def _compute(self, predictions, references):
+        return {"__dummy_metric1__": sum(int(p == r) for p, r in zip(predictions, references))}
+"""
 
 
 @pytest.fixture
@@ -108,6 +137,100 @@ def dataset_loading_script_dir(tmp_path):
     return str(script_dir)
 
 
+@pytest.fixture
+def metric_loading_script_dir(tmp_path):
+    script_name = METRIC_LOADING_SCRIPT_NAME
+    script_dir = tmp_path / script_name
+    script_dir.mkdir()
+    script_path = script_dir / f"{script_name}.py"
+    with open(script_path, "w") as f:
+        f.write(METRIC_LOADING_SCRIPT_CODE)
+    return str(script_dir)
+
+
+class ModuleFactoryTest(TestCase):
+    @pytest.fixture(autouse=True)
+    def inject_fixtures(self, jsonl_path, data_dir, dataset_loading_script_dir, metric_loading_script_dir):
+        self._jsonl_path = jsonl_path
+        self._data_dir = data_dir
+        self._dataset_loading_script_dir = dataset_loading_script_dir
+        self._metric_loading_script_dir = metric_loading_script_dir
+
+    def setUp(self):
+        self.hf_modules_cache = tempfile.mkdtemp()
+        self.cache_dir = tempfile.mkdtemp()
+        self.download_config = DownloadConfig(cache_dir=self.cache_dir)
+        self.dynamic_modules_path = datasets.load.init_dynamic_modules(
+            name="test_datasets_modules_" + os.path.basename(self.hf_modules_cache), hf_modules_cache=self.hf_modules_cache
+        )
+
+    def test_CanonicalDatasetModuleFactory(self):
+        # "wmt_t2t" has additional imports (internal)
+        factory = CanonicalDatasetModuleFactory(
+            "wmt_t2t", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CanonicalMetricModuleFactory(self):
+        # "bleu" requires additional imports (external from github)
+        factory = CanonicalMetricModuleFactory(
+            "bleu", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_LocalMetricModuleFactory(self):
+        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
+        factory = LocalMetricModuleFactory(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_LocalDatasetModuleFactoryWithScript(self):
+        path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
+        factory = LocalDatasetModuleFactoryWithScript(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_LocalDatasetModuleFactoryWithoutScript(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir)
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_PackagedDatasetModuleFactory(self):
+        factory = PackagedDatasetModuleFactory(
+            "json", data_files=self._jsonl_path, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CommunityDatasetModuleFactoryWithoutScript(self):
+        factory = CommunityDatasetModuleFactoryWithoutScript(
+            SAMPLE_DATASET_IDENTIFIER2, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CommunityDatasetModuleFactoryWithScript(self):
+        factory = CommunityDatasetModuleFactoryWithScript(
+            SAMPLE_DATASET_IDENTIFIER,
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CachedDatasetModuleFactory(self):
+        pass
+
+    def test_CachedMetricModuleFactory(self):
+        pass
+
+
 class LoadTest(TestCase):
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
@@ -116,7 +239,7 @@ class LoadTest(TestCase):
     def setUp(self):
         self.hf_modules_cache = tempfile.mkdtemp()
         self.dynamic_modules_path = datasets.load.init_dynamic_modules(
-            name="test_datasets_modules", hf_modules_cache=self.hf_modules_cache
+            name="test_datasets_modules2", hf_modules_cache=self.hf_modules_cache
         )
 
     def tearDown(self):

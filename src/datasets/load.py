@@ -454,6 +454,8 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         # the copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name)
+        Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
+        (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
         hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
         importable_local_file = _copy_script_and_other_resouces_in_importable_dir(
             name=self.name,
@@ -468,7 +470,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
         module_path = ".".join([os.path.basename(dynamic_modules_path), "datasets", self.name, hash, self.name])
-        builder_kwargs = {"hash": hash, "base_name": hf_github_url(self.name, "", revision=revision)}
+        builder_kwargs = {"hash": hash, "base_path": hf_github_url(self.name, "", revision=revision)}
         return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
 
 
@@ -522,6 +524,8 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
         # the copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         importable_directory_path = os.path.join(dynamic_modules_path, "metrics", self.name)
+        Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
+        (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
         hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
         importable_local_file = _copy_script_and_other_resouces_in_importable_dir(
             name=self.name,
@@ -543,11 +547,13 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
     def __init__(
         self,
         path: str,
+        download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[GenerateMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.path = path
         self.name = Path(path).stem
+        self.download_config = download_config
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
 
@@ -555,11 +561,13 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
         # get script and other files
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
-            name=self.name, base_path=str(Path(self.path).parent), imports=imports, download_config=None
+            name=self.name, base_path=str(Path(self.path).parent), imports=imports, download_config=self.download_config
         )
         # the copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         importable_directory_path = os.path.join(dynamic_modules_path, "metrics", self.name)
+        Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
+        (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
         hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
         importable_local_file = _copy_script_and_other_resouces_in_importable_dir(
             name=self.name,
@@ -581,11 +589,13 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     def __init__(
         self,
         path: str,
+        download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[GenerateMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.path = path
         self.name = Path(path).stem
+        self.download_config = download_config
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
 
@@ -594,7 +604,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
-            name=self.name, base_path=str(Path(self.path).parent), imports=imports, download_config=None
+            name=self.name, base_path=str(Path(self.path).parent), imports=imports, download_config=self.download_config
         )
         additional_files = (
             [(config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path))] if dataset_infos_path.is_file() else []
@@ -602,6 +612,8 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         # the copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name)
+        Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
+        (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
         hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
         importable_local_file = _copy_script_and_other_resouces_in_importable_dir(
             name=self.name,
@@ -767,6 +779,9 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         # the copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name.replace("/", "___"))
+        Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
+        (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
+        (Path(importable_directory_path) / "__init__.py").touch(exist_ok=True)
         hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
         importable_local_file = _copy_script_and_other_resouces_in_importable_dir(
             name=self.name.split("/")[1],
