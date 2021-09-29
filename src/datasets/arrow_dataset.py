@@ -1777,18 +1777,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         dataset = dataset.cast(features=template.features)
         return dataset
 
-    def _getitem(
-        self,
-        key: Union[int, slice, str],
-        decoded: bool = True,
-        **kwargs
-    ) -> Union[Dict, List]:
+    def _getitem(self, key: Union[int, slice, str], decoded: bool = True, **kwargs) -> Union[Dict, List]:
         """
         Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
         """
         format_type = kwargs["format_type"] if "format_type" in kwargs else self._format_type
         format_columns = kwargs["format_columns"] if "format_columns" in kwargs else self._format_columns
-        output_all_columns = kwargs["output_all_columns"] if "output_all_columns" in kwargs else self._output_all_columns
+        output_all_columns = (
+            kwargs["output_all_columns"] if "output_all_columns" in kwargs else self._output_all_columns
+        )
         format_kwargs = kwargs["format_kwargs"] if "format_kwargs" in kwargs else self._format_kwargs
         format_kwargs = format_kwargs if format_kwargs is not None else {}
         formatter = get_formatter(format_type, features=self.features, decoded=decoded, **format_kwargs)
