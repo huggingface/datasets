@@ -1006,7 +1006,6 @@ def dataset_module_factory(
                         repo_id=path, revision=revision, token=download_config.use_auth_token
                     )
                 except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
-                    raise
                     if isinstance(
                         e,
                         (
@@ -1034,7 +1033,6 @@ def dataset_module_factory(
                         download_mode=download_mode,
                     ).get_module()
         except Exception as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
-            raise
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
             except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
@@ -1252,7 +1250,7 @@ def load_metric(
         revision = script_version
     metric_module = metric_module_factory(
         path, revision=revision, download_config=download_config, download_mode=download_mode
-    ).module_name
+    ).module_path
     metric_cls = import_main_class(metric_module, dataset=False)
     metric = metric_cls(
         config_name=config_name,

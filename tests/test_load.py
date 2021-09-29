@@ -6,7 +6,7 @@ import tempfile
 import time
 from functools import partial
 from hashlib import sha256
-from pathlib import Path, PurePath
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -203,10 +203,11 @@ class LoadTest(TestCase):
             with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("_dummy")
-                self.assertIn(
-                    f"https://raw.githubusercontent.com/huggingface/datasets/{scripts_version}/datasets/_dummy/_dummy.py",
-                    str(context.exception),
-                )
+                if offline_simulation_mode != OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
+                    self.assertIn(
+                        f"https://raw.githubusercontent.com/huggingface/datasets/{scripts_version}/datasets/_dummy/_dummy.py",
+                        str(context.exception),
+                    )
 
     def test_load_dataset_users(self):
         with self.assertRaises(FileNotFoundError) as context:
@@ -216,13 +217,10 @@ class LoadTest(TestCase):
             str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
-            with offline(OfflineSimulationMode.CONNECTION_TIMES_OUT):
+            with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("lhoestq/_dummy")
-                self.assertIn(
-                    "lhoestq/_dummy",
-                    str(context.exception),
-                )
+                self.assertIn("lhoestq/_dummy", str(context.exception))
 
 
 def test_load_dataset_builder_for_absolute_script_dir(dataset_loading_script_dir, data_dir):

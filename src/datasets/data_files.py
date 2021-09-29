@@ -26,10 +26,8 @@ class Url(str):
 def _sanitize_patterns(patterns: Union[Dict, List, str, None]) -> Dict[str, Union[List[str], "DataFilesList"]]:
     if patterns is None:
         return {DEFAULT_SPLIT: ["*"]}
-    if isinstance(patterns, dict) and all(isinstance(value, DataFilesList) for value in patterns.values()):
-        return patterns
     if isinstance(patterns, dict):
-        return {key: [value] if isinstance(value, str) else list(value) for key, value in patterns.items()}
+        return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
     elif isinstance(patterns, str):
         return {DEFAULT_SPLIT: [patterns]}
     else:
@@ -232,3 +230,14 @@ class DataFilesDict(Dict[str, DataFilesList]):
                 else patterns_for_key
             )
         return out
+
+    def __reduce__(self):
+        """
+        To make sure the order of the keys doesn't matter when pickling and hashing:
+
+        >>> from datasets.data_files import DataFilesDict
+        >>> from datasets.fingerprint import Hasher
+        >>> assert Hasher.hash(DataFilesDict(a=[], b=[])) == Hasher.hash(DataFilesDict(b=[], a=[]))
+
+        """
+        return DataFilesDict, (dict(sorted(self.items())),)
