@@ -126,7 +126,7 @@ and its transcription, called `text`. Some additional information about the spea
 
 ### Data Splits
 
-The dataset consits of the following splits:
+The dataset consists of several configurations, each one having train/validation/test splits:
 
 - headset-single: Close talking audio of single headset. This configuration only includes audio belonging to the headset of the person currently speaking.
 
