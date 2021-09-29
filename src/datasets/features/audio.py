@@ -5,7 +5,7 @@ from typing import Any, ClassVar, Optional
 import pyarrow as pa
 
 
-@dataclass(frozen=True)
+@dataclass(unsafe_hash=True)
 class Audio:
     """Audio Feature to extract audio data from an audio file.
 
@@ -21,6 +21,7 @@ class Audio:
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = None
     _type: str = field(default="Audio", init=False, repr=False)
+    _resampler: Any = field(default=None, init=False, repr=False, compare=False)
 
     def __call__(self):
         return pa.string()
@@ -55,7 +56,7 @@ class Audio:
     def _decode_example_with_torchaudio(self, value):
         try:
             import torchaudio
-            import torchaudio.functional as F
+            import torchaudio.transforms as T
         except ImportError as err:
             raise ImportError("To support decoding 'mp3' audio files, please install 'torchaudio'.") from err
         try:
@@ -68,7 +69,9 @@ class Audio:
         if self.mono:
             array = array.mean(axis=0)
         if self.sampling_rate and self.sampling_rate != sampling_rate:
-            array = F.resample(array, sampling_rate, self.sampling_rate)
+            if not self._resampler:
+                self._resampler = T.Resample(sampling_rate, self.sampling_rate)
+            array = self._resampler(array, sampling_rate, self.sampling_rate)
             sampling_rate = self.sampling_rate
         return array, sampling_rate
 
