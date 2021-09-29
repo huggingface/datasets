@@ -1,3 +1,4 @@
+import gzip
 import json
 
 import datasets
@@ -70,13 +71,13 @@ class Wit(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths):
         """Yields examples."""
         wit_feature_names = self.info.features["wit_features"].feature.keys()
+        example_id = 0
         for filepath in filepaths:
-            with open(filepath, "rb") as f:
+            with gzip.open(filepath, mode="rt", encoding="utf-8") as f:
                 for i, line in enumerate(f):
                     line = line.strip()
                     row_data = json.loads(line, encoding="utf-8")
                     for feature in row_data["wit_features"]:
-
                         # If a feature is missing from feature dict, add it as None
                         for fname in wit_feature_names:
                             if fname not in feature:
@@ -94,4 +95,5 @@ class Wit(datasets.GeneratorBasedBuilder):
                         row_data[missing_key] = (
                             None if missing_key not in ["original_height", "original_width"] else -1
                         )
-                    yield str(i), row_data
+                    example_id += 1
+                    yield str(example_id), row_data
