@@ -310,7 +310,8 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
         # inspired from https://stackoverflow.com/a/904609
         with patch("requests.request", timeout_request):
-            yield
+            with patch("requests.api.request", timeout_request):
+                yield
     elif mode is OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
         with patch("datasets.config.HF_DATASETS_OFFLINE", True):
             yield
