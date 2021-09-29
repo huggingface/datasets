@@ -236,7 +236,7 @@ class TensorflowDatasetMixIn:
         collate_fn: Callable = None,
         collate_fn_args: Dict[str, Any] = None,
         label_cols: Union[str, List[str]] = None,
-        dummy_labels: bool = True,
+        dummy_labels: bool = False,
         prefetch: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
