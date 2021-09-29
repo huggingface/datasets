@@ -2338,10 +2338,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                             continue
                         batch = input_dataset._getitem(
                             slice(i, i + batch_size),
-                            format_type=self._format_type,
-                            format_columns=self._format_columns,
-                            output_all_columns=self._output_all_columns,
-                            format_kwargs=self._format_kwargs,
+                            format_type=input_dataset._format_type,
+                            format_columns=input_dataset._format_columns,
+                            output_all_columns=input_dataset._output_all_columns,
+                            format_kwargs=input_dataset._format_kwargs,
                             decoded=False,
                         )
                         indices = list(
