@@ -117,11 +117,23 @@ def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
     features = Features({"audio": Audio(), "text": Value("string")})
     dset = Dataset.from_dict(data, features=features)
 
-    def process_audio_sampling_rate(example):
+    def process_audio_sampling_rate_by_example(example):
         example["double_sampling_rate"] = 2 * example["audio"]["sampling_rate"]
         return example
 
-    decoded_dset = dset.map(process_audio_sampling_rate)
+    decoded_dset = dset.map(process_audio_sampling_rate_by_example)
+    for item in decoded_dset:
+        assert item.keys() == {"audio", "text", "double_sampling_rate"}
+        assert item["double_sampling_rate"] == 88200
+
+    def process_audio_sampling_rate_by_batch(batch):
+        double_sampling_rates = []
+        for audio in batch["audio"]:
+            double_sampling_rates.append(2 * audio["sampling_rate"])
+        batch["double_sampling_rate"] = double_sampling_rates
+        return batch
+
+    decoded_dset = dset.map(process_audio_sampling_rate_by_batch, batched=True)
     for item in decoded_dset:
         assert item.keys() == {"audio", "text", "double_sampling_rate"}
         assert item["double_sampling_rate"] == 88200
