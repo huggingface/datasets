@@ -2230,6 +2230,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                     format_type=None,
                     format_columns=None,
                     format_kwargs=None,
+                    decoding=False,
                 )
             if remove_columns is not None:
                 for column in remove_columns:
@@ -2320,7 +2321,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                     for i in pbar:
                         if drop_last_batch and i + batch_size > input_dataset.num_rows:
                             continue
-                        batch = input_dataset[i : i + batch_size]
+                        batch = input_dataset._getitem(
+                            slice(i, i + batch_size),
+                            format_type=self._format_type,
+                            format_columns=self._format_columns,
+                            output_all_columns=self._output_all_columns,
+                            format_kwargs=self._format_kwargs,
+                            decoded=False,
+                        )
                         indices = list(
                             range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
                         )  # Something simpler?
