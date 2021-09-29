@@ -266,7 +266,9 @@ class PythonFormatter(Formatter[dict, list, dict]):
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
-        return self.python_features_decoder.decode_batch(batch)
+        if self.decoded:
+            batch = self.python_features_decoder.decode_batch(batch)
+        return batch
 
 
 class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
