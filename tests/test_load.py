@@ -12,7 +12,6 @@ from unittest.mock import patch
 
 import pytest
 import requests
-from huggingface_hub.hf_api import DatasetInfo
 
 import datasets
 from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
@@ -35,7 +34,7 @@ from datasets.load import (
     PackagedDatasetModuleFactory,
     prepare_module,
 )
-from datasets.utils.file_utils import DownloadConfig, hf_hub_url, is_remote_url
+from datasets.utils.file_utils import DownloadConfig, is_remote_url
 
 from .utils import (
     OfflineSimulationMode,
