@@ -109,7 +109,7 @@ class ElasticSearchIndex(BaseIndex):
         es_index_config: Optional[dict] = None,
         es_username:  Optional[str] = None,
         es_psw: Optional[str] = None,
-        ssl_context: Optional[ssl.SSLContext] = None,
+        ca_file: Optional[str] = None,
     ):
         assert (
             _has_elasticsearch
@@ -123,7 +123,9 @@ class ElasticSearchIndex(BaseIndex):
         import elasticsearch.helpers  # noqa: need this to properly load all the es features
         from elasticsearch import Elasticsearch  # noqa: F811
 
-        server_url = ('https' if ssl_context is not None else 'http')+'://'+host+':'+str(port)
+        server_url = ('https' if ca_file is not None else 'http')+'://'+host+':'+str(port)
+
+        ssl_context = None if ca_file is None else ssl.create_default_context(cafile=ca_file)
 
         if es_client is not None:
             self.es_client = es_client
@@ -132,8 +134,6 @@ class ElasticSearchIndex(BaseIndex):
         else:
             # authenticate user
             self.es_client = Elasticsearch([server_url], http_auth=(es_username, es_psw), ssl_context=ssl_context)
-
-        print(self.es_client.info())
 
         if not self.es_client.ping():
             raise ValueError("Connection failed")
@@ -247,6 +247,7 @@ class ElasticSearchIndex(BaseIndex):
             client=self.es_client,
             index=index_name,
             actions=passage_generator(),
+            request_timeout=3600,
         ):
             progress.update(1)
             successes += ok
@@ -279,6 +280,7 @@ class ElasticSearchIndex(BaseIndex):
                 },
                 "size": k,
             },
+            request_timeout=3600,
         )
         hits = response["hits"]["hits"]
         return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
@@ -621,7 +623,7 @@ class IndexableMixin:
         es_index_config: Optional[dict] = None,
         es_username:  Optional[str] = None,
         es_psw: Optional[str] = None,
-        ssl_context: Optional[ssl.SSLContext] = None,
+        ca_file: Optional[str] = None,
     ):
         """Add a text index using ElasticSearch for fast retrieval.
 
@@ -639,6 +641,12 @@ class IndexableMixin:
             es_index_config (Optional :obj:`dict`):
                 The configuration of the elasticsearch index.
                 Default config is:
+            es_username(Optional :obj:`str`, defaults to None):
+                username for authentication on the elasticsearch server
+            es_psw(Optional :obj:`str`, defaults to None):
+                password for authentication on the elasticsearch server
+            ca_file(Optional :obj:`str`, defaults to None):
+                path to certificate file to create the ssl context used in connexion over https
 
         Config::
 
@@ -667,7 +675,7 @@ class IndexableMixin:
             es_index_config=es_index_config,
             es_username=es_username,
             es_psw=es_psw,
-            ssl_context=ssl_context,
+            ca_file=ca_file,
         )
         es_index.add_documents(self, column=column)
         self._indexes[index_name] = es_index
@@ -679,6 +687,9 @@ class IndexableMixin:
         port: int = 9200,
         es_client: Optional["elasticsearch.Elasticsearch"] = None,  # noqa: F821
         es_index_name: str = "_all",
+        es_username: Optional[str] = None,
+        es_psw: Optional[str] = None,
+        ca_file: Optional[str] = None,
         **kwargs,
     ):
         """Update documents matching a query for a given index.
@@ -700,8 +711,16 @@ class IndexableMixin:
                 The index_name/identifier of the index.
                 Pass `_all` or comma-separated names for multiple.
                 Defaults to `_all`, use all indexes.
+            es_username(Optional :obj:`str`, defaults to None):
+                username for authentication on the elasticsearch server
+            es_psw(Optional :obj:`str`, defaults to None):
+                password for authentication on the elasticsearch server
+            ca_file(Optional :obj:`str`, defaults to None):
+                path to certificate file to create the ssl context used in connexion over https
         """
         if es_client is None:
+
+            # TODO add credentials and ssl context
             try:
                 es_client = Elasticsearch([{"host": host, "port": str(port)}])
             except NameError:
@@ -718,7 +737,7 @@ class IndexableMixin:
         port: Optional[int] = None,
         es_username: Optional[str] = None,
         es_psw: Optional[str] = None,
-        ssl_context: Optional[ssl.SSLContext] = None,
+        ca_file: Optional[str] = None,
         es_client: Optional["Elasticsearch"] = None,
         es_index_config: Optional[dict] = None,
     ):
@@ -735,8 +754,8 @@ class IndexableMixin:
                 username for authentication on the elasticsearch server
             es_psw(Optional :obj:`str`, defaults to None):
                 password for authentication on the elasticsearch server
-            ssl_context(Optional :obj:`ssl.SSLContext`, defaults to None):
-                ssl context for connexion over https
+            ca_file(Optional :obj:`str`, defaults to None):
+                path to certificate file to create the ssl context used in connexion over https
             es_client (Optional :obj:`elasticsearch.Elasticsearch`):
                 The elasticsearch client used to create the index if host and port are None.
             es_index_config (Optional :obj:`dict`):
@@ -767,7 +786,7 @@ class IndexableMixin:
             es_index_config=es_index_config,
             es_username=es_username,
             es_psw=es_psw,
-            ssl_context=ssl_context
+            ca_file=ca_file
         )
 
     def drop_index(self, index_name: str):

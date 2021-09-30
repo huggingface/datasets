@@ -20,6 +20,7 @@ import contextlib
 import copy
 import json
 import os
+import ssl
 import shutil
 import tempfile
 import weakref
@@ -3486,6 +3487,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         es_index_config: Optional[dict] = None,
         es_username: Optional[str] = None,
         es_psw: Optional[str] = None,
+        ca_file: Optional[str] = None,
     ):
         """Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
@@ -3523,6 +3525,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             }
                         },
                     }
+            es_username(Optional :obj:`str`, defaults to None):
+                username for authentication on the elasticsearch server
+            es_psw(Optional :obj:`str`, defaults to None):
+                password for authentication on the elasticsearch server
+            ca_file(Optional :obj:`str`, defaults to None):
+                path to certificate file to create the ssl context used in connexion over https
 
         Example:
             .. code-block:: python
@@ -3544,6 +3552,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 es_index_config=es_index_config,
                 es_username=es_username,
                 es_psw=es_psw,
+                ca_file=ca_file,
             )
         return self
 
@@ -3554,6 +3563,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         port: int = 9200,
         es_client: Optional["elasticsearch.Elasticsearch"] = None,  # noqa: F821
         es_index_name: str = "_all",
+        es_username: Optional[str] = None,
+        es_psw: Optional[str] = None,
+        ca_file: Optional[str] = None,
         **kwargs,
     ):
         """Update documents matching a query for a given index.
@@ -3575,6 +3587,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The index_name/identifier of the index.
                 Pass `_all` or comma-separated names for multiple.
                 Defaults to `_all`, use all indexes.
+            es_username(Optional :obj:`str`, defaults to None):
+                username for authentication on the elasticsearch server
+            es_psw(Optional :obj:`str`, defaults to None):
+                password for authentication on the elasticsearch server
+            ca_file(Optional :obj:`str`, defaults to None):
+                path to certificate file to create the ssl context used in connexion over https
 
         Example:
             .. code-block:: python
@@ -3584,7 +3602,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ds.update_elasticsearch_documents(body={}, es_client=es_client)
         """
         super().update_elasticsearch_documents(
-            body=body, host=host, port=port, es_client=es_client, es_index_name=es_index_name, **kwargs
+            body=body, host=host, port=port,
+            es_client=es_client, es_index_name=es_index_name,
+            es_username=es_username, es_psw=es_psw, ca_file=ca_file
+            **kwargs
         )
         return self
 

@@ -126,7 +126,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "apache-beam>=2.26.0",
-    "elasticsearch==7.13.3",
+    "elasticsearch==7.10.1",
     # murmur3 hashing
     "mmh3==3.0.0",
     "aiobotocore==1.2.2",
