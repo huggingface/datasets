@@ -145,10 +145,10 @@ def _get_single_origin_metadata_locally_or_by_urls(
 ) -> Tuple[str]:
     if isinstance(data_file, Url):
         data_file = str(data_file)
-        return (data_file, request_etag(data_file, use_auth_token=use_auth_token))
+        return (request_etag(data_file, use_auth_token=use_auth_token),)
     else:
         data_file = str(data_file.resolve())
-        return (data_file, str(os.path.getmtime(data_file)))
+        return (str(os.path.getmtime(data_file)),)
 
 
 def _get_origin_metadata_locally_or_by_urls(
@@ -176,7 +176,7 @@ class DataFilesList(List[Union[Path, Url]]):
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesList":
         data_files = _resolve_patterns_in_dataset_repository(dataset_info, patterns, allowed_extensions)
-        origin_metadata = [(pattern, dataset_info.id, dataset_info.sha) for pattern in patterns]
+        origin_metadata = [(dataset_info.id, dataset_info.sha) for _ in patterns]
         return DataFilesList(data_files, origin_metadata)
 
     @staticmethod

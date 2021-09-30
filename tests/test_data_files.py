@@ -188,10 +188,42 @@ def test_DataFilesDict_from_hf_repo_hashing(hub_dataset_info):
     data_files2 = DataFilesDict(sorted(data_files1.items(), reverse=True))
     assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
 
+    patterns2 = {"train": ["data/train.txt"], "test": ["data/test.txt"]}
+    data_files2 = DataFilesDict.from_hf_repo(patterns2, hub_dataset_info)
+    assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
+
+    patterns2 = {"train": ["data/train.txt"], "test": ["data/train.txt"]}
+    data_files2 = DataFilesDict.from_hf_repo(patterns2, hub_dataset_info)
+    assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
+
     with patch.object(hub_dataset_info, "id", "blabla"):
         data_files2 = DataFilesDict.from_hf_repo(patterns, hub_dataset_info)
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
 
     with patch.object(hub_dataset_info, "sha", "blabla"):
         data_files2 = DataFilesDict.from_hf_repo(patterns, hub_dataset_info)
+        assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
+
+
+def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
+    patterns = {"train": [_TEST_URL], "test": [str(text_file)]}
+    data_files1 = DataFilesDict.from_local_or_remote(patterns)
+    data_files2 = DataFilesDict.from_local_or_remote(patterns)
+    assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
+
+    data_files2 = DataFilesDict(sorted(data_files1.items(), reverse=True))
+    assert Hasher.hash(data_files1) == Hasher.hash(data_files2)
+
+    patterns2 = {"train": [_TEST_URL], "test": [_TEST_URL]}
+    data_files2 = DataFilesDict.from_local_or_remote(patterns2)
+    assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
+
+    with patch("datasets.data_files.request_etag") as mock_request_etag:
+        mock_request_etag.return_value = "blabla"
+        data_files2 = DataFilesDict.from_local_or_remote(patterns)
+        assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
+
+    with patch("datasets.data_files.os.path.getmtime") as mock_getmtime:
+        mock_getmtime.return_value = 123
+        data_files2 = DataFilesDict.from_local_or_remote(patterns)
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
