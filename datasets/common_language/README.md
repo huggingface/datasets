@@ -61,7 +61,7 @@ source_datasets:
 task_categories:
 - speech-processing
 task_ids:
-- speech-classification
+- other-other-speech-classification
 ---
 
 # Dataset Card for common_language
