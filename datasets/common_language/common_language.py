@@ -158,7 +158,7 @@ class CommonLanguage(datasets.GeneratorBasedBuilder):
                 next(fin)  # skip the header
                 for line in fin:
                     client_id, wav_name, sentence, age, gender = line.strip().split("\t")[1:]
-                    language = csv_path.split("/")[-2]
+                    language = csv_path.split(os.sep)[-2]
                     path = os.path.join(os.path.splitext(csv_path)[0], client_id, wav_name)
 
                     yield key, {
