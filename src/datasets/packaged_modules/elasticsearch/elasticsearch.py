@@ -6,6 +6,7 @@ from typing import Optional
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ConnectionError
+import re
 import ssl
 import json
 
@@ -20,7 +21,7 @@ logger = logging.get_logger(__name__)
 
 @dataclass
 class ElasticsearchConfig(datasets.BuilderConfig):
-    """BuilderConfig for JSON."""
+    """BuilderConfig for ElasticsearchBuilder."""
 
     host: Optional[str] = (None,)
     port: Optional[int] = (None,)
@@ -44,7 +45,7 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
 
         assert (
             _has_elasticsearch
-        ), "You must install ElasticSearch to use ElasticSearchIndex: e.g. run `pip install elasticsearch==7.13.3`"
+        ), "You must install ElasticSearch to use ElasticSearchIndex: e.g. run `pip install elasticsearch==7.10.1`"
         assert (
             self.config.host is not None and self.config.port is not None
         ), "Please specify `(host, port)` in config."
@@ -73,10 +74,13 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
             msg = f"Connection error: is the elasticsearch instance really at {self.config.host}:{self.config.port}?"
             logger.critical(msg)
             raise Exception(msg)
-        # load dataset info from elasticsearch index
+
+        print(f'Connexion established with Elasticsearch at {self.config.host}:{self.config.port}')
+
         # load dataset information from elasticsearch index metadata
         mapping_response = self.es_client.indices.get_mapping(index=self.config.es_index_name)
         self.mapping = mapping_response[self.config.es_index_name]["mappings"]
+
         _DESCRIPTION = self.mapping["_meta"]["description"]
         _HOMEPAGE = self.mapping["_meta"]["homepage"]
         _CITATION = self.mapping["_meta"]["citation"]
@@ -95,10 +99,12 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
             # No default supervised_keys (as we have to pass both question
             # and context as input).
             supervised_keys=None,
-            homepage=None, #_HOMEPAGE,
-            citation=None, #_CITATION,
-            license=None, #_LICENSE,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
+            license=_LICENSE,
         )
+
+        print(self.info)
 
     def _split_generators(self, dl_manager):
         query = "*" if self.config.query is None else self.config.query
@@ -112,7 +118,7 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
+                name=f"{self.config.es_index_name}?q={query}",
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "query": query,
@@ -125,13 +131,14 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
         # TODO load results page by page eventually loading page in background while yielding
         response = self.es_client.search(
             index=self.config.es_index_name,
-            body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": max_k},
+            body={
+                "query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}},
+                "size": max_k
+            },
+            request_timeout=1800,
         )
         hits = response["hits"]["hits"]
 
-        print(f'Found {len(hits)} results')
-
         for hit in hits:
-            print(hit['_id'], hit['_source']['text'])
-            yield hit['_id'], hit['_source']['text']
+            yield hit['_id'], {"id": hit['_id'], "text": hit['_source']['text']}
 
