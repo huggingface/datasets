@@ -561,7 +561,10 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
         # get script and other files
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
-            name=self.name, base_path=str(Path(self.path).parent), imports=imports, download_config=self.download_config
+            name=self.name,
+            base_path=str(Path(self.path).parent),
+            imports=imports,
+            download_config=self.download_config,
         )
         # the copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
@@ -604,7 +607,10 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
-            name=self.name, base_path=str(Path(self.path).parent), imports=imports, download_config=self.download_config
+            name=self.name,
+            base_path=str(Path(self.path).parent),
+            imports=imports,
+            download_config=self.download_config,
         )
         additional_files = (
             [(config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path))] if dataset_infos_path.is_file() else []

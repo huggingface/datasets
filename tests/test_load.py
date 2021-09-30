@@ -161,7 +161,8 @@ class ModuleFactoryTest(TestCase):
         self.cache_dir = tempfile.mkdtemp()
         self.download_config = DownloadConfig(cache_dir=self.cache_dir)
         self.dynamic_modules_path = datasets.load.init_dynamic_modules(
-            name="test_datasets_modules_" + os.path.basename(self.hf_modules_cache), hf_modules_cache=self.hf_modules_cache
+            name="test_datasets_modules_" + os.path.basename(self.hf_modules_cache),
+            hf_modules_cache=self.hf_modules_cache,
         )
 
     def test_CanonicalDatasetModuleFactory(self):
@@ -225,10 +226,34 @@ class ModuleFactoryTest(TestCase):
         assert importlib.import_module(module_factory_result.module_path) is not None
 
     def test_CachedDatasetModuleFactory(self):
-        pass
+        path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
+        factory = LocalDatasetModuleFactoryWithScript(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        for offline_mode in OfflineSimulationMode:
+            with offline(offline_mode):
+                factory = CachedDatasetModuleFactory(
+                    DATASET_LOADING_SCRIPT_NAME,
+                    dynamic_modules_path=self.dynamic_modules_path,
+                )
+                module_factory_result = factory.get_module()
+                assert importlib.import_module(module_factory_result.module_path) is not None
 
     def test_CachedMetricModuleFactory(self):
-        pass
+        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
+        factory = LocalMetricModuleFactory(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        for offline_mode in OfflineSimulationMode:
+            with offline(offline_mode):
+                factory = CachedMetricModuleFactory(
+                    METRIC_LOADING_SCRIPT_NAME,
+                    dynamic_modules_path=self.dynamic_modules_path,
+                )
+                module_factory_result = factory.get_module()
+                assert importlib.import_module(module_factory_result.module_path) is not None
 
 
 class LoadTest(TestCase):
