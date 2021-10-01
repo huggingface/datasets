@@ -150,6 +150,7 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
         TriviaQaConfig(source="wikipedia", unfiltered=False, exclude_context=False),  # rc
         TriviaQaConfig(source="wikipedia", unfiltered=False, exclude_context=True),  # rc.nocontext
     ]
+    DEFAULT_WRITER_BATCH_SIZE = 1000  # examples are quite big, so set this value to save some RAM
 
     def _info(self):
         return datasets.DatasetInfo(
