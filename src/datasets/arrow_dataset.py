@@ -236,7 +236,7 @@ class TensorflowDatasetMixIn:
         collate_fn: Callable = None,
         collate_fn_args: Dict[str, Any] = None,
         label_cols: Union[str, List[str]] = None,
-        dummy_labels: bool = True,
+        dummy_labels: bool = False,
         prefetch: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
@@ -257,9 +257,9 @@ class TensorflowDatasetMixIn:
             label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
              labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
               not necessary to actually pass the labels here, as long as they're in the input `columns`.
-            dummy_labels (:obj:`bool`, default ``True``): If no `label_cols` are set, output an array of "dummy" labels
-             with each batch. This setting ensures that Keras `fit()` or `train_on_batch()` does not get confused
-             by the missing labels.
+            dummy_labels (:obj:`bool`, default ``False``): If no `label_cols` are set, output an array of "dummy" labels
+             with each batch. This can avoid problems with `fit()` or `train_on_batch()` that expect labels to be
+             a Tensor or np.ndarray, but should (hopefully) not be necessary with our standard train_step().
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
              a small buffer of batches for training. Improves performance by allowing data to be loaded in the
              background while the model is training.
@@ -389,11 +389,6 @@ class TensorflowDatasetMixIn:
             tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
 
         if dummy_labels and not label_cols:
-            print(
-                "Warning: No label_cols specified - adding some dummy labels to ensure fit() works correctly. If you "
-                "only want to use this dataset with predict() or custom training loops, you can disable this "
-                "behaviour by setting dummy_labels to False."
-            )
 
             def add_dummy_labels(input_batch):
                 return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
@@ -461,8 +456,7 @@ def update_metadata_with_features(table: Table, features: Features):
         else:
             metadata["info"]["features"] = asdict(DatasetInfo(features=features))["features"]
         pa_metadata = {"huggingface": json.dumps(metadata)}
-    new_schema = table.schema.with_metadata(pa_metadata)
-    table = table.cast(new_schema)
+    table = table.replace_schema_metadata(pa_metadata)
     return table
 
 
@@ -2353,7 +2347,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             return self
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"])
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"], version="2.0.0")
     def filter(
         self,
         function: Optional[Callable] = None,
@@ -3609,7 +3603,12 @@ def concatenate_datasets(
 
 
 def get_indices_from_mask_function(
-    function: Callable, batched: bool, with_indices: bool, input_columns: Optional[Union[str, List[str]]], *args
+    function: Callable,
+    batched: bool,
+    with_indices: bool,
+    input_columns: Optional[Union[str, List[str]]],
+    *args,
+    **fn_kwargs,
 ):
     if batched:
         mask = function(*args)
@@ -3624,12 +3623,16 @@ def get_indices_from_mask_function(
             num_examples = len(batch[next(iter(batch.keys()))])
             for i in range(num_examples):
                 example = {key: batch[key][i] for key in batch}
-                mask.append(function(example, indices[i]) if with_indices else function(example))
+                mask.append(
+                    function(example, indices[i], **fn_kwargs) if with_indices else function(example, **fn_kwargs)
+                )
         else:
             # inputs is a list of columns
             columns: List[List[Any]] = inputs
             num_examples = len(columns[0])
             for i in range(num_examples):
                 input = [column[i] for column in columns]
-                mask.append(function(*input, indices[i]) if with_indices else function(*input))
+                mask.append(
+                    function(*input, indices[i], **fn_kwargs) if with_indices else function(*input, **fn_kwargs)
+                )
     return {"indices": [i for i, to_keep in zip(indices, mask) if to_keep]}

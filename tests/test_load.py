@@ -277,6 +277,9 @@ def test_load_dataset_builder_for_community_dataset_with_script():
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
     assert builder.info.features == Features({"text": Value("string")})
+    namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
+    assert builder._relative_data_dir().startswith(namespace)
+    assert SAMPLE_DATASET_IDENTIFIER.replace("/", "___") in builder.__module__
 
 
 def test_load_dataset_builder_for_community_dataset_without_script():
@@ -284,6 +287,8 @@ def test_load_dataset_builder_for_community_dataset_without_script():
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
     assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.split("/")[-1]
+    namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
+    assert builder._relative_data_dir().startswith(namespace)
     assert isinstance(builder.config.data_files, list)
     assert len(builder.config.data_files) > 0
 

@@ -272,7 +272,7 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
                     try:
                         with open(os.path.join(file_dir, fname), encoding="utf-8") as f:
                             new_item[context_field] = f.read()
-                    except (IOError, datasets.Value("errors").NotFoundError):
+                    except (IOError, FileNotFoundError):
                         logger.info("File does not exist, skipping: %s", fname)
                         continue
                     new_items.append(new_item)
