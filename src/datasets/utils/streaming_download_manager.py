@@ -150,7 +150,7 @@ def _get_extraction_protocol(urlpath: str) -> Optional[str]:
         pass
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
-    raise NotImplementedError(f"Extraction protocol {extension} for file at {urlpath} is not implemented yet")
+    raise NotImplementedError(f"Extraction protocol '{extension}' for file at '{urlpath}' is not implemented yet")
 
 
 def xopen(file, mode="r", *args, **kwargs):
