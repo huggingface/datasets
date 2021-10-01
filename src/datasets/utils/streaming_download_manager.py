@@ -140,11 +140,10 @@ def _add_retries_to_file_obj_read_method(file_obj):
 def _get_extraction_protocol(urlpath: str) -> Optional[str]:
     # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
     path = urlpath.split("::")[0]
-    # Remove query params ("dl=1", "raw=true"): https://foo.bar/train.json.gz?dl=1 -> https://foo.bar/train.json.gz
-    path = path.split("?")[0]
-
     # Get extension: https://foo.bar/train.json.gz -> gz
     extension = path.split(".")[-1]
+    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
+    extension = extension.split("?")[0]
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
     elif path.endswith(".tar.gz") or path.endswith(".tgz"):
