@@ -9,6 +9,7 @@ from .utils.streaming_download_manager import (
     xdirname,
     xjoin,
     xopen,
+    xpandas_read_csv,
     xpathglob,
     xpathjoin,
     xpathopen,
@@ -57,3 +58,4 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
         patch.object(module.Path, "rglob", xpathrglob).start()
         patch.object(module.Path, "stem", property(fget=xpathstem)).start()
         patch.object(module.Path, "suffix", property(fget=xpathsuffix)).start()
+    patch_submodule(module, "pd.read_csv", xpandas_read_csv, attrs=["__version__"]).start()
