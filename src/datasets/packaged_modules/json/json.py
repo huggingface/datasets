@@ -120,7 +120,11 @@ class Json(datasets.ArrowBasedBuilder):
                                     )
                                     break
                                 except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
-                                    if isinstance(e, pa.ArrowInvalid) and "straddling" not in str(e) or block_size > len(batch):
+                                    if (
+                                        isinstance(e, pa.ArrowInvalid)
+                                        and "straddling" not in str(e)
+                                        or block_size > len(batch)
+                                    ):
                                         raise
                                     else:
                                         # Increase the block size in case it was too small.
