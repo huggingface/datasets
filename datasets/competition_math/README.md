@@ -4,14 +4,14 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-- en-US
+- en
 licenses:
 - mit
 multilinguality:
 - monolingual
-pretty_name: competition_math
+pretty_name: Mathematics Aptitude Test of Heuristics (MATH)
 size_categories:
-- unknown
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
@@ -75,6 +75,14 @@ models to generate answer derivations and explanations.
 ### Data Instances
 
 A data instance consists of a competition math problem and its step-by-step solution written in LaTeX and natural language. The step-by-step solution contains the final answer enclosed in LaTeX's `\boxed` tag.
+
+An example from the dataset is:
+```
+{'problem': 'A board game spinner is divided into three parts labeled $A$, $B$  and $C$. The probability of the spinner landing on $A$ is $\\frac{1}{3}$ and the probability of the spinner landing on $B$ is $\\frac{5}{12}$.  What is the probability of the spinner landing on $C$? Express your answer as a common fraction.',
+ 'level': 'Level 1',
+ 'type': 'Counting & Probability',
+ 'solution': 'The spinner is guaranteed to land on exactly one of the three regions, so we know that the sum of the probabilities of it landing in each region will be 1. If we let the probability of it landing in region $C$ be $x$, we then have the equation $1 = \\frac{5}{12}+\\frac{1}{3}+x$, from which we have $x=\\boxed{\\frac{1}{4}}$.'}
+```
 
 ### Data Fields
 
@@ -143,20 +151,21 @@ A data instance consists of a competition math problem and its step-by-step solu
 https://github.com/hendrycks/math/blob/main/LICENSE
 
 ### Citation Information
-
-    @article{hendrycksmath2021,
-      title={Measuring Mathematical Problem Solving With the MATH Dataset},
-      author={Dan Hendrycks
-        and Collin Burns
-        and Saurav Kadavath
-        and Akul Arora
-        and Steven Basart
-        and Eric Tang
-        and Dawn Song
-        and Jacob Steinhardt},
-      journal={arXiv preprint arXiv:2103.03874},
-      year={2021}
-    }
+```bibtex
+@article{hendrycksmath2021,
+    title={Measuring Mathematical Problem Solving With the MATH Dataset},
+    author={Dan Hendrycks
+    and Collin Burns
+    and Saurav Kadavath
+    and Akul Arora
+    and Steven Basart
+    and Eric Tang
+    and Dawn Song
+    and Jacob Steinhardt},
+    journal={arXiv preprint arXiv:2103.03874},
+    year={2021}
+}
+```
 
 ### Contributions
 
