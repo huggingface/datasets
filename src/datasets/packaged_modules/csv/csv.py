@@ -151,16 +151,14 @@ class Csv(datasets.ArrowBasedBuilder):
         # dtype allows reading an int column as str
         dtype = {name: dtype.to_pandas_dtype() for name, dtype in zip(schema.names, schema.types)} if schema else None
         for file_idx, file in enumerate(files):
-            with open(file, "rb") as f:
-                csv_file_reader = pd.read_csv(f, iterator=True, dtype=dtype, **self.config.read_csv_kwargs)
-
-                try:
-                    for batch_idx, df in enumerate(csv_file_reader):
-                        pa_table = pa.Table.from_pandas(df, schema=schema)
-                        # Uncomment for debugging (will print the Arrow table size and elements)
-                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), pa_table
-                except ValueError as e:
-                    logger.error(f"Failed to read file '{csv_file_reader.f}' with error {type(e)}: {e}")
-                    raise
+            csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.read_csv_kwargs)
+            try:
+                for batch_idx, df in enumerate(csv_file_reader):
+                    pa_table = pa.Table.from_pandas(df, schema=schema)
+                    # Uncomment for debugging (will print the Arrow table size and elements)
+                    # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                    # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                    yield (file_idx, batch_idx), pa_table
+            except ValueError as e:
+                logger.error(f"Failed to read file '{csv_file_reader.f}' with error {type(e)}: {e}")
+                raise
