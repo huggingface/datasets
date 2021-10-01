@@ -4,15 +4,15 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- en-IN, kn-IN
+- en-IN
+- kn-IN
 licenses:
 - cc-by-4.0
 multilinguality:
 - multilingual
-- other-Code-mixed multilingual dataset
 pretty_name: kan_hope
 size_categories:
-- unknown
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -76,15 +76,15 @@ An example from the Kannada dataset looks as follows:
 
 | text   | label |
 | :------ | :----- |
-| ¨¿œµ¾—¿¯Â  …¦Í­Á¤ heartly heltidini... plz avrigella namma nimmellara supprt beku          | Non_hope speech |
-| Next song gu kuda alru andre evaga yar comment  madidera alla alrru like madi share madi nam industry na next level ge togond hogaona.      | Hope Speech |
+| ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½Í­ï¿½ heartly heltidini... plz avrigella namma nimmellara supprt beku          | 0 (Non_hope speech) |
+| Next song gu kuda alru andre evaga yar comment  madidera alla alrru like madi share madi nam industry na next level ge togond hogaona.      | 1 (Hope Speech) |
 
 
 ### Data Fields
 
 Kannada
 - `text`: Kannada-English code mixed comment.
-- `label`: integer from either of 0 or 1 that corresponds to these values: "Hope Speech", "Non_hope Speech" 
+- `label`: integer from either of 0 or 1 that corresponds to these values: "Non_hope Speech", "Hope Speech"
 
 ### Data Splits
 

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ class kan_hope(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "text": datasets.Value("string"),
-                "label": datasets.features.ClassLabel(names=["Hope", "Not-Hope"]),
+                "label": datasets.features.ClassLabel(names=["Not-Hope", "Hope"]),
             }
         )
         return datasets.DatasetInfo(
