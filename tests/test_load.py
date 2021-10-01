@@ -359,6 +359,18 @@ def test_load_dataset_streaming_compressed_files(path):
     }
 
 
+@pytest.mark.parametrize("path_extension", ["csv", "csv.bz2"])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv_path):
+    paths = {"csv": csv_path, "csv.bz2": bz2_csv_path}
+    data_files = str(paths[path_extension])
+    features = Features({"col_1": Value("string"), "col_2": Value("int32"), "col_3": Value("float32")})
+    ds = load_dataset("csv", split="train", data_files=data_files, features=features, streaming=streaming)
+    assert isinstance(ds, IterableDataset if streaming else Dataset)
+    ds_item = next(iter(ds))
+    assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+
+
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
         dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
