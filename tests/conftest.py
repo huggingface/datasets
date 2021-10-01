@@ -30,6 +30,12 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
     monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(test_extracted_datasets_path))
 
 
+@pytest.fixture(autouse=True)
+def set_update_download_counts_to_false(monkeypatch):
+    # don't take tests into account when counting downloads
+    monkeypatch.setattr("datasets.config.HF_UPDATE_DOWNLOAD_COUNTS", False)
+
+
 FILE_CONTENT = """\
     Text data.
     Second line of data."""
