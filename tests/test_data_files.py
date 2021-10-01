@@ -9,8 +9,8 @@ from datasets.data_files import (
     DataFilesDict,
     DataFilesList,
     Url,
-    _resolve_patterns_in_dataset_repository,
-    _resolve_patterns_locally_or_by_urls,
+    resolve_patterns_in_dataset_repository,
+    resolve_patterns_locally_or_by_urls,
 )
 from datasets.fingerprint import Hasher
 from datasets.utils.file_utils import hf_hub_url
@@ -85,37 +85,37 @@ def test_pattern_results_fixture(pattern_results, pattern):
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
 def test_resolve_patterns_locally_or_by_urls(complex_data_dir, pattern, pattern_results):
-    resolved_data_files = _resolve_patterns_locally_or_by_urls(complex_data_dir, [pattern])
+    resolved_data_files = resolve_patterns_locally_or_by_urls(complex_data_dir, [pattern])
     assert sorted(str(f) for f in resolved_data_files) == pattern_results[pattern]
     assert all(isinstance(path, Path) for path in resolved_data_files)
 
 
 def test_resolve_patterns_locally_or_by_urls_with_absolute_path(tmp_path, complex_data_dir):
     abs_path = os.path.join(complex_data_dir, "data", "train.txt")
-    resolved_data_files = _resolve_patterns_locally_or_by_urls(str(tmp_path / "blabla"), [abs_path])
+    resolved_data_files = resolve_patterns_locally_or_by_urls(str(tmp_path / "blabla"), [abs_path])
     assert len(resolved_data_files) == 1
 
 
 @pytest.mark.parametrize("pattern,size,extensions", [("*", 2, ["txt"]), ("*", 2, None), ("*", 0, ["blablabla"])])
 def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, pattern, size, extensions):
     if size > 0:
-        resolved_data_files = _resolve_patterns_locally_or_by_urls(
+        resolved_data_files = resolve_patterns_locally_or_by_urls(
             complex_data_dir, [pattern], allowed_extensions=extensions
         )
         assert len(resolved_data_files) == size
     else:
         with pytest.raises(FileNotFoundError):
-            _resolve_patterns_locally_or_by_urls(complex_data_dir, pattern, allowed_extensions=extensions)
+            resolve_patterns_locally_or_by_urls(complex_data_dir, pattern, allowed_extensions=extensions)
 
 
 def test_fail_resolve_patterns_locally_or_by_urls(complex_data_dir):
     with pytest.raises(FileNotFoundError):
-        _resolve_patterns_locally_or_by_urls(complex_data_dir, ["blablabla"])
+        resolve_patterns_locally_or_by_urls(complex_data_dir, ["blablabla"])
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
 def test_resolve_patterns_in_dataset_repository(hub_dataset_info, pattern, hub_dataset_info_patterns_results):
-    resolved_data_files = _resolve_patterns_in_dataset_repository(hub_dataset_info, [pattern])
+    resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, [pattern])
     assert sorted(str(f) for f in resolved_data_files) == hub_dataset_info_patterns_results[pattern]
     assert all(isinstance(url, Url) for url in resolved_data_files)
 
@@ -123,20 +123,20 @@ def test_resolve_patterns_in_dataset_repository(hub_dataset_info, pattern, hub_d
 @pytest.mark.parametrize("pattern,size,extensions", [("*", 2, ["txt"]), ("*", 2, None), ("*", 0, ["blablabla"])])
 def test_resolve_patterns_in_dataset_repository_with_extensions(hub_dataset_info, pattern, size, extensions):
     if size > 0:
-        resolved_data_files = _resolve_patterns_in_dataset_repository(
+        resolved_data_files = resolve_patterns_in_dataset_repository(
             hub_dataset_info, [pattern], allowed_extensions=extensions
         )
         assert len(resolved_data_files) == size
     else:
         with pytest.raises(FileNotFoundError):
-            resolved_data_files = _resolve_patterns_in_dataset_repository(
+            resolved_data_files = resolve_patterns_in_dataset_repository(
                 hub_dataset_info, [pattern], allowed_extensions=extensions
             )
 
 
 def test_fail_resolve_patterns_in_dataset_repository(hub_dataset_info):
     with pytest.raises(FileNotFoundError):
-        _resolve_patterns_in_dataset_repository(hub_dataset_info, "blablabla")
+        resolve_patterns_in_dataset_repository(hub_dataset_info, "blablabla")
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
