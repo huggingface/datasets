@@ -10,7 +10,7 @@ licenses:
 - cc-by-4.0
 multilinguality:
 - multilingual
-pretty_name: kan_hope
+pretty_name: KanHope
 size_categories:
 - 1K<n<10K
 source_datasets:
