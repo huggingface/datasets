@@ -85,7 +85,7 @@ from datasets import load_dataset
 dataset = load_dataset('swiss_judgment_prediction', 'all_languages')
 ```
 
-```json
+```
 {
   "id": 48757,
   "year": 2015,
@@ -107,7 +107,7 @@ from datasets import load_dataset
 dataset = load_dataset('swiss_judgment_prediction', 'de')
 ```
 
-```json
+```
 {
   "id": 48757,
   "year": 2015,
