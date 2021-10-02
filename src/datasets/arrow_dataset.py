@@ -161,6 +161,8 @@ class DatasetInfoMixin:
 
 
 class TensorflowDatasetMixin:
+    TF_DATASET_REFS = set()
+
     @staticmethod
     def _get_output_signature(dataset, cols_to_retain, test_batch, batch_size):
         if config.TF_AVAILABLE:
@@ -396,6 +398,12 @@ class TensorflowDatasetMixin:
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
 
+        # Remove a reference to the open Arrow file on delete
+        def cleanup_callback(ref):
+            dataset.__del__()
+            self.TF_DATASET_REFS.remove(ref)
+
+        self.TF_DATASET_REFS.add(weakref.ref(tf_dataset, cleanup_callback))
         return tf_dataset
 
 
