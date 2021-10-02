@@ -22,6 +22,7 @@ import json
 import os
 import shutil
 import tempfile
+import weakref
 from collections import Counter
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
@@ -159,16 +160,13 @@ class DatasetInfoMixin:
         return self._info.version
 
 
-class TensorflowDatasetMixIn:
-    def __init__(self):
-        pass
-
+class TensorflowDatasetMixin:
     @staticmethod
     def _get_output_signature(dataset, cols_to_retain, test_batch, batch_size):
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
-            raise ImportError("Called a Tensorflow-specific function but could not import it!")
+            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
         signatures = {}
         for column, col_feature in dataset.features.items():
@@ -183,7 +181,7 @@ class TensorflowDatasetMixIn:
             elif dtype_str.startswith("float"):
                 dtype = tf.float32
             else:
-                raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
+                raise ValueError(f"Could not convert datatype {dtype_str} in column {column}.")
 
             shape = []
             shape_feature = col_feature
@@ -202,7 +200,7 @@ class TensorflowDatasetMixIn:
                         "If you're getting this error with one of our datasets, and you're "
                         "sure the column should be convertable to tf.Tensor, please "
                         "file an issue at github.com/huggingface/datasets and tag "
-                        "@rocketknight1!"
+                        "@rocketknight1."
                     )
             shape = [batch_size] + shape
             shape = [dim if dim != -1 else None for dim in shape]
@@ -267,7 +265,7 @@ class TensorflowDatasetMixIn:
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
-            raise ImportError("Called a Tensorflow-specific function but could not import it!")
+            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
         if collate_fn_args is None:
             collate_fn_args = {}
@@ -277,13 +275,13 @@ class TensorflowDatasetMixIn:
         elif isinstance(label_cols, str):
             label_cols = [label_cols]
         elif len(set(label_cols)) < len(label_cols):
-            raise ValueError("List of label_cols contains duplicates!")
+            raise ValueError("List of label_cols contains duplicates.")
         if not columns:
-            raise ValueError("Need to specify at least one column!")
+            raise ValueError("Need to specify at least one column.")
         elif isinstance(columns, str):
             columns = [columns]
         elif len(set(columns)) < len(columns):
-            raise ValueError("List of columns contains duplicates!")
+            raise ValueError("List of columns contains duplicates.")
         if label_cols is not None:
             cols_to_retain = list(set(columns + label_cols))
         else:
@@ -293,7 +291,7 @@ class TensorflowDatasetMixIn:
             cols_to_retain[cols_to_retain.index("labels")] = "label"
         for col in cols_to_retain:
             if col not in self.features:
-                raise ValueError(f"Couldn't find column {col} in dataset!")
+                raise ValueError(f"Couldn't find column {col} in dataset.")
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
@@ -358,7 +356,7 @@ class TensorflowDatasetMixIn:
             return {key: output[i] for i, key in enumerate(cols_to_retain)}
 
         test_batch_dict = {key: test_batch[i] for i, key in enumerate(cols_to_retain)}
-        output_signature = dataset._get_output_signature(
+        output_signature = TensorflowDatasetMixin._get_output_signature(
             dataset, cols_to_retain, test_batch_dict, batch_size=batch_size if drop_remainder else None
         )
 
@@ -396,7 +394,8 @@ class TensorflowDatasetMixIn:
             tf_dataset = tf_dataset.map(add_dummy_labels)
 
         if prefetch:
-            tf_dataset = tf_dataset.prefetch(tf.data.AUTOTUNE)
+            tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
+
         return tf_dataset
 
 
@@ -478,7 +477,7 @@ class NonExistentDatasetError(Exception):
     pass
 
 
-class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
+class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     """A Dataset backed by an Arrow table."""
 
     def __init__(
