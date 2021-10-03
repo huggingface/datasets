@@ -13,7 +13,7 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- found
+- extended
 task_categories:
   ecthr_a:
   - text-classification
