@@ -1,4 +1,5 @@
 ---
+pretty_name: LexGLUE
 annotations_creators:
 - unknown
 language_creators:
