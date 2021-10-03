@@ -9,6 +9,7 @@ The goal of the tutorials are to help new users build up a basic understanding o
 * Explore what's inside a Dataset object.
 * Use a dataset with PyTorch and TensorFlow.
 * Evaluate your model predictions with a metric.
+* Easily upload a dataset to the Hugging Face Hub.
 
 After completing the tutorials, we hope you will have the necessary skills to start using our library in your own projects!
 

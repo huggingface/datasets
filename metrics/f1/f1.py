@@ -56,9 +56,24 @@ Returns:
 Examples:
 
     >>> f1_metric = datasets.load_metric("f1")
-    >>> results = f1_metric.compute(references=[0, 1], predictions=[0, 1])
+    >>> results = f1_metric.compute(predictions=[0, 1], references=[0, 1])
     >>> print(results)
     {'f1': 1.0}
+
+    >>> predictions = [0, 2, 1, 0, 0, 1]
+    >>> references = [0, 1, 2, 0, 1, 2]
+    >>> results = f1_metric.compute(predictions=predictions, references=references, average="macro")
+    >>> print(results)
+    {'f1': 0.26666666666666666}
+    >>> results = f1_metric.compute(predictions=predictions, references=references, average="micro")
+    >>> print(results)
+    {'f1': 0.3333333333333333}
+    >>> results = f1_metric.compute(predictions=predictions, references=references, average="weighted")
+    >>> print(results)
+    {'f1': 0.26666666666666666}
+    >>> results = f1_metric.compute(predictions=predictions, references=references, average=None)
+    >>> print(results)
+    {'f1': array([0.8, 0. , 0. ])}
 """
 
 _CITATION = """\
@@ -98,13 +113,9 @@ class F1(datasets.Metric):
         )
 
     def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
+        score = f1_score(
+            references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
+        )
         return {
-            "f1": f1_score(
-                references,
-                predictions,
-                labels=labels,
-                pos_label=pos_label,
-                average=average,
-                sample_weight=sample_weight,
-            ).item(),
+            "f1": score.item() if score.size == 1 else score,
         }

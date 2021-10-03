@@ -221,6 +221,19 @@ def csv_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def bz2_csv_path(csv_path, tmp_path_factory):
+    import bz2
+
+    path = tmp_path_factory.mktemp("data") / "dataset.csv.bz2"
+    with open(csv_path, "rb") as f:
+        data = f.read()
+    # data = bytes(FILE_CONTENT, "utf-8")
+    with bz2.open(path, "wb") as f:
+        f.write(data)
+    return path
+
+
+@pytest.fixture(scope="session")
 def parquet_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.parquet")
     schema = pa.schema(
