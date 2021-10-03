@@ -1,9 +1,9 @@
 ---
 pretty_name: LexGLUE
 annotations_creators:
-- unknown
+- found
 language_creators:
-- unknown
+- found
 languages:
 - en
 licenses:
@@ -13,7 +13,7 @@ multilinguality:
 size_categories:
 - 10K<n<100K
 source_datasets:
-- unknown
+- found
 task_categories:
   ecthr_a:
   - text-classification
