@@ -181,7 +181,7 @@ def hf_hub_url(path: str, name: str, revision: Optional[str] = None, version="de
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
     if is_remote_url(base_name):
-        return posixpath.join(base_name, *(str(pathname).lstrip("/") for pathname in pathnames))
+        return posixpath.join(base_name, *(str(pathname).replace(os.sep, "/").lstrip("/") for pathname in pathnames))
     else:
         return Path(base_name, *pathnames).as_posix()
 

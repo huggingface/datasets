@@ -245,6 +245,12 @@ def xpathsuffix(path: Path):
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
+def xpandas_read_csv(path, **kwargs):
+    import pandas as pd
+
+    return pd.read_csv(xopen(path), **kwargs)
+
+
 class StreamingDownloadManager(object):
     """
     Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
