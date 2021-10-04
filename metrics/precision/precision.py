@@ -115,13 +115,7 @@ class Precision(datasets.Metric):
         )
 
     def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
-        return {
-            "precision": precision_score(
-                references,
-                predictions,
-                labels=labels,
-                pos_label=pos_label,
-                average=average,
-                sample_weight=sample_weight,
-            ).item(),
-        }
+        score = precision_score(
+            references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
+        )
+        return {"precision": score.item() if score.size == 1 else score}
