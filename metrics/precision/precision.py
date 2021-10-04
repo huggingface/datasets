@@ -61,6 +61,21 @@ Examples:
     >>> results = precision_metric.compute(references=[0, 1], predictions=[0, 1])
     >>> print(results)
     {'precision': 1.0}
+
+    >>> predictions = [0, 2, 1, 0, 0, 1]
+    >>> references = [0, 1, 2, 0, 1, 2]
+    >>> results = precision_metric.compute(predictions=predictions, references=references, average='macro')
+    >>> print(results)
+    {'precision': 0.2222222222222222}
+    >>> results = precision_metric.compute(predictions=predictions, references=references, average='micro')
+    >>> print(results)
+    {'precision': 0.3333333333333333}
+    >>> results = precision_metric.compute(predictions=predictions, references=references, average='weighted')
+    >>> print(results)
+    {'precision': 0.2222222222222222}
+    >>> results = precision_metric.compute(predictions=predictions, references=references, average=None)
+    >>> print(results)
+    {'precision': array([0.66666667, 0.        , 0.        ])}
 """
 
 _CITATION = """\
