@@ -59,7 +59,7 @@ Select a configuration
 
 Some datasets, like the `General Language Understanding Evaluation (GLUE) <https://huggingface.co/datasets/glue>`_ benchmark, are actually made up of several datasets. These sub-datasets are called **configurations**, and you must explicitly select one when you load the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a ``ValueError`` and remind you to select a configuration.
 
-Use ``get_dataset_config_names`` to retrieve a a list of all the possible configurations available to your dataset:
+Use ``get_dataset_config_names`` to retrieve a list of all the possible configurations available to your dataset:
 
 .. code-block::
 
