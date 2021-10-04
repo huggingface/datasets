@@ -430,7 +430,7 @@ class Superb(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, archive_path, split=None):
         """Generate examples."""
         if self.config.name == "asr":
-            transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
+            transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*", "*", "*", "*.txt")
             key = 0
             for transcript_path in sorted(glob.glob(transcripts_glob)):
                 transcript_dir_path = os.path.dirname(transcript_path)
@@ -462,8 +462,8 @@ class Superb(datasets.GeneratorBasedBuilder):
                     label = "_unknown_"
                 yield key, {"file": audio_file, "label": label}
         elif self.config.name == "ic":
-            root_path = os.path.join(archive_path, "fluent_speech_commands_dataset/")
-            csv_path = os.path.join(root_path, f"data/{split}_data.csv")
+            root_path = os.path.join(archive_path, "fluent_speech_commands_dataset")
+            csv_path = os.path.join(root_path, "data", f"{split}_data.csv")
             with open(csv_path, encoding="utf-8") as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=",", skipinitialspace=True)
                 next(csv_reader)
@@ -478,7 +478,7 @@ class Superb(datasets.GeneratorBasedBuilder):
                         "location": location,
                     }
         elif self.config.name == "si":
-            wav_path = os.path.join(archive_path, "wav/")
+            wav_path = os.path.join(archive_path, "wav")
             splits_path = os.path.join(archive_path, "veri_test_class.txt")
             with open(splits_path, "r", encoding="utf-8") as f:
                 for key, line in enumerate(f):
@@ -518,9 +518,9 @@ class Superb(datasets.GeneratorBasedBuilder):
                         }
                         key += 1
         elif self.config.name == "er":
-            root_path = os.path.join(archive_path, f"Session{split}/")
-            wav_path = os.path.join(root_path, "sentences/wav/")
-            labels_path = os.path.join(root_path, "dialog/EmoEvaluation/*.txt")
+            root_path = os.path.join(archive_path, f"Session{split}")
+            wav_path = os.path.join(root_path, "sentences", "wav")
+            labels_path = os.path.join(root_path, "dialog", "EmoEvaluation", "*.txt")
             emotions = ["neu", "hap", "ang", "sad", "exc"]
             key = 0
             for labels_file in sorted(glob.glob(labels_path)):
@@ -653,7 +653,7 @@ def _get_speakers(rec, data, args):
 
 
 def _split_ks_files(archive_path, split):
-    audio_path = os.path.join(archive_path, "**/*.wav")
+    audio_path = os.path.join(archive_path, "**", "*.wav")
     audio_paths = glob.glob(audio_path)
     if split == "test":
         # use all available files for the test archive
