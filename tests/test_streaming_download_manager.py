@@ -251,13 +251,13 @@ def test_xglob(input_path, expected_paths, tmp_path):
         expected_paths = [str(tmp_path / file) for file in expected_paths]
         for file in ["file1.txt", "file2.txt", "README.md"]:
             (tmp_path / file).touch()
-        output_path = sorted(xglob(input_path))
+        output_paths = sorted(xglob(input_path))
     else:
         dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
         dummy_registry["mock"] = DummyTestFS
         with patch.dict(datasets.utils.streaming_download_manager.fsspec.registry.target, dummy_registry):
-            output_path = sorted(xglob(input_path))
-    assert output_path == expected_paths
+            output_paths = sorted(xglob(input_path))
+    assert output_paths == expected_paths
 
 
 @pytest.mark.parametrize(
@@ -293,14 +293,14 @@ def test_xpathglob(input_path, pattern, expected_paths, tmp_path):
         expected_paths = [tmp_path / file for file in expected_paths]
         for file in ["file1.txt", "file2.txt", "README.md"]:
             (tmp_path / file).touch()
-        output_path = sorted(xpathglob(input_path, pattern))
+        output_paths = sorted(xpathglob(input_path, pattern))
     else:
         dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
         dummy_registry["mock"] = DummyTestFS
         expected_paths = [Path(file) for file in expected_paths]
         with patch.dict(datasets.utils.streaming_download_manager.fsspec.registry.target, dummy_registry):
-            output_path = sorted(xpathglob(Path(input_path), pattern))
-    assert output_path == expected_paths
+            output_paths = sorted(xpathglob(Path(input_path), pattern))
+    assert output_paths == expected_paths
 
 
 @pytest.mark.parametrize(
@@ -355,14 +355,14 @@ def test_xpathrglob(input_path, pattern, expected_paths, tmp_path):
         expected_paths = [dir_path / file for file in expected_paths]
         for file in ["file1.txt", "file2.txt", "README.md"]:
             (dir_path / file).touch()
-        output_path = sorted(xpathrglob(input_path, pattern))
+        output_paths = sorted(xpathrglob(input_path, pattern))
     else:
         dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
         dummy_registry["mock"] = DummyTestFS
         expected_paths = [Path(file) for file in expected_paths]
         with patch.dict(datasets.utils.streaming_download_manager.fsspec.registry.target, dummy_registry):
-            output_path = sorted(xpathrglob(Path(input_path), pattern))
-    assert output_path == expected_paths
+            output_paths = sorted(xpathrglob(Path(input_path), pattern))
+    assert output_paths == expected_paths
 
 
 @pytest.mark.parametrize(
