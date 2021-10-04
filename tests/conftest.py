@@ -1,6 +1,7 @@
 import csv
 import json
 import lzma
+import os
 import textwrap
 
 import pyarrow as pa
@@ -253,9 +254,6 @@ def zip_csv_path(csv_path, csv2_path, tmp_path_factory):
     import zipfile
 
     path = tmp_path_factory.mktemp("data") / "dataset.csv.zip"
-    # with open(csv_path, "rb") as f:
-    #     data = f.read()
-    # data = bytes(FILE_CONTENT, "utf-8")
     with zipfile.ZipFile(path, "w") as f:
         f.write(csv_path, arcname=os.path.basename(csv_path))
         f.write(csv2_path, arcname=os.path.basename(csv2_path))
