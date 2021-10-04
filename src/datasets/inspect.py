@@ -31,6 +31,10 @@ from .utils.version import Version
 logger = get_logger(__name__)
 
 
+class SplitsNotFoundError(ValueError):
+    pass
+
+
 def list_datasets(with_community_datasets=True, with_details=False):
     """List all the datasets scripts available on HuggingFace AWS bucket.
 
@@ -283,5 +287,5 @@ def get_dataset_split_names(
                 for split_generator in builder._split_generators(StreamingDownloadManager(base_path=builder.base_path))
             ]
         except Exception as err:
-            raise Exception("The split names could not be parsed from the dataset config.") from err
+            raise SplitsNotFoundError("The split names could not be parsed from the dataset config.") from err
     return list(builder.info.splits.keys())
