@@ -30,30 +30,6 @@ Once you are happy with the dataset you want, load it in a single line with :fun
    >>> from datasets import load_dataset
    >>> dataset = load_dataset('glue', 'mrpc', split='train')
 
-Select a split
---------------
-
-A split is a specific subset of the dataset like ``train`` and ``test``. Make sure you select a split when you load a dataset. If you don't supply a ``split`` argument, 🤗 Datasets will only return a dictionary containing the subsets of the dataset.
-
-.. code-block::
-
-   >>> from datasets import load_dataset
-   >>> datasets = load_dataset('glue', 'mrpc')
-   >>> print(datasets)
-   {train: Dataset({
-       features: ['idx', 'label', 'sentence1', 'sentence2'],
-       num_rows: 3668
-   })
-   validation: Dataset({
-       features: ['idx', 'label', 'sentence1', 'sentence2'],
-       num_rows: 408
-   })
-   test: Dataset({
-       features: ['idx', 'label', 'sentence1', 'sentence2'],
-       num_rows: 1725
-   })
-   }
-
 Select a configuration
 ----------------------
 
@@ -94,3 +70,37 @@ Use ``get_dataset_config_names`` to retrieve a list of all the possible configur
        'validation': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 872),
        'test': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 1821)
    }
+
+Select a split
+--------------
+
+A split is a specific subset of the dataset like ``train`` and ``test``. Make sure you select a split when you load a dataset. If you don't supply a ``split`` argument, 🤗 Datasets will only return a dictionary containing the subsets of the dataset.
+
+.. code-block::
+
+   >>> from datasets import load_dataset
+   >>> datasets = load_dataset('glue', 'mrpc')
+   >>> print(datasets)
+   {train: Dataset({
+       features: ['idx', 'label', 'sentence1', 'sentence2'],
+       num_rows: 3668
+   })
+   validation: Dataset({
+       features: ['idx', 'label', 'sentence1', 'sentence2'],
+       num_rows: 408
+   })
+   test: Dataset({
+       features: ['idx', 'label', 'sentence1', 'sentence2'],
+       num_rows: 1725
+   })
+   }
+
+You can list the split names for a dataset, or a specific configuration, with the :func:`datasets.get_dataset_split_names` method:
+
+.. code-block::
+
+  >>> from datasets import get_dataset_split_names
+  >>> get_dataset_split_names('sent_comp')
+  ['validation', 'train']
+  >>> get_dataset_split_names('glue', 'cola')
+  ['test', 'train', 'validation']
