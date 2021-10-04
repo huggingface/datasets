@@ -12,6 +12,7 @@ from datasets.utils.streaming_download_manager import (
     StreamingDownloadManager,
     _as_posix,
     _get_extraction_protocol,
+    xglob,
     xjoin,
     xopen,
     xpathglob,
@@ -217,6 +218,46 @@ def test_xopen_remote():
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
     with xpathopen(Path(TEST_URL), "r", encoding="utf-8") as f:
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
+
+
+@pytest.mark.parametrize(
+    "input_path, expected_paths",
+    [
+        ("tmp_path/*.txt", ["file1.txt", "file2.txt"]),
+        ("mock://*", ["mock://glob_test", "mock://misc", "mock://top_level"]),
+        ("mock://top_*", ["mock://top_level"]),
+        (
+            "mock://top_level/second_level/date=2019-10-0[1-4]",
+            [
+                "mock://top_level/second_level/date=2019-10-01",
+                "mock://top_level/second_level/date=2019-10-02",
+                "mock://top_level/second_level/date=2019-10-04",
+            ],
+        ),
+        (
+            "mock://top_level/second_level/date=2019-10-0[1-4]/*",
+            [
+                "mock://top_level/second_level/date=2019-10-01/a.parquet",
+                "mock://top_level/second_level/date=2019-10-01/b.parquet",
+                "mock://top_level/second_level/date=2019-10-02/a.parquet",
+                "mock://top_level/second_level/date=2019-10-04/a.parquet",
+            ],
+        ),
+    ],
+)
+def test_xglob(input_path, expected_paths, tmp_path):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        expected_paths = [str(tmp_path / file) for file in expected_paths]
+        for file in ["file1.txt", "file2.txt", "README.md"]:
+            (tmp_path / file).touch()
+        output_path = sorted(xglob(input_path))
+    else:
+        dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
+        dummy_registry["mock"] = DummyTestFS
+        with patch.dict(datasets.utils.streaming_download_manager.fsspec.registry.target, dummy_registry):
+            output_path = sorted(xglob(input_path))
+    assert output_path == expected_paths
 
 
 @pytest.mark.parametrize(
