@@ -118,4 +118,4 @@ class Recall(datasets.Metric):
         score = recall_score(
             references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
         )
-        return {"recall": score.item() if score.size == 1 else score}
+        return {"recall": float(score) if score.size == 1 else score}

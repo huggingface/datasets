@@ -118,4 +118,4 @@ class Precision(datasets.Metric):
         score = precision_score(
             references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
         )
-        return {"precision": score.item() if score.size == 1 else score}
+        return {"precision": float(score) if score.size == 1 else score}
