@@ -105,7 +105,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
 
 def get_dataset_infos(
     path: str,
-    script_version: Optional[Union[str, Version]] = None,
+    revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     force_local_path: Optional[str] = None,
@@ -124,7 +124,7 @@ def get_dataset_infos(
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-        script_version (Optional ``Union[str, datasets.Version]``):
+        revision (Optional ``Union[str, datasets.Version]``):
             If specified, the dataset module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
@@ -149,7 +149,7 @@ def get_dataset_infos(
     module_path, _ = prepare_module(
         path,
         dataset=True,
-        script_version=script_version,
+        revision=revision,
         download_config=download_config,
         download_mode=download_mode,
         force_local_path=force_local_path,
@@ -165,7 +165,7 @@ def get_dataset_infos(
 
 def get_dataset_config_names(
     path: str,
-    script_version: Optional[Union[str, Version]] = None,
+    revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     force_local_path: Optional[str] = None,
@@ -184,7 +184,7 @@ def get_dataset_config_names(
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-        script_version (Optional ``Union[str, datasets.Version]``):
+        revision (Optional ``Union[str, datasets.Version]``):
             If specified, the dataset module will be loaded from the datasets repository at this version.
             By default:
             - it is set to the local version of the lib.
@@ -209,7 +209,7 @@ def get_dataset_config_names(
     module_path, _ = prepare_module(
         path,
         dataset=True,
-        script_version=script_version,
+        revision=revision,
         download_config=download_config,
         download_mode=download_mode,
         force_local_path=force_local_path,
@@ -232,7 +232,7 @@ def get_dataset_split_names(
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
-    script_version: Optional[Union[str, Version]] = None,
+    revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     **config_kwargs,
 ):
@@ -252,7 +252,7 @@ def get_dataset_split_names(
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        script_version (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
+        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
@@ -272,7 +272,7 @@ def get_dataset_split_names(
         features=features,
         download_config=download_config,
         download_mode=download_mode,
-        script_version=script_version,
+        revision=revision,
         use_auth_token=use_auth_token,
         **config_kwargs,
     )
