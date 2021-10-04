@@ -88,7 +88,7 @@ Use ``get_dataset_config_names`` to retrieve a list of all the possible configur
    >>> dataset = load_dataset('glue', 'sst2')
    Downloading and preparing dataset glue/sst2 (download: 7.09 MiB, generated: 4.81 MiB, total: 11.90 MiB) to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0...
    Downloading: 100%|██████████████████████████████████████████████████████████████| 7.44M/7.44M [00:01<00:00, 7.03MB/s]
-   Dataset glue downloaded and prepared to /Users/huggignface/.cache/huggingface/datasets/glue/sst2/1.0.0. Subsequent calls will reuse this data.
+   Dataset glue downloaded and prepared to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0. Subsequent calls will reuse this data.
    >>> print(dataset)
    {'train': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 67349),
        'validation': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 872),
