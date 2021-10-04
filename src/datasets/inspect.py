@@ -114,8 +114,6 @@ def get_dataset_infos(
     download_mode: Optional[GenerateMode] = None,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
-    return_resolved_file_path: bool = False,
-    return_associated_base_path: bool = False,
     data_files: Optional[Union[Dict, List, str]] = None,
     **download_kwargs,
 ):
@@ -141,11 +139,6 @@ def get_dataset_infos(
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
-        return_resolved_file_path (Optional bool, defaults to False):
-            If True, the url or path to the resolved dataset is returned with the other outputs
-        return_associated_base_path (Optional bool, defaults to False):
-            If True, the base path associated to the dataset is returned with the other outputs.
-            It corresponds to the directory or base url where the dataset script/dataset repo is at.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
             for example ``use_auth_token``
@@ -158,8 +151,6 @@ def get_dataset_infos(
         download_mode=download_mode,
         force_local_path=force_local_path,
         dynamic_modules_path=dynamic_modules_path,
-        return_resolved_file_path=return_resolved_file_path,
-        return_associated_base_path=return_associated_base_path,
         data_files=data_files,
         **download_kwargs,
     )
@@ -174,8 +165,6 @@ def get_dataset_config_names(
     download_mode: Optional[GenerateMode] = None,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
-    return_resolved_file_path: bool = False,
-    return_associated_base_path: bool = False,
     data_files: Optional[Union[Dict, List, str]] = None,
     **download_kwargs,
 ):
@@ -201,11 +190,6 @@ def get_dataset_config_names(
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
-        return_resolved_file_path (Optional bool, defaults to False):
-            If True, the url or path to the resolved dataset is returned with the other outputs
-        return_associated_base_path (Optional bool, defaults to False):
-            If True, the base path associated to the dataset is returned with the other outputs.
-            It corresponds to the directory or base url where the dataset script/dataset repo is at.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
             for example ``use_auth_token``
@@ -218,8 +202,6 @@ def get_dataset_config_names(
         download_mode=download_mode,
         force_local_path=force_local_path,
         dynamic_modules_path=dynamic_modules_path,
-        return_resolved_file_path=return_resolved_file_path,
-        return_associated_base_path=return_associated_base_path,
         data_files=data_files,
         **download_kwargs,
     )
