@@ -82,7 +82,7 @@ class CompetitionMathDataset(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, math_dir, split):
         """Yields examples as (key, example) tuples."""
-        filepaths = glob.glob(os.path.join(math_dir, split, "*/*"))
+        filepaths = glob.glob(os.path.join(math_dir, split, "*", "*"))
         for id_, filepath in enumerate(filepaths):
             with open(filepath, "rb") as fin:
                 example = json.load(fin)
