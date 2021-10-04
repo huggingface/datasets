@@ -61,6 +61,21 @@ Examples:
     >>> results = recall_metric.compute(references=[0, 1], predictions=[0, 1])
     >>> print(results)
     {'recall': 1.0}
+
+    >>> predictions = [0, 2, 1, 0, 0, 1]
+    >>> references = [0, 1, 2, 0, 1, 2]
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average='macro')
+    >>> print(results)
+    {'recall': 0.3333333333333333}
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average='micro')
+    >>> print(results)
+    {'recall': 0.3333333333333333}
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average='weighted')
+    >>> print(results)
+    {'recall': 0.3333333333333333}
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average=None)
+    >>> print(results)
+    {'recall': array([1., 0., 0.])}
 """
 
 _CITATION = """\
