@@ -57,7 +57,7 @@ def xjoin(a, *p):
     return "::".join([a] + b)
 
 
-def xdirname(a, *p):
+def xdirname(a):
     """
     This function extends os.path.dirname to support the "::" hop separator. It supports both paths and urls.
 
