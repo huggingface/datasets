@@ -1,4 +1,6 @@
 # coding=utf-8
+import glob
+import os
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
@@ -15,6 +17,14 @@ logger = datasets.utils.logging.get_logger(__name__)
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
+
+
+def _iter_files(files):
+    for file in files:
+        if os.path.isfile(file):
+            yield file
+        else:
+            yield from glob.glob(os.path.join(file, "*"))
 
 
 @dataclass
