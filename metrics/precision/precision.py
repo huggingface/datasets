@@ -61,6 +61,21 @@ Examples:
     >>> results = precision_metric.compute(references=[0, 1], predictions=[0, 1])
     >>> print(results)
     {'precision': 1.0}
+
+    >>> predictions = [0, 2, 1, 0, 0, 1]
+    >>> references = [0, 1, 2, 0, 1, 2]
+    >>> results = precision_metric.compute(predictions=predictions, references=references, average='macro')
+    >>> print(results)
+    {'precision': 0.2222222222222222}
+    >>> results = precision_metric.compute(predictions=predictions, references=references, average='micro')
+    >>> print(results)
+    {'precision': 0.3333333333333333}
+    >>> results = precision_metric.compute(predictions=predictions, references=references, average='weighted')
+    >>> print(results)
+    {'precision': 0.2222222222222222}
+    >>> results = precision_metric.compute(predictions=predictions, references=references, average=None)
+    >>> print(results)
+    {'precision': array([0.66666667, 0.        , 0.        ])}
 """
 
 _CITATION = """\
@@ -100,13 +115,7 @@ class Precision(datasets.Metric):
         )
 
     def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
-        return {
-            "precision": precision_score(
-                references,
-                predictions,
-                labels=labels,
-                pos_label=pos_label,
-                average=average,
-                sample_weight=sample_weight,
-            ).item(),
-        }
+        score = precision_score(
+            references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
+        )
+        return {"precision": score.item() if score.size == 1 else score}

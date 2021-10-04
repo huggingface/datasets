@@ -61,6 +61,21 @@ Examples:
     >>> results = recall_metric.compute(references=[0, 1], predictions=[0, 1])
     >>> print(results)
     {'recall': 1.0}
+
+    >>> predictions = [0, 2, 1, 0, 0, 1]
+    >>> references = [0, 1, 2, 0, 1, 2]
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average='macro')
+    >>> print(results)
+    {'recall': 0.3333333333333333}
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average='micro')
+    >>> print(results)
+    {'recall': 0.3333333333333333}
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average='weighted')
+    >>> print(results)
+    {'recall': 0.3333333333333333}
+    >>> results = recall_metric.compute(predictions=predictions, references=references, average=None)
+    >>> print(results)
+    {'recall': array([1., 0., 0.])}
 """
 
 _CITATION = """\
@@ -100,13 +115,7 @@ class Recall(datasets.Metric):
         )
 
     def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
-        return {
-            "recall": recall_score(
-                references,
-                predictions,
-                labels=labels,
-                pos_label=pos_label,
-                average=average,
-                sample_weight=sample_weight,
-            ).item(),
-        }
+        score = recall_score(
+            references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
+        )
+        return {"recall": score.item() if score.size == 1 else score}
