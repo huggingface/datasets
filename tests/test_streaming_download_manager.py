@@ -252,18 +252,13 @@ def test_xopen_remote():
         ),
     ],
 )
-def test_xglob(input_path, expected_paths, tmp_path):
+def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
     if input_path.startswith("tmp_path"):
         input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
         expected_paths = [str(tmp_path / file) for file in expected_paths]
         for file in ["file1.txt", "file2.txt", "README.md"]:
             (tmp_path / file).touch()
-        output_paths = sorted(xglob(input_path))
-    else:
-        dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
-        dummy_registry["mock"] = DummyTestFS
-        with patch.dict(datasets.utils.streaming_download_manager.fsspec.registry.target, dummy_registry):
-            output_paths = sorted(xglob(input_path))
+    output_paths = sorted(xglob(input_path))
     assert output_paths == expected_paths
 
 
@@ -294,19 +289,15 @@ def test_xglob(input_path, expected_paths, tmp_path):
         ),
     ],
 )
-def test_xpathglob(input_path, pattern, expected_paths, tmp_path):
+def test_xpathglob(input_path, pattern, expected_paths, tmp_path, mock_fsspec):
     if input_path == "tmp_path":
         input_path = tmp_path
         expected_paths = [tmp_path / file for file in expected_paths]
         for file in ["file1.txt", "file2.txt", "README.md"]:
             (tmp_path / file).touch()
-        output_paths = sorted(xpathglob(input_path, pattern))
     else:
-        dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
-        dummy_registry["mock"] = DummyTestFS
         expected_paths = [Path(file) for file in expected_paths]
-        with patch.dict(datasets.utils.streaming_download_manager.fsspec.registry.target, dummy_registry):
-            output_paths = sorted(xpathglob(Path(input_path), pattern))
+    output_paths = sorted(xpathglob(Path(input_path), pattern))
     assert output_paths == expected_paths
 
 
@@ -354,7 +345,7 @@ def test_xpathglob(input_path, pattern, expected_paths, tmp_path):
         ),
     ],
 )
-def test_xpathrglob(input_path, pattern, expected_paths, tmp_path):
+def test_xpathrglob(input_path, pattern, expected_paths, tmp_path, mock_fsspec):
     if input_path == "tmp_path":
         input_path = tmp_path
         dir_path = tmp_path / "dir"
@@ -362,13 +353,9 @@ def test_xpathrglob(input_path, pattern, expected_paths, tmp_path):
         expected_paths = [dir_path / file for file in expected_paths]
         for file in ["file1.txt", "file2.txt", "README.md"]:
             (dir_path / file).touch()
-        output_paths = sorted(xpathrglob(input_path, pattern))
     else:
-        dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
-        dummy_registry["mock"] = DummyTestFS
         expected_paths = [Path(file) for file in expected_paths]
-        with patch.dict(datasets.utils.streaming_download_manager.fsspec.registry.target, dummy_registry):
-            output_paths = sorted(xpathrglob(Path(input_path), pattern))
+    output_paths = sorted(xpathrglob(Path(input_path), pattern))
     assert output_paths == expected_paths
 
 
