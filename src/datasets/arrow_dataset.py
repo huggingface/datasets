@@ -3639,8 +3639,8 @@ def get_indices_from_mask_function(
                     function(*input, indices[i], **fn_kwargs) if with_indices else function(*input, **fn_kwargs)
                 )
     indices_array = [i for i, to_keep in zip(indices, mask) if to_keep]
-    if indices_mapping is None:
-        return {"indices": indices_array}
-    else:
+    if indices_mapping is not None:
         indices_array = pa.array(indices_array, type=pa.uint64())
-        return {"indices": indices_mapping.column(0).take(indices_array).to_numpy()}
+        indices_array = indices_mapping.column(0).take(indices_array)
+        indices_array = indices_array.to_pylist()
+    return {"indices": indices_array}
