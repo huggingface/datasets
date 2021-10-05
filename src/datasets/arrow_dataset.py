@@ -2347,7 +2347,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             return self
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"], version="2.0.0")
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"], version="2.0.1")
     def filter(
         self,
         function: Optional[Callable] = None,
@@ -2413,7 +2413,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             raise ValueError("Parameter `remove_columns` passed to .filter() is no longer supported.")
 
         indices = self.map(
-            function=partial(get_indices_from_mask_function, function, batched, with_indices, input_columns),
+            function=partial(
+                get_indices_from_mask_function, function, batched, with_indices, input_columns, self._indices
+            ),
             with_indices=True,
             features=Features({"indices": Value("uint64")}),
             batched=True,
@@ -3607,6 +3609,7 @@ def get_indices_from_mask_function(
     batched: bool,
     with_indices: bool,
     input_columns: Optional[Union[str, List[str]]],
+    indices_mapping: Optional[Table] = None,
     *args,
     **fn_kwargs,
 ):
@@ -3635,4 +3638,9 @@ def get_indices_from_mask_function(
                 mask.append(
                     function(*input, indices[i], **fn_kwargs) if with_indices else function(*input, **fn_kwargs)
                 )
-    return {"indices": [i for i, to_keep in zip(indices, mask) if to_keep]}
+    indices_array = [i for i, to_keep in zip(indices, mask) if to_keep]
+    if indices_mapping is not None:
+        indices_array = pa.array(indices_array, type=pa.uint64())
+        indices_array = indices_mapping.column(0).take(indices_array)
+        indices_array = indices_array.to_pylist()
+    return {"indices": indices_array}
