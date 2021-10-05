@@ -9,6 +9,7 @@ licenses:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
+pretty_name: NQ-Open
 size_categories:
 - 10K<n<100K
 source_datasets:
