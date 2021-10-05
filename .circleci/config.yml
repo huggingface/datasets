@@ -45,7 +45,7 @@ jobs:
             - run: conda install python=3.6 --yes
             - run: conda install pytorch --yes
             - run: pip install virtualenv
-            - run: python -m virtualenv venv --system-site-packages
+            - run: python -m virtualenv venv
             - run: "& venv/Scripts/activate.ps1"
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
