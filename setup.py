@@ -220,7 +220,7 @@ setup(
     version="1.12.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",
     url="https://github.com/huggingface/datasets",

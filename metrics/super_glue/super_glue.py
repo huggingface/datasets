@@ -107,12 +107,12 @@ Examples:
 
 
 def simple_accuracy(preds, labels):
-    return (preds == labels).mean().item()
+    return float((preds == labels).mean())
 
 
 def acc_and_f1(preds, labels, f1_avg="binary"):
     acc = simple_accuracy(preds, labels)
-    f1 = f1_score(y_true=labels, y_pred=preds, average=f1_avg).item()
+    f1 = float(f1_score(y_true=labels, y_pred=preds, average=f1_avg))
     return {
         "accuracy": acc,
         "f1": f1,
@@ -138,9 +138,9 @@ def evaluate_multirc(ids_preds, labels):
         f1s.append(f1)
         em = int(sum([p == l for p, l in preds_labels]) == len(preds_labels))
         ems.append(em)
-    f1_m = (sum(f1s) / len(f1s)).item()
+    f1_m = float((sum(f1s) / len(f1s)))
     em = sum(ems) / len(ems)
-    f1_a = f1_score(y_true=labels, y_pred=[id_pred["prediction"] for id_pred in ids_preds]).item()
+    f1_a = float(f1_score(y_true=labels, y_pred=[id_pred["prediction"] for id_pred in ids_preds]))
     return {"exact_match": em, "f1_m": f1_m, "f1_a": f1_a}
 
 

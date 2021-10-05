@@ -140,20 +140,17 @@ def _add_retries_to_file_obj_read_method(file_obj):
 def _get_extraction_protocol(urlpath: str) -> Optional[str]:
     # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
     path = urlpath.split("::")[0]
-    # remove "dl=1" query param: https://foo.bar/train.json.gz?dl=1 -> https://foo.bar/train.json.gz
-    suf = "?dl=1"
-    if path.endswith(suf):
-        path = path[: -len(suf)]
-
     # Get extension: https://foo.bar/train.json.gz -> gz
     extension = path.split(".")[-1]
+    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
+    extension = extension.split("?")[0]
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
     elif path.endswith(".tar.gz") or path.endswith(".tgz"):
         pass
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
-    raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
+    raise NotImplementedError(f"Extraction protocol '{extension}' for file at '{urlpath}' is not implemented yet")
 
 
 def xopen(file, mode="r", *args, **kwargs):
@@ -243,6 +240,12 @@ def xpathsuffix(path: Path):
         :obj:`str`
     """
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
+
+
+def xpandas_read_csv(path, **kwargs):
+    import pandas as pd
+
+    return pd.read_csv(xopen(path), **kwargs)
 
 
 class StreamingDownloadManager(object):
