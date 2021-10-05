@@ -672,7 +672,7 @@ def prepare_module(
     dataset_infos_path = os.path.join(hash_folder_path, config.DATASETDICT_INFOS_FILENAME)
 
     # Create the lock file where we know we have write permissions.
-    lock_path = (datasets_modules_path if dataset else metrics_modules_path) + f"{name}.lock"
+    lock_path = (datasets_modules_path if dataset else metrics_modules_path) + f"{short_name}.lock"
 
     # Prevent parallel disk operations
     with FileLock(lock_path):
