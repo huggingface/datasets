@@ -181,18 +181,20 @@ def xpathopen(path: Path, *args, **kwargs):
     return xopen(_as_posix(path), *args, **kwargs)
 
 
-def xglob(urlpath):
+def xglob(urlpath, *, recursive=False):
     """Extend `glob.glob` function to support remote files.
 
     Args:
         urlpath (:obj:`str`): URL path with shell-style wildcard patterns.
+        recursive (:obj:`bool`, default `False`): Whether to match the "**" pattern recursively to zero or more
+            directories or subdirectories.
 
     Returns:
         :obj:`list` of :obj:`str`
     """
     main_hop, *rest_hops = urlpath.split("::")
     if is_local_path(main_hop):
-        return glob.glob(main_hop)
+        return glob.glob(main_hop, recursive=recursive)
     else:
         fs, *_ = fsspec.get_fs_token_paths(urlpath)
         # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
