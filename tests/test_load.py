@@ -108,9 +108,15 @@ def dataset_loading_script_dir(tmp_path):
 
 
 @pytest.fixture
-def dataset_loading_script_dir_readonly(dataset_loading_script_dir):
-    # Make this directory readonly
+def dataset_loading_script_dir_readonly(tmp_path):
     script_name = DATASET_LOADING_SCRIPT_NAME
+    script_dir = tmp_path / script_name
+    script_dir.mkdir()
+    script_path = script_dir / f"{script_name}.py"
+    with open(script_path, "w") as f:
+        f.write(DATASET_LOADING_SCRIPT_CODE)
+    dataset_loading_script_dir = str(script_dir)
+    # Make this directory readonly
     os.chmod(dataset_loading_script_dir, 0o555)
     os.chmod(os.path.join(dataset_loading_script_dir, f"{script_name}.py"), 0o555)
     return dataset_loading_script_dir
