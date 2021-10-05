@@ -753,7 +753,8 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
-            token=self.download_config.use_auth_token,  # TODO(QL): add timeout=100.0
+            token=self.download_config.use_auth_token,
+            timeout=100.0,
         )
         data_files = DataFilesDict.from_hf_repo(
             _sanitize_patterns(self.data_files),
@@ -1085,7 +1086,8 @@ def dataset_module_factory(
                     dataset_info = hf_api.dataset_info(
                         repo_id=path,
                         revision=revision,
-                        token=download_config.use_auth_token,  # TODO(QL): add timeout=100.0
+                        token=download_config.use_auth_token,
+                        timeout=100.0,
                     )
                 except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
                     if isinstance(
