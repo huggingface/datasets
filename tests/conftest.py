@@ -31,9 +31,9 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
     monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(test_extracted_datasets_path))
 
 
-# @pytest.fixture(autouse=True, scope="session")
-# def disable_tqdm_output():
-#     datasets.set_progress_bar_enabled(False)
+@pytest.fixture(autouse=True, scope="session")
+def disable_tqdm_output():
+    datasets.set_progress_bar_enabled(False)
 
 
 FILE_CONTENT = """\
