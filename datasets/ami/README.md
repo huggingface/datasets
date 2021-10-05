@@ -26,6 +26,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Dataset Preprocessing)(#dataset-preprocessing)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
@@ -63,6 +64,109 @@ room-view video cameras, and output from a slide projector and an electronic whi
 the participants also have unsynchronized pens available to them that record what is written. The meetings
 were recorded in English using three different rooms with different acoustic properties, and include mostly
 non-native speakers.
+
+### Dataset Preprocessing
+
+Individual samples of the AMI dataset contain very large audio files (between 10 and 60 minutes). The dataset should be chunked 
+into more samples of shorter length for training. 
+
+The following two mapping functions can be used to chunk the dataset into sampled of the desired length `max_duration`.
+
+```python
+from datasets import load_dataset
+import librosa
+
+
+def compute_chunk_segments(batch, max_duration=20, margin=1.5):
+    batch['segment_chunk_start_times'] = []
+    batch['segment_chunk_end_times'] = []
+    batch['segment_chunk_sentence'] = []
+    batch['segment_chunk_speaker'] = []
+
+    num_segments = len(batch['segment_ids'])
+    counter = 0
+    chunk_end_word = 0.0
+
+    for i in range(num_segments):
+        chunk_start, segment_end_times = batch["segment_start_times"][i], batch["segment_end_times"][i]
+        # Get number of chunked segments from long segments
+        segment_duration = segment_end_times - chunk_start
+        num_local_chunks = int(segment_duration // max_duration + 1)
+
+        for n in range(num_local_chunks):
+            # check rest duration of segment is long enough to chunk
+            rest_segment_time = segment_end_times - chunk_start
+            if (max_duration < rest_segment_time) and (rest_segment_time < margin * max_duration):
+                chunk_end = chunk_start + rest_segment_time // 2
+            elif rest_segment_time < max_duration:
+                chunk_end = chunk_start + rest_segment_time
+            else:
+                chunk_end = chunk_start + max_duration
+
+            # Get sentence between chunk_start and chunk_end
+            word_list = []
+            while chunk_end_word < chunk_end and counter < len(batch["words"]):
+                word_list.append(batch["words"][counter])
+                chunk_end_word = batch["word_end_times"][counter]
+                counter += 1
+
+            chunk_end_word = min(chunk_end_word, chunk_end)
+
+            batch['segment_chunk_start_times'].append(chunk_start)
+            batch['segment_chunk_end_times'].append(chunk_end_word)
+            batch['segment_chunk_sentence'].append(" ".join(word_list))
+            batch['segment_chunk_speaker'].append(batch["segment_speakers"][min(counter, num_segments - 1)])
+
+            # set the next chunk start time
+            if counter < len(batch["word_start_times"]):
+                chunk_start = chunk_end_word
+
+    num_chunks = len(batch["segment_chunk_sentence"])
+
+    # fix end times as they cannot be longer than next start time
+    for i in range(num_chunks):
+        end_time = batch["segment_chunk_end_times"][i]
+        start_time = batch["segment_chunk_start_times"][i]
+
+        if end_time - start_time > max_duration:
+            raise ValueError(f"Difference between end time {end_time} and {start_time} is more than {max_duration}")
+
+        if i + 1 < num_chunks: 
+            batch["segment_chunk_end_times"][i] = min(batch["segment_chunk_start_times"][i + 1], end_time)
+            end_time = batch["segment_chunk_end_times"][i]
+
+    return batch
+    
+def chunk_audio(batch, sample_rate=16_000):
+    new_batch = {
+        "audio": [],
+        "text": [],
+        "speaker": [],
+    }
+
+    audio, _ = librosa.load(batch["file"][0], sr=sample_rate)
+
+    for chunk_idx in range(len(batch["segment_chunk_sentence"][0])):
+        start_time = int(batch["segment_chunk_start_times"][0][chunk_idx] * sample_rate)
+        end_time = int(batch["segment_chunk_end_times"][0][chunk_idx] * sample_rate)
+
+        sentence = batch["segment_chunk_sentence"][0][chunk_idx]
+        speaker = batch["segment_chunk_speaker"][0][chunk_idx]
+
+        new_batch["audio"].append(audio[start_time: end_time])
+        new_batch["text"].append(sentence)
+        new_batch["speaker"].append(speaker)
+
+    return new_batch
+
+
+ami = load_dataset("ami", "headset-single")
+ 
+ami = ami.map(compute_chunk_segments)
+ami = ami.map(chunk_audio, batched=True, batch_size=1, remove_columns=ami["train"].column_names)
+```
+
+A preprocessed dataset of the config `"headset-single"`can be found [here](https://huggingface.co/datasets/ami-wav2vec2/ami_headset_single_preprocessed).
 
 ### Supported Tasks and Leaderboards
 
