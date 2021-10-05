@@ -47,7 +47,7 @@ jobs:
             - run: pip install virtualenv
             - run: python -m virtualenv venv
             - run: "& venv/Scripts/activate.ps1"
-            - run: pip install 'aiobotocore<1.4.2'
+            - run: pip install 'aiobotocore<1.4.2' 'boto3<1.18.54'
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow --upgrade
