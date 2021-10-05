@@ -711,8 +711,10 @@ def prepare_module(
     local_file_path = os.path.join(hash_folder_path, name)
     dataset_infos_path = os.path.join(hash_folder_path, config.DATASETDICT_INFOS_FILENAME)
 
+    # Create the lock file where we know we have write permissions.
+    lock_path = (datasets_modules_path if dataset else metrics_modules_path) + f"{short_name}.lock"
+
     # Prevent parallel disk operations
-    lock_path = local_path + ".lock"
     with FileLock(lock_path):
         # Create main dataset/metrics folder if needed
         if download_mode == GenerateMode.FORCE_REDOWNLOAD and os.path.exists(main_folder_path):

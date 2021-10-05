@@ -107,6 +107,21 @@ def dataset_loading_script_dir(tmp_path):
     return str(script_dir)
 
 
+@pytest.fixture
+def dataset_loading_script_dir_readonly(tmp_path):
+    script_name = DATASET_LOADING_SCRIPT_NAME
+    script_dir = tmp_path / "readonly" / script_name
+    script_dir.mkdir(parents=True)
+    script_path = script_dir / f"{script_name}.py"
+    with open(script_path, "w") as f:
+        f.write(DATASET_LOADING_SCRIPT_CODE)
+    dataset_loading_script_dir = str(script_dir)
+    # Make this directory readonly
+    os.chmod(dataset_loading_script_dir, 0o555)
+    os.chmod(os.path.join(dataset_loading_script_dir, f"{script_name}.py"), 0o555)
+    return dataset_loading_script_dir
+
+
 class LoadTest(TestCase):
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
@@ -420,6 +435,17 @@ def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir
     assert dataset._fingerprint == fingerprint1, "for the caching mechanism to work, fingerprint should stay the same"
     dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="test", cache_dir=cache_dir2)
     assert dataset._fingerprint != fingerprint1
+
+
+def test_load_dataset_readonly(dataset_loading_script_dir, dataset_loading_script_dir_readonly, data_dir, tmp_path):
+    cache_dir1 = tmp_path / "cache1"
+    cache_dir2 = tmp_path / "cache2"
+    dataset = load_dataset(dataset_loading_script_dir, data_dir=data_dir, split="train", cache_dir=cache_dir1)
+    fingerprint1 = dataset._fingerprint
+    del dataset
+    # Load readonly dataset and check that the fingerprint is the same.
+    dataset = load_dataset(dataset_loading_script_dir_readonly, data_dir=data_dir, split="train", cache_dir=cache_dir2)
+    assert dataset._fingerprint == fingerprint1, "Cannot load a dataset in a readonly folder."
 
 
 @pytest.mark.parametrize("max_in_memory_dataset_size", ["default", 0, 50, 500])
