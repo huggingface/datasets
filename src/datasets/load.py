@@ -37,7 +37,13 @@ from huggingface_hub import HfApi
 from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
-from .data_files import DataFilesDict, DataFilesList, _sanitize_patterns
+from .data_files import (
+    DataFilesDict,
+    DataFilesList,
+    _sanitize_patterns,
+    default_data_files_patterns_in_dataset_repository,
+    default_data_files_patterns_locally,
+)
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -681,8 +687,13 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModuleFactoryResult:
+        data_files = (
+            _sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else default_data_files_patterns_locally(self.path, allowed_extensions=_EXTENSION_TO_MODULE.keys())
+        )
         data_files = DataFilesDict.from_local_or_remote(
-            _sanitize_patterns(self.data_files), base_path=self.path, allowed_extensions=_EXTENSION_TO_MODULE.keys()
+            data_files, base_path=self.path, allowed_extensions=_EXTENSION_TO_MODULE.keys()
         )
         infered_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
@@ -712,6 +723,14 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[GenerateMode] = None,
     ):
+        if data_files is None:
+            error_msg = f"Please specify the data files to load for the {name} dataset builder."
+            example_extensions = [
+                extension for extension in _EXTENSION_TO_MODULE if _EXTENSION_TO_MODULE[extension] == name
+            ]
+            if example_extensions:
+                error_msg += f'For example\n\tdata_files = load_dataset("{name}", data_files={{"train": "path/to/data/train/*.{example_extensions[0]}"}})'
+            raise ValueError(error_msg)
         self.name = name
         self.data_files = data_files
         self.downnload_config = download_config
@@ -719,8 +738,9 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModuleFactoryResult:
+        data_files = _sanitize_patterns(self.data_files)
         data_files = DataFilesDict.from_local_or_remote(
-            _sanitize_patterns(self.data_files), use_auth_token=self.downnload_config.use_auth_token
+            data_files, use_auth_token=self.downnload_config.use_auth_token
         )
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
@@ -753,11 +773,18 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
-            token=self.download_config.use_auth_token,
+            token=self.download_config.use_auth_token if self.download_config is not None else None,
             timeout=100.0,
         )
+        data_files = (
+            _sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else default_data_files_patterns_in_dataset_repository(
+                dataset_info, allowed_extensions=_EXTENSION_TO_MODULE.keys()
+            )
+        )
         data_files = DataFilesDict.from_hf_repo(
-            _sanitize_patterns(self.data_files),
+            data_files,
             dataset_info=dataset_info,
             allowed_extensions=_EXTENSION_TO_MODULE.keys(),
         )
@@ -1011,7 +1038,16 @@ def dataset_module_factory(
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
-        data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
+        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s) if you load a local dataset directory
+            or a dataset repository on the HF hub (without a dataset script).
+            They can be absolute local paths, or relative paths to the root of your dataset.
+            You can use Grep patterns to match several files.
+            By default the data files patterns are:
+
+            - if the dataset contain files named after split names: ``{"train": ["*train*"], "test": ["*test*"], "validation": ["*dev*", "*valid*"]}``
+            - otherwise: ``{"train": ["*"]}``
+
+            If you use a generic dataset builder (csv, json, text etc.), they can also be URLs.
         script_version:
             .. deprecated:: 1.13
                 'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.
@@ -1387,7 +1423,16 @@ def load_dataset_builder(
 
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
-        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
+        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s) if you load a local dataset directory
+            or a dataset repository on the HF hub (without a dataset script).
+            They can be absolute local paths, or relative paths to the root of your dataset.
+            You can use Grep patterns to match several files.
+            By default the data files patterns are:
+
+            - if the dataset contain files named after split names: ``{"train": ["*train*"], "test": ["*test*"], "validation": ["*dev*", "*valid*"]}``
+            - otherwise: ``{"train": ["*"]}``
+
+            If you use a generic dataset builder (csv, json, text etc.), they can also be URLs.
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
@@ -1428,15 +1473,6 @@ def load_dataset_builder(
     data_files = builder_kwargs.pop("data_files", data_files)
     name = builder_kwargs.pop("name", name)
     hash = builder_kwargs.pop("hash")
-
-    if path in _PACKAGED_DATASETS_MODULES and data_files is None:
-        error_msg = f"Please specify the data files to load for the {path} dataset builder."
-        example_extensions = [
-            extension for extension in _EXTENSION_TO_MODULE if _EXTENSION_TO_MODULE[extension] == path
-        ]
-        if example_extensions:
-            error_msg += f'\nFor example `data_files={{"train": "path/to/data/train/*.{example_extensions[0]}"}}`'
-        raise ValueError(error_msg)
 
     # Instantiate the dataset builder
     builder_instance: DatasetBuilder = builder_cls(
@@ -1528,7 +1564,16 @@ def load_dataset(
 
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
-        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
+        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s) if you load a local dataset directory
+            or a dataset repository on the HF hub (without a dataset script).
+            They can be absolute local paths, or relative paths to the root of your dataset.
+            You can use Grep patterns to match several files.
+            By default the data files patterns are:
+
+            - if the dataset contain files named after split names: ``{"train": ["*train*"], "test": ["*test*"], "validation": ["*dev*", "*valid*"]}``
+            - otherwise: ``{"train": ["*"]}``
+
+            If you use a generic dataset builder (csv, json, text etc.), they can also be URLs.
         split (:class:`Split` or :obj:`str`): Which split of the data to load.
             If None, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
             If given, will return a single Dataset.

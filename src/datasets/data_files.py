@@ -19,6 +19,17 @@ DEFAULT_SPLIT = str(Split.TRAIN)
 logger = logging.get_logger(__name__)
 
 
+DEFAULT_DATA_FILES_PATTERNS_WITH_SPLIT_NAMES = {
+    "train": ["*train*"],
+    "test": ["*test*"],
+    "validation": ["*dev*", "*valid*"],
+}
+
+DEFAULT_DATA_FILES_PATTERNS = {
+    DEFAULT_SPLIT: ["*"],
+}
+
+
 class Url(str):
     pass
 
@@ -33,7 +44,7 @@ def _sanitize_patterns(patterns: Union[Dict, List, str, None]) -> Dict[str, Unio
         patterns: dictionary of split_name -> list_of _atterns
     """
     if patterns is None:
-        return {DEFAULT_SPLIT: ["*"]}
+        return DEFAULT_DATA_FILES_PATTERNS
     if isinstance(patterns, dict):
         return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
     elif isinstance(patterns, str):
@@ -74,8 +85,10 @@ def _resolve_single_pattern_locally(
             )
     else:
         out = matched_paths
-    if not out:
-        error_msg = f"Unable to resolve any data file that matches '{pattern}' at {Path(base_path).resolve()}"
+    if (
+        all(char not in pattern.replace("\[", "").replace("\]", "") for char in "*[]") and not out
+    ):  # not a pattern -> must be actual file.
+        error_msg = f"Unable to resolve any data file '{pattern}' at {Path(base_path).resolve()}"
         if allowed_extensions is not None:
             error_msg += f" with any supported extension {list(allowed_extensions)}"
         raise FileNotFoundError(error_msg)
@@ -113,6 +126,11 @@ def resolve_patterns_locally_or_by_urls(
             data_files.append(Url(pattern))
         else:
             data_files.extend(_resolve_single_pattern_locally(base_path, pattern, allowed_extensions))
+    if not data_files:
+        error_msg = f"Unable to resolve data_file {patterns} in {base_path or 'current directory'}"
+        if allowed_extensions is not None:
+            error_msg += f" with any supported extension {list(allowed_extensions)}"
+        raise FileNotFoundError(error_msg)
     return data_files
 
 
@@ -145,11 +163,6 @@ def _exec_patterns_in_dataset_repository(
                 )
         else:
             out = matched_paths
-        if not out:
-            error_msg = f"Unable to resolve data_file {pattern} in dataset repository {dataset_info.id}"
-            if allowed_extensions is not None:
-                error_msg += f" with any supported extension {list(allowed_extensions)}"
-            raise FileNotFoundError(error_msg)
         filenames.extend(out)
     return filenames
 
@@ -190,7 +203,44 @@ def resolve_patterns_in_dataset_repository(
                 )
             )
         )
+    if not data_files_urls:
+        error_msg = f"Unable to resolve data_file {patterns} in dataset repository {dataset_info.id}"
+        if allowed_extensions is not None:
+            error_msg += f" with any supported extension {list(allowed_extensions)}"
+        raise FileNotFoundError(error_msg)
     return data_files_urls
+
+
+def default_data_files_patterns_in_dataset_repository(
+    dataset_info: huggingface_hub.hf_api.DatasetInfo, allowed_extensions: Optional[List[str]] = None
+) -> Dict[str, Union[List[str]]]:
+    non_empty_splits = []
+    for split, patterns_for_split in DEFAULT_DATA_FILES_PATTERNS_WITH_SPLIT_NAMES.items():
+        try:
+            resolve_patterns_in_dataset_repository(
+                dataset_info, patterns_for_split, allowed_extensions=allowed_extensions
+            )
+        except FileNotFoundError:  # data files are not named after the split
+            pass
+        else:  # data files are named after split names
+            non_empty_splits.append(split)
+    if non_empty_splits:
+        return {split: DEFAULT_DATA_FILES_PATTERNS_WITH_SPLIT_NAMES[split] for split in non_empty_splits}
+    else:
+        return DEFAULT_DATA_FILES_PATTERNS
+
+
+def default_data_files_patterns_locally(
+    path: Optional[str], allowed_extensions: Optional[List[str]] = None
+) -> Dict[str, Union[List[str]]]:
+    for patterns_for_split in DEFAULT_DATA_FILES_PATTERNS_WITH_SPLIT_NAMES.values():
+        try:
+            resolve_patterns_locally_or_by_urls(path, patterns_for_split, allowed_extensions=allowed_extensions)
+        except FileNotFoundError:  # data files are not named after the split
+            pass
+        else:  # data files are named after split names
+            return DEFAULT_DATA_FILES_PATTERNS_WITH_SPLIT_NAMES
+    return DEFAULT_DATA_FILES_PATTERNS
 
 
 def _get_single_origin_metadata_locally_or_by_urls(
