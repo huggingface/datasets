@@ -16,9 +16,6 @@
 # Lint as: python3
 """Wrapper around tqdm.
 """
-
-import contextlib
-
 from tqdm import auto as tqdm_lib
 
 from datasets.utils.deprecation_utils import deprecated
@@ -71,13 +68,6 @@ class _tqdm_cls:
 tqdm = _tqdm_cls()
 
 
-def async_tqdm(*args, **kwargs):
-    if _active:
-        return _async_tqdm(*args, **kwargs)
-    else:
-        return EmptyTqdm(*args, **kwargs)
-
-
 def set_progress_bar_enabled(boolean: bool):
     """Enable/disable tqdm progress bars."""
     global _active
@@ -94,72 +84,12 @@ def is_progress_bar_enabled() -> bool:
 def disable_progress_bar():
     """Disable tqdm progress bar.
 
-    .. deprecated:: 1.4.0
+    .. deprecated:: 1.12.2
         Use set_progress_bar_enabled(False) instead.
 
     Usage:
 
     datasets.disable_progress_bar()
     """
-    # Replace tqdm
     global _active
     _active = False
-
-
-@contextlib.contextmanager
-def _async_tqdm(*args, **kwargs):
-    """Wrapper around Tqdm which can be updated in threads.
-
-    Usage:
-
-    ```
-    with utils.async_tqdm(...) as pbar:
-        # pbar can then be modified inside a thread
-        # pbar.update_total(3)
-        # pbar.update()
-    ```
-
-    Args:
-        *args: args of tqdm
-        **kwargs: kwargs of tqdm
-
-    Yields:
-        pbar: Async pbar which can be shared between threads.
-    """
-    with tqdm_lib.tqdm(*args, **kwargs) as pbar:
-        pbar = _TqdmPbarAsync(pbar)
-        yield pbar
-        pbar.clear()  # pop pbar from the active list of pbar
-        print()  # Avoid the next log to overlapp with the bar
-
-
-class _TqdmPbarAsync:
-    """Wrapper around Tqdm pbar which can be shared between thread."""
-
-    _tqdm_bars = []
-
-    def __init__(self, pbar):
-        self._lock = tqdm_lib.tqdm.get_lock()
-        self._pbar = pbar
-        self._tqdm_bars.append(pbar)
-
-    def update_total(self, n=1):
-        """Increment total pbar value."""
-        with self._lock:
-            self._pbar.total += n
-            self.refresh()
-
-    def update(self, n=1):
-        """Increment current value."""
-        with self._lock:
-            self._pbar.update(n)
-            self.refresh()
-
-    def refresh(self):
-        """Refresh all."""
-        for pbar in self._tqdm_bars:
-            pbar.refresh()
-
-    def clear(self):
-        """Remove the tqdm pbar from the update."""
-        self._tqdm_bars.pop()
