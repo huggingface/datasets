@@ -158,7 +158,7 @@ We only consider English datasets, to make experimentation easier for researcher
 
 #### ecthr_a
 
-An example of 'train' looks as follows.
+An example of 'train' looks as follows. 
 ```json
 {
   "text": ["8. The applicant was arrested in the early morning of 21 October 1990 ...", ...],
