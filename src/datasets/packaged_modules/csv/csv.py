@@ -24,7 +24,9 @@ def _iter_files(files):
         if os.path.isfile(file):
             yield file
         else:
-            yield from glob.glob(os.path.join(file, "*"))
+            for subfile in glob.glob(os.path.join(file, "*")):
+                if os.path.isfile(subfile):
+                    yield subfile
 
 
 @dataclass
