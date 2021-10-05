@@ -471,6 +471,29 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
         )
 
+    def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
+        """
+        Remove one or several column(s) in the dataset and the features associated to them.
+        The removal is done on-the-fly on the examples when iterating over the dataset.
+
+        You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
+        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+
+        Args:
+            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+            new_fingerprint
+
+        Returns:
+            :class:`IterableDataset`: A copy of the dataset object without the columns to remove.
+        """
+        if isinstance(column_names, str):
+            column_names = [column_names]
+
+        def remove_fn(example):
+            return {k: v for k, v in example.items() if k not in column_names}
+
+        return self.map(remove_fn)
+
 
 def iterable_dataset(
     ex_iterable: Iterable,
