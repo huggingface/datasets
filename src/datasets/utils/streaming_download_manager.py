@@ -1,3 +1,4 @@
+import glob
 import os
 import re
 import time
@@ -178,6 +179,30 @@ def xpathopen(path: Path, *args, **kwargs):
         :obj:`io.FileIO`: File-like object.
     """
     return xopen(_as_posix(path), *args, **kwargs)
+
+
+def xglob(urlpath, *, recursive=False):
+    """Extend `glob.glob` function to support remote files.
+
+    Args:
+        urlpath (:obj:`str`): URL path with shell-style wildcard patterns.
+        recursive (:obj:`bool`, default `False`): Whether to match the "**" pattern recursively to zero or more
+            directories or subdirectories.
+
+    Returns:
+        :obj:`list` of :obj:`str`
+    """
+    main_hop, *rest_hops = urlpath.split("::")
+    if is_local_path(main_hop):
+        return glob.glob(main_hop, recursive=recursive)
+    else:
+        fs, *_ = fsspec.get_fs_token_paths(urlpath)
+        # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
+        #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
+        # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
+        # - If there is "**" in the pattern, `fs.glob` must be called anyway.
+        globbed_paths = fs.glob(main_hop)
+        return ["::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
 
 def xpathglob(path, pattern):
