@@ -110,8 +110,8 @@ def dataset_loading_script_dir(tmp_path):
 @pytest.fixture
 def dataset_loading_script_dir_readonly(tmp_path):
     script_name = DATASET_LOADING_SCRIPT_NAME
-    script_dir = tmp_path / script_name
-    script_dir.mkdir()
+    script_dir = tmp_path / "readonly" / script_name
+    script_dir.mkdir(parents=True)
     script_path = script_dir / f"{script_name}.py"
     with open(script_path, "w") as f:
         f.write(DATASET_LOADING_SCRIPT_CODE)
