@@ -45,9 +45,9 @@ jobs:
             - run: conda install python=3.6 --yes
             - run: conda install pytorch --yes
             - run: pip install virtualenv
-            - run: python -m virtualenv venv
+            - run: python -m virtualenv venv --system-site-packages
             - run: "& venv/Scripts/activate.ps1"
-            - run: pip install 'huggingface_hub<0.0.18' 'aiobotocore<1.4.2' 'boto3<1.18.54'
+            - run: pip install 'huggingface_hub<0.0.18'
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow --upgrade
@@ -67,6 +67,7 @@ jobs:
             - run: pip install virtualenv
             - run: python -m virtualenv venv --system-site-packages
             - run: "& venv/Scripts/activate.ps1"
+            - run: pip install 'huggingface_hub<0.0.18'
             - run: pip install .[tests]
             - run: pip install -r additional-tests-requirements.txt --no-deps
             - run: pip install pyarrow==1.0.0
