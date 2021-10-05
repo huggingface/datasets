@@ -26,7 +26,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Dataset Preprocessing)(#dataset-preprocessing)
+  - [Dataset Preprocessing](#dataset-preprocessing)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
