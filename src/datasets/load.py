@@ -764,7 +764,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         infered_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
         }
-        if len(set(list(infered_module_names.values()))) != len(infered_module_names):
+        if len(set(list(infered_module_names.values()))) > 1:
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
         infered_module_name = next(iter(infered_module_names.values()))
         if not infered_module_name:
