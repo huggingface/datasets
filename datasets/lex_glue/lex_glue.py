@@ -23,7 +23,7 @@ import datasets
 
 
 MAIN_CITATION = """\
-@misc{chalkidis-etal-2021-lexglue,
+@article{chalkidis-etal-2021-lexglue,
       title={{LexGLUE}: A Benchmark Dataset for Legal Language Understanding in English},
       author={Chalkidis, Ilias and
       Jana, Abhik and
@@ -33,9 +33,10 @@ MAIN_CITATION = """\
       Katz, Daniel Martin and
       Aletras, Nikolaos},
       year={2021},
-      eprint={xxxx.xxxxx},
+      eprint={2110.00976},
       archivePrefix={arXiv},
-      primaryClass={cs.CL}
+      primaryClass={cs.CL},
+      note = {arXiv: 2110.00976},
 }"""
 
 _DESCRIPTION = """\
@@ -351,9 +352,6 @@ class LexGLUE(datasets.GeneratorBasedBuilder):
                 """\
             The European Court of Human Rights (ECtHR) hears allegations that a state has
             breached human rights provisions of the European Convention of Human Rights (ECHR).
-            The dataset contains approx. 11K cases from the ECtHR public database.
-            The cases are chronologically split into training (9k, 2001--2016),
-            development (1k, 2016--2017), and test (1k, 2017--2019).
             For each case, the dataset provides a list of factual paragraphs (facts) from the case description.
             Each case is mapped to articles of the ECHR that were violated (if any)."""
             ),
