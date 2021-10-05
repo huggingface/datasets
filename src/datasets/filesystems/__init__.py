@@ -36,7 +36,7 @@ def extract_path_from_uri(dataset_path: str) -> str:
     return dataset_path
 
 
-def is_remote_filesystem(fs: fsspec.spec.AbstractFileSystem) -> bool:
+def is_remote_filesystem(fs: fsspec.AbstractFileSystem) -> bool:
     """
     Validates if filesystem has remote protocol.
 

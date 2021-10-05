@@ -209,7 +209,7 @@ class LoadTest(TestCase):
             str(context.exception),
         )
         with self.assertRaises(FileNotFoundError) as context:
-            datasets.load_dataset("_dummy", script_version="0.0.0")
+            datasets.load_dataset("_dummy", revision="0.0.0")
         self.assertIn(
             "https://raw.githubusercontent.com/huggingface/datasets/0.0.0/datasets/_dummy/_dummy.py",
             str(context.exception),
@@ -292,6 +292,9 @@ def test_load_dataset_builder_for_community_dataset_with_script():
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
     assert builder.info.features == Features({"text": Value("string")})
+    namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
+    assert builder._relative_data_dir().startswith(namespace)
+    assert SAMPLE_DATASET_IDENTIFIER.replace("/", "___") in builder.__module__
 
 
 def test_load_dataset_builder_for_community_dataset_without_script():
@@ -299,6 +302,8 @@ def test_load_dataset_builder_for_community_dataset_without_script():
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
     assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.split("/")[-1]
+    namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
+    assert builder._relative_data_dir().startswith(namespace)
     assert isinstance(builder.config.data_files, list)
     assert len(builder.config.data_files) > 0
 
@@ -367,6 +372,18 @@ def test_load_dataset_streaming_compressed_files(path):
         "langs": ["ca", "ca", "ca", "ca"],
         "spans": ["PER: Ministeri de Justícia d'Espanya"],
     }
+
+
+@pytest.mark.parametrize("path_extension", ["csv", "csv.bz2"])
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv_path):
+    paths = {"csv": csv_path, "csv.bz2": bz2_csv_path}
+    data_files = str(paths[path_extension])
+    features = Features({"col_1": Value("string"), "col_2": Value("int32"), "col_3": Value("float32")})
+    ds = load_dataset("csv", split="train", data_files=data_files, features=features, streaming=streaming)
+    assert isinstance(ds, IterableDataset if streaming else Dataset)
+    ds_item = next(iter(ds))
+    assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
 def test_loading_from_the_datasets_hub():

@@ -402,7 +402,7 @@ class Split:
 
     Note: All splits, including compositions inherit from `datasets.SplitBase`
 
-    See the :doc:`guide on splits </splits>` for more information.
+    See the :doc:`guide on splits </loading>` for more information.
     """
     # pylint: enable=line-too-long
     TRAIN = NamedSplit("train")

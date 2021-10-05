@@ -1,10 +1,11 @@
 # coding=utf-8
-
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
+from packaging import version
+from typing_extensions import Literal
 
 import datasets
 
@@ -13,6 +14,7 @@ logger = datasets.utils.logging.get_logger(__name__)
 
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
+_PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
 
 
 @dataclass
@@ -56,6 +58,8 @@ class CsvConfig(datasets.BuilderConfig):
     float_precision: Optional[str] = None
     chunksize: int = 10_000
     features: Optional[datasets.Features] = None
+    encoding_errors: Optional[str] = "strict"
+    on_bad_lines: Literal["error", "warn", "skip"] = "error"
 
     def __post_init__(self):
         if self.delimiter is not None:
@@ -100,12 +104,22 @@ class CsvConfig(datasets.BuilderConfig):
             memory_map=self.memory_map,
             float_precision=self.float_precision,
             chunksize=self.chunksize,
+            encoding_errors=self.encoding_errors,
+            on_bad_lines=self.on_bad_lines,
         )
+
+        pandas_version = version.Version(pd.__version__)
         # some kwargs must not be passed if they don't have a default value
         # some others are deprecated and we can also not pass them if they are the default value
         for read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
             if read_csv_kwargs[read_csv_parameter] == getattr(CsvConfig(), read_csv_parameter):
                 del read_csv_kwargs[read_csv_parameter]
+
+        # Remove 1.3 new arguments
+        if not (pandas_version.major >= 1 and pandas_version.minor >= 3):
+            for read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
+                del read_csv_kwargs[read_csv_parameter]
+
         return read_csv_kwargs
 
 
@@ -137,16 +151,14 @@ class Csv(datasets.ArrowBasedBuilder):
         # dtype allows reading an int column as str
         dtype = {name: dtype.to_pandas_dtype() for name, dtype in zip(schema.names, schema.types)} if schema else None
         for file_idx, file in enumerate(files):
-            with open(file, "rb") as f:
-                csv_file_reader = pd.read_csv(f, iterator=True, dtype=dtype, **self.config.read_csv_kwargs)
-
-                try:
-                    for batch_idx, df in enumerate(csv_file_reader):
-                        pa_table = pa.Table.from_pandas(df, schema=schema)
-                        # Uncomment for debugging (will print the Arrow table size and elements)
-                        # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                        # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                        yield (file_idx, batch_idx), pa_table
-                except ValueError as e:
-                    logger.error(f"Failed to read file '{csv_file_reader.f}' with error {type(e)}: {e}")
-                    raise
+            csv_file_reader = pd.read_csv(file, iterator=True, dtype=dtype, **self.config.read_csv_kwargs)
+            try:
+                for batch_idx, df in enumerate(csv_file_reader):
+                    pa_table = pa.Table.from_pandas(df, schema=schema)
+                    # Uncomment for debugging (will print the Arrow table size and elements)
+                    # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                    # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                    yield (file_idx, batch_idx), pa_table
+            except ValueError as e:
+                logger.error(f"Failed to read file '{csv_file_reader.f}' with error {type(e)}: {e}")
+                raise

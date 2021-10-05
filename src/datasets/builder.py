@@ -35,7 +35,13 @@ from datasets.utils.py_utils import map_nested
 
 from . import config, utils
 from .arrow_dataset import Dataset
-from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs, ReadInstruction
+from .arrow_reader import (
+    HF_GCP_BASE_URL,
+    ArrowReader,
+    DatasetNotOnHfGcsError,
+    MissingFilesOnHfGcsError,
+    ReadInstruction,
+)
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .fingerprint import Hasher
@@ -248,6 +254,7 @@ class DatasetBuilder:
         base_path: Optional[str] = None,
         features: Optional[Features] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
+        namespace: Optional[str] = None,
         **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
@@ -275,6 +282,7 @@ class DatasetBuilder:
         self.hash: Optional[str] = hash
         self.base_path = base_path
         self.use_auth_token = use_auth_token
+        self.namespace = namespace
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
@@ -443,9 +451,11 @@ class DatasetBuilder:
         """Relative path of this dataset in cache_dir:
         Will be:
             self.name/self.config.version/self.hash/
+        or if a namespace has been specified:
+            self.namespace___self.name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-        builder_data_dir = self.name
+        builder_data_dir = self.name if self.namespace is None else f"{self.namespace}___{self.name})"
         builder_config = self.config
         hash = self.hash
         if builder_config:
@@ -628,7 +638,7 @@ class DatasetBuilder:
                         try:
                             self._download_prepared_from_hf_gcs(dl_manager._download_config)
                             downloaded_from_gcs = True
-                        except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
+                        except (DatasetNotOnHfGcsError, MissingFilesOnHfGcsError):
                             logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
                         except ConnectionError:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
@@ -730,7 +740,7 @@ class DatasetBuilder:
                     + (self.manual_download_instructions or "")
                     + "\nOriginal error:\n"
                     + str(e)
-                )
+                ) from None
 
             dl_manager.manage_extracted_files()
 
@@ -819,6 +829,7 @@ class DatasetBuilder:
             ),
             split,
             map_tuple=True,
+            disable_tqdm=False,
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)

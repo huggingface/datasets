@@ -119,8 +119,12 @@ class Json(datasets.ArrowBasedBuilder):
                                         io.BytesIO(batch), read_options=paj.ReadOptions(block_size=block_size)
                                     )
                                     break
-                                except pa.ArrowInvalid as e:
-                                    if "straddling" not in str(e) or block_size > len(batch):
+                                except (pa.ArrowInvalid, pa.ArrowNotImplementedError) as e:
+                                    if (
+                                        isinstance(e, pa.ArrowInvalid)
+                                        and "straddling" not in str(e)
+                                        or block_size > len(batch)
+                                    ):
                                         raise
                                     else:
                                         # Increase the block size in case it was too small.
@@ -141,7 +145,7 @@ class Json(datasets.ArrowBasedBuilder):
                                 f"You should probably indicate the field of the JSON file containing your records. "
                                 f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
                                 f"Select the correct one and provide it as `field='XXX'` to the dataset loading method. "
-                            )
+                            ) from None
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                         # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))

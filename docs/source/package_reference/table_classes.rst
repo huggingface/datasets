@@ -1,9 +1,9 @@
 Table Classes
 ----------------------------------------------------
 
-Each :obj:`datasets.Dataset` object is backed by a pyarrow Table.
-A Table can be loaded either from the disk (memory mapped) or in memory.
-Several Table types are available, and they all inherit from datasets.table.Table.
+Each :obj:`datasets.Dataset` object is backed by a PyArrow Table.
+A Table can be loaded from either the disk (memory mapped) or in memory.
+Several Table types are available, and they all inherit from :class:`datasets.table.Table`.
 
 
 .. autoclass:: datasets.table.Table
@@ -15,7 +15,7 @@ Several Table types are available, and they all inherit from datasets.table.Tabl
     :members: validate, equals,
         to_batches, to_pydict, to_pandas, to_string,
         field, column, itercolumns, schema, columns, num_columns, num_rows, shape, nbytes, column_names,
-        slice, filter, flatten, combine_chunks, cast,
+        slice, filter, flatten, combine_chunks, cast, replace_schema_metadata,
         add_column, append_column, remove_column, set_column, rename_columns, drop,
         from_file, from_buffer, from_pandas, from_arrays, from_pydict, from_batches
 
@@ -23,7 +23,7 @@ Several Table types are available, and they all inherit from datasets.table.Tabl
     :members: validate, equals,
         to_batches, to_pydict, to_pandas, to_string,
         field, column, itercolumns, schema, columns, num_columns, num_rows, shape, nbytes, column_names,
-        slice, filter, flatten, combine_chunks, cast,
+        slice, filter, flatten, combine_chunks, cast, replace_schema_metadata,
         add_column, append_column, remove_column, set_column, rename_columns, drop,
         from_file, 
 
@@ -31,7 +31,7 @@ Several Table types are available, and they all inherit from datasets.table.Tabl
     :members: validate, equals,
         to_batches, to_pydict, to_pandas, to_string,
         field, column, itercolumns, schema, columns, num_columns, num_rows, shape, nbytes, column_names,
-        slice, filter, flatten, combine_chunks, cast,
+        slice, filter, flatten, combine_chunks, cast, replace_schema_metadata,
         add_column, append_column, remove_column, set_column, rename_columns, drop,
         from_blocks, from_tables
 
