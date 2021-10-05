@@ -70,7 +70,7 @@ non-native speakers.
 Individual samples of the AMI dataset contain very large audio files (between 10 and 60 minutes). The dataset should be chunked 
 into more samples of shorter length for training. 
 
-The following two mapping functions can be used to chunk the dataset into sampled of the desired length `max_duration`.
+The following two mapping functions can be used to chunk the dataset into its segments.
 
 ```python
 from datasets import load_dataset
