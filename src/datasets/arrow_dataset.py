@@ -1918,12 +1918,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             function = lambda x: x  # noqa: E731
 
         def decorate(f):
+            """
+            Decorate the mapped function, so that its first argument is wrapped with a LazyDict to be used internally
+            but a standard dictionary is returned at the end of the mapping.
+            """
             @wraps(f)
             def decorated(item, *args, **kwargs):
+                # Decorate first arg with LazyDict (either Example or Batch)
                 decorated_item = (
                     Example(item, features=self.features) if not batched else Batch(item, features=self.features)
                 )
+                # Use the LazyDict internally, while mapping the function
                 result = f(decorated_item, *args, **kwargs)
+                # Return a standard dict
                 return result.data if isinstance(result, LazyDict) else result
 
             return decorated
