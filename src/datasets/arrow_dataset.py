@@ -1922,6 +1922,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             Decorate the mapped function, so that its first argument is wrapped with a LazyDict to be used internally
             but a standard dictionary is returned at the end of the mapping.
             """
+
             @wraps(f)
             def decorated(item, *args, **kwargs):
                 # Decorate first arg with LazyDict (either Example or Batch)
