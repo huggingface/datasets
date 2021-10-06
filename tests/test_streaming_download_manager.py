@@ -1,7 +1,6 @@
 import os
 import re
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
@@ -12,6 +11,7 @@ from datasets.utils.streaming_download_manager import (
     StreamingDownloadManager,
     _as_posix,
     _get_extraction_protocol,
+    xglob,
     xjoin,
     xopen,
     xpathglob,
@@ -117,6 +117,13 @@ class DummyTestFS(AbstractFileSystem):
         )
 
 
+@pytest.fixture
+def mock_fsspec(monkeypatch):
+    dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
+    dummy_registry["mock"] = DummyTestFS
+    monkeypatch.setattr("datasets.utils.streaming_download_manager.fsspec.registry.target", dummy_registry)
+
+
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
     """Path(...) on an url path like zip://file.txt::http://host.com/data.zip
     converts the :// to :/
@@ -220,6 +227,41 @@ def test_xopen_remote():
 
 
 @pytest.mark.parametrize(
+    "input_path, expected_paths",
+    [
+        ("tmp_path/*.txt", ["file1.txt", "file2.txt"]),
+        ("mock://*", ["mock://glob_test", "mock://misc", "mock://top_level"]),
+        ("mock://top_*", ["mock://top_level"]),
+        (
+            "mock://top_level/second_level/date=2019-10-0[1-4]",
+            [
+                "mock://top_level/second_level/date=2019-10-01",
+                "mock://top_level/second_level/date=2019-10-02",
+                "mock://top_level/second_level/date=2019-10-04",
+            ],
+        ),
+        (
+            "mock://top_level/second_level/date=2019-10-0[1-4]/*",
+            [
+                "mock://top_level/second_level/date=2019-10-01/a.parquet",
+                "mock://top_level/second_level/date=2019-10-01/b.parquet",
+                "mock://top_level/second_level/date=2019-10-02/a.parquet",
+                "mock://top_level/second_level/date=2019-10-04/a.parquet",
+            ],
+        ),
+    ],
+)
+def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        expected_paths = [str(tmp_path / file) for file in expected_paths]
+        for file in ["file1.txt", "file2.txt", "README.md"]:
+            (tmp_path / file).touch()
+    output_paths = sorted(xglob(input_path))
+    assert output_paths == expected_paths
+
+
+@pytest.mark.parametrize(
     "input_path, pattern, expected_paths",
     [
         ("tmp_path", "*.txt", ["file1.txt", "file2.txt"]),
@@ -246,20 +288,16 @@ def test_xopen_remote():
         ),
     ],
 )
-def test_xpathglob(input_path, pattern, expected_paths, tmp_path):
+def test_xpathglob(input_path, pattern, expected_paths, tmp_path, mock_fsspec):
     if input_path == "tmp_path":
         input_path = tmp_path
         expected_paths = [tmp_path / file for file in expected_paths]
         for file in ["file1.txt", "file2.txt", "README.md"]:
             (tmp_path / file).touch()
-        output_path = sorted(xpathglob(input_path, pattern))
     else:
-        dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
-        dummy_registry["mock"] = DummyTestFS
         expected_paths = [Path(file) for file in expected_paths]
-        with patch.dict(datasets.utils.streaming_download_manager.fsspec.registry.target, dummy_registry):
-            output_path = sorted(xpathglob(Path(input_path), pattern))
-    assert output_path == expected_paths
+    output_paths = sorted(xpathglob(Path(input_path), pattern))
+    assert output_paths == expected_paths
 
 
 @pytest.mark.parametrize(
@@ -306,7 +344,7 @@ def test_xpathglob(input_path, pattern, expected_paths, tmp_path):
         ),
     ],
 )
-def test_xpathrglob(input_path, pattern, expected_paths, tmp_path):
+def test_xpathrglob(input_path, pattern, expected_paths, tmp_path, mock_fsspec):
     if input_path == "tmp_path":
         input_path = tmp_path
         dir_path = tmp_path / "dir"
@@ -314,14 +352,10 @@ def test_xpathrglob(input_path, pattern, expected_paths, tmp_path):
         expected_paths = [dir_path / file for file in expected_paths]
         for file in ["file1.txt", "file2.txt", "README.md"]:
             (dir_path / file).touch()
-        output_path = sorted(xpathrglob(input_path, pattern))
     else:
-        dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
-        dummy_registry["mock"] = DummyTestFS
         expected_paths = [Path(file) for file in expected_paths]
-        with patch.dict(datasets.utils.streaming_download_manager.fsspec.registry.target, dummy_registry):
-            output_path = sorted(xpathrglob(Path(input_path), pattern))
-    assert output_path == expected_paths
+    output_paths = sorted(xpathrglob(Path(input_path), pattern))
+    assert output_paths == expected_paths
 
 
 @pytest.mark.parametrize(
@@ -425,6 +459,10 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("zip://train-00000.json.gz::https://foo.bar/data.zip", "gzip"),
         ("https://foo.bar/train.json.gz?dl=1", "gzip"),
         ("http://opus.nlpl.eu/download.php?f=Bianet/v1/moses/en-ku.txt.zip", "zip"),
+        ("https://github.com/user/what-time-is-it/blob/master/gutenberg_time_phrases.zip?raw=true", "zip"),
+        ("https://github.com/user/repo/blob/master/data/morph_train.tsv?raw=true", None),
+        ("https://repo.org/bitstream/handle/20.500.12185/346/annotated_corpus.zip?sequence=3&isAllowed=y", "zip"),
+        ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
     ],
 )
 def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):

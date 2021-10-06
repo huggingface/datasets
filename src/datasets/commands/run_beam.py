@@ -86,7 +86,11 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             print("Both parameters `name` and `all_configs` can't be used at once.")
             exit(1)
         path, name = self._dataset, self._name
-        module_path, hash = prepare_module(path)
+        module_path, hash, base_path, namespace = prepare_module(
+            path,
+            return_associated_base_path=True,
+            return_namespace=True,
+        )
         builder_cls = import_main_class(module_path)
         builders: List[DatasetBuilder] = []
         if self._beam_pipeline_options:
@@ -104,11 +108,20 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                         hash=hash,
                         beam_options=beam_options,
                         cache_dir=self._cache_dir,
+                        base_path=base_path,
+                        namespace=namespace,
                     )
                 )
         else:
             builders.append(
-                builder_cls(name=name, data_dir=self._data_dir, beam_options=beam_options, cache_dir=self._cache_dir)
+                builder_cls(
+                    name=name,
+                    data_dir=self._data_dir,
+                    beam_options=beam_options,
+                    cache_dir=self._cache_dir,
+                    base_path=base_path,
+                    namespace=namespace,
+                )
             )
 
         for builder in builders:
