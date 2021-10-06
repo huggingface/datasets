@@ -35,7 +35,7 @@ predictions['scores']
 ```
 """
 
-from comet.models import download_model  # From: unbabel-comet
+import comet.models  # From: unbabel-comet
 
 import datasets
 
@@ -131,9 +131,9 @@ class COMET(datasets.Metric):
 
     def _download_and_prepare(self, dl_manager):
         if self.config_name == "default":
-            self.scorer = download_model("wmt-large-da-estimator-1719")
+            self.scorer = comet.models.download_model("wmt-large-da-estimator-1719")
         else:
-            self.scorer = download_model(self.config_name)
+            self.scorer = comet.models.download_model(self.config_name)
 
     def _compute(self, sources, predictions, references, cuda=True, show_progress=False):
         data = {"src": sources, "mt": predictions, "ref": references}
