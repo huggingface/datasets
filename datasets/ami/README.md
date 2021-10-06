@@ -73,6 +73,7 @@ into more samples of shorter length for training.
 The following two mapping functions can be used to chunk the dataset into its segments.
 
 ```python
+#!/usr/bin/env python3
 from datasets import load_dataset
 import librosa
 
@@ -96,6 +97,10 @@ def chunk_audio(batch, sample_rate=16_000):
         word_start_times = []
         start_time = batch["segment_start_times"][0][segment_idx]
         end_time = batch["segment_end_times"][0][segment_idx]
+
+        # go back with word_idx since segments overlap with each other
+        while word_idx > 1 and start_time < batch["word_end_times"][0][word_idx - 1]:
+            word_idx -= 1
 
         new_batch["audio"].append(audio[int(start_time * sample_rate): int(end_time * sample_rate)])
 
