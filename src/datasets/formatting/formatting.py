@@ -322,8 +322,9 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict], **kwargs):
+    def __init__(self, transform: Callable[[dict], dict], decoded=True, **kwargs):
         self.transform = transform
+        self.decoded = decoded
 
     def format_row(self, pa_table: pa.Table) -> dict:
         formatted_batch = self.format_batch(pa_table)
@@ -355,6 +356,8 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)
+        if self.decoded:
+            batch = self.python_features_decoder.decode_batch(batch)
         return self.transform(batch)
 
 
