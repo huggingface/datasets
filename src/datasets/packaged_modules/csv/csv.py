@@ -1,4 +1,6 @@
 # coding=utf-8
+import glob
+import os
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
@@ -15,6 +17,16 @@ logger = datasets.utils.logging.get_logger(__name__)
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
+
+
+def _iter_files(files):
+    for file in files:
+        if os.path.isfile(file):
+            yield file
+        else:
+            for subfile in glob.glob(os.path.join(file, "**", "*"), recursive=True):
+                if os.path.isfile(subfile):
+                    yield subfile
 
 
 @dataclass
@@ -138,11 +150,15 @@ class Csv(datasets.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
+            if any(os.path.isdir(file) for file in files):
+                files = [file for file in _iter_files(files)]
             return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
+            if any(os.path.isdir(file) for file in files):
+                files = [file for file in _iter_files(files)]
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 

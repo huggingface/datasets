@@ -7,6 +7,7 @@ from .utils.logging import get_logger
 from .utils.patching import patch_submodule
 from .utils.streaming_download_manager import (
     xdirname,
+    xglob,
     xjoin,
     xopen,
     xpandas_read_csv,
@@ -47,6 +48,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
         patch_submodule(module, "open", partial(xopen, use_auth_token=use_auth_token)).start()
     else:
         patch_submodule(module, "open", xopen).start()
+    patch_submodule(module, "glob.glob", xglob).start()
     # allow to navigate in remote zip files
     patch_submodule(module, "os.path.join", xjoin).start()
     patch_submodule(module, "os.path.dirname", xdirname).start()

@@ -26,6 +26,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Dataset Preprocessing](#dataset-preprocessing)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
@@ -63,6 +64,62 @@ room-view video cameras, and output from a slide projector and an electronic whi
 the participants also have unsynchronized pens available to them that record what is written. The meetings
 were recorded in English using three different rooms with different acoustic properties, and include mostly
 non-native speakers.
+
+### Dataset Preprocessing
+
+Individual samples of the AMI dataset contain very large audio files (between 10 and 60 minutes). The dataset should be chunked 
+into more samples of shorter length for training. 
+
+The following two mapping functions can be used to chunk the dataset into its segments.
+
+```python
+from datasets import load_dataset
+import librosa
+
+
+def chunk_audio(batch, sample_rate=16_000):
+    new_batch = {
+        "audio": [],
+        "text": [],
+        "speaker": [],
+        "lengths": [],
+        "word_start_times": [],
+        "segment_start_times": [],
+    }
+
+    audio, _ = librosa.load(batch["file"][0], sr=sample_rate)
+
+    word_idx = 0
+    num_words = len(batch["words"][0])
+    for segment_idx in range(len(batch["segment_start_times"][0])):
+        words = []
+        word_start_times = []
+        start_time = batch["segment_start_times"][0][segment_idx]
+        end_time = batch["segment_end_times"][0][segment_idx]
+
+        new_batch["audio"].append(audio[int(start_time * sample_rate): int(end_time * sample_rate)])
+
+        while word_idx < num_words and batch["word_start_times"][0][word_idx] < end_time:
+            words.append(batch["words"][0][word_idx])
+            word_start_times.append(batch["word_start_times"][0][word_idx])
+            word_idx += 1
+
+        new_batch["lengths"].append(end_time - start_time)
+        new_batch["text"].append(" ".join(words))
+        new_batch["speaker"].append(batch["segment_speakers"][0][segment_idx])
+        new_batch["word_start_times"].append(word_start_times)
+
+        new_batch["segment_start_times"].append(batch["segment_start_times"][0][segment_idx])
+
+    return new_batch
+
+
+ami = load_dataset("ami", "headset-single")
+
+ami = ami.map(chunk_audio, batched=True, batch_size=1, remove_columns=ami["train"].column_names)
+```
+
+A preprocessed dataset of the config `"headset-single"`can be found [here](https://huggingface.co/datasets/ami-wav2vec2/ami_headset_single_processed).
 
 ### Supported Tasks and Leaderboards
 
