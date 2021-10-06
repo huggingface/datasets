@@ -207,6 +207,9 @@ class PandasFeaturesDecoder:
             row[list(decode_example.keys())] = row.transform(decode_example)
         return row
 
+    def decode_batch(self, batch: pd.DataFrame) -> pd.DataFrame:
+        return self.decode_row(batch)
+
 
 class Formatter(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
