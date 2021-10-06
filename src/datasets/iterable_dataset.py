@@ -1,7 +1,7 @@
 import copy
 from dataclasses import dataclass
 from itertools import cycle, islice, repeat
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
