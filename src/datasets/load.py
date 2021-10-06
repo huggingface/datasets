@@ -324,7 +324,7 @@ def _copy_script_and_other_resouces_in_importable_dir(
     importable_local_file = os.path.join(importable_subdirectory, name + ".py")
 
     # Prevent parallel disk operations
-    lock_path = original_local_path + ".lock"
+    lock_path = importable_directory_path + ".lock"
     with FileLock(lock_path):
         # Create main dataset/metrics folder if needed
         if download_mode == GenerateMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
