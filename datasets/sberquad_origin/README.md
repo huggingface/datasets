@@ -1,4 +1,5 @@
 ---
+pretty_name: SberQuAD
 annotations_creators:
 - crowdsourced
 language_creators:
