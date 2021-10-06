@@ -12,13 +12,12 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100k
+- 10K<n<100K
 source_datasets:
-- original|wikipedia
+- original
 task_categories:
 - question-answering
 task_ids:
-- reading-comprehension
 - extractive-qa
 paperswithcode_id: sberquad
 ---
