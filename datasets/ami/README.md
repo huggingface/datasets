@@ -166,7 +166,7 @@ def chunk_into_max_n_seconds(batch):
 
     return new_batch
     
-ami = ami.map(chunk_into_max_n_seconds, batched=True, batch_size=1, remove_columns=ami_new.column_names, num_proc=64
+ami = ami.map(chunk_into_max_n_seconds, batched=True, batch_size=1, remove_columns=ami["train"].column_names, num_proc=64)
 ```
 
 A segmented and chunked dataset of the config `"headset-single"`can be found [here](https://huggingface.co/datasets/ami-wav2vec2/ami_single_headset_segmented_and_chunked).
