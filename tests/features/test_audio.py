@@ -168,3 +168,10 @@ def test_formatted_dataset_with_audio_feature(shared_datadir):
         assert item["audio"][0]["path"] == audio_path
         assert item["audio"][0]["array"].shape == (202311,)
         assert item["audio"][0]["sampling_rate"] == 44100
+        item = dset[:1]
+        assert item.shape == (1, 1)
+        assert item.columns == ["audio"]
+        assert item["audio"][0].keys() == {"path", "array", "sampling_rate"}
+        assert item["audio"][0]["path"] == audio_path
+        assert item["audio"][0]["array"].shape == (202311,)
+        assert item["audio"][0]["sampling_rate"] == 44100
