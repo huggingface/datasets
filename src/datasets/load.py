@@ -64,12 +64,15 @@ from .utils.file_utils import (
 from .utils.filelock import FileLock
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
+from .utils.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
 from .utils.version import Version
 
 
 logger = get_logger(__name__)
 
 DEFAULT_SPLIT = str(Split.TRAIN)
+
+ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + ["zip"]
 
 
 def init_dynamic_modules(
@@ -380,10 +383,33 @@ def _copy_script_and_other_resouces_in_importable_dir(
         return importable_local_file
 
 
-def infer_module_for_data_files(data_files_list: DataFilesList) -> Optional[str]:
+def infer_module_for_data_files(
+    data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
+) -> Optional[str]:
     extensions_counter = Counter(suffix[1:] for filepath in data_files_list for suffix in Path(filepath).suffixes)
     if extensions_counter:
-        return _EXTENSION_TO_MODULE[extensions_counter.most_common(1)[0][0]]
+        most_common = extensions_counter.most_common(1)[0][0]
+        if most_common in _EXTENSION_TO_MODULE:
+            return _EXTENSION_TO_MODULE[most_common]
+        elif most_common == "zip":
+            return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+
+
+def infer_module_for_data_files_in_archives(
+    data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
+) -> Optional[str]:
+    archived_files = []
+    for filepath in data_files_list:
+        if str(filepath).endswith(".zip"):
+            extracted = xjoin(StreamingDownloadManager().extract(filepath), "*")
+            archived_files += [
+                f.split("::")[0] for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)
+            ]
+    extensions_counter = Counter(suffix[1:] for filepath in archived_files for suffix in Path(filepath).suffixes)
+    if extensions_counter:
+        most_common = extensions_counter.most_common(1)[0][0]
+        if most_common in _EXTENSION_TO_MODULE:
+            return _EXTENSION_TO_MODULE[most_common]
 
 
 @dataclass
@@ -685,7 +711,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModuleFactoryResult:
         data_files = DataFilesDict.from_local_or_remote(
-            _sanitize_patterns(self.data_files), base_path=self.path, allowed_extensions=_EXTENSION_TO_MODULE.keys()
+            _sanitize_patterns(self.data_files), base_path=self.path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
         )
         infered_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
@@ -762,16 +788,17 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         data_files = DataFilesDict.from_hf_repo(
             _sanitize_patterns(self.data_files),
             dataset_info=dataset_info,
-            allowed_extensions=_EXTENSION_TO_MODULE.keys(),
+            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         infered_module_names = {
-            key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
+            key: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
+            for key, data_files_list in data_files.items()
         }
         if len(set(list(infered_module_names.values()))) > 1:
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
         infered_module_name = next(iter(infered_module_names.values()))
         if not infered_module_name:
-            raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
+            raise FileNotFoundError(f"No data files or dataset script found in '{self.name}'")
         module_path, hash = _PACKAGED_DATASETS_MODULES[infered_module_name]
         builder_kwargs = {
             "hash": hash,
@@ -1124,6 +1151,7 @@ def dataset_module_factory(
                         download_mode=download_mode,
                     ).get_module()
         except Exception as e1:  # noqa: all the attempts failed, before raising the error we should check if the module is already cached.
+            raise
             try:
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
             except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
@@ -1419,7 +1447,6 @@ def load_dataset_builder(
     if use_auth_token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.use_auth_token = use_auth_token
-
     dataset_module_factory_result = dataset_module_factory(
         path, revision=revision, download_config=download_config, download_mode=download_mode, data_files=data_files
     )

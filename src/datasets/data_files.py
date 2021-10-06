@@ -9,7 +9,7 @@ from tqdm.contrib.concurrent import thread_map
 
 from .splits import Split
 from .utils import logging
-from .utils.file_utils import is_relative_path, is_remote_url, request_etag
+from .utils.file_utils import hf_hub_url, is_relative_path, is_remote_url, request_etag
 from .utils.tqdm_utils import tqdm
 
 
@@ -183,13 +183,7 @@ def resolve_patterns_in_dataset_repository(
     """
     data_files_urls: List[Url] = []
     for filename in _exec_patterns_in_dataset_repository(dataset_info, patterns, allowed_extensions):
-        data_files_urls.append(
-            Url(
-                huggingface_hub.hf_hub_url(
-                    dataset_info.id, filename.as_posix(), revision=dataset_info.sha, repo_type="dataset"
-                )
-            )
-        )
+        data_files_urls.append(Url(hf_hub_url(dataset_info.id, filename.as_posix(), revision=dataset_info.sha)))
     return data_files_urls
 
 
