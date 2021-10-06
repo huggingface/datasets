@@ -1,6 +1,6 @@
 ---
 annotations_creators:
--crowdsourced
+- crowdsourced
 language_creators:
 - found
 - crowdsourced
