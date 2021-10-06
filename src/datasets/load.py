@@ -462,6 +462,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
                 raise
             else:
                 local_path = self.download_dataset_script_from_master()
+                logger.warning(f"Dataset '{self.name}' not available for this version, using the one from the 'master' branch instead.")
                 revision = "master"
         dataset_infos_path = self.download_dataset_infos_file(revision)
         imports = get_imports(local_path)
