@@ -386,6 +386,14 @@ def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
+def test_load_dataset_zip_csv(zip_csv_path):
+    data_files = str(zip_csv_path)
+    features = Features({"col_1": Value("string"), "col_2": Value("int32"), "col_3": Value("float32")})
+    ds = load_dataset("csv", split="train", data_files=data_files, features=features)
+    ds_item = next(iter(ds))
+    assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+
+
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
         dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
