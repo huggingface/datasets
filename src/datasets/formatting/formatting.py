@@ -306,7 +306,10 @@ class PandasFormatter(Formatter):
         return self.pandas_arrow_extractor().extract_column(pa_table)
 
     def format_batch(self, pa_table: pa.Table) -> pd.DataFrame:
-        return self.pandas_arrow_extractor().extract_batch(pa_table)
+        row = self.pandas_arrow_extractor().extract_batch(pa_table)
+        if self.decoded:
+            row = self.pandas_features_decoder.decode_batch(row)
+        return row
 
 
 class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
