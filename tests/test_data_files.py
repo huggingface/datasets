@@ -70,7 +70,7 @@ def hub_dataset_info(complex_data_dir):
 def hub_dataset_info_patterns_results(hub_dataset_info, complex_data_dir, pattern_results):
     return {
         pattern: [
-            hf_hub_url(hub_dataset_info.id, Path(path).relative_to(complex_data_dir), revision=hub_dataset_info.sha)
+            hf_hub_url(hub_dataset_info.id, Path(path).relative_to(complex_data_dir).as_posix(), revision=hub_dataset_info.sha)
             for path in pattern_results[pattern]
         ]
         for pattern in pattern_results
