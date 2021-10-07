@@ -322,9 +322,9 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     to return.
     """
 
-    def __init__(self, transform: Callable[[dict], dict], decoded=True, **kwargs):
+    def __init__(self, transform: Callable[[dict], dict], features=None, decoded=True, **kwargs):
+        super().__init__(features=features, decoded=decoded)
         self.transform = transform
-        self.decoded = decoded
 
     def format_row(self, pa_table: pa.Table) -> dict:
         formatted_batch = self.format_batch(pa_table)
