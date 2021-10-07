@@ -476,8 +476,6 @@ class IterableDataset(DatasetInfoMixin):
         Remove one or several column(s) in the dataset and the features associated to them.
         The removal is done on-the-fly on the examples when iterating over the dataset.
 
-        You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
-        is in-place (doesn't copy the data to a new dataset) and is thus faster.
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
