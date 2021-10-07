@@ -479,7 +479,6 @@ class IterableDataset(DatasetInfoMixin):
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
-            new_fingerprint
 
         Returns:
             :class:`IterableDataset`: A copy of the dataset object without the columns to remove.
