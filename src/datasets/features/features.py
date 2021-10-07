@@ -805,20 +805,6 @@ def encode_nested_example(schema, obj):
     return obj
 
 
-def decode_nested_example(feature, example):
-    if isinstance(feature, dict):
-        return {
-            col: decode_nested_example(col_feature, col_example)
-            for col, (col_feature, col_example) in utils.zip_dict(
-                {key: value for key, value in feature.items() if key in example}, example
-            )
-        }
-    elif isinstance(feature, Audio):
-        return feature.decode_example(example)
-    else:
-        return example
-
-
 def generate_from_dict(obj: Any):
     """Regenerate the nested feature object from a deserialized dict.
     We use the '_type' fields to get the dataclass name to load.
@@ -994,7 +980,12 @@ class Features(dict):
         Returns:
             :obj:`dict[str, Any]`
         """
-        return decode_nested_example(self, example)
+        return {
+            column: feature.decode_example(value) if hasattr(feature, "decode_example") else value
+            for column, (feature, value) in utils.zip_dict(
+                {key: value for key, value in self.items() if key in example}, example
+            )
+        }
 
     def decode_batch(self, batch):
         """Decode batch with custom feature decoding.
@@ -1006,8 +997,12 @@ class Features(dict):
             :obj:`dict[str, list[Any]]`
         """
         decoded_batch = {}
-        for key, column in batch.items():
-            decoded_batch[key] = [decode_nested_example(self[key], obj) for obj in column]
+        for column, column_data in batch.items():
+            decoded_batch[column] = (
+                [self[column].decode_example(obj) for obj in column_data]
+                if hasattr(self[column], "decode_example")
+                else column_data
+            )
         return decoded_batch
 
     def copy(self) -> "Features":
