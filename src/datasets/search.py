@@ -1,11 +1,10 @@
 import datetime
 import importlib.util
 import os
+import ssl
 import tempfile
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
-
-import ssl
 
 import numpy as np
 
@@ -107,7 +106,7 @@ class ElasticSearchIndex(BaseIndex):
         es_client: Optional["Elasticsearch"] = None,
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
-        es_username:  Optional[str] = None,
+        es_username: Optional[str] = None,
         es_psw: Optional[str] = None,
         ca_file: Optional[str] = None,
     ):
@@ -123,7 +122,7 @@ class ElasticSearchIndex(BaseIndex):
         import elasticsearch.helpers  # noqa: need this to properly load all the es features
         from elasticsearch import Elasticsearch  # noqa: F811
 
-        server_url = ('https' if ca_file is not None else 'http')+'://'+host+':'+str(port)
+        server_url = ("https" if ca_file is not None else "http") + "://" + host + ":" + str(port)
 
         ssl_context = None if ca_file is None else ssl.create_default_context(cafile=ca_file)
 
@@ -621,7 +620,7 @@ class IndexableMixin:
         es_client: Optional["Elasticsearch"] = None,
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
-        es_username:  Optional[str] = None,
+        es_username: Optional[str] = None,
         es_psw: Optional[str] = None,
         ca_file: Optional[str] = None,
     ):
@@ -786,7 +785,7 @@ class IndexableMixin:
             es_index_config=es_index_config,
             es_username=es_username,
             es_psw=es_psw,
-            ca_file=ca_file
+            ca_file=ca_file,
         )
 
     def drop_index(self, index_name: str):

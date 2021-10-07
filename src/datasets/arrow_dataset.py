@@ -20,8 +20,8 @@ import contextlib
 import copy
 import json
 import os
-import ssl
 import shutil
+import ssl
 import tempfile
 import weakref
 from collections import Counter, UserDict
@@ -3602,10 +3602,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ds.update_elasticsearch_documents(body={}, es_client=es_client)
         """
         super().update_elasticsearch_documents(
-            body=body, host=host, port=port,
-            es_client=es_client, es_index_name=es_index_name,
-            es_username=es_username, es_psw=es_psw, ca_file=ca_file
-            **kwargs
+            body=body,
+            host=host,
+            port=port,
+            es_client=es_client,
+            es_index_name=es_index_name,
+            es_username=es_username,
+            es_psw=es_psw,
+            ca_file=ca_file ** kwargs,
         )
         return self
 

@@ -1,14 +1,14 @@
 # coding=utf-8
 
 import importlib.util
+import json
+import re
+import ssl
 from dataclasses import dataclass
 from typing import Optional
 
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ConnectionError
-import re
-import ssl
-import json
 
 import datasets
 from datasets.utils import logging
@@ -56,15 +56,21 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
 
     def _init_connexion(self):
         # init the elasticsearch client and test connection
-        server_url = ('https' if self.config.ca_file is not None else 'http') + '://' + self.config.host + ':' + str(
-            self.config.port)
+        server_url = (
+            ("https" if self.config.ca_file is not None else "http")
+            + "://"
+            + self.config.host
+            + ":"
+            + str(self.config.port)
+        )
         ssl_context = None if self.config.ca_file is None else ssl.create_default_context(cafile=self.config.ca_file)
         if self.config.es_username is None or self.config.es_psw is None:
             self.es_client = Elasticsearch([server_url], ssl_context=ssl_context)
         else:
             # authenticate user
-            self.es_client = Elasticsearch([server_url], http_auth=(self.config.es_username, self.config.es_psw),
-                                           ssl_context=ssl_context)
+            self.es_client = Elasticsearch(
+                [server_url], http_auth=(self.config.es_username, self.config.es_psw), ssl_context=ssl_context
+            )
         try:
             logger.info(f"Testing connection to elasticsearch at {self.config.host}:{self.config.port}")
             if not self.es_client.indices.exists(index=self.config.es_index_name):
@@ -75,7 +81,7 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
             logger.critical(msg)
             raise Exception(msg)
 
-        print(f'Connexion established with Elasticsearch at {self.config.host}:{self.config.port}')
+        print(f"Connexion established with Elasticsearch at {self.config.host}:{self.config.port}")
 
         # load dataset information from elasticsearch index metadata
         mapping_response = self.es_client.indices.get_mapping(index=self.config.es_index_name)
@@ -133,12 +139,11 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
             index=self.config.es_index_name,
             body={
                 "query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}},
-                "size": max_k
+                "size": max_k,
             },
             request_timeout=1800,
         )
         hits = response["hits"]["hits"]
 
         for hit in hits:
-            yield hit['_id'], {"id": hit['_id'], "text": hit['_source']['text']}
-
+            yield hit["_id"], {"id": hit["_id"], "text": hit["_source"]["text"]}
