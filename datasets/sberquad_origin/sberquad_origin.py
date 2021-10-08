@@ -36,18 +36,6 @@ Russian original analogue presented in Sberbank Data Science Journey 2017 https:
 _URLS = {"train": "https://sc.link/PNWl", "dev": "https://sc.link/W6oX", "test": "https://sc.link/VOn9"}
 
 
-class SberQuadConfig(datasets.BuilderConfig):
-    """BuilderConfig for SQUAD."""
-
-    def __init__(self, **kwargs):
-        """BuilderConfig for SQUAD.
-        Args:
-          **kwargs: keyword arguments forwarded to super.
-        """
-        super(SberQuadConfig, self).__init__(**kwargs)
-        print("INITIAL CONFIG: ", self.config)
-
-
 class SberQuad(datasets.GeneratorBasedBuilder):
     """SberQUAD: Sber Question Answering Dataset. Version 1.0."""
 
