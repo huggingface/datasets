@@ -1998,7 +1998,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                     features=features.copy() if features is not None else None,
                     disable_nullable=disable_nullable,
                     fn_kwargs=fn_kwargs,
-                    new_fingerprint=f"{new_fingerprint}-{rank}",
+                    new_fingerprint=f"{new_fingerprint}-{rank}" if new_fingerprint is not None else None,
                     rank=rank,
                     offset=sum(len(s) for s in shards[:rank]),
                     disable_tqdm=disable_tqdm,
