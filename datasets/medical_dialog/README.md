@@ -22,6 +22,7 @@ task_categories:
 task_ids:
 - closed-domain-qa
 paperswithcode_id: null
+pretty_name: MedDialog
 ---
 
 # Dataset Card for [Dataset Name]
