@@ -22,8 +22,8 @@ import datasets
 
 
 _DESCRIPTION = """
-Story Cloze Test' is a commonsense reasoning framework for evaluating story understanding,
-story generation, and script learning.This test requires a system to choose the correct ending
+Story Cloze Test' is a commonsense reasoning framework for evaluating story understanding, 
+story generation, and script learning.This test requires a system to choose the correct ending 
 to a four-sentence story.
 """
 
@@ -80,30 +80,15 @@ class StoryCloze(datasets.GeneratorBasedBuilder):
             test_file = os.path.join(path_to_manual_folder, "cloze_test_test__spring2016 - cloze_test_ALL_test.csv")
             val_file = os.path.join(path_to_manual_folder, "cloze_test_val__spring2016 - cloze_test_ALL_val.csv")
             return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": val_file,
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepath": test_file,
-                    },
-                ),
+                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": val_file,},),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_file,},),
             ]
 
         else:
             val_file = os.path.join(path_to_manual_folder, "cloze_test_val__winter2018-cloze_test_ALL_val - 1 - 1.csv")
 
             return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": val_file,
-                    },
-                ),
+                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": val_file,},),
             ]
 
     def _generate_examples(self, filepath):
