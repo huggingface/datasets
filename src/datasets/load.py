@@ -478,7 +478,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         try:
             local_path = self.download_loading_script(revision)
         except FileNotFoundError:
-            if revision is not None or revision == "master":
+            if revision is not None:
                 raise
             else:
                 revision = "master"
@@ -543,7 +543,7 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
             local_path = self.download_loading_script(revision)
             revision = self.revision
         except FileNotFoundError:
-            if revision is not None or revision == "master":
+            if revision is not None:
                 raise
             else:
                 revision = "master"
