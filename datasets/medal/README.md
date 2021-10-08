@@ -18,8 +18,9 @@ task_categories:
 task_ids:
 - other-other-disambiguation
 paperswithcode_id: medal
+pretty_name: MeDAL
 ---
-# Dataset Card Creation Guide
+# Dataset Card for the MeDAL dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
