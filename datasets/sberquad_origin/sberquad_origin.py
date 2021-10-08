@@ -9,7 +9,20 @@ from datasets.tasks import QuestionAnsweringExtractive
 
 logger = datasets.logging.get_logger(__name__)
 
-_CITATION = """ https://arxiv.org/pdf/1912.09723.pdf """
+_CITATION = """\
+@article{Efimov_2020,
+   title={SberQuAD – Russian Reading Comprehension Dataset: Description and Analysis},
+   ISBN={9783030582197},
+   ISSN={1611-3349},
+   url={http://dx.doi.org/10.1007/978-3-030-58219-7_1},
+   DOI={10.1007/978-3-030-58219-7_1},
+   journal={Experimental IR Meets Multilinguality, Multimodality, and Interaction},
+   publisher={Springer International Publishing},
+   author={Efimov, Pavel and Chertok, Andrey and Boytsov, Leonid and Braslavski, Pavel},
+   year={2020},
+   pages={3–15}
+}
+ """
 
 
 _DESCRIPTION = """\
