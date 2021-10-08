@@ -70,7 +70,6 @@ class SberQuad(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         downloaded_files = dl_manager.download_and_extract(_URLS)
-        print("DONWLOADED: ", downloaded_files.keys())
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
             datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
