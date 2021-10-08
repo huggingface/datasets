@@ -1342,8 +1342,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         Returns:
             :class:`Dataset`
         """
-        self.features[column] = feature
-        return self
+        if hasattr(feature, "decode_example"):
+            self.features[column] = feature
+            return self
+        else:
+            features = self.features.copy()
+            features[column] = feature
+            return self.cast(features)
 
     @deprecated(help_message="Use Dataset.remove_columns instead.")
     @fingerprint_transform(inplace=True)
