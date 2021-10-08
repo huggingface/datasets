@@ -52,7 +52,7 @@ task_ids:
 
 - **Homepage:** https://github.com/JoelNiklaus/SwissCourtRulingCorpus
 - **Repository:** https://github.com/JoelNiklaus/SwissCourtRulingCorpus
-- **Paper:** TODO put arxiv paper here
+- **Paper:** https://arxiv.org/abs/2110.00806
 - **Leaderboard:** N/A
 - **Point of Contact:** [Joel Niklaus](mailto:joel.niklaus@inf.unibe.ch)
 
