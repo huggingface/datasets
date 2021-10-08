@@ -72,25 +72,28 @@ English (en)
 ## Dataset Structure
 
 Each file is a table consisting of three columns:
-* TEXT: The normalized content of an abstract
-* LOCATION: The location (index) of each abbreviation that was substituted
-* LABEL: The word at that was substituted at the given location
+* text: The normalized content of an abstract
+* location: The location (index) of each abbreviation that was substituted
+* label: The word at that was substituted at the given location
 
 
 ### Data Instances
 
-TEXT:
-> a report is given on the recent discovery of outstanding immunological properties in ba ncyanoethyleneurea having a low molecular mass m experiments in ds CS bearing wistar rats have shown that ba at a dosage of only about percent ld mg kg and negligible lethality percent results in a REC rate of percent without hyperglycemia and in one test of percent with hyperglycemia under otherwise unchanged conditions the REF substance ifosfamide if a further development of cyclophosphamide applied without hyperglycemia in its most efficient dosage of percent ld mg kg brought about a recovery rate of percent at a lethality of percent contrary to ba min hyperglycemia caused no further improvement of the REC rate however this comparison is characterized by the fact that both substances exhibit two quite different complementary mechanisms of action leucocyte counts made T3 application of the said cancerostatics and dosages have shown a pronounced stimulation with ba and with ifosfamide the known suppression in the posttherapeutic interval usually found with standard cancerostatics in combination with the cited PI test for ba blood pictures then allow conclusions on the immunity status since if can be taken as one of the most efficient cancerostaticsthere is no other chemotherapeutic known up to now that has a more significant effect on the ds carcinosarcoma in rats these findings are of special importance finally the total amount of leucocytes and lymphocytes as well as their time behaviour was determined from the blood picture of tumourfree rats after iv application of ba the thus obtained numerical values clearly show that further research work on the prophylactic use of this substance seems to be necessary and very promising
+An example from the train split is:
 
-LOCATION:
-> 24|49|68|113|137|172
-
-LABEL:
-> carcinosarcoma|recovery|reference|recovery|after|plaque
+```
+{'abstract_id': 14145090,
+ 'text': 'velvet antlers vas are commonly used in traditional chinese medicine and invigorant and contain many PET components for health promotion the velvet antler peptide svap is one of active components in vas based on structural study the svap interacts with tgfÎ² receptors and disrupts the tgfÎ² pathway we hypothesized that svap prevents cardiac fibrosis from pressure overload by blocking tgfÎ² signaling SDRs underwent TAC tac or a sham operation T3 one month rats received either svap mgkgday or vehicle for an additional one month tac surgery induced significant cardiac dysfunction FB activation and fibrosis these effects were improved by treatment with svap in the heart tissue tac remarkably increased the expression of tgfÎ² and connective tissue growth factor ctgf ROS species C2 and the phosphorylation C2 of smad and ERK kinases erk svap inhibited the increases in reactive oxygen species C2 ctgf expression and the phosphorylation of smad and erk but not tgfÎ² expression in cultured cardiac fibroblasts angiotensin ii ang ii had similar effects compared to tac surgery such as increases in Î±smapositive CFs and collagen synthesis svap eliminated these effects by disrupting tgfÎ² IB to its receptors and blocking ang iitgfÎ² downstream signaling these results demonstrated that svap has antifibrotic effects by blocking the tgfÎ² pathway in CFs',
+ 'location': [63],
+ 'label': ['transverse aortic constriction']}
+ ```
 
 ### Data Fields
 
-[More Information Needed]
+The column types are:
+* text: content of the abstract as a string
+* location: index of the substitution as an integer
+* label: substitued word as a string
 
 ### Data Splits
 
