@@ -130,7 +130,8 @@ These are arranged as below in the prepared dataset. Each item will be represent
 
 ### Data Splits
 
-There are no data splits on the original data
+There are no data splits on the original data. The "train" split for each language contains:
+- en: 229674 examples
 
 ## Dataset Creation
 
