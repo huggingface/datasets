@@ -96,11 +96,11 @@ Russian
 
 ### Data Fields
 
-id: a int32 feature
-title: a string feature
-context: a string feature
-question: a string feature
-answers: a dictionary feature containing:
+- id: a int32 feature
+- title: a string feature
+- context: a string feature
+- question: a string feature
+- answers: a dictionary feature containing:
    - text: a string feature
    - answer_start: a int32 feature
 
