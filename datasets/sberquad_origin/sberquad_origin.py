@@ -42,7 +42,6 @@ class SberQuad(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [datasets.BuilderConfig(name="sberquad", version=VERSION, description=_DESCRIPTION)]
 
     def _info(self):
-        print("?", self.config)
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
