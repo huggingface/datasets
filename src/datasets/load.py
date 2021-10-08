@@ -246,7 +246,7 @@ def _download_additional_modules(
     If some modules need to be installed with pip, an error is raised showing how to install them.
     This function return the list of downloaded modules as tuples (import_name, module_file_path).
 
-    The downloaded modules can then be moved into an importable directory with ``_copy_script_and_other_resouces_in_importable_dir``.
+    The downloaded modules can then be moved into an importable directory with ``_copy_script_and_other_resources_in_importable_dir``.
     """
     local_imports = []
     library_imports = []
@@ -293,10 +293,10 @@ def _download_additional_modules(
     return local_imports
 
 
-def _copy_script_and_other_resouces_in_importable_dir(
+def _copy_script_and_other_resources_in_importable_dir(
     name: str,
     importable_directory_path: str,
-    subdirrectory_name: str,
+    subdirectory_name: str,
     original_local_path: str,
     local_imports: List[Tuple[str, str]],
     additional_files: List[Tuple[str, str]],
@@ -307,7 +307,7 @@ def _copy_script_and_other_resouces_in_importable_dir(
     Args:
         name (str): name of the resource to load
         importable_directory_path (str): path to the loadable folder in the dynamic modules directory
-        subdirrectory_name (str): name of the subdirectory in importable_directory_path in which to place the script
+        subdirectory_name (str): name of the subdirectory in importable_directory_path in which to place the script
         original_local_path (str): local path to the resource script
         local_imports (List[Tuple[str, str]]): list of (destination_filename, import_file_to_copy)
         additional_files (List[Tuple[str, str]]): list of (destination_filename, additional_file_to_copy)
@@ -319,8 +319,8 @@ def _copy_script_and_other_resouces_in_importable_dir(
 
     # Define a directory with a unique name in our dataset or metric folder
     # path is: ./datasets|metrics/dataset|metric_name/hash_from_code/script.py
-    # we use a hash as subdirrectory_name to be able to have multiple versions of a dataset/metric processing file together
-    importable_subdirectory = os.path.join(importable_directory_path, subdirrectory_name)
+    # we use a hash as subdirectory_name to be able to have multiple versions of a dataset/metric processing file together
+    importable_subdirectory = os.path.join(importable_directory_path, subdirectory_name)
     importable_local_file = os.path.join(importable_subdirectory, name + ".py")
 
     # Prevent parallel disk operations
@@ -380,6 +380,35 @@ def _copy_script_and_other_resouces_in_importable_dir(
         return importable_local_file
 
 
+def _create_importable_file(
+    local_path: str,
+    local_imports: List[Tuple[str, str]],
+    additional_files: List[Tuple[str, str]],
+    dynamic_modules_path: str,
+    module_namespace: str,
+    name: str,
+    download_mode: GenerateMode,
+) -> Tuple[str, str]:
+    importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "___"))
+    Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
+    (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
+    hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
+    importable_local_file = _copy_script_and_other_resources_in_importable_dir(
+        name=name.split("/")[-1],
+        importable_directory_path=importable_directory_path,
+        subdirectory_name=hash,
+        original_local_path=local_path,
+        local_imports=local_imports,
+        additional_files=additional_files,
+        download_mode=download_mode,
+    )
+    logger.debug(f"Created importable dataset file at {importable_local_file}")
+    module_path = ".".join(
+        [os.path.basename(dynamic_modules_path), module_namespace, name.replace("/", "___"), hash, name.split("/")[-1]]
+    )
+    return module_path, hash
+
+
 def infer_module_for_data_files(data_files_list: DataFilesList) -> Optional[str]:
     extensions_counter = Counter(suffix[1:] for filepath in data_files_list for suffix in Path(filepath).suffixes)
     if extensions_counter:
@@ -387,25 +416,25 @@ def infer_module_for_data_files(data_files_list: DataFilesList) -> Optional[str]
 
 
 @dataclass
-class DatasetModuleFactoryResult:
+class DatasetModule:
     module_path: str
     hash: str
     builder_kwargs: dict
 
 
 @dataclass
-class MetricModuleFactoryResult:
+class MetricModule:
     module_path: str
     hash: str
 
 
 class _DatasetModuleFactory:
-    def get_module(self) -> DatasetModuleFactoryResult:
+    def get_module(self) -> DatasetModule:
         raise NotImplementedError
 
 
 class _MetricModuleFactory:
-    def get_module(self) -> MetricModuleFactoryResult:
+    def get_module(self) -> MetricModule:
         raise NotImplementedError
 
 
@@ -428,18 +457,9 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         assert self.name.count("/") == 0
         increase_load_count(name, resource_type="dataset")
 
-    def download_dataset_script(self) -> str:
-        file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=self.revision)
+    def download_loading_script(self, revision: Optional[str]) -> str:
+        file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=revision)
         return cached_path(file_path, download_config=self.download_config)
-
-    def download_dataset_script_from_master(self) -> str:
-        file_path = hf_github_url(path=self.name, name=self.name + ".py", revision="master")
-        local_path = cached_path(file_path, download_config=self.download_config)
-        logger.warning(
-            f"Couldn't find a directory or a dataset named '{self.name}'. "
-            f"It was picked from the master branch on github instead at {file_path}"
-        )
-        return local_path
 
     def download_dataset_infos_file(self, revision: Optional[str]) -> str:
         dataset_infos = hf_github_url(path=self.name, name=config.DATASETDICT_INFOS_FILENAME, revision=revision)
@@ -452,20 +472,21 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         except (FileNotFoundError, ConnectionError):
             return None
 
-    def get_module(self) -> DatasetModuleFactoryResult:
+    def get_module(self) -> DatasetModule:
         # get script and other files
+        revision = self.revision
         try:
-            local_path = self.download_dataset_script()
-            revision = self.revision
+            local_path = self.download_loading_script(revision)
         except FileNotFoundError:
-            if self.revision is not None:
+            if revision is not None or revision == "master":
                 raise
             else:
-                local_path = self.download_dataset_script_from_master()
-                logger.warning(
-                    f"Dataset '{self.name}' not available for this version, using the one from the 'master' branch instead."
-                )
                 revision = "master"
+                local_path = self.download_loading_script(revision)
+                logger.warning(
+                    f"Couldn't find a directory or a dataset named '{self.name}' in this version. "
+                    f"It was picked from the master branch on github instead."
+                )
         dataset_infos_path = self.download_dataset_infos_file(revision)
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
@@ -475,27 +496,21 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
             download_config=self.download_config,
         )
         additional_files = [(config.DATASETDICT_INFOS_FILENAME, dataset_infos_path)] if dataset_infos_path else []
-        # the copy the script and the files in an importable directory
+        # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name)
-        Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
-        (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
-        hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
-        importable_local_file = _copy_script_and_other_resouces_in_importable_dir(
-            name=self.name,
-            importable_directory_path=importable_directory_path,
-            subdirrectory_name=hash,
-            original_local_path=local_path,
+        module_path, hash = _create_importable_file(
+            local_path=local_path,
             local_imports=local_imports,
             additional_files=additional_files,
+            dynamic_modules_path=dynamic_modules_path,
+            module_namespace="datasets",
+            name=self.name,
             download_mode=self.download_mode,
         )
-        logger.debug(f"Created importable dataset file at {importable_local_file}")
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
-        module_path = ".".join([os.path.basename(dynamic_modules_path), "datasets", self.name, hash, self.name])
         builder_kwargs = {"hash": hash, "base_path": hf_github_url(self.name, "", revision=revision)}
-        return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs)
 
 
 class CanonicalMetricModuleFactory(_MetricModuleFactory):
@@ -517,30 +532,26 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
         assert self.name.count("/") == 0
         increase_load_count(name, resource_type="metric")
 
-    def download_metric_script(self) -> str:
-        file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=self.revision, dataset=False)
+    def download_loading_script(self, revision: Optional[str]) -> str:
+        file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=revision, dataset=False)
         return cached_path(file_path, download_config=self.download_config)
 
-    def download_metric_script_from_master(self) -> str:
-        file_path = hf_github_url(path=self.name, name=self.name + ".py", revision="master", dataset=False)
-        local_path = cached_path(file_path, download_config=self.download_config)
-        logger.warning(
-            f"Couldn't find a directory or a metric named '{self.name}'. "
-            f"It was picked from the master branch on github instead at {file_path}"
-        )
-        return local_path
-
-    def get_module(self) -> MetricModuleFactoryResult:
+    def get_module(self) -> MetricModule:
         # get script and other files
+        revision = self.revision
         try:
-            local_path = self.download_metric_script()
+            local_path = self.download_loading_script(revision)
             revision = self.revision
         except FileNotFoundError:
-            if self.revision is not None:
+            if revision is not None or revision == "master":
                 raise
             else:
-                local_path = self.download_metric_script_from_master()
                 revision = "master"
+                local_path = self.download_loading_script(revision)
+                logger.warning(
+                    f"Couldn't find a directory or a metric named '{self.name}' in this version. "
+                    f"It was picked from the master branch on github instead."
+                )
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
             name=self.name,
@@ -548,26 +559,20 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
             imports=imports,
             download_config=self.download_config,
         )
-        # the copy the script and the files in an importable directory
+        # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        importable_directory_path = os.path.join(dynamic_modules_path, "metrics", self.name)
-        Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
-        (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
-        hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
-        importable_local_file = _copy_script_and_other_resouces_in_importable_dir(
-            name=self.name,
-            importable_directory_path=importable_directory_path,
-            subdirrectory_name=hash,
-            original_local_path=local_path,
+        module_path, hash = _create_importable_file(
+            local_path=local_path,
             local_imports=local_imports,
             additional_files=[],
+            dynamic_modules_path=dynamic_modules_path,
+            module_namespace="metrics",
+            name=self.name,
             download_mode=self.download_mode,
         )
-        logger.debug(f"Created importable metric file at {importable_local_file}")
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
-        module_path = ".".join([os.path.basename(dynamic_modules_path), "metrics", self.name, hash, self.name])
-        return MetricModuleFactoryResult(module_path, hash)
+        return MetricModule(module_path, hash)
 
 
 class LocalMetricModuleFactory(_MetricModuleFactory):
@@ -586,7 +591,7 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
 
-    def get_module(self) -> MetricModuleFactoryResult:
+    def get_module(self) -> MetricModule:
         # get script and other files
         imports = get_imports(self.path)
         local_imports = _download_additional_modules(
@@ -595,26 +600,20 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
             imports=imports,
             download_config=self.download_config,
         )
-        # the copy the script and the files in an importable directory
+        # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        importable_directory_path = os.path.join(dynamic_modules_path, "metrics", self.name)
-        Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
-        (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
-        hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
-        importable_local_file = _copy_script_and_other_resouces_in_importable_dir(
-            name=self.name,
-            importable_directory_path=importable_directory_path,
-            subdirrectory_name=hash,
-            original_local_path=self.path,
+        module_path, hash = _create_importable_file(
+            local_path=self.path,
             local_imports=local_imports,
             additional_files=[],
+            dynamic_modules_path=dynamic_modules_path,
+            module_namespace="metrics",
+            name=self.name,
             download_mode=self.download_mode,
         )
-        logger.debug(f"Created importable dataset file at {importable_local_file}")
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
-        module_path = ".".join([os.path.basename(dynamic_modules_path), "metrics", self.name, hash, self.name])
-        return MetricModuleFactoryResult(module_path, hash)
+        return MetricModule(module_path, hash)
 
 
 class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
@@ -633,7 +632,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
 
-    def get_module(self) -> DatasetModuleFactoryResult:
+    def get_module(self) -> DatasetModule:
         # get script and other files
         dataset_infos_path = Path(self.path).parent / config.DATASETDICT_INFOS_FILENAME
         imports = get_imports(self.path)
@@ -646,27 +645,21 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         additional_files = (
             [(config.DATASETDICT_INFOS_FILENAME, str(dataset_infos_path))] if dataset_infos_path.is_file() else []
         )
-        # the copy the script and the files in an importable directory
+        # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name)
-        Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
-        (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
-        hash = files_to_hash([self.path] + [loc[1] for loc in local_imports])
-        importable_local_file = _copy_script_and_other_resouces_in_importable_dir(
-            name=self.name,
-            importable_directory_path=importable_directory_path,
-            subdirrectory_name=hash,
-            original_local_path=self.path,
+        module_path, hash = _create_importable_file(
+            local_path=self.path,
             local_imports=local_imports,
             additional_files=additional_files,
+            dynamic_modules_path=dynamic_modules_path,
+            module_namespace="datasets",
+            name=self.name,
             download_mode=self.download_mode,
         )
-        logger.debug(f"Created importable dataset file at {importable_local_file}")
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
-        module_path = ".".join([os.path.basename(dynamic_modules_path), "datasets", self.name, hash, self.name])
         builder_kwargs = {"hash": hash, "base_path": str(Path(self.path).parent)}
-        return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs)
 
 
 class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
@@ -683,7 +676,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.data_files = data_files
         self.download_mode = download_mode
 
-    def get_module(self) -> DatasetModuleFactoryResult:
+    def get_module(self) -> DatasetModule:
         data_files = DataFilesDict.from_local_or_remote(
             _sanitize_patterns(self.data_files), base_path=self.path, allowed_extensions=_EXTENSION_TO_MODULE.keys()
         )
@@ -702,7 +695,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "name": os.path.basename(self.path),
             "base_path": self.path,
         }
-        return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs)
 
 
 class PackagedDatasetModuleFactory(_DatasetModuleFactory):
@@ -721,13 +714,13 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         self.download_mode = download_mode
         increase_load_count(name, resource_type="dataset")
 
-    def get_module(self) -> DatasetModuleFactoryResult:
+    def get_module(self) -> DatasetModule:
         data_files = DataFilesDict.from_local_or_remote(
             _sanitize_patterns(self.data_files), use_auth_token=self.downnload_config.use_auth_token
         )
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
-        return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs)
 
 
 class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
@@ -752,7 +745,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         assert self.name.count("/") == 1
         increase_load_count(name, resource_type="dataset")
 
-    def get_module(self) -> DatasetModuleFactoryResult:
+    def get_module(self) -> DatasetModule:
         dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
@@ -779,7 +772,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "name": self.name.replace("/", "___"),
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
         }
-        return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs)
 
 
 class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
@@ -801,7 +794,7 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         assert self.name.count("/") == 1
         increase_load_count(name, resource_type="dataset")
 
-    def download_dataset_script(self) -> str:
+    def download_loading_script(self) -> str:
         file_path = hf_hub_url(path=self.name, name=self.name.split("/")[1] + ".py", revision=self.revision)
         return cached_path(file_path, download_config=self.download_config)
 
@@ -816,9 +809,9 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         except (FileNotFoundError, ConnectionError):
             return None
 
-    def get_module(self) -> DatasetModuleFactoryResult:
+    def get_module(self) -> DatasetModule:
         # get script and other files
-        local_path = self.download_dataset_script()
+        local_path = self.download_loading_script()
         dataset_infos_path = self.download_dataset_infos_file()
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
@@ -828,40 +821,25 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
             download_config=self.download_config,
         )
         additional_files = [(config.DATASETDICT_INFOS_FILENAME, dataset_infos_path)] if dataset_infos_path else []
-        # the copy the script and the files in an importable directory
+        # copy the script and the files in an importable directory
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name.replace("/", "___"))
-        Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
-        (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
-        (Path(importable_directory_path) / "__init__.py").touch(exist_ok=True)
-        hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
-        importable_local_file = _copy_script_and_other_resouces_in_importable_dir(
-            name=self.name.split("/")[1],
-            importable_directory_path=importable_directory_path,
-            subdirrectory_name=hash,
-            original_local_path=local_path,
+        module_path, hash = _create_importable_file(
+            local_path=local_path,
             local_imports=local_imports,
             additional_files=additional_files,
+            dynamic_modules_path=dynamic_modules_path,
+            module_namespace="datasets",
+            name=self.name,
             download_mode=self.download_mode,
         )
-        logger.debug(f"Created importable dataset file at {importable_local_file}")
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
-        module_path = ".".join(
-            [
-                os.path.basename(dynamic_modules_path),
-                "datasets",
-                self.name.replace("/", "___"),
-                hash,
-                self.name.split("/")[1],
-            ]
-        )
         builder_kwargs = {
             "hash": hash,
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
             "namespace": self.name.split("/")[0],
         }
-        return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs)
 
 
 class CachedDatasetModuleFactory(_DatasetModuleFactory):
@@ -879,7 +857,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") <= 1
 
-    def get_module(self) -> DatasetModuleFactoryResult:
+    def get_module(self) -> DatasetModule:
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name.replace("/", "___"))
         hashes = (
@@ -912,7 +890,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
         )
         importlib.invalidate_caches()
         builder_kwargs = {"hash": hash, "namespace": self.name.split("/")[0]}
-        return DatasetModuleFactoryResult(module_path, hash, builder_kwargs)
+        return DatasetModule(module_path, hash, builder_kwargs)
 
 
 class CachedMetricModuleFactory(_MetricModuleFactory):
@@ -930,7 +908,7 @@ class CachedMetricModuleFactory(_MetricModuleFactory):
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 0
 
-    def get_module(self) -> MetricModuleFactoryResult:
+    def get_module(self) -> MetricModule:
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
         importable_directory_path = os.path.join(dynamic_modules_path, "metrics", self.name)
         hashes = (
@@ -954,7 +932,7 @@ class CachedMetricModuleFactory(_MetricModuleFactory):
         # make the new module to be noticed by the import system
         module_path = ".".join([os.path.basename(dynamic_modules_path), "metrics", self.name, hash, self.name])
         importlib.invalidate_caches()
-        return MetricModuleFactoryResult(module_path, hash)
+        return MetricModule(module_path, hash)
 
 
 def dataset_module_factory(
@@ -966,7 +944,7 @@ def dataset_module_factory(
     dynamic_modules_path: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
     **download_kwargs,
-) -> DatasetModuleFactoryResult:
+) -> DatasetModule:
     r"""
     Download/extract/cache a dataset module.
 
@@ -1021,7 +999,7 @@ def dataset_module_factory(
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
     Returns:
-        DatasetModuleFactoryResult
+        DatasetModule
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
@@ -1149,7 +1127,7 @@ def metric_module_factory(
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     **download_kwargs,
-) -> MetricModuleFactoryResult:
+) -> MetricModule:
     r"""
     Download/extract/cache a metric module.
 
@@ -1185,7 +1163,7 @@ def metric_module_factory(
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
     Returns:
-        MetricModuleFactoryResult
+        MetricModule
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
