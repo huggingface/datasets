@@ -338,3 +338,82 @@ def test_fingerprint_when_transform_version_changes():
     fingeprint_2 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
 
     assert len(set([fingeprint_no_version, fingeprint_1, fingeprint_2])) == 3
+
+
+import numpy as np
+
+
+class Transformation:
+    """A transformation with a random state that cannot be fingerprinted"""
+
+    def __init__(self):
+        self.state = np.random.random()
+
+    def __call__(self, batch):
+        batch["x"] = [np.random.random() for _ in batch["x"]]
+        return batch
+
+
+class NewFingerprintMultiprocessingTest(TestCase):
+    filename = "example.json"
+    verbose = False
+
+    def setUp(self):
+        import json
+        import os
+
+        import numpy as np
+
+        rgn = np.random.RandomState(24)
+        data = {"data": [{"x": float(y), "y": -float(y)} for y in rgn.random(size=(1000,))]}
+        if not os.path.exists(self.filename):
+            with open(self.filename, "w") as f:
+                f.write(json.dumps(data))
+
+    def tearDown(self):
+        import os
+
+        if os.path.exists(self.filename):
+            os.remove(self.filename)
+
+    def process_dataset_with_cache(self, num_proc=1, remove_cache=False, cache_expected_to_exist=False):
+
+        import hashlib
+        import os
+
+        # load the generated dataset
+        dset = next(iter(datasets.load_dataset("json", data_files=self.filename, field="data").values()))
+        new_fingerprint = hashlib.md5("static-id".encode("utf8")).hexdigest()
+
+        # get the expected cached path
+        cache_path = dset._get_cache_file_path(new_fingerprint)
+        if remove_cache and os.path.exists(cache_path):
+            os.remove(cache_path)
+
+        # check that the cache exists, and print a statement
+        # if was actually expected to exist
+        cache_exist = os.path.exists(cache_path)
+        if self.verbose:
+            print(f"> cache file exists={cache_exist}")
+        if cache_expected_to_exist:
+            self.assertTrue(cache_exist)
+
+        # apply the transformation with the new fingerprint
+        dset.map(
+            Transformation(),
+            batched=True,
+            num_proc=num_proc,
+            new_fingerprint=new_fingerprint,
+            desc="mapping dataset with transformation",
+        )
+
+    def test_new_fingerprint_caching_multiprocessing(self):
+        for num_proc in [1, 2]:
+            if self.verbose:
+                print(f"# num_proc={num_proc}, first pass")
+            # first pass to generate the cache (always create a new cache here)
+            self.process_dataset_with_cache(remove_cache=True, num_proc=num_proc, cache_expected_to_exist=False)
+            if self.verbose:
+                print(f"# num_proc={num_proc}, second pass")
+            # second pass, expects the cache to exist
+            self.process_dataset_with_cache(remove_cache=False, num_proc=num_proc, cache_expected_to_exist=True)
