@@ -90,6 +90,27 @@ def test_dataset_with_audio_feature(shared_datadir):
 
 
 @require_sndfile
+def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data = {"audio": [audio_path]}
+    features = Features({"audio": Audio(sampling_rate=16000)})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+    assert item["audio"]["path"] == audio_path
+    assert item["audio"]["array"].shape == (73401,)
+    assert item["audio"]["sampling_rate"] == 16000
+    batch = dset[:1]
+    assert batch.keys() == {"audio"}
+    assert len(batch["audio"]) == 1
+    assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
+    assert batch["audio"][0]["path"] == audio_path
+    assert batch["audio"][0]["array"].shape == (73401,)
+    assert batch["audio"][0]["sampling_rate"] == 16000
+
+
+@require_sndfile
 def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path], "text": ["Hello"]}
