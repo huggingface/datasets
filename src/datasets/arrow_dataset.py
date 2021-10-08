@@ -1332,6 +1332,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         dataset = dataset.with_format(**format)
         return dataset
 
+    def cast_column(self, column, feature):
+        """Cast column to feature for decoding.
+
+        Args:
+            column: Column name.
+            feature: Target feature.
+
+        Returns:
+            :class:`Dataset`
+        """
+        self.features[column] = feature
+        return self
+
     @deprecated(help_message="Use Dataset.remove_columns instead.")
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
