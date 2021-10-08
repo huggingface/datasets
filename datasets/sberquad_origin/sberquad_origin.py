@@ -93,7 +93,6 @@ class SberQuad(datasets.GeneratorBasedBuilder):
         """This function returns the examples in the raw (text) form."""
         logger.info("generating examples from = %s", filepath)
         key = 0
-        print("GENERATION OF EXAMPLES from: ", filepath)
         with open(filepath, encoding="utf-8") as f:
             squad = json.load(f)
             for article in squad["data"]:
