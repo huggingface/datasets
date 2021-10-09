@@ -28,6 +28,7 @@ from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import asdict
 from functools import partial, wraps
+from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
@@ -37,6 +38,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+from huggingface_hub import create_repo, upload_file
 from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
@@ -3306,6 +3308,43 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         from .io.parquet import ParquetDatasetWriter
 
         return ParquetDatasetWriter(self, path_or_buf, batch_size=batch_size, **parquet_writer_kwargs).write()
+
+    def push_to_hub(
+        self,
+        repo_id: str,
+        split_name: str,
+        private: Optional[bool] = False,
+        token: Optional[Union[bool, str]] = None,
+        branch: Optional[None] = None,
+    ):
+        identifier = repo_id.split("/")
+        if len(identifier) == 2:
+            organization, dataset_name = identifier
+        else:
+            dataset_name = identifier[0]
+            organization = None
+
+        create_repo(
+            dataset_name,
+            token,
+            exist_ok=True,
+            repo_type="dataset",
+            organization=organization,
+            private=private,
+        )
+
+        buffer = BytesIO()
+        self.to_parquet(buffer)
+
+        upload_file(
+            path_or_fileobj=buffer.getvalue(),
+            path_in_repo=f"{split_name}/split.parquet",
+            repo_id=repo_id,
+            token=token,
+            repo_type="dataset",
+            revision=branch,
+            identical_ok=True
+        )
 
     @transmit_format
     @fingerprint_transform(inplace=False)
