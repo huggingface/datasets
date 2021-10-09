@@ -6,6 +6,7 @@ from pathlib import Path, PurePosixPath
 from typing import Optional, Tuple
 
 import fsspec
+from fsspec.exceptions import FSTimeoutError
 import posixpath
 from aiohttp.client_exceptions import ClientError
 
@@ -126,7 +127,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except ClientError:
+            except (ClientError, FSTimeoutError):
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
                 )
