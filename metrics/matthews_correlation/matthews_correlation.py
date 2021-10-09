@@ -82,5 +82,5 @@ class MatthewsCorrelation(datasets.Metric):
 
     def _compute(self, predictions, references, sample_weight=None):
         return {
-            "matthews_correlation": matthews_corrcoef(references, predictions, sample_weight=sample_weight).item(),
+            "matthews_correlation": float(matthews_corrcoef(references, predictions, sample_weight=sample_weight)),
         }
