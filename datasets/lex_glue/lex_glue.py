@@ -645,9 +645,8 @@ class LexGLUE(datasets.GeneratorBasedBuilder):
             with open(filepath, "r", encoding="utf-8") as f:
                 for id_, row in enumerate(list(csv.reader(f))[SPLIT_RANGES[split][0] : SPLIT_RANGES[split][1]]):
                     yield id_, {
-                        "question": "",
-                        "contexts": [row[1], row[1], row[1], row[1], row[1]],
-                        "endings": [row[2], row[3], row[4], row[5], row[6]],
+                        "context": row[1],
+                        "holdings": [row[2], row[3], row[4], row[5], row[6]],
                         "label": str(row[12]),
                     }
         elif self.config.multi_label:

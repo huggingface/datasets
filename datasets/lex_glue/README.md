@@ -95,15 +95,16 @@ LexGLUE benchmark is accompanied by experimental infrastructure that relies on H
 
 The supported tasks are the following:
 
-| Dataset | Source | Sub-domain | Task Type | Classes |
-| --- | --- | --- | --- | --- |
-| ECtHR (Task A) | [Chalkidis et al. (2019)](https://aclanthology.org/P19-1424/) | ECHR | Multi-label classification | 10+1 |
-| ECtHR (Task B) | [Chalkidis et al. (2021a)](https://aclanthology.org/2021.naacl-main.22/)  | ECHR | Multi-label classification  | 10 | 
-| SCOTUS | [Spaeth et al. (2020)](http://scdb.wustl.edu) | US Law | Multi-class classification | 14 | 
-| EUR-LEX | [Chalkidis et al. (2021b)](https://arxiv.org/abs/2109.00904) | EU Law | Multi-label classification | 100 |
-| LEDGAR | [Tuggener et al. (2020)](https://aclanthology.org/2020.lrec-1.155/) | Contracts | Multi-class classification | 100 |
-| UNFAIR-ToS | [Lippi et al. (2019)](https://arxiv.org/abs/1805.01217) | Contracts | Multi-label classification | 8 |
-| CaseHOLD | [Zheng et al. (2021)](https://arxiv.org/abs/2104.08671) | US Law | Multiple choice QA | n/a |
+<table>
+<tr><td>Dataset</td><td>Source</td><td>Sub-domain</td><td>Task Type</td><td>Classes</td><tr>
+<tr><td>ECtHR (Task A)</td><td> <a href="https://aclanthology.org/P19-1424/">Chalkidis et al. (2019)</a> </td><td>ECHR</td><td>Multi-label classification</td><td>10+1</td></tr>
+<tr><td>ECtHR (Task B)</td><td> <a href="https://aclanthology.org/2021.naacl-main.22/">Chalkidis et al. (2021a)</a> </td><td>ECHR</td><td>Multi-label classification </td><td>10</td></tr>
+<tr><td>SCOTUS</td><td> <a href="http://scdb.wustl.edu">Spaeth et al. (2020)</a></td><td>US Law</td><td>Multi-class classification</td><td>14</td></tr>
+<tr><td>EUR-LEX</td><td> <a href="https://arxiv.org/abs/2109.00904">Chalkidis et al. (2021b)</a></td><td>EU Law</td><td>Multi-label classification</td><td>100</td></tr>
+<tr><td>LEDGAR</td><td> <a href="https://aclanthology.org/2020.lrec-1.155/">Tuggener et al. (2020)</a></td><td>Contracts</td><td>Multi-class classification</td><td>100</td></tr>
+<tr><td>UNFAIR-ToS</td><td><a href="https://arxiv.org/abs/1805.01217"> Lippi et al. (2019)</a></td><td>Contracts</td><td>Multi-label classification</td><td>8+1</td></tr>
+<tr><td>CaseHOLD</td><td><a href="https://arxiv.org/abs/2104.08671">Zheng et al. (2021)</a></td><td>US Law</td><td>Multiple choice QA</td><td>n/a</td></tr>
+</table>
 
 #### ecthr_a
 
@@ -137,16 +138,17 @@ The CaseHOLD (Case Holdings on Legal Decisions) dataset includes multiple choice
 The current leaderboard includes several Transformer-based (Vaswaniet al., 2017) pre-trained language models, which achieve state-of-the-art performance in most NLP tasks (Bommasani et al., 2021) and NLU benchmarks (Wang et al., 2019a).
 
 
-|Dataset | ECtHR Task A  | ECtHR Task B  | SCOTUS  | EUR-LEX | LEDGAR  | UNFAIR-ToS  | CaseHOLD |
-| --- | ---- | --- | --- | --- | --- | --- | --- |
-| Model | μ-F1  / m-F1  | μ-F1  / m-F1  | μ-F1  / m-F1  | μ-F1  / m-F1  | μ-F1  / m-F1  | μ-F1  / m-F1 | μ-F1 / m-F1   | 
-|  BERT  | **71.4**  / 64.0   | 87.6  / **77.8**  | 70.5   / 60.9  | 71.6  / 55.6  | 87.7   / 82.2  | 87.5  / 81.0 | 70.7    | 
-|  RoBERTa  | 69.5  / 60.7  | 87.2  / 77.3  | 70.8   / 61.2  | 71.8  / **57.5**  | 87.9  /  82.1  | 87.7 / 81.5 | 71.7  | 
-|  DeBERTa  | 69.1   / 61.2  | 87.4   / 77.3  | 70.0  / 60.0  | **72.3**  / 57.2  | 87.9   / 82.0  | 87.2 / 78.8 | 72.1   | 
-|  Longformer  | 69.6  / 62.4  | 88.0  / **77.8**  | 72.2  / 62.5  | 71.9  / 56.7  | 87.7  / 82.3  | 87.7 / 80.1 | 72.0   | 
-|  BigBird  | 70.5  / 63.8  | **88.1**  / 76.6  | 71.7  / 61.4  | 71.8  / 56.6  | 87.7 / 82.1  | 87.7 / 80.2 | 70.4   | 
-|  Legal-BERT  | 71.2  / **64.6**  | 88.0  / 77.2  | 76.2  / 65.8  | 72.2  / 56.2  | **88.1**  / **82.7** | **88.6**  / **82.3** | 75.1 | 
-|  CaseLaw-BERT  | 71.2   / 64.2  | 88.0   / 77.5  | **76.4**  / **66.2**  | 71.0  / 55.9  | 88.0  / 82.3 | 88.3  / 81.0 | **75.6**   | 
+<table>
+<tr><td>Dataset</td><td>ECtHR Task A </td><td>ECtHR Task B </td><td>SCOTUS </td><td>EUR-LEX</td><td>LEDGAR </td><td>UNFAIR-ToS </td><td>CaseHOLD</td></tr>
+<tr><td>Model</td><td>μ-F1  / m-F1 </td><td>μ-F1  / m-F1 </td><td>μ-F1  / m-F1 </td><td>μ-F1  / m-F1 </td><td>μ-F1  / m-F1 </td><td>μ-F1  / m-F1</td><td>μ-F1 / m-F1  </td></tr>
+<tr><td>BERT </td><td><b>71.4</b>  / 64.0  </td><td>87.6  / <b>77.8</b> </td><td>70.5   / 60.9 </td><td>71.6  / 55.6 </td><td>87.7   / 82.2 </td><td>97.3  / 80.4</td><td>70.7   </td></tr>
+<tr><td>RoBERTa </td><td>69.5  / 60.7 </td><td>87.2  / 77.3 </td><td>70.8   / 61.2 </td><td>71.8  / <b>57.5</b> </td><td>87.9  /  82.1 </td><td>97.2 / 79.6</td><td>71.7 </td></tr>
+<tr><td>DeBERTa </td><td>69.1   / 61.2 </td><td>87.4   / 77.3 </td><td>70.0  / 60.0 </td><td><b>72.3</b>  / 57.2 </td><td>87.9   / 82.0 </td><td>97.2 / 80.2</td><td>72.1  </td></tr>
+<tr><td>Longformer </td><td>69.6  / 62.4 </td><td>88.0  / <b>77.8</b> </td><td>72.2  / 62.5 </td><td>71.9  / 56.7 </td><td>87.7  / 82.3 </td><td><b>97.5</b> / 81.0</td><td>72.0  </td></tr>
+<tr><td>BigBird </td><td>70.5  / 63.8 </td><td> <b>88.1</b>  / 76.6 </td><td>71.7  / 61.4 </td><td>71.8  / 56.6 </td><td>87.7 / 82.1 </td><td>97.4 / 81.1</td><td>70.4  </td></tr>
+<tr><td>Legal-BERT </td><td>71.2  / <b>64.6</b> </td><td>88.0  / 77.2 </td><td>76.2  / 65.8 </td><td>72.2  / 56.2 </td><td><b>88.1</b>  / <b>82.7</b></td><td> 97.4  / <b>83.4</b></td><td>75.1</td></tr>
+<tr><td>CaseLaw-BERT </td><td>71.2   / 64.2 </td><td>88.0   / 77.5 </td><td><b>76.4</b>  / <b>66.2</b> </td><td>71.0  / 55.9 </td><td>88.0  / 82.3</td><td>97.4  / 82.4</td><td><b>75.6</b>  </td></tr>
+</table>
 
 ### Languages
 
@@ -162,7 +164,7 @@ An example of 'train' looks as follows.
 ```json
 {
   "text": ["8. The applicant was arrested in the early morning of 21 October 1990 ...", ...],
-  "label_ids": [6]
+  "labels": [6]
 }
 ```
 
@@ -192,7 +194,7 @@ An example of 'train' looks as follows.
 ```json
 {
   "text": "COMMISSION REGULATION (EC) No 1629/96 of 13 August 1996 on an invitation to tender for the refund on export of wholly milled round grain rice to certain third countries ...",
-  "label_ids": [2, 42, 72, 76, 86]
+  "labels": [2, 42, 72, 76, 86]
 }
 ```
 
@@ -240,46 +242,71 @@ An example of 'test' looks as follows.
 ### Data Fields
 
 #### ecthr_a
-- `text`: a list of `string` features.
-- `label_ids`: a list of classification labels.
+- `text`: a list of `string` features (list of factual paragraphs (facts) from the case description).
+- `labels`: a list of classification labels (a list of violated ECHR articles, if any) .
+<details>
+  <summary>List of ECHR articles</summary>
+ "Article 2", "Article 3", "Article 5", "Article 6", "Article 8", "Article 9", "Article 10", "Article 11", "Article 14", "Article 1 of Protocol 1"
+</details>
 
-#### ecthr_a
-- `text`: a list of `string` features.
-- `label_ids`: a list of classification labels.
+#### ecthr_b
+- `text`: a list of `string` features (list of factual paragraphs (facts) from the case description)
+- `labels`: a list of classification labels (a list of articles considered).
+<details>
+  <summary>List of ECHR articles</summary>
+ "Article 2", "Article 3", "Article 5", "Article 6", "Article 8", "Article 9", "Article 10", "Article 11", "Article 14", "Article 1 of Protocol 1"
+</details>
 
 #### scotus
-- `text`: a `string` feature.
-- `label`: a classification label.
+- `text`: a `string` feature (the court opinion).
+- `label`: a classification label (the relevant issue area).
+<details>
+  <summary>List of issue areas</summary>
+(1, Criminal Procedure), (2, Civil Rights), (3, First Amendment), (4, Due Process), (5, Privacy), (6, Attorneys), (7, Unions), (8, Economic Activity), (9, Judicial Power), (10, Federalism), (11, Interstate Relations), (12, Federal Taxation), (13, Miscellaneous), (14, Private Action)
+</details>
 
 #### eurlex
-- `text`: a `string` feature.
-- `label_ids`: a list of classification labels.
+- `text`: a `string` feature (an EU law).
+- `labels`: a list of classification labels (a list of relevant EUROVOC concepts).
+<details>
+  <summary>List of EUROVOC concepts</summary>
+  The list is very long including 100 EUROVOC concepts. You can find the EUROVOC concepts descriptors <a href="https://raw.githubusercontent.com/nlpaueb/multi-eurlex/master/data/eurovoc_descriptors.json">here</a>.
+</details>
 
 #### ledgar
-- `text`: a `string` feature.
-- `label`: a classification label.
+- `text`: a `string` feature (a contract provision/paragraph).
+- `label`: a classification label (the type of contract provision).
+<details>
+  <summary>List of contract provision types</summary>
+"Adjustments", "Agreements", "Amendments", "Anti-Corruption Laws", "Applicable Laws", "Approvals", "Arbitration", "Assignments", "Assigns", "Authority", "Authorizations", "Base Salary", "Benefits", "Binding Effects", "Books", "Brokers", "Capitalization", "Change In Control", "Closings", "Compliance With Laws", "Confidentiality", "Consent To Jurisdiction", "Consents", "Construction", "Cooperation", "Costs", "Counterparts", "Death", "Defined Terms", "Definitions", "Disability", "Disclosures", "Duties", "Effective Dates", "Effectiveness", "Employment", "Enforceability", "Enforcements", "Entire Agreements", "Erisa", "Existence", "Expenses", "Fees", "Financial Statements", "Forfeitures", "Further Assurances", "General", "Governing Laws", "Headings", "Indemnifications", "Indemnity", "Insurances", "Integration", "Intellectual Property", "Interests", "Interpretations", "Jurisdictions", "Liens", "Litigations", "Miscellaneous", "Modifications", "No Conflicts", "No Defaults", "No Waivers", "Non-Disparagement", "Notices", "Organizations", "Participations", "Payments", "Positions", "Powers", "Publicity", "Qualifications", "Records", "Releases", "Remedies", "Representations", "Sales", "Sanctions", "Severability", "Solvency", "Specific Performance", "Submission To Jurisdiction", "Subsidiaries", "Successors", "Survival", "Tax Withholdings", "Taxes", "Terminations", "Terms", "Titles", "Transactions With Affiliates", "Use Of Proceeds", "Vacations", "Venues", "Vesting", "Waiver Of Jury Trials", "Waivers", "Warranties", "Withholdings",
+</details>
 
 #### unfair_tos
-- `text`: a `string` feature.
-- `label_ids`: a list of classification labels.
+- `text`: a `string` feature (a ToS sentence)
+- `labels`: a list of classification labels (a list of unfair types, if any).
+<details>
+  <summary>List of unfair types</summary>
+    "Limitation of liability", "Unilateral termination", "Unilateral change", "Content removal", "Contract by using", "Choice of law", "Jurisdiction", "Arbitration"
+</details>
 
 #### casehold
-- `contexts`: a list of `string` features.
-- `endings`:a list of `string` features.
-- `label`: a classification label.
+- `context`: a `string` feature (a context sentence incl. a masked holding statement).
+- `holdings`: a list of `string` features (a list of candidate holding statements).
+- `label`: a classification label (the id of the original/correct holding).
 
 
 ### Data Splits
 
-| Dataset  | Training | Development | Test | Total | 
-| --- | --- | --- | --- | --- |
-| ECtHR (Task A) | 9,000 | 1,000 | 1,000 | 11,000 |
-| ECtHR (Task B)| 9,000 | 1,000 | 1,000 | 11,000 |
-| SCOTUS | 5,000 | 1,400 | 1,400 | 7,800 |
-| EUR-LEX | 55,000 | 5,000 | 5,000 | 65,000 |
-| LEDGAR | 60,000 | 10,000 | 10,000 | 80,000 |
-| UNFAIR-ToS | 5,532 | 2,275 | 1,607 | 9,414 |
-| CaseHOLD | 45,000 | 3,900 | 3,900 | 52,800 |
+<table>
+<tr><td>Dataset </td><td>Training</td><td>Development</td><td>Test</td><td>Total</td></tr>
+<tr><td>ECtHR (Task A)</td><td>9,000</td><td>1,000</td><td>1,000</td><td>11,000</td></tr>
+<tr><td>ECtHR (Task B)</td><td>9,000</td><td>1,000</td><td>1,000</td><td>11,000</td></tr>
+<tr><td>SCOTUS</td><td>5,000</td><td>1,400</td><td>1,400</td><td>7,800</td></tr>
+<tr><td>EUR-LEX</td><td>55,000</td><td>5,000</td><td>5,000</td><td>65,000</td></tr>
+<tr><td>LEDGAR</td><td>60,000</td><td>10,000</td><td>10,000</td><td>80,000</td></tr>
+<tr><td>UNFAIR-ToS</td><td>5,532</td><td>2,275</td><td>1,607</td><td>9,414</td></tr>
+<tr><td>CaseHOLD</td><td>45,000</td><td>3,900</td><td>3,900</td><td>52,800</td></tr>
+</table>
 
 ## Dataset Creation
 
@@ -288,16 +315,16 @@ An example of 'test' looks as follows.
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Source Data 
-| Dataset | Source (Original paper) |
-| --- | --- | 
-| ECtHR (Task A) | [Chalkidis et al. (2019)](https://aclanthology.org/P19-1424/) | ECHR | Multi-label classification | 10+1 |
-| ECtHR (Task B) | [Chalkidis et al. (2021a)](https://aclanthology.org/2021.naacl-main.22/)  | ECHR | Multi-label classification  | 10 | 
-| SCOTUS | [Spaeth et al. (2020)](http://scdb.wustl.edu) | US Law | Multi-class classification | 14 | 
-| EUR-LEX | [Chalkidis et al. (2021b)](https://arxiv.org/abs/2109.00904) | EU Law | Multi-label classification | 100 |
-| LEDGAR | [Tuggener et al. (2020)](https://aclanthology.org/2020.lrec-1.155/) | Contracts | Multi-class classification | 100 |
-| UNFAIR-ToS | [Lippi et al. (2019)](https://arxiv.org/abs/1805.01217) | Contracts | Multi-label classification | 8 |
-| CaseHOLD | [Zheng et al. (2021)](https://arxiv.org/abs/2104.08671) | US Law | Multiple choice QA | n/a |
-
+<table>
+<tr><td>Dataset</td><td>Source</td><td>Sub-domain</td><td>Task Type</td><tr>
+<tr><td>ECtHR (Task A)</td><td> <a href="https://aclanthology.org/P19-1424/">Chalkidis et al. (2019)</a> </td><td>ECHR</td><td>Multi-label classification</td></tr>
+<tr><td>ECtHR (Task B)</td><td> <a href="https://aclanthology.org/2021.naacl-main.22/">Chalkidis et al. (2021a)</a> </td><td>ECHR</td><td>Multi-label classification </td></tr>
+<tr><td>SCOTUS</td><td> <a href="http://scdb.wustl.edu">Spaeth et al. (2020)</a></td><td>US Law</td><td>Multi-class classification</td></tr>
+<tr><td>EUR-LEX</td><td> <a href="https://arxiv.org/abs/2109.00904">Chalkidis et al. (2021b)</a></td><td>EU Law</td><td>Multi-label classification</td></tr>
+<tr><td>LEDGAR</td><td> <a href="https://aclanthology.org/2020.lrec-1.155/">Tuggener et al. (2020)</a></td><td>Contracts</td><td>Multi-class classification</td></tr>
+<tr><td>UNFAIR-ToS</td><td><a href="https://arxiv.org/abs/1805.01217"> Lippi et al. (2019)</a></td><td>Contracts</td><td>Multi-label classification</td></tr>
+<tr><td>CaseHOLD</td><td><a href="https://arxiv.org/abs/2104.08671">Zheng et al. (2021)</a></td><td>US Law</td><td>Multiple choice QA</td></tr>
+</table>
 
 #### Initial Data Collection and Normalization
 
