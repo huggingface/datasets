@@ -272,7 +272,7 @@ Next, apply this function to the dataset with :func:`datasets.Dataset.map`:
 
 .. tip::
 
-   To disable ``tqdm`` progress bar printed by default, pass ``False`` to :func:`datasets.set_progress_bar_enabled`.
+   To disable ``tqdm`` progress bar printed by default, pass ``False`` as an argument to :func:`datasets.set_progress_bar_enabled`.
 
 Let's take a look at another example, except this time, you will remove a column with :func:`datasets.Dataset.map`. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed. 
 
