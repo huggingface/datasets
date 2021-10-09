@@ -18,6 +18,8 @@ Datasets
 
 .. autofunction:: datasets.get_dataset_infos
 
+.. autofunction:: datasets.get_dataset_split_names
+
 .. autofunction:: datasets.inspect_dataset
 
 Metrics

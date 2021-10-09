@@ -30,36 +30,12 @@ Once you are happy with the dataset you want, load it in a single line with :fun
    >>> from datasets import load_dataset
    >>> dataset = load_dataset('glue', 'mrpc', split='train')
 
-Select a split
---------------
-
-A split is a specific subset of the dataset like ``train`` and ``test``. Make sure you select a split when you load a dataset. If you don't supply a ``split`` argument, 🤗 Datasets will only return a dictionary containing the subsets of the dataset.
-
-.. code-block::
-
-   >>> from datasets import load_dataset
-   >>> datasets = load_dataset('glue', 'mrpc')
-   >>> print(datasets)
-   {train: Dataset({
-       features: ['idx', 'label', 'sentence1', 'sentence2'],
-       num_rows: 3668
-   })
-   validation: Dataset({
-       features: ['idx', 'label', 'sentence1', 'sentence2'],
-       num_rows: 408
-   })
-   test: Dataset({
-       features: ['idx', 'label', 'sentence1', 'sentence2'],
-       num_rows: 1725
-   })
-   }
-
 Select a configuration
 ----------------------
 
 Some datasets, like the `General Language Understanding Evaluation (GLUE) <https://huggingface.co/datasets/glue>`_ benchmark, are actually made up of several datasets. These sub-datasets are called **configurations**, and you must explicitly select one when you load the dataset. If you don't provide a configuration name, 🤗 Datasets will raise a ``ValueError`` and remind you to select a configuration.
 
-Use ``get_dataset_config_names`` to retrieve a a list of all the possible configurations available to your dataset:
+Use ``get_dataset_config_names`` to retrieve a list of all the possible configurations available to your dataset:
 
 .. code-block::
 
@@ -88,9 +64,43 @@ Use ``get_dataset_config_names`` to retrieve a a list of all the possible config
    >>> dataset = load_dataset('glue', 'sst2')
    Downloading and preparing dataset glue/sst2 (download: 7.09 MiB, generated: 4.81 MiB, total: 11.90 MiB) to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0...
    Downloading: 100%|██████████████████████████████████████████████████████████████| 7.44M/7.44M [00:01<00:00, 7.03MB/s]
-   Dataset glue downloaded and prepared to /Users/huggignface/.cache/huggingface/datasets/glue/sst2/1.0.0. Subsequent calls will reuse this data.
+   Dataset glue downloaded and prepared to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0. Subsequent calls will reuse this data.
    >>> print(dataset)
    {'train': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 67349),
        'validation': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 872),
        'test': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 1821)
    }
+
+Select a split
+--------------
+
+A split is a specific subset of the dataset like ``train`` and ``test``. Make sure you select a split when you load a dataset. If you don't supply a ``split`` argument, 🤗 Datasets will only return a dictionary containing the subsets of the dataset.
+
+.. code-block::
+
+   >>> from datasets import load_dataset
+   >>> datasets = load_dataset('glue', 'mrpc')
+   >>> print(datasets)
+   {train: Dataset({
+       features: ['idx', 'label', 'sentence1', 'sentence2'],
+       num_rows: 3668
+   })
+   validation: Dataset({
+       features: ['idx', 'label', 'sentence1', 'sentence2'],
+       num_rows: 408
+   })
+   test: Dataset({
+       features: ['idx', 'label', 'sentence1', 'sentence2'],
+       num_rows: 1725
+   })
+   }
+
+You can list the split names for a dataset, or a specific configuration, with the :func:`datasets.get_dataset_split_names` method:
+
+.. code-block::
+
+  >>> from datasets import get_dataset_split_names
+  >>> get_dataset_split_names('sent_comp')
+  ['validation', 'train']
+  >>> get_dataset_split_names('glue', 'cola')
+  ['test', 'train', 'validation']

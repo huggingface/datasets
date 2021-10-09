@@ -130,7 +130,7 @@ class CommonLanguage(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         dl_path = dl_manager.download_and_extract(_DATA_URL)
-        archive_path = os.path.join(dl_path, "common_voice_kpd/")
+        archive_path = os.path.join(dl_path, "common_voice_kpd")
 
         return [
             datasets.SplitGenerator(
@@ -150,7 +150,7 @@ class CommonLanguage(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, archive_path, split):
         """Yields examples."""
 
-        csv_path_glob = os.path.join(archive_path, "**/", f"{split}.csv")
+        csv_path_glob = os.path.join(archive_path, "**", f"{split}.csv")
 
         key = 0
         for csv_path in sorted(glob.glob(csv_path_glob)):

@@ -1,6 +1,7 @@
 import csv
 import json
 import lzma
+import os
 import textwrap
 
 import pyarrow as pa
@@ -177,6 +178,10 @@ DATA = [
     {"col_1": "2", "col_2": 2, "col_3": 2.0},
     {"col_1": "3", "col_2": 3, "col_3": 3.0},
 ]
+DATA2 = [
+    {"col_1": "4", "col_2": 4, "col_3": 4.0},
+    {"col_1": "5", "col_2": 5, "col_3": 5.0},
+]
 DATA_DICT_OF_LISTS = {
     "col_1": ["0", "1", "2", "3"],
     "col_2": [0, 1, 2, 3],
@@ -221,6 +226,17 @@ def csv_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def csv2_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset.csv")
+    with open(path, "w") as f:
+        writer = csv.DictWriter(f, fieldnames=["col_1", "col_2", "col_3"])
+        writer.writeheader()
+        for item in DATA:
+            writer.writerow(item)
+    return path
+
+
+@pytest.fixture(scope="session")
 def bz2_csv_path(csv_path, tmp_path_factory):
     import bz2
 
@@ -230,6 +246,17 @@ def bz2_csv_path(csv_path, tmp_path_factory):
     # data = bytes(FILE_CONTENT, "utf-8")
     with bz2.open(path, "wb") as f:
         f.write(data)
+    return path
+
+
+@pytest.fixture(scope="session")
+def zip_csv_path(csv_path, csv2_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset.csv.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(csv_path, arcname=os.path.basename(csv_path))
+        f.write(csv2_path, arcname=os.path.basename(csv2_path))
     return path
 
 

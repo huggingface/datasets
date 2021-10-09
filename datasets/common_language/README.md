@@ -51,7 +51,7 @@ languages:
 - zh-HK
 - zh-TW
 licenses:
-- cc-by-nc-4.0
+- cc-by-4.0
 multilinguality:
 - multilingual
 size_categories:
