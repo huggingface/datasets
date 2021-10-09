@@ -6,9 +6,9 @@ from pathlib import Path, PurePosixPath
 from typing import Optional, Tuple
 
 import fsspec
-from fsspec.exceptions import FSTimeoutError
 import posixpath
 from aiohttp.client_exceptions import ClientError
+from fsspec.exceptions import FSTimeoutError
 
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
