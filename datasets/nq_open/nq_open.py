@@ -65,7 +65,7 @@ _CITATION = """\
 """
 
 _URLS = {
-    "dev": "https://raw.githubusercontent.com/google-research-datasets/natural-questions/master/nq_open/NQ-open.efficientqa.dev.1.1.jsonl",
+    "dev": "https://raw.githubusercontent.com/google-research-datasets/natural-questions/master/nq_open/NQ-open.dev.jsonl",
     "train": "https://raw.githubusercontent.com/google-research-datasets/natural-questions/master/nq_open/NQ-open.train.jsonl",
 }
 
@@ -87,7 +87,7 @@ class NQOpen(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         NQOpenConfig(
             name="nq_open",
-            version=datasets.Version("1.0.0", ""),
+            version=datasets.Version("2.0.0", ""),
             description="NQ_Open open domain question answering dataset.",
         ),
     ]

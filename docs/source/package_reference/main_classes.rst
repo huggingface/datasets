@@ -69,6 +69,7 @@ The base class :class:`datasets.IterableDataset` implements an iterable Dataset 
 
 .. autoclass:: datasets.IterableDataset
     :members:
+        remove_columns,
         __iter__,
         map, shuffle, skip, take,
         info, split, builder_name, citation, config_name, dataset_size,
@@ -141,3 +142,9 @@ The base class ``Metric`` implements a Metric backed by one or several :class:`d
 .. autofunction:: datasets.filesystems.extract_path_from_uri
 
 .. autofunction:: datasets.filesystems.is_remote_filesystem
+
+``Fingerprint``
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: datasets.fingerprint.Hasher
+    :members:

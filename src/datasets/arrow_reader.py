@@ -64,13 +64,13 @@ $
 _ADDITION_SEP_RE = re.compile(r"\s*\+\s*")
 
 
-class DatasetNotOnHfGcs(ConnectionError):
+class DatasetNotOnHfGcsError(ConnectionError):
     """When you can't get the dataset from the Hf google cloud storage"""
 
     pass
 
 
-class MissingFilesOnHfGcs(ConnectionError):
+class MissingFilesOnHfGcsError(ConnectionError):
     """When some files are missing on the Hf oogle cloud storage"""
 
     pass
@@ -263,8 +263,8 @@ class BaseReader:
             shutil.move(downloaded_dataset_info, os.path.join(self._path, "dataset_info.json"))
             if self._info is not None:
                 self._info.update(self._info.from_directory(self._path))
-        except FileNotFoundError:
-            raise DatasetNotOnHfGcs()
+        except FileNotFoundError as err:
+            raise DatasetNotOnHfGcsError(err) from None
         try:
             for split in self._info.splits:
                 file_instructions = self.get_file_instructions(
@@ -278,8 +278,8 @@ class BaseReader:
                         remote_prepared_filename.replace(os.sep, "/"), download_config=download_config
                     )
                     shutil.move(downloaded_prepared_filename, os.path.join(self._path, file_instruction["filename"]))
-        except FileNotFoundError:
-            raise MissingFilesOnHfGcs()
+        except FileNotFoundError as err:
+            raise MissingFilesOnHfGcsError(err) from None
 
 
 class ArrowReader(BaseReader):

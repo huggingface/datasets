@@ -271,10 +271,10 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
         formatted_batch = self.format_batch(pa_table)
         try:
             return _unnest(formatted_batch)
-        except Exception:
+        except Exception as exc:
             raise TypeError(
                 f"Custom formatting function must return a dict to be able to pick a row, but got {formatted_batch}"
-            )
+            ) from exc
 
     def format_column(self, pa_table: pa.Table) -> ColumnFormat:
         formatted_batch = self.format_batch(pa_table)
@@ -290,10 +290,10 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
             )
         try:
             return formatted_batch[pa_table.column_names[0]]
-        except Exception:
+        except Exception as exc:
             raise TypeError(
                 f"Custom formatting function must return a dict to be able to pick a row, but got {formatted_batch}"
-            )
+            ) from exc
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.python_arrow_extractor().extract_batch(pa_table)

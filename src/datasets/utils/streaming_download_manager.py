@@ -1,3 +1,4 @@
+import glob
 import os
 import re
 import time
@@ -57,7 +58,7 @@ def xjoin(a, *p):
     return "::".join([a] + b)
 
 
-def xdirname(a, *p):
+def xdirname(a):
     """
     This function extends os.path.dirname to support the "::" hop separator. It supports both paths and urls.
 
@@ -140,20 +141,17 @@ def _add_retries_to_file_obj_read_method(file_obj):
 def _get_extraction_protocol(urlpath: str) -> Optional[str]:
     # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
     path = urlpath.split("::")[0]
-    # remove "dl=1" query param: https://foo.bar/train.json.gz?dl=1 -> https://foo.bar/train.json.gz
-    suf = "?dl=1"
-    if path.endswith(suf):
-        path = path[: -len(suf)]
-
     # Get extension: https://foo.bar/train.json.gz -> gz
     extension = path.split(".")[-1]
+    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
+    extension = extension.split("?")[0]
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
     elif path.endswith(".tar.gz") or path.endswith(".tgz"):
         pass
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
-    raise NotImplementedError(f"Extraction protocol for file at {urlpath} is not implemented yet")
+    raise NotImplementedError(f"Extraction protocol '{extension}' for file at '{urlpath}' is not implemented yet")
 
 
 def xopen(file, mode="r", *args, **kwargs):
@@ -170,7 +168,7 @@ def xopen(file, mode="r", *args, **kwargs):
     return file_obj
 
 
-def xpathopen(path: Path, **kwargs):
+def xpathopen(path: Path, *args, **kwargs):
     """Extend :func:`xopen` to support argument of type :obj:`~pathlib.Path`.
 
     Args:
@@ -180,7 +178,31 @@ def xpathopen(path: Path, **kwargs):
     Returns:
         :obj:`io.FileIO`: File-like object.
     """
-    return xopen(_as_posix(path), **kwargs)
+    return xopen(_as_posix(path), *args, **kwargs)
+
+
+def xglob(urlpath, *, recursive=False):
+    """Extend `glob.glob` function to support remote files.
+
+    Args:
+        urlpath (:obj:`str`): URL path with shell-style wildcard patterns.
+        recursive (:obj:`bool`, default `False`): Whether to match the "**" pattern recursively to zero or more
+            directories or subdirectories.
+
+    Returns:
+        :obj:`list` of :obj:`str`
+    """
+    main_hop, *rest_hops = urlpath.split("::")
+    if is_local_path(main_hop):
+        return glob.glob(main_hop, recursive=recursive)
+    else:
+        fs, *_ = fsspec.get_fs_token_paths(urlpath)
+        # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
+        #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
+        # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
+        # - If there is "**" in the pattern, `fs.glob` must be called anyway.
+        globbed_paths = fs.glob(main_hop)
+        return ["::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
 
 def xpathglob(path, pattern):
@@ -243,6 +265,12 @@ def xpathsuffix(path: Path):
         :obj:`str`
     """
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
+
+
+def xpandas_read_csv(path, **kwargs):
+    import pandas as pd
+
+    return pd.read_csv(xopen(path), **kwargs)
 
 
 class StreamingDownloadManager(object):
