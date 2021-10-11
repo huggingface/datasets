@@ -133,6 +133,7 @@ These are arranged as below in the prepared dataset. Each item will be represent
 
 There are no data splits on the original data. The "train" split for each language contains:
 - en: 229674 examples
+- zh: 1921127 examples
 
 ## Dataset Creation
 
