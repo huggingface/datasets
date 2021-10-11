@@ -1,7 +1,7 @@
 import copy
 from dataclasses import dataclass
 from itertools import cycle, islice, repeat
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -470,6 +470,26 @@ class IterableDataset(DatasetInfoMixin):
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
         )
+
+    def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
+        """
+        Remove one or several column(s) in the dataset and the features associated to them.
+        The removal is done on-the-fly on the examples when iterating over the dataset.
+
+
+        Args:
+            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
+
+        Returns:
+            :class:`IterableDataset`: A copy of the dataset object without the columns to remove.
+        """
+        if isinstance(column_names, str):
+            column_names = [column_names]
+
+        def remove_fn(example):
+            return {k: v for k, v in example.items() if k not in column_names}
+
+        return self.map(remove_fn)
 
 
 def iterable_dataset(

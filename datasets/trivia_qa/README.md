@@ -1,7 +1,27 @@
 ---
+annotations_creators:
+- crowdsourced
+language_creators:
+- machine-generated
 languages:
 - en
+licenses:
+- apache-2.0
+multilinguality:
+- monolingual
 paperswithcode_id: triviaqa
+pretty_name: TriviaQA
+size_categories:
+- 10K<n<100K
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+- extractive-qa
+- abstractive-qa
 ---
 
 # Dataset Card for "trivia_qa"
@@ -33,8 +53,9 @@ paperswithcode_id: triviaqa
 ## Dataset Description
 
 - **Homepage:** [http://nlp.cs.washington.edu/triviaqa/](http://nlp.cs.washington.edu/triviaqa/)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** [https://github.com/mandarjoshi90/triviaqa](https://github.com/mandarjoshi90/triviaqa)
+- **Paper:** [TriviaQA: A Large Scale Distantly Supervised Challenge Dataset for Reading Comprehension](https://arxiv.org/abs/1705.03551)
+- **Leaderboard:** [CodaLab Leaderboard](https://competitions.codalab.org/competitions/17208#results)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 8833.35 MB
 - **Size of the generated dataset:** 43351.32 MB
@@ -54,7 +75,7 @@ supervision for answering the questions.
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+English.
 
 ## Dataset Structure
 
@@ -267,7 +288,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The TriviaQA dataset is released under the [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0).
 
 ### Citation Information
 

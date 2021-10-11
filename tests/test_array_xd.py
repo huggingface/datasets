@@ -248,3 +248,29 @@ def test_array_xd_numpy_arrow_extractor(dtype, dummy_value):
     arr = NumpyArrowExtractor().extract_column(dataset._data)
     assert isinstance(arr, np.ndarray)
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
+
+
+def test_dataset_map():
+    ds = datasets.Dataset.from_dict({"path": ["path1", "path2"]})
+
+    def process_data(batch):
+        return {
+            "image": [
+                np.array(
+                    [
+                        [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+                        [[10, 20, 30], [40, 50, 60], [70, 80, 90]],
+                        [[100, 200, 300], [400, 500, 600], [700, 800, 900]],
+                    ]
+                )
+                for _ in batch["path"]
+            ]
+        }
+
+    features = datasets.Features({"image": Array3D(dtype="int32", shape=(3, 3, 3))})
+    processed_ds = ds.map(process_data, batched=True, remove_columns=ds.column_names, features=features)
+    assert processed_ds.shape == (2, 1)
+    with processed_ds.with_format("numpy") as pds:
+        for example in pds:
+            assert "image" in example
+            assert isinstance(example["image"], np.ndarray)
