@@ -460,10 +460,10 @@ def transmit_tasks(func):
         datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
         for dataset in datasets:
             # Remove task templates if a feature of the template has changed
-            if dataset.info.task_templates is not None:
+            if self.info.task_templates is not None:
                 dataset.info.task_templates = [
                     template
-                    for template in dataset.info.task_templates
+                    for template in self.info.task_templates
                     if all(dataset.features.get(k) == self.features.get(k) for k in template.features.keys())
                 ]
         return out
@@ -2170,6 +2170,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
+                info.task_templates = None
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
         # Raise an error if we were supposed to return a cached dataset and none was found
@@ -2363,6 +2364,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             # Create new Dataset from buffer or file
             info = self.info.copy()
             info.features = writer._features
+            info.task_templates = None
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
             else:
