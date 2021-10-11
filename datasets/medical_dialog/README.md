@@ -22,6 +22,7 @@ task_categories:
 task_ids:
 - closed-domain-qa
 paperswithcode_id: null
+pretty_name: MedDialog
 ---
 
 # Dataset Card for [Dataset Name]
@@ -130,7 +131,9 @@ These are arranged as below in the prepared dataset. Each item will be represent
 
 ### Data Splits
 
-There are no data splits on the original data
+There are no data splits on the original data. The "train" split for each language contains:
+- en: 229674 examples
+- zh: 1921127 examples
 
 ## Dataset Creation
 

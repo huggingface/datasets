@@ -233,18 +233,20 @@ class DataFilesList(List[Union[Path, Url]]):
         super().__init__(data_files)
         self.origin_metadata = origin_metadata
 
-    @staticmethod
+    @classmethod
     def from_hf_repo(
+        cls,
         patterns: List[str],
         dataset_info: huggingface_hub.hf_api.DatasetInfo,
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesList":
         data_files = resolve_patterns_in_dataset_repository(dataset_info, patterns, allowed_extensions)
         origin_metadata = [(dataset_info.id, dataset_info.sha) for _ in patterns]
-        return DataFilesList(data_files, origin_metadata)
+        return cls(data_files, origin_metadata)
 
-    @staticmethod
+    @classmethod
     def from_local_or_remote(
+        cls,
         patterns: List[str],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
@@ -253,7 +255,7 @@ class DataFilesList(List[Union[Path, Url]]):
         base_path = base_path if base_path is not None else str(Path().resolve())
         data_files = resolve_patterns_locally_or_by_urls(base_path, patterns, allowed_extensions)
         origin_metadata = _get_origin_metadata_locally_or_by_urls(data_files, use_auth_token=use_auth_token)
-        return DataFilesList(data_files, origin_metadata)
+        return cls(data_files, origin_metadata)
 
 
 class DataFilesDict(Dict[str, DataFilesList]):
@@ -272,14 +274,15 @@ class DataFilesDict(Dict[str, DataFilesList]):
     Changing the order of the keys of this dictionary also doesn't change its hash.
     """
 
-    @staticmethod
+    @classmethod
     def from_local_or_remote(
+        cls,
         patterns: Dict[str, Union[List[str], DataFilesList]],
         base_path: Optional[str] = None,
         allowed_extensions: Optional[List[str]] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
     ) -> "DataFilesDict":
-        out = DataFilesDict()
+        out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
                 DataFilesList.from_local_or_remote(
@@ -293,13 +296,14 @@ class DataFilesDict(Dict[str, DataFilesList]):
             )
         return out
 
-    @staticmethod
+    @classmethod
     def from_hf_repo(
+        cls,
         patterns: Dict[str, Union[List[str], DataFilesList]],
         dataset_info: huggingface_hub.hf_api.DatasetInfo,
         allowed_extensions: Optional[List[str]] = None,
     ) -> "DataFilesDict":
-        out = DataFilesDict()
+        out = cls()
         for key, patterns_for_key in patterns.items():
             out[key] = (
                 DataFilesList.from_hf_repo(

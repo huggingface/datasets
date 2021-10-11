@@ -8,6 +8,7 @@ from typing import Optional, Tuple, Union
 import fsspec
 import posixpath
 from aiohttp.client_exceptions import ClientError
+from fsspec.exceptions import FSTimeoutError
 
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
@@ -126,7 +127,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except ClientError:
+            except (ClientError, FSTimeoutError):
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
                 )
