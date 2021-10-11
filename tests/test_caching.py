@@ -354,6 +354,10 @@ class Transformation:
         return batch
 
 
+def should_not_run(*args, **kwargs):
+    assert False
+
+
 class NewFingerprintMultiprocessingTest(TestCase):
     filename = "example.json"
     verbose = False
@@ -378,29 +382,29 @@ class NewFingerprintMultiprocessingTest(TestCase):
 
     def process_dataset_with_cache(self, num_proc=1, remove_cache=False, cache_expected_to_exist=False):
 
+        from glob import glob
         import hashlib
         import os
+        from pathlib import Path
 
         # load the generated dataset
         dset = next(iter(datasets.load_dataset("json", data_files=self.filename, field="data").values()))
         new_fingerprint = hashlib.md5("static-id".encode("utf8")).hexdigest()
 
-        # get the expected cached path
+        # delete previous cache
         cache_path = dset._get_cache_file_path(new_fingerprint)
-        if remove_cache and os.path.exists(cache_path):
-            os.remove(cache_path)
+        if remove_cache:
+            root = str(Path(cache_path).parent)
+            for f in glob(f"{root}/{new_fingerprint}*.arrow"):
+                print(f">> f={f}")
+                os.remove(f)
 
-        # check that the cache exists, and print a statement
-        # if was actually expected to exist
-        cache_exist = os.path.exists(cache_path)
-        if self.verbose:
-            print(f"> cache file exists={cache_exist}")
-        if cache_expected_to_exist:
-            self.assertTrue(cache_exist)
 
-        # apply the transformation with the new fingerprint
+        # apply the transformation with the new fingerprint when there is no cache,
+        # when the cache is expected to exist, replace the function with one
+        # that would return AssertError.
         dset.map(
-            Transformation(),
+            should_not_run if cache_expected_to_exist else Transformation(),
             batched=True,
             num_proc=num_proc,
             new_fingerprint=new_fingerprint,
