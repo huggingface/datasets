@@ -53,7 +53,7 @@ paperswithcode_id: sberquad
 
 - **Homepage:** [Needs More Information]
 - **Repository:** https://github.com/sberbank-ai/data-science-journey-2017
-- **Paper:** https://arxiv.org/pdf/1912.09723.pdf
+- **Paper:** https://arxiv.org/abs/1912.09723
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [Needs More Information]
 
