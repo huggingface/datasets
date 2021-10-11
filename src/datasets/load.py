@@ -32,7 +32,7 @@ from urllib.parse import urlparse
 
 import fsspec
 import requests
-from huggingface_hub import HfApi
+from huggingface_hub import HfApi, HfFolder
 
 from . import config
 from .arrow_dataset import Dataset
@@ -772,10 +772,14 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
+        if isinstance(self.download_config.use_auth_token, bool):
+            token = HfFolder.get_token() if self.download_config.use_auth_token else None
+        else:
+            token = self.download_config.use_auth_token
         dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
-            token=self.download_config.use_auth_token,
+            token=token,
             timeout=100.0,
         )
         data_files = DataFilesDict.from_hf_repo(
@@ -1091,10 +1095,14 @@ def dataset_module_factory(
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
                 hf_api = HfApi(config.HF_ENDPOINT)
                 try:
+                    if isinstance(download_config.use_auth_token, bool):
+                        token = HfFolder.get_token() if download_config.use_auth_token else None
+                    else:
+                        token = download_config.use_auth_token
                     dataset_info = hf_api.dataset_info(
                         repo_id=path,
                         revision=revision,
-                        token=download_config.use_auth_token,
+                        token=token,
                         timeout=100.0,
                     )
                 except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist

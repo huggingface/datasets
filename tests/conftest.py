@@ -234,7 +234,7 @@ def csv_path(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def csv2_path(tmp_path_factory):
-    path = str(tmp_path_factory.mktemp("data") / "dataset.csv")
+    path = str(tmp_path_factory.mktemp("data") / "dataset2.csv")
     with open(path, "w") as f:
         writer = csv.DictWriter(f, fieldnames=["col_1", "col_2", "col_3"])
         writer.writeheader()
