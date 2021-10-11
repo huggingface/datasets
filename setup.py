@@ -102,7 +102,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.0.14,<0.1.0",
+    "huggingface_hub>=0.0.18,<0.1.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
 ]
@@ -207,7 +207,7 @@ EXTRAS_REQUIRE = {
         "sphinx-rtd-theme==0.4.3",
         "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
-        "fsspec",
+        "fsspec<2021.9.0",
         "s3fs",
         "sphinx-panels",
         "sphinx-inline-tabs",
@@ -220,7 +220,7 @@ setup(
     version="1.12.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",
     url="https://github.com/huggingface/datasets",

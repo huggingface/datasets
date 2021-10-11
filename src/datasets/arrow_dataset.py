@@ -236,7 +236,7 @@ class TensorflowDatasetMixIn:
         collate_fn: Callable = None,
         collate_fn_args: Dict[str, Any] = None,
         label_cols: Union[str, List[str]] = None,
-        dummy_labels: bool = True,
+        dummy_labels: bool = False,
         prefetch: bool = True,
     ):
         """Create a tf.data.Dataset from the underlying Dataset. This tf.data.Dataset will load and collate batches from
@@ -442,6 +442,33 @@ def transmit_format(func):
         return out
 
     wrapper._decorator_name_ = "transmit_format"
+    return wrapper
+
+
+def transmit_tasks(func):
+    """Wrapper for dataset transforms that recreate a new Dataset to transmit the task templates of the original dataset to the new dataset"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if args:
+            self: "Dataset" = args[0]
+            args = args[1:]
+        else:
+            self: "Dataset" = kwargs.pop("self")
+        # apply actual function
+        out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
+        datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
+        for dataset in datasets:
+            # Remove task templates if a feature of the template has changed
+            if self.info.task_templates is not None:
+                dataset.info.task_templates = [
+                    template
+                    for template in self.info.task_templates
+                    if all(dataset.features.get(k) == self.features.get(k) for k in template.features.keys())
+                ]
+        return out
+
+    wrapper._decorator_name_ = "transmit_tasks"
     return wrapper
 
 
@@ -1322,6 +1349,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         self._data = self._data.drop(column_names)
         self._data = update_metadata_with_features(self._data, self.features)
 
+    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
         """
@@ -1399,6 +1427,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         self._data = self._data.rename_columns(new_column_names)
         self._data = update_metadata_with_features(self._data, self.features)
 
+    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint) -> "Dataset":
         """
@@ -1447,6 +1476,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         dataset._fingerprint = new_fingerprint
         return dataset
 
+    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint) -> "Dataset":
         """
@@ -2046,6 +2076,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 result._fingerprint = new_fingerprint
             return result
 
+    @transmit_tasks
     @transmit_format
     @fingerprint_transform(
         inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc", "cache_only"]
@@ -2139,6 +2170,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
+                info.task_templates = None
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
         # Raise an error if we were supposed to return a cached dataset and none was found
@@ -2331,14 +2363,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         if update_data:
             # Create new Dataset from buffer or file
             info = self.info.copy()
-            # Remove task templates if the required features have been removed
-            if info.task_templates:
-                info.task_templates = [
-                    template
-                    for template in info.task_templates
-                    if all(k in writer._features.keys() for k in template.features)
-                ]
             info.features = writer._features
+            info.task_templates = None
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
             else:
@@ -2347,7 +2373,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             return self
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"], version="2.0.0")
+    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"], version="2.0.1")
     def filter(
         self,
         function: Optional[Callable] = None,
@@ -2413,7 +2439,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             raise ValueError("Parameter `remove_columns` passed to .filter() is no longer supported.")
 
         indices = self.map(
-            function=partial(get_indices_from_mask_function, function, batched, with_indices, input_columns),
+            function=partial(
+                get_indices_from_mask_function, function, batched, with_indices, input_columns, self._indices
+            ),
             with_indices=True,
             features=Features({"indices": Value("uint64")}),
             batched=True,
@@ -3607,6 +3635,7 @@ def get_indices_from_mask_function(
     batched: bool,
     with_indices: bool,
     input_columns: Optional[Union[str, List[str]]],
+    indices_mapping: Optional[Table] = None,
     *args,
     **fn_kwargs,
 ):
@@ -3635,4 +3664,9 @@ def get_indices_from_mask_function(
                 mask.append(
                     function(*input, indices[i], **fn_kwargs) if with_indices else function(*input, **fn_kwargs)
                 )
-    return {"indices": [i for i, to_keep in zip(indices, mask) if to_keep]}
+    indices_array = [i for i, to_keep in zip(indices, mask) if to_keep]
+    if indices_mapping is not None:
+        indices_array = pa.array(indices_array, type=pa.uint64())
+        indices_array = indices_mapping.column(0).take(indices_array)
+        indices_array = indices_array.to_pylist()
+    return {"indices": indices_array}

@@ -1,6 +1,9 @@
+from copy import deepcopy
 from unittest.case import TestCase
 
+from datasets.arrow_dataset import Dataset
 from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.info import DatasetInfo
 from datasets.tasks import (
     AutomaticSpeechRecognition,
     ImageClassification,
@@ -8,6 +11,15 @@ from datasets.tasks import (
     Summarization,
     TextClassification,
 )
+
+
+SAMPLE_QUESTION_ANSWERING_EXTRACTIVE = {
+    "id": "5733be284776f41900661182",
+    "title": "University_of_Notre_Dame",
+    "context": 'Architecturally, the school has a Catholic character. Atop the Main Building\'s gold dome is a golden statue of the Virgin Mary. Immediately in front of the Main Building and facing it, is a copper statue of Christ with arms upraised with the legend "Venite Ad Me Omnes". Next to the Main Building is the Basilica of the Sacred Heart. Immediately behind the basilica is the Grotto, a Marian place of prayer and reflection. It is a replica of the grotto at Lourdes, France where the Virgin Mary reputedly appeared to Saint Bernadette Soubirous in 1858. At the end of the main drive (and in a direct line that connects through 3 statues and the Gold Dome), is a simple, modern stone statue of Mary.',
+    "question": "To whom did the Virgin Mary allegedly appear in 1858 in Lourdes France?",
+    "answers": {"text": ["Saint Bernadette Soubirous"], "answer_start": [515]},
+}
 
 
 class TextClassificationTest(TestCase):
@@ -118,3 +130,31 @@ class ImageClassificationTest(TestCase):
         self.assertEqual("image-classification", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
+
+
+class DatasetWithTaskProcessingTest(TestCase):
+    def test_map_on_task_template(self):
+        info = DatasetInfo(task_templates=QuestionAnsweringExtractive())
+        dataset = Dataset.from_dict({k: [v] for k, v in SAMPLE_QUESTION_ANSWERING_EXTRACTIVE.items()}, info=info)
+        assert isinstance(dataset.info.task_templates, list)
+        assert len(dataset.info.task_templates) == 1
+
+        def keep_task(x):
+            return x
+
+        def dont_keep_task(x):
+            out = deepcopy(SAMPLE_QUESTION_ANSWERING_EXTRACTIVE)
+            out["answers"]["foobar"] = 0
+            return out
+
+        mapped_dataset = dataset.map(keep_task)
+        assert mapped_dataset.info.task_templates == dataset.info.task_templates
+        # reload from cache
+        mapped_dataset = dataset.map(keep_task)
+        assert mapped_dataset.info.task_templates == dataset.info.task_templates
+
+        mapped_dataset = dataset.map(dont_keep_task)
+        assert mapped_dataset.info.task_templates == []
+        # reload from cache
+        mapped_dataset = dataset.map(dont_keep_task)
+        assert mapped_dataset.info.task_templates == []

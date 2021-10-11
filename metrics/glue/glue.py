@@ -81,12 +81,12 @@ Examples:
 
 
 def simple_accuracy(preds, labels):
-    return (preds == labels).mean().item()
+    return float((preds == labels).mean())
 
 
 def acc_and_f1(preds, labels):
     acc = simple_accuracy(preds, labels)
-    f1 = f1_score(y_true=labels, y_pred=preds).item()
+    f1 = float(f1_score(y_true=labels, y_pred=preds))
     return {
         "accuracy": acc,
         "f1": f1,
@@ -94,8 +94,8 @@ def acc_and_f1(preds, labels):
 
 
 def pearson_and_spearman(preds, labels):
-    pearson_corr = pearsonr(preds, labels)[0].item()
-    spearman_corr = spearmanr(preds, labels)[0].item()
+    pearson_corr = float(pearsonr(preds, labels)[0])
+    spearman_corr = float(spearmanr(preds, labels)[0])
     return {
         "pearson": pearson_corr,
         "spearmanr": spearman_corr,
