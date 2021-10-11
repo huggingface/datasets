@@ -1960,7 +1960,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             def shard_fingerprint(new_fingerprint, rank, num_proc):
                 if new_fingerprint is None:
                     return None
-                return f"{new_fingerprint}-{rank}-{num_proc}"
+                return f"{new_fingerprint}-part{rank+1}-{num_proc}"
 
             prev_env = deepcopy(os.environ)
             # check if parallelism if off
