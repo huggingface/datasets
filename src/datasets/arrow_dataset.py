@@ -445,6 +445,33 @@ def transmit_format(func):
     return wrapper
 
 
+def transmit_tasks(func):
+    """Wrapper for dataset transforms that recreate a new Dataset to transmit the task templates of the original dataset to the new dataset"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if args:
+            self: "Dataset" = args[0]
+            args = args[1:]
+        else:
+            self: "Dataset" = kwargs.pop("self")
+        # apply actual function
+        out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
+        datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
+        for dataset in datasets:
+            # Remove task templates if a feature of the template has changed
+            if dataset.info.task_templates is not None:
+                dataset.info.task_templates = [
+                    template
+                    for template in dataset.info.task_templates
+                    if all(dataset.features.get(k) == self.features.get(k) for k in template.features.keys())
+                ]
+        return out
+
+    wrapper._decorator_name_ = "transmit_tasks"
+    return wrapper
+
+
 def update_metadata_with_features(table: Table, features: Features):
     """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
     if table.schema.metadata is None or "huggingface".encode("utf-8") not in table.schema.metadata:
@@ -1322,6 +1349,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         self._data = self._data.drop(column_names)
         self._data = update_metadata_with_features(self._data, self.features)
 
+    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
         """
@@ -1399,6 +1427,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         self._data = self._data.rename_columns(new_column_names)
         self._data = update_metadata_with_features(self._data, self.features)
 
+    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint) -> "Dataset":
         """
@@ -1447,6 +1476,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         dataset._fingerprint = new_fingerprint
         return dataset
 
+    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint) -> "Dataset":
         """
@@ -2046,6 +2076,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 result._fingerprint = new_fingerprint
             return result
 
+    @transmit_tasks
     @transmit_format
     @fingerprint_transform(
         inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc", "cache_only"]
@@ -2331,13 +2362,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         if update_data:
             # Create new Dataset from buffer or file
             info = self.info.copy()
-            # Remove task templates if the required features have been removed
-            if info.task_templates:
-                info.task_templates = [
-                    template
-                    for template in info.task_templates
-                    if all(k in writer._features.keys() for k in template.features)
-                ]
             info.features = writer._features
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
