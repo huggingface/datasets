@@ -286,6 +286,19 @@ class ArrayXDDynamicTest(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             dataset.to_pandas()
 
+    def test_map_dataset(self):
+        fixed_shape = (2, 2)
+        first_dim_list = [1, 3, 10]
+        dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
+
+        dataset = dataset.map(lambda a: {"image": np.concatenate([a] * 2)}, input_columns="image")
+
+        # check also if above function resulted with 2x bigger first dim
+        for first_dim, ds_row in zip(first_dim_list, dataset):
+            single_arr = ds_row["image"]
+            self.assertIsInstance(single_arr, np.ndarray)
+            self.assertEqual(single_arr.shape, (first_dim * 2, *fixed_shape))
+
 
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])
 def test_table_to_pandas(dtype, dummy_value):
