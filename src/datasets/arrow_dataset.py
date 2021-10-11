@@ -1957,6 +1957,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 logger.info("Process #{} will write at {}".format(rank, cache_file_name))
                 return cache_file_name
 
+            def shard_fingerprint(new_fingerprint, rank, num_proc):
+                if new_fingerprint is None:
+                    return None
+                return f"{new_fingerprint}-{rank}-{num_proc}"
+
             prev_env = deepcopy(os.environ)
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
@@ -1998,7 +2003,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                     features=features.copy() if features is not None else None,
                     disable_nullable=disable_nullable,
                     fn_kwargs=fn_kwargs,
-                    new_fingerprint=f"{new_fingerprint}-{rank}" if new_fingerprint is not None else None,
+                    new_fingerprint=shard_fingerprint(new_fingerprint, rank, num_proc),
                     rank=rank,
                     offset=sum(len(s) for s in shards[:rank]),
                     disable_tqdm=disable_tqdm,
