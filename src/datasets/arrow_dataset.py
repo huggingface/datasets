@@ -1359,7 +1359,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         dataset = dataset.with_format(**format)
         return dataset
 
-    def cast_column(self, column, feature):
+    @fingerprint_transform(inplace=False)
+    def cast_column(self, column: str, feature, new_fingerprint: str):
         """Cast column to feature for decoding.
 
         Args:
@@ -1370,8 +1371,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
             :class:`Dataset`
         """
         if hasattr(feature, "decode_example"):
-            self.features[column] = feature
-            return self
+            dataset = copy.deepcopy(self)
+            dataset.features[column] = feature
+            dataset._fingerprint = new_fingerprint
+            return dataset
         else:
             features = self.features.copy()
             features[column] = feature
