@@ -197,7 +197,7 @@ class PandasFeaturesDecoder:
         self.features = features
 
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
-        decode_example = (
+        decode = (
             {
                 column_name: feature.decode_example
                 for column_name, feature in self.features.items()
@@ -206,8 +206,8 @@ class PandasFeaturesDecoder:
             if self.features
             else {}
         )
-        if decode_example:
-            row[list(decode_example.keys())] = row.transform(decode_example)
+        if decode:
+            row[list(decode.keys())] = row.transform(decode)
         return row
 
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
