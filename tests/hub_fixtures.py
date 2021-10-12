@@ -1,8 +1,8 @@
-import requests
 import time
 from unittest.mock import patch
 
 import pytest
+import requests
 from huggingface_hub.hf_api import HfApi
 
 
