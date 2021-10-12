@@ -239,7 +239,7 @@ class DownloadManager:
                 relative_file_path = os.path.join(relative_dir_path, name)
                 absolute_file_path = os.path.join(root, name)
                 with open(absolute_file_path, "rb") as file_obj:
-                    yield (relative_file_path, file_obj)
+                    yield (relative_file_path.replace(os.sep, "/"), file_obj)
 
     def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).

@@ -23,6 +23,11 @@ from datasets.tasks import ImageClassification
 
 _BASE_URL = "http://data.vision.ee.ethz.ch/cvl/food-101.tar.gz"
 
+_METADATA_URLS = {
+    "train": "https://s3.amazonaws.com/datasets.huggingface.co/food101/meta/train.txt",
+    "test": "https://s3.amazonaws.com/datasets.huggingface.co/food101/meta/test.txt",
+}
+
 _HOMEPAGE = "https://data.vision.ee.ethz.ch/cvl/datasets_extra/food-101/"
 
 _DESCRIPTION = (
@@ -41,6 +46,18 @@ _CITATION = """\
   booktitle = {European Conference on Computer Vision},
   year = {2014}
 }
+"""
+
+_LICENSE = """\
+LICENSE AGREEMENT
+=================
+ - The Food-101 data set consists of images from Foodspotting [1] which are not
+   property of the Federal Institute of Technology Zurich (ETHZ). Any use beyond
+   scientific fair use must be negociated with the respective picture owners
+   according to the Foodspotting terms of use [2].
+
+[1] http://www.foodspotting.com/
+[2] http://www.foodspotting.com/terms/
 """
 
 _NAMES = [
@@ -147,6 +164,8 @@ _NAMES = [
     "waffles",
 ]
 
+_IMAGES_DIR = "food-101/images/"
+
 
 class Food101(datasets.GeneratorBasedBuilder):
     """Food-101 Images dataset."""
@@ -156,7 +175,7 @@ class Food101(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "image": datasets.Value("string"),
+                    "image": datasets.Value("binary"),
                     "label": datasets.features.ClassLabel(names=_NAMES),
                 }
             ),
@@ -164,28 +183,37 @@ class Food101(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             task_templates=[ImageClassification(image_file_path_column="image", label_column="label", labels=_NAMES)],
             citation=_CITATION,
+            license=_LICENSE,
         )
 
     def _split_generators(self, dl_manager):
-        dl_path = Path(dl_manager.download_and_extract(_BASE_URL))
-        meta_path = dl_path / "food-101" / "meta"
-        image_dir_path = dl_path / "food-101" / "images"
+        archive_path = dl_manager.download(_BASE_URL)
+        split_metadata_paths = dl_manager.download(_METADATA_URLS)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"json_file_path": meta_path / "train.json", "image_dir_path": image_dir_path},
+                gen_kwargs={
+                    "images": dl_manager.iter_archive(archive_path),
+                    "metadata_path": split_metadata_paths["train"],
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"json_file_path": meta_path / "test.json", "image_dir_path": image_dir_path},
+                gen_kwargs={
+                    "images": dl_manager.iter_archive(archive_path),
+                    "metadata_path": split_metadata_paths["test"],
+                },
             ),
         ]
 
-    def _generate_examples(self, json_file_path, image_dir_path):
+    def _generate_examples(self, images, metadata_path):
         """Generate images and labels for splits."""
-        data = json.loads(json_file_path.read_text())
-        for label, images in data.items():
-            for image_name in images:
-                image = image_dir_path / f"{image_name}.jpg"
-                features = {"image": str(image), "label": label}
-                yield image_name, features
+        with open(metadata_path, encoding="utf-8") as f:
+            files_to_keep = set(f.read().split("\n"))
+        for file_path, file_obj in images:
+            if file_path.startswith(_IMAGES_DIR):
+                if file_path[len(_IMAGES_DIR) : -len(".jpg")] in files_to_keep:
+                    label = file_path.split("/")[2]
+                    yield file_path, {"image": file_obj.read(), "label": label}
+                else:
+                    print(file_path[len(_IMAGES_DIR) : -len(".jpg")])

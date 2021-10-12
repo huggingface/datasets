@@ -1,6 +1,7 @@
 import glob
 import os
 import re
+import tarfile
 import time
 from pathlib import Path, PurePosixPath
 from typing import Optional, Tuple
@@ -19,7 +20,21 @@ from .logging import get_logger
 
 logger = get_logger(__name__)
 
-BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
+BASE_KNOWN_EXTENSIONS = [
+    "txt",
+    "csv",
+    "json",
+    "jsonl",
+    "tsv",
+    "conll",
+    "conllu",
+    "orig",
+    "parquet",
+    "pkl",
+    "pickle",
+    "rel",
+    "xml",
+]
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
@@ -148,8 +163,6 @@ def _get_extraction_protocol(urlpath: str) -> Optional[str]:
     extension = extension.split("?")[0]
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
-    elif path.endswith(".tar.gz") or path.endswith(".tgz"):
-        pass
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
     raise NotImplementedError(f"Extraction protocol '{extension}' for file at '{urlpath}' is not implemented yet")
@@ -325,7 +338,7 @@ class StreamingDownloadManager(object):
             inner_file = inner_file[: inner_file.rindex(".")]
             # check for tar.gz, tar.bz2 etc.
             if inner_file.endswith(".tar"):
-                return f"tar://::{urlpath}"
+                return f"tar://::{protocol}://{inner_file}::{urlpath}"
             else:
                 return f"{protocol}://{inner_file}::{urlpath}"
         else:
@@ -333,3 +346,32 @@ class StreamingDownloadManager(object):
 
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
+
+    def iter_archive(self, urlpath: str):
+        """Returns iterator over files within archive.
+
+        Args:
+            path: path to archive.
+
+        Returns:
+            Generator yielding tuple (path_within_archive, file_obj).
+            File-Obj are opened in byte mode (io.BufferedReader)
+        """
+        with xopen(urlpath, "rb", use_auth_token=self._download_config.use_auth_token) as f:
+            stream = tarfile.open(fileobj=f, mode="r|*")
+            for tarinfo in stream:
+                file_path = tarinfo.name
+                if not tarinfo.isreg():
+                    continue
+                if file_path is None:
+                    continue
+                if "/" not in file_path and file_path.startswith("__") and file_path.endswith("__"):
+                    # skipping metadata
+                    continue
+                if os.path.basename(file_path).startswith("."):
+                    # skipping hidden files
+                    continue
+                file_obj = stream.extractfile(tarinfo)
+                yield (file_path, file_obj)
+                stream.members = []
+            del stream
