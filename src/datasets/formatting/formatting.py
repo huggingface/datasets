@@ -210,6 +210,16 @@ class PandasFeaturesDecoder:
             row[list(decode_example.keys())] = row.transform(decode_example)
         return row
 
+    def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
+        decode = (
+            self.features[column_name].decode_example
+            if self.features and column_name in self.features and hasattr(self.features[column_name], "decode_example")
+            else None
+        )
+        if decode:
+            column = column.transform(decode)
+        return column
+
     def decode_batch(self, batch: pd.DataFrame) -> pd.DataFrame:
         return self.decode_row(batch)
 
