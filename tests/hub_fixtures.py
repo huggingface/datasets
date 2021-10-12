@@ -23,7 +23,10 @@ def hf_api():
 def hf_token(hf_api: HfApi):
     hf_token = hf_api.login(username=USER, password=PASS)
     yield hf_token
-    hf_api.logout(hf_token)
+    try:
+        hf_api.logout(hf_token)
+    except requests.exceptions.HTTPError:
+        pass
 
 
 @pytest.fixture(scope="session")
