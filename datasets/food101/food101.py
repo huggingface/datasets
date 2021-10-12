@@ -14,9 +14,6 @@
 # limitations under the License.
 """Dataset class for Food-101 dataset."""
 
-import json
-from pathlib import Path
-
 import datasets
 from datasets.tasks import ImageClassification
 
@@ -181,7 +178,6 @@ class Food101(datasets.GeneratorBasedBuilder):
             ),
             supervised_keys=("image", "label"),
             homepage=_HOMEPAGE,
-            task_templates=[ImageClassification(image_file_path_column="image", label_column="label", labels=_NAMES)],
             citation=_CITATION,
             license=_LICENSE,
         )

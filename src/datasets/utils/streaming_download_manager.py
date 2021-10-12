@@ -365,10 +365,7 @@ class StreamingDownloadManager(object):
                     continue
                 if file_path is None:
                     continue
-                if "/" not in file_path and file_path.startswith("__") and file_path.endswith("__"):
-                    # skipping metadata
-                    continue
-                if os.path.basename(file_path).startswith("."):
+                if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
                     # skipping hidden files
                     continue
                 file_obj = stream.extractfile(tarinfo)
