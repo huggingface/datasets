@@ -18,6 +18,12 @@ import numpy as np
 from nltk.translate import meteor_score
 
 import datasets
+from datasets.config import importlib_metadata, version
+
+
+NLTK_VERSION = version.parse(importlib_metadata.version("nltk"))
+if NLTK_VERSION >= version.Version("3.6.4"):
+    from nltk import word_tokenize
 
 
 _CITATION = """\
@@ -100,11 +106,21 @@ class Meteor(datasets.Metric):
         import nltk
 
         nltk.download("wordnet")
+        if NLTK_VERSION >= version.Version("3.6.4"):
+            nltk.download("punkt")
 
     def _compute(self, predictions, references, alpha=0.9, beta=3, gamma=0.5):
-        scores = [
-            meteor_score.single_meteor_score(ref, pred, alpha=alpha, beta=beta, gamma=gamma)
-            for ref, pred in zip(references, predictions)
-        ]
+        if NLTK_VERSION >= version.Version("3.6.4"):
+            scores = [
+                meteor_score.single_meteor_score(
+                    word_tokenize(ref), word_tokenize(pred), alpha=alpha, beta=beta, gamma=gamma
+                )
+                for ref, pred in zip(references, predictions)
+            ]
+        else:
+            scores = [
+                meteor_score.single_meteor_score(ref, pred, alpha=alpha, beta=beta, gamma=gamma)
+                for ref, pred in zip(references, predictions)
+            ]
 
         return {"meteor": np.mean(scores)}

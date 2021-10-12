@@ -69,6 +69,7 @@ The base class :class:`datasets.IterableDataset` implements an iterable Dataset 
 
 .. autoclass:: datasets.IterableDataset
     :members:
+        remove_columns,
         __iter__,
         map, shuffle, skip, take,
         info, split, builder_name, citation, config_name, dataset_size,

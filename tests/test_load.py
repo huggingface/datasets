@@ -6,24 +6,32 @@ import tempfile
 import time
 from functools import partial
 from hashlib import sha256
-from pathlib import Path, PurePath
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
 import pytest
 import requests
-from huggingface_hub.hf_api import DatasetInfo
 
 import datasets
 from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
+from datasets.data_files import DataFilesDict
 from datasets.dataset_dict import DatasetDict, IterableDatasetDict
 from datasets.features import Features, Value
 from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
-    _resolve_data_files_in_dataset_repository,
-    _resolve_data_files_locally_or_by_urls,
+    CachedDatasetModuleFactory,
+    CachedMetricModuleFactory,
+    CanonicalDatasetModuleFactory,
+    CanonicalMetricModuleFactory,
+    CommunityDatasetModuleFactoryWithoutScript,
+    CommunityDatasetModuleFactoryWithScript,
+    LocalDatasetModuleFactoryWithoutScript,
+    LocalDatasetModuleFactoryWithScript,
+    LocalMetricModuleFactory,
+    PackagedDatasetModuleFactory,
     prepare_module,
 )
 from datasets.utils.file_utils import DownloadConfig, is_remote_url
@@ -63,10 +71,27 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
                 yield i, {"text": line.strip()}
 """
 
-SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"
-SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"
+SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
+SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"  # only has data files
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
+
+
+METRIC_LOADING_SCRIPT_NAME = "__dummy_metric1__"
+
+METRIC_LOADING_SCRIPT_CODE = """
+import datasets
+from datasets import MetricInfo, Features, Value
+
+
+class __DummyMetric1__(datasets.Metric):
+
+    def _info(self):
+        return MetricInfo(features=Features({"predictions": Value("int"), "references": Value("int")}))
+
+    def _compute(self, predictions, references):
+        return {"__dummy_metric1__": sum(int(p == r) for p, r in zip(predictions, references))}
+"""
 
 
 @pytest.fixture
@@ -122,6 +147,125 @@ def dataset_loading_script_dir_readonly(tmp_path):
     return dataset_loading_script_dir
 
 
+@pytest.fixture
+def metric_loading_script_dir(tmp_path):
+    script_name = METRIC_LOADING_SCRIPT_NAME
+    script_dir = tmp_path / script_name
+    script_dir.mkdir()
+    script_path = script_dir / f"{script_name}.py"
+    with open(script_path, "w") as f:
+        f.write(METRIC_LOADING_SCRIPT_CODE)
+    return str(script_dir)
+
+
+class ModuleFactoryTest(TestCase):
+    @pytest.fixture(autouse=True)
+    def inject_fixtures(self, jsonl_path, data_dir, dataset_loading_script_dir, metric_loading_script_dir):
+        self._jsonl_path = jsonl_path
+        self._data_dir = data_dir
+        self._dataset_loading_script_dir = dataset_loading_script_dir
+        self._metric_loading_script_dir = metric_loading_script_dir
+
+    def setUp(self):
+        self.hf_modules_cache = tempfile.mkdtemp()
+        self.cache_dir = tempfile.mkdtemp()
+        self.download_config = DownloadConfig(cache_dir=self.cache_dir)
+        self.dynamic_modules_path = datasets.load.init_dynamic_modules(
+            name="test_datasets_modules_" + os.path.basename(self.hf_modules_cache),
+            hf_modules_cache=self.hf_modules_cache,
+        )
+
+    def test_CanonicalDatasetModuleFactory(self):
+        # "wmt_t2t" has additional imports (internal)
+        factory = CanonicalDatasetModuleFactory(
+            "wmt_t2t", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CanonicalMetricModuleFactory(self):
+        # "bleu" requires additional imports (external from github)
+        factory = CanonicalMetricModuleFactory(
+            "bleu", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_LocalMetricModuleFactory(self):
+        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
+        factory = LocalMetricModuleFactory(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_LocalDatasetModuleFactoryWithScript(self):
+        path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
+        factory = LocalDatasetModuleFactoryWithScript(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_LocalDatasetModuleFactoryWithoutScript(self):
+        factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir)
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_PackagedDatasetModuleFactory(self):
+        factory = PackagedDatasetModuleFactory(
+            "json", data_files=self._jsonl_path, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CommunityDatasetModuleFactoryWithoutScript(self):
+        factory = CommunityDatasetModuleFactoryWithoutScript(
+            SAMPLE_DATASET_IDENTIFIER2, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CommunityDatasetModuleFactoryWithScript(self):
+        factory = CommunityDatasetModuleFactoryWithScript(
+            SAMPLE_DATASET_IDENTIFIER,
+            download_config=self.download_config,
+            dynamic_modules_path=self.dynamic_modules_path,
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CachedDatasetModuleFactory(self):
+        path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
+        factory = LocalDatasetModuleFactoryWithScript(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        for offline_mode in OfflineSimulationMode:
+            with offline(offline_mode):
+                factory = CachedDatasetModuleFactory(
+                    DATASET_LOADING_SCRIPT_NAME,
+                    dynamic_modules_path=self.dynamic_modules_path,
+                )
+                module_factory_result = factory.get_module()
+                assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CachedMetricModuleFactory(self):
+        path = os.path.join(self._metric_loading_script_dir, f"{METRIC_LOADING_SCRIPT_NAME}.py")
+        factory = LocalMetricModuleFactory(
+            path, download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        for offline_mode in OfflineSimulationMode:
+            with offline(offline_mode):
+                factory = CachedMetricModuleFactory(
+                    METRIC_LOADING_SCRIPT_NAME,
+                    dynamic_modules_path=self.dynamic_modules_path,
+                )
+                module_factory_result = factory.get_module()
+                assert importlib.import_module(module_factory_result.module_path) is not None
+
+
 class LoadTest(TestCase):
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, caplog):
@@ -130,7 +274,7 @@ class LoadTest(TestCase):
     def setUp(self):
         self.hf_modules_cache = tempfile.mkdtemp()
         self.dynamic_modules_path = datasets.load.init_dynamic_modules(
-            name="test_datasets_modules", hf_modules_cache=self.hf_modules_cache
+            name="test_datasets_modules2", hf_modules_cache=self.hf_modules_cache
         )
 
     def tearDown(self):
@@ -160,10 +304,9 @@ class LoadTest(TestCase):
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
             module_path = os.path.join(module_dir, "__dummy_module_name1__.py")
-            importable_module_path, module_hash, resolved_file_path = datasets.load.prepare_module(
-                module_path, dynamic_modules_path=self.dynamic_modules_path, return_resolved_file_path=True
+            importable_module_path, module_hash = datasets.load.prepare_module(
+                module_path, dynamic_modules_path=self.dynamic_modules_path
             )
-            self.assertEqual(resolved_file_path, module_path)
             dummy_module = importlib.import_module(importable_module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
             self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
@@ -218,10 +361,11 @@ class LoadTest(TestCase):
             with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("_dummy")
-                self.assertIn(
-                    f"https://raw.githubusercontent.com/huggingface/datasets/{scripts_version}/datasets/_dummy/_dummy.py",
-                    str(context.exception),
-                )
+                if offline_simulation_mode != OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
+                    self.assertIn(
+                        f"https://raw.githubusercontent.com/huggingface/datasets/{scripts_version}/datasets/_dummy/_dummy.py",
+                        str(context.exception),
+                    )
 
     def test_load_dataset_users(self):
         with self.assertRaises(FileNotFoundError) as context:
@@ -234,10 +378,7 @@ class LoadTest(TestCase):
             with offline(offline_simulation_mode):
                 with self.assertRaises(ConnectionError) as context:
                     datasets.load_dataset("lhoestq/_dummy")
-                self.assertIn(
-                    "lhoestq/_dummy",
-                    str(context.exception),
-                )
+                self.assertIn("lhoestq/_dummy", str(context.exception))
 
 
 def test_load_dataset_builder_for_absolute_script_dir(dataset_loading_script_dir, data_dir):
@@ -271,8 +412,8 @@ def test_load_dataset_builder_for_absolute_data_dir(complex_data_dir):
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
     assert builder.config.name == Path(complex_data_dir).name
-    assert isinstance(builder.config.data_files, list)
-    assert len(builder.config.data_files) > 0
+    assert isinstance(builder.config.data_files, DataFilesDict)
+    assert len(builder.config.data_files["train"]) > 0
 
 
 def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
@@ -283,14 +424,15 @@ def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
         assert isinstance(builder, DatasetBuilder)
         assert builder.name == "text"
         assert builder.config.name == relative_data_dir
-        assert isinstance(builder.config.data_files, list)
-        assert len(builder.config.data_files) > 0
+        assert isinstance(builder.config.data_files, DataFilesDict)
+        assert len(builder.config.data_files["train"]) > 0
 
 
 def test_load_dataset_builder_for_community_dataset_with_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == SAMPLE_DATASET_IDENTIFIER.split("/")[-1]
+    assert builder.config.name == "default"
     assert builder.info.features == Features({"text": Value("string")})
     namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
     assert builder._relative_data_dir().startswith(namespace)
@@ -301,11 +443,9 @@ def test_load_dataset_builder_for_community_dataset_without_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
-    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.split("/")[-1]
-    namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
-    assert builder._relative_data_dir().startswith(namespace)
-    assert isinstance(builder.config.data_files, list)
-    assert len(builder.config.data_files) > 0
+    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.replace("/", "___")
+    assert isinstance(builder.config.data_files, DataFilesDict)
+    assert len(builder.config.data_files["train"]) > 0
 
 
 def test_load_dataset_builder_fail():
@@ -403,17 +543,17 @@ def test_loading_from_the_datasets_hub():
 
 
 def test_loading_from_the_datasets_hub_with_use_auth_token():
-    from datasets.utils.file_utils import http_head
+    from requests import get
 
     def assert_auth(url, *args, headers, **kwargs):
         assert headers["authorization"] == "Bearer foo"
-        return http_head(url, *args, headers=headers, **kwargs)
+        return get(url, *args, headers=headers, **kwargs)
 
-    with patch("datasets.utils.file_utils.http_head") as mock_head:
+    with patch("requests.get") as mock_head:
         mock_head.side_effect = assert_auth
         with tempfile.TemporaryDirectory() as tmp_dir:
             with offline():
-                with pytest.raises(ConnectionError):
+                with pytest.raises((ConnectionError, requests.exceptions.ConnectionError)):
                     load_dataset(SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER, cache_dir=tmp_dir, use_auth_token="foo")
         mock_head.assert_called()
 
@@ -520,98 +660,3 @@ def test_load_dataset_deletes_extracted_files(deleted, jsonl_gz_path, tmp_path):
         ds = load_dataset("json", split="train", data_files=data_files, cache_dir=cache_dir)
     assert ds[0] == {"col_1": "0", "col_2": 0, "col_3": 0.0}
     assert (sorted((cache_dir / "downloads" / "extracted").iterdir()) == []) is deleted
-
-
-@pytest.mark.parametrize(
-    "pattern,size", [("*", 2), ("**/*", 2), ("*.txt", 2), ("data/*", 2), ("**/*.txt", 2), ("**/train.txt", 1)]
-)
-def test_resolve_data_files_locally_or_by_urls(complex_data_dir, pattern, size):
-    resolved_data_files = _resolve_data_files_locally_or_by_urls(complex_data_dir, pattern)
-    files_to_ignore = {".dummy", "README.md"}
-    expected_resolved_data_files = [
-        path for path in Path(complex_data_dir).rglob(pattern) if path.name not in files_to_ignore and path.is_file()
-    ]
-    assert len(resolved_data_files) == size
-    assert sorted(resolved_data_files) == sorted(expected_resolved_data_files)
-    assert all(isinstance(path, Path) for path in resolved_data_files)
-    assert all(path.is_file() for path in resolved_data_files)
-
-
-def test_resolve_data_files_locally_or_by_urls_with_absolute_path(tmp_path, complex_data_dir):
-    abs_path = os.path.join(complex_data_dir, "data", "train.txt")
-    resolved_data_files = _resolve_data_files_locally_or_by_urls(str(tmp_path / "blabla"), abs_path)
-    assert len(resolved_data_files) == 1
-
-
-@pytest.mark.parametrize("pattern,size,extensions", [("*", 2, ["txt"]), ("*", 2, None), ("*", 0, ["blablabla"])])
-def test_resolve_data_files_locally_or_by_urls_with_extensions(complex_data_dir, pattern, size, extensions):
-    if size > 0:
-        resolved_data_files = _resolve_data_files_locally_or_by_urls(
-            complex_data_dir, pattern, allowed_extensions=extensions
-        )
-        assert len(resolved_data_files) == size
-    else:
-        with pytest.raises(FileNotFoundError):
-            _resolve_data_files_locally_or_by_urls(complex_data_dir, pattern, allowed_extensions=extensions)
-
-
-def test_fail_resolve_data_files_locally_or_by_urls(complex_data_dir):
-    with pytest.raises(FileNotFoundError):
-        _resolve_data_files_locally_or_by_urls(complex_data_dir, "blablabla")
-
-
-@pytest.mark.parametrize(
-    "pattern,size", [("*", 2), ("**/*", 2), ("*.txt", 2), ("data/*", 2), ("**/*.txt", 2), ("**/train.txt", 1)]
-)
-def test_resolve_data_files_in_dataset_repository(complex_data_dir, pattern, size):
-    dataset_info = DatasetInfo(
-        siblings=[
-            {"rfilename": path.relative_to(complex_data_dir).as_posix()}
-            for path in Path(complex_data_dir).rglob("*")
-            if path.is_file()
-        ]
-    )
-    resolved_data_files = _resolve_data_files_in_dataset_repository(dataset_info, pattern)
-    files_to_ignore = {".dummy", "README.md"}
-    expected_resolved_data_files = [
-        path.relative_to(complex_data_dir)
-        for path in Path(complex_data_dir).rglob(pattern)
-        if path.name not in files_to_ignore and path.is_file()
-    ]
-    assert len(resolved_data_files) == size
-    assert sorted(resolved_data_files) == sorted(expected_resolved_data_files)
-    assert all(isinstance(path, PurePath) for path in resolved_data_files)
-    assert all((Path(complex_data_dir) / path).is_file() for path in resolved_data_files)
-
-
-@pytest.mark.parametrize("pattern,size,extensions", [("*", 2, ["txt"]), ("*", 2, None), ("*", 0, ["blablabla"])])
-def test_resolve_data_files_in_dataset_repository_with_extensions(complex_data_dir, pattern, size, extensions):
-    dataset_info = DatasetInfo(
-        siblings=[
-            {"rfilename": path.relative_to(complex_data_dir).as_posix()}
-            for path in Path(complex_data_dir).rglob("*")
-            if path.is_file()
-        ]
-    )
-    if size > 0:
-        resolved_data_files = _resolve_data_files_in_dataset_repository(
-            dataset_info, pattern, allowed_extensions=extensions
-        )
-        assert len(resolved_data_files) == size
-    else:
-        with pytest.raises(FileNotFoundError):
-            resolved_data_files = _resolve_data_files_in_dataset_repository(
-                dataset_info, pattern, allowed_extensions=extensions
-            )
-
-
-def test_fail_resolve_data_files_in_dataset_repository(complex_data_dir):
-    dataset_info = DatasetInfo(
-        siblings=[
-            {"rfilename": path.relative_to(complex_data_dir).as_posix()}
-            for path in Path(complex_data_dir).rglob("*")
-            if path.is_file()
-        ]
-    )
-    with pytest.raises(FileNotFoundError):
-        _resolve_data_files_in_dataset_repository(dataset_info, "blablabla")
