@@ -1364,8 +1364,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         """Cast column to feature for decoding.
 
         Args:
-            column: Column name.
-            feature: Target feature.
+            column (:obj:`str`): Column name.
+            feature (:class:`Feature`): Target feature.
 
         Returns:
             :class:`Dataset`
