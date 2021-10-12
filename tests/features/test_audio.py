@@ -222,6 +222,12 @@ def test_formatted_dataset_with_audio_feature(shared_datadir):
         assert batch["audio"][0]["path"] == audio_path
         assert batch["audio"][0]["array"].shape == (202311,)
         assert batch["audio"][0]["sampling_rate"] == 44100
+        column = dset["audio"]
+        assert len(column) == 2
+        assert column[0].keys() == {"path", "array", "sampling_rate"}
+        assert column[0]["path"] == audio_path
+        assert column[0]["array"].shape == (202311,)
+        assert column[0]["sampling_rate"] == 44100
 
     with dset.formatted_as("pandas"):
         item = dset[0]
@@ -238,3 +244,9 @@ def test_formatted_dataset_with_audio_feature(shared_datadir):
         assert item["audio"][0]["path"] == audio_path
         assert item["audio"][0]["array"].shape == (202311,)
         assert item["audio"][0]["sampling_rate"] == 44100
+        column = dset["audio"]
+        assert len(column) == 2
+        assert column[0].keys() == {"path", "array", "sampling_rate"}
+        assert column[0]["path"] == audio_path
+        assert column[0]["array"].shape == (202311,)
+        assert column[0]["sampling_rate"] == 44100
