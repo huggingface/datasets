@@ -26,7 +26,7 @@ _CITATION = """\
 
 
 _DESCRIPTION = """\
-Sber Question Answering Dataset (SberQuAD) Origin is a reading comprehension \
+Sber Question Answering Dataset (SberQuAD) is a reading comprehension \
 dataset, consisting of questions posed by crowdworkers on a set of Wikipedia \
 articles, where the answer to every question is a segment of text, or span, \
 from the corresponding reading passage, or the question might be unanswerable.

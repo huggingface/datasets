@@ -23,7 +23,7 @@ paperswithcode_id: sberquad
 ---
 
 
-# Dataset Card for sberquad_origin
+# Dataset Card for sberquad
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -59,7 +59,7 @@ paperswithcode_id: sberquad
 
 ### Dataset Summary
 
-Sber Question Answering Dataset (SberQuAD) Origin is a reading comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles, where the answer to every question is a segment of text, or span, from the corresponding reading passage, or the question might be unanswerable.
+Sber Question Answering Dataset (SberQuAD) is a reading comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles, where the answer to every question is a segment of text, or span, from the corresponding reading passage, or the question might be unanswerable.
 Russian original analogue presented in Sberbank Data Science Journey 2017.
 
 ### Supported Tasks and Leaderboards
@@ -78,16 +78,12 @@ Russian
     "context": "Первые упоминания о строении человеческого тела встречаются в Древнем Египте...",
     "id": 14754,
     "qas": [
-    {
-        "id": 60544,
-        "question": "Где встречаются первые упоминания о строении человеческого тела?",
-        "answers": [
-            {
-                "answer_start": 60,
-                "text": "в Древнем Египте"
-            }
-        ]
-    }]
+        {
+            "id": 60544,
+            "question": "Где встречаются первые упоминания о строении человеческого тела?",
+            "answers": [{"answer_start": 60, "text": "в Древнем Египте"}],
+        }
+    ]
 }
 ```
 
