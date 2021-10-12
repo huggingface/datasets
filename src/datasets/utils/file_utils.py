@@ -346,7 +346,7 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
 def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> dict:
     """Handle the HF authentication"""
     headers = {}
-    if url.startswith("https://huggingface.co/"):
+    if url.startswith(config.HF_ENDPOINT):
         token = None
         if isinstance(use_auth_token, str):
             token = use_auth_token

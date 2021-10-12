@@ -32,7 +32,7 @@ from urllib.parse import urlparse
 
 import fsspec
 import requests
-from huggingface_hub import HfApi
+from huggingface_hub import HfApi, HfFolder
 
 from . import config
 from .arrow_dataset import Dataset
@@ -64,12 +64,15 @@ from .utils.file_utils import (
 from .utils.filelock import FileLock
 from .utils.info_utils import is_small_dataset
 from .utils.logging import get_logger
+from .utils.streaming_download_manager import StreamingDownloadManager, xglob, xjoin
 from .utils.version import Version
 
 
 logger = get_logger(__name__)
 
 DEFAULT_SPLIT = str(Split.TRAIN)
+
+ALL_ALLOWED_EXTENSIONS = list(_EXTENSION_TO_MODULE.keys()) + ["zip"]
 
 
 def init_dynamic_modules(
@@ -409,10 +412,33 @@ def _create_importable_file(
     return module_path, hash
 
 
-def infer_module_for_data_files(data_files_list: DataFilesList) -> Optional[str]:
+def infer_module_for_data_files(
+    data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]] = None
+) -> Optional[str]:
     extensions_counter = Counter(suffix[1:] for filepath in data_files_list for suffix in Path(filepath).suffixes)
     if extensions_counter:
-        return _EXTENSION_TO_MODULE[extensions_counter.most_common(1)[0][0]]
+        most_common = extensions_counter.most_common(1)[0][0]
+        if most_common in _EXTENSION_TO_MODULE:
+            return _EXTENSION_TO_MODULE[most_common]
+        elif most_common == "zip":
+            return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+
+
+def infer_module_for_data_files_in_archives(
+    data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
+) -> Optional[str]:
+    archived_files = []
+    for filepath in data_files_list:
+        if str(filepath).endswith(".zip"):
+            extracted = xjoin(StreamingDownloadManager().extract(filepath), "*")
+            archived_files += [
+                f.split("::")[0] for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)
+            ]
+    extensions_counter = Counter(suffix[1:] for filepath in archived_files for suffix in Path(filepath).suffixes)
+    if extensions_counter:
+        most_common = extensions_counter.most_common(1)[0][0]
+        if most_common in _EXTENSION_TO_MODULE:
+            return _EXTENSION_TO_MODULE[most_common]
 
 
 @dataclass
@@ -678,7 +704,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModule:
         data_files = DataFilesDict.from_local_or_remote(
-            _sanitize_patterns(self.data_files), base_path=self.path, allowed_extensions=_EXTENSION_TO_MODULE.keys()
+            _sanitize_patterns(self.data_files), base_path=self.path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
         )
         infered_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
@@ -740,25 +766,30 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.name = name
         self.revision = revision
         self.data_files = data_files
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         assert self.name.count("/") == 1
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
+        if isinstance(self.download_config.use_auth_token, bool):
+            token = HfFolder.get_token() if self.download_config.use_auth_token else None
+        else:
+            token = self.download_config.use_auth_token
         dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
-            token=self.download_config.use_auth_token,
+            token=token,
             timeout=100.0,
         )
         data_files = DataFilesDict.from_hf_repo(
             _sanitize_patterns(self.data_files),
             dataset_info=dataset_info,
-            allowed_extensions=_EXTENSION_TO_MODULE.keys(),
+            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         infered_module_names = {
-            key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
+            key: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
+            for key, data_files_list in data_files.items()
         }
         if len(set(list(infered_module_names.values()))) > 1:
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
@@ -1064,10 +1095,14 @@ def dataset_module_factory(
             elif path.count("/") == 1:  # users datasets/metrics: s3 path (hub for datasets and s3 for metrics)
                 hf_api = HfApi(config.HF_ENDPOINT)
                 try:
+                    if isinstance(download_config.use_auth_token, bool):
+                        token = HfFolder.get_token() if download_config.use_auth_token else None
+                    else:
+                        token = download_config.use_auth_token
                     dataset_info = hf_api.dataset_info(
                         repo_id=path,
                         revision=revision,
-                        token=download_config.use_auth_token,
+                        token=token,
                         timeout=100.0,
                     )
                 except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
@@ -1397,7 +1432,6 @@ def load_dataset_builder(
     if use_auth_token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.use_auth_token = use_auth_token
-
     dataset_module_factory_result = dataset_module_factory(
         path, revision=revision, download_config=download_config, download_mode=download_mode, data_files=data_files
     )
