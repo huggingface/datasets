@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- 
+- other
 task_ids:
--
-paperswithcode_id: 
+- other-other-story-completion
+paperswithcode_id: null
+pretty_name: Story Cloze Test
 ---
 
 # Dataset Card for "story_cloze"
