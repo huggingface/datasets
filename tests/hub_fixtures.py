@@ -1,3 +1,4 @@
+import requests
 import time
 from unittest.mock import patch
 
@@ -38,7 +39,10 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
         repo_type="dataset",
     )
     yield repo_id
-    hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
+    try:
+        hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
+    except requests.exceptions.HTTPError:
+        pass
 
 
 @pytest.fixture()
@@ -61,7 +65,10 @@ def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_pa
         repo_type="dataset",
     )
     yield repo_id
-    hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
+    try:
+        hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
+    except requests.exceptions.HTTPError:
+        pass
 
 
 @pytest.fixture()
