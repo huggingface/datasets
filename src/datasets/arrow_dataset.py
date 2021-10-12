@@ -38,8 +38,9 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from huggingface_hub import create_repo, upload_file
+from huggingface_hub import create_repo, delete_file, list_repo_files, upload_file
 from multiprocess import Pool, RLock
+from requests import HTTPError
 from tqdm.auto import tqdm
 
 from datasets.tasks.text_classification import TextClassification
@@ -3316,6 +3317,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         private: Optional[bool] = False,
         token: Optional[Union[bool, str]] = None,
         branch: Optional[None] = None,
+        shard_size: Optional[int] = 500 << 20,
     ):
         identifier = repo_id.split("/")
         if len(identifier) == 2:
@@ -3333,18 +3335,39 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             private=private,
         )
 
-        buffer = BytesIO()
-        self.to_parquet(buffer)
+        if self._indices is not None:
+            dataset_nbytes = self.data.nbytes * len(self._indices) / len(self.data)
+        else:
+            dataset_nbytes = self.data.nbytes
 
-        upload_file(
-            path_or_fileobj=buffer.getvalue(),
-            path_in_repo=f"{split_name}/split.parquet",
-            repo_id=repo_id,
-            token=token,
-            repo_type="dataset",
-            revision=branch,
-            identical_ok=True
-        )
+        num_shards = int(dataset_nbytes / shard_size) + 1
+        shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
+
+        files = list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
+        file_shards = [file.split(split_name + "/")[-1] for file in files if f"{split_name}/dataset_shard" in file]
+        file_shards_to_delete = [
+            file for file in file_shards if file not in [f"dataset_shard_{i}.parquet" for i in range(num_shards)]
+        ]
+
+        for file in tqdm(file_shards_to_delete, desc="Cleaning repository.", total=len(file_shards_to_delete)):
+            try:
+                delete_file(f"{split_name}/{file}", repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
+            except HTTPError:
+                print(f"Would have deleted {file}")
+        for index, shard in tqdm(
+            enumerate(shards), desc="Pushing dataset shards to the dataset hub", total=num_shards
+        ):
+            buffer = BytesIO()
+            shard.to_parquet(buffer)
+            upload_file(
+                path_or_fileobj=buffer.getvalue(),
+                path_in_repo=f"{split_name}/dataset_shard_{index}.parquet",
+                repo_id=repo_id,
+                token=token,
+                repo_type="dataset",
+                revision=branch,
+                identical_ok=True,
+            )
 
     @transmit_format
     @fingerprint_transform(inplace=False)

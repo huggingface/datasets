@@ -3,13 +3,11 @@ import copy
 import json
 import os
 import re
-from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
-from huggingface_hub import create_repo, upload_file
 
 from datasets.splits import NamedSplit, Split
 from datasets.utils.doc_utils import is_documented_by
@@ -888,50 +886,12 @@ class DatasetDict(dict):
         private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[None] = None,
+        shard_size: Optional[int] = 500 << 20,
     ):
-        identifier = repo_id.split("/")
-
-        if len(identifier) == 2:
-            organization, dataset_name = identifier
-        else:
-            dataset_name = identifier[0]
-            organization = None
-
-        create_repo(
-            dataset_name,
-            token=token,
-            exist_ok=True,
-            repo_type="dataset",
-            organization=organization,
-            private=private,
-        )
-
-        with BytesIO() as buffer:
-            byte_representation = str.encode(json.dumps({"splits": list(self)}))
-            buffer.write(byte_representation)
-
-            upload_file(
-                path_or_fileobj=buffer.getvalue(),
-                path_in_repo=f"dataset_dict.json",
-                repo_id=repo_id,
-                token=token,
-                repo_type="dataset",
-                revision=branch,
-            )
-
         for key in self.keys():
-            with BytesIO() as buffer:
-                self[key].to_parquet(buffer)
-
-                upload_file(
-                    path_or_fileobj=buffer.getvalue(),
-                    path_in_repo=f"{key}/split.parquet",
-                    repo_id=repo_id,
-                    token=token,
-                    repo_type="dataset",
-                    revision=branch,
-                )
-
+            self[key].push_to_hub(
+                repo_id, split_name=key, private=private, token=token, branch=branch, shard_size=shard_size
+            )
 
 
 class IterableDatasetDict(dict):

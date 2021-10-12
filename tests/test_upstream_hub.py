@@ -1,6 +1,7 @@
-from unittest import TestCase
-from datasets import Dataset, DatasetDict, load_dataset
 import time
+from unittest import TestCase
+
+from datasets import Dataset, DatasetDict, load_dataset
 
 
 REPO_NAME = "repo-{}".format(int(time.time() * 10e3))
@@ -8,14 +9,9 @@ REPO_NAME = "repo-{}".format(int(time.time() * 10e3))
 
 class TestPushToHub(TestCase):
     def test_push_dataset_dict_to_hub(self):
-        ds = Dataset.from_dict({
-            "x": [1, 2, 3],
-            "y": [4, 5, 6]
-        })
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
-        local_ds = DatasetDict({
-            "random": ds
-        })
+        local_ds = DatasetDict({"random": ds})
 
         ds_name = f"Jikiwa/test-{int(time.time() * 10e3)}"
         local_ds.push_to_hub(ds_name)
@@ -26,10 +22,7 @@ class TestPushToHub(TestCase):
         self.assertDictEqual(local_ds["random"].features, hub_ds["random"].features)
 
     def test_push_dataset_to_hub(self):
-        local_ds = Dataset.from_dict({
-            "x": [1, 2, 3],
-            "y": [4, 5, 6]
-        })
+        local_ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
         ds_name = f"Jikiwa/test-{int(time.time() * 10e3)}"
         local_ds.push_to_hub(ds_name, split_name="random")
@@ -44,4 +37,3 @@ class TestPushToHub(TestCase):
             self.assertDictEqual(local_ds.column_names, hub_ds.column_names)
             self.assertListEqual(list(local_ds["random"].features.keys()), list(hub_ds["random"].features.keys()))
             self.assertDictEqual(local_ds["random"].features, hub_ds["random"].features)
-
