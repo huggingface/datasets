@@ -15,7 +15,6 @@
 """Dataset class for Food-101 dataset."""
 
 import datasets
-from datasets.tasks import ImageClassification
 
 
 _BASE_URL = "http://data.vision.ee.ethz.ch/cvl/food-101.tar.gz"
