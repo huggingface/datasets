@@ -971,7 +971,7 @@ class Features(dict):
             encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
         return encoded_batch
 
-    def decode_example(self, example):
+    def decode_example(self, example: dict):
         """Decode example with custom feature decoding.
 
         Args:
@@ -1004,6 +1004,7 @@ class Features(dict):
         )
 
     def decode_batch(self, batch):
+    def decode_batch(self, batch: dict):
         """Decode batch with custom feature decoding.
 
         Args:
@@ -1013,11 +1014,11 @@ class Features(dict):
             :obj:`dict[str, list[Any]]`
         """
         decoded_batch = {}
-        for column, column_data in batch.items():
-            decoded_batch[column] = (
-                [self[column].decode_example(obj) for obj in column_data]
-                if hasattr(self[column], "decode_example")
-                else column_data
+        for column_name, column in batch.items():
+            decoded_batch[column_name] = (
+                [self[column_name].decode_example(value) for value in column]
+                if hasattr(self[column_name], "decode_example")
+                else column
             )
         return decoded_batch
 
