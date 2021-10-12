@@ -322,7 +322,10 @@ class PandasFormatter(Formatter):
         return row
 
     def format_column(self, pa_table: pa.Table) -> pd.Series:
-        return self.pandas_arrow_extractor().extract_column(pa_table)
+        column = self.pandas_arrow_extractor().extract_column(pa_table)
+        if self.decoded:
+            column = self.pandas_features_decoder.decode_column(column, pa_table.column_names[0])
+        return column
 
     def format_batch(self, pa_table: pa.Table) -> pd.DataFrame:
         row = self.pandas_arrow_extractor().extract_batch(pa_table)
