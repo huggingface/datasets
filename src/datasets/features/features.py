@@ -1003,7 +1003,6 @@ class Features(dict):
             else column
         )
 
-    def decode_batch(self, batch):
     def decode_batch(self, batch: dict):
         """Decode batch with custom feature decoding.
 
