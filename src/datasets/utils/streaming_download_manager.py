@@ -163,6 +163,8 @@ def _get_extraction_protocol(urlpath: str) -> Optional[str]:
     extension = extension.split("?")[0]
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
+    elif path.endswith(".tar.gz") or path.endswith(".tgz"):
+        raise NotImplementedError(f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. Please use `dl_manager.iter_archive` instead.")
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
     raise NotImplementedError(f"Extraction protocol '{extension}' for file at '{urlpath}' is not implemented yet")
