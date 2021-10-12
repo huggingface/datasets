@@ -87,6 +87,12 @@ def test_dataset_with_audio_feature(shared_datadir):
     assert batch["audio"][0]["path"] == audio_path
     assert batch["audio"][0]["array"].shape == (202311,)
     assert batch["audio"][0]["sampling_rate"] == 44100
+    column = dset["audio"]
+    assert len(column) == 1
+    assert column[0].keys() == {"path", "array", "sampling_rate"}
+    assert column[0]["path"] == audio_path
+    assert column[0]["array"].shape == (202311,)
+    assert column[0]["sampling_rate"] == 44100
 
 
 @require_sndfile
@@ -108,6 +114,12 @@ def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
     assert batch["audio"][0]["path"] == audio_path
     assert batch["audio"][0]["array"].shape == (73401,)
     assert batch["audio"][0]["sampling_rate"] == 16000
+    column = dset["audio"]
+    assert len(column) == 1
+    assert column[0].keys() == {"path", "array", "sampling_rate"}
+    assert column[0]["path"] == audio_path
+    assert column[0]["array"].shape == (73401,)
+    assert column[0]["sampling_rate"] == 16000
 
 
 @require_sndfile
@@ -132,6 +144,12 @@ def test_resampling_after_loading_dataset_with_audio_feature(shared_datadir):
     assert batch["audio"][0]["path"] == audio_path
     assert batch["audio"][0]["array"].shape == (73401,)
     assert batch["audio"][0]["sampling_rate"] == 16000
+    column = dset["audio"]
+    assert len(column) == 1
+    assert column[0].keys() == {"path", "array", "sampling_rate"}
+    assert column[0]["path"] == audio_path
+    assert column[0]["array"].shape == (73401,)
+    assert column[0]["sampling_rate"] == 16000
 
 
 @require_sndfile
