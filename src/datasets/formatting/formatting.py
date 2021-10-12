@@ -292,7 +292,10 @@ class NumpyFormatter(Formatter[dict, np.ndarray, dict]):
         return row
 
     def format_column(self, pa_table: pa.Table) -> np.ndarray:
-        return self.numpy_arrow_extractor(**self.np_array_kwargs).extract_column(pa_table)
+        column = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_column(pa_table)
+        if self.decoded:
+            column = self.python_features_decoder.decode_column(column, pa_table.column_names[0])
+        return column
 
     def format_batch(self, pa_table: pa.Table) -> dict:
         batch = self.numpy_arrow_extractor(**self.np_array_kwargs).extract_batch(pa_table)
