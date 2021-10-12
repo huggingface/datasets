@@ -987,6 +987,22 @@ class Features(dict):
             )
         }
 
+    def decode_column(self, column: list, column_name: str):
+        """Decode column with custom feature decoding.
+
+        Args:
+            column (:obj:`list[Any]`): Dataset column data.
+            column_name (:obj:`str`): Dataset column name.
+
+        Returns:
+            :obj:`list[Any]`
+        """
+        return (
+            [self[column_name].decode_example(value) for value in column]
+            if hasattr(self[column_name], "decode_example")
+            else column
+        )
+
     def decode_batch(self, batch):
         """Decode batch with custom feature decoding.
 
