@@ -185,6 +185,9 @@ class PythonFeaturesDecoder:
     def decode_row(self, row: dict) -> dict:
         return self.features.decode_example(row) if self.features else row
 
+    def decode_column(self, column: list, column_name: str) -> list:
+        return self.features.decode_column(column, column_name) if self.features else column
+
     def decode_batch(self, batch: dict) -> dict:
         return self.features.decode_batch(batch) if self.features else batch
 
