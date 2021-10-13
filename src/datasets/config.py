@@ -82,6 +82,8 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
                 continue
             else:
                 break
+        else:
+            TF_AVAILABLE = False
     if TF_AVAILABLE:
         if TF_VERSION.major < 2:
             logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
