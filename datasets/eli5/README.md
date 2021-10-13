@@ -57,7 +57,7 @@ pretty_name: ELI5
 
 ### Dataset Summary
 
-The ELI5 dataset is an English-language dataset of questions and answers gathered from three subreddits were users ask factual questions requiring paragraph-length or longer answers. The dataset was created to support the task of open-domain long form abstractive question answering, and covers questions about general topics in its [r/explainlikeimfive](https://www.reddit.com/r/explainlikeimfive/) subset, science in it [r/askscience](https://www.reddit.com/r/askscience/) subset, and History in its [r/AskHistorians](https://www.reddit.com/r/AskHistorians/) subset.
+The ELI5 dataset is an English-language dataset of questions and answers gathered from three subreddits where users ask factual questions requiring paragraph-length or longer answers. The dataset was created to support the task of open-domain long form abstractive question answering, and covers questions about general topics in its [r/explainlikeimfive](https://www.reddit.com/r/explainlikeimfive/) subset, science in it [r/askscience](https://www.reddit.com/r/askscience/) subset, and History in its [r/AskHistorians](https://www.reddit.com/r/AskHistorians/) subset.
 
 ### Supported Tasks and Leaderboards
 

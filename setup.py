@@ -1,5 +1,5 @@
 # Lint as: python3
-""" HuggingFace/Datasets is an open library of NLP datasets.
+""" HuggingFace/Datasets is an open library of datasets.
 
 Note:
 
@@ -102,7 +102,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.0.14,<0.1.0",
+    "huggingface_hub>=0.0.18,<0.1.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
 ]
@@ -220,7 +220,7 @@ setup(
     version="1.12.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",
     url="https://github.com/huggingface/datasets",

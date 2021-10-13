@@ -973,6 +973,7 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
 
 def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a multidimensional NumPy array"""
+    arr = np.array(arr)
     values = pa.array(arr.flatten(), type=type)
     for i in range(arr.ndim - 1):
         n_offsets = reduce(mul, arr.shape[: arr.ndim - i - 1], 1)

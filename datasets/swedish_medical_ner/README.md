@@ -99,7 +99,7 @@ Dataset({
 In: data['train'][0]['sentence']
 Out: '{kropp} beskrivs i till exempel människokroppen, anatomi och f'
 In: data['train'][0]['entities']
-Out: {'start': [0], 'end': [7], 'text': ['kropp'], 'type': ['Body Structure']}
+Out: {'start': [0], 'end': [7], 'text': ['kropp'], 'type': [2]}
 ```
 
 ### Data Fields
@@ -109,7 +109,7 @@ Out: {'start': [0], 'end': [7], 'text': ['kropp'], 'type': ['Body Structure']}
     - `start`: the start index
     - `end`: the end index
     - `text`: the text of the entity
-    - `type`: entity type (Disorder and Finding / Pharmaceutical Drug / Body Structure)
+    - `type`: entity type: Disorder and Finding (0), Pharmaceutical Drug (1) or Body Structure (2)
 
 ### Data Splits
 
@@ -179,6 +179,8 @@ Chalmers University of Technology
 This dataset is released under the [Creative Commons Attribution-ShareAlike 4.0 International Public License (CC BY-SA 4.0)](http://creativecommons.org/licenses/by-sa/4.0/).
 
 ### Citation Information
+
+```bibtex
 @inproceedings{almgrenpavlovmogren2016bioner,
   title={Named Entity Recognition in Swedish Medical Journals with Deep Bidirectional Character-Based LSTMs},
   author={Simon Almgren, Sean Pavlov, Olof Mogren},
@@ -186,6 +188,7 @@ This dataset is released under the [Creative Commons Attribution-ShareAlike 4.0 
   pages={1},
   year={2016}
 }
+```
 
 ### Contributions
 
