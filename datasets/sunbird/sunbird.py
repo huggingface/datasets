@@ -35,7 +35,7 @@ _CITATION = """\
 _VERSION = "1.0.0"
 
 _URL = {
-    "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/v1-dataset.zip",
+    "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/v4-dataset.zip",
 }
 
 
@@ -76,15 +76,15 @@ class Sunbird(datasets.GeneratorBasedBuilder):
         src_tag, tgt_tag = self.config.language_pair.split("-")
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"translation": datasets.features.Translation(languages=(src_tag, tgt_tag))}),           
+            features=datasets.Features({"translation": datasets.features.Translation(languages=(src_tag, tgt_tag))}),
             supervised_keys=(src_tag, tgt_tag),
             homepage="sunbird.ai",
             citation=_CITATION,
         )
-    
+
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        
+
         lang_pair = self.config.language_pair
         src_tag, tgt_tag = lang_pair.split("-")
 
@@ -93,9 +93,9 @@ class Sunbird(datasets.GeneratorBasedBuilder):
         if domain=="supervised":
             print(_URL["supervised"].format(lang_pair))
             dl_dir = dl_manager.download_and_extract(_URL["supervised"].format(lang_pair))
-        
+
         data_dir = os.path.join(dl_dir, os.path.join("v1-dataset/v1.0", domain, lang_pair))
-        
+
         output=[]
 
         test = datasets.SplitGenerator(
