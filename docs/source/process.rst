@@ -212,7 +212,7 @@ When you need to remove one or more columns, give :func:`datasets.Dataset.remove
 
    Casting only works if the original feature type and new feature type are compatible. For example, you can cast a column with the feature type ``Value('int32')`` to ``Value('bool')`` if the original column only contains ones and zeros.
 
-Use :method:`datasets.Dataset.cast_column` to change the feature type of just one column. Pass the column name and its new feature type as arguments:
+Use :meth:`datasets.Dataset.cast_column` to change the feature type of just one column. Pass the column name and its new feature type as arguments:
 
 .. code-block::
 
