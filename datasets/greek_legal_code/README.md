@@ -92,9 +92,7 @@ All documents are written in Greek.
 ```json
 {
   "text": "179. ΑΠΟΦΑΣΗ ΥΠΟΥΡΓΟΥ ΜΕΤΑΦΟΡΩΝ ΚΑΙ ΕΠΙΚΟΙΝΩΝΙΩΝ Αριθ. Β-οικ. 68425/4765 της 2/17 Νοεμ. 2000 (ΦΕΚ Β΄ 1404) Τροποποίηση της 42000/2030/81 κοιν. απόφασης του Υπουργού Συγκοινωνιών «Κωδικοποίηση και συμπλήρωση καν. Αποφάσεων» που εκδόθηκαν κατ’ εξουσιοδότηση του Ν.Δ. 102/73 «περί οργανώσεως των δια λεωφορείων αυτοκινήτων εκτελουμένων επιβατικών συγκοινωνιών». ",
-  "volume": "ΣΥΓΚΟΙΝΩΝΙΕΣ",
-  "chapter": "ΛΕΩΦΟΡΕΙΑ",
-  "subject": "ΚΟΙΝΑ ΤΑΜΕΙΑ ΕΚΜΕΤΑΛΛΕΥΣΕΩΣ ΛΕΩΦΟΡΕΙΩΝ (Κ.Τ.Ε.Λ.)"
+  "volume": 24,  # "ΣΥΓΚΟΙΝΩΝΙΕΣ"
 }
 ```
 
@@ -103,7 +101,7 @@ All documents are written in Greek.
 The following data fields are provided for documents (`train`, `dev`, `test`):
 
 `text`: (**str**)  The full content of each document, which is represented by its `header` and `articles` (i.e., the `main_body`).\
-`volume`: (**str**)  The volume-level class it belongs to. Specifically: ["ΚΟΙΝΩΝΙΚΗ ΠΡΟΝΟΙΑ",
+`label`: (**class label**): Depending on the configurarion, the volume/chapter/subject of the document. For volume-level class it belongs to specifically: ["ΚΟΙΝΩΝΙΚΗ ΠΡΟΝΟΙΑ",
  "ΓΕΩΡΓΙΚΗ ΝΟΜΟΘΕΣΙΑ",
  "ΡΑΔΙΟΦΩΝΙΑ ΚΑΙ ΤΥΠΟΣ",
  "ΒΙΟΜΗΧΑΝΙΚΗ ΝΟΜΟΘΕΣΙΑ",
@@ -151,8 +149,8 @@ The following data fields are provided for documents (`train`, `dev`, `test`):
  "ΕΜΠΟΡΙΚΗ ΝΑΥΤΙΛΙΑ",
  "ΣΥΝΤΑΓΜΑΤΙΚΗ ΝΟΜΟΘΕΣΙΑ"
  ] \
-`chapter`: (**str**)  The chapter-level class it belongs to. Labels omitted due to size (389 classes). \
-`subject`: (**str**)  The subject-level class it belongs to. Labels omitted due to size (2285 classes).
+
+The labels can also be a the chapter-level or subject-level class it belongs to. Some chapter labels are omitted due to size (389 classes). Some subject labels are also omitted due to size (2285 classes).
 
 ### Data Splits
 
