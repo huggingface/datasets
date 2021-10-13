@@ -32,7 +32,7 @@ _CITATION = """\
         TO ADD: Sunbird citation
 """
 
-_VERSION = "1.0.0"
+_VERSION = "4.0.0"
 
 _URL = {
     "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/v4-dataset.zip",
@@ -94,7 +94,7 @@ class Sunbird(datasets.GeneratorBasedBuilder):
             print(_URL["supervised"].format(lang_pair))
             dl_dir = dl_manager.download_and_extract(_URL["supervised"].format(lang_pair))
 
-        data_dir = os.path.join(dl_dir, os.path.join("v1-dataset/v1.0", domain, lang_pair))
+        data_dir = os.path.join(dl_dir, os.path.join("v4-dataset/v4-dataset/v4.0", domain, lang_pair))
 
         output=[]
 
