@@ -171,7 +171,7 @@ class Food101(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "image": datasets.Value("binary"),
+                    "image": {"filename": datasets.Value("string"), "data": datasets.Value("binary")},
                     "label": datasets.features.ClassLabel(names=_NAMES),
                 }
             ),
@@ -209,6 +209,7 @@ class Food101(datasets.GeneratorBasedBuilder):
             if file_path.startswith(_IMAGES_DIR):
                 if file_path[len(_IMAGES_DIR) : -len(".jpg")] in files_to_keep:
                     label = file_path.split("/")[2]
-                    yield file_path, {"image": file_obj.read(), "label": label}
-                else:
-                    print(file_path[len(_IMAGES_DIR) : -len(".jpg")])
+                    yield file_path, {
+                        "image": {"filename": file_path.split("/")[-1], "data": file_obj.read()},
+                        "label": label,
+                    }
