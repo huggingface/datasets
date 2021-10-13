@@ -4,7 +4,7 @@ import re
 import tarfile
 import time
 from pathlib import Path, PurePosixPath
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import fsspec
 import posixpath
@@ -172,7 +172,7 @@ def _get_extraction_protocol(urlpath: str) -> Optional[str]:
     raise NotImplementedError(f"Extraction protocol '{extension}' for file at '{urlpath}' is not implemented yet")
 
 
-def xopen(file, mode="r", *args, **kwargs):
+def xopen(file, mode="r", *args, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     """
     This function extends the builtin `open` function to support remote files using fsspec.
 
@@ -180,7 +180,7 @@ def xopen(file, mode="r", *args, **kwargs):
     The args and kwargs are passed to fsspec.open, except `use_auth_token` which is used for queries to private repos on huggingface.co
     """
     if fsspec.get_fs_token_paths(file)[0].protocol == "https":
-        kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=kwargs.pop("use_auth_token", None))
+        kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=use_auth_token)
     file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
@@ -199,7 +199,7 @@ def xpathopen(path: Path, *args, **kwargs):
     return xopen(_as_posix(path), *args, **kwargs)
 
 
-def xglob(urlpath, *, recursive=False):
+def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]] = None):
     """Extend `glob.glob` function to support remote files.
 
     Args:
@@ -214,7 +214,14 @@ def xglob(urlpath, *, recursive=False):
     if is_local_path(main_hop):
         return glob.glob(main_hop, recursive=recursive)
     else:
-        fs, *_ = fsspec.get_fs_token_paths(urlpath)
+        # globbing inside a zip in a private repo requires authentication
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
         # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
@@ -223,7 +230,7 @@ def xglob(urlpath, *, recursive=False):
         return ["::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
 
-def xpathglob(path, pattern):
+def xpathglob(path, pattern, use_auth_token: Optional[Union[str, bool]] = None):
     """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
     Args:
@@ -238,7 +245,14 @@ def xpathglob(path, pattern):
     if is_local_path(main_hop):
         yield from Path(main_hop).glob(pattern)
     else:
-        fs, *_ = fsspec.get_fs_token_paths(xjoin(posix_path, pattern))
+        # globbing inside a zip in a private repo requires authentication
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(xjoin(posix_path, pattern), storage_options=storage_options)
         # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
         # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
@@ -248,7 +262,7 @@ def xpathglob(path, pattern):
             yield type(path)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
 
 
-def xpathrglob(path, pattern):
+def xpathrglob(path, pattern, **kwargs):
     """Rglob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
     Args:
@@ -258,7 +272,7 @@ def xpathrglob(path, pattern):
     Yields:
         :obj:`~pathlib.Path`
     """
-    return xpathglob(path, "**/" + pattern)
+    return xpathglob(path, "**/" + pattern, **kwargs)
 
 
 def xpathstem(path: Path):
@@ -285,10 +299,10 @@ def xpathsuffix(path: Path):
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
-def xpandas_read_csv(path, **kwargs):
+def xpandas_read_csv(path, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
-    return pd.read_csv(xopen(path), **kwargs)
+    return pd.read_csv(xopen(path, use_auth_token=use_auth_token), **kwargs)
 
 
 class StreamingDownloadManager(object):
