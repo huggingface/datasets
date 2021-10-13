@@ -75,8 +75,6 @@ English
 
 ### Data Instances
 
-#### default
-
 - **Size of downloaded dataset files:** 2.03 MB
 - **Size of the generated dataset:** 2.03 MB
 - **Total amount of disk used:** 2.05 MB
@@ -97,7 +95,6 @@ An example of 'train' looks as follows.
 
 The data fields are the same among all splits.
 
-#### default
 - `input_sentence_1`: The first statement in the story.
 - `input_sentence_2`: The second statement in the story.
 - `input_sentence_3`: The third statement in the story.

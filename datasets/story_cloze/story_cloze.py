@@ -39,7 +39,7 @@ _CITATION = """\
 
 
 class StoryCloze(datasets.GeneratorBasedBuilder):
-    """."""
+    """Story Cloze."""
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name="2016", description="Story Cloze Test Spring 2016 set"),
@@ -49,9 +49,9 @@ class StoryCloze(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return (
-            "To use Sotry Cloze you have to download it manually. Please fill this "
-            "google form (http://goo.gl/forms/aQz39sdDrO). complete the form. "
-            "Then you will recieve a a download link for the dataset. Load it using : "
+            "To use Story Cloze you have to download it manually. Please fill this "
+            "google form (http://goo.gl/forms/aQz39sdDrO). Complete the form. "
+            "Then you will recieve a download link for the dataset. Load it using: "
             "`datasets.load_dataset('story_cloze', data_dir='path/to/folder/folder_name')`"
         )
 
@@ -108,7 +108,7 @@ class StoryCloze(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath):
-        """Generate Eduge news examples."""
+        """Generate Story Cloze examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
@@ -116,7 +116,7 @@ class StoryCloze(datasets.GeneratorBasedBuilder):
             _ = next(csv_reader)
             for id_, row in enumerate(csv_reader):
                 if row and len(row) == 8:
-                    yield row[0], {
+                    yield id_, {
                         "story_id": row[0],
                         "input_sentence_1": row[1],
                         "input_sentence_2": row[2],
