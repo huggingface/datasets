@@ -23,7 +23,7 @@ import os
 import shutil
 import tempfile
 import weakref
-from collections import Counter
+from collections import Counter, UserDict
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import asdict
@@ -86,6 +86,43 @@ if config.PYARROW_VERSION.major == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
+
+
+class LazyDict(UserDict):
+    def __init__(self, data, features=None, decoding=True):
+        self.data = data
+        self.features = (
+            {key: feature for key, feature in features.items() if hasattr(feature, "decode_example")}
+            if features
+            else {}
+        )
+        self.decoding = decoding
+
+    def values(self):
+        return self.data.values()
+
+    def items(self):
+        return self.data.items()
+
+
+class Example(LazyDict):
+    def __getitem__(self, key):
+        value = super().__getitem__(key)
+        if self.decoding and self.features and key in self.features:
+            value = self.features[key].decode_example(value)
+            self[key] = value
+            del self.features[key]
+        return value
+
+
+class Batch(LazyDict):
+    def __getitem__(self, key):
+        values = super().__getitem__(key)
+        if self.decoding and self.features and key in self.features:
+            values = [self.features[key].decode_example(value) for value in values]
+            self[key] = values
+            del self.features[key]
+        return values
 
 
 class DatasetInfoMixin:
@@ -1329,6 +1366,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = dataset.with_format(**format)
         return dataset
 
+    @fingerprint_transform(inplace=False)
+    def cast_column(self, column: str, feature, new_fingerprint: str) -> "Dataset":
+        """Cast column to feature for decoding.
+
+        Args:
+            column (:obj:`str`): Column name.
+            feature (:class:`Feature`): Target feature.
+
+        Returns:
+            :class:`Dataset`
+        """
+        if hasattr(feature, "decode_example"):
+            dataset = copy.deepcopy(self)
+            dataset.features[column] = feature
+            dataset._fingerprint = new_fingerprint
+            return dataset
+        else:
+            features = self.features.copy()
+            features[column] = feature
+            return self.cast(features)
+
     @deprecated(help_message="Use Dataset.remove_columns instead.")
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
@@ -1545,17 +1603,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
-        format_type = self._format_type
-        format_kwargs = self._format_kwargs
-        format_columns = self._format_columns
-        output_all_columns = self._output_all_columns
         for index in range(self.num_rows):
             yield self._getitem(
                 index,
-                format_type=format_type,
-                format_columns=format_columns,
-                output_all_columns=output_all_columns,
-                format_kwargs=format_kwargs,
+                decoded=False,
             )
 
     def __repr__(self):
@@ -1629,7 +1680,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Check that the format_type and format_kwargs are valid and make it possible to have a Formatter
         type = get_format_type_from_alias(type)
-        _ = get_formatter(type, **format_kwargs)
+        _ = get_formatter(type, features=self.features, **format_kwargs)
 
         # Check filter column
         if isinstance(columns, str):
@@ -1784,19 +1835,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = dataset.cast(features=template.features)
         return dataset
 
-    def _getitem(
-        self,
-        key: Union[int, slice, str],
-        format_type=None,
-        format_columns=None,
-        output_all_columns=False,
-        format_kwargs=None,
-    ) -> Union[Dict, List]:
+    def _getitem(self, key: Union[int, slice, str], decoded: bool = True, **kwargs) -> Union[Dict, List]:
         """
         Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
         """
+        format_type = kwargs["format_type"] if "format_type" in kwargs else self._format_type
+        format_columns = kwargs["format_columns"] if "format_columns" in kwargs else self._format_columns
+        output_all_columns = (
+            kwargs["output_all_columns"] if "output_all_columns" in kwargs else self._output_all_columns
+        )
+        format_kwargs = kwargs["format_kwargs"] if "format_kwargs" in kwargs else self._format_kwargs
         format_kwargs = format_kwargs if format_kwargs is not None else {}
-        formatter = get_formatter(format_type, **format_kwargs)
+        formatter = get_formatter(format_type, features=self.features, decoded=decoded, **format_kwargs)
         pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
         formatted_output = format_table(
             pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
@@ -1807,10 +1857,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
         return self._getitem(
             key,
-            format_type=self._format_type,
-            format_columns=self._format_columns,
-            output_all_columns=self._output_all_columns,
-            format_kwargs=self._format_kwargs,
         )
 
     def cleanup_cache_files(self) -> int:
@@ -1928,6 +1974,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if function is None:
             function = lambda x: x  # noqa: E731
+
+        def decorate(f):
+            """
+            Decorate the mapped function, so that its first argument is wrapped with a LazyDict to be used internally
+            but a standard dictionary is returned at the end of the mapping.
+            """
+
+            @wraps(f)
+            def decorated(item, *args, **kwargs):
+                # Decorate first arg with LazyDict (either Example or Batch)
+                decorated_item = (
+                    Example(item, features=self.features) if not batched else Batch(item, features=self.features)
+                )
+                # Use the LazyDict internally, while mapping the function
+                result = f(decorated_item, *args, **kwargs)
+                # Return a standard dict
+                return result.data if isinstance(result, LazyDict) else result
+
+            return decorated
+
+        function = decorate(function) if not self._format_type and not input_columns else function
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -2235,6 +2302,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     format_type=None,
                     format_columns=None,
                     format_kwargs=None,
+                    decoded=False,
                 )
             if remove_columns is not None:
                 for column in remove_columns:
@@ -2325,7 +2393,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     for i in pbar:
                         if drop_last_batch and i + batch_size > input_dataset.num_rows:
                             continue
-                        batch = input_dataset[i : i + batch_size]
+                        batch = input_dataset._getitem(
+                            slice(i, i + batch_size),
+                            decoded=False,
+                        )
                         indices = list(
                             range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
                         )  # Something simpler?

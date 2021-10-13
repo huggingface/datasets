@@ -145,7 +145,7 @@ The following methods allow you to modify the columns of a dataset. These method
 ``Rename``
 ^^^^^^^^^^
 
-Use :func:`datasets.Dataset.rename_column` when you need to rename a column in your dataset. Features associated with the original column are actually moved under the new column name, instead of just replacing the original column in-place. 
+Use :func:`datasets.Dataset.rename_column` when you need to rename a column in your dataset. Features associated with the original column are actually moved under the new column name, instead of just replacing the original column in-place.
 
 Provide :func:`datasets.Dataset.rename_column` with the name of the original column, and the new column name:
 
@@ -196,7 +196,7 @@ When you need to remove one or more columns, give :func:`datasets.Dataset.remove
    'sentence2': Value(dtype='string', id=None),
    'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
    'idx': Value(dtype='int32', id=None)}
-   
+
    >>> from datasets import ClassLabel, Value
    >>> new_features = dataset.features.copy()
    >>> new_features["label"] = ClassLabel(names=['negative', 'positive'])
@@ -210,7 +210,18 @@ When you need to remove one or more columns, give :func:`datasets.Dataset.remove
 
 .. tip::
 
-   Casting only works if the original feature type and new feature type are compatible. For example, you can cast a column with the feature type ``Value('int32')`` to ``Value('bool')`` if the original column only contains ones and zeros. 
+   Casting only works if the original feature type and new feature type are compatible. For example, you can cast a column with the feature type ``Value('int32')`` to ``Value('bool')`` if the original column only contains ones and zeros.
+
+Use :meth:`datasets.Dataset.cast_column` to change the feature type of just one column. Pass the column name and its new feature type as arguments:
+
+.. code-block::
+
+   >>> dataset.features
+   {'audio': Audio(sampling_rate=44100, mono=True, id=None)}
+
+   >>> dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
+   >>> dataset.features
+   {'audio': Audio(sampling_rate=16000, mono=True, id=None)}
 
 .. _flatten:
 
@@ -257,7 +268,7 @@ In the following example, you will prefix each ``sentence1`` value in the datase
    >>> def add_prefix(example):
    ...     example['sentence1'] = 'My sentence: ' + example['sentence1']
    ...     return example
-        
+
 Next, apply this function to the dataset with :func:`datasets.Dataset.map`:
 
 .. code-block::
@@ -270,7 +281,7 @@ Next, apply this function to the dataset with :func:`datasets.Dataset.map`:
    'My sentence: Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
    ]
 
-Let's take a look at another example, except this time, you will remove a column with :func:`datasets.Dataset.map`. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed. 
+Let's take a look at another example, except this time, you will remove a column with :func:`datasets.Dataset.map`. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed.
 
 Specify the column to remove with the ``remove_columns`` argument in :func:`datasets.Dataset.map`:
 
@@ -293,7 +304,7 @@ You can also use :func:`datasets.Dataset.map` with indices if you set ``with_ind
    ['0: Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
     "1: Yucaipa bought Dominick 's in 1995 for $ 693 million and sold it to Safeway for $ 1.8 billion in 1998 .",
     "2: On June 10 , the ship 's owners had published an advertisement on the Internet , offering the explosives for sale .",
-    '3: Tab shares jumped 20 cents , or 4.6 % , to set a record closing high at A $ 4.57 .', 
+    '3: Tab shares jumped 20 cents , or 4.6 % , to set a record closing high at A $ 4.57 .',
     '4: PG & E Corp. shares jumped $ 1.63 or 8 percent to $ 21.03 on the New York Stock Exchange on Friday .'
    ]
 
@@ -314,7 +325,7 @@ Batch processing
 Tokenization
 """"""""""""
 
-One of the most obvious use-cases for batch processing is tokenization, which accepts batches of inputs. 
+One of the most obvious use-cases for batch processing is tokenization, which accepts batches of inputs.
 
 First, load the tokenizer from the BERT model:
 
@@ -391,7 +402,7 @@ Notice how the sentences are split into shorter chunks now, and there are more r
 Data augmentation
 """""""""""""""""
 
-With batch processing, you can even augment your dataset with additional examples. In the following example, you will generate additional words for a masked token in a sentence. 
+With batch processing, you can even augment your dataset with additional examples. In the following example, you will generate additional words for a masked token in a sentence.
 
 Load the `RoBERTA <https://huggingface.co/roberta-base>`_ model for use in the ðŸ¤— Transformer `FillMaskPipeline <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.FillMaskPipeline>`_:
 
@@ -399,7 +410,7 @@ Load the `RoBERTA <https://huggingface.co/roberta-base>`_ model for use in the ð
 
    >>> from random import randint
    >>> from transformers import pipeline
-   
+
    >>> fillmask = pipeline('fill-mask', model='roberta-base')
    >>> mask_token = fillmask.tokenizer.mask_token
    >>> smaller_dataset = dataset.filter(lambda e, i: i<100, with_indices=True)
@@ -446,7 +457,7 @@ Many datasets have splits that you can process simultaneously with :func:`datase
 .. code-block::
 
    >>> from datasets import load_dataset
-   
+
    # load all the splits
    >>> dataset = load_dataset('glue', 'mrpc')
    >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True)
@@ -463,7 +474,7 @@ Many datasets have splits that you can process simultaneously with :func:`datase
 Distributed usage
 ^^^^^^^^^^^^^^^^^
 
-When you use :func:`datasets.Dataset.map` in a distributed setting, you should also use `torch.distributed.barrier <https://pytorch.org/docs/stable/distributed.html?highlight=barrier#torch.distributed.barrier>`_. This ensures the main process performs the mapping, while the other processes load the results, thereby avoiding duplicate work. 
+When you use :func:`datasets.Dataset.map` in a distributed setting, you should also use `torch.distributed.barrier <https://pytorch.org/docs/stable/distributed.html?highlight=barrier#torch.distributed.barrier>`_. This ensures the main process performs the mapping, while the other processes load the results, thereby avoiding duplicate work.
 
 The following example shows how you can use ``torch.distributed.barrier`` to synchronize the processes:
 
@@ -471,15 +482,15 @@ The following example shows how you can use ``torch.distributed.barrier`` to syn
 
    >>> from datasets import Dataset
    >>> import torch.distributed
-   
+
    >>> dataset1 = Dataset.from_dict({"a": [0, 1, 2]})
-   
+
    >>> if training_args.local_rank > 0:
    ...     print("Waiting for main process to perform the mapping")
    ...     torch.distributed.barrier()
-   
+
    >>> dataset2 = dataset1.map(lambda x: {"a": x["a"] + 1})
-   
+
    >>> if training_args.local_rank == 0:
    ...     print("Loading results from main process")
    ...     torch.distributed.barrier()
@@ -492,11 +503,11 @@ Separate datasets can be concatenated if they share the same column types. Conca
 .. code-block::
 
    >>> from datasets import concatenate_datasets, load_dataset
-   
+
    >>> bookcorpus = load_dataset("bookcorpus", split="train")
    >>> wiki = load_dataset("wikipedia", "20200501.en", split="train")
    >>> wiki = wiki.remove_columns("title")  # only keep the text
-   
+
    >>> assert bookcorpus.features.type == wiki.features.type
    >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
 
