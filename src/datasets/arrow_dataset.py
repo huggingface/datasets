@@ -1367,7 +1367,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     @fingerprint_transform(inplace=False)
-    def cast_column(self, column: str, feature, new_fingerprint: str):
+    def cast_column(self, column: str, feature, new_fingerprint: str) -> "Dataset":
         """Cast column to feature for decoding.
 
         Args:
