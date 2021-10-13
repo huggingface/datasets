@@ -29,8 +29,8 @@ _DESCRIPTION = """\
 Sber Question Answering Dataset (SberQuAD) is a reading comprehension \
 dataset, consisting of questions posed by crowdworkers on a set of Wikipedia \
 articles, where the answer to every question is a segment of text, or span, \
-from the corresponding reading passage, or the question might be unanswerable.
-Russian original analogue presented in Sberbank Data Science Journey 2017 https://github.com/sberbank-ai/data-science-journey-2017
+from the corresponding reading passage, or the question might be unanswerable. \
+Russian original analogue presented in Sberbank Data Science Journey 2017.
 """
 
 _URLS = {"train": "https://sc.link/PNWl", "dev": "https://sc.link/W6oX", "test": "https://sc.link/VOn9"}
