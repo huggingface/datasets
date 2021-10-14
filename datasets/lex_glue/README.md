@@ -98,7 +98,7 @@ The supported tasks are the following:
 <table>
 <tr><td>Dataset</td><td>Source</td><td>Sub-domain</td><td>Task Type</td><td>Classes</td><tr>
 <tr><td>ECtHR (Task A)</td><td> <a href="https://aclanthology.org/P19-1424/">Chalkidis et al. (2019)</a> </td><td>ECHR</td><td>Multi-label classification</td><td>10+1</td></tr>
-<tr><td>ECtHR (Task B)</td><td> <a href="https://aclanthology.org/2021.naacl-main.22/">Chalkidis et al. (2021a)</a> </td><td>ECHR</td><td>Multi-label classification </td><td>10</td></tr>
+<tr><td>ECtHR (Task B)</td><td> <a href="https://aclanthology.org/2021.naacl-main.22/">Chalkidis et al. (2021a)</a> </td><td>ECHR</td><td>Multi-label classification </td><td>10+1</td></tr>
 <tr><td>SCOTUS</td><td> <a href="http://scdb.wustl.edu">Spaeth et al. (2020)</a></td><td>US Law</td><td>Multi-class classification</td><td>14</td></tr>
 <tr><td>EUR-LEX</td><td> <a href="https://arxiv.org/abs/2109.00904">Chalkidis et al. (2021b)</a></td><td>EU Law</td><td>Multi-label classification</td><td>100</td></tr>
 <tr><td>LEDGAR</td><td> <a href="https://aclanthology.org/2020.lrec-1.155/">Tuggener et al. (2020)</a></td><td>Contracts</td><td>Multi-class classification</td><td>100</td></tr>
@@ -141,13 +141,13 @@ The current leaderboard includes several Transformer-based (Vaswaniet al., 2017)
 <table>
 <tr><td>Dataset</td><td>ECtHR Task A </td><td>ECtHR Task B </td><td>SCOTUS </td><td>EUR-LEX</td><td>LEDGAR </td><td>UNFAIR-ToS </td><td>CaseHOLD</td></tr>
 <tr><td>Model</td><td>μ-F1  / m-F1 </td><td>μ-F1  / m-F1 </td><td>μ-F1  / m-F1 </td><td>μ-F1  / m-F1 </td><td>μ-F1  / m-F1 </td><td>μ-F1  / m-F1</td><td>μ-F1 / m-F1  </td></tr>
-<tr><td>BERT </td><td><b>71.4</b>  / 64.0  </td><td>87.6  / <b>77.8</b> </td><td>70.5   / 60.9 </td><td>71.6  / 55.6 </td><td>87.7   / 82.2 </td><td>97.3  / 80.4</td><td>70.7   </td></tr>
-<tr><td>RoBERTa </td><td>69.5  / 60.7 </td><td>87.2  / 77.3 </td><td>70.8   / 61.2 </td><td>71.8  / <b>57.5</b> </td><td>87.9  /  82.1 </td><td>97.2 / 79.6</td><td>71.7 </td></tr>
-<tr><td>DeBERTa </td><td>69.1   / 61.2 </td><td>87.4   / 77.3 </td><td>70.0  / 60.0 </td><td><b>72.3</b>  / 57.2 </td><td>87.9   / 82.0 </td><td>97.2 / 80.2</td><td>72.1  </td></tr>
-<tr><td>Longformer </td><td>69.6  / 62.4 </td><td>88.0  / <b>77.8</b> </td><td>72.2  / 62.5 </td><td>71.9  / 56.7 </td><td>87.7  / 82.3 </td><td><b>97.5</b> / 81.0</td><td>72.0  </td></tr>
-<tr><td>BigBird </td><td>70.5  / 63.8 </td><td> <b>88.1</b>  / 76.6 </td><td>71.7  / 61.4 </td><td>71.8  / 56.6 </td><td>87.7 / 82.1 </td><td>97.4 / 81.1</td><td>70.4  </td></tr>
-<tr><td>Legal-BERT </td><td>71.2  / <b>64.6</b> </td><td>88.0  / 77.2 </td><td>76.2  / 65.8 </td><td>72.2  / 56.2 </td><td><b>88.1</b>  / <b>82.7</b></td><td> 97.4  / <b>83.4</b></td><td>75.1</td></tr>
-<tr><td>CaseLaw-BERT </td><td>71.2   / 64.2 </td><td>88.0   / 77.5 </td><td><b>76.4</b>  / <b>66.2</b> </td><td>71.0  / 55.9 </td><td>88.0  / 82.3</td><td>97.4  / 82.4</td><td><b>75.6</b>  </td></tr>
+<tr><td>BERT </td><td><b>71.4</b>  / 64.0  </td><td>79.6  / <b>78.3</b> </td><td>70.5   / 60.9 </td><td>71.6  / 55.6 </td><td>87.7   / 82.2 </td><td>97.3  / 80.4</td><td>70.7   </td></tr>
+<tr><td>RoBERTa </td><td>69.5  / 60.7 </td><td>78.6  / 77.0 </td><td>70.8   / 61.2 </td><td>71.8  / <b>57.5</b> </td><td>87.9  /  82.1 </td><td>97.2 / 79.6</td><td>71.7 </td></tr>
+  <tr><td>DeBERTa </td><td>69.1   / 61.2 </td><td>79.9   / <b>78.3</b> </td><td>70.0  / 60.0 </td><td><b>72.3</b>  / 57.2 </td><td>87.9   / 82.0 </td><td>97.2 / 80.2</td><td>72.1  </td></tr>
+<tr><td>Longformer </td><td>69.6  / 62.4 </td><td>78.8  / 75.8 </td><td>72.2  / 62.5 </td><td>71.9  / 56.7 </td><td>87.7  / 82.3 </td><td><b>97.5</b> / 81.0</td><td>72.0  </td></tr>
+<tr><td>BigBird </td><td>70.5  / 63.8 </td><td> 79.9  / 76.9 </td><td>71.7  / 61.4 </td><td>71.8  / 56.6 </td><td>87.7 / 82.1 </td><td>97.4 / 81.1</td><td>70.4  </td></tr>
+  <tr><td>Legal-BERT </td><td>71.2  / <b>64.6</b> </td><td><b>80.6</b>  / 77.2 </td><td>76.2  / 65.8 </td><td>72.2  / 56.2 </td><td><b>88.1</b>  / <b>82.7</b></td><td> 97.4  / <b>83.4</b></td><td>75.1</td></tr>
+<tr><td>CaseLaw-BERT </td><td>71.2   / 64.2 </td><td>79.7   / 76.8 </td><td><b>76.4</b>  / <b>66.2</b> </td><td>71.0  / 55.9 </td><td>88.0  / 82.3</td><td>97.4  / 82.4</td><td><b>75.6</b>  </td></tr>
 </table>
 
 ### Languages
