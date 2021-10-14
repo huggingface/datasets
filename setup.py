@@ -127,8 +127,6 @@ TESTS_REQUIRE = [
     # optional dependencies
     "apache-beam>=2.26.0",
     "elasticsearch==7.10.1",
-    # murmur3 hashing
-    "mmh3==3.0.0",
     "aiobotocore==1.2.2",
     "boto3==1.16.43",
     "botocore==1.19.52",

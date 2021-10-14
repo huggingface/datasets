@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from .arrow_dataset import Dataset  # noqa: F401
 
     try:
-        import mmh3  # noqa: F401
         from elasticsearch import Elasticsearch  # noqa: F401
         from elasticsearch.exceptions import RequestError  # noqa: F401
 
@@ -112,7 +111,7 @@ class ElasticSearchIndex(BaseIndex):
     ):
         assert (
             _has_elasticsearch
-        ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.10.1 for example`"
+        ), "You must install ElasticSearch to use ElasticSearchIndex. You can run `pip install elasticsearch==7.10.1`"
         assert es_client is None or (
             host is None and port is None
         ), "Please specify either `es_client` or `(host, port)`, but not both."
@@ -120,28 +119,15 @@ class ElasticSearchIndex(BaseIndex):
         port = port or 9200
 
         import elasticsearch.helpers  # noqa: need this to properly load all the es features
-        from elasticsearch import Elasticsearch  # noqa: F811
 
-        server_url = ("https" if ca_file is not None else "http") + "://" + host + ":" + str(port)
-
-        ssl_context = None if ca_file is None else ssl.create_default_context(cafile=ca_file)
-
-        if es_client is not None:
-            self.es_client = es_client
-        elif es_username is None or es_psw is None:
-            self.es_client = Elasticsearch([server_url], ssl_context=ssl_context)
-        else:
-            # authenticate user
-            self.es_client = Elasticsearch([server_url], http_auth=(es_username, es_psw), ssl_context=ssl_context)
-
-        if not self.es_client.ping():
-            raise ValueError("Connection failed")
+        self.es_client = self.get_es_client(host, port, es_username, es_psw, ca_file)
 
         self.es_index_name = (
             es_index_name
             if es_index_name is not None
             else "huggingface_datasets_" + os.path.basename(tempfile.NamedTemporaryFile().name)
         )
+
         self.es_index_config = (
             es_index_config
             if es_index_config is not None
@@ -169,12 +155,38 @@ class ElasticSearchIndex(BaseIndex):
             }
         )
 
+    def get_es_client(self, host, port, es_username=None, es_psw=None, ca_file=None):
+        """
+        Create the elasticsearch client instance and check the connection by issuing a simple ping request.
+
+        :param host: elasticsearch server hostname
+        :param port:  elasticsearch server port
+        :param es_username: user name for basic authentication (optional)
+        :param es_psw: password for basic authentication (optional)
+        :param ca_file: certificate file for https connection
+        :return: the client
+        """
+        from elasticsearch import Elasticsearch  # noqa: F811
+
+        server_url = ("https" if ca_file is not None else "http") + "://" + host + ":" + str(port)
+        ssl_context = None if ca_file is None else ssl.create_default_context(cafile=ca_file)
+
+        if es_username is None or es_psw is None:
+            es_client = Elasticsearch([server_url], ssl_context=ssl_context)
+        else:
+            # authenticate user
+            es_client = Elasticsearch([server_url], http_auth=(es_username, es_psw), ssl_context=ssl_context)
+
+        if not es_client.ping():
+            raise ValueError("Connection failed")
+
+        return es_client
+
     def add_documents(self, documents: Union[List[str], "Dataset"], column: Optional[str] = None):
         """
         Add documents to the index.
         If the documents are inside a certain column, you can specify it using the `column` argument.
         """
-        import mmh3  # noqa: F811
         from elasticsearch.exceptions import ElasticsearchException, RequestError  # noqa: F811
 
         index_name = self.es_index_name
@@ -194,7 +206,6 @@ class ElasticSearchIndex(BaseIndex):
             logger.info(f"The index {index_name} already exists:")
             existing_index = self.es_client.indices.get(index=index_name)
             logger.info(f"{existing_index}")
-
             # TODO compare index_config with existing_index['oscar_unshuffled_deduplicated']
             # check if mappings and settings are exactly the same
         else:
@@ -209,7 +220,7 @@ class ElasticSearchIndex(BaseIndex):
                     raise RuntimeError(create_error)
 
         number_of_docs = len(documents)
-        progress = tqdm(
+        progress = utils.tqdm(
             unit="docs",
             total=number_of_docs,
             disable=bool(logging.get_verbosity() == logging.NOTSET),
@@ -226,7 +237,6 @@ class ElasticSearchIndex(BaseIndex):
                     yield {
                         "_id": i,
                         "text": example[column],
-                        "mmh3.hash128": str(mmh3.hash128(example[column], hash_seed)),
                         "indexing_time": now,
                         "length": len(example[column]),
                     }
@@ -717,16 +727,21 @@ class IndexableMixin:
             ca_file(Optional :obj:`str`, defaults to None):
                 path to certificate file to create the ssl context used in connexion over https
         """
-        if es_client is None:
 
-            # TODO add credentials and ssl context
-            try:
-                es_client = Elasticsearch([{"host": host, "port": str(port)}])
-            except NameError:
-                from elasticsearch import Elasticsearch  # noqa: F401
+        if self._indexes[es_index_name] is None:
+            es_index = ElasticSearchIndex(
+                host=host,
+                port=port,
+                es_client=es_client,
+                es_index_name=es_index_name,
+                es_index_config=None,
+                es_username=es_username,
+                es_psw=es_psw,
+                ca_file=ca_file,
+            )
+            self._indexes[es_index_name] = es_index
 
-                es_client = Elasticsearch([{"host": host, "port": str(port)}])
-        es_client.update_by_query(body=body, index=es_index_name, **kwargs)
+        self._indexes[es_index_name].es_client.update_by_query(body=body, index=es_index_name, **kwargs)
 
     def load_elasticsearch_index(
         self,

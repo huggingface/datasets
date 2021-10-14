@@ -19,9 +19,6 @@ jobs:
           # pyarrow==3.0.0
           pip install pyarrow==3.0.0
 
-          # elasticsearch==7.10.1
-          pip install elasticsearch==7.10.1
-
           dvc repro --force
 
           git fetch --prune

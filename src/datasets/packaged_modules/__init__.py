@@ -41,4 +41,5 @@ _EXTENSION_TO_MODULE = {
     "jsonl": "json",
     "parquet": "parquet",
     "txt": "text",
+    "elasticsearch": "elasticsearch",
 }

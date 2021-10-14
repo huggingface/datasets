@@ -1,14 +1,8 @@
 # coding=utf-8
 
 import importlib.util
-import json
-import re
-import ssl
 from dataclasses import dataclass
 from typing import Optional
-
-from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import ConnectionError
 
 import datasets
 from datasets.utils import logging
@@ -23,14 +17,14 @@ logger = logging.get_logger(__name__)
 class ElasticsearchConfig(datasets.BuilderConfig):
     """BuilderConfig for ElasticsearchBuilder."""
 
-    host: Optional[str] = (None,)
-    port: Optional[int] = (None,)
-    es_username: Optional[int] = (None,)
-    es_psw: Optional[int] = (None,)
-    ca_file: Optional[int] = (None,)
-    es_index_name: Optional[str] = (None,)
-    es_index_config: Optional[dict] = (None,)
-    query: Optional[str] = (None,)
+    host: Optional[str] = None
+    port: Optional[int] = None
+    es_username: Optional[int] = None
+    es_psw: Optional[int] = None
+    ca_file: Optional[int] = None
+    es_index_name: Optional[str] = None
+    es_index_config: Optional[dict] = None
+    query: Optional[str] = None
 
 
 class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
@@ -38,7 +32,7 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIG_CLASS = ElasticsearchConfig
 
-    es_client: Optional["Elasticsearch"] = (None,)
+    es_client: Optional["Elasticsearch"] = None
 
     def __init__(self, *args, **kwargs):
         super(ElasticsearchBuilder, self).__init__(*args, **kwargs)
@@ -55,6 +49,10 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
         return self.info
 
     def _init_connexion(self):
+        import ssl
+
+        from elasticsearch import Elasticsearch
+
         # init the elasticsearch client and test connection
         server_url = (
             ("https" if self.config.ca_file is not None else "http")
@@ -87,10 +85,19 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
         mapping_response = self.es_client.indices.get_mapping(index=self.config.es_index_name)
         self.mapping = mapping_response[self.config.es_index_name]["mappings"]
 
-        _DESCRIPTION = self.mapping["_meta"]["description"]
-        _HOMEPAGE = self.mapping["_meta"]["homepage"]
-        _CITATION = self.mapping["_meta"]["citation"]
-        _LICENSE = self.mapping["_meta"]["license"]
+        if "_meta" in self.mapping.keys():
+            _DESCRIPTION = self.mapping["_meta"]["description"]
+            _HOMEPAGE = self.mapping["_meta"]["homepage"]
+            _CITATION = self.mapping["_meta"]["citation"]
+            _LICENSE = self.mapping["_meta"]["license"]
+        else:
+            logger.warning(
+                f"No meta on this ES index {self.config.es_index_name}. The dataset will not have metadata."
+            )
+            _DESCRIPTION = None
+            _HOMEPAGE = None
+            _CITATION = None
+            _LICENSE = None
 
         self.info = datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -122,9 +129,11 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
         )
         total_number_of_results = response["hits"]["total"]["value"]
 
+        import sys
+
         return [
             datasets.SplitGenerator(
-                name=f"{self.config.es_index_name}?q={query}",
+                name=f"{self.config.es_index_name}_{sys.maxsize + hash(query)}",
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "query": query,
