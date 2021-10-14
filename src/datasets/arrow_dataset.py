@@ -328,13 +328,14 @@ class TensorflowDatasetMixin:
         # Special casing when the dataset has 'label' and the model expects 'labels' and the collator fixes it up for us
         if "labels" in cols_to_retain and "labels" not in self.features and "label" in self.features:
             cols_to_retain[cols_to_retain.index("labels")] = "label"
+        # Watch for nonexistent columns, except those that the data collators add for us
         for col in cols_to_retain:
-            if col not in self.features:
+            if col not in self.features and not (col in ("attention_mask", "labels") and collate_fn is not None):
                 raise ValueError(f"Couldn't find column {col} in dataset.")
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
-        dataset = self.with_format("numpy", columns=cols_to_retain)
+        dataset = self.with_format("python", columns=[col for col in cols_to_retain if col in self.features])
 
         def numpy_pad(data):
             try:
