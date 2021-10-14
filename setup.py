@@ -223,7 +223,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.13.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.13.2",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     long_description_content_type="text/markdown",
