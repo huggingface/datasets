@@ -120,7 +120,10 @@ class ElasticSearchIndex(BaseIndex):
 
         import elasticsearch.helpers  # noqa: need this to properly load all the es features
 
-        self.es_client = self.get_es_client(host, port, es_username, es_psw, ca_file)
+        if es_client is not None :
+            self.es_client = es_client
+        else:
+            self.es_client = self.get_es_client(host, port, es_username, es_psw, ca_file)
 
         self.es_index_name = (
             es_index_name
@@ -192,13 +195,16 @@ class ElasticSearchIndex(BaseIndex):
         index_name = self.es_index_name
         index_config = self.es_index_config
 
-        # add metadata from dataset info to the index mapping
-        index_config["mappings"]["_meta"] = {
-            "description": documents.info.description,
-            "citation": documents.info.citation,
-            "homepage": documents.info.homepage,
-            "license": documents.info.license,
-        }
+        if hasattr(documents, 'info'):
+            # add metadata from dataset info to the index mapping
+            index_config["mappings"]["_meta"] = {
+                "description": documents.info.description,
+                "citation": documents.info.citation,
+                "homepage": documents.info.homepage,
+                "license": documents.info.license,
+            }
+        else:
+            logger.warning(f"No meta on this dataset.")
 
         index_config["settings"]["max_ngram_diff"] = 5
 
