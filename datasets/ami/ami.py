@@ -318,6 +318,7 @@ class AMI(datasets.GeneratorBasedBuilder):
 
         if self.config.name == "headset-single":
             features_dict.update({"file": datasets.Value("string")})
+            features_dict.update({"audio": datasets.features.Audio(sampling_rate=16_000)})
             config_description = (
                 "Close talking audio of single headset. "
                 "This configuration only includes audio belonging to the "
@@ -325,38 +326,23 @@ class AMI(datasets.GeneratorBasedBuilder):
             )
         elif self.config.name == "microphone-single":
             features_dict.update({"file": datasets.Value("string")})
+            features_dict.update({"audio": datasets.features.Audio(sampling_rate=16_000)})
             config_description = (
                 "Far field audio of single microphone. "
                 "This configuration only includes audio belonging the first microphone, "
                 "*i.e.* 1-1, of the microphone array."
             )
         elif self.config.name == "headset-multi":
-            features_dict.update(
-                {
-                    "file-0": datasets.Value("string"),
-                    "file-1": datasets.Value("string"),
-                    "file-2": datasets.Value("string"),
-                    "file-3": datasets.Value("string"),
-                }
-            )
+            features_dict.update({f"file-{i}": datasets.Value("string") for i in range(4)})
+            features_dict.update({f"file-{i}": datasets.features.Audio(sampling_rate=16_000) for i in range(4)})
             config_description = (
                 "Close talking audio of four individual headset. "
                 "This configuration includes audio belonging to four individual headsets."
                 " For each annotation there are 4 audio files 0, 1, 2, 3."
             )
         elif self.config.name == "microphone-multi":
-            features_dict.update(
-                {
-                    "file-1-1": datasets.Value("string"),
-                    "file-1-2": datasets.Value("string"),
-                    "file-1-3": datasets.Value("string"),
-                    "file-1-4": datasets.Value("string"),
-                    "file-1-5": datasets.Value("string"),
-                    "file-1-6": datasets.Value("string"),
-                    "file-1-7": datasets.Value("string"),
-                    "file-1-8": datasets.Value("string"),
-                }
-            )
+            features_dict.update({f"file-1-{i}": datasets.Value("string") for i in range(1, 8)})
+            features_dict.update({f"file-1-{i}": datasets.features.Audio(sampling_rate=16_000) for i in range(1, 8)})
             config_description = (
                 "Far field audio of microphone array. "
                 "This configuration includes audio of "
@@ -570,11 +556,13 @@ class AMI(datasets.GeneratorBasedBuilder):
             }
 
             if self.config.name in ["headset-single", "microphone-single"]:
-                result.update({"file": samples_paths_dict[_id][0]})
+                result.update({"file": samples_paths_dict[_id][0], "audio": samples_paths_dict[_id][0]})
             elif self.config.name in ["headset-multi"]:
                 result.update({f"file-{i}": samples_paths_dict[_id][i] for i in range(num_audios)})
+                result.update({f"audio-{i}": samples_paths_dict[_id][i] for i in range(num_audios)})
             elif self.config.name in ["microphone-multi"]:
                 result.update({f"file-1-{i+1}": samples_paths_dict[_id][i] for i in range(num_audios)})
+                result.update({f"audio-1-{i+1}": samples_paths_dict[_id][i] for i in range(num_audios)})
             else:
                 raise ValueError(f"Configuration {self.config.name} does not exist.")
 
