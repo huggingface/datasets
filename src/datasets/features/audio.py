@@ -21,7 +21,6 @@ class Audio:
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = None
     _type: str = field(default="Audio", init=False, repr=False)
-    _resampler: Any = field(default=None, init=False, repr=False, compare=False)
 
     def __call__(self):
         return pa.string()
@@ -69,7 +68,7 @@ class Audio:
         if self.mono:
             array = array.mean(axis=0)
         if self.sampling_rate and self.sampling_rate != sampling_rate:
-            if not self._resampler:
+            if not hasattr(self, "_resampler"):
                 self._resampler = T.Resample(sampling_rate, self.sampling_rate)
             array = self._resampler(array, sampling_rate, self.sampling_rate)
             sampling_rate = self.sampling_rate

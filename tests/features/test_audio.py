@@ -4,7 +4,7 @@ from importlib.util import find_spec
 
 import pytest
 
-from datasets import Dataset
+from datasets import Dataset, load_dataset
 from datasets.features import Audio, Features, Value
 
 
@@ -250,3 +250,12 @@ def test_formatted_dataset_with_audio_feature(shared_datadir):
         assert column[0]["path"] == audio_path
         assert column[0]["array"].shape == (202311,)
         assert column[0]["sampling_rate"] == 44100
+
+
+@require_sndfile
+def test_dataset_with_audio_feature_loaded_from_cache():
+    # load first time
+    ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean")
+    # load from cache
+    ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean", split="validation")
+    assert isinstance(ds, Dataset)

@@ -102,7 +102,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.0.18,<0.1.0",
+    "huggingface_hub>=0.0.19,<0.1.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
 ]
@@ -223,7 +223,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.13.1",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.13.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description=DOCLINES[0],
     long_description="\n".join(DOCLINES[2:]),
     long_description_content_type="text/markdown",
