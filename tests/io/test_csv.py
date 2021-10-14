@@ -1,5 +1,4 @@
 import csv
-import io
 
 import pytest
 
