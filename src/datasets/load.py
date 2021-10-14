@@ -581,7 +581,7 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
         imports = get_imports(local_path)
         local_imports = _download_additional_modules(
             name=self.name,
-            base_path=hf_github_url(path=self.name, name="", revision=revision),
+            base_path=hf_github_url(path=self.name, name="", revision=revision, dataset=False),
             imports=imports,
             download_config=self.download_config,
         )
