@@ -10,7 +10,7 @@ languages:
 - es
 - fr
 - it
-- jap
+- ja
 - nl
 - pl
 - pt
@@ -234,3 +234,7 @@ To evaluate multi-lingual language models (ML-LMs) for commonsense reasoning in 
     year = {2019}
 }
 ```
+
+### Contributions
+
+[Needs More Information]
