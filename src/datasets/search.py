@@ -227,9 +227,6 @@ class ElasticSearchIndex(BaseIndex):
         )
         successes = 0
 
-        # absolutely not the right place to put this constant used in hashing
-        hash_seed = 42
-
         def passage_generator():
             now = datetime.datetime.now().isoformat()
             if column is not None:
@@ -249,10 +246,9 @@ class ElasticSearchIndex(BaseIndex):
                     }
 
         # create the ES index
-        import elasticsearch as es
         from elasticsearch.helpers import streaming_bulk
 
-        for ok, action in es.helpers.streaming_bulk(
+        for ok, action in streaming_bulk(
             client=self.es_client,
             index=index_name,
             actions=passage_generator(),

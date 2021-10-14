@@ -21,7 +21,6 @@ import copy
 import json
 import os
 import shutil
-import ssl
 import tempfile
 import weakref
 from collections import Counter, UserDict
