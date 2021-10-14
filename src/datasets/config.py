@@ -82,6 +82,8 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
                 continue
             else:
                 break
+        else:
+            TF_AVAILABLE = False
     if TF_AVAILABLE:
         if TF_VERSION.major < 2:
             logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
@@ -186,5 +188,5 @@ MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255
 
 # Streaming
 
-STREAMING_READ_MAX_RETRIES = 3
-STREAMING_READ_RETRY_INTERVAL = 1
+STREAMING_READ_MAX_RETRIES = 20
+STREAMING_READ_RETRY_INTERVAL = 5

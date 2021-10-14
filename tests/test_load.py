@@ -4,7 +4,6 @@ import re
 import shutil
 import tempfile
 import time
-from functools import partial
 from hashlib import sha256
 from pathlib import Path
 from unittest import TestCase
@@ -32,7 +31,6 @@ from datasets.load import (
     LocalDatasetModuleFactoryWithScript,
     LocalMetricModuleFactory,
     PackagedDatasetModuleFactory,
-    prepare_module,
 )
 from datasets.utils.file_utils import DownloadConfig, is_remote_url
 
@@ -183,7 +181,15 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
-    def test_CanonicalMetricModuleFactory(self):
+    def test_CanonicalMetricModuleFactory_with_internal_import(self):
+        # "squad_v2" requires additional imports (internal)
+        factory = CanonicalMetricModuleFactory(
+            "squad_v2", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CanonicalMetricModuleFactory_with_external_import(self):
         # "bleu" requires additional imports (external from github)
         factory = CanonicalMetricModuleFactory(
             "bleu", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
@@ -558,16 +564,24 @@ def test_loading_from_the_datasets_hub_with_use_auth_token():
         mock_head.assert_called()
 
 
-def test_loaded_streaming_dataset_has_use_auth_token(dataset_loading_script_dir, data_dir):
-    from datasets.utils.streaming_download_manager import xopen
+@pytest.mark.skipif(
+    os.name == "nt", reason="skip on windows because of SSL issues with moon-staging.huggingface.co:443"
+)
+def test_load_streaming_private_dataset(hf_token, hf_private_dataset_repo_txt_data):
+    with pytest.raises(FileNotFoundError):
+        load_dataset(hf_private_dataset_repo_txt_data, streaming=True)
+    ds = load_dataset(hf_private_dataset_repo_txt_data, streaming=True, use_auth_token=hf_token)
+    assert next(iter(ds)) is not None
 
-    use_auth_token = "foo"
-    load_dataset(dataset_loading_script_dir, streaming=True, data_dir=data_dir, use_auth_token=use_auth_token)
-    module_path, _ = prepare_module(dataset_loading_script_dir)
-    module = importlib.import_module(module_path)
-    assert isinstance(module.open, partial)
-    assert module.open.func is xopen
-    assert module.open.keywords == {"use_auth_token": use_auth_token}
+
+@pytest.mark.skipif(
+    os.name == "nt", reason="skip on windows because of SSL issues with moon-staging.huggingface.co:443"
+)
+def test_load_streaming_private_dataset_with_zipped_data(hf_token, hf_private_dataset_repo_zipped_txt_data):
+    with pytest.raises(FileNotFoundError):
+        load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True)
+    ds = load_dataset(hf_private_dataset_repo_zipped_txt_data, streaming=True, use_auth_token=hf_token)
+    assert next(iter(ds)) is not None
 
 
 def test_load_dataset_then_move_then_reload(dataset_loading_script_dir, data_dir, tmp_path, caplog):
