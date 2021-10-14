@@ -40,7 +40,7 @@ _URL = {
 
 
 language_pairs = [
-"en-lg",
+"en-lug",
 "en-run",
 "en-ach",
 "en-lgg",
