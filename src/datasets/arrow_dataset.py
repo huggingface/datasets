@@ -503,12 +503,12 @@ def transmit_tasks(func):
         out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
         datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
         for dataset in datasets:
-            # Remove task templates if a feature of the template has changed
+            # Remove task templates if a column mapping of the template is no longer valid
             if self.info.task_templates is not None:
                 dataset.info.task_templates = [
                     template
                     for template in self.info.task_templates
-                    if all(dataset.features.get(k) == self.features.get(k) for k in template.features.keys())
+                    if all(dataset.features.get(k) == self.features.get(k) for k in template.column_mapping.keys())
                 ]
         return out
 
