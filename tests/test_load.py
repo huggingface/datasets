@@ -181,7 +181,15 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
-    def test_CanonicalMetricModuleFactory(self):
+    def test_CanonicalMetricModuleFactory_with_internal_import(self):
+        # "squad_v2" requires additional imports (internal)
+        factory = CanonicalMetricModuleFactory(
+            "squad_v2", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+
+    def test_CanonicalMetricModuleFactory_with_external_import(self):
         # "bleu" requires additional imports (external from github)
         factory = CanonicalMetricModuleFactory(
             "bleu", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
