@@ -1,5 +1,5 @@
 import importlib
-from functools import partial
+from functools import wraps
 from typing import Optional, Union
 from unittest.mock import patch
 
@@ -44,8 +44,16 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
 
     module = importlib.import_module(module_path)
 
+    if hasattr(module, "_patched_for_streaming") and module._patched_for_streaming:
+        return
+
     def wrap_auth(function):
-        return partial(function, use_auth_token=use_auth_token)
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            return function(*args, use_auth_token=use_auth_token, **kwargs)
+
+        wrapper._decorator_name_ = "wrap_auth"
+        return wrapper
 
     # open files in a streaming fashion
     patch_submodule(module, "open", wrap_auth(xopen)).start()
@@ -58,7 +66,8 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
         patch.object(module.Path, "__truediv__", xpathjoin).start()
         patch.object(module.Path, "open", wrap_auth(xpathopen)).start()
         patch.object(module.Path, "glob", wrap_auth(xpathglob)).start()
-        patch.object(module.Path, "rglob", xpathrglob).start()
+        patch.object(module.Path, "rglob", wrap_auth(xpathrglob)).start()
         patch.object(module.Path, "stem", property(fget=xpathstem)).start()
         patch.object(module.Path, "suffix", property(fget=xpathsuffix)).start()
     patch_submodule(module, "pd.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
+    module._patched_for_streaming = True

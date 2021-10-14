@@ -20,7 +20,7 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         data, cache_files, num_columns, num_rows, column_names, shape,
         unique,
         flatten_, cast_, remove_columns_, rename_column_,
-        flatten, cast, remove_columns, rename_column, class_encode_column,
+        flatten, cast, cast_column, remove_columns, rename_column, class_encode_column,
         __len__, __iter__, formatted_as, set_format, set_transform, reset_format, with_format, with_transform,
         __getitem__, cleanup_cache_files,
         map, filter, select, sort, shuffle, train_test_split, shard, export,
@@ -55,7 +55,7 @@ It also has dataset transform methods like map or filter, to process all the spl
         cleanup_cache_files,
         map, filter, sort, shuffle, set_format, reset_format, formatted_as, with_format, with_transform,
         flatten_, cast_, remove_columns_, rename_column_,
-        flatten, cast, remove_columns, rename_column, class_encode_column,
+        flatten, cast, cast_column, remove_columns, rename_column, class_encode_column,
         save_to_disk, load_from_disk,
         from_csv, from_json, from_parquet, from_text,
         prepare_for_task, align_labels_with_mapping
@@ -116,6 +116,9 @@ Dictionary with split names as keys ('train', 'test' for example), and :obj:`dat
     :members:
 
 .. autoclass:: datasets.Array5D
+    :members:
+
+.. autoclass:: datasets.Audio
     :members:
 
 ``MetricInfo``
