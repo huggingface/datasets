@@ -1,5 +1,6 @@
 import csv
 import io
+
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
@@ -124,31 +125,34 @@ def test_csv_datasetdict_reader_split(split, csv_path, tmp_path):
     _check_csv_datasetdict(dataset, expected_features, splits=list(path.keys()))
     assert all(dataset[split].split == split for split in path.keys())
 
+
 def load_csv(csv_path):
-    csvfile = open(csv_path, 'r', encoding='utf-8')
+    csvfile = open(csv_path, "r", encoding="utf-8")
     csvreader = csv.reader(csvfile)
     return csvreader
+
 
 def test_dataset_to_csv(csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
     output_csv = cache_dir / "tmp.csv"
     dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
-    CsvDatasetWriter(dataset['train'], output_csv, index=False, num_proc=1).write()
+    CsvDatasetWriter(dataset["train"], output_csv, index=False, num_proc=1).write()
 
     original_csv = load_csv(csv_path)
     expected_csv = load_csv(output_csv)
 
-    for row1,row2 in zip(original_csv, expected_csv):
-        assert row1==row2
+    for row1, row2 in zip(original_csv, expected_csv):
+        assert row1 == row2
+
 
 def test_dataset_to_csv_multiproc(csv_path, tmp_path):
     cache_dir = tmp_path / "cache"
     output_csv = cache_dir / "tmp.csv"
     dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
-    CsvDatasetWriter(dataset['train'], output_csv, index=False, num_proc=2).write()
+    CsvDatasetWriter(dataset["train"], output_csv, index=False, num_proc=2).write()
 
     original_csv = load_csv(csv_path)
     expected_csv = load_csv(output_csv)
 
-    for row1,row2 in zip(original_csv, expected_csv):
-        assert row1==row2
+    for row1, row2 in zip(original_csv, expected_csv):
+        assert row1 == row2
