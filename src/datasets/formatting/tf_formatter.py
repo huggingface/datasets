@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
-    def __init__(self, **tf_tensor_kwargs):
+    def __init__(self, features=None, decoded=True, **tf_tensor_kwargs):
         self.tf_tensor_kwargs = tf_tensor_kwargs
         import tensorflow as tf  # noqa: import tf at initialization
 

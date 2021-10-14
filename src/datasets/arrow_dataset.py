@@ -22,7 +22,8 @@ import json
 import os
 import shutil
 import tempfile
-from collections import Counter
+import weakref
+from collections import Counter, UserDict
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import asdict
@@ -85,6 +86,43 @@ if config.PYARROW_VERSION.major == 0:
     PYARROW_V0 = True
 else:
     PYARROW_V0 = False
+
+
+class LazyDict(UserDict):
+    def __init__(self, data, features=None, decoding=True):
+        self.data = data
+        self.features = (
+            {key: feature for key, feature in features.items() if hasattr(feature, "decode_example")}
+            if features
+            else {}
+        )
+        self.decoding = decoding
+
+    def values(self):
+        return self.data.values()
+
+    def items(self):
+        return self.data.items()
+
+
+class Example(LazyDict):
+    def __getitem__(self, key):
+        value = super().__getitem__(key)
+        if self.decoding and self.features and key in self.features:
+            value = self.features[key].decode_example(value)
+            self[key] = value
+            del self.features[key]
+        return value
+
+
+class Batch(LazyDict):
+    def __getitem__(self, key):
+        values = super().__getitem__(key)
+        if self.decoding and self.features and key in self.features:
+            values = [self.features[key].decode_example(value) for value in values]
+            self[key] = values
+            del self.features[key]
+        return values
 
 
 class DatasetInfoMixin:
@@ -159,16 +197,15 @@ class DatasetInfoMixin:
         return self._info.version
 
 
-class TensorflowDatasetMixIn:
-    def __init__(self):
-        pass
+class TensorflowDatasetMixin:
+    _TF_DATASET_REFS = set()
 
     @staticmethod
     def _get_output_signature(dataset, cols_to_retain, test_batch, batch_size):
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
-            raise ImportError("Called a Tensorflow-specific function but could not import it!")
+            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
         signatures = {}
         for column, col_feature in dataset.features.items():
@@ -183,7 +220,7 @@ class TensorflowDatasetMixIn:
             elif dtype_str.startswith("float"):
                 dtype = tf.float32
             else:
-                raise ValueError(f"Could not convert datatype {dtype_str} in column {column}!")
+                raise ValueError(f"Could not convert datatype {dtype_str} in column {column}.")
 
             shape = []
             shape_feature = col_feature
@@ -202,7 +239,7 @@ class TensorflowDatasetMixIn:
                         "If you're getting this error with one of our datasets, and you're "
                         "sure the column should be convertable to tf.Tensor, please "
                         "file an issue at github.com/huggingface/datasets and tag "
-                        "@rocketknight1!"
+                        "@rocketknight1."
                     )
             shape = [batch_size] + shape
             shape = [dim if dim != -1 else None for dim in shape]
@@ -247,27 +284,27 @@ class TensorflowDatasetMixIn:
             only columns that the model can use as input should be included here (numeric data only).
             batch_size (:obj:`int`): Size of batches to load from the dataset.
             shuffle(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
-             validation/evaluation.
+                validation/evaluation.
             drop_remainder(:obj:`bool`, default ``None``): Drop the last incomplete batch when loading. If not provided,
-             defaults to the same setting as shuffle.
+                defaults to the same setting as shuffle.
             collate_fn(:obj:`Callable`): A function or callable object (such as a `DataCollator`) that will collate
-             lists of samples into a batch.
+                lists of samples into a batch.
             collate_fn_args (:obj:`Dict`, optional): An optional `dict` of keyword arguments to be passed to the
-             `collate_fn`.
+                `collate_fn`.
             label_cols (:obj:`List[str]` or :obj:`str`, default ``None``): Dataset column(s) to load as
-             labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
-              not necessary to actually pass the labels here, as long as they're in the input `columns`.
+                labels. Note that many models compute loss internally rather than letting Keras do it, in which case it is
+                not necessary to actually pass the labels here, as long as they're in the input `columns`.
             dummy_labels (:obj:`bool`, default ``False``): If no `label_cols` are set, output an array of "dummy" labels
-             with each batch. This can avoid problems with `fit()` or `train_on_batch()` that expect labels to be
-             a Tensor or np.ndarray, but should (hopefully) not be necessary with our standard train_step().
+                with each batch. This can avoid problems with `fit()` or `train_on_batch()` that expect labels to be
+                a Tensor or np.ndarray, but should (hopefully) not be necessary with our standard train_step().
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
-             a small buffer of batches for training. Improves performance by allowing data to be loaded in the
-             background while the model is training.
+                a small buffer of batches for training. Improves performance by allowing data to be loaded in the
+                background while the model is training.
         """
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
-            raise ImportError("Called a Tensorflow-specific function but could not import it!")
+            raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
         if collate_fn_args is None:
             collate_fn_args = {}
@@ -277,13 +314,13 @@ class TensorflowDatasetMixIn:
         elif isinstance(label_cols, str):
             label_cols = [label_cols]
         elif len(set(label_cols)) < len(label_cols):
-            raise ValueError("List of label_cols contains duplicates!")
+            raise ValueError("List of label_cols contains duplicates.")
         if not columns:
-            raise ValueError("Need to specify at least one column!")
+            raise ValueError("Need to specify at least one column.")
         elif isinstance(columns, str):
             columns = [columns]
         elif len(set(columns)) < len(columns):
-            raise ValueError("List of columns contains duplicates!")
+            raise ValueError("List of columns contains duplicates.")
         if label_cols is not None:
             cols_to_retain = list(set(columns + label_cols))
         else:
@@ -293,7 +330,7 @@ class TensorflowDatasetMixIn:
             cols_to_retain[cols_to_retain.index("labels")] = "label"
         for col in cols_to_retain:
             if col not in self.features:
-                raise ValueError(f"Couldn't find column {col} in dataset!")
+                raise ValueError(f"Couldn't find column {col} in dataset.")
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
@@ -358,7 +395,7 @@ class TensorflowDatasetMixIn:
             return {key: output[i] for i, key in enumerate(cols_to_retain)}
 
         test_batch_dict = {key: test_batch[i] for i, key in enumerate(cols_to_retain)}
-        output_signature = dataset._get_output_signature(
+        output_signature = TensorflowDatasetMixin._get_output_signature(
             dataset, cols_to_retain, test_batch_dict, batch_size=batch_size if drop_remainder else None
         )
 
@@ -396,7 +433,14 @@ class TensorflowDatasetMixIn:
             tf_dataset = tf_dataset.map(add_dummy_labels)
 
         if prefetch:
-            tf_dataset = tf_dataset.prefetch(tf.data.AUTOTUNE)
+            tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
+
+        # Remove a reference to the open Arrow file on delete
+        def cleanup_callback(ref):
+            dataset.__del__()
+            self._TF_DATASET_REFS.remove(ref)
+
+        self._TF_DATASET_REFS.add(weakref.ref(tf_dataset, cleanup_callback))
         return tf_dataset
 
 
@@ -445,6 +489,33 @@ def transmit_format(func):
     return wrapper
 
 
+def transmit_tasks(func):
+    """Wrapper for dataset transforms that recreate a new Dataset to transmit the task templates of the original dataset to the new dataset"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if args:
+            self: "Dataset" = args[0]
+            args = args[1:]
+        else:
+            self: "Dataset" = kwargs.pop("self")
+        # apply actual function
+        out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
+        datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
+        for dataset in datasets:
+            # Remove task templates if a feature of the template has changed
+            if self.info.task_templates is not None:
+                dataset.info.task_templates = [
+                    template
+                    for template in self.info.task_templates
+                    if all(dataset.features.get(k) == self.features.get(k) for k in template.features.keys())
+                ]
+        return out
+
+    wrapper._decorator_name_ = "transmit_tasks"
+    return wrapper
+
+
 def update_metadata_with_features(table: Table, features: Features):
     """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
     if table.schema.metadata is None or "huggingface".encode("utf-8") not in table.schema.metadata:
@@ -478,7 +549,7 @@ class NonExistentDatasetError(Exception):
     pass
 
 
-class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
+class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     """A Dataset backed by an Arrow table."""
 
     def __init__(
@@ -1295,6 +1366,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         dataset = dataset.with_format(**format)
         return dataset
 
+    @fingerprint_transform(inplace=False)
+    def cast_column(self, column: str, feature, new_fingerprint: str) -> "Dataset":
+        """Cast column to feature for decoding.
+
+        Args:
+            column (:obj:`str`): Column name.
+            feature (:class:`Feature`): Target feature.
+
+        Returns:
+            :class:`Dataset`
+        """
+        if hasattr(feature, "decode_example"):
+            dataset = copy.deepcopy(self)
+            dataset.features[column] = feature
+            dataset._fingerprint = new_fingerprint
+            return dataset
+        else:
+            features = self.features.copy()
+            features[column] = feature
+            return self.cast(features)
+
     @deprecated(help_message="Use Dataset.remove_columns instead.")
     @fingerprint_transform(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
@@ -1322,6 +1414,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         self._data = self._data.drop(column_names)
         self._data = update_metadata_with_features(self._data, self.features)
 
+    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
         """
@@ -1399,6 +1492,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         self._data = self._data.rename_columns(new_column_names)
         self._data = update_metadata_with_features(self._data, self.features)
 
+    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_column(self, original_column_name: str, new_column_name: str, new_fingerprint) -> "Dataset":
         """
@@ -1447,6 +1541,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         dataset._fingerprint = new_fingerprint
         return dataset
 
+    @transmit_tasks
     @fingerprint_transform(inplace=False)
     def rename_columns(self, column_mapping: Dict[str, str], new_fingerprint) -> "Dataset":
         """
@@ -1508,17 +1603,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
         selected format.
         """
-        format_type = self._format_type
-        format_kwargs = self._format_kwargs
-        format_columns = self._format_columns
-        output_all_columns = self._output_all_columns
         for index in range(self.num_rows):
             yield self._getitem(
                 index,
-                format_type=format_type,
-                format_columns=format_columns,
-                output_all_columns=output_all_columns,
-                format_kwargs=format_kwargs,
+                decoded=False,
             )
 
     def __repr__(self):
@@ -1592,7 +1680,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
 
         # Check that the format_type and format_kwargs are valid and make it possible to have a Formatter
         type = get_format_type_from_alias(type)
-        _ = get_formatter(type, **format_kwargs)
+        _ = get_formatter(type, features=self.features, **format_kwargs)
 
         # Check filter column
         if isinstance(columns, str):
@@ -1747,19 +1835,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         dataset = dataset.cast(features=template.features)
         return dataset
 
-    def _getitem(
-        self,
-        key: Union[int, slice, str],
-        format_type=None,
-        format_columns=None,
-        output_all_columns=False,
-        format_kwargs=None,
-    ) -> Union[Dict, List]:
+    def _getitem(self, key: Union[int, slice, str], decoded: bool = True, **kwargs) -> Union[Dict, List]:
         """
         Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
         """
+        format_type = kwargs["format_type"] if "format_type" in kwargs else self._format_type
+        format_columns = kwargs["format_columns"] if "format_columns" in kwargs else self._format_columns
+        output_all_columns = (
+            kwargs["output_all_columns"] if "output_all_columns" in kwargs else self._output_all_columns
+        )
+        format_kwargs = kwargs["format_kwargs"] if "format_kwargs" in kwargs else self._format_kwargs
         format_kwargs = format_kwargs if format_kwargs is not None else {}
-        formatter = get_formatter(format_type, **format_kwargs)
+        formatter = get_formatter(format_type, features=self.features, decoded=decoded, **format_kwargs)
         pa_subtable = query_table(self._data, key, indices=self._indices if self._indices is not None else None)
         formatted_output = format_table(
             pa_subtable, key, formatter=formatter, format_columns=format_columns, output_all_columns=output_all_columns
@@ -1770,10 +1857,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
         return self._getitem(
             key,
-            format_type=self._format_type,
-            format_columns=self._format_columns,
-            output_all_columns=self._output_all_columns,
-            format_kwargs=self._format_kwargs,
         )
 
     def cleanup_cache_files(self) -> int:
@@ -1891,6 +1974,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
 
         if function is None:
             function = lambda x: x  # noqa: E731
+
+        def decorate(f):
+            """
+            Decorate the mapped function, so that its first argument is wrapped with a LazyDict to be used internally
+            but a standard dictionary is returned at the end of the mapping.
+            """
+
+            @wraps(f)
+            def decorated(item, *args, **kwargs):
+                # Decorate first arg with LazyDict (either Example or Batch)
+                decorated_item = (
+                    Example(item, features=self.features) if not batched else Batch(item, features=self.features)
+                )
+                # Use the LazyDict internally, while mapping the function
+                result = f(decorated_item, *args, **kwargs)
+                # Return a standard dict
+                return result.data if isinstance(result, LazyDict) else result
+
+            return decorated
+
+        function = decorate(function) if not self._format_type and not input_columns else function
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -2046,6 +2150,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 result._fingerprint = new_fingerprint
             return result
 
+    @transmit_tasks
     @transmit_format
     @fingerprint_transform(
         inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc", "cache_only"]
@@ -2139,6 +2244,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
+                info.task_templates = None
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
         # Raise an error if we were supposed to return a cached dataset and none was found
@@ -2196,6 +2302,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                     format_type=None,
                     format_columns=None,
                     format_kwargs=None,
+                    decoded=False,
                 )
             if remove_columns is not None:
                 for column in remove_columns:
@@ -2286,7 +2393,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
                     for i in pbar:
                         if drop_last_batch and i + batch_size > input_dataset.num_rows:
                             continue
-                        batch = input_dataset[i : i + batch_size]
+                        batch = input_dataset._getitem(
+                            slice(i, i + batch_size),
+                            decoded=False,
+                        )
                         indices = list(
                             range(*(slice(i, i + batch_size).indices(input_dataset.num_rows)))
                         )  # Something simpler?
@@ -2331,14 +2441,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixIn):
         if update_data:
             # Create new Dataset from buffer or file
             info = self.info.copy()
-            # Remove task templates if the required features have been removed
-            if info.task_templates:
-                info.task_templates = [
-                    template
-                    for template in info.task_templates
-                    if all(k in writer._features.keys() for k in template.features)
-                ]
             info.features = writer._features
+            info.task_templates = None
             if buf_writer is None:
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
             else:

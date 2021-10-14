@@ -2062,10 +2062,6 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(batch.shape.as_list(), [4])
             self.assertEqual(batch.dtype.name, "int64")
         del tf_dataset  # For correct cleanup
-        try:
-            tmp_dir.cleanup()
-        except PermissionError:
-            pass  # Just leave it, this usually only happens on the CI runner and will get cleaned up anyway
 
 
 class MiscellaneousDatasetTest(TestCase):

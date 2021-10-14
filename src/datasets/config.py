@@ -82,6 +82,8 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
                 continue
             else:
                 break
+        else:
+            TF_AVAILABLE = False
     if TF_AVAILABLE:
         if TF_VERSION.major < 2:
             logger.info(f"TensorFlow found but with version {TF_VERSION}. `datasets` requires version 2 minimum.")
@@ -110,7 +112,7 @@ else:
 USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
 BEAM_VERSION = "N/A"
 BEAM_AVAILABLE = False
-if USE_BEAM in ("1", "ON", "YES", "AUTO"):
+if USE_BEAM in ENV_VARS_TRUE_AND_AUTO_VALUES:
     try:
         BEAM_VERSION = version.parse(importlib_metadata.version("apache_beam"))
         BEAM_AVAILABLE = True
@@ -150,6 +152,11 @@ EXTRACTED_DATASETS_DIR = "extracted"
 DEFAULT_EXTRACTED_DATASETS_PATH = os.path.join(DEFAULT_DOWNLOADED_DATASETS_PATH, EXTRACTED_DATASETS_DIR)
 EXTRACTED_DATASETS_PATH = Path(os.getenv("HF_DATASETS_EXTRACTED_DATASETS_PATH", DEFAULT_EXTRACTED_DATASETS_PATH))
 
+# Download count for the website
+HF_UPDATE_DOWNLOAD_COUNTS = (
+    os.environ.get("HF_UPDATE_DOWNLOAD_COUNTS", "AUTO").upper() in ENV_VARS_TRUE_AND_AUTO_VALUES
+)
+
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000
@@ -159,11 +166,7 @@ DEFAULT_MAX_BATCH_SIZE = 10_000
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
 
 # Offline mode
-HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper()
-if HF_DATASETS_OFFLINE in ("1", "ON", "YES"):
-    HF_DATASETS_OFFLINE = True
-else:
-    HF_DATASETS_OFFLINE = False
+HF_DATASETS_OFFLINE = os.environ.get("HF_DATASETS_OFFLINE", "AUTO").upper() in ENV_VARS_TRUE_VALUES
 
 # In-memory
 DEFAULT_IN_MEMORY_MAX_SIZE = 0  # Disabled
@@ -185,5 +188,5 @@ MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255
 
 # Streaming
 
-STREAMING_READ_MAX_RETRIES = 3
-STREAMING_READ_RETRY_INTERVAL = 1
+STREAMING_READ_MAX_RETRIES = 20
+STREAMING_READ_RETRY_INTERVAL = 5

@@ -179,6 +179,7 @@ Chalmers University of Technology
 This dataset is released under the [Creative Commons Attribution-ShareAlike 4.0 International Public License (CC BY-SA 4.0)](http://creativecommons.org/licenses/by-sa/4.0/).
 
 ### Citation Information
+
 ```bibtex
 @inproceedings{almgrenpavlovmogren2016bioner,
   title={Named Entity Recognition in Swedish Medical Journals with Deep Bidirectional Character-Based LSTMs},

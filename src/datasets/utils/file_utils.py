@@ -20,19 +20,17 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, List, Optional, TypeVar, Union
+from typing import Dict, Optional, TypeVar, Union
 from urllib.parse import urlparse
 
 import numpy as np
 import posixpath
 import requests
-from tqdm.contrib.concurrent import thread_map
 
 from .. import __version__, config, utils
 from . import logging
 from .extract import ExtractManager
 from .filelock import FileLock
-from .tqdm_utils import tqdm
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
@@ -348,7 +346,7 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
 def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> dict:
     """Handle the HF authentication"""
     headers = {}
-    if url.startswith("https://huggingface.co/"):
+    if url.startswith(config.HF_ENDPOINT):
         token = None
         if isinstance(use_auth_token, str):
             token = use_auth_token
@@ -490,24 +488,6 @@ def request_etag(url: str, use_auth_token: Optional[Union[str, bool]] = None) ->
     response.raise_for_status()
     etag = response.headers.get("ETag") if response.ok else None
     return etag
-
-
-def request_etags(
-    urls: List[str],
-    use_auth_token: Optional[Union[str, bool]] = None,
-    max_workers=64,
-    tqdm_kwargs: Optional[dict] = None,
-) -> List[Optional[str]]:
-    tqdm_kwargs = tqdm_kwargs if tqdm_kwargs is not None else {}
-    tqdm_kwargs["desc"] = tqdm_kwargs.get("desc", "Get ETags")
-    tqdm_kwargs["disable"] = tqdm_kwargs.get("disable", len(urls) <= 16 or logging.get_verbosity() == logging.NOTSET)
-    return thread_map(
-        partial(request_etag, use_auth_token=use_auth_token),
-        urls,
-        max_workers=max_workers,
-        tqdm_class=tqdm,
-        **tqdm_kwargs,
-    )
 
 
 def get_from_cache(
