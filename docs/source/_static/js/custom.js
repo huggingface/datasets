@@ -1,6 +1,6 @@
 // These two things need to be updated at each release for the version selector.
 // Last stable version
-const stableVersion = "v1.13.1"
+const stableVersion = "v1.13.2"
 // Dictionary doc folder to label
 const versionMapping = {
     "master": "master",
@@ -33,6 +33,7 @@ const versionMapping = {
     "v1.12.1": "v1.12.1",
     "v1.13.0": "v1.13.0",
     "v1.13.1": "v1.13.1",
+    "v1.13.2": "v1.13.2",
 }
 
 function addIcon() {
