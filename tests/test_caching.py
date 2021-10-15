@@ -1,3 +1,4 @@
+import os
 import pickle
 import subprocess
 from hashlib import md5
@@ -7,6 +8,7 @@ from types import CodeType, FunctionType
 from unittest import TestCase
 from unittest.mock import patch
 
+import numpy as np
 from multiprocess import Pool
 
 import datasets
@@ -340,10 +342,7 @@ def test_fingerprint_when_transform_version_changes():
     assert len(set([fingeprint_no_version, fingeprint_1, fingeprint_2])) == 3
 
 
-import numpy as np
-
-
-class Transformation:
+class FuzzyTransformation:
     """A transformation with a random state that cannot be fingerprinted"""
 
     def __init__(self):
@@ -355,69 +354,70 @@ class Transformation:
 
 
 def should_not_run(*args, **kwargs):
+    """function that raises an exception if called"""
     assert False
 
 
 class NewFingerprintMultiprocessingTest(TestCase):
-    filename = "example.json"
-    verbose = False
+    """Check the consistency of the cache behaviour for different values
+    of `num_proc` with a custom new_fingerprint. See issue #3044."""
 
     def setUp(self):
         import json
-        import os
+        import tempfile
 
-        import numpy as np
-
+        # generate data
         rgn = np.random.RandomState(24)
-        data = {"data": [{"x": float(y), "y": -float(y)} for y in rgn.random(size=(1000,))]}
-        if not os.path.exists(self.filename):
-            with open(self.filename, "w") as f:
-                f.write(json.dumps(data))
+        data = {"data": [{"x": float(y), "y": -float(y)} for y in rgn.random(size=(100,))]}
+
+        # save data to json
+        self.filename = os.path.join(tempfile.tempdir, "data.json")
+        assert not os.path.exists(self.filename)
+        with open(self.filename, "w") as f:
+            f.write(json.dumps(data))
 
     def tearDown(self):
-        import os
-
         if os.path.exists(self.filename):
             os.remove(self.filename)
 
-    def process_dataset_with_cache(self, num_proc=1, remove_cache=False, cache_expected_to_exist=False):
+    def process_dataset_with_cache(self, num_proc=1, cleanup_cache=False, cache_expected_to_exist=False):
 
-        from glob import glob
         import hashlib
-        import os
         from pathlib import Path
 
         # load the generated dataset
-        dset = next(iter(datasets.load_dataset("json", data_files=self.filename, field="data").values()))
+        dset_dict = datasets.load_dataset("json", data_files=self.filename, field="data")
+        dset = next(iter(dset_dict.values()))
         new_fingerprint = hashlib.md5("static-id".encode("utf8")).hexdigest()
 
         # delete previous cache
         cache_path = dset._get_cache_file_path(new_fingerprint)
-        if remove_cache:
+        if cleanup_cache:
             root = str(Path(cache_path).parent)
-            for f in glob(f"{root}/{new_fingerprint}*.arrow"):
-                print(f">> f={f}")
+            for f in self.iter_cache_files(root, new_fingerprint):
                 os.remove(f)
-
 
         # apply the transformation with the new fingerprint when there is no cache,
         # when the cache is expected to exist, replace the function with one
         # that would return AssertError.
         dset.map(
-            should_not_run if cache_expected_to_exist else Transformation(),
+            should_not_run if cache_expected_to_exist else FuzzyTransformation(),
             batched=True,
             num_proc=num_proc,
             new_fingerprint=new_fingerprint,
             desc="mapping dataset with transformation",
         )
 
+    @staticmethod
+    def iter_cache_files(cache_path: str, fingerprint: str):
+        root = Path(cache_path).parent
+        files = filter(lambda f: str(f).endswith(".arrow"), root.iterdir())
+        files = filter(lambda f: fingerprint in str(f), files)
+        return map(str, files)
+
     def test_new_fingerprint_caching_multiprocessing(self):
         for num_proc in [1, 2]:
-            if self.verbose:
-                print(f"# num_proc={num_proc}, first pass")
             # first pass to generate the cache (always create a new cache here)
-            self.process_dataset_with_cache(remove_cache=True, num_proc=num_proc, cache_expected_to_exist=False)
-            if self.verbose:
-                print(f"# num_proc={num_proc}, second pass")
+            self.process_dataset_with_cache(cleanup_cache=True, num_proc=num_proc, cache_expected_to_exist=False)
             # second pass, expects the cache to exist
-            self.process_dataset_with_cache(remove_cache=False, num_proc=num_proc, cache_expected_to_exist=True)
+            self.process_dataset_with_cache(cleanup_cache=False, num_proc=num_proc, cache_expected_to_exist=True)
