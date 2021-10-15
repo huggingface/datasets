@@ -36,7 +36,10 @@ source_datasets:
 - extended|other-common-voice
 task_categories:
 - speech-processing
+task_ids:
+- automatic-speech-recognition
 paperswithcode_id: null
+pretty_name: CoVoST 2
 ---
 
 # Dataset Card for covost2
