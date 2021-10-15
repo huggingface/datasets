@@ -158,3 +158,16 @@ class DatasetWithTaskProcessingTest(TestCase):
         # reload from cache
         mapped_dataset = dataset.map(dont_keep_task)
         assert mapped_dataset.info.task_templates == []
+
+    def test_remove_and_map_on_task_template(self):
+        features = Features({"text": Value("string"), "label": ClassLabel(names=("pos", "neg"))})
+        task_templates = TextClassification(text_column="text", label_column="label")
+        info = DatasetInfo(features=features, task_templates=task_templates)
+        dataset = Dataset.from_dict({"text": ["A sentence."], "label": ["pos"]}, info=info)
+
+        def process(example):
+            return example
+
+        modified_dataset = dataset.remove_columns("label")
+        mapped_dataset = modified_dataset.map(process)
+        assert mapped_dataset.info.task_templates == []
