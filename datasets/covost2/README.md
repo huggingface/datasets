@@ -35,9 +35,7 @@ size_categories:
 source_datasets:
 - extended|other-common-voice
 task_categories:
-- other
-task_ids:
-- other-other-speech-translation
+- speech-processing
 paperswithcode_id: null
 ---
 
