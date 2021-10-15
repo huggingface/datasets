@@ -150,7 +150,7 @@ If you're a dataset owner and wish to update any part of it (description, citati
 If you want to cite this framework you can use this:
 
 ```bibtex
-@software{quentin_lhoest_2021_5510481,
+@software{quentin_lhoest_2021_5570305,
   author       = {Quentin Lhoest and
                   Albert Villanova del Moral and
                   Patrick von Platen and
@@ -164,26 +164,29 @@ If you want to cite this framework you can use this:
                   Julien Plu and
                   Joe Davison and
                   Simon Brandeis and
-                  Teven Le Scao and
                   Victor Sanh and
+                  Teven Le Scao and
                   Kevin Canwen Xu and
                   Nicolas Patry and
+                  Steven Liu and
                   Angelina McMillan-Major and
                   Philipp Schmid and
                   Sylvain Gugger and
-                  Steven Liu and
                   Nathan Raw and
                   Sylvain Lesage and
+                  Anton Lozhkov and
+                  Matthew Carrigan and
                   Théo Matussière and
+                  Leandro von Werra and
                   Lysandre Debut and
                   Stas Bekman and
                   Clément Delangue},
-  title        = {huggingface/datasets: 1.12.1},
-  month        = sep,
+  title        = {huggingface/datasets: 1.13.2},
+  month        = oct,
   year         = 2021,
   publisher    = {Zenodo},
-  version      = {1.12.1},
-  doi          = {10.5281/zenodo.5510481},
-  url          = {https://doi.org/10.5281/zenodo.5510481}
+  version      = {1.13.2},
+  doi          = {10.5281/zenodo.5570305},
+  url          = {https://doi.org/10.5281/zenodo.5570305}
 }
 ```
