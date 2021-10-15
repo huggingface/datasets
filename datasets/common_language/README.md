@@ -140,7 +140,7 @@ A typical data point comprises the `path` to the audio file, and its label `lang
 
 `path` (`string`): The path to the audio file
 
-- `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `datasets.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `datasets.features[0]["audio"]` should **always** be preferred over `datasets.features["audio"][0]`.
+- `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `datasets.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `datasets[0]["audio"]` should **always** be preferred over `datasets.features["audio"][0]`.
 
 `language` (`ClassLabel`): The language of the recording (see the `Languages` section above)
 
