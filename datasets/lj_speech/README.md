@@ -85,6 +85,10 @@ A normalized version of the text is also provided.
 {
     'id': 'LJ002-0026', 
     'file': '/datasets/downloads/extracted/05bfe561f096e4c52667e3639af495226afe4e5d08763f2d76d069e7a453c543/LJSpeech-1.1/wavs/LJ002-0026.wav', 
+	'audio': {'path': '/datasets/downloads/extracted/05bfe561f096e4c52667e3639af495226afe4e5d08763f2d76d069e7a453c543/LJSpeech-1.1/wavs/LJ002-0026.wav',
+	  'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346,
+			  0.00091553,  0.00085449], dtype=float32),
+	  'sampling_rate': 22050},
     'text': 'in the three years between 1813 and 1816,' 
     'normalized_text': 'in the three years between eighteen thirteen and eighteen sixteen,',
 }
@@ -97,6 +101,8 @@ Each audio file is a single-channel 16-bit PCM WAV with a sample rate of 22050 H
 - id: unique id of the data sample.
 
 - file: a path to the downloaded audio file in .wav format.
+
+- audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `datasets.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `datasets.features[0]["audio"]` should **always** be preferred over `datasets.features["audio"][0]`.
 
 - text: the transcription of the audio file.
 

@@ -529,6 +529,10 @@ A typical data point comprises the path to the audio file, called path and its s
 ```
 {
   'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav'
+  'audio': {'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav',
+	  'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346,
+			  0.00091553,  0.00085449], dtype=float32),
+	  'sampling_rate': 16000},
   'sentence': 'Panonton ting haruleng ningali Kelly Clarkson keur nyanyi di tipi',
 }
 ```
@@ -536,6 +540,8 @@ A typical data point comprises the path to the audio file, called path and its s
 ### Data Fields
 
 path: The path to the audio file
+
+audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `datasets.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `datasets.features[0]["audio"]` should **always** be preferred over `datasets.features["audio"][0]`.
 
 sentence: The sentence the user was prompted to speak
 
