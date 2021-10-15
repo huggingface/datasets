@@ -63,6 +63,7 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
                 {
                     "speaker_id": datasets.Value("string"),
                     "path": datasets.Value("string"),
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     "sentence": datasets.Value("string"),
                 }
             ),
@@ -119,5 +120,6 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
                 yield id_, {
                     "speaker_id": speaker_id,
                     "path": os.path.join(path_to_clips, speaker_id, data[0] + ".wav"),
+                    "audio": os.path.join(path_to_clips, speaker_id, data[0] + ".wav"),
                     "sentence": data[1],
                 }

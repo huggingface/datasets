@@ -110,6 +110,7 @@ class CommonLanguage(datasets.GeneratorBasedBuilder):
             {
                 "client_id": datasets.Value("string"),
                 "path": datasets.Value("string"),
+                "audio": datasets.features.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
                 "age": datasets.Value("string"),
                 "gender": datasets.Value("string"),
@@ -164,6 +165,7 @@ class CommonLanguage(datasets.GeneratorBasedBuilder):
                     yield key, {
                         "client_id": client_id,
                         "path": path,
+                        "audio": path,
                         "sentence": sentence,
                         "age": age,
                         "gender": gender,
