@@ -133,20 +133,20 @@ def test_resampling_at_loading_dataset_with_audio_feature_mp3(shared_datadir):
     assert item.keys() == {"audio"}
     assert item["audio"].keys() == {"path", "array", "sampling_rate"}
     assert item["audio"]["path"] == audio_path
-    assert item["audio"]["array"].shape == (73401,)
+    assert item["audio"]["array"].shape == (39707,)
     assert item["audio"]["sampling_rate"] == 16000
     batch = dset[:1]
     assert batch.keys() == {"audio"}
     assert len(batch["audio"]) == 1
     assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
     assert batch["audio"][0]["path"] == audio_path
-    assert batch["audio"][0]["array"].shape == (73401,)
+    assert batch["audio"][0]["array"].shape == (39707,)
     assert batch["audio"][0]["sampling_rate"] == 16000
     column = dset["audio"]
     assert len(column) == 1
     assert column[0].keys() == {"path", "array", "sampling_rate"}
     assert column[0]["path"] == audio_path
-    assert column[0]["array"].shape == (73401,)
+    assert column[0]["array"].shape == (39707,)
     assert column[0]["sampling_rate"] == 16000
 
 
@@ -194,20 +194,20 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir)
     assert item.keys() == {"audio"}
     assert item["audio"].keys() == {"path", "array", "sampling_rate"}
     assert item["audio"]["path"] == audio_path
-    assert item["audio"]["array"].shape == (73401,)
+    assert item["audio"]["array"].shape == (39707,)
     assert item["audio"]["sampling_rate"] == 16000
     batch = dset[:1]
     assert batch.keys() == {"audio"}
     assert len(batch["audio"]) == 1
     assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
     assert batch["audio"][0]["path"] == audio_path
-    assert batch["audio"][0]["array"].shape == (73401,)
+    assert batch["audio"][0]["array"].shape == (39707,)
     assert batch["audio"][0]["sampling_rate"] == 16000
     column = dset["audio"]
     assert len(column) == 1
     assert column[0].keys() == {"path", "array", "sampling_rate"}
     assert column[0]["path"] == audio_path
-    assert column[0]["array"].shape == (73401,)
+    assert column[0]["array"].shape == (39707,)
     assert column[0]["sampling_rate"] == 16000
 
 
