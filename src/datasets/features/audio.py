@@ -67,7 +67,7 @@ class Audio:
         if self.sampling_rate and self.sampling_rate != sampling_rate:
             if not hasattr(self, "_resampler"):
                 self._resampler = T.Resample(sampling_rate, self.sampling_rate)
-            array = self._resampler(array, sampling_rate, self.sampling_rate)
+            array = self._resampler(array)
             sampling_rate = self.sampling_rate
         array = array.numpy()
         if self.mono:
