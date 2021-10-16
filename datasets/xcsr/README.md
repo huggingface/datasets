@@ -237,4 +237,4 @@ To evaluate multi-lingual language models (ML-LMs) for commonsense reasoning in 
 
 ### Contributions
 
-[Needs More Information]
+Thanks to [Bill Yuchen Lin](https://yuchenlin.xyz/), [Seyeon Lee](https://seyeon-lee.github.io/), [Xiaoyang Qiao](https://www.linkedin.com/in/xiaoyang-qiao/), [Xiang Ren](http://www-bcf.usc.edu/~xiangren/) for adding this dataset.
