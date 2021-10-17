@@ -38,10 +38,11 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from huggingface_hub import create_repo, delete_file, list_repo_files, upload_file
+from huggingface_hub import HfApi
 from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
+from tqdm.contrib.concurrent import thread_map
 
 from datasets.tasks.text_classification import TextClassification
 
@@ -3314,11 +3315,42 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         repo_id: str,
         split_name: str,
-        private: Optional[bool] = False,
-        token: Optional[Union[bool, str]] = None,
-        branch: Optional[None] = None,
+        private: Optional[bool] = None,
+        token: Optional[str] = None,
+        branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
+        # Testing parameter only, should remove after investigation and before merging the PR.
+        threading: Optional[bool] = False,
     ):
+        """Pushes the dataset to the hub.
+        The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+
+        Args:
+            repo_id (:obj:`str`):
+                The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+                `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
+                of the logged-in user.
+            split_name (:obj:`str`):
+                The name of the split that will be given to that dataset.
+            private (Optional :obj:`bool`):
+                Whether the dataset repository should be set to private or not. Only affects repository creation:
+                a repository that already exists will not be affected by that parameter.
+            token (Optional :obj:`str`):
+                An optional authentication token for the Hugging Face Hub. If no token is passed, will default
+                to the token saved locally when logging in with ``huggingface-cli login``. Will raise an error
+                if no token is passed and the user is not logged-in.
+            branch (Optional :obj:`str`):
+                The git branch on which to push the dataset.
+            shard_size (Optional :obj:`int`):
+                The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
+                of the size specified here, in bytes.
+
+        Example:
+            .. code-block:: python
+
+                >>> dataset.push_to_hub("<organization>/<dataset_id>", split_name="evaluation")
+        """
+
         identifier = repo_id.split("/")
         if len(identifier) == 2:
             organization, dataset_name = identifier
@@ -3326,14 +3358,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_name = identifier[0]
             organization = None
 
-        create_repo(
-            dataset_name,
-            token,
-            exist_ok=True,
-            repo_type="dataset",
-            organization=organization,
-            private=private,
-        )
+        api = HfApi()
+
+        try:
+            api.create_repo(
+                dataset_name,
+                token,
+                repo_type="dataset",
+                organization=organization,
+                private=private,
+            )
+        except HTTPError as err:
+            if err.response.status_code == 409:
+                if private is not None:
+                    logger.warning("The repository already exists: the `private` keyword argument will be ignored.")
+            else:
+                raise
 
         if self._indices is not None:
             dataset_nbytes = self.data.nbytes * len(self._indices) / len(self.data)
@@ -3343,25 +3383,47 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         num_shards = int(dataset_nbytes / shard_size) + 1
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
 
-        files = list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
-        file_shards = [file.split(split_name + "/")[-1] for file in files if f"{split_name}/dataset_shard" in file]
-        file_shards_to_delete = [
-            file for file in file_shards if file not in [f"dataset_shard_{i}.parquet" for i in range(num_shards)]
-        ]
+        files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
+        files = [file for file in files if file.startswith("data/")]
 
-        for file in tqdm(file_shards_to_delete, desc="Cleaning repository.", total=len(file_shards_to_delete)):
-            try:
-                delete_file(f"{split_name}/{file}", repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
-            except HTTPError:
-                print(f"Would have deleted {file}")
+        def path_in_repo(_index):
+            return f"data/{split_name}-{str(_index).zfill(5)}-of-{str(num_shards - 1).zfill(5)}.parquet"
+
+        # Only delete file shards that don't currently exist. Others will be overwritten if the content is different
+        # or will be left intact is the content is identical.
+        file_shards_to_delete = [file for file in files if file not in [path_in_repo(i) for i in range(num_shards)]]
+
+        def delete_file(file):
+            api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
+
+        if len(file_shards_to_delete):
+            # Making this available just for testing purposes: the moon-staging endpoint is having a super hard time
+            # digesting concurrent requests. Locally, I get error 500 returned 90% of the time when threading.
+            # would like to confirm this is only related to moon-staging before removing the ability to toggle threading
+            # on/off.
+            if threading:
+                thread_map(
+                    delete_file,
+                    file_shards_to_delete,
+                    desc="Deleting unused files from dataset repository",
+                    total=len(file_shards_to_delete),
+                )
+            else:
+                for file in tqdm(
+                    file_shards_to_delete,
+                    desc="Deleting unused files from dataset repository",
+                    total=len(file_shards_to_delete),
+                ):
+                    delete_file(file)
+
         for index, shard in tqdm(
             enumerate(shards), desc="Pushing dataset shards to the dataset hub", total=num_shards
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)
-            upload_file(
+            api.upload_file(
                 path_or_fileobj=buffer.getvalue(),
-                path_in_repo=f"{split_name}/dataset_shard_{index}.parquet",
+                path_in_repo=path_in_repo(index),
                 repo_id=repo_id,
                 token=token,
                 repo_type="dataset",
