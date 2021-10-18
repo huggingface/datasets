@@ -73,7 +73,7 @@ SUPERB is a leaderboard to benchmark the performance of a shared model across a 
 
 ### Supported Tasks and Leaderboards
 
-The SUPERB leaderboard can be found here **ADD LINK WHEN LIVE** and consists of the following tasks:
+The SUPERB leaderboard can be found here https://superbbenchmark.org/leaderboard and consists of the following tasks:
 
 #### pr
 
@@ -205,6 +205,9 @@ An example from each split looks like:
 ```python
 {'chapter_id': 1240,
  'file': 'path/to/file.flac',
+ 'audio': {'path': 'path/to/file.flac',
+		   'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
+		   'sampling_rate': 16000},
  'id': '103-1240-0000',
  'speaker_id': 103,
  'text': 'CHAPTER ONE MISSUS RACHEL LYNDE IS SURPRISED MISSUS RACHEL LYNDE '
@@ -220,6 +223,9 @@ An example from each split looks like:
 ```python
 {
   'file': '/path/yes/af7a8296_nohash_1.wav', 
+  'audio': {'path': '/path/yes/af7a8296_nohash_1.wav',
+		    'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
+		    'sampling_rate': 16000},
   'label': 0  # 'yes'
 }
 ```
@@ -234,6 +240,9 @@ An example from each split looks like:
 ```python
 {
   'file': "/path/wavs/speakers/2BqVo8kVB2Skwgyb/063aa8f0-4479-11e9-a9a5-5dbec3b8816a.wav",
+  'audio': {'path': '/path/wavs/speakers/2BqVo8kVB2Skwgyb/063aa8f0-4479-11e9-a9a5-5dbec3b8816a.wav',
+		    'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
+		    'sampling_rate': 16000},
   'speaker_id': '2BqVo8kVB2Skwgyb',
   'text': 'Turn the bedroom lights off',
   'action': 3,  # 'deactivate'
@@ -252,6 +261,9 @@ An example from each split looks like:
 ```python
 {
   'file': '/path/wav/id10003/na8-QEFmj44/00003.wav', 
+  'audio': {'path': '/path/wav/id10003/na8-QEFmj44/00003.wav',
+		    'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
+		    'sampling_rate': 16000},
   'label': 2  # 'id10003'
 }
 ```
@@ -268,6 +280,9 @@ An example from each split looks like:
 {
   'record_id': '1578-6379-0038_6415-111615-0009',
   'file': 'path/to/file.wav',
+  'audio': {'path': 'path/to/file.wav',
+		    'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
+		    'sampling_rate': 16000},
   'start': 0,
   'end': 1590,
   'speakers': [
@@ -287,6 +302,10 @@ An example from each split looks like:
 
 ### Data Fields
 
+####Note abouth the `audio` fields
+
+When accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
+
 #### pr
 
 [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
@@ -294,15 +313,17 @@ An example from each split looks like:
 
 #### asr
 
-- `file`: a `string` feature.
-- `text`: a `string` feature.
-- `speaker_id`: a `int64` feature.
-- `chapter_id`: a `int64` feature.
-- `id`: a `string` feature.
+- `file` (`string`): Path to the WAV audio file.
+- `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
+- `text` (`string`): The transcription of the audio file.
+- `speaker_id` (`integer`): A unique ID of the speaker. The same speaker id can be found for multiple data samples.
+- `chapter_id` (`integer`): ID of the audiobook chapter which includes the transcription.
+- `id` (`string`): A unique ID of the data sample.
 
 #### ks
 
 - `file` (`string`): Path to the WAV audio file.
+- `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `label` (`ClassLabel`): Label of the spoken command. Possible values:
     - `0: "yes", 1: "no", 2: "up", 3: "down", 4: "left", 5: "right", 6: "on", 7: "off", 8: "stop", 9: "go", 10: "_silence_", 11: "_unknown_"`
 
@@ -313,6 +334,7 @@ An example from each split looks like:
 #### ic
 
 - `file` (`string`): Path to the WAV audio file.
+- `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `speaker_id` (`string`): ID of the speaker.
 - `text` (`string`): Transcription of the spoken command.
 - `action` (`ClassLabel`): Label of the command's action. Possible values:
@@ -330,6 +352,7 @@ An example from each split looks like:
 #### si
 
 - `file` (`string`): Path to the WAV audio file.
+- `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `label` (`ClassLabel`): Label (ID) of the speaker. Possible values: 
     - `0: "id10001", 1: "id10002", 2: "id10003", ..., 1250: "id11251"`
 
@@ -343,6 +366,7 @@ An example from each split looks like:
 The data fields in all splits are:
 - `record_id` (`string`): ID of the record.
 - `file` (`string`): Path to the WAV audio file.
+- `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `start` (`integer`): Start frame of the audio.
 - `end` (`integer`): End frame of the audio.
 - `speakers` (`list` of `dict`): List of speakers in the audio. Each item contains the fields:
@@ -353,6 +377,7 @@ The data fields in all splits are:
 #### er
 
 - `file` (`string`): Path to the WAV audio file.
+- `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `label` (`ClassLabel`): Label of the speech emotion. Possible values:
     - `0: "neu", 1: "hap", 2: "ang", 3: "sad"`
 
