@@ -38,7 +38,7 @@ def disable_tqdm_output():
     datasets.set_progress_bar_enabled(False)
 
     
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(autouse=True)
 def set_update_download_counts_to_false(monkeypatch):
     # don't take tests into account when counting downloads
     monkeypatch.setattr("datasets.config.HF_UPDATE_DOWNLOAD_COUNTS", False)
