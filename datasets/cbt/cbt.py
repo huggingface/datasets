@@ -131,32 +131,21 @@ class Cbt(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": paths[self.config.name]["train"],
-                    "files": dl_manager.iter_archive(archive)
-                },
+                gen_kwargs={"filepath": paths[self.config.name]["train"], "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": paths[self.config.name]["test"],
-                    "files": dl_manager.iter_archive(archive)
-                },
+                gen_kwargs={"filepath": paths[self.config.name]["test"], "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": paths[self.config.name]["valid"],
-                    "files": dl_manager.iter_archive(archive)
-                },
+                gen_kwargs={"filepath": paths[self.config.name]["valid"], "files": dl_manager.iter_archive(archive)},
             ),
         ]
 
-    def _generate_examples(
-        self, filepath, files
-    ):
+    def _generate_examples(self, filepath, files):
         """Yields examples as (key, example) tuples."""
         for path, f in files:
             if path == filepath:

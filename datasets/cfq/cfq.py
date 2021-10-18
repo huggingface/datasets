@@ -121,7 +121,10 @@ class Cfq(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "files": dl_manager.iter_archive(archive), "splits_file": self.config.split_file, "split_id": "testIdxs"},
+                    "files": dl_manager.iter_archive(archive),
+                    "splits_file": self.config.split_file,
+                    "split_id": "testIdxs",
+                },
             ),
         ]
 

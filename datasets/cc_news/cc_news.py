@@ -16,8 +16,8 @@
 # Lint as: python3
 """The CC-News dataset is based on Common Crawl News Dataset by Sebastian Nagel"""
 
-import os
 import json
+import os
 from fnmatch import fnmatch
 
 import datasets
@@ -94,8 +94,7 @@ class CCNews(datasets.GeneratorBasedBuilder):
         archive = dl_manager.download(_DOWNLOAD_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={
-                    "files": dl_manager.iter_archive(archive)}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive)}),
         ]
 
     def _generate_examples(self, files):

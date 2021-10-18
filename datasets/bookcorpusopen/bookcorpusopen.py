@@ -89,9 +89,9 @@ class BookCorpusOpen(datasets.GeneratorBasedBuilder):
         archive = dl_manager.download(_DOWNLOAD_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={
-                    "book_files": dl_manager.iter_archive(archive)
-            }),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"book_files": dl_manager.iter_archive(archive)}
+            ),
         ]
 
     def _generate_examples(self, book_files):
