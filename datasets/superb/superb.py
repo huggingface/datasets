@@ -496,10 +496,10 @@ class Superb(datasets.GeneratorBasedBuilder):
                     if int(split_id) != split:
                         continue
                     speaker_id = file_path.split("/")[0]
-                    file_path = os.path.join(wav_path, file_path)
+                    audio_path = os.path.join(wav_path, file_path)
                     yield key, {
-                        "file": file_path,
-                        "audio": file_path,
+                        "file": audio_path,
+                        "audio": audio_path,
                         "label": speaker_id,
                     }
         elif self.config.name == "sd":
@@ -547,10 +547,10 @@ class Superb(datasets.GeneratorBasedBuilder):
                             continue
                         wav_subdir = filename.rsplit("_", 1)[0]
                         filename = f"{filename}.wav"
-                        file_path = os.path.join(wav_path, wav_subdir, filename)
+                        audio_path = os.path.join(wav_path, wav_subdir, filename)
                         yield key, {
-                            "file": file_path,
-                            "audio": file_path,
+                            "file": audio_path,
+                            "audio": audio_path,
                             "label": emo.replace("exc", "hap"),
                         }
                         key += 1
