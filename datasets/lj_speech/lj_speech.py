@@ -74,6 +74,7 @@ class LJSpeech(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
+                    "audio": datasets.features.Audio(sampling_rate=22050),
                     "file": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "normalized_text": datasets.Value("string"),
@@ -108,6 +109,7 @@ class LJSpeech(datasets.GeneratorBasedBuilder):
                 example = {
                     "id": uid,
                     "file": os.path.join(wav_path, filename),
+                    "audio": os.path.join(wav_path, filename),
                     "text": text,
                     "normalized_text": norm_text,
                 }

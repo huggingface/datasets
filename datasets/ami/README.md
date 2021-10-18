@@ -26,6 +26,7 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Dataset Preprocessing](#dataset-preprocessing)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
@@ -64,6 +65,112 @@ the participants also have unsynchronized pens available to them that record wha
 were recorded in English using three different rooms with different acoustic properties, and include mostly
 non-native speakers.
 
+### Dataset Preprocessing
+
+Individual samples of the AMI dataset contain very large audio files (between 10 and 60 minutes). 
+Such lengths are unfeasible for most speech recognition models. In the following, we show how the
+dataset can effectively be chunked into multiple segments as defined by the dataset creators.
+
+The following function cuts the long audio files into the defined segment lengths:
+
+```python
+import librosa
+import math
+from datasets import load_dataset
+
+SAMPLE_RATE = 16_000
+
+def chunk_audio(batch):
+    new_batch = {
+        "audio": [],
+        "words": [],
+        "speaker": [],
+        "lengths": [],
+        "word_start_times": [],
+        "segment_start_times": [],
+    }
+
+    audio, _ = librosa.load(batch["file"][0], sr=SAMPLE_RATE)
+
+    word_idx = 0
+    num_words = len(batch["words"][0])
+    for segment_idx in range(len(batch["segment_start_times"][0])):
+        words = []
+        word_start_times = []
+        start_time = batch["segment_start_times"][0][segment_idx]
+        end_time = batch["segment_end_times"][0][segment_idx]
+
+        # go back and forth with word_idx since segments overlap with each other
+        while (word_idx > 1) and (start_time < batch["word_end_times"][0][word_idx - 1]):
+            word_idx -= 1
+
+        while word_idx < num_words and (start_time > batch["word_start_times"][0][word_idx]):
+            word_idx += 1
+
+        new_batch["audio"].append(audio[int(start_time * SAMPLE_RATE): int(end_time * SAMPLE_RATE)])
+
+        while word_idx < num_words and batch["word_start_times"][0][word_idx] < end_time:
+            words.append(batch["words"][0][word_idx])
+            word_start_times.append(batch["word_start_times"][0][word_idx])
+            word_idx += 1
+
+        new_batch["lengths"].append(end_time - start_time)
+        new_batch["words"].append(words)
+        new_batch["speaker"].append(batch["segment_speakers"][0][segment_idx])
+        new_batch["word_start_times"].append(word_start_times)
+
+        new_batch["segment_start_times"].append(batch["segment_start_times"][0][segment_idx])
+
+    return new_batch
+    
+ami = load_dataset("ami", "headset-single")
+ami = ami.map(chunk_audio, batched=True, batch_size=1, remove_columns=ami["train"].column_names)
+```
+
+The segmented audio files can still be as long as a minute. To further chunk the data into shorter 
+audio chunks, you can use the following script.
+
+```python
+MAX_LENGTH_IN_SECONDS = 20.0
+
+def chunk_into_max_n_seconds(batch):
+    new_batch = {
+        "audio": [],
+        "text": [],
+    }
+
+    sample_length = batch["lengths"][0]
+    segment_start = batch["segment_start_times"][0]
+
+    if sample_length > MAX_LENGTH_IN_SECONDS:
+        num_chunks_per_sample = math.ceil(sample_length / MAX_LENGTH_IN_SECONDS)
+        avg_chunk_length = sample_length / num_chunks_per_sample
+        num_words = len(batch["words"][0])
+
+        # start chunking by times
+        start_word_idx = end_word_idx = 0
+        chunk_start_time = 0
+        for n in range(num_chunks_per_sample):
+            while (end_word_idx < num_words - 1) and (batch["word_start_times"][0][end_word_idx] < segment_start + (n + 1) * avg_chunk_length):
+                end_word_idx += 1
+
+            chunk_end_time = int((batch["word_start_times"][0][end_word_idx] - segment_start) * SAMPLE_RATE)
+            new_batch["audio"].append(batch["audio"][0][chunk_start_time: chunk_end_time])
+            new_batch["text"].append(" ".join(batch["words"][0][start_word_idx: end_word_idx]))
+
+            chunk_start_time = chunk_end_time
+            start_word_idx = end_word_idx
+    else:
+        new_batch["audio"].append(batch["audio"][0])
+        new_batch["text"].append(" ".join(batch["words"][0]))
+
+    return new_batch
+    
+ami = ami.map(chunk_into_max_n_seconds, batched=True, batch_size=1, remove_columns=ami["train"].column_names, num_proc=64)
+```
+
+A segmented and chunked dataset of the config `"headset-single"`can be found [here](https://huggingface.co/datasets/ami-wav2vec2/ami_single_headset_segmented_and_chunked).
+
 ### Supported Tasks and Leaderboards
 
 - `automatic-speech-recognition`: The dataset can be used to train a model for Automatic Speech Recognition (ASR). The model is presented with an audio file and asked to transcribe the audio file to written text. The most common evaluation metric is the word error rate (WER). The task does not have an active leaderboard at the moment.
@@ -97,6 +204,9 @@ and its transcription, called `text`. Some additional information about the spea
  'words', ["hmm", "hmm", ...]
  'channels': [0, 0, ..], 
  'file': "/.cache/huggingface/datasets/downloads/af7e748544004557b35eef8b0522d4fb2c71e004b82ba8b7343913a15def465f"
+ 'audio': {'path': "/.cache/huggingface/datasets/downloads/af7e748544004557b35eef8b0522d4fb2c71e004b82ba8b7343913a15def465f",
+	  	   'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
+	  	   'sampling_rate': 16000},
 }
 ```
 
@@ -123,6 +233,8 @@ and its transcription, called `text`. Some additional information about the spea
 - channels: a list of all channels that were used for each word
 
 - file: a path to the audio file
+
+- audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
 
 ### Data Splits
 
