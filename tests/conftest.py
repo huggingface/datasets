@@ -37,7 +37,7 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
 def disable_tqdm_output():
     datasets.set_progress_bar_enabled(False)
 
-    
+
 @pytest.fixture(autouse=True)
 def set_update_download_counts_to_false(monkeypatch):
     # don't take tests into account when counting downloads
