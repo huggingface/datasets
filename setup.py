@@ -1,5 +1,5 @@
 # Lint as: python3
-""" HuggingFace/Datasets is an open library of NLP datasets.
+""" HuggingFace/Datasets is an open library of datasets.
 
 Note:
 
@@ -70,9 +70,6 @@ import sys
 from setuptools import find_packages, setup
 
 
-DOCLINES = __doc__.split("\n")
-
-
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
@@ -102,9 +99,13 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.0.14,<0.1.0",
+    "huggingface_hub>=0.0.19,<0.1.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
+]
+
+AUDIO_REQUIRE = [
+    "librosa",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -118,6 +119,7 @@ TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
     "pytest",
+    "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
     "apache-beam>=2.26.0",
@@ -132,6 +134,7 @@ TESTS_REQUIRE = [
     "s3fs==2021.08.1",
     "tensorflow>=2.3",
     "torch",
+    "torchaudio",
     "transformers",
     # datasets dependencies
     "bs4",
@@ -179,11 +182,11 @@ else:
         ]
     )
 
-
 QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
+    "audio": AUDIO_REQUIRE,
     "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": ["tensorflow>=2.2.0"],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
@@ -217,9 +220,9 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.12.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
-    description=DOCLINES[0],
-    long_description="\n".join(DOCLINES[2:]),
+    version="1.13.4.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    description="HuggingFace community-driven open-source library of datasets",
+    long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",

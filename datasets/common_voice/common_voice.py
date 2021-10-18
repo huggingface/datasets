@@ -632,6 +632,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             {
                 "client_id": datasets.Value("string"),
                 "path": datasets.Value("string"),
+                "audio": datasets.features.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
                 "up_votes": datasets.Value("int64"),
                 "down_votes": datasets.Value("int64"),
@@ -702,6 +703,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, path_to_clips):
         """Yields examples."""
         data_fields = list(self._info().features.keys())
+
+        # audio is not a header of the csv files
+        data_fields.remove("audio")
         path_idx = data_fields.index("path")
 
         with open(filepath, encoding="utf-8") as f:
@@ -723,4 +727,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 if len(field_values) < len(data_fields):
                     field_values += (len(data_fields) - len(field_values)) * ["''"]
 
-                yield id_, {key: value for key, value in zip(data_fields, field_values)}
+                result = {key: value for key, value in zip(data_fields, field_values)}
+
+                # set audio feature
+                result["audio"] = field_values[path_idx]
+
+                yield id_, result

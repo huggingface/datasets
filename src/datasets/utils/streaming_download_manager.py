@@ -1,9 +1,11 @@
 import glob
 import os
 import re
+import tarfile
 import time
+from asyncio import TimeoutError
 from pathlib import Path, PurePosixPath
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import fsspec
 import posixpath
@@ -18,7 +20,21 @@ from .logging import get_logger
 
 logger = get_logger(__name__)
 
-BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
+BASE_KNOWN_EXTENSIONS = [
+    "txt",
+    "csv",
+    "json",
+    "jsonl",
+    "tsv",
+    "conll",
+    "conllu",
+    "orig",
+    "parquet",
+    "pkl",
+    "pickle",
+    "rel",
+    "xml",
+]
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
@@ -126,7 +142,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except ClientError:
+            except (ClientError, TimeoutError):
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
                 )
@@ -148,13 +164,15 @@ def _get_extraction_protocol(urlpath: str) -> Optional[str]:
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
     elif path.endswith(".tar.gz") or path.endswith(".tgz"):
-        pass
+        raise NotImplementedError(
+            f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. Please use `dl_manager.iter_archive` instead."
+        )
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
     raise NotImplementedError(f"Extraction protocol '{extension}' for file at '{urlpath}' is not implemented yet")
 
 
-def xopen(file, mode="r", *args, **kwargs):
+def xopen(file, mode="r", *args, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     """
     This function extends the builtin `open` function to support remote files using fsspec.
 
@@ -162,7 +180,7 @@ def xopen(file, mode="r", *args, **kwargs):
     The args and kwargs are passed to fsspec.open, except `use_auth_token` which is used for queries to private repos on huggingface.co
     """
     if fsspec.get_fs_token_paths(file)[0].protocol == "https":
-        kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=kwargs.pop("use_auth_token", None))
+        kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=use_auth_token)
     file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
@@ -181,7 +199,7 @@ def xpathopen(path: Path, *args, **kwargs):
     return xopen(_as_posix(path), *args, **kwargs)
 
 
-def xglob(urlpath, *, recursive=False):
+def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]] = None):
     """Extend `glob.glob` function to support remote files.
 
     Args:
@@ -196,7 +214,14 @@ def xglob(urlpath, *, recursive=False):
     if is_local_path(main_hop):
         return glob.glob(main_hop, recursive=recursive)
     else:
-        fs, *_ = fsspec.get_fs_token_paths(urlpath)
+        # globbing inside a zip in a private repo requires authentication
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
         # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
         # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
@@ -205,7 +230,7 @@ def xglob(urlpath, *, recursive=False):
         return ["::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops) for globbed_path in globbed_paths]
 
 
-def xpathglob(path, pattern):
+def xpathglob(path, pattern, use_auth_token: Optional[Union[str, bool]] = None):
     """Glob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
     Args:
@@ -220,7 +245,14 @@ def xpathglob(path, pattern):
     if is_local_path(main_hop):
         yield from Path(main_hop).glob(pattern)
     else:
-        fs, *_ = fsspec.get_fs_token_paths(xjoin(posix_path, pattern))
+        # globbing inside a zip in a private repo requires authentication
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(xjoin(posix_path, pattern), storage_options=storage_options)
         # - If there's no "*" in the pattern, get_fs_token_paths() doesn't do any pattern matching
         #   so to be able to glob patterns like "[0-9]", we have to call `fs.glob`.
         # - Also "*" in get_fs_token_paths() only matches files: we have to call `fs.glob` to match directories.
@@ -230,7 +262,7 @@ def xpathglob(path, pattern):
             yield type(path)("::".join([f"{fs.protocol}://{globbed_path}"] + rest_hops))
 
 
-def xpathrglob(path, pattern):
+def xpathrglob(path, pattern, **kwargs):
     """Rglob function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
     Args:
@@ -240,7 +272,7 @@ def xpathrglob(path, pattern):
     Yields:
         :obj:`~pathlib.Path`
     """
-    return xpathglob(path, "**/" + pattern)
+    return xpathglob(path, "**/" + pattern, **kwargs)
 
 
 def xpathstem(path: Path):
@@ -267,10 +299,10 @@ def xpathsuffix(path: Path):
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
-def xpandas_read_csv(path, **kwargs):
+def xpandas_read_csv(path, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
-    return pd.read_csv(xopen(path), **kwargs)
+    return pd.read_csv(xopen(path, use_auth_token=use_auth_token), **kwargs)
 
 
 class StreamingDownloadManager(object):
@@ -324,7 +356,7 @@ class StreamingDownloadManager(object):
             inner_file = inner_file[: inner_file.rindex(".")]
             # check for tar.gz, tar.bz2 etc.
             if inner_file.endswith(".tar"):
-                return f"tar://::{urlpath}"
+                return f"tar://::{protocol}://{inner_file}::{urlpath}"
             else:
                 return f"{protocol}://{inner_file}::{urlpath}"
         else:
@@ -332,3 +364,29 @@ class StreamingDownloadManager(object):
 
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
+
+    def iter_archive(self, urlpath: str):
+        """Returns iterator over files within archive.
+
+        Args:
+            path: path to archive.
+
+        Returns:
+            Generator yielding tuple (path_within_archive, file_obj).
+            File-Obj are opened in byte mode (io.BufferedReader)
+        """
+        with xopen(urlpath, "rb", use_auth_token=self._download_config.use_auth_token) as f:
+            stream = tarfile.open(fileobj=f, mode="r|*")
+            for tarinfo in stream:
+                file_path = tarinfo.name
+                if not tarinfo.isreg():
+                    continue
+                if file_path is None:
+                    continue
+                if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                    # skipping hidden files
+                    continue
+                file_obj = stream.extractfile(tarinfo)
+                yield (file_path, file_obj)
+                stream.members = []
+            del stream

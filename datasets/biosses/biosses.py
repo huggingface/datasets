@@ -67,8 +67,8 @@ class Biosses(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "sentence 1": datasets.Value("string"),
-                "sentence 2": datasets.Value("string"),
+                "sentence1": datasets.Value("string"),
+                "sentence2": datasets.Value("string"),
                 "score": datasets.Value("float32"),
             }
         )
@@ -93,7 +93,7 @@ class Biosses(datasets.GeneratorBasedBuilder):
         df = pd.read_csv(filepath, sep="\t", encoding="utf-8")
         for idx, row in df.iterrows():
             yield idx, {
-                "sentence 1": row["sentence1"],
-                "sentence 2": row["sentence2"],
+                "sentence1": row["sentence1"],
+                "sentence2": row["sentence2"],
                 "score": row["score"],
             }

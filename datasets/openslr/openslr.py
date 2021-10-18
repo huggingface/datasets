@@ -537,6 +537,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "path": datasets.Value("string"),
+                "audio": datasets.features.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
             }
         )
@@ -591,7 +592,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                     path = str(path_to_data.resolve())
                     sentence = sentence_index[filename]
                     counter += 1
-                    yield counter, {"path": path, "sentence": sentence}
+                    yield counter, {"path": path, "audio": path, "sentence": sentence}
         else:
             for i, path_to_index in enumerate(path_to_indexs):
                 with open(path_to_index, encoding="utf-8") as f:
@@ -607,4 +608,4 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                         # set absolute path for audio file
                         path = os.path.join(path_to_datas[i], f"{filename}.wav")
                         counter += 1
-                        yield counter, {"path": path, "sentence": sentence}
+                        yield counter, {"path": path, "audio": path, "sentence": sentence}

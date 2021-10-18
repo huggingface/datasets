@@ -7,7 +7,7 @@ from typing import Generator
 import datasets.config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
-from datasets.load import import_main_class, prepare_module
+from datasets.load import dataset_module_factory, import_main_class
 from datasets.utils.download_manager import GenerateMode
 from datasets.utils.filelock import logger as fl_logger
 from datasets.utils.logging import ERROR, get_logger
@@ -114,12 +114,8 @@ class TestCommand(BaseDatasetsCLICommand):
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
         path, name = self._dataset, self._name
-        module_path, hash, base_path, namespace = prepare_module(
-            path,
-            return_associated_base_path=True,
-            return_namespace=True,
-        )
-        builder_cls = import_main_class(module_path)
+        module = dataset_module_factory(path)
+        builder_cls = import_main_class(module.module_path)
 
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             n_builders = len(builder_cls.BUILDER_CONFIGS) // self._num_proc
@@ -133,21 +129,14 @@ class TestCommand(BaseDatasetsCLICommand):
                     if i % self._num_proc == self._proc_rank:
                         yield builder_cls(
                             name=config.name,
-                            hash=hash,
                             cache_dir=self._cache_dir,
                             data_dir=self._data_dir,
-                            base_path=base_path,
-                            namespace=namespace,
+                            **module.builder_kwargs,
                         )
             else:
                 if self._proc_rank == 0:
                     yield builder_cls(
-                        name=name,
-                        hash=hash,
-                        cache_dir=self._cache_dir,
-                        data_dir=self._data_dir,
-                        base_path=base_path,
-                        namespace=namespace,
+                        name=name, cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs
                     )
 
         for j, builder in enumerate(get_builders()):

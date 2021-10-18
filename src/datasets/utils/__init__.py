@@ -35,5 +35,5 @@ from .py_utils import (
     zip_dict,
     zip_nested,
 )
-from .tqdm_utils import async_tqdm, disable_progress_bar, is_progress_bar_enabled, tqdm
+from .tqdm_utils import disable_progress_bar, is_progress_bar_enabled, set_progress_bar_enabled, tqdm
 from .version import Version

@@ -18,7 +18,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "1.12.2.dev0"
+__version__ = "1.13.4.dev0"
 
 import pyarrow
 from packaging import version as _version
@@ -42,6 +42,7 @@ from .features import (
     Array3D,
     Array4D,
     Array5D,
+    Audio,
     ClassLabel,
     Features,
     Sequence,

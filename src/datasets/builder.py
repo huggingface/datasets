@@ -26,12 +26,10 @@ import textwrap
 import urllib
 from dataclasses import dataclass
 from functools import partial
-from pathlib import PurePath
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Dict, Mapping, Optional, Tuple, Union
 
 from datasets.features import Features
 from datasets.utils.mock_download_manager import MockDownloadManager
-from datasets.utils.py_utils import map_nested
 
 from . import config, utils
 from .arrow_dataset import Dataset
@@ -43,6 +41,7 @@ from .arrow_reader import (
     ReadInstruction,
 )
 from .arrow_writer import ArrowWriter, BeamWriter
+from .data_files import DataFilesDict, _sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
@@ -51,7 +50,7 @@ from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
 from .utils.download_manager import DownloadManager, GenerateMode
-from .utils.file_utils import DownloadConfig, is_relative_path, is_remote_url, request_etags, url_or_path_join
+from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.streaming_download_manager import StreamingDownloadManager
@@ -90,7 +89,7 @@ class BuilderConfig:
     name: str = "default"
     version: Optional[Union[str, utils.Version]] = "0.0.0"
     data_dir: Optional[str] = None
-    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None
+    data_files: Optional[DataFilesDict] = None
     description: Optional[str] = None
 
     def __post_init__(self):
@@ -99,12 +98,11 @@ class BuilderConfig:
         for invalid_char in invalid_windows_characters:
             if invalid_char in self.name:
                 raise InvalidConfigName(
-                    (
-                        "Bad characters from black list '{}' found in '{}'. "
-                        "They could create issues when creating a directory "
-                        "for this config on Windows filesystem."
-                    ).format(invalid_windows_characters, self.name)
+                    f"Bad characters from black list '{invalid_windows_characters}' found in '{self.name}'. "
+                    f"They could create issues when creating a directory for this config on Windows filesystem."
                 )
+        if self.data_files is not None and not isinstance(self.data_files, DataFilesDict):
+            raise ValueError(f"Expected a DataFilesDict in data_files but got {self.data_files}")
 
     def __eq__(self, o):
         # we need to override the default dataclass __eq__ since it doesn't check for
@@ -117,8 +115,6 @@ class BuilderConfig:
         self,
         config_kwargs: dict,
         custom_features: Optional[Features] = None,
-        use_auth_token: Optional[Union[bool, str]] = None,
-        base_path: Optional[Union[bool, str]] = None,
     ) -> str:
         """
         The config id is used to build the cache directory.
@@ -136,14 +132,12 @@ class BuilderConfig:
         # name and version are already used to build the cache directory
         config_kwargs_to_add_to_suffix.pop("name", None)
         config_kwargs_to_add_to_suffix.pop("version", None)
-        # data files are handled differently
-        config_kwargs_to_add_to_suffix.pop("data_files", None)
         # data dir handling (when specified it points to the manually downloaded data):
         # it was previously ignored before the introduction of config id because we didn't want
         # to change the config name. Now it's fine to take it into account for the config id.
         # config_kwargs_to_add_to_suffix.pop("data_dir", None)
         if "data_dir" in config_kwargs_to_add_to_suffix and config_kwargs_to_add_to_suffix["data_dir"] is None:
-            del config_kwargs_to_add_to_suffix["data_dir"]
+            config_kwargs_to_add_to_suffix.pop("data_dir", None)
         if config_kwargs_to_add_to_suffix:
             # we don't care about the order of the kwargs
             config_kwargs_to_add_to_suffix = {
@@ -157,49 +151,6 @@ class BuilderConfig:
                     suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
             else:
                 suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
-
-        if self.data_files is not None:
-            m = Hasher()
-            if suffix:
-                m.update(suffix)
-            if isinstance(self.data_files, str):
-                data_files = {"train": [self.data_files]}
-            elif isinstance(self.data_files, (tuple, list)):
-                data_files = {"train": self.data_files}
-            elif isinstance(self.data_files, dict):
-                data_files = {
-                    str(key): files if isinstance(files, (tuple, list)) else [files]
-                    for key, files in self.data_files.items()
-                }
-            else:
-                raise ValueError("Please provide a valid `data_files` in `DatasetBuilder`")
-
-            def abspath(data_file) -> str:
-                data_file = data_file.as_posix() if isinstance(data_file, PurePath) else str(data_file)
-                return url_or_path_join(base_path, data_file) if is_relative_path(data_file) else data_file
-
-            data_files: Dict[str, List[str]] = map_nested(abspath, data_files)
-            remote_urls = [
-                data_file for key in data_files for data_file in data_files[key] if is_remote_url(data_file)
-            ]
-            etags = dict(
-                zip(
-                    remote_urls,
-                    request_etags(
-                        remote_urls, use_auth_token=use_auth_token, tqdm_kwargs={"desc": "Check remote data files"}
-                    ),
-                )
-            )
-            for key in sorted(data_files.keys()):
-                m.update(key)
-                for data_file in data_files[key]:
-                    if is_remote_url(data_file):
-                        m.update(data_file)
-                        m.update(etags[data_file])
-                    else:
-                        m.update(os.path.abspath(data_file))
-                        m.update(str(os.path.getmtime(data_file)))
-            suffix = m.hexdigest()
 
         if custom_features is not None:
             m = Hasher()
@@ -255,6 +206,8 @@ class DatasetBuilder:
         features: Optional[Features] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
         namespace: Optional[str] = None,
+        data_files: Optional[Union[str, list, dict, DataFilesDict]] = None,
+        data_dir: Optional[str] = None,
         **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
@@ -274,6 +227,12 @@ class DatasetBuilder:
                 It can be used to changed the :obj:`datasets.Features` description of a dataset for example.
             use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
                 for remote files on the Datasets Hub. If True, will get token from ``"~/.huggingface"``.
+            namespace: `str`, used to separate builders with the same name but not coming from the same namespace.
+                For example to separate "squad" from "lhoestq/squad" (the builder name would be "lhoestq___squad").
+            data_files: for builders like "csv" or "json" that need the user to specify data files. They can be either
+                local or remote files. For convenience you can use a DataFilesDict.
+            data_files: `str`, for builders that require manual download. It must be the path to the local directory containing
+                the manually downloaded data.
             config_kwargs: will override the defaults kwargs in config
 
         """
@@ -284,14 +243,18 @@ class DatasetBuilder:
         self.use_auth_token = use_auth_token
         self.namespace = namespace
 
+        if data_files is not None and not isinstance(data_files, DataFilesDict):
+            data_files = DataFilesDict.from_local_or_remote(
+                _sanitize_patterns(data_files), base_path=base_path, use_auth_token=use_auth_token
+            )
+
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
-        # Discard default config parameters
-        if "data_files" in config_kwargs and config_kwargs["data_files"] is None:
-            del config_kwargs["data_files"]
-        if "data_dir" in config_kwargs and config_kwargs["data_dir"] is None:
-            del config_kwargs["data_dir"]
+        if data_files is not None:
+            config_kwargs["data_files"] = data_files
+        if data_dir is not None:
+            config_kwargs["data_dir"] = data_dir
         self.config, self.config_id = self._create_builder_config(
             name,
             custom_features=features,
@@ -412,8 +375,6 @@ class DatasetBuilder:
         config_id = builder_config.create_config_id(
             config_kwargs,
             custom_features=custom_features,
-            use_auth_token=self.use_auth_token,
-            base_path=self.base_path if self.base_path is not None else "",
         )
         is_custom = config_id not in self.builder_configs
         if is_custom:
@@ -1193,7 +1154,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         generator = self._generate_tables(**split_generator.gen_kwargs)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
             for key, table in utils.tqdm(
-                generator, unit=" tables", leave=False, disable=bool(logging.get_verbosity() == logging.NOTSET)
+                generator, unit=" tables", leave=False, disable=True  # bool(logging.get_verbosity() == logging.NOTSET)
             ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
