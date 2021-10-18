@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: BioNLP / JNLPBA Shared Task 2004
 ---
 
 # Dataset Card for JNLPBA
@@ -74,8 +75,8 @@ English
 
 ### Data Fields
 
-- `id`: Sentence identifier.  
-- `tokens`: Array of tokens composing a sentence.  
+- `id`: Sentence identifier.
+- `tokens`: Array of tokens composing a sentence.
 - `ner_tags`: Array of tags, where `0` indicates no bio-entity mentioned, `1` signals the first token of a bio-entity and `2` the subsequent bio-entity tokens.
 
 ### Data Splits
