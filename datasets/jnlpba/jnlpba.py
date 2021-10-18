@@ -114,8 +114,8 @@ class JNLPBA(datasets.GeneratorBasedBuilder):
         guid = 0
         for filename in filenames:
             with open(filename, encoding="utf-8") as f:
-                if guid > 0:
-                    guid += 1
+                if guid >= 0:
+                    guid += 1  # update guid to avoid DuplicatedKeysError
                 tokens = []
                 ner_tags = []
                 for line in f:
