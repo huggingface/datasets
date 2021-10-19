@@ -18,8 +18,9 @@
 
 from typing import Dict, List, Mapping, Optional, Sequence, Union
 
+import huggingface_hub
+
 from .features import Features
-from .hf_api import HfApi
 from .load import import_main_class, load_dataset_builder, prepare_module
 from .utils import DownloadConfig
 from .utils.download_manager import GenerateMode
@@ -36,25 +37,35 @@ class SplitsNotFoundError(ValueError):
 
 
 def list_datasets(with_community_datasets=True, with_details=False):
-    """List all the datasets scripts available on HuggingFace AWS bucket.
+    """List all the datasets scripts available on the Hugging Face Hub.
 
     Args:
         with_community_datasets (``bool``, optional, default ``True``): Include the community provided datasets.
         with_details (``bool``, optional, default ``False``): Return the full details on the datasets instead of only the short name.
     """
-    api = HfApi()
-    return api.dataset_list(with_community_datasets=with_community_datasets, id_only=bool(not with_details))
+    api = huggingface_hub.HfApi()
+    datasets = api.list_datasets(full=with_details)
+    if not with_community_datasets:
+        datasets = [dataset for dataset in datasets if "/" not in dataset.id]
+    if not with_details:
+        datasets = [dataset.id for dataset in datasets]
+    return datasets
 
 
 def list_metrics(with_community_metrics=True, with_details=False):
-    """List all the metrics script available on HuggingFace AWS bucket
+    """List all the metrics script available on the Hugging Face Hub.
 
     Args:
         with_community_metrics (Optional ``bool``): Include the community provided metrics (default: ``True``)
         with_details (Optional ``bool``): Return the full details on the metrics instead of only the short name (default: ``False``)
     """
-    api = HfApi()
-    return api.metric_list(with_community_metrics=with_community_metrics, id_only=bool(not with_details))
+    api = huggingface_hub.HfApi()
+    metrics = api.list_metrics()
+    if not with_community_metrics:
+        metrics = [metric for metric in metrics if "/" not in metric.id]
+    if not with_details:
+        metrics = [metric.id for metric in metrics]
+    return metrics
 
 
 def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
