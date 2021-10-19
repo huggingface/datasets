@@ -160,11 +160,12 @@ If you want to cite our 🤗 Datasets [paper](https://arxiv.org/abs/2109.02846) 
 }
 ```
 ```bibtex
-@software{quentin_lhoest_2021_5570305,
+@software{quentin_lhoest_2021_5579268,
   author       = {Quentin Lhoest and
                   Albert Villanova del Moral and
                   Patrick von Platen and
                   Thomas Wolf and
+                  Mario Šaško and
                   Yacine Jernite and
                   Abhishek Thakur and
                   Lewis Tunstall and
@@ -191,12 +192,12 @@ If you want to cite our 🤗 Datasets [paper](https://arxiv.org/abs/2109.02846) 
                   Lysandre Debut and
                   Stas Bekman and
                   Clément Delangue},
-  title        = {huggingface/datasets: 1.13.2},
+  title        = {huggingface/datasets: 1.14.0},
   month        = oct,
   year         = 2021,
   publisher    = {Zenodo},
-  version      = {1.13.2},
-  doi          = {10.5281/zenodo.5570305},
-  url          = {https://doi.org/10.5281/zenodo.5570305}
+  version      = {1.14.0},
+  doi          = {10.5281/zenodo.5579268},
+  url          = {https://doi.org/10.5281/zenodo.5579268}
 }
 ```
