@@ -137,7 +137,7 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 **Some rules to follow when adding the dataset**:
 
 - try to give access to all the data, columns, features and information in the dataset. If the dataset contains various sub-parts with differing formats, create several configurations to give access to all of them.
-- datasets in the `datasets` library are typed. Take some time to carefully think about the `features` (see an introduction [here](https://huggingface.co/docs/datasets/about_dataset_features.html) and the full list of possible features [here](https://huggingface.co/docs/datasets/features.html))
+- datasets in the `datasets` library are typed. Take some time to carefully think about the `features` (see an introduction [here](https://huggingface.co/docs/datasets/about_dataset_features.html) and the full list of possible features [here](https://huggingface.co/docs/datasets/package_reference/main_classes.html#features)
 - if some of you dataset features are in a fixed set of classes (e.g. labels), you should use a `ClassLabel` feature.
 
 
