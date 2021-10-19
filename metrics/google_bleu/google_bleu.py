@@ -24,7 +24,7 @@ from datasets import MetricInfo
 
 _CITATION = """\
 @misc{wu2016googles,
-      title={Google's Neural Machine Translation System: Bridging the Gap between Human and Machine Translation}, 
+      title={Google's Neural Machine Translation System: Bridging the Gap between Human and Machine Translation},
       author={Yonghui Wu and Mike Schuster and Zhifeng Chen and Quoc V. Le and Mohammad Norouzi and Wolfgang Macherey
               and Maxim Krikun and Yuan Cao and Qin Gao and Klaus Macherey and Jeff Klingner and Apurva Shah and Melvin
               Johnson and Xiaobing Liu and Łukasz Kaiser and Stephan Gouws and Yoshikiyo Kato and Taku Kudo and Hideto
@@ -71,7 +71,7 @@ Args:
 
 Returns:
     'google_bleu': bleu score
-    
+
 Examples:
     >>> hyp1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
     ...         'ensures', 'that', 'the', 'military', 'always',
