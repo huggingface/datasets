@@ -408,7 +408,7 @@ Data augmentation
 
 With batch processing, you can even augment your dataset with additional examples. In the following example, you will generate additional words for a masked token in a sentence.
 
-Load the `RoBERTA <https://huggingface.co/roberta-base>`_ model for use in the 🤗 Transformer `FillMaskPipeline <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.FillMaskPipeline>`_:
+Load the `RoBERTA <https://huggingface.co/roberta-base>`_ model for use in the 🤗 Transformer `FillMaskPipeline <https://huggingface.co/transformers/main_classes/pipelines.html#transformers.FillMaskPipeline>`_:
 
 .. code-block::
 

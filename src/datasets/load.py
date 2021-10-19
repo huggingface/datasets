@@ -1498,7 +1498,7 @@ def load_dataset(
             Processing scripts are small python scripts that define the citation, info and format of the dataset,
             contain the URL to the original data files and the code to load examples from the original data files.
 
-            You can find some of the scripts here: https://github.com/huggingface/datasets/datasets
+            You can find some of the scripts here: https://github.com/huggingface/datasets/tree/master/datasets
             and easily upload yours to share them using the CLI ``huggingface-cli``.
             You can find the complete list of datasets in the Datasets Hub at https://huggingface.co/datasets
 
