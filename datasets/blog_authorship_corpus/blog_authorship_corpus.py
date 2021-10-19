@@ -25,7 +25,7 @@ Each blog is presented as a separate file, the name of which indicates a blogger
 
 All bloggers included in the corpus fall into one of three age groups:
 - 8240 "10s" blogs (ages 13-17),
-- 8086 "20s" blogs (ages 23-27)
+- 8086 "20s" blogs (ages 23-27),
 - 2994 "30s" blogs (ages 33-47).
 
 For each age group there are an equal number of male and female bloggers.
