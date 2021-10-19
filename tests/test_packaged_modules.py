@@ -91,10 +91,8 @@ def test_elasticsearch_builder():
     elasticsearch_builder = ElasticsearchBuilder(
         host="localhost",
         port="9200",
-        es_index_name="big_science_oscar_unshuffled_original_ca",
+        es_index_name=None,
         es_index_config=es_index_config,
     )
-
-    print(f"\n{elasticsearch_builder.config}")
 
     assert elasticsearch_builder.config.host == "localhost"

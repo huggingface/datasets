@@ -49,55 +49,41 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
         return self.info
 
     def _init_connexion(self):
-        import ssl
+        from datasets.search import ElasticSearchIndex
 
-        from elasticsearch import Elasticsearch
+        logger.info(f"Testing connection to elasticsearch at {self.config.host}:{self.config.port}")
 
-        # init the elasticsearch client and test connection
-        server_url = (
-            ("https" if self.config.ca_file is not None else "http")
-            + "://"
-            + self.config.host
-            + ":"
-            + str(self.config.port)
+        self.es_client = ElasticSearchIndex.get_es_client(
+            self.config.host,
+            self.config.port,
+            es_username=self.config.es_username,
+            es_psw=self.config.es_psw,
+            ca_file=self.config.ca_file
         )
-        ssl_context = None if self.config.ca_file is None else ssl.create_default_context(cafile=self.config.ca_file)
-        if self.config.es_username is None or self.config.es_psw is None:
-            self.es_client = Elasticsearch([server_url], ssl_context=ssl_context)
+
+        self.config.es_index_name = ElasticSearchIndex.check_index_name_or_default(self.config.es_index_name)
+
+        _DESCRIPTION = None
+        _HOMEPAGE = None
+        _CITATION = None
+        _LICENSE = None
+
+        if not self.es_client.indices.exists(index=self.config.es_index_name):
+            logger.warning(f"Index [{self.config.es_index_name}] is not available in {self.config.host} server.")
         else:
-            # authenticate user
-            self.es_client = Elasticsearch(
-                [server_url], http_auth=(self.config.es_username, self.config.es_psw), ssl_context=ssl_context
-            )
-        try:
-            logger.info(f"Testing connection to elasticsearch at {self.config.host}:{self.config.port}")
-            if not self.es_client.indices.exists(index=self.config.es_index_name):
-                raise ResourceWarning(f"Index {self.config.es_index_name} is not available.")
-            logger.info("Connection successful")
-        except ConnectionError:
-            msg = f"Connection error: is the elasticsearch instance really at {self.config.host}:{self.config.port}?"
-            logger.critical(msg)
-            raise Exception(msg)
+            # load dataset information from elasticsearch index metadata
+            mapping_response = self.es_client.indices.get_mapping(index=self.config.es_index_name)
+            self.mapping = mapping_response[self.config.es_index_name]["mappings"]
 
-        print(f"Connexion established with Elasticsearch at {self.config.host}:{self.config.port}")
-
-        # load dataset information from elasticsearch index metadata
-        mapping_response = self.es_client.indices.get_mapping(index=self.config.es_index_name)
-        self.mapping = mapping_response[self.config.es_index_name]["mappings"]
-
-        if "_meta" in self.mapping.keys():
-            _DESCRIPTION = self.mapping["_meta"]["description"]
-            _HOMEPAGE = self.mapping["_meta"]["homepage"]
-            _CITATION = self.mapping["_meta"]["citation"]
-            _LICENSE = self.mapping["_meta"]["license"]
-        else:
-            logger.warning(
-                f"No meta on this ES index {self.config.es_index_name}. The dataset will not have metadata."
-            )
-            _DESCRIPTION = None
-            _HOMEPAGE = None
-            _CITATION = None
-            _LICENSE = None
+            if "_meta" in self.mapping.keys():
+                _DESCRIPTION = self.mapping["_meta"]["description"]
+                _HOMEPAGE = self.mapping["_meta"]["homepage"]
+                _CITATION = self.mapping["_meta"]["citation"]
+                _LICENSE = self.mapping["_meta"]["license"]
+            else:
+                logger.warning(
+                    f"No meta on this ES index {self.config.es_index_name}. The dataset will not have metadata."
+                )
 
         self.info = datasets.DatasetInfo(
             description=_DESCRIPTION,

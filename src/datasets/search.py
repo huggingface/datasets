@@ -125,11 +125,7 @@ class ElasticSearchIndex(BaseIndex):
         else:
             self.es_client = self.get_es_client(host, port, es_username, es_psw, ca_file)
 
-        self.es_index_name = (
-            es_index_name
-            if es_index_name is not None
-            else "huggingface_datasets_" + os.path.basename(tempfile.NamedTemporaryFile().name)
-        )
+        self.es_index_name = ElasticSearchIndex.check_index_name_or_default(es_index_name)
 
         self.es_index_config = (
             es_index_config
@@ -158,7 +154,16 @@ class ElasticSearchIndex(BaseIndex):
             }
         )
 
-    def get_es_client(self, host, port, es_username=None, es_psw=None, ca_file=None):
+    @staticmethod
+    def check_index_name_or_default(es_index_name):
+        return (
+            es_index_name
+            if es_index_name is not None
+            else "huggingface_datasets_" + os.path.basename(tempfile.NamedTemporaryFile().name)
+        )
+
+    @staticmethod
+    def get_es_client(host, port, es_username=None, es_psw=None, ca_file=None):
         """
         Create the elasticsearch client instance and check the connection by issuing a simple ping request.
 
@@ -181,8 +186,11 @@ class ElasticSearchIndex(BaseIndex):
             es_client = Elasticsearch([server_url], http_auth=(es_username, es_psw), ssl_context=ssl_context)
 
         if not es_client.ping():
-            raise ValueError("Connection failed")
+            msg = f"Connection error: is the elasticsearch instance really at {server_url}?"
+            logger.critical(msg)
+            raise Exception(msg)
 
+        logger.info("Connection successful.")
         return es_client
 
     def add_documents(self, documents: Union[List[str], "Dataset"], column: Optional[str] = None):
