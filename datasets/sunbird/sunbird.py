@@ -38,7 +38,7 @@ _URL = {
     "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/v4-dataset.zip",
 }
 
-
+# update inter-language pairs
 language_pairs = [
 "en-lug",
 "en-run",
