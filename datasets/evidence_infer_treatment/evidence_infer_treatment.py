@@ -73,7 +73,7 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
             name="2.0",
             description="EvidenceInference V2",
             version=datasets.Version("2.0.0"),
-            zip_file="http://evidence-inference.ebm-nlp.com/v2.0.tar.gz",
+            zip_file="https://github.com/jayded/evidence-inference/archive/refs/tags/v2.0.zip",
         ),
         EvidenceInferenceConfig(
             name="1.1",
@@ -135,8 +135,7 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(self.config.zip_file)
-        if self.config.name == "1.1":
-            dl_dir = os.path.join(dl_dir, "evidence-inference-1.1", "annotations")
+        dl_dir = os.path.join(dl_dir, f"evidence-inference-{self.config.name}", "annotations")
 
         SPLITS = {}
         for split in ["train", "test", "validation"]:

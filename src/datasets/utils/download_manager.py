@@ -234,7 +234,9 @@ class DownloadManager:
 
         # We do this complex absolute/relative scheme to reproduce the API of iter_tar of tfds
         for root, dirs, files in os.walk(extracted_path, topdown=False):
-            relative_dir_path = root.replace(os.path.abspath(extracted_path) + os.sep, "")
+            relative_dir_path = root.replace(os.path.abspath(extracted_path), "")
+            if relative_dir_path.startswith(os.sep):
+                relative_dir_path = relative_dir_path[1:]
             for name in files:
                 relative_file_path = os.path.join(relative_dir_path, name)
                 absolute_file_path = os.path.join(root, name)
