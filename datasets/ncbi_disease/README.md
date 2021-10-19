@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: ncbi-disease-1
+pretty_name: NCBI Disease
 ---
 
 # Dataset Card for NCBI Disease
@@ -54,7 +55,7 @@ paperswithcode_id: ncbi-disease-1
 
 ## Dataset Description
 
-- **Homepage:** [NCBI](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3951655/)
+- **Homepage:** [NCBI](https://www.ncbi.nlm.nih.gov/research/bionlp/Data/disease)
 - **Repository:** [Github](https://github.com/spyysalo/ncbi-disease)
 - **Paper:** [NCBI disease corpus: A resource for disease name recognition and concept normalization](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3951655)
 - **Leaderboard:** [Named Entity Recognition on NCBI-disease](https://paperswithcode.com/sota/named-entity-recognition-ner-on-ncbi-disease)
