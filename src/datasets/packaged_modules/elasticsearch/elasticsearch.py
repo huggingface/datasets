@@ -58,7 +58,7 @@ class ElasticsearchBuilder(datasets.GeneratorBasedBuilder):
             self.config.port,
             es_username=self.config.es_username,
             es_psw=self.config.es_psw,
-            ca_file=self.config.ca_file
+            ca_file=self.config.ca_file,
         )
 
         self.config.es_index_name = ElasticSearchIndex.check_index_name_or_default(self.config.es_index_name)
