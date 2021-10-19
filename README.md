@@ -147,8 +147,18 @@ Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that download
 If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/datasets/issues/new). Thanks for your contribution to the ML community!
 
 ## BibTeX
-If you want to cite this framework you can use this:
+If you want to cite our 🤗 Datasets [paper](https://arxiv.org/abs/2109.02846) and library, you can use these:
 
+```bibtex
+@misc{lhoest2021datasets,
+      title={Datasets: A Community Library for Natural Language Processing},
+      author={Quentin Lhoest and Albert Villanova del Moral and Yacine Jernite and Abhishek Thakur and Patrick von Platen and Suraj Patil and Julien Chaumond and Mariama Drame and Julien Plu and Lewis Tunstall and Joe Davison and Mario Šaško and Gunjan Chhablani and Bhavitvya Malik and Simon Brandeis and Teven Le Scao and Victor Sanh and Canwen Xu and Nicolas Patry and Angelina McMillan-Major and Philipp Schmid and Sylvain Gugger and Clément Delangue and Théo Matussière and Lysandre Debut and Stas Bekman and Pierric Cistac and Thibault Goehringer and Victor Mustar and François Lagunas and Alexander M. Rush and Thomas Wolf},
+      year={2021},
+      eprint={2109.02846},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```
 ```bibtex
 @software{quentin_lhoest_2021_5570305,
   author       = {Quentin Lhoest and
