@@ -21,6 +21,7 @@ from nltk.translate import gleu_score
 import datasets
 from datasets import MetricInfo
 
+
 _CITATION = """\
 @misc{wu2016googles,
       title={Google's Neural Machine Translation System: Bridging the Gap between Human and Machine Translation}, 
@@ -101,7 +102,6 @@ Examples:
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class GoogleBleu(datasets.Metric):
-
     def _info(self) -> MetricInfo:
         return datasets.MetricInfo(
             description=_DESCRIPTION,
@@ -114,15 +114,16 @@ class GoogleBleu(datasets.Metric):
                         datasets.Sequence(datasets.Value("string", id="token"), id="sequence"), id="references"
                     ),
                 }
-            )
+            ),
         )
 
-    def _compute(self,
-                 predictions: List[List[List[str]]],
-                 references: List[List[str]],
-                 min_len: int = 1,
-                 max_len: int = 4,
-                 ) -> Dict[str, float]:
+    def _compute(
+        self,
+        predictions: List[List[List[str]]],
+        references: List[List[str]],
+        min_len: int = 1,
+        max_len: int = 4,
+    ) -> Dict[str, float]:
         return {
             "google_bleu": gleu_score.corpus_gleu(
                 list_of_references=references, hypotheses=predictions, min_len=min_len, max_len=max_len
