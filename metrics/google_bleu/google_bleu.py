@@ -14,27 +14,52 @@
 # limitations under the License.
 """ Google BLEU (aka GLEU) metric. """
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from nltk.translate import gleu_score
 
 import datasets
 from datasets import MetricInfo
 
-_CITATION = ...
+_CITATION = """\
+TODO
+"""
 
-_DESCRIPTION = ...
+_DESCRIPTION = """\
+TODO
+"""
 
-_KWARGS_DESCRIPTION = ...
+_KWARGS_DESCRIPTION = """\
+TODO
+"""
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class GoogleBleu(datasets.Metric):
 
     def _info(self) -> MetricInfo:
-        pass
+        return datasets.MetricInfo(
+            description=_DESCRIPTION,
+            citation=_CITATION,
+            inputs_description=_KWARGS_DESCRIPTION,
+            features=datasets.Features(
+                {
+                    "predictions": datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
+                    "references": datasets.Sequence(
+                        datasets.Sequence(datasets.Value("string", id="token"), id="sequence"), id="references"
+                    ),
+                }
+            )
+        )
 
-    def _compute(self, *, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
+    def _compute(self,
+                 predictions: List[List[List[str]]],
+                 references: List[List[str]],
+                 min_len=1,
+                 max_len=4,
+                 ) -> Dict[str, Any]:
         return {
-            "google_bleu": gleu_score.corpus_gleu([references], predictions)
+            "google_bleu": gleu_score.corpus_gleu(
+                list_of_references=references, hypotheses=predictions, min_len=min_len, max_len=max_len
+            )
         }
