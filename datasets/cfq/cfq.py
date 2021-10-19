@@ -69,7 +69,7 @@ class CfqConfig(datasets.BuilderConfig):
         super(CfqConfig, self).__init__(
             name=name, version=datasets.Version("1.0.1"), description=_DESCRIPTION, **kwargs
         )
-        self.split_file = f"cfq/{directory}/{name}.json"
+        self.split_file = os.path.join(directory, name + ".json")
 
 
 _QUESTION = "question"
@@ -108,23 +108,20 @@ class Cfq(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        archive = dl_manager.download(_DATA_URL)
+        data_dir = dl_manager.download_and_extract(_DATA_URL)
+        data_dir = os.path.join(data_dir, "cfq")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "files": dl_manager.iter_archive(archive),
+                    "base_directory": data_dir,
                     "splits_file": self.config.split_file,
                     "split_id": "trainIdxs",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "files": dl_manager.iter_archive(archive),
-                    "splits_file": self.config.split_file,
-                    "split_id": "testIdxs",
-                },
+                gen_kwargs={"base_directory": data_dir, "splits_file": self.config.split_file, "split_id": "testIdxs"},
             ),
         ]
 
