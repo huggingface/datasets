@@ -66,7 +66,7 @@ class BlendedSkillTalk(datasets.GeneratorBasedBuilder):
         # TODO(blended_skill_talk): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        archive = dl_manager.download_and_extract(_URL)
+        archive = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,

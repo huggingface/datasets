@@ -108,7 +108,7 @@ class Cfq(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        archive = dl_manager.download_and_extract(_DATA_URL)
+        archive = dl_manager.download(_DATA_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
