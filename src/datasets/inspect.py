@@ -43,8 +43,7 @@ def list_datasets(with_community_datasets=True, with_details=False):
         with_community_datasets (``bool``, optional, default ``True``): Include the community provided datasets.
         with_details (``bool``, optional, default ``False``): Return the full details on the datasets instead of only the short name.
     """
-    api = huggingface_hub.HfApi()
-    datasets = api.list_datasets(full=with_details)
+    datasets = huggingface_hub.list_datasets(full=with_details)
     if not with_community_datasets:
         datasets = [dataset for dataset in datasets if "/" not in dataset.id]
     if not with_details:
@@ -59,8 +58,7 @@ def list_metrics(with_community_metrics=True, with_details=False):
         with_community_metrics (Optional ``bool``): Include the community provided metrics (default: ``True``)
         with_details (Optional ``bool``): Return the full details on the metrics instead of only the short name (default: ``False``)
     """
-    api = huggingface_hub.HfApi()
-    metrics = api.list_metrics()
+    metrics = huggingface_hub.list_metrics()
     if not with_community_metrics:
         metrics = [metric for metric in metrics if "/" not in metric.id]
     if not with_details:
