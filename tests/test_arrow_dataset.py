@@ -2190,6 +2190,22 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
 
 
+@pytest.mark.parametrize("axis", [0, 1])
+def test_concatenate_datasets_complex_features(axis):
+    n = 5
+    dataset1 = Dataset.from_dict(
+        {"col_1": [0] * n, "col_2": list(range(n))},
+        features=Features({"col_1": Value("int32"), "col_2": ClassLabel(num_classes=n)}),
+    )
+    if axis == 1:
+        dataset2 = dataset1.rename_columns({col: col + "_" for col in dataset1.column_names})
+        expected_features = Features({**dataset1.features, **dataset2.features})
+    else:
+        dataset2 = dataset1
+        expected_features = dataset1.features
+    assert concatenate_datasets([dataset1, dataset2], axis=axis).features == expected_features
+
+
 @pytest.mark.parametrize("other_dataset_type", ["in_memory", "memory_mapped", "concatenation"])
 @pytest.mark.parametrize("axis, expected_shape", [(0, (8, 3)), (1, (4, 6))])
 def test_concatenate_datasets_with_concatenation_tables(
