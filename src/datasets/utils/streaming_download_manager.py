@@ -299,10 +299,13 @@ def xpathsuffix(path: Path):
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
-def xpandas_read_csv(path, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
+def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
-    return pd.read_csv(xopen(path, use_auth_token=use_auth_token), **kwargs)
+    if hasattr(filepath_or_buffer, "read"):
+        return pd.read_csv(filepath_or_buffer, **kwargs)
+    else:
+        return pd.read_csv(xopen(filepath_or_buffer, use_auth_token=use_auth_token), **kwargs)
 
 
 class StreamingDownloadManager(object):

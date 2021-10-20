@@ -958,15 +958,17 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             for path, f in files:
                 if path == filepath:
                     data = f.read().decode("utf-8").splitlines()
+                    tokens = []
+                    labels = []
+                    infos = []
                     for id_, row in enumerate(data):
-                        tokens = []
-                        labels = []
-                        infos = []
-
                         row = row.split()
 
                         if len(row) == 0:
                             yield id_, {"tokens": tokens, "ner_tags": labels, "additional_info": infos}
+                            tokens = []
+                            labels = []
+                            infos = []
                             continue
 
                         tokens.append(row[0])
