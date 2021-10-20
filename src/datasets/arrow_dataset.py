@@ -3650,7 +3650,10 @@ def concatenate_datasets(
         return dsets[0]
     table = concat_tables(tables_to_concat, axis=axis)
     if axis == 1:
-        table = update_metadata_with_features(table, None)
+        # Merge features (ignore duplicated columns for now and let Dataset.__init__ check for those)
+        table = update_metadata_with_features(
+            table, Features({k: v for dset in dsets for k, v in dset.features.items()})
+        )
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
