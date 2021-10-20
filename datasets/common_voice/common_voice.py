@@ -613,6 +613,7 @@ class CommonVoiceConfig(datasets.BuilderConfig):
 
 class CommonVoice(datasets.GeneratorBasedBuilder):
 
+    DEFAULT_WRITER_BATCH_SIZE = 1000
     BUILDER_CONFIGS = [
         CommonVoiceConfig(
             name=lang_id,
