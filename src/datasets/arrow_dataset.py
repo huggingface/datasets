@@ -433,11 +433,15 @@ class TensorflowDatasetMixin:
 
             tf_dataset = tf_dataset.map(add_dummy_labels)
 
-        def rename_label_col(input_batch):
-            if "label" in input_batch:
-                input_batch["labels"] = input_batch["label"]
-                del input_batch["label"]
-            return input_batch
+        def rename_label_col(inputs, labels=None):
+            if not isinstance(inputs, tf.Tensor):
+                if "label" in inputs:
+                    inputs["labels"] = inputs["label"]
+                    del inputs["label"]
+            if labels is None:
+                return inputs
+            else:
+                return inputs, labels
 
         tf_dataset = tf_dataset.map(rename_label_col)
 
