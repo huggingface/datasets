@@ -1,4 +1,6 @@
+import os
 import sys
+import tarfile
 from ctypes.util import find_library
 from importlib.util import find_spec
 
@@ -24,6 +26,15 @@ require_sox = pytest.mark.skipif(
     reason="Test requires 'sox'; only available in non-Windows, e.g.: `sudo apt-get install sox`",
 )
 require_torchaudio = pytest.mark.skipif(find_spec("torchaudio") is None, reason="Test requires 'torchaudio'")
+
+
+@pytest.fixture()
+def tar_wav_path(shared_datadir, tmp_path_factory):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    path = tmp_path_factory.mktemp("data") / "audio_data.wav.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(audio_path, arcname=os.path.basename(audio_path))
+    return path
 
 
 def test_audio_instantiation():
