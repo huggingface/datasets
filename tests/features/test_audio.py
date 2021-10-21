@@ -324,6 +324,7 @@ def jsonl_audio_dataset_path(shared_datadir, tmp_path_factory):
     return path
 
 
+@require_sndfile
 @pytest.mark.parametrize("streaming", [False, True])
 def test_load_dataset_with_audio_feature(streaming, jsonl_audio_dataset_path, shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
