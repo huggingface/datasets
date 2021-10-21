@@ -1,5 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
+from io import BytesIO
 from typing import Any, ClassVar, Optional
 
 import pyarrow as pa
@@ -11,11 +12,18 @@ class Audio:
 
     Args:
         sampling_rate (:obj:`int`, optional): Target sampling rate. If `None`, the native sampling rate is used.
-        mono (:obj:`bool`, default ```True``): Whether to convert the audio signal to mono by averaging samples across channels.
+        mono (:obj:`bool`, default ``True``): Whether to convert the audio signal to mono by averaging samples across
+            channels.
+        archived (:obj:`bool`, default ``False``): Whether the source data is archived with sequential access.
+            - If non-archived with sequential access (i.e. random access is allowed), the cache will only store the
+              absolute path to the audio file.
+            - If archived with sequential access, the cache will store the relative path of the audio file to the
+              archive file and the bytes of the audio file.
     """
 
     sampling_rate: Optional[int] = None
     mono: bool = True
+    archived: bool = False
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -23,24 +31,33 @@ class Audio:
     _type: str = field(default="Audio", init=False, repr=False)
 
     def __call__(self):
-        return pa.string()
+        return pa.string() if not self.archived else pa.struct({"path": pa.string(), "bytes": pa.binary()})
 
     def decode_example(self, value):
         """Decode example audio file into audio data.
 
         Args:
-            value: Audio file path.
+            value: Either absolute audio file path (when ``archived=False``) or a dict with relative audio file path
+                and the bytes of the audio file.
 
         Returns:
             dict
         """
-        # TODO: backard compatibility for users without audio dependencies
-        array, sampling_rate = (
-            self._decode_example_with_torchaudio(value)
-            if value.endswith(".mp3")
-            else self._decode_example_with_librosa(value)
-        )
-        return {"path": value, "array": array, "sampling_rate": sampling_rate}
+        if self.archived:
+            path, file = value["path"], BytesIO(value["bytes"])
+            array, sampling_rate = (
+                self._decode_example_with_torchaudio(file)
+                if path.endswith(".mp3")
+                else self._decode_example_with_soundfile(file)
+            )
+        else:
+            path = value
+            array, sampling_rate = (
+                self._decode_example_with_torchaudio(path)
+                if path.endswith(".mp3")
+                else self._decode_example_with_librosa(path)
+            )
+        return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
     def _decode_example_with_librosa(self, value):
         try:
