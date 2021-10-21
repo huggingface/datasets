@@ -301,6 +301,11 @@ class TensorflowDatasetMixin:
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
         """
+
+        # TODO There is some hacky hardcoding in this function that needs to be fixed.
+        #      We're planning to rework it so less code is needed at the start to remove columns before
+        #      we know the final list of fields (post-data collator). This should clean up most of the special
+        #      casing while retaining the API.
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
@@ -328,13 +333,14 @@ class TensorflowDatasetMixin:
         # Special casing when the dataset has 'label' and the model expects 'labels' and the collator fixes it up for us
         if "labels" in cols_to_retain and "labels" not in self.features and "label" in self.features:
             cols_to_retain[cols_to_retain.index("labels")] = "label"
+        # Watch for nonexistent columns, except those that the data collators add for us
         for col in cols_to_retain:
-            if col not in self.features:
+            if col not in self.features and not (col in ("attention_mask", "labels") and collate_fn is not None):
                 raise ValueError(f"Couldn't find column {col} in dataset.")
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
-        dataset = self.with_format("numpy", columns=cols_to_retain)
+        dataset = self.with_format("python", columns=[col for col in cols_to_retain if col in self.features])
 
         def numpy_pad(data):
             try:
@@ -431,6 +437,18 @@ class TensorflowDatasetMixin:
                 return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
 
             tf_dataset = tf_dataset.map(add_dummy_labels)
+
+        def rename_label_col(inputs, labels=None):
+            if not isinstance(inputs, tf.Tensor):
+                if "label" in inputs:
+                    inputs["labels"] = inputs["label"]
+                    del inputs["label"]
+            if labels is None:
+                return inputs
+            else:
+                return inputs, labels
+
+        tf_dataset = tf_dataset.map(rename_label_col)
 
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
