@@ -15,6 +15,7 @@ class Audio:
         mono (:obj:`bool`, default ``True``): Whether to convert the audio signal to mono by averaging samples across
             channels.
         archived (:obj:`bool`, default ``False``): Whether the source data is archived with sequential access.
+
             - If non-archived with sequential access (i.e. random access is allowed), the cache will only store the
               absolute path to the audio file.
             - If archived with sequential access, the cache will store the relative path of the audio file to the
