@@ -61,8 +61,8 @@ languages:
   SLR80:
   - my
   SLR83:
-  - en-gb
-  - en-ie
+  - en-GB
+  - en-IE
   SLR86:
   - yo
 licenses:
