@@ -37,6 +37,14 @@ def tar_wav_path(shared_datadir, tmp_path_factory):
     return path
 
 
+def iter_archive(archive_path):
+    with tarfile.open(archive_path) as tar:
+        for tarinfo in tar:
+            file_path = tarinfo.name
+            file_obj = tar.extractfile(tarinfo)
+            yield file_path, file_obj
+
+
 def test_audio_instantiation():
     audio = Audio()
     assert audio.id is None
