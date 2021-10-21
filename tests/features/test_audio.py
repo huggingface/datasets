@@ -115,6 +115,36 @@ def test_dataset_with_audio_feature(shared_datadir):
 
 
 @require_sndfile
+def test_dataset_with_audio_feature_tar(tar_wav_path):
+    audio_filename = "test_audio_44100.wav"
+    data = {"audio": []}
+    for file_path, file_obj in iter_archive(tar_wav_path):
+        data["audio"].append({"path": file_path, "bytes": file_obj.read()})
+        break
+    features = Features({"audio": Audio(archived=True)})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+    assert item["audio"]["path"] == audio_filename
+    assert item["audio"]["array"].shape == (202311,)
+    assert item["audio"]["sampling_rate"] == 44100
+    batch = dset[:1]
+    assert batch.keys() == {"audio"}
+    assert len(batch["audio"]) == 1
+    assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
+    assert batch["audio"][0]["path"] == audio_filename
+    assert batch["audio"][0]["array"].shape == (202311,)
+    assert batch["audio"][0]["sampling_rate"] == 44100
+    column = dset["audio"]
+    assert len(column) == 1
+    assert column[0].keys() == {"path", "array", "sampling_rate"}
+    assert column[0]["path"] == audio_filename
+    assert column[0]["array"].shape == (202311,)
+    assert column[0]["sampling_rate"] == 44100
+
+
+@require_sndfile
 def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path]}
