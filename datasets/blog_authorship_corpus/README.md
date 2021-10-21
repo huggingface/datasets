@@ -1,10 +1,27 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- found
 languages:
 - en
+licenses:
+- unknown
+multilinguality:
+- monolingual
 paperswithcode_id: blog-authorship-corpus
+pretty_name: Blog Authorship Corpus
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- multi-class-classification
 ---
 
-# Dataset Card for "blog_authorship_corpus"
+# Dataset Card for Blog Authorship Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -47,18 +64,15 @@ The Blog Authorship Corpus consists of the collected posts of 19,320 bloggers ga
 Each blog is presented as a separate file, the name of which indicates a blogger id# and the blogger’s self-provided gender, age, industry and astrological sign. (All are labeled for gender and age but for many, industry and/or sign is marked as unknown.)
 
 All bloggers included in the corpus fall into one of three age groups:
-
-·          8240 "10s" blogs (ages 13-17),
-
-·          8086 "20s" blogs(ages 23-27)
-
-·          2994 "30s" blogs (ages 33-47).
+- 8240 "10s" blogs (ages 13-17),
+- 8086 "20s" blogs (ages 23-27),
+- 2994 "30s" blogs (ages 33-47).
 
 For each age group there are an equal number of male and female bloggers.
 
 Each blog in the corpus includes at least 200 occurrences of common English words. All formatting has been stripped with two exceptions. Individual posts within a single blogger are separated by the date of the following post and links within a post are denoted by the label urllink.
 
-The corpus may be freely used for non-commercial research purposes
+The corpus may be freely used for non-commercial research purposes.
 
 ### Supported Tasks and Leaderboards
 
@@ -66,7 +80,7 @@ The corpus may be freely used for non-commercial research purposes
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The language of the dataset is English (`en`).
 
 ## Dataset Structure
 
@@ -162,7 +176,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The corpus may be freely used for non-commercial research purposes.
 
 ### Citation Information
 
@@ -177,7 +191,6 @@ The data fields are the same among all splits.
 }
 
 ```
-
 
 ### Contributions
 

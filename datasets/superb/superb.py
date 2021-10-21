@@ -137,6 +137,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "speaker_id": datasets.Value("int64"),
                     "chapter_id": datasets.Value("int64"),
@@ -161,6 +162,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     "label": datasets.ClassLabel(
                         names=[
                             "yes",
@@ -194,6 +196,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     "speaker_id": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "action": datasets.ClassLabel(
@@ -235,6 +238,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     # VoxCeleb1 contains 1251 speaker IDs in range ["id10001",..."id11251"]
                     "label": datasets.ClassLabel(names=[f"id{i + 10001}" for i in range(1251)]),
                 }
@@ -257,6 +261,7 @@ class Superb(datasets.GeneratorBasedBuilder):
                 {
                     "record_id": datasets.Value("string"),
                     "file": datasets.Value("string"),
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     "start": datasets.Value("int64"),
                     "end": datasets.Value("int64"),
                     "speakers": [
@@ -284,6 +289,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     "label": datasets.ClassLabel(names=["neu", "hap", "ang", "sad"]),
                 }
             ),
@@ -430,7 +436,7 @@ class Superb(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, archive_path, split=None):
         """Generate examples."""
         if self.config.name == "asr":
-            transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
+            transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*", "*", "*", "*.txt")
             key = 0
             for transcript_path in sorted(glob.glob(transcripts_glob)):
                 transcript_dir_path = os.path.dirname(transcript_path)
@@ -440,11 +446,13 @@ class Superb(datasets.GeneratorBasedBuilder):
                         id_, transcript = line.split(" ", 1)
                         audio_file = f"{id_}.flac"
                         speaker_id, chapter_id = [int(el) for el in id_.split("-")[:2]]
+                        audio_path = os.path.join(transcript_dir_path, audio_file)
                         yield key, {
                             "id": id_,
                             "speaker_id": speaker_id,
                             "chapter_id": chapter_id,
-                            "file": os.path.join(transcript_dir_path, audio_file),
+                            "file": audio_path,
+                            "audio": audio_path,
                             "text": transcript,
                         }
                         key += 1
@@ -460,17 +468,19 @@ class Superb(datasets.GeneratorBasedBuilder):
                     label = "_silence_"
                 else:
                     label = "_unknown_"
-                yield key, {"file": audio_file, "label": label}
+                yield key, {"file": audio_file, "audio": audio_file, "label": label}
         elif self.config.name == "ic":
-            root_path = os.path.join(archive_path, "fluent_speech_commands_dataset/")
-            csv_path = os.path.join(root_path, f"data/{split}_data.csv")
+            root_path = os.path.join(archive_path, "fluent_speech_commands_dataset")
+            csv_path = os.path.join(root_path, "data", f"{split}_data.csv")
             with open(csv_path, encoding="utf-8") as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=",", skipinitialspace=True)
                 next(csv_reader)
                 for row in csv_reader:
                     key, file_path, speaker_id, text, action, object_, location = row
+                    audio_path = os.path.join(root_path, file_path)
                     yield key, {
-                        "file": os.path.join(root_path, file_path),
+                        "file": audio_path,
+                        "audio": audio_path,
                         "speaker_id": speaker_id,
                         "text": text,
                         "action": action,
@@ -478,7 +488,7 @@ class Superb(datasets.GeneratorBasedBuilder):
                         "location": location,
                     }
         elif self.config.name == "si":
-            wav_path = os.path.join(archive_path, "wav/")
+            wav_path = os.path.join(archive_path, "wav")
             splits_path = os.path.join(archive_path, "veri_test_class.txt")
             with open(splits_path, "r", encoding="utf-8") as f:
                 for key, line in enumerate(f):
@@ -486,8 +496,10 @@ class Superb(datasets.GeneratorBasedBuilder):
                     if int(split_id) != split:
                         continue
                     speaker_id = file_path.split("/")[0]
+                    audio_path = os.path.join(wav_path, file_path)
                     yield key, {
-                        "file": os.path.join(wav_path, file_path),
+                        "file": audio_path,
+                        "audio": audio_path,
                         "label": speaker_id,
                     }
         elif self.config.name == "sd":
@@ -500,6 +512,7 @@ class Superb(datasets.GeneratorBasedBuilder):
                     yield key, {
                         "record_id": rec,
                         "file": data.wavs[rec],
+                        "audio": data.wavs[rec],
                         "start": st,
                         "end": ed,
                         "speakers": speakers,
@@ -512,15 +525,16 @@ class Superb(datasets.GeneratorBasedBuilder):
                         yield key, {
                             "record_id": rec,
                             "file": data.wavs[rec],
+                            "audio": data.wavs[rec],
                             "start": st,
                             "end": ed,
                             "speakers": speakers,
                         }
                         key += 1
         elif self.config.name == "er":
-            root_path = os.path.join(archive_path, f"Session{split}/")
-            wav_path = os.path.join(root_path, "sentences/wav/")
-            labels_path = os.path.join(root_path, "dialog/EmoEvaluation/*.txt")
+            root_path = os.path.join(archive_path, f"Session{split}")
+            wav_path = os.path.join(root_path, "sentences", "wav")
+            labels_path = os.path.join(root_path, "dialog", "EmoEvaluation", "*.txt")
             emotions = ["neu", "hap", "ang", "sad", "exc"]
             key = 0
             for labels_file in sorted(glob.glob(labels_path)):
@@ -533,8 +547,10 @@ class Superb(datasets.GeneratorBasedBuilder):
                             continue
                         wav_subdir = filename.rsplit("_", 1)[0]
                         filename = f"{filename}.wav"
+                        audio_path = os.path.join(wav_path, wav_subdir, filename)
                         yield key, {
-                            "file": os.path.join(wav_path, wav_subdir, filename),
+                            "file": audio_path,
+                            "audio": audio_path,
                             "label": emo.replace("exc", "hap"),
                         }
                         key += 1
@@ -653,7 +669,7 @@ def _get_speakers(rec, data, args):
 
 
 def _split_ks_files(archive_path, split):
-    audio_path = os.path.join(archive_path, "**/*.wav")
+    audio_path = os.path.join(archive_path, "**", "*.wav")
     audio_paths = glob.glob(audio_path)
     if split == "test":
         # use all available files for the test archive

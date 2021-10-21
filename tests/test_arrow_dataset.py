@@ -1175,6 +1175,15 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(dset_filter_even_num._fingerprint, fingerprint)
                     self.assertEqual(dset_filter_even_num.format["type"], "numpy")
 
+    def test_filter_with_indices_mapping(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict({"col": [0, 1, 2]})
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with dset.filter(lambda x: x["col"] > 0) as dset:
+                    self.assertListEqual(dset["col"], [1, 2])
+                    with dset.filter(lambda x: x["col"] < 2) as dset:
+                        self.assertListEqual(dset["col"], [1])
+
     def test_filter_fn_kwargs(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict({"id": range(10)}) as dset:
@@ -2053,10 +2062,6 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(batch.shape.as_list(), [4])
             self.assertEqual(batch.dtype.name, "int64")
         del tf_dataset  # For correct cleanup
-        try:
-            tmp_dir.cleanup()
-        except PermissionError:
-            pass  # Just leave it, this usually only happens on the CI runner and will get cleaned up anyway
 
 
 class MiscellaneousDatasetTest(TestCase):
@@ -2183,6 +2188,22 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
     dataset = concatenate_datasets(datasets, axis=axis)
     assert dataset.shape == expected_shape
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
+
+
+@pytest.mark.parametrize("axis", [0, 1])
+def test_concatenate_datasets_complex_features(axis):
+    n = 5
+    dataset1 = Dataset.from_dict(
+        {"col_1": [0] * n, "col_2": list(range(n))},
+        features=Features({"col_1": Value("int32"), "col_2": ClassLabel(num_classes=n)}),
+    )
+    if axis == 1:
+        dataset2 = dataset1.rename_columns({col: col + "_" for col in dataset1.column_names})
+        expected_features = Features({**dataset1.features, **dataset2.features})
+    else:
+        dataset2 = dataset1
+        expected_features = dataset1.features
+    assert concatenate_datasets([dataset1, dataset2], axis=axis).features == expected_features
 
 
 @pytest.mark.parametrize("other_dataset_type", ["in_memory", "memory_mapped", "concatenation"])

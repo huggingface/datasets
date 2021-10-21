@@ -102,7 +102,7 @@ class TypedSequence:
             type = self.type
         try:
             if isinstance(type, _ArrayXDExtensionType):
-                if isinstance(self.data, np.ndarray):
+                if isinstance(self.data, np.ndarray) or isinstance(self.data[0], np.ndarray):
                     storage = numpy_to_pyarrow_listarray(self.data, type=type.value_type)
                 else:
                     storage = pa.array(self.data, type.storage_dtype)

@@ -62,6 +62,7 @@ Find your dataset today on the `Hugging Face Hub <https://huggingface.co/dataset
     access
     use_dataset
     metrics
+    upload_dataset
     
 .. toctree::
     :hidden:
