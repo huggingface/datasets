@@ -301,6 +301,11 @@ class TensorflowDatasetMixin:
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
         """
+
+        # TODO There is some hacky hardcoding in this function that needs to be fixed.
+        #      We're planning to rework it so less code is needed at the start to remove columns before
+        #      we know the final list of fields (post-data collator). This should clean up most of the special
+        #      casing while retaining the API.
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
