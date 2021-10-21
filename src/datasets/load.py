@@ -920,7 +920,10 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             ]
         )
         importlib.invalidate_caches()
-        builder_kwargs = {"hash": hash, "namespace": self.name.split("/")[0]}
+        builder_kwargs = {
+            "hash": hash,
+            "namespace": self.name.split("/")[0] if len(self.name.split("/")) > 1 else None,
+        }
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
