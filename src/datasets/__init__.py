@@ -45,6 +45,7 @@ from .features import (
     Audio,
     ClassLabel,
     Features,
+    Image,
     Sequence,
     Translation,
     TranslationVariableLanguages,

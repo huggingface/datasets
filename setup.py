@@ -108,6 +108,10 @@ AUDIO_REQUIRE = [
     "librosa",
 ]
 
+VISION_REQURE = [
+    "Pillow",
+]
+
 BENCHMARKS_REQUIRE = [
     "numpy==1.18.5",
     "tensorflow==2.3.0",

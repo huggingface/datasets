@@ -731,6 +731,7 @@ FeatureType = Union[
     Array4D,
     Array5D,
     Audio,
+    Image,
 ]
 
 
