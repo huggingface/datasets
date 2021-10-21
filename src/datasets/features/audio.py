@@ -52,6 +52,22 @@ class Audio:
             array, sampling_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
         return array, sampling_rate
 
+    def _decode_example_with_soundfile(self, file):
+        try:
+            import librosa
+            import soundfile as sf
+        except ImportError as err:
+            raise ImportError("To support decoding audio files, please install 'librosa'.") from err
+
+        array, sampling_rate = sf.read(file)
+        array = array.T
+        if self.mono:
+            array = librosa.to_mono(array)
+        if self.sampling_rate and self.sampling_rate != sampling_rate:
+            array = librosa.resample(array, sampling_rate, self.sampling_rate, res_type="kaiser_best")
+            sampling_rate = self.sampling_rate
+        return array, sampling_rate
+
     def _decode_example_with_torchaudio(self, value):
         try:
             import torchaudio
