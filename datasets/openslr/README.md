@@ -60,6 +60,9 @@ languages:
   - kn
   SLR80:
   - my
+  SLR83:
+  - en-GB
+  - en-IE
   SLR86:
   - yo
 licenses:
@@ -491,6 +494,19 @@ Please report any issues in the following issue tracker on GitHub. https://githu
 The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
 See [LICENSE](https://www.openslr.org/resources/80/LICENSE) file and 
 https://github.com/google/language-resources#license for license information.
+
+Copyright 2018, 2019 Google, Inc.
+
+#### SLR83: Crowdsourced high-quality UK and Ireland English Dialect speech data set
+This data set contains transcribed high-quality audio of English sentences recorded by volunteers speaking different dialects of the language.
+The data set consists of wave files, and a TSV file (line_index.tsv). The file line_index.csv contains a line id, an anonymized FileID and the transcription of audio in the file.
+
+The data set has been manually quality checked, but there might still be errors.
+
+The recordings from the Welsh English speakers were collected in collaboration with Cardiff University.
+
+The dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
+See [LICENSE](https://www.openslr.org/resources/83/LICENSE) file and https://github.com/google/language-resources#license for license information.
 
 Copyright 2018, 2019 Google, Inc.
 
