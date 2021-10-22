@@ -126,10 +126,9 @@ def test_csv_datasetdict_reader_split(split, csv_path, tmp_path):
     assert all(dataset[split].split == split for split in path.keys())
 
 
-def load_csv(csv_path):
-    csvfile = open(csv_path, "r", encoding="utf-8")
-    csvreader = csv.reader(csvfile)
-    return csvreader
+def iter_csv_file(csv_path):
+    with open(csv_path, "r", encoding="utf-8") as csvfile:
+        yield from csv.reader(csvfile)
 
 
 def test_dataset_to_csv(csv_path, tmp_path):
@@ -138,8 +137,8 @@ def test_dataset_to_csv(csv_path, tmp_path):
     dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
     CsvDatasetWriter(dataset["train"], output_csv, index=False, num_proc=1).write()
 
-    original_csv = load_csv(csv_path)
-    expected_csv = load_csv(output_csv)
+    original_csv = iter_csv_file(csv_path)
+    expected_csv = iter_csv_file(output_csv)
 
     for row1, row2 in zip(original_csv, expected_csv):
         assert row1 == row2
@@ -151,8 +150,8 @@ def test_dataset_to_csv_multiproc(csv_path, tmp_path):
     dataset = CsvDatasetReader({"train": csv_path}, cache_dir=cache_dir).read()
     CsvDatasetWriter(dataset["train"], output_csv, index=False, num_proc=2).write()
 
-    original_csv = load_csv(csv_path)
-    expected_csv = load_csv(output_csv)
+    original_csv = iter_csv_file(csv_path)
+    expected_csv = iter_csv_file(output_csv)
 
     for row1, row2 in zip(original_csv, expected_csv):
         assert row1 == row2
