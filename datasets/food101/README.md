@@ -259,7 +259,16 @@ The data instances have the following fields:
 
 ### Licensing Information
 
-[More Information Needed]
+LICENSE AGREEMENT
+=================
+ - The Food-101 data set consists of images from Foodspotting [1] which are not
+   property of the Federal Institute of Technology Zurich (ETHZ). Any use beyond
+   scientific fair use must be negociated with the respective picture owners
+   according to the Foodspotting terms of use [2].
+
+[1] http://www.foodspotting.com/
+[2] http://www.foodspotting.com/terms/
+
 
 ### Citation Information
 

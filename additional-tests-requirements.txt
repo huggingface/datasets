@@ -1,3 +1,4 @@
 unbabel-comet>=0.0.6; platform_system != "Windows"
 git+https://github.com/google-research/bleurt.git
 git+https://github.com/ns-moosavi/coval.git
+git+https://github.com/hendrycks/math.git

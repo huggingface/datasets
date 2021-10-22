@@ -416,7 +416,7 @@ class DatasetBuilder:
             self.namespace___self.name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-        builder_data_dir = self.name if self.namespace is None else f"{self.namespace}___{self.name})"
+        builder_data_dir = self.name if self.namespace is None else f"{self.namespace}___{self.name}"
         builder_config = self.config
         hash = self.hash
         if builder_config:
