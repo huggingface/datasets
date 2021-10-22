@@ -164,6 +164,9 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         else:
             # cast to list of arrays or we end up with a np.array with dtype object
             array: List[np.ndarray] = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
+        if array:
+            if any(x.dtype == np.object for x in array) or any(x.shape != array[0].shape for x in array):
+                return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": np.object})
         return np.array(array, copy=False, **self.np_array_kwargs)
 
 
