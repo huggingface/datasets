@@ -198,4 +198,4 @@ There is only one "training" split for all configuration subsets, containing the
 
 ### Contributions
 
-Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.
+Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) and [@albertvillanova](https://github.com/albertvillanova) for adding this dataset.
