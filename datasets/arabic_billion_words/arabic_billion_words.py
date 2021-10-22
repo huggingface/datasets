@@ -53,7 +53,10 @@ _URLs = {
     "Youm7": _URL + "Youm7_XML_utf_8.rar",
 }
 
-# some tags are misspelled
+# Some tags are misspelled
+# - Misspelled article tags:
+#   - Alqabas: <Alqabas>, <Alqabas1>
+#   - Ryiadh: <Ryiadh>, <Ryiadh1>
 MISSPELLED_TAGS = {
     "Dateline": ["Dateline", "dateline"],
     "Headline": ["Headline", "Healine"],
@@ -138,7 +141,7 @@ class ArabicBillionWords(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         data_tag = self.config.name
-        pattern = re.compile(rf".*?<{data_tag}(.*?)</{data_tag}>.*?", re.MULTILINE | re.DOTALL)
+        pattern = re.compile(rf".*?<{data_tag}(.*?)</{data_tag}.*?", re.MULTILINE | re.DOTALL)
         key = 0
         lines = ""
         with open(filepath, mode="r", encoding="utf-8") as f:
@@ -146,18 +149,15 @@ class ArabicBillionWords(datasets.GeneratorBasedBuilder):
                 lines += line
                 if f"</{data_tag}" in line:
                     match = pattern.match(lines)
+                    lines = ""
                     if match:
                         record = match.group(1)
-                        try:
-                            text = self._clean_text(self._extract_tag("Text", record))
-                            url = self._extract_tag("URL", record)
-                            head_line = self._clean_text(self._extract_tag("Headline", record))
-                            date = self._extract_tag("Dateline", record)
-                        except ValueError:
-                            continue
+                        text = self._clean_text(self._extract_tag("Text", record))
+                        url = self._extract_tag("URL", record)
+                        head_line = self._clean_text(self._extract_tag("Headline", record))
+                        date = self._extract_tag("Dateline", record)
                         yield key, {"url": url, "head_line": head_line, "date": date, "text": text}
                         key += 1
-                        lines = ""
 
     @staticmethod
     def _extract_tag(tag, text):
@@ -166,7 +166,7 @@ class ArabicBillionWords(datasets.GeneratorBasedBuilder):
             match = pattern.match(text)
             if match:
                 return match.group(1)
-        raise ValueError
+        return ""
 
     @staticmethod
     def _clean_text(text):
