@@ -42,7 +42,7 @@ It first canonicalizes the inputs (e.g., converting "1/2" to "\\frac{1}{2}") and
 """
 
 
-_KWARGS_DESCRIPTION = """
+_KWARGS_DESCRIPTION = r"""
 Calculates accuracy after canonicalizing inputs.
 
 Args:
@@ -63,7 +63,7 @@ Examples:
 """
 
 
-@datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
+@datasets.utils.file_utils.add_end_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class CompetitionMathMetric(datasets.Metric):
     """Accuracy metric for the MATH dataset."""
 
