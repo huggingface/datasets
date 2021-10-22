@@ -136,11 +136,15 @@ class PolyglotNER(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, files):
+        languages = list(self.config.languages)
         sentence_counter = 0
         for path, f in files:
+            if not languages:
+                break
             if path.endswith("_wiki.conll"):
                 lang = path.split("/")[1]
-                if lang in self.config.languages:
+                if lang in languages:
+                    languages.remove(lang)
                     current_words = []
                     current_ner = []
                     for row in f:
