@@ -904,11 +904,14 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             return (Path(importable_directory_path) / module_hash / (self.name.split("/")[-1] + ".py")).stat().st_mtime
 
         hash = sorted(hashes, key=_get_modification_time)[-1]
-        logger.warning(
+        warning_msg = (
             f"Using the latest cached version of the module from {os.path.join(importable_directory_path, hash)} "
             f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
-            f"couldn't be found locally at {self.name}, or remotely on the Hugging Face Hub."
+            f"couldn't be found locally at {self.name}."
         )
+        if not config.HF_DATASETS_OFFLINE:
+            warning_msg += ", or remotely on the Hugging Face Hub."
+        logger.warning(warning_msg)
         # make the new module to be noticed by the import system
         module_path = ".".join(
             [
@@ -920,7 +923,10 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             ]
         )
         importlib.invalidate_caches()
-        builder_kwargs = {"hash": hash, "namespace": self.name.split("/")[0]}
+        builder_kwargs = {
+            "hash": hash,
+            "namespace": self.name.split("/")[0] if self.name.count("/") > 0 else None,
+        }
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
