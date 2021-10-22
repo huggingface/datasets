@@ -46,7 +46,7 @@
 - Lightweight and fast with a transparent and pythonic API (multi-processing/caching/memory-mapping).
 - Built-in interoperability with NumPy, pandas, PyTorch, Tensorflow 2 and JAX.
 
-🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section [Main differences between 🤗 Datasets and `tfds`](#main-differences-between-🤗-datasets-and-tfds).
+🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section [Main differences between 🤗 Datasets and `tfds`](#main-differences-between--datasets-and-tfds).
 
 # Installation
 
@@ -74,7 +74,7 @@ For more details on installation, check the installation page in the documentati
 
 If you plan to use 🤗 Datasets with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you should also install PyTorch, TensorFlow or pandas.
 
-For more details on using the library with NumPy, pandas, PyTorch or TensorFlow, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html
+For more details on using the library with NumPy, pandas, PyTorch or TensorFlow, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart.html
 
 # Usage
 
@@ -113,12 +113,12 @@ tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched=True)
 ```
 
-For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html and the specific pages on:
+For more details on using the library, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart.html and the specific pages on:
 
-- Loading a dataset https://huggingface.co/docs/datasets/loading_datasets.html
-- What's in a Dataset: https://huggingface.co/docs/datasets/exploring.html
-- Processing data with 🤗 Datasets: https://huggingface.co/docs/datasets/processing.html
-- Writing your own dataset loading script: https://huggingface.co/docs/datasets/add_dataset.html
+- Loading a dataset https://huggingface.co/docs/datasets/loading.html
+- What's in a Dataset: https://huggingface.co/docs/datasets/access.html
+- Processing data with 🤗 Datasets: https://huggingface.co/docs/datasets/process.html
+- Writing your own dataset loading script: https://huggingface.co/docs/datasets/dataset_script.html
 - etc.
 
 Another introduction to 🤗 Datasets is the tutorial on Google Colab here:
@@ -130,7 +130,7 @@ We have a very detailed step-by-step guide to add a new dataset to the ![number 
 
 You will find [the step-by-step guide here](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md) to add a dataset to this repository.
 
-You can also have your own repository for your dataset on the Hub under your or your organization's namespace and share it with the community. More information in [the documentation section about dataset sharing](https://huggingface.co/docs/datasets/share_dataset.html).
+You can also have your own repository for your dataset on the Hub under your or your organization's namespace and share it with the community. More information in [the documentation section about dataset sharing](https://huggingface.co/docs/datasets/share.html).
 
 # Main differences between 🤗 Datasets and `tfds`
 
