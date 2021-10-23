@@ -2,13 +2,13 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, Optional
 
+import numpy as np
 import pyarrow as pa
 
 
 @dataclass
 class Image:
-    """Image Feature to extract image data from an image file.
-    """
+    """Image Feature to extract image data from an image file."""
 
     id: Optional[str] = None
     # Automatically constructed
@@ -28,12 +28,14 @@ class Image:
         Returns:
             dict
         """
-        array, sampling_rate = (
-            self._decode_example_with_torchaudio(value)
-            if value.endswith(".mp3")
-            else self._decode_example_with_librosa(value)
-        )
-        return {"path": value, "array": array, "sampling_rate": sampling_rate}
+        try:
+            from PIL import Image
+        except ImportError as err:
+            raise ImportError("To support decoding audio files, please install 'Pillow'.") from err
+
+        array = Image.open(value)
+
+        return {"path": value, "array": np.asarray(array)}
 
     def decode_batch(self, values):
         decoded_batch = defaultdict(list)
