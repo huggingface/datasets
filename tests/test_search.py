@@ -1,5 +1,7 @@
+import os
 import tempfile
 from functools import partial
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -50,9 +52,14 @@ class IndexableDatasetTest(TestCase):
             index_name="vecs",
             metric_type=faiss.METRIC_INNER_PRODUCT,
         )
-        with tempfile.NamedTemporaryFile() as tmp_file:
+
+        # Setting delete=False and unlinking manually is not pretty... but it is required on Windows to
+        # ensure somewhat stable behaviour
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             dset.save_faiss_index("vecs", tmp_file.name)
             dset.load_faiss_index("vecs2", tmp_file.name)
+        os.unlink(tmp_file.name)
+
         scores, examples = dset.get_nearest_examples("vecs2", np.ones(5, dtype=np.float32))
         self.assertEqual(examples["filename"][0], "my_name-train_29")
 
@@ -133,9 +140,14 @@ class FaissIndexTest(TestCase):
 
         index = FaissIndex(metric_type=faiss.METRIC_INNER_PRODUCT)
         index.add_vectors(np.eye(5, dtype=np.float32))
-        with tempfile.NamedTemporaryFile() as tmp_file:
+
+        # Setting delete=False and unlinking manually is not pretty... but it is required on Windows to
+        # ensure somewhat stable behaviour
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             index.save(tmp_file.name)
             index = FaissIndex.load(tmp_file.name)
+        os.unlink(tmp_file.name)
+
         query = np.zeros(5, dtype=np.float32)
         query[1] = 1
         scores, indices = index.search(query)
