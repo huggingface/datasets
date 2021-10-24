@@ -125,6 +125,9 @@ Dictionary with split names as keys ('train', 'test' for example), and :obj:`dat
 .. autoclass:: datasets.Audio
     :members:
 
+.. autoclass:: datasets.Image
+    :members:
+
 ``MetricInfo``
 ~~~~~~~~~~~~~~~~~~~~~
 
