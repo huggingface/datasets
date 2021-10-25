@@ -35,7 +35,7 @@ class Image:
 
         array = Image.open(value)
 
-        return {"path": value, "array": np.asarray(array)}
+        return {"path": value, "array": np.array(array)}
 
     def decode_batch(self, values):
         decoded_batch = defaultdict(list)
