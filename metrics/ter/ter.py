@@ -67,7 +67,7 @@ Args:
    case_sensitive: Whether to disable lowercasing.
 
 Returns:
-    'score': TER score
+    'score': TER score (num_edits / sum_ref_lengths * 100)
     'num_edits': number of edits required
     'ref_length': reference length
 
@@ -111,13 +111,9 @@ class Ter(datasets.Metric):
                  asian_support: bool = False,
                  case_sensitive: bool = False
                  ):
-        references_per_prediction = len(references[0])
-        if any(len(refs) != references_per_prediction for refs in references):
-            raise ValueError("Sacrebleu requires the same number of references for each prediction")
-        transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
         output = scb.corpus_ter(
             predictions,
-            transformed_references,
+            references,
             normalized=normalized,
             no_punct=no_punct,
             asian_support=asian_support,
