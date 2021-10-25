@@ -3,7 +3,6 @@ using evidence from the cited abstracts."""
 
 
 import json
-import os
 
 import datasets
 

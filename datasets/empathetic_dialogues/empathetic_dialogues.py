@@ -2,7 +2,6 @@
 
 
 import csv
-import os
 
 import datasets
 

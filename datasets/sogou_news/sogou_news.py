@@ -19,7 +19,6 @@
 
 import csv
 import ctypes
-import os
 
 import datasets
 

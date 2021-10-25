@@ -17,8 +17,6 @@
 """20Newsgroup  dataset"""
 
 
-import os
-
 import datasets
 
 

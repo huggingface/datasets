@@ -3,7 +3,6 @@
 
 import csv
 import json
-import os
 import textwrap
 
 import pandas as pd

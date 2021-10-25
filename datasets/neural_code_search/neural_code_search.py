@@ -16,7 +16,6 @@
 
 
 import json
-import os
 from itertools import chain
 
 import datasets

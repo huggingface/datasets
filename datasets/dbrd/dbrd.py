@@ -17,8 +17,6 @@
 """Dutch Book Review Dataset"""
 
 
-import os
-
 import datasets
 from datasets.tasks import TextClassification
 

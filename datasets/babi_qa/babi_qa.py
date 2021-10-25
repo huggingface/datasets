@@ -15,8 +15,6 @@
 """The bAbI tasks dataset."""
 
 
-import os
-
 import datasets
 
 

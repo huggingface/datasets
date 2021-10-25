@@ -16,9 +16,6 @@
 # Lint as: python3
 """Mathematics database."""
 
-
-import os
-
 import datasets
 
 

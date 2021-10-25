@@ -16,9 +16,6 @@
 # Lint as: python3
 """Rotten tomatoes movie reviews dataset."""
 
-
-import os
-
 import datasets
 from datasets.tasks import TextClassification
 

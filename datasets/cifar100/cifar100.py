@@ -17,7 +17,6 @@
 """CIFAR-100 Dataset"""
 
 
-import os
 import pickle
 
 import numpy as np

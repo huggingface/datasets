@@ -15,8 +15,6 @@
 """Children's Book Test Dataset."""
 
 
-import os
-
 import datasets
 
 

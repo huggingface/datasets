@@ -14,8 +14,6 @@
 # limitations under the License.
 """Mac-Morpho dataset"""
 
-
-import os
 import re
 
 import datasets

@@ -17,9 +17,6 @@
 """Librispeech automatic speech recognition dataset."""
 
 
-import glob
-import os
-
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
 

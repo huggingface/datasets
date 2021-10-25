@@ -15,8 +15,6 @@
 """OrangeSum dataset"""
 
 
-import os
-
 import datasets
 
 

@@ -15,8 +15,6 @@
 """OHSUMED: An Interactive Retrieval Evaluation and New Large Test Collection for Research."""
 
 
-import os
-
 import datasets
 
 

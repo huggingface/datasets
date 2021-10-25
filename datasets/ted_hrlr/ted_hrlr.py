@@ -17,8 +17,6 @@
 """TED talk high/low-resource paired language data set from Qi, et al. 2018."""
 
 
-import os
-
 import datasets
 
 

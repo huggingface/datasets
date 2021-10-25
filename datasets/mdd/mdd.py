@@ -14,9 +14,6 @@
 # limitations under the License.
 """Movie Dialog Dataset."""
 
-
-import os
-
 import datasets
 
 

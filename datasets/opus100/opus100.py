@@ -15,8 +15,6 @@
 """OPUS-100"""
 
 
-import os
-
 import datasets
 
 
