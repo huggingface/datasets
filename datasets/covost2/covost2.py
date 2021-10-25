@@ -99,6 +99,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 client_id=datasets.Value("string"),
                 file=datasets.Value("string"),
+                audio=datasets.features.Audio(sampling_rate=16_000),
                 sentence=datasets.Value("string"),
                 translation=datasets.Value("string"),
                 id=datasets.Value("string"),
@@ -181,6 +182,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
                 "sentence": row["sentence"],
                 "translation": row["translation"],
                 "file": os.path.join(source_path, "clips", row["path"]),
+                "audio": os.path.join(source_path, "clips", row["path"]),
             }
 
     def _load_df_from_tsv(self, path):

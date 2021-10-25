@@ -301,6 +301,11 @@ class TensorflowDatasetMixin:
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
         """
+
+        # TODO There is some hacky hardcoding in this function that needs to be fixed.
+        #      We're planning to rework it so less code is needed at the start to remove columns before
+        #      we know the final list of fields (post-data collator). This should clean up most of the special
+        #      casing while retaining the API.
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
@@ -328,13 +333,14 @@ class TensorflowDatasetMixin:
         # Special casing when the dataset has 'label' and the model expects 'labels' and the collator fixes it up for us
         if "labels" in cols_to_retain and "labels" not in self.features and "label" in self.features:
             cols_to_retain[cols_to_retain.index("labels")] = "label"
+        # Watch for nonexistent columns, except those that the data collators add for us
         for col in cols_to_retain:
-            if col not in self.features:
+            if col not in self.features and not (col in ("attention_mask", "labels") and collate_fn is not None):
                 raise ValueError(f"Couldn't find column {col} in dataset.")
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
-        dataset = self.with_format("numpy", columns=cols_to_retain)
+        dataset = self.with_format("python", columns=[col for col in cols_to_retain if col in self.features])
 
         def numpy_pad(data):
             try:
@@ -432,6 +438,18 @@ class TensorflowDatasetMixin:
 
             tf_dataset = tf_dataset.map(add_dummy_labels)
 
+        def rename_label_col(inputs, labels=None):
+            if not isinstance(inputs, tf.Tensor):
+                if "label" in inputs:
+                    inputs["labels"] = inputs["label"]
+                    del inputs["label"]
+            if labels is None:
+                return inputs
+            else:
+                return inputs, labels
+
+        tf_dataset = tf_dataset.map(rename_label_col)
+
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
 
@@ -503,12 +521,12 @@ def transmit_tasks(func):
         out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
         datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
         for dataset in datasets:
-            # Remove task templates if a feature of the template has changed
+            # Remove task templates if a column mapping of the template is no longer valid
             if self.info.task_templates is not None:
                 dataset.info.task_templates = [
                     template
                     for template in self.info.task_templates
-                    if all(dataset.features.get(k) == self.features.get(k) for k in template.features.keys())
+                    if all(dataset.features.get(k) == self.features.get(k) for k in template.column_mapping.keys())
                 ]
         return out
 
@@ -2153,7 +2171,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     @transmit_tasks
     @transmit_format
     @fingerprint_transform(
-        inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc", "cache_only"]
+        inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "disable_tqdm", "desc", "cache_only"]
     )
     def _map_single(
         self,
@@ -3650,7 +3668,10 @@ def concatenate_datasets(
         return dsets[0]
     table = concat_tables(tables_to_concat, axis=axis)
     if axis == 1:
-        table = update_metadata_with_features(table, None)
+        # Merge features (ignore duplicated columns for now and let Dataset.__init__ check for those)
+        table = update_metadata_with_features(
+            table, Features({k: v for dset in dsets for k, v in dset.features.items()})
+        )
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:

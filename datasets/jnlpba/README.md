@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: BioNLP / JNLPBA Shared Task 2004
 ---
 
 # Dataset Card for JNLPBA
@@ -70,17 +71,22 @@ English
 
 ### Data Instances
 
-[Needs More Information]
+{
+  'id': '1',
+  'tokens': ['IL-2', 'gene', 'expression', 'and', 'NF-kappa', 'B', 'activation', 'through', 'CD28', 'requires', 'reactive', 'oxygen', 'production', 'by', '5-lipoxygenase', '.'],
+  'ner_tags': [1, 2, 0, 0, 9, 10, 0, 0, 9, 0, 0, 0, 0, 0, 9, 0],
+}
 
 ### Data Fields
 
-- `id`: Sentence identifier.  
-- `tokens`: Array of tokens composing a sentence.  
+- `id`: Sentence identifier.
+- `tokens`: Array of tokens composing a sentence.
 - `ner_tags`: Array of tags, where `0` indicates no bio-entity mentioned, `1` signals the first token of a bio-entity and `2` the subsequent bio-entity tokens.
 
 ### Data Splits
 
-[Needs More Information]
+Train samples: 37094
+Validation samples: 7714
 
 ## Dataset Creation
 
@@ -137,8 +143,18 @@ English
 [Needs More Information]
 
 ### Citation Information
-
-[Needs More Information]
+@inproceedings{collier-kim-2004-introduction,
+    title = "Introduction to the Bio-entity Recognition Task at {JNLPBA}",
+    author = "Collier, Nigel  and
+      Kim, Jin-Dong",
+    booktitle = "Proceedings of the International Joint Workshop on Natural Language Processing in Biomedicine and its Applications ({NLPBA}/{B}io{NLP})",
+    month = aug # " 28th and 29th",
+    year = "2004",
+    address = "Geneva, Switzerland",
+    publisher = "COLING",
+    url = "https://aclanthology.org/W04-1213",
+    pages = "73--78",
+}
 ### Contributions
 
 Thanks to [@edugp](https://github.com/edugp) for adding this dataset.
