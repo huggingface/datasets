@@ -297,6 +297,8 @@ class Value:
             return int(value)
         elif pa.types.is_floating(self.pa_type):
             return float(value)
+        elif pa.types.is_string(self.pa_type):
+            return str(value)
         else:
             return value
 
