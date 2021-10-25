@@ -2114,7 +2114,15 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
 
         features = Features({"col_1": Value("string"), "col_2": Value("string")})
-        self.assertRaises(pa.ArrowTypeError, Dataset.from_dict, data, features=features)
+        with Dataset.from_dict(data, features=features) as dset:
+            # the integers are converted to strings
+            self.assertListEqual(dset["col_1"], [str(x) for x in data["col_1"]])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("string"), "col_2": Value("string")}))
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("int64")})
+        self.assertRaises(ValueError, Dataset.from_dict, data, features=features)
 
     def test_concatenate_mixed_memory_and_disk(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
