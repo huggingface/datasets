@@ -162,7 +162,9 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 array: List = [row for chunk in pa_array.chunks for row in chunk.to_pylist()]
             else:
-                array: List = [row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)]
+                array: List = [
+                    row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
+                ]
         else:
             # cast to list of arrays or we end up with a np.array with dtype object
             # for ArrayExtensionArray call py_list directly to support dynamic dimensions
