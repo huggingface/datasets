@@ -147,7 +147,9 @@ An example of the X-CODAH dataset:
 
 ### Curation Rationale
 
-To evaluate multi-lingual language models (ML-LMs) for commonsense reasoning in a cross-lingual zero-shot transfer setting (X-CSR), i.e., training in English and test in other languages, we create two benchmark datasets, namely X-CSQA and X-CODAH.
+To evaluate multi-lingual language models (ML-LMs) for commonsense reasoning in a cross-lingual zero-shot transfer setting (X-CSR), i.e., training in English and test in other languages, we create two benchmark datasets, namely X-CSQA and X-CODAH. 
+
+The details of the dataset construction, especially the translation procedures, can be found in section A of the appendix of the [paper](https://inklab.usc.edu//XCSR/XCSR_paper.pdf).
 
 ### Source Data
 
