@@ -31,7 +31,7 @@ class Image:
         try:
             from PIL import Image
         except ImportError as err:
-            raise ImportError("To support decoding audio files, please install 'Pillow'.") from err
+            raise ImportError("To support decoding image files, please install 'Pillow'.") from err
 
         array = Image.open(value)
 
