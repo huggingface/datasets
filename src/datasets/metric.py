@@ -16,6 +16,7 @@
 # Lint as: python3
 """ Metrics base class."""
 import os
+import re
 import types
 import uuid
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -435,13 +436,20 @@ class Metric(MetricInfoMixin):
             self._init_writer()
         try:
             self.writer.write_batch(batch)
-        except pa.ArrowInvalid:
-            raise ValueError(
-                f"Predictions and/or references don't match the expected format.\n"
-                f"Expected format: {self.features},\n"
-                f"Input predictions: {predictions},\n"
-                f"Input references: {references}"
-            ) from None
+        except pa.ArrowInvalid as e:
+            match = re.match(r"Column 1 named references expected length (\d+) but got length (\d+)", str(e))
+            if match is not None:
+                error_msg = (
+                    f"Mismatch in the number of predictions ({match.group(1)}) and references ({match.group(2)})"
+                )
+            else:
+                error_msg = (
+                    f"Predictions and/or references don't match the expected format.\n"
+                    f"Expected format: {self.features},\n"
+                    f"Input predictions: {predictions},\n"
+                    f"Input references: {references}"
+                )
+            raise ValueError(error_msg) from None
 
     def add(self, *, prediction=None, reference=None):
         """Add one prediction and reference for the metric's stack.
