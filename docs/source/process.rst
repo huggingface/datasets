@@ -281,6 +281,10 @@ Next, apply this function to the dataset with :func:`datasets.Dataset.map`:
    'My sentence: Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
    ]
 
+.. tip::
+
+   To disable ``tqdm`` progress bar printed by default, pass ``False`` as an argument to :func:`datasets.set_progress_bar_enabled`.
+
 Let's take a look at another example, except this time, you will remove a column with :func:`datasets.Dataset.map`. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed.
 
 Specify the column to remove with the ``remove_columns`` argument in :func:`datasets.Dataset.map`:
@@ -404,7 +408,7 @@ Data augmentation
 
 With batch processing, you can even augment your dataset with additional examples. In the following example, you will generate additional words for a masked token in a sentence.
 
-Load the `RoBERTA <https://huggingface.co/roberta-base>`_ model for use in the 🤗 Transformer `FillMaskPipeline <https://huggingface.co/transformers/main_classes/pipelines.html?#transformers.FillMaskPipeline>`_:
+Load the `RoBERTA <https://huggingface.co/roberta-base>`_ model for use in the 🤗 Transformer `FillMaskPipeline <https://huggingface.co/transformers/main_classes/pipelines.html#transformers.FillMaskPipeline>`_:
 
 .. code-block::
 

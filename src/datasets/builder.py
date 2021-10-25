@@ -231,7 +231,7 @@ class DatasetBuilder:
                 For example to separate "squad" from "lhoestq/squad" (the builder name would be "lhoestq___squad").
             data_files: for builders like "csv" or "json" that need the user to specify data files. They can be either
                 local or remote files. For convenience you can use a DataFilesDict.
-            data_files: `str`, for builders that require manual download. It must be the path to the local directory containing
+            data_dir: `str`, for builders that require manual download. It must be the path to the local directory containing
                 the manually downloaded data.
             config_kwargs: will override the defaults kwargs in config
 
@@ -416,7 +416,7 @@ class DatasetBuilder:
             self.namespace___self.name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-        builder_data_dir = self.name if self.namespace is None else f"{self.namespace}___{self.name})"
+        builder_data_dir = self.name if self.namespace is None else f"{self.namespace}___{self.name}"
         builder_config = self.config
         hash = self.hash
         if builder_config:

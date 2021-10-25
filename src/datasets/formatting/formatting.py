@@ -160,18 +160,19 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
             # call to_numpy on the chunks instead
             # for ArrayExtensionArray call py_list directly to support dynamic dimensions
             if isinstance(pa_array.type, _ArrayXDExtensionType):
-                array: List[np.ndarray] = [row for chunk in pa_array.chunks for row in chunk.to_pylist()]
+                array: List = [row for chunk in pa_array.chunks for row in chunk.to_pylist()]
             else:
-                array: List[np.ndarray] = [
-                    row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
-                ]
+                array: List = [row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)]
         else:
             # cast to list of arrays or we end up with a np.array with dtype object
             # for ArrayExtensionArray call py_list directly to support dynamic dimensions
             if isinstance(pa_array.type, _ArrayXDExtensionType):
-                array: List[np.ndarray] = pa_array.to_pylist()
+                array: List = pa_array.to_pylist()
             else:
-                array: List[np.ndarray] = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
+                array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
+        if len(array) > 0:
+            if any(isinstance(x, np.ndarray) and (x.dtype == np.object or x.shape != array[0].shape) for x in array):
+                return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": np.object})
         return np.array(array, copy=False, **self.np_array_kwargs)
 
 

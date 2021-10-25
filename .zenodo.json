@@ -20,6 +20,10 @@
         },
         {
             "affiliation": "Hugging Face",
+            "name": "Mario Šaško"
+        },
+        {
+            "affiliation": "Hugging Face",
             "name": "Yacine Jernite"
         },
         {
@@ -56,11 +60,11 @@
         },
         {
             "affiliation": "Hugging Face",
-            "name": "Teven Le Scao"
+            "name": "Victor Sanh"
         },
         {
             "affiliation": "Hugging Face",
-            "name": "Victor Sanh"
+            "name": "Teven Le Scao"
         },
         {
             "affiliation": "Hugging Face",
@@ -69,6 +73,10 @@
         {
             "affiliation": "Hugging Face",
             "name": "Nicolas Patry"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Steven Liu"
         },
         {
             "affiliation": "Hugging Face",
@@ -84,10 +92,6 @@
         },
         {
             "affiliation": "Hugging Face",
-            "name": "Steven Liu"
-        },
-        {
-            "affiliation": "Hugging Face",
             "name": "Nathan Raw"
         },
         {
@@ -96,7 +100,19 @@
         },
         {
             "affiliation": "Hugging Face",
+            "name": "Anton Lozhkov"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Matthew Carrigan"
+        },
+        {
+            "affiliation": "Hugging Face",
             "name": "Th\u00e9o Matussi\u00e8re"
+        },
+        {
+            "affiliation": "Hugging Face",
+            "name": "Leandro von Werra"
         },
         {
             "affiliation": "Hugging Face",
