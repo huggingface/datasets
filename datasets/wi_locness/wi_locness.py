@@ -172,7 +172,11 @@ submissions and assigned them a CEFR level."""
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"data_dir": data_dir, "split": "validation", "files": dl_manager.iter_archive(archive)},
+                    gen_kwargs={
+                        "data_dir": data_dir,
+                        "split": "validation",
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
         elif self.config.name == "locness":
@@ -180,7 +184,11 @@ submissions and assigned them a CEFR level."""
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"data_dir": data_dir, "split": "validation", "files": dl_manager.iter_archive(archive)},
+                    gen_kwargs={
+                        "data_dir": data_dir,
+                        "split": "validation",
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
         else:

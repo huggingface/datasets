@@ -44,9 +44,7 @@ class TurkishProductReviews(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         archive = dl_manager.download(_URL)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive)}
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive)}),
         ]
 
     def _generate_examples(self, files):

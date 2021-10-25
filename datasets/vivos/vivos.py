@@ -42,7 +42,7 @@ _DATA_URL = "https://ailab.hcmus.edu.vn/assets/vivos.tar.gz"
 
 _PROMPTS_URLS = {
     "train": "https://s3.amazonaws.com/datasets.huggingface.co/vivos/train/prompts.txt",
-    "test": "https://s3.amazonaws.com/datasets.huggingface.co/vivos/test/prompts.txt"
+    "test": "https://s3.amazonaws.com/datasets.huggingface.co/vivos/test/prompts.txt",
 }
 
 
@@ -111,12 +111,7 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_examples(
-        self,
-        prompts_path,
-        path_to_clips,
-        audio_files
-    ):
+    def _generate_examples(self, prompts_path, path_to_clips, audio_files):
         """Yields examples as (key, example) tuples."""
         # TODO(QL): use Audio featrue with data bytes instead of string path
         raise Exception("TODO(QL): use Audio featrue with data bytes instead of string path")

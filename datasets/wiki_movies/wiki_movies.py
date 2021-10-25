@@ -91,30 +91,24 @@ class WikiMovies(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": "/".join(
-                        ["movieqa", "questions", "wiki_entities", "wiki-entities_qa_train.txt"]
-                    ),
-                    "files": dl_manager.iter_archive(archive)
+                    "filepath": "/".join(["movieqa", "questions", "wiki_entities", "wiki-entities_qa_train.txt"]),
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": "/".join(
-                        ["movieqa", "questions", "wiki_entities", "wiki-entities_qa_test.txt"]
-                    ),
-                    "files": dl_manager.iter_archive(archive)
+                    "filepath": "/".join(["movieqa", "questions", "wiki_entities", "wiki-entities_qa_test.txt"]),
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": "/".join(
-                        ["movieqa", "questions", "wiki_entities", "wiki-entities_qa_dev.txt"]
-                    ),
-                    "files": dl_manager.iter_archive(archive)
+                    "filepath": "/".join(["movieqa", "questions", "wiki_entities", "wiki-entities_qa_dev.txt"]),
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
