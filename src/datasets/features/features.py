@@ -438,16 +438,18 @@ class ArrayExtensionArray(pa.ExtensionArray):
     def to_list_of_numpy(self, zero_copy_only=True):
         storage: pa.ListArray = self.storage
         shape = self.type.shape
-        arrays = []
-        for dim in range(1, self.type.ndims):
+        ndims = self.type.ndims
+
+        for dim in range(1, ndims):
             assert shape[dim] is not None, f"Support only dynamic size on first dimension. Got: {shape}"
 
+        arrays = []
         first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
         for i in range(len(storage)):
             storage_el = storage[i : i + 1]
             first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
             # flatten storage
-            for dim in range(self.type.ndims):
+            for _ in range(ndims):
                 storage_el = storage_el.flatten()
 
             numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
