@@ -15,9 +15,6 @@
 
 import tarfile
 
-# Lint as: python3
-from io import TextIOWrapper
-
 import conllu
 
 import datasets
