@@ -437,10 +437,10 @@ class ArrayExtensionArray(pa.ExtensionArray):
         storage: pa.ListArray = self.storage
         shape = self.type.shape
         ndims = self.type.ndims
-        
+
         for dim in range(1, ndims):
             assert shape[dim] is not None, f"Support only dynamic size on first dimension. Got: {shape}"
-       
+
         arrays = []
         first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
         for i in range(len(storage)):
