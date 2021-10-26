@@ -402,6 +402,8 @@ class DatasetBuilder:
         if len(configs) != len(cls.BUILDER_CONFIGS):
             names = [config.name for config in cls.BUILDER_CONFIGS]
             raise ValueError("Names in BUILDER_CONFIGS must not be duplicated. Got %s" % names)
+        if not configs:
+            configs = cls.default_builder_config
         return configs
 
     @utils.classproperty
