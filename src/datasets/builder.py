@@ -402,21 +402,7 @@ class DatasetBuilder:
         if len(configs) != len(cls.BUILDER_CONFIGS):
             names = [config.name for config in cls.BUILDER_CONFIGS]
             raise ValueError("Names in BUILDER_CONFIGS must not be duplicated. Got %s" % names)
-        if not configs:
-            configs = cls.default_builder_config
         return configs
-
-    @utils.classproperty
-    @classmethod
-    @utils.memoize()
-    def default_builder_config(cls):
-        config_kwargs = {}
-        if hasattr(cls, "kwargs") and "name" in cls.kwargs:
-            config_kwargs["name"] = cls.kwargs["name"]
-        if hasattr(cls, "VERSION") and cls.VERSION:
-            config_kwargs["version"] = cls.VERSION
-        config = cls.BUILDER_CONFIG_CLASS(**config_kwargs)
-        return {config.name: config}
 
     @property
     def cache_dir(self):

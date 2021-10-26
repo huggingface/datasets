@@ -98,11 +98,6 @@ def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetB
     - a DatasetBuilder if dataset is True
     - a Metric if dataset is False
     """
-    if isinstance(module_path, DatasetModule):
-        dataset_module = module_path
-        module_path = dataset_module.module_path
-    else:
-        dataset_module = None
     module = importlib.import_module(module_path)
 
     if dataset:
@@ -119,8 +114,6 @@ def import_main_class(module_path, dataset=True) -> Optional[Union[Type[DatasetB
             module_main_cls = obj
             break
 
-    if dataset_module:
-        module_main_cls.kwargs = dataset_module.builder_kwargs
     return module_main_cls
 
 
@@ -1450,8 +1443,8 @@ def load_dataset_builder(
     )
 
     # Get dataset builder class from the processing script
-    builder_cls = import_main_class(dataset_module)
-    builder_kwargs = builder_cls.kwargs.copy()
+    builder_cls = import_main_class(dataset_module.module_path)
+    builder_kwargs = dataset_module.builder_kwargs
     data_files = builder_kwargs.pop("data_files", data_files)
     name = builder_kwargs.pop("name", name)
     hash = builder_kwargs.pop("hash")

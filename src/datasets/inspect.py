@@ -204,7 +204,7 @@ def get_dataset_config_names(
         data_files=data_files,
         **download_kwargs,
     )
-    builder_cls = import_main_class(dataset_module)
+    builder_cls = import_main_class(dataset_module.module_path)
     return list(builder_cls.builder_configs.keys())
 
 
