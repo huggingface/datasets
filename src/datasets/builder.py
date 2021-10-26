@@ -328,25 +328,25 @@ class DatasetBuilder:
         builder_config = None
 
         # try default config
-        if name is None and self.BUILDER_CONFIGS and not config_kwargs:
+        if name is None and self.builder_configs and not config_kwargs:
             if self.DEFAULT_CONFIG_NAME is not None:
                 builder_config = self.builder_configs.get(self.DEFAULT_CONFIG_NAME)
                 logger.warning("No config specified, defaulting to: %s/%s", self.name, builder_config.name)
             else:
-                if len(self.BUILDER_CONFIGS) > 1:
-                    example_of_usage = "load_dataset('{}', '{}')".format(self.name, self.BUILDER_CONFIGS[0].name)
+                if len(self.builder_configs) > 1:
+                    example_of_usage = f"load_dataset('{self.name}', '{list(self.builder_configs.values())[0].name}')"
                     raise ValueError(
                         "Config name is missing."
                         "\nPlease pick one among the available configs: %s" % list(self.builder_configs.keys())
                         + "\nExample of usage:\n\t`{}`".format(example_of_usage)
                     )
-                builder_config = self.BUILDER_CONFIGS[0]
+                builder_config = list(self.builder_configs.values())[0]
                 logger.info("No config specified, defaulting to first: %s/%s", self.name, builder_config.name)
 
         # try get config by name
         if isinstance(name, str):
             builder_config = self.builder_configs.get(name)
-            if builder_config is None and self.BUILDER_CONFIGS:
+            if builder_config is None and self.builder_configs:
                 raise ValueError(
                     "BuilderConfig %s not found. Available: %s" % (name, list(self.builder_configs.keys()))
                 )
