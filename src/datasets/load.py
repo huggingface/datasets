@@ -1263,6 +1263,11 @@ def prepare_module(
     **download_kwargs,
 ) -> Union[Tuple[str, str], Tuple[str, str, Optional[str]]]:
     """For backward compatibility. Please use dataset_module_factory or metric_module_factory instead."""
+    warnings.warn(
+        "'prepare_module' was superseded by 'dataset_module_factory' and 'metric_module_factory' in version 1.13 and "
+        "will be removed in version 1.15.",
+        FutureWarning,
+    )
     if script_version != "deprecated":
         warnings.warn(
             "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
