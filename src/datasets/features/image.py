@@ -8,13 +8,34 @@ import pyarrow as pa
 
 @dataclass
 class Image:
-    """Image Feature to extract image data from an image file."""
+    """Image Feature to extract image data from an image file.
 
+    Args:
+        mode (:obj:`str`, optional): Target image mode. If `None`, the mode is infered from the underlying image data.
+            The list of supported modes is available `here <https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes>`_.
+    """
+
+    mode: Optional[str] = None
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = None
     _type: str = field(default="Image", init=False, repr=False)
+
+    def __post_init__(self):
+        if self.mode is not None:
+            try:
+                from PIL import ImageMode
+            except ImportError as err:
+                raise ImportError("To support decoding image files, please install 'Pillow'.") from err
+
+            try:
+                ImageMode.getmode(self.mode)
+            except KeyError as err:
+                raise ValueError(
+                    f"Mode {err} is not supported. For the list of available modes, "
+                    f"see https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes."
+                ) from None
 
     def __call__(self):
         return pa.string()
@@ -33,9 +54,24 @@ class Image:
         except ImportError as err:
             raise ImportError("To support decoding image files, please install 'Pillow'.") from err
 
-        array = Image.open(value)
+        image = Image.open(value)
 
-        return {"path": value, "array": np.array(array)}
+        if self.mode != image.mode:
+            image = image.convert(self.mode)
+
+        array = np.array(image)
+        mode = image.mode
+
+        # Add a third axis to a single-channel image
+        if array.ndim == 2:
+            array = array[:, np.newaxis]
+
+        assert array.ndim == 3
+
+        # Reorder channels: (H, W, C) -> (C, H, W)
+        array = array.transpose(2, 0, 1)
+
+        return {"path": value, "array": np.array(image), "mode": mode}
 
     def decode_batch(self, values):
         decoded_batch = defaultdict(list)
