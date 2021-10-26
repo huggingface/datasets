@@ -412,7 +412,7 @@ class DatasetBuilder:
     def default_builder_config(cls):
         config_kwargs = {
             param: cls.kwargs[param]
-            for param in ["name", "data_files"]
+            for param in ["name"]
             if hasattr(cls, "kwargs") and param in cls.kwargs
         }
         if hasattr(cls, "VERSION") and cls.VERSION:
