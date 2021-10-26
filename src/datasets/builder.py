@@ -410,7 +410,11 @@ class DatasetBuilder:
     @classmethod
     @utils.memoize()
     def default_builder_config(cls):
-        config_kwargs = {param: cls.kwargs[param] for param in ["name", "data_files"] if param in cls.kwargs}
+        config_kwargs = {
+            param: cls.kwargs[param]
+            for param in ["name", "data_files"]
+            if hasattr(cls, "kwargs") and param in cls.kwargs
+        }
         if hasattr(cls, "VERSION") and cls.VERSION:
             config_kwargs["version"] = cls.VERSION
         config = cls.BUILDER_CONFIG_CLASS(**config_kwargs)
