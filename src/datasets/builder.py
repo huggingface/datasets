@@ -412,7 +412,7 @@ class DatasetBuilder:
     def default_builder_config(cls):
         config_kwargs = {}
         if hasattr(cls, "kwargs") and "name" in cls.kwargs:
-            config_kwargs["name"] = cls.kwargs[name]
+            config_kwargs["name"] = cls.kwargs["name"]
         if hasattr(cls, "VERSION") and cls.VERSION:
             config_kwargs["version"] = cls.VERSION
         config = cls.BUILDER_CONFIG_CLASS(**config_kwargs)
