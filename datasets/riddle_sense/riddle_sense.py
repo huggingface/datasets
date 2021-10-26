@@ -18,15 +18,15 @@ year={2021}
 
 # TODO(commonsense_qa):
 _DESCRIPTION = """\
-Answering such a riddle-style question is a challenging cognitive process, in that it requires 
-complex commonsense reasoning abilities, an understanding of figurative language, and counterfactual reasoning 
-skills, which are all important abilities for advanced natural language understanding (NLU). However, 
-there is currently no dedicated datasets aiming to test these abilities. Herein, we present RiddleSense, 
-a new multiple-choice question answering task, which comes with the first large dataset (5.7k examples) for answering 
-riddle-style commonsense questions. We systematically evaluate a wide range of models over the challenge, 
-and point out that there is a large gap between the best-supervised model and human performance — suggesting 
-intriguing future research in the direction of higher-order commonsense reasoning and linguistic creativity towards 
-building advanced NLU systems. 
+Answering such a riddle-style question is a challenging cognitive process, in that it requires
+complex commonsense reasoning abilities, an understanding of figurative language, and counterfactual reasoning
+skills, which are all important abilities for advanced natural language understanding (NLU). However,
+there is currently no dedicated datasets aiming to test these abilities. Herein, we present RiddleSense,
+a new multiple-choice question answering task, which comes with the first large dataset (5.7k examples) for answering
+riddle-style commonsense questions. We systematically evaluate a wide range of models over the challenge,
+and point out that there is a large gap between the best-supervised model and human performance — suggesting
+intriguing future research in the direction of higher-order commonsense reasoning and linguistic creativity towards
+building advanced NLU systems.
 
 """
 
