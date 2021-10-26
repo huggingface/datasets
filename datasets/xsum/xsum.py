@@ -141,7 +141,13 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 i = os.path.basename(path).split(".")[0]
                 if i in split_ids[split_name]:
                     split_ids[split_name].remove(i)
-                    text = "".join([line.decode("utf-8") for line in f.readlines() if line.decode("utf-8") not in _REMOVE_LINES and line.strip()])
+                    text = "".join(
+                        [
+                            line.decode("utf-8")
+                            for line in f.readlines()
+                            if line.decode("utf-8") not in _REMOVE_LINES and line.strip()
+                        ]
+                    )
                     # Each file follows below format:
                     # [SN]URL[SN]
                     # http://somelink

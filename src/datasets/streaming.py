@@ -6,6 +6,7 @@ from unittest.mock import patch
 from .utils.logging import get_logger
 from .utils.patching import patch_submodule
 from .utils.streaming_download_manager import (
+    xbasename,
     xdirname,
     xglob,
     xjoin,
@@ -17,7 +18,6 @@ from .utils.streaming_download_manager import (
     xpathrglob,
     xpathstem,
     xpathsuffix,
-    xbasename
 )
 
 

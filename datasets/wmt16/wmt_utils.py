@@ -784,10 +784,7 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
             urls = dataset.get_url(source)
             if len(urls) == 1:
                 urls = urls * len(rel_paths)
-            return [
-                rel_path if rel_path else os.path.basename(url)
-                for url, rel_path in zip(urls, rel_paths)
-            ]
+            return [rel_path if rel_path else os.path.basename(url) for url, rel_path in zip(urls, rel_paths)]
 
         for ss_name in split_subsets:
             # TODO(PVP) remove following five lines when manual data works
@@ -811,6 +808,7 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
             if ss_name.startswith("czeng"):
                 if ss_name.endswith("16pre"):
                     sub_generator = functools.partial(_parse_tsv, language_pair=("en", "cs"))
+                    sub_generator_args += tuple(filenames)
                 elif ss_name.endswith("17"):
                     filter_path = _get_local_paths(_CZENG17_FILTER, extraction_map[_CZENG17_FILTER.name])[0]
                     sub_generator = functools.partial(_parse_czeng, filter_path=filter_path)
@@ -830,12 +828,14 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
                 # extension may not be at the end of the file path.
                 if ".tsv" in fname:
                     sub_generator = _parse_tsv
+                    sub_generator_args += tuple(filenames)
                 elif (
                     ss_name.startswith("newscommentary_v14")
                     or ss_name.startswith("europarl_v9")
                     or ss_name.startswith("wikititles_v1")
                 ):
                     sub_generator = functools.partial(_parse_tsv, language_pair=self.config.language_pair)
+                    sub_generator_args += tuple(filenames)
                 elif "tmx" in fname or ss_name.startswith("paracrawl_v3"):
                     sub_generator = _parse_tmx
                 elif ss_name.startswith("wikiheadlines"):
@@ -865,10 +865,12 @@ def _parse_parallel_sentences(f1, f2, filename1, filename2):
 
         if split_path[-1] == "gz":
             lang = split_path[-2]
+
             def gen():
                 with open(path, "rb") as f, gzip.GzipFile(fileobj=f) as g:
                     for line in g:
                         yield line.decode("utf.8").rstrip()
+
             return gen(), lang
 
         if split_path[-1] == "txt":
@@ -877,10 +879,12 @@ def _parse_parallel_sentences(f1, f2, filename1, filename2):
             lang = "zh" if lang in ("ch", "cn") else lang
         else:
             lang = split_path[-1]
+
         def gen():
             with open(path, "rb") as f:
                 for line in f:
                     yield line.decode("utf-8").rstrip()
+
         return gen(), lang
 
     def _parse_sgm(path, original_filename):
@@ -889,6 +893,7 @@ def _parse_parallel_sentences(f1, f2, filename1, filename2):
         # Note: We can't use the XML parser since some of the files are badly
         # formatted.
         seg_re = re.compile(r"<seg id=\"\d+\">(.*)</seg>")
+
         def gen():
             with open(path, encoding="utf-8") as f:
                 for line in f:
@@ -896,6 +901,7 @@ def _parse_parallel_sentences(f1, f2, filename1, filename2):
                     if seg_match:
                         assert len(seg_match.groups()) == 1
                         yield seg_match.groups()[0]
+
         return gen(), lang
 
     parse_file = _parse_sgm if os.path.basename(f1).endswith(".sgm") else _parse_text
@@ -952,11 +958,11 @@ def _parse_tmx(path):
                 elem.clear()
 
 
-def _parse_tsv(path, language_pair=None):
+def _parse_tsv(path, filename, language_pair=None):
     """Generates examples from TSV file."""
     if language_pair is None:
-        lang_match = re.match(r".*\.([a-z][a-z])-([a-z][a-z])\.tsv", path)
-        assert lang_match is not None, "Invalid TSV filename: %s" % path
+        lang_match = re.match(r".*\.([a-z][a-z])-([a-z][a-z])\.tsv", filename)
+        assert lang_match is not None, "Invalid TSV filename: %s" % filename
         l1, l2 = lang_match.groups()
     else:
         l1, l2 = language_pair
