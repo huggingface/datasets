@@ -59,12 +59,12 @@ class Image:
 
         image = Image.open(value)
 
-        if self.mode != image.mode:
+        if self.mode is not None and self.mode != image.mode:
             image = image.convert(self.mode)
 
         mode = image.mode
 
-        if self.animated and image.is_animated:
+        if self.animated and getattr(image, "is_animated", False):
             frames = []
             for frame_idx in range(image.n_frames):
                 image.seek(frame_idx)
