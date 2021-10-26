@@ -1268,8 +1268,8 @@ def prepare_module(
             "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
         )
         revision = script_version
-    if dataset:
-        results = dataset_module_factory(
+    module = (
+        dataset_module_factory(
             path,
             revision=revision,
             download_config=download_config,
@@ -1279,9 +1279,8 @@ def prepare_module(
             data_files=data_files,
             **download_kwargs,
         )
-        return results.module_path, results.hash
-    else:
-        results = metric_module_factory(
+        if dataset
+        else metric_module_factory(
             path,
             revision=revision,
             download_config=download_config,
@@ -1290,7 +1289,8 @@ def prepare_module(
             dynamic_modules_path=dynamic_modules_path,
             **download_kwargs,
         )
-        return results.module_path, results.hash
+    )
+    return module.module_path, module.hash
 
 
 def load_metric(
