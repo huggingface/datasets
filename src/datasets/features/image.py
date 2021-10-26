@@ -71,7 +71,7 @@ class Image:
         # Reorder channels: (H, W, C) -> (C, H, W)
         array = array.transpose(2, 0, 1)
 
-        return {"path": value, "array": np.array(image), "mode": mode}
+        return {"path": value, "array": array, "mode": mode}
 
     def decode_batch(self, values):
         decoded_batch = defaultdict(list)
