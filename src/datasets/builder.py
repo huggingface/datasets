@@ -404,6 +404,16 @@ class DatasetBuilder:
             raise ValueError("Names in BUILDER_CONFIGS must not be duplicated. Got %s" % names)
         return configs
 
+    @utils.classproperty
+    @classmethod
+    @utils.memoize()
+    def default_builder_config(cls):
+        config_kwargs = {param: cls.kwargs[param] for param in ["name", "data_files"] if param in cls.kwargs}
+        if hasattr(cls, "VERSION") and cls.VERSION:
+            config_kwargs["version"] = cls.VERSION
+        config = cls.BUILDER_CONFIG_CLASS(**config_kwargs)
+        return {config.name: config}
+
     @property
     def cache_dir(self):
         return self._cache_dir
