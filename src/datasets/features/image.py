@@ -13,9 +13,12 @@ class Image:
     Args:
         mode (:obj:`str`, optional): Target image mode. If `None`, the mode is infered from the underlying image data.
             The list of supported modes is available `here <https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes>`_.
+        animated (:obj:`bool`, default `False`): Whether to return the animated image as a sequence of frames or to truncate the image to the first frame.
+            Only has an effect on animated images such GIFs, APNGs, etc.
     """
 
     mode: Optional[str] = None
+    animated: bool = False
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -27,7 +30,7 @@ class Image:
             try:
                 from PIL import ImageMode
             except ImportError as err:
-                raise ImportError("To support decoding image files, please install 'Pillow'.") from err
+                raise ImportError("To use the Image feature, please install 'Pillow'.") from err
 
             try:
                 ImageMode.getmode(self.mode)
@@ -59,17 +62,29 @@ class Image:
         if self.mode != image.mode:
             image = image.convert(self.mode)
 
-        array = np.array(image)
         mode = image.mode
 
-        # Add a third axis to a single-channel image
-        if array.ndim == 2:
-            array = array[:, np.newaxis]
-
-        assert array.ndim == 3
-
-        # Reorder channels: (H, W, C) -> (C, H, W)
-        array = array.transpose(2, 0, 1)
+        if self.animated and image.is_animated:
+            frames = []
+            for frame_idx in range(image.n_frames):
+                image.seek(frame_idx)
+                frame = np.array(image)
+                frames.append(frame)
+            array = np.array(frames)
+            # Add a forth axis to a sequence of single-channel frames
+            if array.ndim == 3:
+                array = array[..., np.newaxis]
+            assert array.ndim == 4
+            # Reorder channles: (N, H, W, C) -> (N, C, H, W)
+            array = array.transpose(0, 3, 1, 2)
+        else:
+            array = np.array(image)
+            # Add a third axis to a single-channel image
+            if array.ndim == 2:
+                array = array[..., np.newaxis]
+            assert array.ndim == 3
+            # Reorder channels: (H, W, C) -> (C, H, W)
+            array = array.transpose(2, 0, 1)
 
         return {"path": value, "array": array, "mode": mode}
 
