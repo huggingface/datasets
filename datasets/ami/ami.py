@@ -318,7 +318,7 @@ class AMI(datasets.GeneratorBasedBuilder):
 
         if self.config.name == "headset-single":
             features_dict.update({"file": datasets.Value("string")})
-            features_dict.update({"audio": datasets.Audio(sampling_rate=16_000)})
+            features_dict.update({"audio": datasets.features.Audio(sampling_rate=16_000)})
             config_description = (
                 "Close talking audio of single headset. "
                 "This configuration only includes audio belonging to the "
@@ -326,7 +326,7 @@ class AMI(datasets.GeneratorBasedBuilder):
             )
         elif self.config.name == "microphone-single":
             features_dict.update({"file": datasets.Value("string")})
-            features_dict.update({"audio": datasets.Audio(sampling_rate=16_000)})
+            features_dict.update({"audio": datasets.features.Audio(sampling_rate=16_000)})
             config_description = (
                 "Far field audio of single microphone. "
                 "This configuration only includes audio belonging the first microphone, "
@@ -334,7 +334,7 @@ class AMI(datasets.GeneratorBasedBuilder):
             )
         elif self.config.name == "headset-multi":
             features_dict.update({f"file-{i}": datasets.Value("string") for i in range(4)})
-            features_dict.update({f"file-{i}": datasets.Audio(sampling_rate=16_000) for i in range(4)})
+            features_dict.update({f"file-{i}": datasets.features.Audio(sampling_rate=16_000) for i in range(4)})
             config_description = (
                 "Close talking audio of four individual headset. "
                 "This configuration includes audio belonging to four individual headsets."
@@ -342,7 +342,7 @@ class AMI(datasets.GeneratorBasedBuilder):
             )
         elif self.config.name == "microphone-multi":
             features_dict.update({f"file-1-{i}": datasets.Value("string") for i in range(1, 8)})
-            features_dict.update({f"file-1-{i}": datasets.Audio(sampling_rate=16_000) for i in range(1, 8)})
+            features_dict.update({f"file-1-{i}": datasets.features.Audio(sampling_rate=16_000) for i in range(1, 8)})
             config_description = (
                 "Far field audio of microphone array. "
                 "This configuration includes audio of "
