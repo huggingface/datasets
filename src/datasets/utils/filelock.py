@@ -35,6 +35,7 @@ import os
 import threading
 import time
 
+from .. import config
 
 try:
     import warnings
@@ -132,8 +133,10 @@ class BaseFileLock:
     Implements the base class of a file lock.
     """
 
-    def __init__(self, lock_file, timeout=-1, max_filename_length=255):
+    def __init__(self, lock_file, timeout=-1, max_filename_length=None):
         """ """
+        if max_filename_length is None:
+            max_filename_length = config.MAX_DATASET_CONFIG_ID_READABLE_LENGTH
         # Hash the filename if it's too long
         lock_file = self.hash_filename_if_too_long(lock_file, max_filename_length)
         # The path to the lock file.
