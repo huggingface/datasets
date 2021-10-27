@@ -94,7 +94,7 @@ def temporary_assignment(obj, attr, value):
 
 
 def unique_values(values):
-    """Iterate over iterable and return only unique values."""
+    """Iterate over iterable and return only unique values in order."""
     seen = set()
     for value in values:
         if value not in seen:
