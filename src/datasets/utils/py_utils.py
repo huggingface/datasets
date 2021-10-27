@@ -25,7 +25,6 @@ import os
 import pickle
 import sys
 import types
-from enum import unique
 from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
