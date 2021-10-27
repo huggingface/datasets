@@ -869,7 +869,7 @@ def _parse_parallel_sentences(f1, f2, filename1, filename2):
             def gen():
                 with open(path, "rb") as f, gzip.GzipFile(fileobj=f) as g:
                     for line in g:
-                        yield line.decode("utf.8").rstrip()
+                        yield line.decode("utf-8").rstrip()
 
             return gen(), lang
 
