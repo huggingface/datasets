@@ -7,7 +7,7 @@ from typing import List
 from datasets import config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
-from datasets.load import import_main_class, prepare_module
+from datasets.load import dataset_module_factory, import_main_class
 from datasets.utils.download_manager import DownloadConfig, GenerateMode
 
 
@@ -86,12 +86,8 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             print("Both parameters `name` and `all_configs` can't be used at once.")
             exit(1)
         path, name = self._dataset, self._name
-        module_path, hash, base_path, namespace = prepare_module(
-            path,
-            return_associated_base_path=True,
-            return_namespace=True,
-        )
-        builder_cls = import_main_class(module_path)
+        dataset_module = dataset_module_factory(path)
+        builder_cls = import_main_class(dataset_module.module_path)
         builders: List[DatasetBuilder] = []
         if self._beam_pipeline_options:
             beam_options = beam.options.pipeline_options.PipelineOptions(
@@ -105,11 +101,11 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                     builder_cls(
                         name=builder_config.name,
                         data_dir=self._data_dir,
-                        hash=hash,
+                        hash=dataset_module.builder_kwargs.get("hash"),
                         beam_options=beam_options,
                         cache_dir=self._cache_dir,
-                        base_path=base_path,
-                        namespace=namespace,
+                        base_path=dataset_module.builder_kwargs.get("base_path"),
+                        namespace=dataset_module.builder_kwargs.get("namespace"),
                     )
                 )
         else:
@@ -119,8 +115,8 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                     data_dir=self._data_dir,
                     beam_options=beam_options,
                     cache_dir=self._cache_dir,
-                    base_path=base_path,
-                    namespace=namespace,
+                    base_path=dataset_module.builder_kwargs.get("base_path"),
+                    namespace=dataset_module.builder_kwargs.get("namespace"),
                 )
             )
 
