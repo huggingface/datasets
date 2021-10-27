@@ -101,7 +101,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
                     builder_cls(
                         name=builder_config.name,
                         data_dir=self._data_dir,
-                        hash=dataset_module.builder_kwargs.get("hash"),
+                        hash=dataset_module.hash,
                         beam_options=beam_options,
                         cache_dir=self._cache_dir,
                         base_path=dataset_module.builder_kwargs.get("base_path"),
