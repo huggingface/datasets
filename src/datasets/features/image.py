@@ -14,7 +14,7 @@ class Image:
         mode (:obj:`str`, optional): Target image mode. If `None`, the mode is infered from the underlying image data.
             The list of supported modes is available `here <https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes>`_.
         animated (:obj:`bool`, default `False`): Whether to return the animated image as a sequence of frames or to truncate the image to the first frame.
-            Only has an effect on animated images such GIFs, APNGs, etc.
+            Only has an effect on animated images such GIFs or APNGs.
     """
 
     mode: Optional[str] = None
