@@ -44,6 +44,7 @@ from .splits import SplitDict
 from .tasks import TaskTemplate, task_template_from_dict
 from .utils import Version
 from .utils.logging import get_logger
+from .utils.py_utils import unique_values
 
 
 logger = get_logger(__name__)
@@ -205,18 +206,11 @@ class DatasetInfo:
 
     @classmethod
     def from_merge(cls, dataset_infos: List["DatasetInfo"]):
-        def unique(values):
-            seen = set()
-            for value in values:
-                if value not in seen:
-                    seen.add(value)
-                    yield value
-
         dataset_infos = [dset_info.copy() for dset_info in dataset_infos if dset_info is not None]
-        description = "\n\n".join(unique(info.description for info in dataset_infos))
-        citation = "\n\n".join(unique(info.citation for info in dataset_infos))
-        homepage = "\n\n".join(unique(info.homepage for info in dataset_infos))
-        license = "\n\n".join(unique(info.license for info in dataset_infos))
+        description = "\n\n".join(unique_values(info.description for info in dataset_infos))
+        citation = "\n\n".join(unique_values(info.citation for info in dataset_infos))
+        homepage = "\n\n".join(unique_values(info.homepage for info in dataset_infos))
+        license = "\n\n".join(unique_values(info.license for info in dataset_infos))
         features = None
         supervised_keys = None
         task_templates = None

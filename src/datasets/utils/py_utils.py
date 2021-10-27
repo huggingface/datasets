@@ -25,6 +25,7 @@ import os
 import pickle
 import sys
 import types
+from enum import unique
 from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
@@ -92,9 +93,18 @@ def temporary_assignment(obj, attr, value):
         setattr(obj, attr, original)
 
 
+def unique_values(values):
+    """Iterate over iterable and return only unique values."""
+    seen = set()
+    for value in values:
+        if value not in seen:
+            seen.add(value)
+            yield value
+
+
 def zip_dict(*dicts):
     """Iterate over items of dictionaries grouped by their keys."""
-    for key in set(itertools.chain(*dicts)):  # set merge all keys
+    for key in unique_values(itertools.chain(*dicts)):  # set merge all keys
         # Will raise KeyError if the dict don't have the same keys
         yield key, tuple(d[key] for d in dicts)
 
