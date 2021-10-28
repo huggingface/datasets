@@ -205,7 +205,7 @@ def get_dataset_config_names(
         **download_kwargs,
     )
     builder_cls = import_main_class(dataset_module.module_path)
-    return list(builder_cls.builder_configs.keys()) or [dataset_module.builder_kwargs.get("name") or "default"]
+    return list(builder_cls.builder_configs.keys()) or [dataset_module.builder_kwargs.get("name", "default")]
 
 
 def get_dataset_split_names(
