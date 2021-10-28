@@ -107,6 +107,8 @@ class TestCommand(BaseDatasetsCLICommand):
                 "Please provide a --cache_dir that will be used to test the dataset script."
             )
             exit(1)
+        if save_infos:
+            self._ignore_verifications = True
 
     def run(self):
         fl_logger().setLevel(ERROR)

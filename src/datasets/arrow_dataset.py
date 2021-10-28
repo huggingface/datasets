@@ -3205,6 +3205,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
+        num_proc: Optional[int] = None,
         **to_csv_kwargs,
     ) -> int:
         """Exports the dataset to csv
@@ -3213,6 +3214,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
             batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing. ``batch_size`` in this case defaults to
+                :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
+                value if you have sufficient compute power.
             to_csv_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_csv`
 
         Returns:
@@ -3221,7 +3226,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetWriter
 
-        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, **to_csv_kwargs).write()
+        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_csv_kwargs).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
