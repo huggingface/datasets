@@ -47,15 +47,20 @@ The tokenization process creates three new columns: ``input_ids``, ``token_type_
 Format
 ------
 
-Set the format with :func:`datasets.Dataset.set_format`, which accepts two main arguments:
+Next, format the dataset into compatible PyTorch or TensorFlow types.
 
-1. ``type`` defines the type of column to cast to. For example, ``torch`` returns PyTorch tensors and ``tensorflow`` returns TensorFlow tensors.
+PyTorch
+^^^^^^^
+
+If you are using PyTorch, set the format with :func:`datasets.Dataset.set_format`, which accepts two main arguments:
+
+1. ``type`` defines the type of column to cast to. For example, ``torch`` returns PyTorch tensors.
    
-2. ``columns`` specifies which columns should be formatted.
+2. ``columns`` specify which columns should be formatted.
 
-After you set the format, wrap the dataset in a ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``:
+After you set the format, wrap the dataset with ``torch.utils.data.DataLoader``. Your dataset is now ready for use in a training loop!
 
-.. tab:: PyTorch
+.. code-block::
 
    >>> import torch
    >>> from datasets import load_dataset
@@ -63,7 +68,6 @@ After you set the format, wrap the dataset in a ``torch.utils.data.DataLoader`` 
    >>> dataset = load_dataset('glue', 'mrpc', split='train')
    >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
    >>> dataset = dataset.map(lambda e: tokenizer(e['sentence1'], truncation=True, padding='max_length'), batched=True)
-   ...
    >>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
    >>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
    >>> next(iter(dataloader))
@@ -78,7 +82,20 @@ After you set the format, wrap the dataset in a ``torch.utils.data.DataLoader`` 
                             ...,
                             [0, 0, 0,  ..., 0, 0, 0]])}
 
-.. tab:: TensorFlow
+TensorFlow
+^^^^^^^^^^
+
+If you are using TensorFlow, set the format with ``to_tf_dataset``, which accepts several arguments:
+
+1. ``columns`` specify which columns should be formatted (includes the inputs and labels).
+
+2. ``shuffle`` determines whether the dataset should be shuffled.
+
+3. ``batch_size`` specifies the batch size.
+
+4. ``collate_fn`` specifies a data collator that will batch each processed example and apply padding. Make sure you set ``return_tensors="tf"`` to return ``tf.Tensor`` outputs.
+
+.. code-block::
 
    >>> import tensorflow as tf
    >>> from datasets import load_dataset
@@ -86,20 +103,32 @@ After you set the format, wrap the dataset in a ``torch.utils.data.DataLoader`` 
    >>> dataset = load_dataset('glue', 'mrpc', split='train')
    >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
    >>> dataset = dataset.map(lambda e: tokenizer(e['sentence1'], truncation=True, padding='max_length'), batched=True)
-   ...
-   >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
-   >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
-   >>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["label"])).batch(32)
-   >>> next(iter(tfdataset))
-   ({'input_ids': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
-   array([[  101,  7277,  2180, ...,     0,     0,     0],
-        ...,
-        [  101,   142,  1813, ...,     0,     0,     0]], dtype=int32)>, 'token_type_ids': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
-   array([[0, 0, 0, ..., 0, 0, 0],
-        ...,
-        [0, 0, 0, ..., 0, 0, 0]], dtype=int32)>, 'attention_mask': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
-   array([[1, 1, 1, ..., 0, 0, 0],
-        ...,
-        [1, 1, 1, ..., 0, 0, 0]], dtype=int32)>}, <tf.Tensor: shape=(32,), dtype=int64, numpy=
-   array([1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1,
-        0, 1, 1, 1, 0, 0, 1, 1, 1, 0])>)
+   >>> data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
+   >>> train_dataset = dataset["train"].to_tf_dataset(
+   ...   columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'],
+   ...   shuffle=True,
+   ...   batch_size=16,
+   ...   collate_fn=data_collator,
+   ... )
+   >>> next(iter(train_dataset))
+   {'attention_mask': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
+    array([[1, 1, 1, ..., 0, 0, 0],
+         ...,
+         [1, 1, 1, ..., 0, 0, 0]])>,
+    'input_ids': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
+     array([[  101, 11336, 11154, ...,     0,     0,     0],
+         ..., 
+         [  101,   156, 22705, ...,     0,     0,     0]])>,
+    'labels': <tf.Tensor: shape=(16,), dtype=int64, numpy=
+     array([1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0])>,
+    'token_type_ids': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
+     array([[0, 0, 0, ..., 0, 0, 0],
+          ...,
+         [0, 0, 0, ..., 0, 0, 0]])>
+   }
+
+.. tip::
+
+   ``to_tf_dataset`` is the easiest way to create a TensorFlow compatible dataset. If you are looking for additional options for constructing a TensorFlow dataset, take a look at the :ref:`format` section!
+
+Your dataset is now ready for use in a training loop!

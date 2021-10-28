@@ -525,8 +525,23 @@ You can also concatenate two datasets horizontally (axis=1) as long as they have
    >>> bookcorpus_ids = Dataset.from_dict({"ids": list(range(len(bookcorpus)))})
    >>> bookcorpus_with_ids = concatenate_datasets([bookcorpus, bookcorpus_ids], axis=1)
 
+.. _format:
+
 Format
 ------
+
+Set a dataset to a TensorFlow compatible format with :func:`datasets.Dataset.set_format`. Specify ``type=tensorflow`` and the columns that should be formatted:
+
+.. code-block::
+
+   >>> import tensorflow as tf
+   >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+
+Then you can wrap the dataset with ``tf.data.Dataset``. This method gives you more control over how to create a `TensorFlow Dataset <https://www.tensorflow.org/api_docs/python/tf/data/Dataset>`_. In the example below, the dataset is created ``from_tensor_slices``:
+
+.. code-block::
+
+   >>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["label"])).batch(32)
 
 :func:`datasets.Dataset.with_format` provides an alternative method to set the format. This method will return a new :class:`datasets.Dataset` object with your specified format:
 
