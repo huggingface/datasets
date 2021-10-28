@@ -109,7 +109,7 @@ AUDIO_REQUIRE = [
 ]
 
 VISION_REQURE = [
-    "Pillow",
+    "Pillow>=6.2.1",
 ]
 
 BENCHMARKS_REQUIRE = [
