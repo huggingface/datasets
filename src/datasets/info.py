@@ -332,7 +332,7 @@ class MetricInfo:
     experiment_id: Optional[str] = None
 
     def __post_init__(self):
-        if not "predictions" in self.features:
+        if "predictions" not in self.features:
             raise ValueError("Need to have at least a 'predictions' field in 'features'.")
         if self.format is not None:
             for key, value in self.features.items():
