@@ -40,11 +40,8 @@ _URL = {
 
 # update inter-language pairs
 language_pairs = [
-"en-lug",
-"en-run",
-"en-ach",
-"en-lgg",
-"en-teo"
+    "en-lug", "en-run", "en-ach", "en-teo", "en-lgg", "lug-ach", "lug-run", "lug-lgg", 
+    "lug-teo", "ach-run", "ach-lgg", "ach-teo", "teo-lgg", "teo-run", "run-lgg"
 ]
 
 class SunbirdConfig(datasets.BuilderConfig):
