@@ -301,6 +301,11 @@ class TensorflowDatasetMixin:
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
         """
+
+        # TODO There is some hacky hardcoding in this function that needs to be fixed.
+        #      We're planning to rework it so less code is needed at the start to remove columns before
+        #      we know the final list of fields (post-data collator). This should clean up most of the special
+        #      casing while retaining the API.
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
@@ -328,13 +333,14 @@ class TensorflowDatasetMixin:
         # Special casing when the dataset has 'label' and the model expects 'labels' and the collator fixes it up for us
         if "labels" in cols_to_retain and "labels" not in self.features and "label" in self.features:
             cols_to_retain[cols_to_retain.index("labels")] = "label"
+        # Watch for nonexistent columns, except those that the data collators add for us
         for col in cols_to_retain:
-            if col not in self.features:
+            if col not in self.features and not (col in ("attention_mask", "labels") and collate_fn is not None):
                 raise ValueError(f"Couldn't find column {col} in dataset.")
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
-        dataset = self.with_format("numpy", columns=cols_to_retain)
+        dataset = self.with_format("python", columns=[col for col in cols_to_retain if col in self.features])
 
         def numpy_pad(data):
             try:
@@ -431,6 +437,18 @@ class TensorflowDatasetMixin:
                 return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
 
             tf_dataset = tf_dataset.map(add_dummy_labels)
+
+        def rename_label_col(inputs, labels=None):
+            if not isinstance(inputs, tf.Tensor):
+                if "label" in inputs:
+                    inputs["labels"] = inputs["label"]
+                    del inputs["label"]
+            if labels is None:
+                return inputs
+            else:
+                return inputs, labels
+
+        tf_dataset = tf_dataset.map(rename_label_col)
 
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
@@ -3187,6 +3205,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self,
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
+        num_proc: Optional[int] = None,
         **to_csv_kwargs,
     ) -> int:
         """Exports the dataset to csv
@@ -3195,6 +3214,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
             batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
+            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing. ``batch_size`` in this case defaults to
+                :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
+                value if you have sufficient compute power.
             to_csv_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_csv`
 
         Returns:
@@ -3203,7 +3226,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Dynamic import to avoid circular dependency
         from .io.csv import CsvDatasetWriter
 
-        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, **to_csv_kwargs).write()
+        return CsvDatasetWriter(self, path_or_buf, batch_size=batch_size, num_proc=num_proc, **to_csv_kwargs).write()
 
     def to_dict(self, batch_size: Optional[int] = None, batched: bool = False) -> Union[dict, Iterator[dict]]:
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
@@ -3650,7 +3673,10 @@ def concatenate_datasets(
         return dsets[0]
     table = concat_tables(tables_to_concat, axis=axis)
     if axis == 1:
-        table = update_metadata_with_features(table, None)
+        # Merge features (ignore duplicated columns for now and let Dataset.__init__ check for those)
+        table = update_metadata_with_features(
+            table, Features({k: v for dset in dsets for k, v in dset.features.items()})
+        )
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:

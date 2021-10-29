@@ -86,7 +86,7 @@ Now let's get coding :-)
 
 The dataset script is the main entry point to load and process the data. It is a python script under `datasets/<your_dataset_name>/<your_dataset_name>.py`.
 
-There is a detailed explanation on how the library and scripts are organized [here](https://huggingface.co/docs/datasets/add_dataset.html).
+There is a detailed explanation on how the library and scripts are organized [here](https://huggingface.co/docs/datasets/master/about_dataset_load.html).
 
 Note on naming: the dataset class should be camel case, while the dataset short_name is its snake case equivalent (ex: `class BookCorpus` for the dataset `book_corpus`).
 
@@ -96,7 +96,7 @@ To add a new dataset, you can start from the empty template which is [in the `te
 cp ./templates/new_dataset_script.py ./datasets/<your_dataset_name>/<your_dataset_name>.py
 ```
 
-And then go progressively through all the `TODO` in the template 🙂. If it's your first dataset addition and you are a bit lost among the information to fill in, you can take some time to read the [detailed explanation here](https://huggingface.co/docs/datasets/add_dataset.html).
+And then go progressively through all the `TODO` in the template 🙂. If it's your first dataset addition and you are a bit lost among the information to fill in, you can take some time to read the [detailed explanation here](https://huggingface.co/docs/datasets/master/dataset_script.html).
 
 You can also start (or copy any part) from one of the datasets of reference listed below. The main criteria for choosing among these reference dataset is the format of the data files (JSON/JSONL/CSV/TSV/text) and whether you need or don't need several configurations (see above explanations on configurations). Feel free to reuse any parts of the following examples and adapt them to your case:
 
@@ -137,7 +137,7 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 **Some rules to follow when adding the dataset**:
 
 - try to give access to all the data, columns, features and information in the dataset. If the dataset contains various sub-parts with differing formats, create several configurations to give access to all of them.
-- datasets in the `datasets` library are typed. Take some time to carefully think about the `features` (see an introduction [here](https://huggingface.co/docs/datasets/exploring.html#features-and-columns) and the full list of possible features [here](https://huggingface.co/docs/datasets/features.html))
+- datasets in the `datasets` library are typed. Take some time to carefully think about the `features` (see an introduction [here](https://huggingface.co/docs/datasets/about_dataset_features.html) and the full list of possible features [here](https://huggingface.co/docs/datasets/package_reference/main_classes.html#features)
 - if some of you dataset features are in a fixed set of classes (e.g. labels), you should use a `ClassLabel` feature.
 
 
@@ -179,7 +179,7 @@ Now that your dataset script runs and create a dataset with the format you expec
 	datasets-cli dummy_data datasets/<your-dataset-folder>
 	```
 
-   If this doesn't work more information on how to add dummy data can be found in the documentation [here](https://huggingface.co/docs/datasets/share_dataset.html#adding-dummy-data).
+   If this doesn't work more information on how to add dummy data can be found in the documentation [here](https://huggingface.co/docs/datasets/dataset_script.html#dummy-data).
 
    If you've been fighting with dummy data creation without success for some time and can't seems to make it work: Go to the next step (open a Pull Request) and we'll help you cross the finish line 🙂.
 

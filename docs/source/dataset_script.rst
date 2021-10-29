@@ -333,7 +333,7 @@ If your data files are not among the supported formats, you will need to generat
 
 .. tip::
 
-   Manually creating dummy data can be tricky. Make sure you follow the instructions from the command ``datasets-cli dummy_data datasets/<your-dataset-folder>``. If you are still unable to succesfully generate dummy data, open a `Pull Request <https://github.com/huggingface/datasets/pulls>`_ and we will be happy to help you out!
+   Manually creating dummy data can be tricky. Make sure you follow the instructions from the command ``datasets-cli dummy_data datasets/<your-dataset-folder>``. If you are still unable to successfully generate dummy data, open a `Pull Request <https://github.com/huggingface/datasets/pulls>`_ and we will be happy to help you out!
 
 There should be two new files in your dataset folder:
 

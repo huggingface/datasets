@@ -904,11 +904,14 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             return (Path(importable_directory_path) / module_hash / (self.name.split("/")[-1] + ".py")).stat().st_mtime
 
         hash = sorted(hashes, key=_get_modification_time)[-1]
-        logger.warning(
+        warning_msg = (
             f"Using the latest cached version of the module from {os.path.join(importable_directory_path, hash)} "
             f"(last modified on {time.ctime(_get_modification_time(hash))}) since it "
-            f"couldn't be found locally at {self.name}, or remotely on the Hugging Face Hub."
+            f"couldn't be found locally at {self.name}."
         )
+        if not config.HF_DATASETS_OFFLINE:
+            warning_msg += ", or remotely on the Hugging Face Hub."
+        logger.warning(warning_msg)
         # make the new module to be noticed by the import system
         module_path = ".".join(
             [
@@ -920,7 +923,10 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             ]
         )
         importlib.invalidate_caches()
-        builder_kwargs = {"hash": hash, "namespace": self.name.split("/")[0]}
+        builder_kwargs = {
+            "hash": hash,
+            "namespace": self.name.split("/")[0] if self.name.count("/") > 0 else None,
+        }
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
@@ -1432,14 +1438,13 @@ def load_dataset_builder(
     if use_auth_token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.use_auth_token = use_auth_token
-    dataset_module_factory_result = dataset_module_factory(
+    dataset_module = dataset_module_factory(
         path, revision=revision, download_config=download_config, download_mode=download_mode, data_files=data_files
     )
 
     # Get dataset builder class from the processing script
-    dataset_module = dataset_module_factory_result.module_path
-    builder_cls = import_main_class(dataset_module)
-    builder_kwargs = dataset_module_factory_result.builder_kwargs
+    builder_cls = import_main_class(dataset_module.module_path)
+    builder_kwargs = dataset_module.builder_kwargs
     data_files = builder_kwargs.pop("data_files", data_files)
     name = builder_kwargs.pop("name", name)
     hash = builder_kwargs.pop("hash")
@@ -1498,7 +1503,7 @@ def load_dataset(
             Processing scripts are small python scripts that define the citation, info and format of the dataset,
             contain the URL to the original data files and the code to load examples from the original data files.
 
-            You can find some of the scripts here: https://github.com/huggingface/datasets/datasets
+            You can find some of the scripts here: https://github.com/huggingface/datasets/tree/master/datasets
             and easily upload yours to share them using the CLI ``huggingface-cli``.
             You can find the complete list of datasets in the Datasets Hub at https://huggingface.co/datasets
 

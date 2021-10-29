@@ -297,6 +297,8 @@ class Value:
             return int(value)
         elif pa.types.is_floating(self.pa_type):
             return float(value)
+        elif pa.types.is_string(self.pa_type):
+            return str(value)
         else:
             return value
 
@@ -433,9 +435,34 @@ class ArrayExtensionArray(pa.ExtensionArray):
         numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr
 
+    def to_list_of_numpy(self, zero_copy_only=True):
+        storage: pa.ListArray = self.storage
+        shape = self.type.shape
+        ndims = self.type.ndims
+
+        for dim in range(1, ndims):
+            assert shape[dim] is not None, f"Support only dynamic size on first dimension. Got: {shape}"
+
+        arrays = []
+        first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
+        for i in range(len(storage)):
+            storage_el = storage[i : i + 1]
+            first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
+            # flatten storage
+            for _ in range(ndims):
+                storage_el = storage_el.flatten()
+
+            numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
+            arrays.append(numpy_arr.reshape(first_dim, *shape[1:]))
+
+        return arrays
+
     def to_pylist(self):
         zero_copy_only = _is_zero_copy_only(self.storage.type)
-        return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
+        if self.type.shape[0] is None:
+            return self.to_list_of_numpy(zero_copy_only=zero_copy_only)
+        else:
+            return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
@@ -445,6 +472,11 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         self._value_type = value_type
 
     def __from_arrow__(self, array):
+        if array.type.shape[0] is None:
+            raise NotImplementedError(
+                "Dynamic first dimension is not supported for "
+                "PandasArrayExtensionDtype, dimension: {}".format(array.type.shape)
+            )
         zero_copy_only = _is_zero_copy_only(array.type)
         if isinstance(array, pa.ChunkedArray):
             numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
@@ -902,6 +934,33 @@ def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.Data
 
 
 class Features(dict):
+    """A special dictionary that defines the internal structure of a dataset.
+
+    Instantiated with a dictionary of type ``dict[str, FieldType]``, where keys are the desired column names,
+    and values are the type of that column.
+
+    ``FieldType`` can be one of the following:
+        - a :class:`datasets.Value` feature specifies a single typed value, e.g. ``int64`` or ``string``
+        - a :class:`datasets.ClassLabel` feature specifies a field with a predefined set of classes which can have labels
+          associated to them and will be stored as integers in the dataset
+        - a python :obj:`dict` which specifies that the field is a nested field containing a mapping of sub-fields to sub-fields
+          features. It's possible to have nested fields of nested fields in an arbitrary manner
+        - a python :obj:`list` or a :class:`datasets.Sequence` specifies that the field contains a list of objects. The python
+          :obj:`list` or :class:`datasets.Sequence` should be provided with a single sub-feature as an example of the feature
+          type hosted in this list
+
+          .. note::
+
+           A :class:`datasets.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of
+           lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be
+           un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the
+           :class:`datasets.Sequence`.
+
+        - a :class:`Array2D`, :class:`Array3D`, :class:`Array4D` or :class:`Array5D` feature for multidimensional arrays
+        - a :class:`datasets.Audio` stores the path to an audio file and can extract audio data from it
+        - :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`, the two features specific to Machine Translation
+    """
+
     @property
     def type(self):
         """

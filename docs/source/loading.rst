@@ -29,7 +29,7 @@ First, create a dataset repository and upload your data files. Then you can use 
 
 This dataset repository contains CSV files, and this code loads all the data from the CSV files.
 
-Some datasets may have more than one version, based on Git tags, branches or commits. Use the ``revision`` flag to specifiy which dataset version you want to load:
+Some datasets may have more than one version, based on Git tags, branches or commits. Use the ``revision`` flag to specify which dataset version you want to load:
 
 .. code-block::
 

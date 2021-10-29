@@ -26,7 +26,7 @@ This guide will show you how to save and load datasets with **s3fs** to a S3 buc
 Listing datasets
 ----------------
 
-1. Install the S3 dependecy with 🤗 Datasets:
+1. Install the S3 dependency with 🤗 Datasets:
 
 .. code::
 

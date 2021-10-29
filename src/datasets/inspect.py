@@ -20,7 +20,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 from .features import Features
 from .hf_api import HfApi
-from .load import import_main_class, load_dataset_builder, prepare_module
+from .load import dataset_module_factory, import_main_class, load_dataset_builder, prepare_module
 from .utils import DownloadConfig
 from .utils.download_manager import GenerateMode
 from .utils.logging import get_logger
@@ -194,9 +194,8 @@ def get_dataset_config_names(
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
             for example ``use_auth_token``
     """
-    module_path, _ = prepare_module(
+    dataset_module = dataset_module_factory(
         path,
-        dataset=True,
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
@@ -205,8 +204,8 @@ def get_dataset_config_names(
         data_files=data_files,
         **download_kwargs,
     )
-    builder_cls = import_main_class(module_path, dataset=True)
-    return list(builder_cls.builder_configs.keys())
+    builder_cls = import_main_class(dataset_module.module_path)
+    return list(builder_cls.builder_configs.keys()) or [dataset_module.builder_kwargs.get("name", "default")]
 
 
 def get_dataset_split_names(
