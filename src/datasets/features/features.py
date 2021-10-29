@@ -783,7 +783,7 @@ def encode_nested_example(schema, obj):
             if len(obj) > 0:
                 first_elmt = next(iter(obj))
                 if encode_nested_example(sub_schema, first_elmt) != first_elmt:
-                    return [encode_nested_example(sub_schema, o) for o in obj] if obj is not None else None
+                    return [encode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
     elif isinstance(schema, Sequence):
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
@@ -809,7 +809,7 @@ def encode_nested_example(schema, obj):
             if len(obj) > 0:
                 first_elmt = next(iter(obj))
                 if encode_nested_example(schema.feature, first_elmt) != first_elmt:
-                    return [encode_nested_example(schema.feature, o) for o in obj] if obj is not None else None
+                    return [encode_nested_example(schema.feature, o) for o in obj]
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
