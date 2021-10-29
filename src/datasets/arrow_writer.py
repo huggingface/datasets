@@ -102,21 +102,33 @@ class TypedSequence:
             type = self.type
         try:
             if isinstance(type, _ArrayXDExtensionType):
-                if isinstance(self.data, np.ndarray) or isinstance(self.data[0], np.ndarray):
+                if isinstance(self.data, np.ndarray):
                     storage = numpy_to_pyarrow_listarray(self.data, type=type.value_type)
+                elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                    storage = list_of_np_array_to_pyarrow_listarray(self.data, type=type.value_type)
                 else:
                     storage = pa.array(self.data, type.storage_dtype)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
+                if type is not None:
+                    out = out.cast(type)
             elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
                 out = list_of_np_array_to_pyarrow_listarray(self.data)
+                if type is not None:
+                    out = out.cast(type)
             else:
                 out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
-            if trying_type and out[0].as_py() != self.data[0]:
-                raise TypeError(
-                    "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
+            if trying_type:
+                is_equal = (
+                    np.array_equal(np.array(out[0].as_py()), self.data[0])
+                    if isinstance(self.data[0], np.ndarray)
+                    else out[0].as_py() == self.data[0]
                 )
+                if not is_equal:
+                    raise TypeError(
+                        "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
+                    )
             if self.optimized_int_type and self.type is None and self.try_type is None:
                 if pa.types.is_int64(out.type):
                     out = out.cast(self.optimized_int_type)
@@ -130,9 +142,11 @@ class TypedSequence:
             if trying_type:
                 try:  # second chance
                     if isinstance(self.data, np.ndarray):
-                        return numpy_to_pyarrow_listarray(self.data, type=None)
+                        return numpy_to_pyarrow_listarray(self.data)
+                    elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                        return list_of_np_array_to_pyarrow_listarray(self.data)
                     else:
-                        return pa.array(self.data, type=None)
+                        return pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True))
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(

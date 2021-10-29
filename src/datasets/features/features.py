@@ -435,9 +435,34 @@ class ArrayExtensionArray(pa.ExtensionArray):
         numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr
 
+    def to_list_of_numpy(self, zero_copy_only=True):
+        storage: pa.ListArray = self.storage
+        shape = self.type.shape
+        ndims = self.type.ndims
+
+        for dim in range(1, ndims):
+            assert shape[dim] is not None, f"Support only dynamic size on first dimension. Got: {shape}"
+
+        arrays = []
+        first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
+        for i in range(len(storage)):
+            storage_el = storage[i : i + 1]
+            first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
+            # flatten storage
+            for _ in range(ndims):
+                storage_el = storage_el.flatten()
+
+            numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
+            arrays.append(numpy_arr.reshape(first_dim, *shape[1:]))
+
+        return arrays
+
     def to_pylist(self):
         zero_copy_only = _is_zero_copy_only(self.storage.type)
-        return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
+        if self.type.shape[0] is None:
+            return self.to_list_of_numpy(zero_copy_only=zero_copy_only)
+        else:
+            return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
@@ -447,6 +472,11 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         self._value_type = value_type
 
     def __from_arrow__(self, array):
+        if array.type.shape[0] is None:
+            raise NotImplementedError(
+                "Dynamic first dimension is not supported for "
+                "PandasArrayExtensionDtype, dimension: {}".format(array.type.shape)
+            )
         zero_copy_only = _is_zero_copy_only(array.type)
         if isinstance(array, pa.ChunkedArray):
             numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
