@@ -563,7 +563,38 @@ sentence: The sentence the user was prompted to speak
 
 ### Data Splits
 
-The speech material has only train dataset.
+There is only one "train" split for all configurations and the number of examples are:
+
+|       |   Number of examples |
+|:------|---------------------:|
+| SLR41 |                 5822 |
+| SLR42 |                 2906 |
+| SLR43 |                 2064 |
+| SLR44 |                 4213 |
+| SLR63 |                 4126 |
+| SLR64 |                 1569 |
+| SLR65 |                 4284 |
+| SLR66 |                 4448 |
+| SLR69 |                 4240 |
+| SLR35 |               185076 |
+| SLR36 |               219156 |
+| SLR70 |                 3359 |
+| SLR71 |                 4374 |
+| SLR72 |                 4903 |
+| SLR73 |                 5447 |
+| SLR74 |                  617 |
+| SLR75 |                 3357 |
+| SLR76 |                 7136 |
+| SLR77 |                 5587 |
+| SLR78 |                 4272 |
+| SLR79 |                 4400 |
+| SLR80 |                 2530 |
+| SLR86 |                 3583 |
+| SLR32 |                 9821 |
+| SLR52 |               185293 |
+| SLR53 |               218703 |
+| SLR54 |               157905 |
+| SLR83 |                17877 |
 
 ## Dataset Creation
 
