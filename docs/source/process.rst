@@ -547,14 +547,18 @@ Then you can wrap the dataset with ``tf.data.Dataset``. This method gives you mo
 
 .. code::
 
-   >>> dataset.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+   >>> dataset = dataset.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+
+.. tip::
+
+   🤗 Datasets also provides support for other common data formats such as NumPy, PyTorch, Pandas, and JAX.
 
 Use :func:`datasets.Dataset.reset_format` if you need to reset the dataset to the original format:
 
 .. code-block::
 
    >>> dataset.format
-   {'type': 'torch', 'format_kwargs': {}, 'columns': ['label'], 'output_all_columns': False}
+   {'type': 'tensorflow', 'format_kwargs': {}, 'columns': ['label'], 'output_all_columns': False}
    >>> dataset.reset_format()
    >>> dataset.format
    {'type': 'python', 'format_kwargs': {}, 'columns': ['idx', 'label', 'sentence1', 'sentence2'], 'output_all_columns': False}

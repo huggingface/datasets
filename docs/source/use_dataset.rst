@@ -44,8 +44,8 @@ Now you can tokenize ``sentence1`` field of the dataset:
 
 The tokenization process creates three new columns: ``input_ids``, ``token_type_ids``, and ``attention_mask``. These are the inputs to the model.
 
-Format
-------
+Use in PyTorch or TensorFlow
+----------------------------
 
 Next, format the dataset into compatible PyTorch or TensorFlow types.
 
@@ -93,7 +93,7 @@ If you are using TensorFlow, set the format with ``to_tf_dataset``, which accept
 
 3. ``batch_size`` specifies the batch size.
 
-4. ``collate_fn`` specifies a data collator that will batch each processed example and apply padding. Make sure you set ``return_tensors="tf"`` to return ``tf.Tensor`` outputs.
+4. ``collate_fn`` specifies a data collator that will batch each processed example and apply padding. If you are using a ``DataCollator``, make sure you set ``return_tensors="tf"`` when you initialize it to return ``tf.Tensor`` outputs.
 
 .. code-block::
 
