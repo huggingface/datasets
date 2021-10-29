@@ -278,12 +278,15 @@ class HashingTest(TestCase):
 
     def test_hash_same_strings(self):
         string = "abc"
-        obj1 = [string, string]
+        obj1 = [string, string]  # two strings have the same ids
         obj2 = [string, string]
-        obj3 = json.loads(f'["{string}", "{string}"]')
+        obj3 = json.loads(f'["{string}", "{string}"]')  # two strings have different ids
         self.assertIs(obj1[0], string)
+        self.assertIs(obj1[0], obj1[1])
         self.assertIs(obj2[0], string)
+        self.assertIs(obj2[0], obj2[1])
         self.assertIsNot(obj3[0], string)
+        self.assertIsNot(obj3[0], obj3[1])
         hash1 = Hasher.hash(obj1)
         hash2 = Hasher.hash(obj2)
         hash3 = Hasher.hash(obj3)
