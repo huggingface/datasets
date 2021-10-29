@@ -132,8 +132,9 @@ class BaseFileLock:
     Implements the base class of a file lock.
     """
 
-    def __init__(self, lock_file, timeout=-1, max_filename_length=255):
+    def __init__(self, lock_file, timeout=-1, max_filename_length=None):
         """ """
+        max_filename_length = max_filename_length if max_filename_length is not None else 255
         # Hash the filename if it's too long
         lock_file = self.hash_filename_if_too_long(lock_file, max_filename_length)
         # The path to the lock file.
@@ -352,7 +353,7 @@ class WindowsFileLock(BaseFileLock):
     windows systems.
     """
 
-    def __init__(self, lock_file, timeout=-1, max_filename_length=255):
+    def __init__(self, lock_file, timeout=-1, max_filename_length=None):
         from .file_utils import relative_to_absolute_path
 
         super().__init__(lock_file, timeout=timeout, max_filename_length=max_filename_length)
@@ -397,6 +398,10 @@ class UnixFileLock(BaseFileLock):
     """
     Uses the :func:`fcntl.flock` to hard lock the lock file on unix systems.
     """
+
+    def __init__(self, lock_file, timeout=-1, max_filename_length=None):
+        max_filename_length = os.statvfs(os.path.dirname(lock_file)).f_namemax
+        super().__init__(lock_file, timeout=timeout, max_filename_length=max_filename_length)
 
     def _acquire(self):
         open_mode = os.O_RDWR | os.O_CREAT | os.O_TRUNC
