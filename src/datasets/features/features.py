@@ -802,7 +802,7 @@ def encode_nested_example(schema, obj):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
 
-    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be encoded. 
+    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be encoded.
     If the first element needs to be encoded, then all the elements of the list will be encoded, otherwise they'll stay the same.
     """
     # Nested structures: we allow dict, list/tuples, sequences
