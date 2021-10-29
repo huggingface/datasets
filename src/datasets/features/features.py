@@ -779,7 +779,7 @@ def encode_nested_example(schema, obj):
         sub_schema = schema[0]
         if obj is None:
             return None
-        else
+        else:
             if len(obj) > 0:
                 first_elmt = next(iter(obj))
                 if encode_nested_example(sub_schema, first_elmt) != first_elmt:
