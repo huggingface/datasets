@@ -1,3 +1,4 @@
+import json
 import pickle
 import subprocess
 from hashlib import md5
@@ -274,6 +275,20 @@ class HashingTest(TestCase):
     def test_hash_unpicklable(self):
         with self.assertRaises(pickle.PicklingError):
             Hasher.hash(UnpicklableCallable(Foo("hello")))
+
+    def test_hash_same_strings(self):
+        string = "abc"
+        obj1 = [string, string]
+        obj2 = [string, string]
+        obj3 = json.loads(f'["{string}", "{string}"]')
+        self.assertIs(obj1[0], string)
+        self.assertIs(obj2[0], string)
+        self.assertIsNot(obj3[0], string)
+        hash1 = Hasher.hash(obj1)
+        hash2 = Hasher.hash(obj2)
+        hash3 = Hasher.hash(obj3)
+        self.assertEqual(hash1, hash2)
+        self.assertEqual(hash1, hash3)
 
 
 def test_move_script_doesnt_change_hash(tmp_path: Path):
