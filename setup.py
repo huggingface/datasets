@@ -168,6 +168,9 @@ TESTS_REQUIRE = [
     "importlib_resources;python_version<'3.7'",
 ]
 
+# vision requirements are currently fairly small
+TESTS_REQUIRE.extend(VISION_REQURE)
+
 if os.name == "nt":  # windows
     TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
 else:
