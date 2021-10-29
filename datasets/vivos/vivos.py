@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 
 import datasets
 
@@ -39,11 +40,6 @@ _LICENSE = "cc-by-sa-4.0"
 
 _DATA_URL = "https://ailab.hcmus.edu.vn/assets/vivos.tar.gz"
 
-_PROMPTS_URLS = {
-    "train": "https://s3.amazonaws.com/datasets.huggingface.co/vivos/train/prompts.txt",
-    "test": "https://s3.amazonaws.com/datasets.huggingface.co/vivos/test/prompts.txt",
-}
-
 
 class VivosDataset(datasets.GeneratorBasedBuilder):
     """VIVOS is a free Vietnamese speech corpus consisting of 15 hours of recording speech prepared for
@@ -67,7 +63,7 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
                 {
                     "speaker_id": datasets.Value("string"),
                     "path": datasets.Value("string"),
-                    "audio": {"path": datasets.Value("string"), "data": datasets.features.Value("binary")},
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     "sentence": datasets.Value("string"),
                 }
             ),
@@ -84,57 +80,46 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        prompts_paths = dl_manager.download(_PROMPTS_URLS)
-        archive = dl_manager.download(_DATA_URL)
-        train_dir = "vivos/train"
-        test_dir = "vivos/test"
+        dl_path = dl_manager.download_and_extract(_DATA_URL)
+        data_dir = os.path.join(dl_path, "vivos")
+        train_dir = os.path.join(data_dir, "train")
+        test_dir = os.path.join(data_dir, "test")
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "prompts_path": prompts_paths["train"],
-                    "path_to_clips": train_dir + "/waves",
-                    "audio_files": dl_manager.iter_archive(archive),
+                    "filepath": os.path.join(train_dir, "prompts.txt"),
+                    "path_to_clips": os.path.join(train_dir, "waves"),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "prompts_path": prompts_paths["test"],
-                    "path_to_clips": test_dir + "/waves",
-                    "audio_files": dl_manager.iter_archive(archive),
+                    "filepath": os.path.join(test_dir, "prompts.txt"),
+                    "path_to_clips": os.path.join(test_dir, "waves"),
                 },
             ),
         ]
 
-    def _generate_examples(self, prompts_path, path_to_clips, audio_files):
+    def _generate_examples(
+        self,
+        filepath,
+        path_to_clips,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+    ):
         """Yields examples as (key, example) tuples."""
-        # TODO(QL): use Audio featrue with data bytes instead of string path
-        raise Exception("TODO(QL): use Audio featrue with data bytes instead of string path")
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
-        examples = {}
-        with open(prompts_path, encoding="utf-8") as f:
-            for row in f:
+
+        with open(filepath, encoding="utf-8") as f:
+            for id_, row in enumerate(f):
                 data = row.strip().split(" ", 1)
                 speaker_id = data[0].split("_")[0]
-                audio_path = "/".join([path_to_clips, speaker_id, data[0] + ".wav"])
-                examples[audio_path] = {
+                yield id_, {
                     "speaker_id": speaker_id,
-                    "path": audio_path,
+                    "path": os.path.join(path_to_clips, speaker_id, data[0] + ".wav"),
+                    "audio": os.path.join(path_to_clips, speaker_id, data[0] + ".wav"),
                     "sentence": data[1],
                 }
-        inside_clips_dir = False
-        id_ = 0
-        for path, f in audio_files:
-            if path.startswith(path_to_clips):
-                inside_clips_dir = True
-                if path in examples:
-                    audio = {"path": path, "data": f.read()}
-                    yield id_, {**examples[path], "audio": audio}
-                    id_ += 1
-            elif inside_clips_dir:
-                break
