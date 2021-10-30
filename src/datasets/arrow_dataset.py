@@ -1174,21 +1174,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         src_feat = self.features[column]
         if not isinstance(src_feat, Value):
             raise ValueError(
-                f"Class encoding is only supported for {type(Value)} column, and column {column} is {type(src_feat)}."
+                f"Class encoding is only supported for {Value.__name__} column, and column {column} is {type(src_feat).__name__}."
             )
 
         # Stringify the column
         if src_feat.dtype != "string":
             dset = self.map(
-                lambda batch: {column: [str(sample) for sample in batch]}, input_columns=column, batched=True
+                lambda batch: {column: [str(sample) if sample is not None else None for sample in batch]}, input_columns=column, batched=True
             )
         else:
             dset = self
 
         # Create the new feature
-        class_names = sorted(dset.unique(column))
+        class_names = sorted(sample for sample in dset.unique(column) if sample is not None)
         dst_feat = ClassLabel(names=class_names)
-        dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
+        dset = dset.map(lambda batch: {column: [dst_feat.str2int(sample) for sample in batch if sample is not None]}, input_columns=column, batched=True)
         dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = dset.features.copy()
@@ -2774,6 +2774,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         column_data = self._getitem(
             column, format_type="numpy", format_columns=None, output_all_columns=False, format_kwargs=None
         )
+
+        # TODO(mariosasko): Deal with Nones
+
         indices = np.argsort(column_data, kind=kind)
         if reverse:
             indices = indices[::-1]
