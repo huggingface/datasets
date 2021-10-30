@@ -1188,7 +1188,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Create the new feature
         class_names = sorted(sample for sample in dset.unique(column) if sample is not None)
         dst_feat = ClassLabel(names=class_names)
-        dset = dset.map(lambda batch: {column: [dst_feat.str2int(sample) for sample in batch if sample is not None]}, input_columns=column, batched=True)
+        
+        column_idx = dset.column_names.index(column)
+        # self.remove_columns([column_])
         dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = dset.features.copy()
