@@ -43,7 +43,7 @@ _LICENSE = "MIT License"
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URL = "https://raw.githubusercontent.com/dumitrescustefan/ronec/master/data/"
 _TRAINING_FILE = "train.json"
-_DEV_FILE = "dev.json"
+_DEV_FILE = "valid.json"
 _TEST_FILE = "test.json"
 
 
@@ -158,9 +158,4 @@ class RONEC(datasets.GeneratorBasedBuilder):
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
             for instance in data:
-                yield instance["id"], {
-                    "tokens": data["tokens"],
-                    "ner_ids": data["ner_ids"],
-                    "ner_tags": data["ner_tags"],
-                    "space_after": data["space_after"],
-                }
+                yield instance["id"], instance
