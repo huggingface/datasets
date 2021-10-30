@@ -30,10 +30,8 @@ paperswithcode_id: ronec
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
   - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
@@ -42,7 +40,6 @@ paperswithcode_id: ronec
   - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
@@ -52,95 +49,108 @@ paperswithcode_id: ronec
 - **Homepage:** https://github.com/dumitrescustefan/ronec
 - **Repository:** https://github.com/dumitrescustefan/ronec
 - **Paper:** https://arxiv.org/abs/1909.01247
-- **Leaderboard:** [Needs More Information]
+- **Leaderboard:** https://lirobenchmark.github.io/
 - **Point of Contact:** dumitrescu.stefan@gmail.com, avram.andreimarius@gmail.com
 
 ### Dataset Summary
 
-We present RONEC - the Named Entity Corpus for the Romanian language. The corpus contains over 26000 entities in 5000 annotatedsentences, belonging to 16 distinct classes. The sentenceshave been extracted from a copy-right free newspaper, covering severalstyles. This corpus represents the first initiative in the Romanian language space specifically targeted for named entity recognition.
+RONEC, at version 2.0, holds 12330 sentences with over 0.5M tokens, annotated with 15 classes, to a total of 80.283 distinctly annotated entities.
+
+The corpus has the following classes and distribution in the train/valid/test splits:
+
+| Classes      	| Total  	    | Train  	|         	| Valid  	|         	| Test   	|         	|
+|-------------	|:------:	    |:------:	|:-------:	|:------:	|:-------:	|:------:	|:-------:	|
+|            	| #     	    | #     	| %     	| # 	    | % 	    | #     	| %     	|
+| PERSON      	|  **26130** 	| 19167  	|  73.35  	|  2733  	|  10.46  	|  4230  	|  16.19  	|
+| GPE         	|  **11103** 	|  8193  	|  73.79  	|  1182  	|  10.65  	|  1728  	|   15.56 	|
+| LOC         	|  **2467**  	|  1824  	|  73.94  	|  270   	|  10.94  	|  373   	|  15.12  	|
+| ORG         	|  **7880**  	|  5688  	|  72.18  	|   880  	|  11.17  	|  1312  	|  16.65  	|
+| LANGUAGE    	|   **467**  	|   342  	|  73.23  	|   52   	|  11.13  	|   73   	|  15.63  	|
+| NAT_REL_POL 	|  **4970**  	|  3673  	|  73.90  	|   516  	|  10.38  	|   781  	|  15.71  	|
+| DATETIME    	|  **9614**  	|  6960  	|  72.39  	|  1029  	|   10.7  	|  1625  	|   16.9  	|
+| PERIOD      	|  **1188**  	|   862  	|  72.56  	|   129  	|  10.86  	|   197  	|  16.58  	|
+| QUANTITY    	|  **1588**  	|  1161  	|  73.11  	|   181  	|   11.4  	|   246  	|  15.49  	|
+| MONEY       	|  **1424**  	|  1041  	|  73.10  	|   159  	|  11.17  	|   224  	|  15.73  	|
+| NUMERIC     	|  **7735**  	|  5734  	|  74.13  	|   814  	|  10.52  	|  1187  	|  15.35  	|
+| ORDINAL     	|  **1893**  	|  1377  	|   72.74 	|   212  	|   11.2  	|   304  	|  16.06  	|
+| FACILITY    	|  **1126**  	|   840  	|   74.6  	|   113  	|  10.04  	|   173  	|  15.36  	|
+| WORK_OF_ART 	|  **1596**  	|  1157  	|  72.49  	|   176  	|  11.03  	|   263  	|  16.48  	|
+| EVENT       	|  **1102**  	|   826  	|  74.95  	|   107  	|   9.71  	|   169  	|  15.34  	|
+
 
 ### Supported Tasks and Leaderboards
 
-[Needs More Information]
+The corpus is meant to train Named Entity Recognition models for the Romanian language. 
+
+Please see the leaderboard here : [https://lirobenchmark.github.io/](https://lirobenchmark.github.io/) 
 
 ### Languages
 
-The text dataset is in Romanian (`ro`)
+RONEC is in Romanian (`ro`)
 
 ## Dataset Structure
 
 ### Data Instances
 
-An example looks like this:
+The dataset is a list of instances. For example, an instance looks like:
 
-```
-{'id': '1',
- 'ner_tags': [13, 29, 29, 0, 4, 0, 13, 29, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0],
- 'tokens': ['Secretarul', 'de', 'stat', 'al', 'S.U.A.', ',', 'Colin', 'Powell', ',', 'începe', 'un', 'turneu', 'în', 'țările', 'asiatice', 'afectate', 'de', 'valurile', 'seismice', 'uriașe', '.']
+```json
+{
+  "id": 10454,
+  "tokens": ["Pentru", "a", "vizita", "locația", "care", "va", "fi", "pusă", "la", "dispoziția", "reprezentanților", "consiliilor", "județene", ",", "o", "delegație", "a", "U.N.C.J.R.", ",", "din", "care", "a", "făcut", "parte", "și", "dl", "Constantin", "Ostaficiuc", ",", "președintele", "C.J.T.", ",", "a", "fost", "prezentă", "la", "Bruxelles", ",", "între", "1-3", "martie", "."], 
+  "ner_tags": ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "B-PERSON", "O", "O", "O", "O", "O", "O", "B-ORG", "O", "O", "O", "O", "O", "O", "O", "B-PERSON", "I-PERSON", "I-PERSON", "I-PERSON", "I-PERSON", "B-ORG", "O", "O", "O", "O", "O", "B-GPE", "O", "B-PERIOD", "I-PERIOD", "I-PERIOD", "O"], 
+  "ner_ids": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 5, 0, 19, 20, 20, 0], 
+  "space_after": [true, true, true, true, true, true, true, true, true, true, true, true, false, true, true, true, true, false, true, true, true, true, true, true, true, true, true, false, true, true, false, true, true, true, true, true, false, true, true, true, false, false]
 }
 ```
 
-### Data Fields
-
-- `id`: a `string` feature describing the index of the sentence in the dataset
-- `tokens`: a `list` of `string` features.
-- `ner_tags`: a `list` of classification labels, with possible values including `O`, `B-DATETIME`, `B-EVENT`, `B-FACILITY`, `B-GPE`, `B-LANGUAGE`, `B-LOC`, `B-MONEY`, `B-NAT_REL_POL`, `B-NUMERIC_VALUE`, `B-ORDINAL`, `B-ORGANIZATION`, `B-PERIOD`, `B-PERSON`, `B-PRODUCT`, `B-QUANTITY`, `B-WORK_OF_ART`, `I-DATETIME`, `I-EVENT`, `I-FACILITY`, `I-GPE`, `I-LANGUAGE`, `I-LOC`, `I-MONEY`, `I-NAT_REL_POL`, `I-NUMERIC_VALUE`, `I-ORDINAL`, `I-ORGANIZATION`, `I-PERIOD`, `I-PERSON`, `I-PRODUCT`, `I-QUANTITY`, `I-WORK_OF_ART`.
+The ``tokens`` are the words of the sentence. The ``ner_tags`` are the string tags assigned to each token, following the BIO2 format. For example, the span ``"între", "1-3", "martie"`` has three tokens, but is a single class ``PERIOD``, marked as ``"B-PERIOD", "I-PERIOD", "I-PERIOD"``. 
+The ``ner_ids`` are the integer encoding of each tag, to be compatible with the standard and to be quickly used for model training. Note that each ``B``-starting tag is odd, and each ``I``-starting tag is even.
+The ``space_after`` is used to help if there is a need to detokenize the dataset. A ``true`` value means that there is a space after the token on that respective position. 
 
 ### Data Splits
 
-The dataset was also split in train (80%), dev (10%) and test (10%) 
+The dataset is split in train: 9000 sentences, dev: 1330 sentence and test: 2000 sentences. 
 
 ## Dataset Creation
 
-### Curation Rationale
-
-From the original paper:
-
-*The corpus, at its current version 1.0 is composed of5127 sentences, annotated with16 classes, for a totalof26377 annotated entities. The 16 classes are: PER-SON, NATRELPOL, ORG, GPE, LOC, FACILITY,PRODUCT,  EVENT,  LANGUAGE,  WORKOFART,DATETIME,  PERIOD,  MONEY,  QUANTITY,  NU-MERICVALUE and ORDINAL. It is based on copyright-free text extracted from SoutheastEuropean Times (SETimes) (Tyers and Alperen, 2010).The news portal has published10“news and views fromSoutheast Europe” in ten languages, including Romanian.SETimes has been used in the past for several annotatedcorpora, including parallel corpora for machine translation.For RONEC we have used a hand-picked11selection of sen-tences belonging to several categories* 
-
 ### Source Data
 
-#### Initial Data Collection and Normalization
-
-*The corpus creation process involved a small number ofpeople that have voluntarily joined the initiative, with theauthors of this paper directing the work.  Initially, wesearched for NER resources in Romanian, and found none.Then we looked at English resources and read the in-depthACE guide, out of which a 16-class draft evolved. We thenidentified a copy-right free text from which we hand-pickedsentences to maximize the amount of entities while main-taining style balance. The annotation process was a trial-and-error, with cycles composed of annotation, discussingconfusing entities, updating the annotation guide schematicand going through the corpus section again to correct enti-ties following guide changes.*
-
-#### Who are the source language producers?
-
-[Needs More Information]
+*The corpus data source represents sentences that are free of copyright, taken from older datasets like the freely available SEETimes and more recent datasources like the Romanian Wikipedia or the Common Crawl.*
 
 ### Annotations
 
+The corpus was annotated with the following classes: 
+
+1. PERSON - proper nouns, including common nouns or pronouns if they refer to a person. (e.g. 'sister') 
+2. GPE - geo political entity, like a city or a country; has to have a governance form
+3. LOC - location, like a sea, continent, region, road, address, etc.
+4. ORG - organization
+5. LANGUAGE - language (e.g. Romanian, French, etc.)
+6. NAT_REL_POL - national, religious or political organizations
+7. DATETIME - a time and date in any format, including references to time (e.g. 'yesterday')
+8. PERIOD - a period that is precisely bounded by two date times
+9. QUANTITY - a quantity that is not numerical; it has a unit of measure 
+10. MONEY - a monetary value, numeric or otherwise
+11. NUMERIC - a simple numeric value, represented as digits or words
+12. ORDINAL - an ordinal value like 'first', 'third', etc.
+13. FACILITY - a named place that is easily recognizable 
+14. WORK_OF_ART - a work of art like a named TV show, painting, etc.
+15. EVENT - a named recognizable or periodic major event 
+
 #### Annotation process
 
-*The corpus creation process involved a small number ofpeople that have voluntarily joined the initiative, with theauthors of this paper directing the work.  Initially, wesearched for NER resources in Romanian, and found none.Then we looked at English resources and read the in-depthACE guide, out of which a 16-class draft evolved. We thenidentified a copy-right free text from which we hand-pickedsentences to maximize the amount of entities while main-taining style balance. The annotation process was a trial-and-error, with cycles composed of annotation, discussingconfusing entities, updating the annotation guide schematicand going through the corpus section again to correct enti-ties following guide changes.*
+The corpus was annotated by 3 language experts, and was cross-checked for annotation consistency. The annotation took several months to complete, but the result is a high quality dataset.  
 
 #### Who are the annotators?
 
-Stefan Dumitrescu, Marius Avram
+Stefan Dumitrescu (lead). 
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
-
-## Considerations for Using the Data
-
-### Social Impact of Dataset
-
-[Needs More Information]
-
-### Discussion of Biases
-
-[Needs More Information]
-
-### Other Known Limitations
-
-[Needs More Information]
+All the source data is already freely downloadable and usable online, so there are no privacy concerns. 
 
 ## Additional Information
-
-### Dataset Curators
-
-[Needs More Information]
 
 ### Licensing Information
 
@@ -157,4 +167,4 @@ MIT License
 
 ### Contributions
 
-Thanks to [@iliemihai](https://github.com/iliemihai) for adding this dataset.
+Thanks to [@iliemihai](https://github.com/iliemihai) for adding v1.0 of the dataset.
