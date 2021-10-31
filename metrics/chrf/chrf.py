@@ -59,7 +59,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-ChrF and ChrF++ are two MT evaluation metrics. They both use the F-score statistic for character n-gram matches, 
+ChrF and ChrF++ are two MT evaluation metrics. They both use the F-score statistic for character n-gram matches,
 and ChrF++ adds word n-grams as well which correlates more strongly with direct assessment. We use the implementation
 that is already present in sacrebleu.
 
