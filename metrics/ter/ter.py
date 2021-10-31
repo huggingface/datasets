@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ TER metric as available in sacrebleu. """
-import sacrebleu as scb
 from packaging import version
-from sacrebleu import TER
 
 import datasets
+import sacrebleu as scb
+from sacrebleu import TER
 
 
 _CITATION = """\
@@ -51,8 +51,10 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Besides calculating BLEU scores, SacreBLEU is also capable in calculating TER scores, among other things.
-Specifically, it is inspired by the TERCOM implementation which can be found here: https://github.com/jhclark/tercom
+TER (Translation Edit Rate, also called Translation Error Rate) is a metric to quantify the edit operations that a
+hypothesis requires to match a reference translation. We use the implementation that is already present in sacrebleu
+(https://github.com/mjpost/sacreBLEU#ter), which in turn is inspired by the TERCOM implementation, which can be found
+here: https://github.com/jhclark/tercom.
 
 The implementation here is slightly different from sacrebleu in terms of the required input format. The length of
 the references and hypotheses lists need to be the same, so you may need to transpose your references compared to
@@ -97,7 +99,7 @@ class Ter(datasets.Metric):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
-            homepage="https://github.com/mjpost/sacreBLEU#ter",
+            homepage="http://www.cs.umd.edu/~snover/tercom/",
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
@@ -107,8 +109,6 @@ class Ter(datasets.Metric):
             ),
             codebase_urls=["https://github.com/mjpost/sacreBLEU#ter"],
             reference_urls=[
-                "https://github.com/mjpost/sacreBLEU#ter",
-                "http://www.cs.umd.edu/~snover/tercom/",
                 "https://github.com/jhclark/tercom",
             ],
         )
