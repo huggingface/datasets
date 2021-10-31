@@ -1180,7 +1180,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Stringify the column
         if src_feat.dtype != "string":
             dset = self.map(
-                lambda batch: {column: [str(sample) if sample is not None else None for sample in batch]}, input_columns=column, batched=True
+                lambda batch: {column: [str(sample) if sample is not None else None for sample in batch]},
+                input_columns=column,
+                batched=True,
             )
         else:
             dset = self
@@ -1188,9 +1190,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Create the new feature
         class_names = sorted(sample for sample in dset.unique(column) if sample is not None)
         dst_feat = ClassLabel(names=class_names)
-        
-        column_idx = dset.column_names.index(column)
-        # self.remove_columns([column_])
+        dset = dset.map(
+            lambda batch: {column: [dst_feat.str2int(sample) for sample in batch if sample is not None]},
+            input_columns=column,
+            batched=True,
+        )
+
         dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = dset.features.copy()
@@ -2717,6 +2722,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         column: str,
         reverse: bool = False,
         kind: str = None,
+        none_position: str = "last",
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         indices_cache_file_name: Optional[str] = None,
@@ -2725,16 +2731,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> "Dataset":
         """Create a new dataset sorted according to a column.
 
-        Currently sorting according to a column name uses numpy sorting algorithm under the hood.
-        The column should thus be a numpy compatible type (in particular not a nested type).
+        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
+        The column should thus be a pandas compatible type (in particular not a nested type).
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
             column (:obj:`str`): column name to sort by.
             reverse (:obj:`bool`, default `False`): If True, sort by descending order rather then ascending.
-            kind (:obj:`str`, optional): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
+            kind (:obj:`str`, optional): Pandas algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                 The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
+            none_position (:obj:`str`, default `last`):
+                .. versionadded:: 1.14.2
+                    Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
             keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
@@ -2774,14 +2783,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
         column_data = self._getitem(
-            column, format_type="numpy", format_columns=None, output_all_columns=False, format_kwargs=None
+            column, format_type="pandas", format_columns=None, output_all_columns=False, format_kwargs=None
         )
 
-        # TODO(mariosasko): Deal with Nones
-
-        indices = np.argsort(column_data, kind=kind)
-        if reverse:
-            indices = indices[::-1]
+        df_sorted = pd.sort_values(column_data, ascending=not reverse, kind=kind, na_position=none_position)
+        indices = df_sorted.index.to_numpy()
 
         return self.select(
             indices=indices,
