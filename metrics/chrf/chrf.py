@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Chrf(++) metric as available in sacrebleu. """
+import sacrebleu as scb
 from packaging import version
+from sacrebleu import CHRF
 
 import datasets
-import sacrebleu as scb
-from sacrebleu import CHRF
 
 
 _CITATION = """\
