@@ -53,7 +53,9 @@ class IndexableDatasetTest(TestCase):
         )
 
         # Setting delete=False and unlinking manually is not pretty... but it is required on Windows to
-        # ensure somewhat stable behaviour
+        # ensure somewhat stable behaviour. If we don't, we get PermissionErrors. This is an age-old issue.
+        # see https://bugs.python.org/issue14243 and
+        # https://stackoverflow.com/questions/23212435/permission-denied-to-write-to-my-temporary-file/23212515
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             dset.save_faiss_index("vecs", tmp_file.name)
             dset.load_faiss_index("vecs2", tmp_file.name)
@@ -141,7 +143,9 @@ class FaissIndexTest(TestCase):
         index.add_vectors(np.eye(5, dtype=np.float32))
 
         # Setting delete=False and unlinking manually is not pretty... but it is required on Windows to
-        # ensure somewhat stable behaviour
+        # ensure somewhat stable behaviour. If we don't, we get PermissionErrors. This is an age-old issue.
+        # see https://bugs.python.org/issue14243 and
+        # https://stackoverflow.com/questions/23212435/permission-denied-to-write-to-my-temporary-file/23212515
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             index.save(tmp_file.name)
             index = FaissIndex.load(tmp_file.name)
