@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ TER metric as available in sacrebleu. """
+import sacrebleu as scb
 from packaging import version
+from sacrebleu import TER
 
 import datasets
-import sacrebleu as scb
-from sacrebleu import TER
 
 
 _CITATION = """\
@@ -35,7 +35,6 @@ _CITATION = """\
     publisher = "Association for Machine Translation in the Americas",
     url = "https://aclanthology.org/2006.amta-papers.25",
     pages = "223--231",
-    abstract = "We examine a new, intuitive measure for evaluating machine-translation output that avoids the knowledge intensiveness of more meaning-based approaches, and the labor-intensiveness of human judgments. Translation Edit Rate (TER) measures the amount of editing that a human would have to perform to change a system output so it exactly matches a reference translation. We show that the single-reference variant of TER correlates as well with human judgments of MT quality as the four-reference variant of BLEU. We also define a human-targeted TER (or HTER) and show that it yields higher correlations with human judgments than BLEU{---}even when BLEU is given human-targeted references. Our results indicate that HTER correlates with human judgments better than HMETEOR and that the four-reference variants of TER and HTER correlate with human judgments as well as{---}or better than{---}a second human judgment does.",
 }
 @inproceedings{post-2018-call,
     title = "A Call for Clarity in Reporting {BLEU} Scores",
