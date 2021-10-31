@@ -127,7 +127,7 @@ TESTS_REQUIRE = [
     "aiobotocore",
     "boto3",
     "botocore",
-    "faiss-cpu",
+    "faiss-cpu>=1.6.4",
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
