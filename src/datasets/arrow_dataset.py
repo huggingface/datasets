@@ -2786,7 +2786,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             column, format_type="pandas", format_columns=None, output_all_columns=False, format_kwargs=None
         )
 
-        df_sorted = pd.sort_values(column_data, ascending=not reverse, kind=kind, na_position=none_position)
+        df_sorted = column_data.to_frame().sort_values(
+            column, ascending=not reverse, kind=kind, na_position=none_position
+        )
         indices = df_sorted.index.to_numpy()
 
         return self.select(
