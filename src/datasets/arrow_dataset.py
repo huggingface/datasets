@@ -3417,8 +3417,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ):
                     delete_file(file)
 
-        for index, shard in tqdm(
-            enumerate(shards), desc="Pushing dataset shards to the dataset hub", total=num_shards
+        for index, shard in utils.tqdm(
+            enumerate(shards), desc="Pushing dataset shards to the dataset hub", total=num_shards, disable=bool(logging.get_verbosity() == logging.NOTSET)
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)
