@@ -3314,8 +3314,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def push_to_hub(
         self,
         repo_id: str,
-        split_name: str,
-        private: Optional[bool] = None,
+        split: Optional[str] = None,
+        private: Optional[bool] = False,
         token: Optional[str] = None,
         branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
@@ -3330,9 +3330,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
                 `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
                 of the logged-in user.
-            split_name (:obj:`str`):
-                The name of the split that will be given to that dataset.
-            private (Optional :obj:`bool`):
+            split (Optional, :obj:`str`):
+                The name of the split that will be given to that dataset. Defaults to `self.split`.
+            private (Optional :obj:`bool`, defaults to :obj:`False`):
                 Whether the dataset repository should be set to private or not. Only affects repository creation:
                 a repository that already exists will not be affected by that parameter.
             token (Optional :obj:`str`):
@@ -3340,18 +3340,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 to the token saved locally when logging in with ``huggingface-cli login``. Will raise an error
                 if no token is passed and the user is not logged-in.
             branch (Optional :obj:`str`):
-                The git branch on which to push the dataset.
+                The git branch on which to push the dataset. This defaults to the default branch as specified
+                in your repository, which defaults to `"main"`.
             shard_size (Optional :obj:`int`):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
-                of the size specified here, in bytes.
+                of the size specified here, in bytes. Defaults to a shard size of 500MB.
 
         Example:
             .. code-block:: python
 
-                >>> dataset.push_to_hub("<organization>/<dataset_id>", split_name="evaluation")
+                >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         """
 
+        if split is None:
+            split = self.split
+
         identifier = repo_id.split("/")
+
+        if len(identifier) > 2:
+            raise ValueError(
+                f"The identifier should be in the format <repo_id> or <namespace>/<repo_id>. It is {identifier}, "
+                "which doesn't conform to either format."
+            )
         if len(identifier) == 2:
             organization, dataset_name = identifier
         else:
@@ -3418,7 +3428,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     delete_file(file)
 
         for index, shard in utils.tqdm(
-            enumerate(shards), desc="Pushing dataset shards to the dataset hub", total=num_shards, disable=bool(logging.get_verbosity() == logging.NOTSET)
+            enumerate(shards),
+            desc="Pushing dataset shards to the dataset hub",
+            total=num_shards,
+            disable=bool(logging.get_verbosity() == logging.NOTSET),
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)

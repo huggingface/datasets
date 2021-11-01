@@ -922,9 +922,7 @@ class DatasetDict(dict):
         """
         for key in self.keys():
             logger.warning(f"Pushing split {key} to the Hub.")
-            self[key].push_to_hub(
-                repo_id, split_name=key, private=private, token=token, branch=branch, shard_size=shard_size
-            )
+            self[key].push_to_hub(repo_id, private=private, token=token, branch=branch, shard_size=shard_size)
 
 
 class IterableDatasetDict(dict):
