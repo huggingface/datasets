@@ -135,8 +135,8 @@ class TestPushToHub(TestCase):
                 files,
                 [
                     ".gitattributes",
-                    "data/train-00000-of-00001.parquet",
-                    "data/train-00001-of-00001.parquet",
+                    "data/train-00000-of-00002.parquet",
+                    "data/train-00001-of-00002.parquet",
                     "datafile.txt",
                 ],
             )
