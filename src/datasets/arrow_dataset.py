@@ -3409,10 +3409,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     total=len(file_shards_to_delete),
                 )
             else:
-                for file in tqdm(
+                for file in utils.tqdm(
                     file_shards_to_delete,
                     desc="Deleting unused files from dataset repository",
                     total=len(file_shards_to_delete),
+                    disable=bool(logging.get_verbosity() == logging.NOTSET),
                 ):
                     delete_file(file)
 
