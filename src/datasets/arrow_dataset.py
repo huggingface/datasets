@@ -3387,7 +3387,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         files = [file for file in files if file.startswith("data/")]
 
         def path_in_repo(_index):
-            return f"data/{split_name}-{str(_index).zfill(5)}-of-{str(num_shards - 1).zfill(5)}.parquet"
+            return f"data/{split_name}_{_index:05d}_of_{num_shards:05d}.parquet"
 
         # Only delete file shards that don't currently exist. Others will be overwritten if the content is different
         # or will be left intact is the content is identical.
