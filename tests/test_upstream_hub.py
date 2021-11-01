@@ -59,6 +59,28 @@ class TestPushToHub(TestCase):
         """
         cls._token = cls._api.login(username=USER, password=PASS)
 
+    def test_push_dataset_dict_to_hub_private(self):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        local_ds = DatasetDict({"train": ds})
+
+        ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+        try:
+            local_ds.push_to_hub(ds_name, token=self._token, private=True)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload", use_auth_token=self._token)
+
+            self.assertDictEqual(local_ds.column_names, hub_ds.column_names)
+            self.assertListEqual(list(local_ds["train"].features.keys()), list(hub_ds["train"].features.keys()))
+            self.assertDictEqual(local_ds["train"].features, hub_ds["train"].features)
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token)
+            self.assertListEqual(files, [".gitattributes", "data/train_00000_of_00001.parquet"])
+        finally:
+            self._api.delete_repo(
+                ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"
+            )
+
     def test_push_dataset_dict_to_hub(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
@@ -75,7 +97,7 @@ class TestPushToHub(TestCase):
 
             # Ensure that there is a single file on the repository that has the correct name
             files = self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token)
-            self.assertListEqual(files, [".gitattributes", "data/train-00000-of-00000.parquet"])
+            self.assertListEqual(files, [".gitattributes", "data/train_00000_of_00001.parquet"])
         finally:
             self._api.delete_repo(
                 ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"
@@ -98,7 +120,7 @@ class TestPushToHub(TestCase):
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
             self.assertListEqual(
-                files, [".gitattributes", "data/train-00000-of-00001.parquet", "data/train-00001-of-00001.parquet"]
+                files, [".gitattributes", "data/train_00000_of_00002.parquet", "data/train_00001_of_00002.parquet"]
             )
         finally:
             self._api.delete_repo(
@@ -135,8 +157,8 @@ class TestPushToHub(TestCase):
                 files,
                 [
                     ".gitattributes",
-                    "data/train-00000-of-00002.parquet",
-                    "data/train-00001-of-00002.parquet",
+                    "data/train_00000_of_00002.parquet",
+                    "data/train_00001_of_00002.parquet",
                     "datafile.txt",
                 ],
             )
@@ -173,7 +195,7 @@ class TestPushToHub(TestCase):
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            self.assertListEqual(files, [".gitattributes", "data/train-00000-of-00000.parquet", "datafile.txt"])
+            self.assertListEqual(files, [".gitattributes", "data/train_00000_of_00001.parquet", "datafile.txt"])
 
             # Keeping the "datafile.txt" breaks the load_dataset to think it's a text-based dataset
             self._api.delete_file("datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token)
@@ -194,7 +216,7 @@ class TestPushToHub(TestCase):
 
         ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
         try:
-            local_ds.push_to_hub(ds_name, split_name="train", token=self._token)
+            local_ds.push_to_hub(ds_name, split="train", token=self._token)
             local_ds_dict = {"train": local_ds}
             hub_ds_dict = load_dataset(ds_name, download_mode="force_redownload")
 
