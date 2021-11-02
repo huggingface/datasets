@@ -1,4 +1,3 @@
-"""TODO(commonsense_qa): Add a description here."""
 
 
 import json
@@ -6,7 +5,6 @@ import json
 import datasets
 
 
-# TODO(commonsense_qa): BibTeX citation
 _CITATION = """\
 @InProceedings{lin-etal-2021-riddlesense,
 title={RiddleSense: Reasoning about Riddle Questions Featuring Linguistic Creativity and Commonsense Knowledge},
@@ -16,7 +14,6 @@ year={2021}
 
 """
 
-# TODO(commonsense_qa):
 _DESCRIPTION = """\
 Answering such a riddle-style question is a challenging cognitive process, in that it requires
 complex commonsense reasoning abilities, an understanding of figurative language, and counterfactual reasoning
@@ -39,9 +36,7 @@ _URLS = {
 
 
 class RiddleSense(datasets.GeneratorBasedBuilder):
-    """TODO(commonsense_qa): Short description of my dataset."""
 
-    # TODO(commonsense_qa): Set up version.
     VERSION = datasets.Version("0.1.0")
 
     def _info(self):
@@ -101,7 +96,6 @@ class RiddleSense(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """Yields examples."""
-        # TODO(commonsense_qa): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)

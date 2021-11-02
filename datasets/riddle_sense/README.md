@@ -1,4 +1,21 @@
-[Needs More Information]
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages:
+- '''en-US'''
+licenses: []
+multilinguality:
+- monolingual
+pretty_name: RiddleSense
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- multiple-choice-qa
 
 # Dataset Card for RiddleSense
 
