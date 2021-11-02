@@ -1,6 +1,8 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: https://github.com/huggingface/datasets-tagging
+- copy-paste the tags obtained with the tagging app:
+  - online: https://huggingface.co/spaces/huggingface/datasets-tagging
+  - locally: https://github.com/huggingface/datasets-tagging
 ---
 
 # Dataset Card for [Dataset Name]
