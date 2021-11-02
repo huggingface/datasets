@@ -30,8 +30,10 @@ paperswithcode_id: ronec
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
   - [Data Splits](#data-splits)
 - [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
@@ -40,6 +42,7 @@ paperswithcode_id: ronec
   - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
   - [Contributions](#contributions)
@@ -104,9 +107,14 @@ The dataset is a list of instances. For example, an instance looks like:
 }
 ```
 
-The ``tokens`` are the words of the sentence. The ``ner_tags`` are the string tags assigned to each token, following the BIO2 format. For example, the span ``"între", "1-3", "martie"`` has three tokens, but is a single class ``PERIOD``, marked as ``"B-PERIOD", "I-PERIOD", "I-PERIOD"``. 
-The ``ner_ids`` are the integer encoding of each tag, to be compatible with the standard and to be quickly used for model training. Note that each ``B``-starting tag is odd, and each ``I``-starting tag is even.
-The ``space_after`` is used to help if there is a need to detokenize the dataset. A ``true`` value means that there is a space after the token on that respective position. 
+### Data Fields
+
+The fields of each examples are:
+
+- ``tokens`` are the words of the sentence.
+- ``ner_tags`` are the string tags assigned to each token, following the BIO2 format. For example, the span ``"între", "1-3", "martie"`` has three tokens, but is a single class ``PERIOD``, marked as ``"B-PERIOD", "I-PERIOD", "I-PERIOD"``. 
+- ``ner_ids`` are the integer encoding of each tag, to be compatible with the standard and to be quickly used for model training. Note that each ``B``-starting tag is odd, and each ``I``-starting tag is even.
+- ``space_after`` is used to help if there is a need to detokenize the dataset. A ``true`` value means that there is a space after the token on that respective position. 
 
 ### Data Splits
 
@@ -114,9 +122,21 @@ The dataset is split in train: 9000 sentences, dev: 1330 sentence and test: 2000
 
 ## Dataset Creation
 
+### Curation Rationale
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
 ### Source Data
 
 *The corpus data source represents sentences that are free of copyright, taken from older datasets like the freely available SEETimes and more recent datasources like the Romanian Wikipedia or the Common Crawl.*
+
+#### Initial Data Collection and Normalization
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+#### Who are the source language producers?
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Annotations
 
@@ -150,7 +170,25 @@ Stefan Dumitrescu (lead).
 
 All the source data is already freely downloadable and usable online, so there are no privacy concerns. 
 
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+### Discussion of Biases
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
+### Other Known Limitations
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+
 ## Additional Information
+
+### Dataset Curators
+
+[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 
 ### Licensing Information
 
