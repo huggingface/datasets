@@ -41,7 +41,7 @@ from .arrow_reader import (
     ReadInstruction,
 )
 from .arrow_writer import ArrowWriter, BeamWriter
-from .data_files import DataFilesDict, _sanitize_patterns
+from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
@@ -245,7 +245,7 @@ class DatasetBuilder:
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_local_or_remote(
-                _sanitize_patterns(data_files), base_path=base_path, use_auth_token=use_auth_token
+                sanitize_patterns(data_files), base_path=base_path, use_auth_token=use_auth_token
             )
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
