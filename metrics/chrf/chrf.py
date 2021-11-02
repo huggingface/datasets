@@ -97,6 +97,8 @@ Examples:
     >>> reference = [["The ties between Obama and Netanyahu are not particularly friendly."]]
     >>> chrf = datasets.load_metric("chrf")
     >>> results = chrf.compute(predictions=prediction, references=reference)
+    >>> print(results)
+    {'score': 61.576379378113785, 'char_order': 6, 'word_order': 0, 'beta': 2}
 """
 
 
