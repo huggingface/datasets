@@ -75,11 +75,11 @@ Data Fields
 The data fields are the same among all splits.
 
 default
-answerKey: a string feature.
-question: a string feature.
-choices: a dictionary feature containing:
-label: a string feature.
-text: a string feature.
+- `answerKey`: a string feature.
+- `question`: a string feature.
+- `choices`: a dictionary feature containing:
+  - `label`: a string feature.
+  - `text`: a string feature.
 
 ### Data Splits
 
