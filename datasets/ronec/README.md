@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: ronec
+pretty_name: RONEC
 ---
 
 # Dataset Card for RONEC
@@ -124,7 +125,7 @@ The dataset is split in train: 9000 sentences, dev: 1330 sentence and test: 2000
 
 ### Curation Rationale
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[Needs More Information]
 
 ### Source Data
 
@@ -132,11 +133,11 @@ The dataset is split in train: 9000 sentences, dev: 1330 sentence and test: 2000
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[Needs More Information]
 
 #### Who are the source language producers?
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[Needs More Information]
 
 ### Annotations
 
@@ -174,21 +175,21 @@ All the source data is already freely downloadable and usable online, so there a
 
 ### Social Impact of Dataset
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[Needs More Information]
 
 ### Discussion of Biases
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[Needs More Information]
 
 ### Other Known Limitations
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[Needs More Information]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[Needs More Information]
 
 ### Licensing Information
 
@@ -196,12 +197,14 @@ MIT License
 
 ### Citation Information
 
+```bibtex
 @article{dumitrescu2019introducing,
   title={Introducing RONEC--the Romanian Named Entity Corpus},
   author={Dumitrescu, Stefan Daniel and Avram, Andrei-Marius},
   journal={arXiv preprint arXiv:1909.01247},
   year={2019}
 }
+```
 
 ### Contributions
 
