@@ -127,7 +127,7 @@ TESTS_REQUIRE = [
     "aiobotocore",
     "boto3",
     "botocore",
-    "faiss-cpu",
+    "faiss-cpu>=1.6.4",
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
@@ -167,9 +167,7 @@ TESTS_REQUIRE = [
     "importlib_resources;python_version<'3.7'",
 ]
 
-if os.name == "nt":  # windows
-    TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
-else:
+if os.name != "nt":
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
     TESTS_REQUIRE.extend(
