@@ -51,15 +51,20 @@ class MultilingualLibrispeechConfig(datasets.BuilderConfig):
           name: `string`, name of dataset config
           **kwargs: keyword arguments forwarded to super.
         """
-        self.data_dir = _DL_URL_FORMAT.format(name)
-        super(MultilingualLibrispeechConfig, self).__init__(version=datasets.Version("2.1.0", ""), name=name, **kwargs)
+        super(MultilingualLibrispeechConfig, self).__init__(version=datasets.Version("2.1.0", ""), name=name, data_dir=_DL_URL_FORMAT.format(name), **kwargs)
 
 
 class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
     """Multilingual Librispeech dataset."""
 
     BUILDER_CONFIGS = [
-        MultilingualLibrispeechConfig(name="polish", description="Polish LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="german", description="German LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="dutch", description="Dutch LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="french", description="French LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="spanish", description="Spanish LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="italian", description="Italian LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="portuguese", description="Portuguese LibriSpeech dataset"),
+        MultilingualLibrispeechConfig(name="polish", description="Polish dataset"),
     ]
 
     def _info(self):
@@ -83,37 +88,53 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         archive_path = dl_manager.download_and_extract(self.config.data_dir)
+        return []
+        data_path = os.path.join(archive_path, "mls_" + self.config.name)
 
         train_splits = [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"archive_path": archive_path["train"]}),
-            datasets.SplitGenerator(name="train.9h", gen_kwargs={"archive_path": archive_path["limited_supervision"]}),
-            datasets.SplitGenerator(name="train.1h", gen_kwargs={"archive_path": archive_path["train.360"]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": os.path.join(data_path, "train")}),
+            datasets.SplitGenerator(name="train.9h", gen_kwargs={"data_dir": os.path.join(data_path, "train"), "sub_folder": "limited_supervision/9hr"}),
+            datasets.SplitGenerator(name="train.1h", gen_kwargs={"data_dir": os.path.join(data_path, "train"), "sub_folder": "limited_supervision/1hr"}),
         ]
 
         return train_splits + [
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"archive_path": archive_path["dev"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_path["test"]}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"data_dir": os.path.join(data_path, "dev")}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"data_dir": os.path.join(data_path, "test")}),
         ]
 
-    def _generate_examples(self, archive_path, **kwargs):
-        """Generate examples from a LibriSpeech archive_path."""
-        import ipdb; ipdb.set_trace()
-        transcripts_glob = os.path.join(archive_path, "LibriSpeech", "*/*/*/*.txt")
+    def _generate_examples(self, data_dir, sub_folder=""):
+        """Generate examples from a Multilingual LibriSpeech data dir."""
+        transcript_path = os.path.join(data_dir, "transcripts.txt")
         key = 0
-        for transcript_path in sorted(glob.glob(transcripts_glob)):
-            transcript_dir_path = os.path.dirname(transcript_path)
-            with open(transcript_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    id_, transcript = line.split(" ", 1)
-                    audio_file = f"{id_}.flac"
-                    speaker_id, chapter_id = [int(el) for el in id_.split("-")[:2]]
-                    yield key, {
-                        "id": id_,
-                        "speaker_id": speaker_id,
-                        "chapter_id": chapter_id,
-                        "file": os.path.join(transcript_dir_path, audio_file),
-                        "audio": os.path.join(transcript_dir_path, audio_file),
-                        "text": transcript,
-                    }
-                    key += 1
+
+        all_ids = None
+        if sub_folder != "":
+            sub_path = os.path.join(data_dir, sub_folder)
+            all_ids_paths = glob.glob(sub_path + "/*/*.txt") + glob.glob(sub_path + "/*.txt")
+            all_ids = []
+            for path in all_ids_paths:
+                with open(path, "r", encoding="utf-8") as f:
+                    all_ids += [l.strip() for l in f.readlines()]
+
+            all_ids = set(all_ids)
+
+        with open(transcript_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                id_, transcript = line.split("\t")
+
+                if all_ids is not None and id_ not in all_ids:
+                    # this only holds true for train.9h and train.1h
+                    continue
+
+                audio_file = f"{id_}.flac"
+                speaker_id, chapter_id = [int(el) for el in id_.split("_")[:2]]
+                yield key, {
+                    "id": id_,
+                    "speaker_id": speaker_id,
+                    "chapter_id": chapter_id,
+                    "file": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
+                    "audio": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
+                    "text": transcript,
+                }
+                key += 1
