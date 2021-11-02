@@ -1166,7 +1166,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             lambda batch: {column: dst_feat.str2int(batch)},
             input_columns=column,
             batched=True,
-            desc="Casting to the labels",
+            desc="Casting to class labels",
         )
         dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
