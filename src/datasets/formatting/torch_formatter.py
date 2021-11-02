@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 class TorchFormatter(Formatter[dict, "torch.Tensor", dict]):
-    def __init__(self, **torch_tensor_kwargs):
+    def __init__(self, features=None, decoded=True, **torch_tensor_kwargs):
         self.torch_tensor_kwargs = torch_tensor_kwargs
         import torch  # noqa import torch at initialization
 

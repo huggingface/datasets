@@ -183,6 +183,19 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
 
+    def cast_column(self, column: str, feature) -> "DatasetDict":
+        """Cast column to feature for decoding.
+
+        Args:
+            column (:obj:`str`): Column name.
+            feature (:class:`Feature`): Target feature.
+
+        Returns:
+            :class:`DatasetDict`
+        """
+        self._check_values_type()
+        return DatasetDict({k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()})
+
     @deprecated(help_message="Use DatasetDict.remove_columns instead.")
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """In-place version of :meth:`DatasetDict.remove_columns`.
@@ -417,7 +430,7 @@ class DatasetDict(dict):
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
-        remove_columns: Optional[List[str]] = None,
+        remove_columns: Optional[Union[str, List[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         cache_file_names: Optional[Dict[str, Optional[str]]] = None,
@@ -444,7 +457,7 @@ class DatasetDict(dict):
             batched (`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+            remove_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.

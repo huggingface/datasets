@@ -318,6 +318,13 @@ def test_in_memory_table_cast(in_memory_pa_table):
     assert isinstance(table, InMemoryTable)
 
 
+def test_in_memory_table_replace_schema_metadata(in_memory_pa_table):
+    metadata = {"huggingface": "{}"}
+    table = InMemoryTable(in_memory_pa_table).replace_schema_metadata(metadata)
+    assert table.table.schema.metadata == in_memory_pa_table.replace_schema_metadata(metadata).schema.metadata
+    assert isinstance(table, InMemoryTable)
+
+
 def test_in_memory_table_add_column(in_memory_pa_table):
     i = len(in_memory_pa_table.column_names)
     field_ = "new_field"
@@ -486,6 +493,16 @@ def test_memory_mapped_table_cast(arrow_file, in_memory_pa_table):
     # cast DOES increase memory when converting integers precision for example
     # assert_pickle_without_bringing_data_in_memory(table)
     assert_pickle_does_bring_data_in_memory(table)
+
+
+def test_memory_mapped_table_replace_schema_metadata(arrow_file, in_memory_pa_table):
+    metadata = {"huggingface": "{}"}
+    table = MemoryMappedTable.from_file(arrow_file).replace_schema_metadata(metadata)
+    assert table.table.schema.metadata == in_memory_pa_table.replace_schema_metadata(metadata).schema.metadata
+    assert isinstance(table, MemoryMappedTable)
+    assert table.replays == [("replace_schema_metadata", (metadata,), {})]
+    assert_deepcopy_without_bringing_data_in_memory(table)
+    assert_pickle_without_bringing_data_in_memory(table)
 
 
 def test_memory_mapped_table_add_column(arrow_file, in_memory_pa_table):
@@ -746,7 +763,7 @@ def test_concatenation_table_cast(
             for k, v in zip(in_memory_pa_table.schema.names, in_memory_pa_table.schema.types)
         }
     )
-    if config.PYARROW_VERSION < "4":
+    if config.PYARROW_VERSION.major < 4:
         with pytest.raises(pa.ArrowNotImplementedError):
             ConcatenationTable.from_blocks(blocks).cast(schema)
     else:
@@ -761,6 +778,21 @@ def test_concatenation_table_cast(
     )
     table = ConcatenationTable.from_blocks(blocks).cast(schema)
     assert table.table == in_memory_pa_table.cast(schema)
+    assert isinstance(table, ConcatenationTable)
+
+
+@pytest.mark.parametrize("blocks_type", ["in_memory", "memory_mapped", "mixed"])
+def test_concatenation_table_replace_schema_metadata(
+    blocks_type, in_memory_pa_table, in_memory_blocks, memory_mapped_blocks, mixed_in_memory_and_memory_mapped_blocks
+):
+    blocks = {
+        "in_memory": in_memory_blocks,
+        "memory_mapped": memory_mapped_blocks,
+        "mixed": mixed_in_memory_and_memory_mapped_blocks,
+    }[blocks_type]
+    metadata = {"huggingface": "{}"}
+    table = ConcatenationTable.from_blocks(blocks).replace_schema_metadata(metadata)
+    assert table.table.schema.metadata == in_memory_pa_table.replace_schema_metadata(metadata).schema.metadata
     assert isinstance(table, ConcatenationTable)
 
 

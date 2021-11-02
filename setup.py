@@ -1,5 +1,5 @@
 # Lint as: python3
-""" HuggingFace/Datasets is an open library of NLP datasets.
+""" HuggingFace/Datasets is an open library of datasets.
 
 Note:
 
@@ -30,6 +30,8 @@ To create the package for pypi.
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
 
+   First, delete any "build" directory that may exist from previous builds.
+
    For the wheel, run: "python setup.py bdist_wheel" in the top level directory.
    (this will build a wheel for the python version you use to build it).
 
@@ -41,8 +43,7 @@ To create the package for pypi.
    twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
 
    Check that you can install it in a virtualenv/notebook by running:
-   pip install huggingface_hub
-   pip install fsspec
+   pip install huggingface_hub fsspec aiohttp
    pip install -U tqdm
    pip install -i https://testpypi.python.org/pypi datasets
 
@@ -69,9 +70,6 @@ import sys
 from setuptools import find_packages, setup
 
 
-DOCLINES = __doc__.split("\n")
-
-
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
@@ -86,7 +84,7 @@ REQUIRED_PKGS = [
     # for downloading datasets over HTTPS
     "requests>=2.19.0",
     # progress bars in download and scripts
-    "tqdm>=4.42",  # tqdm.contrib.concurrent
+    "tqdm>=4.62.1",
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
     # for fast hashing
@@ -97,11 +95,17 @@ REQUIRED_PKGS = [
     "importlib_metadata;python_version<'3.8'",
     # to save datasets locally or on any filesystem
     # minimum 2021.05.0 to have the AbstractArchiveFileSystem
-    "fsspec>=2021.05.0",
+    "fsspec[http]>=2021.05.0",
+    # for data streaming via http
+    "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub<0.1.0",
+    "huggingface_hub>=0.0.19,<0.1.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
+]
+
+AUDIO_REQUIRE = [
+    "librosa",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -115,21 +119,22 @@ TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
     "pytest",
+    "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
-    "aiohttp",
     "apache-beam>=2.26.0",
     "elasticsearch",
-    "aiobotocore==1.2.2",
-    "boto3==1.16.43",
-    "botocore==1.19.52",
-    "faiss-cpu",
+    "aiobotocore",
+    "boto3",
+    "botocore",
+    "faiss-cpu>=1.6.4",
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
-    "s3fs",
+    "s3fs==2021.08.1",
     "tensorflow>=2.3",
     "torch",
+    "torchaudio",
     "transformers",
     # datasets dependencies
     "bs4",
@@ -162,9 +167,7 @@ TESTS_REQUIRE = [
     "importlib_resources;python_version<'3.7'",
 ]
 
-if os.name == "nt":  # windows
-    TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
-else:
+if os.name != "nt":
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
     TESTS_REQUIRE.extend(
@@ -177,22 +180,22 @@ else:
         ]
     )
 
-
 QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
+    "audio": AUDIO_REQUIRE,
     "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": ["tensorflow>=2.2.0"],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
     "torch": ["torch"],
     "s3": [
         "fsspec",
-        "boto3==1.16.43",
-        "botocore==1.19.52",
+        "boto3",
+        "botocore",
         "s3fs",
     ],
-    "streaming": ["aiohttp"],
+    "streaming": [],  # for backward compatibility
     "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
@@ -205,16 +208,20 @@ EXTRAS_REQUIRE = {
         "sphinx-rtd-theme==0.4.3",
         "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
-        "fsspec",
+        "fsspec<2021.9.0",
         "s3fs",
+        "sphinx-panels",
+        "sphinx-inline-tabs",
+        "myst-parser",
     ],
 }
 
 setup(
     name="datasets",
-    version="1.11.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
-    description=DOCLINES[0],
-    long_description="\n".join(DOCLINES[2:]),
+    version="1.14.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    description="HuggingFace community-driven open-source library of datasets",
+    long_description=open("README.md", "r", encoding="utf-8").read(),
+    long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",
     url="https://github.com/huggingface/datasets",

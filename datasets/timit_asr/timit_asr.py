@@ -77,6 +77,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "phonetic_detail": datasets.Sequence(
                         {
@@ -121,7 +122,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
         data_path = os.path.join(os.path.dirname(data_info_csv).strip(), "data")
 
         # Read the data info to extract rows mentioning about non-converted audio only
-        data_info = pd.read_csv(data_info_csv, encoding="utf8")
+        data_info = pd.read_csv(open(data_info_csv, encoding="utf8"))
         # making sure that the columns having no information about the file paths are removed
         data_info.dropna(subset=["path_from_data_dir"], inplace=True)
 
@@ -163,6 +164,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
 
             example = {
                 "file": wav_path,
+                "audio": wav_path,
                 "text": transcript,
                 "phonetic_detail": phonemes,
                 "word_detail": words,

@@ -92,9 +92,18 @@ def temporary_assignment(obj, attr, value):
         setattr(obj, attr, original)
 
 
+def unique_values(values):
+    """Iterate over iterable and return only unique values in order."""
+    seen = set()
+    for value in values:
+        if value not in seen:
+            seen.add(value)
+            yield value
+
+
 def zip_dict(*dicts):
     """Iterate over items of dictionaries grouped by their keys."""
-    for key in set(itertools.chain(*dicts)):  # set merge all keys
+    for key in unique_values(itertools.chain(*dicts)):  # set merge all keys
         # Will raise KeyError if the dict don't have the same keys
         yield key, tuple(d[key] for d in dicts)
 
@@ -176,6 +185,7 @@ def map_nested(
     map_numpy: bool = False,
     num_proc: Optional[int] = None,
     types=None,
+    disable_tqdm: bool = True,
 ):
     """Apply a function recursively to each element of a nested data struct.
     If num_proc > 1 and the length of data_struct is longer than num_proc: use multi-processing
@@ -195,7 +205,9 @@ def map_nested(
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
         return function(data_struct)
 
-    disable_tqdm = bool(logger.getEffectiveLevel() > logging.INFO) or not utils.is_progress_bar_enabled()
+    disable_tqdm = (
+        disable_tqdm or bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
+    )
     iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
 
     if num_proc is None:
@@ -311,6 +323,11 @@ class Pickler(dill.Pickler):
         else:
             dill.Pickler.save_global(self, obj, name=name)
 
+    def memoize(self, obj):
+        # don't memoize strings since two identical strings can have different python ids
+        if type(obj) != str:
+            dill.Pickler.memoize(self, obj)
+
 
 def dump(obj, file):
     """pickle an object to a file"""
@@ -405,12 +422,18 @@ def _save_code(pickler, obj):
     # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
     # Moreover lambda functions have a special name: '<lambda>'
     # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
+    #
     # For the hashing mechanism we ignore where the function has been defined
     # More specifically:
     # - we ignore the filename of special functions (filename starts with '<')
     # - we always ignore the line number
+    # - we only use the base name of the file instead of the whole path,
+    # to be robust in case a script is moved for example.
+    #
     # Only those two lines are different from the original implementation:
-    co_filename = "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else obj.co_filename
+    co_filename = (
+        "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else os.path.basename(obj.co_filename)
+    )
     co_firstlineno = 1
     # The rest is the same as in the original dill implementation
     if dill._dill.PY3:

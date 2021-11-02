@@ -6,7 +6,7 @@ language_creators:
 languages:
 - ur
 licenses:
-- cc-by-4.0
+- cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
 size_categories:
@@ -20,9 +20,10 @@ task_ids:
 - semantic-similarity-scoring
 - topic-classification
 paperswithcode_id: counter
+pretty_name: COUNTER
 ---
 
-# Dataset Card for counter
+# Dataset Card for COUNTER
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -188,7 +189,8 @@ The annotations were performed by three annotators (A, B and C), who were native
 
 ### Licensing Information
 
-[More Information Needed]
+This dataset is licensed under the Creative Common Attribution-NonCommercial-ShareAlike 4.0 International License.
+[(CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
 ### Citation Information
 
