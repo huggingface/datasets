@@ -58,7 +58,7 @@ class HLGD(datasets.GeneratorBasedBuilder):
                 "date_b": datasets.Value("string"),
                 "url_a": datasets.Value("string"),
                 "url_b": datasets.Value("string"),
-                "label": datasets.features.ClassLabel(names=["different_event", "same_event"]),
+                "label": datasets.features.ClassLabel(names=["same_event", "different_event"]),
             }
         )
 
