@@ -11,7 +11,7 @@ title={RiddleSense: Reasoning about Riddle Questions Featuring Linguistic Creati
 author={Lin, Bill Yuchen and Wu, Ziyi and Yang, Yichi and Lee, Dong-Ho and Ren, Xiang},
 journal={Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics (ACL-IJCNLP 2021): Findings},
 year={2021}
-
+}
 """
 
 _DESCRIPTION = """\
