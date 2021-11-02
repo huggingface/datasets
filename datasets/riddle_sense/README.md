@@ -143,4 +143,15 @@ text: a string feature.
 
 ### Citation Information
 
-[Needs More Information]
+```
+@InProceedings{lin-etal-2021-riddlesense,
+title={RiddleSense: Reasoning about Riddle Questions Featuring Linguistic Creativity and Commonsense Knowledge},
+author={Lin, Bill Yuchen and Wu, Ziyi and Yang, Yichi and Lee, Dong-Ho and Ren, Xiang},
+journal={Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics (ACL-IJCNLP 2021): Findings},
+year={2021}
+}
+```
+
+### Contributions
+
+Thanks to [@ziyiwu9494](https://github.com/ziyiwu9494) for adding this dataset.
