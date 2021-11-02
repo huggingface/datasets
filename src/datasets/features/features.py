@@ -801,6 +801,9 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
 def encode_nested_example(schema, obj):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
+
+    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be encoded.
+    If the first element needs to be encoded, then all the elements of the list will be encoded, otherwise they'll stay the same.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
@@ -809,7 +812,16 @@ def encode_nested_example(schema, obj):
         }
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
-        return [encode_nested_example(sub_schema, o) for o in obj] if obj is not None else None
+        if obj is None:
+            return None
+        else:
+            if len(obj) > 0:
+                for first_elmt in obj:
+                    if first_elmt is not None:
+                        break
+                if encode_nested_example(sub_schema, first_elmt) != first_elmt:
+                    return [encode_nested_example(sub_schema, o) for o in obj]
+            return list(obj)
     elif isinstance(schema, Sequence):
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
         if isinstance(schema.feature, dict):
@@ -828,7 +840,16 @@ def encode_nested_example(schema, obj):
         # schema.feature is not a dict
         if isinstance(obj, str):  # don't interpret a string as a list
             raise ValueError("Got a string but expected a list instead: '{}'".format(obj))
-        return [encode_nested_example(schema.feature, o) for o in obj] if obj is not None else None
+        if obj is None:
+            return None
+        else:
+            if len(obj) > 0:
+                for first_elmt in obj:
+                    if first_elmt is not None:
+                        break
+                if encode_nested_example(schema.feature, first_elmt) != first_elmt:
+                    return [encode_nested_example(schema.feature, o) for o in obj]
+            return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
     elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
