@@ -953,7 +953,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_path = extract_path_from_uri(dataset_path)
         else:
             fs = fsspec.filesystem("file")
-            cache_files_paths = [Path(cache_filename["filename"]) for cache_filename in dataset.cache_files]
+            cache_files_paths = [Path(cache_filename["filename"]) for cache_filename in self.cache_files]
             # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
             if Path(dataset_path, config.DATASET_ARROW_FILENAME) in cache_files_paths:
                 raise PermissionError(
