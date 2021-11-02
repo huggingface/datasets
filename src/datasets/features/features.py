@@ -612,8 +612,6 @@ class ClassLabel:
      * `names`: a list of label strings
      * `names_file`: a file containing the list of labels.
 
-    Note: On python2, the strings are encoded as utf-8.
-
     Args:
         num_classes: `int`, number of classes. All labels must be < num_classes.
         names: `list<str>`, string names for the integer classes. The
