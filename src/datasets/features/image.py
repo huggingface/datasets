@@ -6,7 +6,7 @@ import numpy as np
 import pyarrow as pa
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Image:
     """Image Feature to extract image data from an image file.
 
