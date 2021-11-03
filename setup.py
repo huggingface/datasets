@@ -62,10 +62,7 @@ To create the package for pypi.
    Push the commit to remote: "git push origin master"
 """
 
-import datetime
-import itertools
 import os
-import sys
 
 from setuptools import find_packages, setup
 
