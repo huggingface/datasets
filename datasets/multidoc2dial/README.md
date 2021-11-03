@@ -61,11 +61,11 @@ Most previous works treat document-grounded dialogue modeling as a machine readi
 single given document or passage. We aim to address more realistic scenarios where a goal-oriented information-seeking
 conversation involves multiple topics, and hence is grounded on different documents. 
 
-[comment]: <> (### Supported Tasks and Leaderboards)
+### Supported Tasks and Leaderboards
 
-[comment]: <> (> Supported Task: [Shared Task]&#40;https://doc2dial.github.io/workshop2021/shared.html&#41; hosted by DialDoc21 at ACL.)
+> Supported Task: 
 
-[comment]: <> (> Leaderboard: [LINK]&#40;https://eval.ai/web/challenges/challenge-page/793&#41;)
+> Leaderboard:
 
 ### Languages
 
