@@ -113,10 +113,13 @@ class TypedSequence:
                 out = list_of_np_array_to_pyarrow_listarray(self.data)
             else:
                 out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
-            if trying_type and out[0].as_py() != self.data[0]:
-                raise TypeError(
-                    "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
-                )
+            if trying_type:
+                alter_data_check = out[0].as_py() != self.data[0]
+                alter_data_check = alter_data_check.any() if isinstance(self.data[0], np.ndarray) else alter_data_check
+                if alter_data_check:
+                    raise TypeError(
+                        "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
+                    )
             if self.optimized_int_type and self.type is None and self.try_type is None:
                 if pa.types.is_int64(out.type):
                     out = out.cast(self.optimized_int_type)
