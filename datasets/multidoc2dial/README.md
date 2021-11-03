@@ -1,23 +1,24 @@
 ---
 annotations_creators:
-- expert-generated
+- crowdsourced
 language_creators:
-- found
+- crowdsourced
+- expert-generated
 languages:
-- en
+- en-US
 licenses:
-- cc-by-3.0
+- apache-2.0
 multilinguality:
 - monolingual
+pretty_name: MultiDoc2Dial
 size_categories:
-- 1K<n<10K
+- unknown
 source_datasets:
-- original
+- extended|doc2dial
 task_categories:
 - question-answering
 task_ids:
 - open-domain-qa
-paperswithcode_id: multidoc2dial
 ---
 
 # Dataset Card for MultiDoc2Dial
