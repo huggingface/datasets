@@ -1,5 +1,6 @@
 import os
-from pathlib import Path
+from itertools import chain
+from pathlib import Path, PurePath
 from unittest.mock import patch
 
 import pytest
@@ -9,6 +10,7 @@ from datasets.data_files import (
     DataFilesDict,
     DataFilesList,
     Url,
+    _get_data_files_patterns,
     resolve_patterns_in_dataset_repository,
     resolve_patterns_locally_or_by_urls,
 )
@@ -229,3 +231,73 @@ def test_DataFilesDict_from_hf_local_or_remote_hashing(text_file):
         mock_getmtime.return_value = 123
         data_files2 = DataFilesDict.from_local_or_remote(patterns)
         assert Hasher.hash(data_files1) != Hasher.hash(data_files2)
+
+
+@pytest.mark.parametrize(
+    "data_file_per_split",
+    [
+        # === Main cases ===
+        # file named afetr split at the root
+        {"train": "train.txt", "test": "test.txt", "validation": "valid.txt"},
+        # file named after split in a directory
+        {
+            "train": "data/train.txt",
+            "test": "data/test.txt",
+            "validation": "data/valid.txt",
+        },
+        # directory named after split
+        {
+            "train": "train/split.txt",
+            "test": "test/split.txt",
+            "validation": "valid/split.txt",
+        },
+        # sharded splits
+        {
+            "train": [f"data/train_{i}.txt" for i in range(3)],
+            "test": [f"data/test_{i}.txt" for i in range(3)],
+        },
+        # sharded splits with standard format (+ custom split name)
+        {
+            "train": [f"data/train-0000{i}-of-00003.txt" for i in range(3)],
+            "random": [f"data/random-0000{i}-of-00003.txt" for i in range(3)],
+        },
+        # === Secondary cases ===
+        # Default to train split
+        {"train": "dataset.txt"},
+        {"train": "data/dataset.txt"},
+        # With prefix or suffix in directory or file names
+        {"train": "my_train_dir/dataset.txt"},
+        {"train": "data/my_train_file.txt"},
+        {"test": "my_test_dir/dataset.txt"},
+        {"test": "data/my_test_file.txt"},
+        {"validation": "my_validation_dir/dataset.txt"},
+        {"validation": "data/my_validation_file.txt"},
+        # With test<>eval aliases
+        {"test": "eval.txt"},
+        {"test": "data/eval.txt"},
+        {"test": "eval/dataset.txt"},
+        # With valid<>dev aliases
+        {"validation": "dev.txt"},
+        {"validation": "data/dev.txt"},
+        {"validation": "dev/dataset.txt"},
+        # With other extensions
+        {"train": "train.parquet", "test": "test.parquet", "validation": "valid.parquet"},
+    ],
+)
+def test_get_data_files_patterns(data_file_per_split):
+    data_file_per_split = {k: v if isinstance(v, list) else [v] for k, v in data_file_per_split.items()}
+
+    def resolver(pattern):
+        return [PurePath(path) for path in chain(*data_file_per_split.values()) if PurePath(path).match(pattern)]
+
+    patterns_per_split = _get_data_files_patterns(resolver)
+    assert sorted(patterns_per_split.keys()) == sorted(data_file_per_split.keys())
+    for split, patterns in patterns_per_split.items():
+        matched = [
+            path
+            for path in chain(*data_file_per_split.values())
+            for pattern in patterns
+            if PurePath(path).match(pattern)
+        ]
+        assert len(matched) == len(data_file_per_split[split])
+        assert matched == data_file_per_split[split]

@@ -32,12 +32,6 @@ DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
     str(Split.VALIDATION): ["*dev*", "*valid*"],
 }
 
-DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
-    str(Split.TRAIN): ["*train*"],
-    str(Split.TEST): ["*test*", "*eval*"],
-    str(Split.VALIDATION): ["*dev*", "*valid*"],
-}
-
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
     str(Split.TRAIN): ["*train*/*", "*train*/**/*"],
     str(Split.TEST): ["*test*/*", "*test*/**/*", "*eval*/*", "*eval*/**/*"],
@@ -90,8 +84,8 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
         data_files = pattern_resolver(pattern)
         if len(data_files) > 0:
             data_files = [p.as_posix() for p in data_files]
-            splits: Set[str] = set(string_to_dict(df, split_pattern)["split"] for df in data_files)
-            return {split: split_pattern.format(split=split) for split in splits}
+            splits: Set[str] = set(string_to_dict(p, split_pattern)["split"] for p in data_files)
+            return {split: [split_pattern.format(split=split)] for split in splits}
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
         non_empty_splits = []
