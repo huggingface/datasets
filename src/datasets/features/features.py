@@ -845,7 +845,8 @@ def encode_nested_example(schema, obj):
                 for first_elmt in obj:
                     if first_elmt is not None:
                         break
-                if encode_nested_example(schema.feature, first_elmt) != first_elmt:
+                # be careful when comparing tensors here
+                if not isinstance(first_elmt, list) or encode_nested_example(schema.feature, first_elmt) != first_elmt:
                     return [encode_nested_example(schema.feature, o) for o in obj]
             return list(obj)
     # Object with special encoding:
