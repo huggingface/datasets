@@ -99,6 +99,8 @@ REQUIRED_PKGS = [
     "huggingface_hub>=0.1.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
+    # Allowing user-registered functions
+    "catalogue"
 ]
 
 AUDIO_REQUIRE = [
