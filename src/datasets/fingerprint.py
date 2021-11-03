@@ -17,7 +17,8 @@ from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable,
 
 from .info import DatasetInfo
 from .utils.logging import get_logger
-from .utils.py_utils import dumps
+from .utils.py_utils import dumps, get_cls_from_qualname
+from .utils.registry import hashers
 
 
 if TYPE_CHECKING:
@@ -185,6 +186,15 @@ class Hasher:
 
     @classmethod
     def hash(cls, value: Any) -> str:
+        # Check if the current object is an instance that is
+        # applicable to the user-defined hashers. If so, hash
+        # with the user-defined function
+        for full_module_name, func in hashers.get_all().items():
+            registered_cls = get_cls_from_qualname(full_module_name)
+            if isinstance(value, registered_cls):
+                logger.info(f"Found registered hasher function for {full_module_name}")
+                return func(value)
+
         if type(value) in cls.dispatch:
             return cls.dispatch[type(value)](cls, value)
         else:

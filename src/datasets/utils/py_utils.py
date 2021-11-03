@@ -20,6 +20,7 @@
 
 import contextlib
 import functools
+import importlib
 import itertools
 import os
 import pickle
@@ -79,6 +80,30 @@ def size_str(size_in_bytes):
         if value >= 1.0:
             return "{:.2f} {}".format(value, name)
     return "{} {}".format(int(size_in_bytes), "bytes")
+
+
+def get_cls_from_qualname(full_qualname: str):
+    """Dynmically get the class based on a full qualified name (str).
+    For instance, given the string `torch.nn.Module` returns the `Module` class.
+    Args:
+        full_qualname: `str`, the full qualified name for the class to load (must be importable)
+    """
+    module_name, class_name = full_qualname.rsplit(".", 1)
+    module = importlib.import_module(module_name)
+    return getattr(module, class_name)
+
+
+def get_qualname_from_cls(cls) -> str:
+    """Convert a given (uninstantiated) class to its full qualified name (str).
+    For instance, give `Module` class, return `torch.nn.Module`.
+    Args:
+        cls: class to convert into string representation by its qualname
+    """
+    module = cls.__module__
+    # Do not include `builtins` in full name
+    if module == "builtins":
+        return cls.__qualname__
+    return module + "." + cls.__qualname__
 
 
 @contextlib.contextmanager
