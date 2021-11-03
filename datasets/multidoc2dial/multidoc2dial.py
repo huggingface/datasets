@@ -19,7 +19,6 @@
 
 import json
 import os
-from types import CodeType
 
 import datasets
 
@@ -39,7 +38,7 @@ _DESCRIPTION = """\
 MultiDoc2Dial is a new task and dataset on modeling goal-oriented dialogues grounded in multiple documents. \
 Most previous works treat document-grounded dialogue modeling as a machine reading comprehension task based on a \
 single given document or passage. We aim to address more realistic scenarios where a goal-oriented information-seeking \
-conversation involves multiple topics, and hence is grounded on different documents. 
+conversation involves multiple topics, and hence is grounded on different documents.
 """
 
 _HOMEPAGE = "https://doc2dial.github.io/multidoc2dial/"
