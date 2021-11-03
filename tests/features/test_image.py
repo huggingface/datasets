@@ -4,6 +4,7 @@ import pytest
 
 from datasets import Dataset
 from datasets.features import Image, Features
+from datasets.features.features import Value
 
 
 require_pil = pytest.mark.skipif(
@@ -28,15 +29,14 @@ def test_image_instantiation():
 
 
 @require_pil
-@pytest.mark.parametrize("format", "jpg", "png", "bmp", "gif"])
-def test_image_decode_example(shared_datadir, format):
-    image_path = str(shared_datadir / f"test_image_rgb.{format}")
+def test_image_decode_example(shared_datadir):
+    image_path = str(shared_datadir / f"test_image_rgb.jpg")
     image = Image()
     decoded_example = image.decode_example(image_path)
     assert decoded_example.keys() == {"path", "array", "mode"}
     assert decoded_example["path"] == image_path
-    assert decoded_example["mode"] == "RGB" if format != "gif" else "P"
-    assert decoded_example["array"].shape == (3, 480, 640) if format != "gif" else (1, 480, 640)
+    assert decoded_example["mode"] == "RGB"
+    assert decoded_example["array"].shape == (3, 480, 640)
 
 
 @require_pil
@@ -55,215 +55,165 @@ def test_image_change_mode(shared_datadir):
 def test_dataset_with_image_feature(shared_datadir):
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     data = {"image": [image_path]}
-    features = Features({"audio": Image()})
+    features = Features({"image": Image()})
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"image"}
     assert item["image"].keys() == {"path", "array", "mode"}
     assert item["image"]["path"] == image_path
     assert item["image"]["array"].shape == (3, 480, 640)
-    assert item["image"]["mode"] == 44100
+    assert item["image"]["mode"] == "RGB"
     batch = dset[:1]
-    assert batch.keys() == {"audio"}
-    assert len(batch["audio"]) == 1
-    assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
-    assert batch["audio"][0]["path"] == audio_path
-    assert batch["audio"][0]["array"].shape == (202311,)
-    assert batch["audio"][0]["sampling_rate"] == 44100
-    column = dset["audio"]
+    assert batch.keys() == {"image"}
+    assert len(batch["image"]) == 1
+    assert batch["image"][0].keys() == {"path", "array", "mode"}
+    assert batch["image"][0]["path"] == image_path
+    assert batch["image"][0]["array"].shape == (3, 480, 640)
+    assert batch["image"][0]["mode"] == "RGB"
+    column = dset["image"]
     assert len(column) == 1
-    assert column[0].keys() == {"path", "array", "sampling_rate"}
-    assert column[0]["path"] == audio_path
-    assert column[0]["array"].shape == (202311,)
-    assert column[0]["sampling_rate"] == 44100
+    assert column[0].keys() == {"path", "array", "mode"}
+    assert column[0]["path"] == image_path
+    assert column[0]["array"].shape == (3, 480, 640)
+    assert column[0]["mode"] == "RGB"
 
 
-# @require_sndfile
-# def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
-#     audio_path = str(shared_datadir / "test_audio_44100.wav")
-#     data = {"audio": [audio_path]}
-#     features = Features({"audio": Audio(sampling_rate=16000)})
-#     dset = Dataset.from_dict(data, features=features)
-#     item = dset[0]
-#     assert item.keys() == {"audio"}
-#     assert item["audio"].keys() == {"path", "array", "sampling_rate"}
-#     assert item["audio"]["path"] == audio_path
-#     assert item["audio"]["array"].shape == (73401,)
-#     assert item["audio"]["sampling_rate"] == 16000
-#     batch = dset[:1]
-#     assert batch.keys() == {"audio"}
-#     assert len(batch["audio"]) == 1
-#     assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
-#     assert batch["audio"][0]["path"] == audio_path
-#     assert batch["audio"][0]["array"].shape == (73401,)
-#     assert batch["audio"][0]["sampling_rate"] == 16000
-#     column = dset["audio"]
-#     assert len(column) == 1
-#     assert column[0].keys() == {"path", "array", "sampling_rate"}
-#     assert column[0]["path"] == audio_path
-#     assert column[0]["array"].shape == (73401,)
-#     assert column[0]["sampling_rate"] == 16000
+@require_pil
+def test_change_mode_on_dataset_with_image_feature(shared_datadir):
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    data = {"image": [image_path]}
+    features = Features({"image": Image(mode="L")})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"image"}
+    assert item["image"].keys() == {"path", "array", "mode"}
+    assert item["image"]["path"] == image_path
+    assert item["image"]["array"].shape == (1, 480, 640)
+    assert item["image"]["mode"] == "L"
+    batch = dset[:1]
+    assert batch.keys() == {"image"}
+    assert len(batch["image"]) == 1
+    assert batch["image"][0].keys() == {"path", "array", "mode"}
+    assert batch["image"][0]["path"] == image_path
+    assert batch["image"][0]["array"].shape == (1, 480, 640)
+    assert batch["image"][0]["mode"] == "L"
+    column = dset["image"]
+    assert len(column) == 1
+    assert column[0].keys() == {"path", "array", "mode"}
+    assert column[0]["path"] == image_path
+    assert column[0]["array"].shape == (1, 480, 640)
+    assert column[0]["mode"] == "L"
 
 
-# @require_sndfile
-# def test_resampling_after_loading_dataset_with_audio_feature(shared_datadir):
-#     audio_path = str(shared_datadir / "test_audio_44100.wav")
-#     data = {"audio": [audio_path]}
-#     features = Features({"audio": Audio()})
-#     dset = Dataset.from_dict(data, features=features)
-#     item = dset[0]
-#     assert item["audio"]["sampling_rate"] == 44100
-#     dset = dset.cast_column("audio", Audio(sampling_rate=16000))
-#     item = dset[0]
-#     assert item.keys() == {"audio"}
-#     assert item["audio"].keys() == {"path", "array", "sampling_rate"}
-#     assert item["audio"]["path"] == audio_path
-#     assert item["audio"]["array"].shape == (73401,)
-#     assert item["audio"]["sampling_rate"] == 16000
-#     batch = dset[:1]
-#     assert batch.keys() == {"audio"}
-#     assert len(batch["audio"]) == 1
-#     assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
-#     assert batch["audio"][0]["path"] == audio_path
-#     assert batch["audio"][0]["array"].shape == (73401,)
-#     assert batch["audio"][0]["sampling_rate"] == 16000
-#     column = dset["audio"]
-#     assert len(column) == 1
-#     assert column[0].keys() == {"path", "array", "sampling_rate"}
-#     assert column[0]["path"] == audio_path
-#     assert column[0]["array"].shape == (73401,)
-#     assert column[0]["sampling_rate"] == 16000
+@require_pil
+def test_cast_column_on_dataset_with_image_feature(shared_datadir):
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    data = {"image": [image_path]}
+    features = Features({"image": Image()})      
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item["image"]["mode"] == "RGB"
+    dset = dset.cast_column("image", Image(mode="L"))
+    item = dset[0]
+    assert item["image"]["mode"] == "L"
 
 
-# @require_sox
-# @require_sndfile
-# def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir):
-#     audio_path = str(shared_datadir / "test_audio_44100.mp3")
-#     data = {"audio": [audio_path]}
-#     features = Features({"audio": Audio()})
-#     dset = Dataset.from_dict(data, features=features)
-#     item = dset[0]
-#     assert item["audio"]["sampling_rate"] == 44100
-#     dset = dset.cast_column("audio", Audio(sampling_rate=16000))
-#     item = dset[0]
-#     assert item.keys() == {"audio"}
-#     assert item["audio"].keys() == {"path", "array", "sampling_rate"}
-#     assert item["audio"]["path"] == audio_path
-#     assert item["audio"]["array"].shape == (39707,)
-#     assert item["audio"]["sampling_rate"] == 16000
-#     batch = dset[:1]
-#     assert batch.keys() == {"audio"}
-#     assert len(batch["audio"]) == 1
-#     assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
-#     assert batch["audio"][0]["path"] == audio_path
-#     assert batch["audio"][0]["array"].shape == (39707,)
-#     assert batch["audio"][0]["sampling_rate"] == 16000
-#     column = dset["audio"]
-#     assert len(column) == 1
-#     assert column[0].keys() == {"path", "array", "sampling_rate"}
-#     assert column[0]["path"] == audio_path
-#     assert column[0]["array"].shape == (39707,)
-#     assert column[0]["sampling_rate"] == 16000
+@require_pil
+def test_dataset_with_image_feature_map(shared_datadir):
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    data = {"image": [image_path], "caption": ["cats sleeping"]}
+    features = Features({"image": Image(), "caption": Value("string")})
+    dset = Dataset.from_dict(data, features=features)
 
+    for item in dset:
+        assert item.keys() == {"image", "caption"}
+        assert item == {"image": image_path, "caption": "cats sleeping"}
 
-# @require_sndfile
-# def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
-#     audio_path = str(shared_datadir / "test_audio_44100.wav")
-#     data = {"audio": [audio_path], "text": ["Hello"]}
-#     features = Features({"audio": Audio(), "text": Value("string")})
-#     dset = Dataset.from_dict(data, features=features)
+    # no decoding
 
-#     for item in dset:
-#         assert item.keys() == {"audio", "text"}
-#         assert item == {"audio": audio_path, "text": "Hello"}
+    # def process_caption(example):
+    #     example["caption"] = "Two " + example["caption"]
+    #     return example
 
-#     def process_text(example):
-#         example["text"] = example["text"] + " World!"
-#         return example
+    # processed_dset = dset.map(process_caption)
+    # for item in processed_dset:
+    #     assert item.keys() == {"image", "caption"}
+    #     assert item == {"image": image_path, "caption": "Two cats sleeping"}
 
-#     processed_dset = dset.map(process_text)
-#     for item in processed_dset:
-#         assert item.keys() == {"audio", "text"}
-#         assert item == {"audio": audio_path, "text": "Hello World!"}
+    # decoding example
 
+    def process_image_mode_by_example(example):
+        example["mode_lowercase"] = example["image"]["mode"].lower()
+        return example
 
-# @require_sndfile
-# def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
-#     audio_path = str(shared_datadir / "test_audio_44100.wav")
-#     data = {"audio": [audio_path], "text": ["Hello"]}
-#     features = Features({"audio": Audio(), "text": Value("string")})
-#     dset = Dataset.from_dict(data, features=features)
+    decoded_dset = dset.map(process_image_mode_by_example)
+    for item in decoded_dset:
+        assert item.keys() == {"image", "caption", "mode_lowercase"}
+        assert item["mode_lowercase"] == "rgb"
+    
+    # decoding batch
 
-#     def process_audio_sampling_rate_by_example(example):
-#         example["double_sampling_rate"] = 2 * example["audio"]["sampling_rate"]
-#         return example
+    def process_image_mode_by_batch(batch):
+        modes_lowercase = []
+        for image in batch["image"]:
+            modes_lowercase.append(image["mode"].lower())
+        batch["mode_lowercase"] = modes_lowercase
+        return batch
 
-#     decoded_dset = dset.map(process_audio_sampling_rate_by_example)
-#     for item in decoded_dset:
-#         assert item.keys() == {"audio", "text", "double_sampling_rate"}
-#         assert item["double_sampling_rate"] == 88200
+    decoded_dset = dset.map(process_image_mode_by_batch, batched=True)
+    for item in decoded_dset:
+        assert item.keys() == {"image", "caption", "mode_lowercase"}
+        assert item["mode_lowercase"] == "rgb"
+    
+    
+@require_pil
+def test_formatted_dataset_with_image_feature(shared_datadir):
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    data = {"image": [image_path, image_path]}
+    features = Features({"image": Image()})
+    dset = Dataset.from_dict(data, features=features)
+    with dset.formatted_as("numpy"):
+        item = dset[0]
+        assert item.keys() == {"image"}
+        assert item["image"].keys() == {"path", "array", "mode"}
+        assert item["image"]["path"] == image_path
+        assert item["image"]["array"].shape == (3, 480, 640)
+        assert item["image"]["mode"] == "RGB"
+        batch = dset[:1]
+        assert batch.keys() == {"image"}
+        assert len(batch["image"]) == 1
+        assert batch["image"][0].keys() == {"path", "array", "mode"}
+        assert batch["image"][0]["path"] == image_path
+        assert batch["image"][0]["array"].shape == (3, 480, 640)
+        assert batch["image"][0]["mode"] == "RGB"
+        column = dset["image"]
+        assert len(column) == 2
+        assert column[0].keys() == {"path", "array", "mode"}
+        assert column[0]["path"] == image_path
+        assert column[0]["array"].shape == (3, 480, 640)
+        assert column[0]["mode"] == "RGB"
 
-#     def process_audio_sampling_rate_by_batch(batch):
-#         double_sampling_rates = []
-#         for audio in batch["audio"]:
-#             double_sampling_rates.append(2 * audio["sampling_rate"])
-#         batch["double_sampling_rate"] = double_sampling_rates
-#         return batch
-
-#     decoded_dset = dset.map(process_audio_sampling_rate_by_batch, batched=True)
-#     for item in decoded_dset:
-#         assert item.keys() == {"audio", "text", "double_sampling_rate"}
-#         assert item["double_sampling_rate"] == 88200
-
-
-# @require_sndfile
-# def test_formatted_dataset_with_audio_feature(shared_datadir):
-#     audio_path = str(shared_datadir / "test_audio_44100.wav")
-#     data = {"audio": [audio_path, audio_path]}
-#     features = Features({"audio": Audio()})
-#     dset = Dataset.from_dict(data, features=features)
-#     with dset.formatted_as("numpy"):
-#         item = dset[0]
-#         assert item.keys() == {"audio"}
-#         assert item["audio"].keys() == {"path", "array", "sampling_rate"}
-#         assert item["audio"]["path"] == audio_path
-#         assert item["audio"]["array"].shape == (202311,)
-#         assert item["audio"]["sampling_rate"] == 44100
-#         batch = dset[:1]
-#         assert batch.keys() == {"audio"}
-#         assert len(batch["audio"]) == 1
-#         assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
-#         assert batch["audio"][0]["path"] == audio_path
-#         assert batch["audio"][0]["array"].shape == (202311,)
-#         assert batch["audio"][0]["sampling_rate"] == 44100
-#         column = dset["audio"]
-#         assert len(column) == 2
-#         assert column[0].keys() == {"path", "array", "sampling_rate"}
-#         assert column[0]["path"] == audio_path
-#         assert column[0]["array"].shape == (202311,)
-#         assert column[0]["sampling_rate"] == 44100
-
-#     with dset.formatted_as("pandas"):
-#         item = dset[0]
-#         assert item.shape == (1, 1)
-#         assert item.columns == ["audio"]
-#         assert item["audio"][0].keys() == {"path", "array", "sampling_rate"}
-#         assert item["audio"][0]["path"] == audio_path
-#         assert item["audio"][0]["array"].shape == (202311,)
-#         assert item["audio"][0]["sampling_rate"] == 44100
-#         item = dset[:1]
-#         assert item.shape == (1, 1)
-#         assert item.columns == ["audio"]
-#         assert item["audio"][0].keys() == {"path", "array", "sampling_rate"}
-#         assert item["audio"][0]["path"] == audio_path
-#         assert item["audio"][0]["array"].shape == (202311,)
-#         assert item["audio"][0]["sampling_rate"] == 44100
-#         column = dset["audio"]
-#         assert len(column) == 2
-#         assert column[0].keys() == {"path", "array", "sampling_rate"}
-#         assert column[0]["path"] == audio_path
-#         assert column[0]["array"].shape == (202311,)
-#         assert column[0]["sampling_rate"] == 44100
+    with dset.formatted_as("pandas"):
+        item = dset[0]
+        assert item.shape == (1, 1)
+        assert item.columns == ["image"]
+        assert item["image"][0].keys() == {"path", "array", "mode"}
+        assert item["image"][0]["path"] == image_path
+        assert item["image"][0]["array"].shape == (3, 480, 640)
+        assert item["image"][0]["mode"] == "RGB"
+        item = dset[:1]
+        assert item.shape == (1, 1)
+        assert item.columns == ["image"]
+        assert item["image"][0].keys() == {"path", "array", "mode"}
+        assert item["image"][0]["path"] == image_path
+        assert item["image"][0]["array"].shape == (3, 480, 640)
+        assert item["image"][0]["mode"] == "RGB"
+        column = dset["image"]
+        assert len(column) == 2
+        assert column[0].keys() == {"path", "array", "mode"}
+        assert column[0]["path"] == image_path
+        assert column[0]["array"].shape == (3, 480, 640)
+        assert column[0]["mode"] == "RGB"
 
 
 # @require_sndfile
