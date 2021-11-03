@@ -55,8 +55,8 @@ def list_metrics(with_community_metrics=True, with_details=False):
     """List all the metrics script available on the Hugging Face Hub.
 
     Args:
-        with_community_metrics (Optional ``bool``): Include the community provided metrics (default: ``True``)
-        with_details (Optional ``bool``): Return the full details on the metrics instead of only the short name (default: ``False``)
+        with_community_metrics (Optional ``bool``, default ``True``): Include the community provided metrics.
+        with_details (Optional ``bool``, default ``False``): Return the full details on the metrics instead of only the short name.
     """
     metrics = huggingface_hub.list_metrics()
     if not with_community_metrics:
