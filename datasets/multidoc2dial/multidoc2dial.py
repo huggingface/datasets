@@ -166,13 +166,17 @@ class MultiDoc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "multidoc2dial/multidoc2dial_dial_train.json"),
+                        "filepath": os.path.join(
+                            data_dir, "multidoc2dial/multidoc2dial_dial_train.json"
+                        ),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "multidoc2dial/multidoc2dial_dial_validation.json"),
+                        "filepath": os.path.join(
+                            data_dir, "multidoc2dial/multidoc2dial_dial_validation.json"
+                        ),
                     },
                 ),
             ]
@@ -181,7 +185,9 @@ class MultiDoc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "multidoc2dial/multidoc2dial_doc.json"),
+                        "filepath": os.path.join(
+                            data_dir, "multidoc2dial/multidoc2dial_doc.json"
+                        ),
                     },
                 )
             ]
@@ -192,7 +198,10 @@ class MultiDoc2dial(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
                         "filepath": os.path.join(
-                            data_dir, "multidoc2dial_domain", domain, "multidoc2dial_dial_validation.json"
+                            data_dir,
+                            "multidoc2dial_domain",
+                            domain,
+                            "multidoc2dial_dial_validation.json",
                         ),
                     },
                 ),
@@ -200,7 +209,10 @@ class MultiDoc2dial(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
                         "filepath": os.path.join(
-                            data_dir, "multidoc2dial_domain", domain, "multidoc2dial_dial_train.json"
+                            data_dir,
+                            "multidoc2dial_domain",
+                            domain,
+                            "multidoc2dial_dial_train.json",
                         ),
                     },
                 ),
@@ -208,7 +220,10 @@ class MultiDoc2dial(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.TEST,
                     gen_kwargs={
                         "filepath": os.path.join(
-                            data_dir, "multidoc2dial_domain", domain, "multidoc2dial_dial_test.json"
+                            data_dir,
+                            "multidoc2dial_domain",
+                            domain,
+                            "multidoc2dial_dial_test.json",
                         ),
                     },
                 ),
@@ -218,19 +233,25 @@ class MultiDoc2dial(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "multidoc2dial/multidoc2dial_dial_validation.json"),
+                        "filepath": os.path.join(
+                            data_dir, "multidoc2dial/multidoc2dial_dial_validation.json"
+                        ),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "multidoc2dial/multidoc2dial_dial_train.json"),
+                        "filepath": os.path.join(
+                            data_dir, "multidoc2dial/multidoc2dial_dial_train.json"
+                        ),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, "multidoc2dial/multidoc2dial_dial_test.json"),
+                        "filepath": os.path.join(
+                            data_dir, "multidoc2dial/multidoc2dial_dial_test.json"
+                        ),
                     },
                 ),
             ]
@@ -289,22 +310,48 @@ class MultiDoc2dial(datasets.GeneratorBasedBuilder):
                             "doc_text": data["doc_data"][domain][doc_id]["doc_text"],
                             "spans": [
                                 {
-                                    "id_sp": data["doc_data"][domain][doc_id]["spans"][i]["id_sp"],
-                                    "tag": data["doc_data"][domain][doc_id]["spans"][i]["tag"],
-                                    "start_sp": data["doc_data"][domain][doc_id]["spans"][i]["start_sp"],
-                                    "end_sp": data["doc_data"][domain][doc_id]["spans"][i]["end_sp"],
-                                    "text_sp": data["doc_data"][domain][doc_id]["spans"][i]["text_sp"],
-                                    "title": data["doc_data"][domain][doc_id]["spans"][i]["title"],
-                                    "parent_titles": data["doc_data"][domain][doc_id]["spans"][i]["parent_titles"],
-                                    "id_sec": data["doc_data"][domain][doc_id]["spans"][i]["id_sec"],
-                                    "start_sec": data["doc_data"][domain][doc_id]["spans"][i]["start_sec"],
-                                    "text_sec": data["doc_data"][domain][doc_id]["spans"][i]["text_sec"],
-                                    "end_sec": data["doc_data"][domain][doc_id]["spans"][i]["end_sec"],
+                                    "id_sp": data["doc_data"][domain][doc_id]["spans"][
+                                        i
+                                    ]["id_sp"],
+                                    "tag": data["doc_data"][domain][doc_id]["spans"][i][
+                                        "tag"
+                                    ],
+                                    "start_sp": data["doc_data"][domain][doc_id][
+                                        "spans"
+                                    ][i]["start_sp"],
+                                    "end_sp": data["doc_data"][domain][doc_id]["spans"][
+                                        i
+                                    ]["end_sp"],
+                                    "text_sp": data["doc_data"][domain][doc_id][
+                                        "spans"
+                                    ][i]["text_sp"],
+                                    "title": data["doc_data"][domain][doc_id]["spans"][
+                                        i
+                                    ]["title"],
+                                    "parent_titles": data["doc_data"][domain][doc_id][
+                                        "spans"
+                                    ][i]["parent_titles"],
+                                    "id_sec": data["doc_data"][domain][doc_id]["spans"][
+                                        i
+                                    ]["id_sec"],
+                                    "start_sec": data["doc_data"][domain][doc_id][
+                                        "spans"
+                                    ][i]["start_sec"],
+                                    "text_sec": data["doc_data"][domain][doc_id][
+                                        "spans"
+                                    ][i]["text_sec"],
+                                    "end_sec": data["doc_data"][domain][doc_id][
+                                        "spans"
+                                    ][i]["end_sec"],
                                 }
                                 for i in data["doc_data"][domain][doc_id]["spans"]
                             ],
-                            "doc_html_ts": data["doc_data"][domain][doc_id]["doc_html_ts"],
-                            "doc_html_raw": data["doc_data"][domain][doc_id]["doc_html_raw"],
+                            "doc_html_ts": data["doc_data"][domain][doc_id][
+                                "doc_html_ts"
+                            ],
+                            "doc_html_raw": data["doc_data"][domain][doc_id][
+                                "doc_html_raw"
+                            ],
                         }
 
         elif "multidoc2dial" in self.config.name:
@@ -322,21 +369,30 @@ class MultiDoc2dial(datasets.GeneratorBasedBuilder):
                         for idx, turn in enumerate(dial["turns"]):
                             doc_id = turn["references"][0]["doc_id"]
                             doc = d_doc_data[doc_id]
-                            utterance_line = turn["utterance"].replace("\n", " ").replace("\t", " ")
-                            all_prev_utterances.append("{}: {}".format(turn["role"], utterance_line))
+                            utterance_line = (
+                                turn["utterance"].replace("\n", " ").replace("\t", " ")
+                            )
+                            all_prev_utterances.append(
+                                "{}: {}".format(turn["role"], utterance_line)
+                            )
                             if turn["role"] == "agent":
                                 continue
                             if idx + 1 < len(dial["turns"]):
                                 if (
                                     dial["turns"][idx + 1]["role"] == "agent"
-                                    and dial["turns"][idx + 1]["da"] != "respond_no_solution"
+                                    and dial["turns"][idx + 1]["da"]
+                                    != "respond_no_solution"
                                 ):
                                     turn_to_predict = dial["turns"][idx + 1]
                                 else:
                                     continue
                             else:
                                 continue
-                            question_str = utterance_line + "[SEP]" + "||".join(reversed(all_prev_utterances[:-1]))
+                            question_str = (
+                                utterance_line
+                                + "[SEP]"
+                                + "||".join(reversed(all_prev_utterances[:-1]))
+                            )
                             id_ = "{}_{}".format(dial["dial_id"], turn["turn_id"])
                             qa = {
                                 "id": id_,
@@ -345,7 +401,9 @@ class MultiDoc2dial(datasets.GeneratorBasedBuilder):
                                 "question": question_str,
                                 "da": turn["da"],
                                 "answers": self._get_answers_rc(
-                                    turn_to_predict["references"], doc["spans"], doc["doc_text"]
+                                    turn_to_predict["references"],
+                                    doc["spans"],
+                                    doc["doc_text"],
                                 ),
                                 "utterance": turn_to_predict["utterance"],
                                 "domain": domain,
