@@ -3,7 +3,7 @@ from importlib.util import find_spec
 import pytest
 
 from datasets import Dataset
-from datasets.features import Image, Features
+from datasets.features import Features, Image
 from datasets.features.features import Value
 
 
@@ -109,7 +109,7 @@ def test_change_mode_on_dataset_with_image_feature(shared_datadir):
 def test_cast_column_on_dataset_with_image_feature(shared_datadir):
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     data = {"image": [image_path]}
-    features = Features({"image": Image()})      
+    features = Features({"image": Image()})
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item["image"]["mode"] == "RGB"
@@ -131,14 +131,14 @@ def test_dataset_with_image_feature_map(shared_datadir):
 
     # no decoding
 
-    # def process_caption(example):
-    #     example["caption"] = "Two " + example["caption"]
-    #     return example
+    def process_caption(example):
+        example["caption"] = "Two " + example["caption"]
+        return example
 
-    # processed_dset = dset.map(process_caption)
-    # for item in processed_dset:
-    #     assert item.keys() == {"image", "caption"}
-    #     assert item == {"image": image_path, "caption": "Two cats sleeping"}
+    processed_dset = dset.map(process_caption)
+    for item in processed_dset:
+        assert item.keys() == {"image", "caption"}
+        assert item == {"image": image_path, "caption": "Two cats sleeping"}
 
     # decoding example
 
@@ -150,7 +150,7 @@ def test_dataset_with_image_feature_map(shared_datadir):
     for item in decoded_dset:
         assert item.keys() == {"image", "caption", "mode_lowercase"}
         assert item["mode_lowercase"] == "rgb"
-    
+
     # decoding batch
 
     def process_image_mode_by_batch(batch):
@@ -164,8 +164,8 @@ def test_dataset_with_image_feature_map(shared_datadir):
     for item in decoded_dset:
         assert item.keys() == {"image", "caption", "mode_lowercase"}
         assert item["mode_lowercase"] == "rgb"
-    
-    
+
+
 @require_pil
 def test_formatted_dataset_with_image_feature(shared_datadir):
     image_path = str(shared_datadir / "test_image_rgb.jpg")
@@ -214,12 +214,3 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
         assert column[0]["path"] == image_path
         assert column[0]["array"].shape == (3, 480, 640)
         assert column[0]["mode"] == "RGB"
-
-
-# @require_sndfile
-# def test_dataset_with_audio_feature_loaded_from_cache():
-#     # load first time
-#     ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean")
-#     # load from cache
-#     ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean", split="validation")
-#     assert isinstance(ds, Dataset)
