@@ -11,25 +11,25 @@ multilinguality:
 - monolingual
 size_categories:
   Alittihad:
-  - 10K<n<100K
+  - 100K<n<1M
   Almasryalyoum:
-  - 1K<n<10K
+  - 100K<n<1M
   Almustaqbal:
-  - 10K<n<100K
+  - 100K<n<1M
   Alqabas:
-  - 10K<n<100K
+  - 100K<n<1M
   Echoroukonline:
-  - 10K<n<100K
+  - 100K<n<1M
   Ryiadh:
-  - 10K<n<100K
+  - 100K<n<1M
   Sabanews:
   - 10K<n<100K
   SaudiYoum:
-  - 10K<n<100K
+  - 100K<n<1M
   Techreen:
-  - 10K<n<100K
+  - 100K<n<1M
   Youm7:
-  - 10K<n<100K
+  - 1M<n<10M
 source_datasets:
 - original
 task_categories:
@@ -120,16 +120,16 @@ There is only one "training" split for all configuration subsets, containing the
 
 |                | Number of examples |
 |:---------------|-------------------:|
-| Alittihad      |              11551 |
-| Almasryalyoum  |               3170 |
-| Almustaqbal    |              12627 |
-| Alqabas        |              16449 |
-| Echoroukonline |              34931 |
-| Ryiadh         |              13112 |
-| Sabanews       |              23036 |
-| SaudiYoum      |              73922 |
-| Techreen       |              37491 |
-| Youm7          |              33460 |
+| Alittihad      |             349342 |
+| Almasryalyoum  |             291723 |
+| Almustaqbal    |             446873 |
+| Alqabas        |             817274 |
+| Echoroukonline |             139732 |
+| Ryiadh         |             858188 |
+| Sabanews       |              92149 |
+| SaudiYoum      |             888068 |
+| Techreen       |             314597 |
+| Youm7          |            1172136 |
 
 ## Dataset Creation
 
@@ -198,4 +198,4 @@ There is only one "training" split for all configuration subsets, containing the
 
 ### Contributions
 
-Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) for adding this dataset.
+Thanks to [@zaidalyafeai](https://github.com/zaidalyafeai) and [@albertvillanova](https://github.com/albertvillanova) for adding this dataset.

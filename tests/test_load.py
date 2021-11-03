@@ -354,7 +354,7 @@ class LoadTest(TestCase):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
         self.assertIn(
-            f"https://raw.githubusercontent.com/huggingface/datasets/{scripts_version}/datasets/_dummy/_dummy.py",
+            f"https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
             str(context.exception),
         )
         with self.assertRaises(FileNotFoundError) as context:

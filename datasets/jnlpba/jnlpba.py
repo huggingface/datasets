@@ -16,7 +16,9 @@
 # Lint as: python3
 """Introduction to the Bio-Entity Recognition Task at JNLPBA"""
 
+import glob
 import os
+import re
 
 import datasets
 
@@ -43,11 +45,8 @@ Among the classes, 36 terminal classes were used to annotate the GENIA corpus.
 """
 
 _HOMEPAGE = "http://www.geniaproject.org/shared-tasks/bionlp-jnlpba-shared-task-2004"
-_URL = "https://drive.google.com/u/0/uc?id=1OletxmPYNkz2ltOr9pyT0b0iBtUWxslh&export=download/"
-_BIOBERT_NER_DATASET_DIRECTORY = "JNLPBA"
-_TRAINING_FILE = "train.tsv"
-_DEV_FILE = "devel.tsv"
-_TEST_FILE = "test.tsv"
+TRAIN_URL = "http://www.nactem.ac.uk/GENIA/current/Shared-tasks/JNLPBA/Train/Genia4ERtraining.tar.gz"
+VAL_URL = "http://www.nactem.ac.uk/GENIA/current/Shared-tasks/JNLPBA/Evaluation/Genia4ERtest.tar.gz"
 
 
 class JNLPBAConfig(datasets.BuilderConfig):
@@ -79,8 +78,16 @@ class JNLPBA(datasets.GeneratorBasedBuilder):
                         datasets.features.ClassLabel(
                             names=[
                                 "O",
-                                "B",
-                                "I",
+                                "B-DNA",
+                                "I-DNA",
+                                "B-RNA",
+                                "I-RNA",
+                                "B-cell_line",
+                                "I-cell_line",
+                                "B-cell_type",
+                                "I-cell_type",
+                                "B-protein",
+                                "I-protein",
                             ]
                         )
                     ),
@@ -93,48 +100,48 @@ class JNLPBA(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        urls_to_download = {
-            "biobert_ner_datasets": _URL,
-        }
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
-        dataset_directory = os.path.join(downloaded_files["biobert_ner_datasets"], _BIOBERT_NER_DATASET_DIRECTORY)
+        train_files = dl_manager.download_and_extract(TRAIN_URL)
+        val_files = dl_manager.download_and_extract(VAL_URL)
+
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dataset_directory, _TRAINING_FILE)}
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dataset_directory, _DEV_FILE)}
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dataset_directory, _TEST_FILE)}
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_files}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": val_files}),
         ]
 
     def _generate_examples(self, filepath):
         logger.info("⏳ Generating examples from = %s", filepath)
-        with open(filepath, encoding="utf-8") as f:
-            guid = 0
-            tokens = []
-            ner_tags = []
-            for line in f:
-                if line == "" or line == "\n":
-                    if tokens:
-                        yield guid, {
-                            "id": str(guid),
-                            "tokens": tokens,
-                            "ner_tags": ner_tags,
-                        }
-                        guid += 1
-                        tokens = []
-                        ner_tags = []
-                else:
-                    # tokens are tab separated
-                    splits = line.split("\t")
-                    tokens.append(splits[0])
-                    ner_tags.append(splits[1].rstrip())
-            # last example
-            yield guid, {
-                "id": str(guid),
-                "tokens": tokens,
-                "ner_tags": ner_tags,
-            }
+        filenames = glob.glob(os.path.join(filepath, "Genia4ER*.iob2"))
+        guid = 0
+        for filename in filenames:
+            with open(filename, encoding="utf-8") as f:
+                if guid >= 0:
+                    guid += 1  # update guid to avoid DuplicatedKeysError
+                tokens = []
+                ner_tags = []
+                for line in f:
+                    if len(re.split(r"###MEDLINE:", line)) == 2:
+                        continue
+
+                    elif line == "" or line == "\n":
+                        if tokens:
+                            # print(guid, line)
+                            yield guid, {
+                                "id": str(guid),
+                                "tokens": tokens,
+                                "ner_tags": ner_tags,
+                            }
+                            guid += 1
+                            tokens = []
+                            ner_tags = []
+
+                    else:
+                        # tokens are tab separated
+                        splits = line.split("\t")
+                        tokens.append(splits[0])
+                        ner_tags.append(splits[1].rstrip())
+                # last example
+                yield guid, {
+                    "id": str(guid),
+                    "tokens": tokens,
+                    "ner_tags": ner_tags,
+                }
