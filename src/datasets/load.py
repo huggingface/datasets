@@ -1438,14 +1438,13 @@ def load_dataset_builder(
     if use_auth_token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.use_auth_token = use_auth_token
-    dataset_module_factory_result = dataset_module_factory(
+    dataset_module = dataset_module_factory(
         path, revision=revision, download_config=download_config, download_mode=download_mode, data_files=data_files
     )
 
     # Get dataset builder class from the processing script
-    dataset_module = dataset_module_factory_result.module_path
-    builder_cls = import_main_class(dataset_module)
-    builder_kwargs = dataset_module_factory_result.builder_kwargs
+    builder_cls = import_main_class(dataset_module.module_path)
+    builder_kwargs = dataset_module.builder_kwargs
     data_files = builder_kwargs.pop("data_files", data_files)
     name = builder_kwargs.pop("name", name)
     hash = builder_kwargs.pop("hash")

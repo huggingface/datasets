@@ -298,6 +298,8 @@ class Value:
             return int(value)
         elif pa.types.is_floating(self.pa_type):
             return float(value)
+        elif pa.types.is_string(self.pa_type):
+            return str(value)
         else:
             return value
 
@@ -434,9 +436,34 @@ class ArrayExtensionArray(pa.ExtensionArray):
         numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr
 
+    def to_list_of_numpy(self, zero_copy_only=True):
+        storage: pa.ListArray = self.storage
+        shape = self.type.shape
+        ndims = self.type.ndims
+
+        for dim in range(1, ndims):
+            assert shape[dim] is not None, f"Support only dynamic size on first dimension. Got: {shape}"
+
+        arrays = []
+        first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
+        for i in range(len(storage)):
+            storage_el = storage[i : i + 1]
+            first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
+            # flatten storage
+            for _ in range(ndims):
+                storage_el = storage_el.flatten()
+
+            numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
+            arrays.append(numpy_arr.reshape(first_dim, *shape[1:]))
+
+        return arrays
+
     def to_pylist(self):
         zero_copy_only = _is_zero_copy_only(self.storage.type)
-        return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
+        if self.type.shape[0] is None:
+            return self.to_list_of_numpy(zero_copy_only=zero_copy_only)
+        else:
+            return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
@@ -446,6 +473,11 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         self._value_type = value_type
 
     def __from_arrow__(self, array):
+        if array.type.shape[0] is None:
+            raise NotImplementedError(
+                "Dynamic first dimension is not supported for "
+                "PandasArrayExtensionDtype, dimension: {}".format(array.type.shape)
+            )
         zero_copy_only = _is_zero_copy_only(array.type)
         if isinstance(array, pa.ChunkedArray):
             numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
@@ -580,8 +612,6 @@ class ClassLabel:
      * `num_classes`: create 0 to (num_classes-1) labels
      * `names`: a list of label strings
      * `names_file`: a file containing the list of labels.
-
-    Note: On python2, the strings are encoded as utf-8.
 
     Args:
         num_classes: `int`, number of classes. All labels must be < num_classes.
@@ -771,6 +801,9 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
 def encode_nested_example(schema, obj):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
+
+    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be encoded.
+    If the first element needs to be encoded, then all the elements of the list will be encoded, otherwise they'll stay the same.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
@@ -779,7 +812,16 @@ def encode_nested_example(schema, obj):
         }
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
-        return [encode_nested_example(sub_schema, o) for o in obj] if obj is not None else None
+        if obj is None:
+            return None
+        else:
+            if len(obj) > 0:
+                for first_elmt in obj:
+                    if first_elmt is not None:
+                        break
+                if encode_nested_example(sub_schema, first_elmt) != first_elmt:
+                    return [encode_nested_example(sub_schema, o) for o in obj]
+            return list(obj)
     elif isinstance(schema, Sequence):
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
         if isinstance(schema.feature, dict):
@@ -798,7 +840,17 @@ def encode_nested_example(schema, obj):
         # schema.feature is not a dict
         if isinstance(obj, str):  # don't interpret a string as a list
             raise ValueError("Got a string but expected a list instead: '{}'".format(obj))
-        return [encode_nested_example(schema.feature, o) for o in obj] if obj is not None else None
+        if obj is None:
+            return None
+        else:
+            if len(obj) > 0:
+                for first_elmt in obj:
+                    if first_elmt is not None:
+                        break
+                # be careful when comparing tensors here
+                if not isinstance(first_elmt, list) or encode_nested_example(schema.feature, first_elmt) != first_elmt:
+                    return [encode_nested_example(schema.feature, o) for o in obj]
+            return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
     elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):

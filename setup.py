@@ -96,7 +96,7 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.0.19,<0.1.0",
+    "huggingface_hub>=0.1.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
 ]
@@ -128,7 +128,7 @@ TESTS_REQUIRE = [
     "aiobotocore",
     "boto3",
     "botocore",
-    "faiss-cpu",
+    "faiss-cpu>=1.6.4",
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
@@ -168,12 +168,9 @@ TESTS_REQUIRE = [
     "importlib_resources;python_version<'3.7'",
 ]
 
-# vision requirements are currently fairly small
 TESTS_REQUIRE.extend(VISION_REQURE)
 
-if os.name == "nt":  # windows
-    TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
-else:
+if os.name != "nt":
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
     TESTS_REQUIRE.extend(
@@ -225,7 +222,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.14.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.15.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

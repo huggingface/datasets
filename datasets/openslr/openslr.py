@@ -640,6 +640,16 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                     sentence = sentence_index[filename]
                     counter += 1
                     yield counter, {"path": path, "audio": path, "sentence": sentence}
+        elif self.config.name in ["SLR83"]:
+            for i, path_to_index in enumerate(path_to_indexs):
+                with open(path_to_index, encoding="utf-8") as f:
+                    lines = f.readlines()
+                    for id_, line in enumerate(lines):
+                        field_values = re.split(r",\s?", line.strip())
+                        user_id, filename, sentence = field_values
+                        path = os.path.join(path_to_datas[i], f"{filename}.wav")
+                        counter += 1
+                        yield counter, {"path": path, "audio": path, "sentence": sentence}
         else:
             for i, path_to_index in enumerate(path_to_indexs):
                 with open(path_to_index, encoding="utf-8") as f:
