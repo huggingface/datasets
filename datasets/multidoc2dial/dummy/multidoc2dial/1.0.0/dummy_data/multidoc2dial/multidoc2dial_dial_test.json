@@ -1,0 +1,37 @@
+{
+    "dial_data": {
+        "ssa": [
+            {
+                "dial_id": "40dffec1f37241d6ba631901f00aedd7",
+                "turns": [
+                    {
+                        "da": "query_condition",
+                        "references": [
+                            {
+                                "label": "precondition",
+                                "id_sp": "1",
+                                "doc_id": "doc_id"
+                            }
+                        ],
+                        "role": "user",
+                        "turn_id": 1,
+                        "utterance": "Hello, I need some help with my application for student aid, please."
+                    },
+                    {
+                        "da": "respond_solution",
+                        "references": [
+                            {
+                                "label": "solution",
+                                "id_sp": "1",
+                                "doc_id": "doc_id"
+                            }
+                        ],
+                        "role": "agent",
+                        "turn_id": 2,
+                        "utterance": "a"
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "doc_data": {
+        "ssa": {
+            "doc_id": {
+                "title": "title",
+                "doc_id": "doc_id",
+                "domain": "ssa",
+                "doc_text": "doc_text",
+                "spans": {
+                    "1": {
+                        "id_sp": "1",
+                        "tag": "h2",
+                        "start_sp": 0,
+                        "end_sp": 61,
+                        "text_sp": "\n\nBenefits Planner: Survivors | Planning For Your Survivors \n",
+                        "title": "Benefits Planner: Survivors | Planning For Your Survivors",
+                        "parent_titles": [],
+                        "id_sec": "t_0",
+                        "start_sec": 0,
+                        "end_sec": 61,
+                        "text_sec": "\n\nBenefits Planner: Survivors | Planning For Your Survivors \n"
+                    }
+                },
+                "doc_html_ts": "doc_html_ts",
+                "doc_html_raw": "doc_html_raw"
+            }
+        }
+    }
+}
