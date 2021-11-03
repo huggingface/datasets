@@ -135,7 +135,7 @@ class TypedSequence:
                     if isinstance(self.data, np.ndarray):
                         return numpy_to_pyarrow_listarray(self.data, type=None)
                     else:
-                        return pa.array(self.data, type=None)
+                        return pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=None)
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(
