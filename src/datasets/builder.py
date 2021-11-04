@@ -398,11 +398,11 @@ class DatasetBuilder:
     @utils.memoize()
     def builder_configs(cls):
         """Pre-defined list of configurations for this builder class."""
-        config_dict = {config.name: config for config in cls.BUILDER_CONFIGS}
-        if len(config_dict) != len(cls.BUILDER_CONFIGS):
+        configs = {config.name: config for config in cls.BUILDER_CONFIGS}
+        if len(configs) != len(cls.BUILDER_CONFIGS):
             names = [config.name for config in cls.BUILDER_CONFIGS]
             raise ValueError("Names in BUILDER_CONFIGS must not be duplicated. Got %s" % names)
-        return config_dict
+        return configs
 
     @property
     def cache_dir(self):
