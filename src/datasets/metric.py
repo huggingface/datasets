@@ -443,11 +443,22 @@ class Metric(MetricInfoMixin):
                     f"Mismatch in the number of predictions ({match.group(1)}) and references ({match.group(2)})"
                 )
             else:
+                # lists - summarize long lists similarly to NumPy
+                # arrays/tensors - let the frameworks control formatting
+                def summarize_if_long_list(obj):
+                    if not type(obj) == list or len(obj) <= 6:
+                        return f"{obj}"
+
+                    def format_chunk(chunk):
+                        return ", ".join(repr(x) for x in chunk)
+
+                    return f"[{format_chunk(obj[:3])}, ..., {format_chunk(obj[-3:])}]"
+
                 error_msg = (
                     f"Predictions and/or references don't match the expected format.\n"
                     f"Expected format: {self.features},\n"
-                    f"Input predictions: {predictions},\n"
-                    f"Input references: {references}"
+                    f"Input predictions: {summarize_if_long_list(predictions)},\n"
+                    f"Input references: {summarize_if_long_list(references)}"
                 )
             raise ValueError(error_msg) from None
 
