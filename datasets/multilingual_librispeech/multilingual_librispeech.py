@@ -51,7 +51,9 @@ class MultilingualLibrispeechConfig(datasets.BuilderConfig):
           name: `string`, name of dataset config
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MultilingualLibrispeechConfig, self).__init__(version=datasets.Version("2.1.0", ""), name=name, data_dir=_DL_URL_FORMAT.format(name), **kwargs)
+        super(MultilingualLibrispeechConfig, self).__init__(
+            version=datasets.Version("2.1.0", ""), name=name, data_dir=_DL_URL_FORMAT.format(name), **kwargs
+        )
 
 
 class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
@@ -91,14 +93,26 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
         data_path = os.path.join(archive_path, "mls_" + self.config.name)
 
         train_splits = [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": os.path.join(data_path, "train")}),
-            datasets.SplitGenerator(name="train.9h", gen_kwargs={"data_dir": os.path.join(data_path, "train"), "sub_folder": "limited_supervision/9hr"}),
-            datasets.SplitGenerator(name="train.1h", gen_kwargs={"data_dir": os.path.join(data_path, "train"), "sub_folder": "limited_supervision/1hr"}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"data_dir": os.path.join(data_path, "train")}
+            ),
+            datasets.SplitGenerator(
+                name="train.9h",
+                gen_kwargs={"data_dir": os.path.join(data_path, "train"), "sub_folder": "limited_supervision/9hr"},
+            ),
+            datasets.SplitGenerator(
+                name="train.1h",
+                gen_kwargs={"data_dir": os.path.join(data_path, "train"), "sub_folder": "limited_supervision/1hr"},
+            ),
         ]
 
         return train_splits + [
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"data_dir": os.path.join(data_path, "dev")}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"data_dir": os.path.join(data_path, "test")}),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"data_dir": os.path.join(data_path, "dev")}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"data_dir": os.path.join(data_path, "test")}
+            ),
         ]
 
     def _generate_examples(self, data_dir, sub_folder=""):
