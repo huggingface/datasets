@@ -114,7 +114,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 | dutch | 374287 | 2153 | 234 | 3095 | 3075 |
 | french | 258213 | 2167 | 241 | 2416 | 2426 |
 | spanish | 220701 | 2110 | 233 | 2408 | 2385 |
-| italian | | 59623 | 2173 | 240 | 1248 | 1262 |
+| italian | 59623 | 2173 | 240 | 1248 | 1262 |
 | portuguese | 37533 | 2116 | 236 | 826 | 871 |
 | polish | 25043 | 2173 | 238 | 512 | 520 |
 
