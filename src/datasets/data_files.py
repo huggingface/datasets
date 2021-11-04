@@ -105,7 +105,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
 
 def _resolve_single_pattern_locally(
     base_path: str, pattern: str, allowed_extensions: Optional[List[str]] = None
-) -> List[PurePath]:
+) -> List[Path]:
     """
     Return the absolute paths to all the files that match the given patterns.
     It also supports absolute paths in patterns.
@@ -118,7 +118,7 @@ def _resolve_single_pattern_locally(
         glob_iter = [Path(filepath) for filepath in glob.glob(pattern)]
 
     matched_paths = [
-        filepath.resolve().relative_to(base_path)
+        filepath.resolve()
         for filepath in glob_iter
         if filepath.name not in data_files_ignore and not filepath.name.startswith(".") and filepath.is_file()
     ]
@@ -140,7 +140,7 @@ def _resolve_single_pattern_locally(
         if allowed_extensions is not None:
             error_msg += f" with any supported extension {list(allowed_extensions)}"
         raise FileNotFoundError(error_msg)
-    return out
+    return sorted(out)
 
 
 def resolve_patterns_locally_or_by_urls(
@@ -169,13 +169,12 @@ def resolve_patterns_locally_or_by_urls(
         List[Union[Path, Url]]: List of paths or URLs to the local or remote files that match the patterns.
     """
     data_files = []
-    root_path = Path(base_path).resolve()
     for pattern in patterns:
         if is_remote_url(pattern):
             data_files.append(Url(pattern))
         else:
-            for rel_path in _resolve_single_pattern_locally(base_path, pattern, allowed_extensions):
-                data_files.append(root_path / rel_path)
+            for path in _resolve_single_pattern_locally(base_path, pattern, allowed_extensions):
+                data_files.append(path)
 
     if not data_files:
         error_msg = f"Unable to resolve any data file that matches '{patterns}' at {Path(base_path).resolve()}"
@@ -225,7 +224,7 @@ def _resolve_single_pattern_in_dataset_repository(
         if allowed_extensions is not None:
             error_msg += f" with any supported extension {list(allowed_extensions)}"
         raise FileNotFoundError(error_msg)
-    return out
+    return sorted(out)
 
 
 def resolve_patterns_in_dataset_repository(

@@ -117,6 +117,17 @@ def test_fail_resolve_patterns_locally_or_by_urls(complex_data_dir):
         resolve_patterns_locally_or_by_urls(complex_data_dir, ["blablabla"])
 
 
+def test_resolve_patterns_locally_or_by_urls_sorted_files(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("unsorted_text_files"))
+    unsorted_names = ["0.txt", "2.txt", "3.txt"]
+    for name in unsorted_names:
+        with open(os.path.join(path, name), "w"):
+            pass
+    resolved_data_files = resolve_patterns_locally_or_by_urls(path, ["*"])
+    resolved_names = [os.path.basename(data_file) for data_file in resolved_data_files]
+    assert resolved_names == sorted(unsorted_names)
+
+
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
 def test_resolve_patterns_in_dataset_repository(hub_dataset_info, pattern, hub_dataset_info_patterns_results):
     resolved_data_files = resolve_patterns_in_dataset_repository(hub_dataset_info, [pattern])
@@ -141,6 +152,15 @@ def test_resolve_patterns_in_dataset_repository_with_extensions(hub_dataset_info
 def test_fail_resolve_patterns_in_dataset_repository(hub_dataset_info):
     with pytest.raises(FileNotFoundError):
         resolve_patterns_in_dataset_repository(hub_dataset_info, "blablabla")
+
+
+def test_resolve_patterns_in_dataset_repository_sorted_files():
+    unsorted_names = ["0.txt", "2.txt", "3.txt"]
+    siblings = [{"rfilename": name} for name in unsorted_names]
+    datasets_infos = DatasetInfo(id="test_unsorted_files", siblings=siblings, sha="foobar")
+    resolved_data_files = resolve_patterns_in_dataset_repository(datasets_infos, ["*"])
+    resolved_names = [os.path.basename(data_file) for data_file in resolved_data_files]
+    assert resolved_names == sorted(unsorted_names)
 
 
 @pytest.mark.parametrize("pattern", _TEST_PATTERNS)
