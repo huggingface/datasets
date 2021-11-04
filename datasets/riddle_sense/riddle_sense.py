@@ -33,7 +33,7 @@ commercial use provided that we agree not to change or delete any copyright or p
 materials. The dataset users must agree that they will only use the dataset for research purposes before they can
 access the both the riddles and our annotations. We do not vouch for the potential bias or fairness issue that might
 exist within the riddles. You do not have the right to redistribute them. Again, you must not use this dataset for any
-commercial purposes. 
+commercial purposes.
 """
 
 _URL = "https://inklab.usc.edu/RiddleSense/riddlesense_dataset/"
