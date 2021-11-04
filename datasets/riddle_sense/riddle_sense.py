@@ -27,6 +27,17 @@ building advanced NLU systems.
 
 """
 
+_LICENSE = """\
+The copyright of RiddleSense dataset is consistent with the terms of use of the fan websites and the intellectual
+property and privacy rights of the original sources. All of our riddles and answers are from fan websites that can be
+accessed freely. The website owners state that you may print and download material from the sites solely for non
+commercial use provided that we agree not to change or delete any copyright or proprietary notices from the
+materials. The dataset users must agree that they will only use the dataset for research purposes before they can
+access the both the riddles and our annotations. We do not vouch for the potential bias or fairness issue that might
+exist within the riddles. You do not have the right to redistribute them. Again, you must not use this dataset for any
+commercial purposes. 
+"""
+
 _URL = "https://inklab.usc.edu/RiddleSense/riddlesense_dataset/"
 _URLS = {
     "train": _URL + "rs_train.jsonl",
@@ -65,6 +76,7 @@ class RiddleSense(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage="https://inklab.usc.edu/RiddleSense/",
             citation=_CITATION,
+            license=_LICENSE,
         )
 
     def _split_generators(self, dl_manager):

@@ -1,21 +1,24 @@
+---
 annotations_creators:
 - crowdsourced
 language_creators:
 - found
 languages:
-- '''en-US'''
-licenses: []
+- en
+licenses:
+- other-non-commercial
 multilinguality:
 - monolingual
 pretty_name: RiddleSense
 size_categories:
-- unknown
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+---
 
 # Dataset Card for RiddleSense
 
@@ -156,7 +159,7 @@ default
 
 ### Licensing Information
 
-[Needs More Information]
+The copyright of RiddleSense dataset is consistent with the terms of use of the fan websites and the intellectual property and privacy rights of the original sources. All of our riddles and answers are from fan websites that can be accessed freely. The website owners state that you may print and download material from the sites solely for non-commercial use provided that we agree not to change or delete any copyright or proprietary notices from the materials. The dataset users must agree that they will only use the dataset for research purposes before they can access the both the riddles and our annotations. We do not vouch for the potential bias or fairness issue that might exist within the riddles. You do not have the right to redistribute them. Again, you must not use this dataset for any commercial purposes. 
 
 ### Citation Information
 
