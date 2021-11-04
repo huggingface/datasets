@@ -132,6 +132,6 @@ means they can be passed directly to methods like `model.fit()`. `to_tf_dataset(
 
 .. tip::
 
-   ``to_tf_dataset`` is the easiest way to create a TensorFlow compatible dataset. If you are looking for additional options for constructing a TensorFlow dataset, take a look at the :ref:`format` section!
+   ``to_tf_dataset`` is the easiest way to create a TensorFlow compatible dataset. If, however, you don't want a `tf.data.Dataset`, but you would like the dataset to emit `tf.Tensor` objects, take a look at the :ref:`format` section instead!
 
 Your dataset is now ready for use in a training loop!
