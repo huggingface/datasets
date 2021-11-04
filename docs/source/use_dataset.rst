@@ -85,7 +85,9 @@ After you set the format, wrap the dataset with ``torch.utils.data.DataLoader``.
 TensorFlow
 ^^^^^^^^^^
 
-If you are using TensorFlow, set the format with ``to_tf_dataset``, which accepts several arguments:
+If you are using TensorFlow, you can use ``to_tf_dataset`` to wrap the dataset with a `tf.data.Dataset`.
+`tf.data.Dataset` objects can be iterated over to yield batches of data, and are natively understood by Keras, which
+means they can be passed directly to methods like `model.fit()`. `to_tf_dataset()` accepts several arguments:
 
 1. ``columns`` specify which columns should be formatted (includes the inputs and labels).
 
@@ -110,7 +112,8 @@ If you are using TensorFlow, set the format with ``to_tf_dataset``, which accept
    ...   batch_size=16,
    ...   collate_fn=data_collator,
    ... )
-   >>> next(iter(train_dataset))
+   >>> model.fit(train_dataset)  # The output tf.data.Dataset is ready for training immediately
+   >>> next(iter(train_dataset))  # You can also iterate over the dataset manually to get batches
    {'attention_mask': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
     array([[1, 1, 1, ..., 0, 0, 0],
          ...,
