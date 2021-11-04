@@ -66,7 +66,7 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
         MultilingualLibrispeechConfig(name="spanish", description="Spanish LibriSpeech dataset"),
         MultilingualLibrispeechConfig(name="italian", description="Italian LibriSpeech dataset"),
         MultilingualLibrispeechConfig(name="portuguese", description="Portuguese LibriSpeech dataset"),
-        MultilingualLibrispeechConfig(name="polish", description="Polish dataset"),
+        MultilingualLibrispeechConfig(name="polish", description="Polish LibriSpeech dataset"),
     ]
 
     def _info(self):
