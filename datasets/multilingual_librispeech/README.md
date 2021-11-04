@@ -28,7 +28,7 @@ task_ids:
 - automatic-speech-recognition
 ---
 
-# Dataset Card for librispeech_asr
+# Dataset Card for MultiLingual LibriSpeech
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
