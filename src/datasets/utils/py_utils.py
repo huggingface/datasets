@@ -323,6 +323,11 @@ class Pickler(dill.Pickler):
         else:
             dill.Pickler.save_global(self, obj, name=name)
 
+    def memoize(self, obj):
+        # don't memoize strings since two identical strings can have different python ids
+        if type(obj) != str:
+            dill.Pickler.memoize(self, obj)
+
 
 def dump(obj, file):
     """pickle an object to a file"""

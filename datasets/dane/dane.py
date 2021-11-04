@@ -59,7 +59,7 @@ _LICENSE = "CC BY-SA 4.0"
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://danlp.alexandra.dk/304bd159d5de/datasets/ddt.zip"
+_URL = "http://danlp-downloads.alexandra.dk/datasets/ddt.zip"
 
 
 class Dane(datasets.GeneratorBasedBuilder):
