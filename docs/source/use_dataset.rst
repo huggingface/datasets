@@ -86,7 +86,7 @@ TensorFlow
 ^^^^^^^^^^
 
 If you are using TensorFlow, you can use ``to_tf_dataset`` to wrap the dataset with a `tf.data.Dataset`.
-`tf.data.Dataset` objects can be iterated over to yield batches of data, and are natively understood by Keras, which
+`tf.data.Dataset` objects are natively understood by Keras. This means a `tf.data.Dataset` object can be iterated over to yield batches of data, and can be passed directly to methods like `model.fit()`.
 means they can be passed directly to methods like `model.fit()`. `to_tf_dataset()` accepts several arguments:
 
 1. ``columns`` specify which columns should be formatted (includes the inputs and labels).
