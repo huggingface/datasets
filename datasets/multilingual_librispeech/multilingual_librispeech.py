@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""Librispeech automatic speech recognition dataset."""
+"""Multilingual Librispeech automatic speech recognition dataset."""
 
 
 import glob
@@ -88,7 +88,6 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         archive_path = dl_manager.download_and_extract(self.config.data_dir)
-        return []
         data_path = os.path.join(archive_path, "mls_" + self.config.name)
 
         train_splits = [
