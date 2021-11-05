@@ -1,5 +1,5 @@
-How to structure your repository
-================================
+Structure your repository
+=========================
 
 To host and share your dataset, you can create a dataset repository on the Hugging Face Dataset Hub and upload your data files.
 
