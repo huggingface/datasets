@@ -18,8 +18,9 @@
 
 from typing import Dict, List, Mapping, Optional, Sequence, Union
 
+import huggingface_hub
+
 from .features import Features
-from .hf_api import HfApi
 from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
 from .utils import DownloadConfig
 from .utils.download_manager import GenerateMode
@@ -36,25 +37,33 @@ class SplitsNotFoundError(ValueError):
 
 
 def list_datasets(with_community_datasets=True, with_details=False):
-    """List all the datasets scripts available on HuggingFace AWS bucket.
+    """List all the datasets scripts available on the Hugging Face Hub.
 
     Args:
         with_community_datasets (``bool``, optional, default ``True``): Include the community provided datasets.
         with_details (``bool``, optional, default ``False``): Return the full details on the datasets instead of only the short name.
     """
-    api = HfApi()
-    return api.dataset_list(with_community_datasets=with_community_datasets, id_only=bool(not with_details))
+    datasets = huggingface_hub.list_datasets(full=with_details)
+    if not with_community_datasets:
+        datasets = [dataset for dataset in datasets if "/" not in dataset.id]
+    if not with_details:
+        datasets = [dataset.id for dataset in datasets]
+    return datasets
 
 
 def list_metrics(with_community_metrics=True, with_details=False):
-    """List all the metrics script available on HuggingFace AWS bucket
+    """List all the metrics script available on the Hugging Face Hub.
 
     Args:
-        with_community_metrics (Optional ``bool``): Include the community provided metrics (default: ``True``)
-        with_details (Optional ``bool``): Return the full details on the metrics instead of only the short name (default: ``False``)
+        with_community_metrics (Optional ``bool``, default ``True``): Include the community provided metrics.
+        with_details (Optional ``bool``, default ``False``): Return the full details on the metrics instead of only the short name.
     """
-    api = HfApi()
-    return api.metric_list(with_community_metrics=with_community_metrics, id_only=bool(not with_details))
+    metrics = huggingface_hub.list_metrics()
+    if not with_community_metrics:
+        metrics = [metric for metric in metrics if "/" not in metric.id]
+    if not with_details:
+        metrics = [metric.id for metric in metrics]
+    return metrics
 
 
 def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
@@ -66,7 +75,7 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         local_path (``str``): path to the local folder to copy the datset script to.
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
@@ -91,7 +100,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         local_path (``str``): path to the local folder to copy the datset script to.
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
@@ -124,7 +133,7 @@ def get_dataset_infos(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         revision (Optional ``Union[str, datasets.Version]``):
             If specified, the dataset module will be loaded from the datasets repository at this version.
@@ -174,7 +183,7 @@ def get_dataset_config_names(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         revision (Optional ``Union[str, datasets.Version]``):
             If specified, the dataset module will be loaded from the datasets repository at this version.
@@ -227,7 +236,7 @@ def get_dataset_split_names(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
