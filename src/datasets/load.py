@@ -47,6 +47,7 @@ from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, 
 from .splits import Split
 from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
+from .utils.deprecation_utils import deprecated
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
     DownloadConfig,
@@ -1250,6 +1251,7 @@ def metric_module_factory(
         raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
 
 
+@deprecated("Use dataset_module_factory or metric_module_factory instead.")
 def prepare_module(
     path: str,
     revision: Optional[Union[str, Version]] = None,
@@ -1262,14 +1264,18 @@ def prepare_module(
     script_version="deprecated",
     **download_kwargs,
 ) -> Union[Tuple[str, str], Tuple[str, str, Optional[str]]]:
-    """For backward compatibility. Please use dataset_module_factory or metric_module_factory instead."""
+    """
+    .. deprecated:: 1.13
+        `prepare_module` was deprecated in version 1.13 and will be removed in the next major version.
+        For backward compatibility, please use :func:`dataset_module_factory` or :func:`metric_module_factory` instead.
+    """
     if script_version != "deprecated":
         warnings.warn(
             "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
         )
         revision = script_version
-    if dataset:
-        results = dataset_module_factory(
+    module = (
+        dataset_module_factory(
             path,
             revision=revision,
             download_config=download_config,
@@ -1279,9 +1285,8 @@ def prepare_module(
             data_files=data_files,
             **download_kwargs,
         )
-        return results.module_path, results.hash
-    else:
-        results = metric_module_factory(
+        if dataset
+        else metric_module_factory(
             path,
             revision=revision,
             download_config=download_config,
@@ -1290,7 +1295,8 @@ def prepare_module(
             dynamic_modules_path=dynamic_modules_path,
             **download_kwargs,
         )
-        return results.module_path, results.hash
+    )
+    return module.module_path, module.hash
 
 
 def load_metric(
