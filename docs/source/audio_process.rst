@@ -4,7 +4,7 @@ Process audio data
 🤗 Datasets supports an :class:`datasets.Audio` feature, enabling users to load and process raw audio files for training. This guide will show you how to:
 
 * Load your own custom audio dataset.
-* Resample 
+* Resample audio files.
 
 Installation
 ------------
@@ -26,7 +26,7 @@ Users should also install `torchaudio <https://pytorch.org/audio/stable/index.ht
 
     torchaudio's ``sox_io`` `backend <https://pytorch.org/audio/stable/backend.html#>`_ supports decoding ``mp3`` files. Unfortunately, the ``sox_io`` backend is only available on Linux/macOS, and is unsupported by Windows.
 
-Then you can load an audio dataset the same way you would load a text dataset. For example, load the `Common Voice <https://huggingface.co/datasets/common_voice>`_` dataset with the Turkish configuration:
+Then you can load an audio dataset the same way you would load a text dataset. For example, load the `Common Voice <https://huggingface.co/datasets/common_voice>`_ dataset with the Turkish configuration:
 
 .. code-block::
 
@@ -37,9 +37,6 @@ Audio datasets
 --------------
 
 Audio datasets commonly have a ``path`` and ``audio`` column.
-
-``path``
-^^^^^^^^
 
 ``path`` is an absolute path to an audio file.
 
@@ -53,9 +50,6 @@ The ``path`` is useful if you want to load your own audio dataset. In this case,
 .. code::
 
     >>> my_audio_dataset = my_audio_dataset.cast_column("paths_to_my_audio_files", Audio())
-
-``audio``
-^^^^^^^^^
 
 ``audio`` is the actual audio file that is loaded and resampled on-the-fly upon calling it.
 
@@ -72,7 +66,7 @@ When accessing an audio file, the audio file is automatically decoded and resamp
 Resample
 --------
 
-Some models expect the audio data to have a certain sampling rate due to how the model was pretrained. For example, the `XLSR-Wav2Vec2 <https://huggingface.co/facebook/wav2vec2-large-xlsr-53>`_` model expects the input to have a sampling rate of 16kHz, but a Common Voice audio file has a sampling rate of 48kHz. Use :meth:`datasets.Dataset.cast_column` to downsample the sampling rate to 16kHz:
+Some models expect the audio data to have a certain sampling rate due to how the model was pretrained. For example, the `XLSR-Wav2Vec2 <https://huggingface.co/facebook/wav2vec2-large-xlsr-53>`_ model expects the input to have a sampling rate of 16kHz, but a Common Voice audio file has a sampling rate of 48kHz. Use :meth:`datasets.Dataset.cast_column` to downsample the sampling rate to 16kHz:
 
 .. code::
 
