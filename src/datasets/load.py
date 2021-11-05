@@ -1264,7 +1264,11 @@ def prepare_module(
     script_version="deprecated",
     **download_kwargs,
 ) -> Union[Tuple[str, str], Tuple[str, str, Optional[str]]]:
-    """For backward compatibility. Please use dataset_module_factory or metric_module_factory instead."""
+    """
+    .. deprecated:: 1.13
+        `prepare_module` was deprecated in version 1.13 and will be removed in the next major version.
+        For backward compatibility, please use :func:`dataset_module_factory` or :func:`metric_module_factory` instead.
+    """
     if script_version != "deprecated":
         warnings.warn(
             "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
