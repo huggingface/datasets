@@ -47,6 +47,7 @@ from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, 
 from .splits import Split
 from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
+from .utils.deprecation_utils import deprecated
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
     DownloadConfig,
@@ -1250,6 +1251,7 @@ def metric_module_factory(
         raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
 
 
+@deprecated("Use dataset_module_factory or metric_module_factory instead.")
 def prepare_module(
     path: str,
     revision: Optional[Union[str, Version]] = None,
@@ -1263,11 +1265,6 @@ def prepare_module(
     **download_kwargs,
 ) -> Union[Tuple[str, str], Tuple[str, str, Optional[str]]]:
     """For backward compatibility. Please use dataset_module_factory or metric_module_factory instead."""
-    warnings.warn(
-        "'prepare_module' was superseded by 'dataset_module_factory' and 'metric_module_factory' in version 1.13 and "
-        "will be removed in version 1.15.",
-        FutureWarning,
-    )
     if script_version != "deprecated":
         warnings.warn(
             "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
