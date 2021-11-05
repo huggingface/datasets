@@ -90,7 +90,7 @@ An example of an instance:
 
 ### Data Fields
 
-- `setence`: the input text/sentence.
+- `sentence`: the input text/sentence.
 - `tuples`: the extracted relation tuples from the sentence.
   - `score`: the confident score for each tuple.
   - `tuple_text`: the relationship representation text of the extraction, in the *simple format* of [Open IE v4](https://github.com/allenai/openie-standalone).
@@ -101,7 +101,11 @@ An example of an instance:
 
 ### Data Splits
 
-[More Information Needed]
+|    name   | train|
+|-----------|-----:|
+|    all    |267719|
+| 4th_grade |158910|
+| 8th_grade |108809|
 
 ## Dataset Creation
 
@@ -159,7 +163,15 @@ An example of an instance:
 
 ### Citation Information
 
-[More Information Needed]
+```bibtex
+@article{Khot2017AnsweringCQ,
+  title={Answering Complex Questions Using Open Information Extraction},
+  author={Tushar Khot and A. Sabharwal and Peter Clark},
+  journal={ArXiv},
+  year={2017},
+  volume={abs/1704.05572}
+}
+```
 
 ### Contributions
 
