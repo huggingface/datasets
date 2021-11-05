@@ -5,6 +5,8 @@ To host and share your dataset, you can upload create a dataset repository on th
 
 This guide aims to explain what structure is expected when you upload a dataset.
 
+In the following examples, CSV files are used. However you can use any supported format (text, JSON, JSON Lines, CSV, Parquet).
+
 Main use-case
 -------------
 
@@ -12,12 +14,13 @@ Here is an easy structure that you can use for your repository. It contains two 
 
 It also contains the dataset card `README.md` that is the dataset card that is displayed on the dataset webpage.
 
-```
-my_dataset_repostiory/
-├── README.md
-├── train.csv
-└── test.csv
-```
+::
+
+    my_dataset_repostiory/
+    ├── README.md
+    ├── train.csv
+    └── test.csv
+
 
 Splits and file names
 ---------------------
@@ -27,14 +30,14 @@ All the files that contain "train" in their names are considered part of the tra
 This is the same for the test and validation split: all the files that contain "test" (resp. "valid") in their names are considered part of the test (resp. validation) split.
 Here is an example where all the files are placed into a directory named `data`:
 
-```
-my_dataset_repostiory/
-├── README.md
-└── data/
-    ├── train.csv
-    └── test.csv
-    └── valid.csv
-```
+::
+
+    my_dataset_repostiory/
+    ├── README.md
+    └── data/
+        ├── train.csv
+        └── test.csv
+        └── valid.csv
 
 
 Multiple files per split
@@ -42,35 +45,70 @@ Multiple files per split
 
 If your train is split into several files it also works. Just make sure that all the files of your train set have "train" inside their names (same for test and validation):
 
-```
-my_dataset_repostiory/
-├── README.md
-├── train_0.csv
-├── train_1.csv
-├── train_2.csv
-├── train_3.csv
-├── test_0.csv
-└── test_1.csv
-```
+::
+
+    my_dataset_repostiory/
+    ├── README.md
+    ├── train_0.csv
+    ├── train_1.csv
+    ├── train_2.csv
+    ├── train_3.csv
+    ├── test_0.csv
+    └── test_1.csv
 
 For convenience you can also place your data files into different directories. In this case the split name is infered from the directory name.
 
-```
-my_dataset_repostiory/
-├── README.md
-└── data/
-    ├── train/
-    │   ├── shard_0.csv
-    │   ├── shard_1.csv
-    │   ├── shard_2.csv
-    │   └── shard_3.csv
-    └── test/
-        ├── shard_0.csv
-        └── shard_1.csv
-```
+::
+
+    my_dataset_repostiory/
+    ├── README.md
+    └── data/
+        ├── train/
+        │   ├── shard_0.csv
+        │   ├── shard_1.csv
+        │   ├── shard_2.csv
+        │   └── shard_3.csv
+        └── test/
+            ├── shard_0.csv
+            └── shard_1.csv
 
 
 Multiple configuration (WIP)
 ----------------------------
 
-WIP
+You can separate different configurations of your dataset (for example if it is splti in different languages) by using one directory per configuration.
+
+These structures is not yet supported, but are a work in progress:
+
+
+::
+
+    my_dataset_repostiory/
+    ├── README.md
+    ├── en/
+    │   ├── train.csv
+    │   └── test.csv
+    └── fr/
+        ├── train.csv
+        └── test.csv
+
+Or with one directory per split:
+
+::
+
+    my_dataset_repostiory/
+    ├── README.md
+    ├── en/
+    │   ├── train/
+    │   │   ├── shard_0.csv
+    │   │   └── shard_1.csv
+    │   └── test/
+    │       ├── shard_0.csv
+    │       └── shard_1.csv
+    └── fr/
+        ├── train/
+        │   ├── shard_0.csv
+        │   └── shard_1.csv
+        └── test/
+            ├── shard_0.csv
+            └── shard_1.csv
