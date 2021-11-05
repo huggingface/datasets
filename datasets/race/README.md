@@ -1,4 +1,5 @@
 ---
+pretty_name: RACE
 languages:
 - en
 paperswithcode_id: race
