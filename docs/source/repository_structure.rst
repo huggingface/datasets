@@ -4,8 +4,11 @@ Structure your repository
 To host and share your dataset, you can create a dataset repository on the Hugging Face Dataset Hub and upload your data files.
 
 This guide aims to explain what structure is expected when you upload a dataset.
+A dataset with a supported structure can be loaded automatically using ``load_dataset``, and also has a nice preview on its dataset page on the Hub.
 
-In the following examples, CSV files are used. However you can use any supported format (text, JSON, JSON Lines, CSV, Parquet).
+.. Note::
+
+    In the following examples, CSV files are used. However you can use any supported format (text, JSON, JSON Lines, CSV, Parquet).
 
 Main use-case
 -------------
@@ -102,7 +105,7 @@ Multiple configuration (WIP)
 
 You can separate different configurations of your dataset (for example if it is splti in different languages) by using one directory per configuration.
 
-These structures is not yet supported, but are a work in progress:
+These structures are not supported yet, but are a work in progress:
 
 
 ::
