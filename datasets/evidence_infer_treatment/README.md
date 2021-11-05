@@ -1,4 +1,5 @@
 ---
+pretty_name: EvidenceInferTreatment
 annotations_creators:
 - expert-generated
 language_creators:

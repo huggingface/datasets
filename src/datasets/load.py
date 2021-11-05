@@ -1625,6 +1625,15 @@ def load_dataset(
     if streaming:
         # this extends the open and os.path.join functions for data streaming
         extend_module_for_streaming(builder_instance.__module__, use_auth_token=use_auth_token)
+        # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
+        if not builder_instance.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
+            for imports in get_imports(inspect.getfile(builder_instance.__class__)):
+                if imports[0] == "internal":
+                    internal_import_name = imports[1]
+                    internal_module_name = ".".join(
+                        builder_instance.__module__.split(".")[:-1] + [internal_import_name]
+                    )
+                    extend_module_for_streaming(internal_module_name, use_auth_token=use_auth_token)
         return builder_instance.as_streaming_dataset(
             split=split,
             use_auth_token=use_auth_token,

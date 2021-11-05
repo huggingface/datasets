@@ -18,7 +18,6 @@
 
 import csv
 import json
-import os
 import textwrap
 
 import datasets
@@ -374,148 +373,161 @@ class Klue(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_dir = dl_manager.download_and_extract(self.config.data_url)
+        archive = dl_manager.download(self.config.data_url)
         dir_name = self.config.data_url.split("/")[-1].replace(".tar.gz", "")
-        data_dir = os.path.join(dl_dir, dir_name)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "data_file": os.path.join(data_dir, self.config.file_map["train"]),
-                    "split": "train",
+                    "data_file": dir_name + "/" + self.config.file_map["train"],
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "data_file": os.path.join(data_dir, self.config.file_map["dev"]),
-                    "split": "dev",
+                    "data_file": dir_name + "/" + self.config.file_map["dev"],
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, data_file, split):
+    def _generate_examples(self, data_file, files):
         if self.config.name in ["ynat", "sts", "re"]:
-            with open(data_file, encoding="UTF-8") as f:
-                f = json.load(f)
-                for id_, row in enumerate(f):
-                    features = {key: row[key] for key in row if key in self.config.features}
-                    yield id_, features
+            for path, f in files:
+                if path == data_file:
+                    f = json.load(f)
+                    for id_, row in enumerate(f):
+                        features = {key: row[key] for key in row if key in self.config.features}
+                        yield id_, features
+                    break
 
         if self.config.name == "nli":
-            with open(data_file, encoding="UTF-8") as f:
-                f = json.load(f)
-                for id_, row in enumerate(f):
-                    # In train file, "source" is written as "genre"
-                    features = {
-                        "guid": row["guid"],
-                        "source": row["source"] if "source" in row else row["genre"],
-                        "premise": row["premise"],
-                        "hypothesis": row["hypothesis"],
-                        "label": row["gold_label"],
-                    }
-                    yield id_, features
+            for path, f in files:
+                if path == data_file:
+                    f = json.load(f)
+                    for id_, row in enumerate(f):
+                        # In train file, "source" is written as "genre"
+                        features = {
+                            "guid": row["guid"],
+                            "source": row["source"] if "source" in row else row["genre"],
+                            "premise": row["premise"],
+                            "hypothesis": row["hypothesis"],
+                            "label": row["gold_label"],
+                        }
+                        yield id_, features
+                    break
 
         if self.config.name == "ner":
-            with open(data_file, encoding="UTF-8") as f:
-                reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-                for _ in range(5):  # skip headers
-                    next(reader)
-                id_ = -1
-                for row in reader:
-                    if row:
-                        if row[0].startswith("##"):
-                            id_ += 1
-                            tokens, ner_tags = [], []
-                            sentence = row[1]
-                        else:
-                            tokens.append(row[0])
-                            ner_tags.append(row[1])
-                    else:  # new line
-                        assert len(tokens) == len(ner_tags)
-                        yield id_, {"sentence": sentence, "tokens": tokens, "ner_tags": ner_tags}
+            for path, f in files:
+                if path == data_file:
+                    f = (line.decode("utf-8") for line in f)
+                    reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
+                    for _ in range(5):  # skip headers
+                        next(reader)
+                    id_ = -1
+                    for row in reader:
+                        if row:
+                            if row[0].startswith("##"):
+                                id_ += 1
+                                tokens, ner_tags = [], []
+                                sentence = row[1]
+                            else:
+                                tokens.append(row[0])
+                                ner_tags.append(row[1])
+                        else:  # new line
+                            assert len(tokens) == len(ner_tags)
+                            yield id_, {"sentence": sentence, "tokens": tokens, "ner_tags": ner_tags}
+                    break
 
         if self.config.name == "dp":
-            with open(data_file, encoding="UTF-8") as f:
-                reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-                for _ in range(5):  # skip headers
-                    next(reader)
-                id_ = -1
-                for row in reader:
-                    if row:
-                        if row[0].startswith("##"):
-                            id_ += 1
-                            index = []
-                            word_form = []
-                            lemma = []
-                            pos = []
-                            head = []
-                            deprel = []
-                            sentence = row[1]
-                        else:
-                            index.append(row[0])
-                            word_form.append(row[1])
-                            lemma.append(row[2])
-                            pos.append(row[3])
-                            head.append(row[4])
-                            deprel.append(row[5])
-                    else:  # new line
-                        assert len(index) == len(word_form) == len(lemma) == len(pos) == len(head) == len(deprel)
-                        yield id_, {
-                            "sentence": sentence,
-                            "index": index,
-                            "word_form": word_form,
-                            "lemma": lemma,
-                            "pos": pos,
-                            "head": head,
-                            "deprel": deprel,
-                        }
+            for path, f in files:
+                if path == data_file:
+                    f = (line.decode("utf-8") for line in f)
+                    reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
+                    for _ in range(5):  # skip headers
+                        next(reader)
+                    id_ = -1
+                    for row in reader:
+                        if row:
+                            if row[0].startswith("##"):
+                                id_ += 1
+                                index = []
+                                word_form = []
+                                lemma = []
+                                pos = []
+                                head = []
+                                deprel = []
+                                sentence = row[1]
+                            else:
+                                index.append(row[0])
+                                word_form.append(row[1])
+                                lemma.append(row[2])
+                                pos.append(row[3])
+                                head.append(row[4])
+                                deprel.append(row[5])
+                        else:  # new line
+                            assert len(index) == len(word_form) == len(lemma) == len(pos) == len(head) == len(deprel)
+                            yield id_, {
+                                "sentence": sentence,
+                                "index": index,
+                                "word_form": word_form,
+                                "lemma": lemma,
+                                "pos": pos,
+                                "head": head,
+                                "deprel": deprel,
+                            }
+                    break
 
         if self.config.name == "mrc":
-            with open(data_file, encoding="UTF-8") as f:
-                f = json.load(f)
-                id_ = -1
-                for example in f["data"]:
-                    title = example.get("title", "")
-                    news_category = example.get("news_category", "")
-                    source = example["source"]
-                    for paragraph in example["paragraphs"]:
-                        context = paragraph["context"].strip()
-                        for qa in paragraph["qas"]:
-                            guid = qa["guid"]
-                            question_type = qa["question_type"]
-                            is_impossible = qa["is_impossible"]
-                            question = qa["question"].strip()
+            for path, f in files:
+                if path == data_file:
+                    f = json.load(f)
+                    id_ = -1
+                    for example in f["data"]:
+                        title = example.get("title", "")
+                        news_category = example.get("news_category", "")
+                        source = example["source"]
+                        for paragraph in example["paragraphs"]:
+                            context = paragraph["context"].strip()
+                            for qa in paragraph["qas"]:
+                                guid = qa["guid"]
+                                question_type = qa["question_type"]
+                                is_impossible = qa["is_impossible"]
+                                question = qa["question"].strip()
 
-                            if "plausible_answers" in qa:
-                                qa["answers"].extend(qa["plausible_answers"])
-                            answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-                            answers = [answer["text"].strip() for answer in qa["answers"]]
-                            id_ += 1
+                                if "plausible_answers" in qa:
+                                    qa["answers"].extend(qa["plausible_answers"])
+                                answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+                                answers = [answer["text"].strip() for answer in qa["answers"]]
+                                id_ += 1
 
-                            yield id_, {
-                                "guid": guid,
-                                "title": title,
-                                "context": context,
-                                "news_category": news_category,
-                                "source": source,
-                                "question_type": question_type,
-                                "is_impossible": is_impossible,
-                                "question": question,
-                                "answers": {
-                                    "answer_start": answer_starts,
-                                    "text": answers,
-                                },
-                            }
+                                yield id_, {
+                                    "guid": guid,
+                                    "title": title,
+                                    "context": context,
+                                    "news_category": news_category,
+                                    "source": source,
+                                    "question_type": question_type,
+                                    "is_impossible": is_impossible,
+                                    "question": question,
+                                    "answers": {
+                                        "answer_start": answer_starts,
+                                        "text": answers,
+                                    },
+                                }
+                    break
 
         if self.config.name == "wos":
-            with open(data_file, encoding="UTF-8") as f:
-                f = json.load(f)
-                for id_, row in enumerate(f):
-                    guid = row["guid"]
-                    domains = row["domains"]
-                    dialogue = row["dialogue"]
-                    for utterance in dialogue:
-                        if "state" not in utterance:
-                            utterance["state"] = []
-                    yield id_, {"guid": guid, "domains": domains, "dialogue": dialogue}
+            for path, f in files:
+                if path == data_file:
+                    f = json.load(f)
+                    for id_, row in enumerate(f):
+                        guid = row["guid"]
+                        domains = row["domains"]
+                        dialogue = row["dialogue"]
+                        for utterance in dialogue:
+                            if "state" not in utterance:
+                                utterance["state"] = []
+                        yield id_, {"guid": guid, "domains": domains, "dialogue": dialogue}
+                    break

@@ -3,7 +3,6 @@
 
 import csv
 import json
-import os
 import textwrap
 
 import pandas as pd
@@ -515,137 +514,150 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
 
         if self.config.name.startswith("wnli"):
-            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+            dl_dir = task_name + "/" + self.config.name.split(".")[1]
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "train.csv"),
+                        "datafile": dl_dir + "/" + "train.csv",
                         "split": datasets.Split.TRAIN,
                         "key": "train-split",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "dev.csv"),
+                        "datafile": dl_dir + "/" + "dev.csv",
                         "split": datasets.Split.VALIDATION,
                         "key": "val-split",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "test.csv"),
+                        "datafile": dl_dir + "/" + "test.csv",
                         "split": datasets.Split.TEST,
                         "key": "test-split",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
 
         if self.config.name.startswith("copa"):
-            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+            dl_dir = task_name + "/" + self.config.name.split(".")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "train.jsonl"),
+                        "datafile": dl_dir + "/" + "train.jsonl",
                         "split": datasets.Split.TRAIN,
                         "key": "train-split",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "val.jsonl"),
+                        "datafile": dl_dir + "/" + "val.jsonl",
                         "split": datasets.Split.VALIDATION,
                         "key": "val-split",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "test.jsonl"),
+                        "datafile": dl_dir + "/" + "test.jsonl",
                         "split": datasets.Split.TEST,
                         "key": "test-split",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
 
         if self.config.name.startswith("sna"):
-            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+            dl_dir = task_name + "/" + self.config.name.split(".")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "bn-train.csv"),
+                        "datafile": dl_dir + "/" + "bn-train.csv",
                         "split": datasets.Split.TRAIN,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "bn-valid.csv"),
+                        "datafile": dl_dir + "/" + "bn-valid.csv",
                         "split": datasets.Split.VALIDATION,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "bn-test.csv"),
+                        "datafile": dl_dir + "/" + "bn-test.csv",
                         "split": datasets.Split.TEST,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
 
         if self.config.name.startswith("csqa"):
-            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name)
+            dl_dir = task_name
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}.json"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}.json",
                         "split": datasets.Split.TEST,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 )
             ]
 
         if self.config.name.startswith("wstp"):
-            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+            dl_dir = task_name + "/" + self.config.name.split(".")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.json"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-train.json",
                         "split": datasets.Split.TRAIN,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-valid.json"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-valid.json",
                         "split": datasets.Split.VALIDATION,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.json"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-test.json",
                         "split": datasets.Split.TEST,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
@@ -655,127 +667,139 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             or self.config.name.startswith("iitp")
             or self.config.name.startswith("actsa")
         ):
-            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+            dl_dir = task_name + "/" + self.config.name.split(".")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.csv"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-train.csv",
                         "split": datasets.Split.TRAIN,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-valid.csv"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-valid.csv",
                         "split": datasets.Split.VALIDATION,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.csv"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-test.csv",
                         "split": datasets.Split.TEST,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
 
         if self.config.name.startswith("bbca"):
-            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+            dl_dir = task_name + "/" + self.config.name.split(".")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.csv"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-train.csv",
                         "split": datasets.Split.TRAIN,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.csv"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-test.csv",
                         "split": datasets.Split.TEST,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
 
         if self.config.name.startswith("cvit"):
-            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+            dl_dir = task_name + "/" + self.config.name.split(".")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
                         "datafile": None,
-                        "src": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[0]}"),
-                        "tgt": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[1]}"),
+                        "src": dl_dir + "/" + f"mkb.{self.config.name.split('.')[1].split('-')[0]}",
+                        "tgt": dl_dir + "/" + f"mkb.{self.config.name.split('.')[1].split('-')[1]}",
                         "split": datasets.Split.TEST,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 )
             ]
 
         if self.config.name.startswith("md"):
-            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+            dl_dir = task_name + "/" + self.config.name.split(".")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "train.json"),
+                        "datafile": dl_dir + "/" + "train.json",
                         "split": datasets.Split.TRAIN,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "val.json"),
+                        "datafile": dl_dir + "/" + "val.json",
                         "split": datasets.Split.VALIDATION,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "test.json"),
+                        "datafile": dl_dir + "/" + "test.json",
                         "split": datasets.Split.TEST,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
 
         if self.config.name.startswith("wiki-ner"):
-            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+            dl_dir = task_name + "/" + self.config.name.split(".")[1]
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.txt"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-train.txt",
                         "split": datasets.Split.TRAIN,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-valid.txt"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-valid.txt",
                         "split": datasets.Split.VALIDATION,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.txt"),
+                        "datafile": dl_dir + "/" + f"{self.config.name.split('.')[1]}-test.txt",
                         "split": datasets.Split.TEST,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
@@ -783,139 +807,173 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, **args):
         """Yields examples."""
         filepath = args["datafile"]
+        files = args["files"]
 
         if self.config.name.startswith("wnli"):
             if args["key"] == "test-split":
-                with open(filepath, encoding="utf-8") as f:
-                    data = csv.DictReader(f)
-                    for id_, row in enumerate(data):
-                        yield id_, {"hypothesis": row["sentence1"], "premise": row["sentence2"], "label": "None"}
+                for path, f in files:
+                    if path == filepath:
+                        data = csv.DictReader((line.decode("utf-8") for line in f))
+                        for id_, row in enumerate(data):
+                            yield id_, {"hypothesis": row["sentence1"], "premise": row["sentence2"], "label": "None"}
+                        break
             else:
-                with open(filepath, encoding="utf-8") as f:
-                    data = csv.DictReader(f)
-                    for id_, row in enumerate(data):
-                        label = "entailment" if row["label"] else "not_entailment"
-                        yield id_, {
-                            "hypothesis": row["sentence1"],
-                            "premise": row["sentence2"],
-                            "label": label,
-                        }
+                for path, f in files:
+                    if path == filepath:
+                        data = csv.DictReader((line.decode("utf-8") for line in f))
+                        for id_, row in enumerate(data):
+                            label = "entailment" if row["label"] else "not_entailment"
+                            yield id_, {
+                                "hypothesis": row["sentence1"],
+                                "premise": row["sentence2"],
+                                "label": label,
+                            }
+                        break
 
         if self.config.name.startswith("copa"):
             if args["key"] == "test-split":
-                with open(filepath, "r", encoding="utf-8") as f:
-                    lines = f.readlines()
-                    data = map(lambda l: json.loads(l), lines)
-                    data = list(data)
-                    for id_, row in enumerate(data):
-                        yield id_, {
-                            "premise": row["premise"],
-                            "choice1": row["choice1"],
-                            "choice2": row["choice2"],
-                            "question": row["question"],
-                            "label": 0,
-                        }
+                for path, f in files:
+                    if path == filepath:
+                        lines = f.readlines()
+                        data = map(lambda l: json.loads(l), lines)
+                        data = list(data)
+                        for id_, row in enumerate(data):
+                            yield id_, {
+                                "premise": row["premise"],
+                                "choice1": row["choice1"],
+                                "choice2": row["choice2"],
+                                "question": row["question"],
+                                "label": 0,
+                            }
+                        break
             else:
-                with open(filepath, "r", encoding="utf-8") as f:
-                    lines = f.readlines()
-                    data = map(lambda l: json.loads(l), lines)
-                    data = list(data)
-                    for id_, row in enumerate(data):
-                        yield id_, {
-                            "premise": row["premise"],
-                            "choice1": row["choice1"],
-                            "choice2": row["choice2"],
-                            "question": row["question"],
-                            "label": row["label"],
-                        }
+                for path, f in files:
+                    if path == filepath:
+                        lines = f.readlines()
+                        data = map(lambda l: json.loads(l), lines)
+                        data = list(data)
+                        for id_, row in enumerate(data):
+                            yield id_, {
+                                "premise": row["premise"],
+                                "choice1": row["choice1"],
+                                "choice2": row["choice2"],
+                                "question": row["question"],
+                                "label": row["label"],
+                            }
+                        break
 
         if self.config.name.startswith("sna"):
-            df = pd.read_csv(filepath, names=["label", "text"])
-            for id_, row in df.iterrows():
-                yield id_, {"text": row["text"], "label": row["label"]}
+            for path, f in files:
+                if path == filepath:
+                    df = pd.read_csv(f, names=["label", "text"])
+                    for id_, row in df.iterrows():
+                        yield id_, {"text": row["text"], "label": row["label"]}
+                    break
 
         if self.config.name.startswith("csqa"):
-            with open(filepath, encoding="utf-8") as f:
-                data = json.load(f)
-                df = pd.DataFrame(data["cloze_data"])
-                df["out_of_context_options"].loc[df["out_of_context_options"].isnull()] = (
-                    df["out_of_context_options"].loc[df["out_of_context_options"].isnull()].apply(lambda x: [])
-                )
-                for id_, row in df.iterrows():
-                    yield id_, {
-                        "question": row["question"],
-                        "answer": row["answer"],
-                        "category": row["category"],
-                        "title": row["title"],
-                        "out_of_context_options": row["out_of_context_options"],
-                        "options": row["options"],
-                    }
+            for path, f in files:
+                if path == filepath:
+                    data = json.load(f)
+                    df = pd.DataFrame(data["cloze_data"])
+                    df["out_of_context_options"].loc[df["out_of_context_options"].isnull()] = (
+                        df["out_of_context_options"].loc[df["out_of_context_options"].isnull()].apply(lambda x: [])
+                    )
+                    for id_, row in df.iterrows():
+                        yield id_, {
+                            "question": row["question"],
+                            "answer": row["answer"],
+                            "category": row["category"],
+                            "title": row["title"],
+                            "out_of_context_options": row["out_of_context_options"],
+                            "options": row["options"],
+                        }
+                    break
 
         if self.config.name.startswith("wstp"):
-            df = pd.read_json(filepath)
-            for id_, row in df.iterrows():
-                yield id_, {
-                    "sectionText": row["sectionText"],
-                    "correctTitle": row["correctTitle"],
-                    "titleA": row["titleA"],
-                    "titleB": row["titleB"],
-                    "titleC": row["titleC"],
-                    "titleD": row["titleD"],
-                    "url": row["url"],
-                }
+            for path, f in files:
+                if path == filepath:
+                    df = pd.read_json(f)
+                    for id_, row in df.iterrows():
+                        yield id_, {
+                            "sectionText": row["sectionText"],
+                            "correctTitle": row["correctTitle"],
+                            "titleA": row["titleA"],
+                            "titleB": row["titleB"],
+                            "titleC": row["titleC"],
+                            "titleD": row["titleD"],
+                            "url": row["url"],
+                        }
+                    break
 
         if (
             self.config.name.startswith("inltkh")
             or self.config.name.startswith("bbca")
             or self.config.name.startswith("iitp")
         ):
-            df = pd.read_csv(filepath, names=["label", "text"])
-            for id_, row in df.iterrows():
-                yield id_, {"text": row["text"], "label": row["label"]}
+            for path, f in files:
+                if path == filepath:
+                    df = pd.read_csv(f, names=["label", "text"])
+                    for id_, row in df.iterrows():
+                        yield id_, {"text": row["text"], "label": row["label"]}
+                    break
 
         if self.config.name.startswith("actsa"):
-            df = pd.read_csv(filepath, names=["label", "text"])
-            for id_, row in df.iterrows():
-                label = "positive" if row["label"] else "negative"
-                yield id_, {"text": row["text"], "label": label}
+            for path, f in files:
+                if path == filepath:
+                    df = pd.read_csv(f, names=["label", "text"])
+                    for id_, row in df.iterrows():
+                        label = "positive" if row["label"] else "negative"
+                        yield id_, {"text": row["text"], "label": label}
+                    break
 
         if self.config.name.startswith("cvit"):
             source = args["src"]
             target = args["tgt"]
-
-            src, tgt = open(source, "r", encoding="utf-8"), open(target, "r", encoding="utf-8")
-            src, tgt = src.readlines(), tgt.readlines()
-
-            for id_, row in enumerate(zip(src, tgt)):
-                yield id_, {"sentence1": row[0], "sentence2": row[1]}
+            src, tgt = None, None
+            for path, f in files:
+                if path == source:
+                    src = f.read().decode("utf-8").splitlines()
+                elif path == target:
+                    tgt = f.read().decode("utf-8").splitlines()
+                if src is not None and tgt is not None:
+                    for id_, row in enumerate(zip(src, tgt)):
+                        yield id_, {"sentence1": row[0], "sentence2": row[1]}
+                    break
 
         if self.config.name.startswith("md"):
-            df = pd.read_json(filepath)
-            for id_, row in df.iterrows():
-                yield id_, {
-                    "story_number": row["Story_no"],
-                    "sentence": row["Sentence"],
-                    "discourse_mode": row["Discourse Mode"],
-                    "id": row["id"],
-                }
+            for path, f in files:
+                if path == filepath:
+                    df = pd.read_json(f)
+                    for id_, row in df.iterrows():
+                        yield id_, {
+                            "story_number": row["Story_no"],
+                            "sentence": row["Sentence"],
+                            "discourse_mode": row["Discourse Mode"],
+                            "id": row["id"],
+                        }
+                    break
 
         if self.config.name.startswith("wiki-ner"):
-            with open(filepath, "r", encoding="utf-8") as f:
-                data = f.readlines()
-                for id_, row in enumerate(data):
+            for path, f in files:
+                if path == filepath:
+                    data = f.read().decode("utf-8").splitlines()
                     tokens = []
                     labels = []
                     infos = []
+                    for id_, row in enumerate(data):
+                        row = row.split()
 
-                    row = row.split()
+                        if len(row) == 0:
+                            yield id_, {"tokens": tokens, "ner_tags": labels, "additional_info": infos}
+                            tokens = []
+                            labels = []
+                            infos = []
+                            continue
 
-                    if len(row) == 0:
-                        yield id_, {"tokens": tokens, "ner_tags": labels, "additional_info": infos}
-                        continue
-
-                    tokens.append(row[0])
-                    labels.append(row[-1])
-                    infos.append(row[1:-1])
+                        tokens.append(row[0])
+                        labels.append(row[-1])
+                        infos.append(row[1:-1])
+                    break
 
     def _get_task_name_from_data_url(self, data_url):
         return data_url.split("/")[-1].split(".")[0]

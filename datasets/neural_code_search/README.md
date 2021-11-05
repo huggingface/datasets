@@ -1,4 +1,5 @@
 ---
+pretty_name: Neural Code Search
 annotations_creators:
 - expert-generated
 language_creators:
