@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - other-other-open-information-extraction
 paperswithcode_id: tupleinf-open-ie-dataset
+pretty_name: TupleInf Open IE
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for TupleInf Open IE
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
