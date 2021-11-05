@@ -21,7 +21,6 @@ from typing import Dict, List, Mapping, Optional, Sequence, Union
 import huggingface_hub
 
 from .features import Features
-from .hf_api import HfApi
 from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
 from .utils import DownloadConfig
 from .utils.download_manager import GenerateMode
