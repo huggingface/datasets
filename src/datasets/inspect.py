@@ -20,7 +20,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 from .features import Features
 from .hf_api import HfApi
-from .load import dataset_module_factory, import_main_class, load_dataset_builder, prepare_module
+from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
 from .utils import DownloadConfig
 from .utils.download_manager import GenerateMode
 from .utils.logging import get_logger
@@ -72,12 +72,12 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
-    module_path, _ = prepare_module(
-        path, download_config=download_config, dataset=True, force_local_path=local_path, **download_kwargs
+    dataset_module = dataset_module_factory(
+        path, download_config=download_config, force_local_path=local_path, **download_kwargs
     )
     print(
         f"The processing script for dataset {path} can be inspected at {local_path}. "
-        f"The main class is in {module_path}. "
+        f"The main class is in {dataset_module.module_path}. "
         f"You can modify this processing script and use it with `datasets.load_dataset({local_path})`."
     )
 
@@ -97,12 +97,12 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
-    module_path, _ = prepare_module(
-        path, download_config=download_config, dataset=False, force_local_path=local_path, **download_kwargs
+    metric_module = metric_module_factory(
+        path, download_config=download_config, force_local_path=local_path, **download_kwargs
     )
     print(
         f"The processing scripts for metric {path} can be inspected at {local_path}. "
-        f"The main class is in {module_path}. "
+        f"The main class is in {metric_module.module_path}. "
         f"You can modify this processing scripts and use it with `datasets.load_metric({local_path})`."
     )
 
@@ -143,9 +143,8 @@ def get_dataset_infos(
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
             for example ``use_auth_token``
     """
-    module_path, _ = prepare_module(
+    dataset_module = dataset_module_factory(
         path,
-        dataset=True,
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
@@ -154,7 +153,7 @@ def get_dataset_infos(
         data_files=data_files,
         **download_kwargs,
     )
-    builder_cls = import_main_class(module_path, dataset=True)
+    builder_cls = import_main_class(dataset_module.module_path, dataset=True)
     return builder_cls.get_all_exported_dataset_infos()
 
 

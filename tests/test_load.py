@@ -295,58 +295,58 @@ class LoadTest(TestCase):
             f.write(dummy_code)
         return module_dir
 
-    def test_prepare_module(self):
+    def test_dataset_module_factory(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # prepare module from directory path
             dummy_code = "MY_DUMMY_VARIABLE = 'hello there'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
-            importable_module_path, module_hash = datasets.load.prepare_module(
+            dataset_module = datasets.load.dataset_module_factory(
                 module_dir, dynamic_modules_path=self.dynamic_modules_path
             )
-            dummy_module = importlib.import_module(importable_module_path)
+            dummy_module = importlib.import_module(dataset_module.module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "hello there")
-            self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
+            self.assertEqual(dataset_module.hash, sha256(dummy_code.encode("utf-8")).hexdigest())
             # prepare module from file path + check resolved_file_path
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name1__", dummy_code)
             module_path = os.path.join(module_dir, "__dummy_module_name1__.py")
-            importable_module_path, module_hash = datasets.load.prepare_module(
+            dataset_module = datasets.load.dataset_module_factory(
                 module_path, dynamic_modules_path=self.dynamic_modules_path
             )
-            dummy_module = importlib.import_module(importable_module_path)
+            dummy_module = importlib.import_module(dataset_module.module_path)
             self.assertEqual(dummy_module.MY_DUMMY_VARIABLE, "general kenobi")
-            self.assertEqual(module_hash, sha256(dummy_code.encode("utf-8")).hexdigest())
+            self.assertEqual(dataset_module.hash, sha256(dummy_code.encode("utf-8")).hexdigest())
             # missing module
             for offline_simulation_mode in list(OfflineSimulationMode):
                 with offline(offline_simulation_mode):
                     with self.assertRaises((FileNotFoundError, ConnectionError, requests.exceptions.ConnectionError)):
-                        datasets.load.prepare_module(
+                        datasets.load.dataset_module_factory(
                             "__missing_dummy_module_name__", dynamic_modules_path=self.dynamic_modules_path
                         )
 
-    def test_offline_prepare_module(self):
+    def test_offline_dataset_module_factory(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_code = "MY_DUMMY_VARIABLE = 'hello there'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name2__", dummy_code)
-            importable_module_path1, _ = datasets.load.prepare_module(
+            dataset_module_1 = datasets.load.dataset_module_factory(
                 module_dir, dynamic_modules_path=self.dynamic_modules_path
             )
             time.sleep(0.1)  # make sure there's a difference in the OS update time of the python file
             dummy_code = "MY_DUMMY_VARIABLE = 'general kenobi'"
             module_dir = self._dummy_module_dir(tmp_dir, "__dummy_module_name2__", dummy_code)
-            importable_module_path2, _ = datasets.load.prepare_module(
+            dataset_module_2 = datasets.load.dataset_module_factory(
                 module_dir, dynamic_modules_path=self.dynamic_modules_path
             )
         for offline_simulation_mode in list(OfflineSimulationMode):
             with offline(offline_simulation_mode):
                 self._caplog.clear()
                 # allow provide the module name without an explicit path to remote or local actual file
-                importable_module_path3, _ = datasets.load.prepare_module(
+                dataset_module_3 = datasets.load.dataset_module_factory(
                     "__dummy_module_name2__", dynamic_modules_path=self.dynamic_modules_path
                 )
                 # it loads the most recent version of the module
-                self.assertEqual(importable_module_path2, importable_module_path3)
-                self.assertNotEqual(importable_module_path1, importable_module_path3)
+                self.assertEqual(dataset_module_2.module_path, dataset_module_3.module_path)
+                self.assertNotEqual(dataset_module_1.module_path, dataset_module_3.module_path)
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
     def test_load_dataset_canonical(self):
