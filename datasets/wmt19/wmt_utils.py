@@ -320,7 +320,7 @@ _TRAIN_SUBSETS = [
         name="paracrawl_v1",
         target="en",
         sources={"cs", "de", "et", "fi", "ru"},
-        url="https://s3.amazonaws.com/web-language-models/paracrawl/release1/paracrawl-release1.en-{src}.zipporah0-dedup-clean.tgz",
+        url="https://s3.amazonaws.com/web-language-models/paracrawl/release1/paracrawl-release1.en-{src}.zipporah0-dedup-clean.tgz",  # TODO(QL): use gzip for streaming
         path=(
             "paracrawl-release1.en-{src}.zipporah0-dedup-clean.{src}",
             "paracrawl-release1.en-{src}.zipporah0-dedup-clean.en",
@@ -330,7 +330,7 @@ _TRAIN_SUBSETS = [
         name="paracrawl_v1_ru",
         target="en",
         sources={"ru"},
-        url="https://s3.amazonaws.com/web-language-models/paracrawl/release1/paracrawl-release1.en-ru.zipporah0-dedup-clean.tgz",
+        url="https://s3.amazonaws.com/web-language-models/paracrawl/release1/paracrawl-release1.en-ru.zipporah0-dedup-clean.tgz",  # TODO(QL): use gzip for streaming
         path=(
             "paracrawl-release1.en-ru.zipporah0-dedup-clean.ru",
             "paracrawl-release1.en-ru.zipporah0-dedup-clean.en",

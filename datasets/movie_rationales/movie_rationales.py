@@ -48,6 +48,7 @@ class MovieRationales(datasets.GeneratorBasedBuilder):
     """Movie reviews with human annotated rationales."""
 
     VERSION = datasets.Version("0.1.0")
+    test_dummy_data = False  # dummy data don't support having a specific order for the files in the archive
 
     def _info(self):
         return datasets.DatasetInfo(
