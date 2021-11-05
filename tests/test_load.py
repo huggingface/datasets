@@ -354,7 +354,7 @@ class LoadTest(TestCase):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
         self.assertIn(
-            f"https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
+            "https://raw.githubusercontent.com/huggingface/datasets/master/datasets/_dummy/_dummy.py",
             str(context.exception),
         )
         with self.assertRaises(FileNotFoundError) as context:
@@ -420,6 +420,7 @@ def test_load_dataset_builder_for_absolute_data_dir(complex_data_dir):
     assert builder.config.name == Path(complex_data_dir).name
     assert isinstance(builder.config.data_files, DataFilesDict)
     assert len(builder.config.data_files["train"]) > 0
+    assert len(builder.config.data_files["test"]) > 0
 
 
 def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
@@ -432,6 +433,7 @@ def test_load_dataset_builder_for_relative_data_dir(complex_data_dir):
         assert builder.config.name == relative_data_dir
         assert isinstance(builder.config.data_files, DataFilesDict)
         assert len(builder.config.data_files["train"]) > 0
+        assert len(builder.config.data_files["test"]) > 0
 
 
 def test_load_dataset_builder_for_community_dataset_with_script():
@@ -452,6 +454,7 @@ def test_load_dataset_builder_for_community_dataset_without_script():
     assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.replace("/", "___")
     assert isinstance(builder.config.data_files, DataFilesDict)
     assert len(builder.config.data_files["train"]) > 0
+    assert len(builder.config.data_files["test"]) > 0
 
 
 def test_load_dataset_builder_fail():

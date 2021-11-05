@@ -37,7 +37,13 @@ from huggingface_hub import HfApi, HfFolder
 from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
-from .data_files import DataFilesDict, DataFilesList, _sanitize_patterns
+from .data_files import (
+    DataFilesDict,
+    DataFilesList,
+    get_patterns_in_dataset_repository,
+    get_patterns_locally,
+    sanitize_patterns,
+)
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -704,8 +710,11 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
+        patterns = (
+            sanitize_patterns(self.data_files) if self.data_files is not None else get_patterns_locally(self.path)
+        )
         data_files = DataFilesDict.from_local_or_remote(
-            _sanitize_patterns(self.data_files), base_path=self.path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
+            patterns, base_path=self.path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
         )
         infered_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
@@ -742,9 +751,12 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        data_files = DataFilesDict.from_local_or_remote(
-            _sanitize_patterns(self.data_files), use_auth_token=self.downnload_config.use_auth_token
+        patterns = (
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_patterns_locally(str(Path().resolve()))
         )
+        data_files = DataFilesDict.from_local_or_remote(patterns, use_auth_token=self.downnload_config.use_auth_token)
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -783,8 +795,13 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             token=token,
             timeout=100.0,
         )
+        patterns = (
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_patterns_in_dataset_repository(dataset_info)
+        )
         data_files = DataFilesDict.from_hf_repo(
-            _sanitize_patterns(self.data_files),
+            patterns,
             dataset_info=dataset_info,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
