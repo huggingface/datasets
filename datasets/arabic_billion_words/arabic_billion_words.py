@@ -53,12 +53,20 @@ _URLs = {
     "Youm7": _URL + "Youm7_XML_utf_8.rar",
 }
 
-# some tags are misspelled
-MISS_SPELLED_TAGS = {
+# Some tags are misspelled
+# - Misspelled article tags:
+#   - Alqabas: <Alqabas>, <Alqabas1>
+#   - Ryiadh: <Ryiadh>, <Ryiadh1>
+MISSPELLED_TAGS = {
     "Dateline": ["Dateline", "dateline"],
     "Headline": ["Headline", "Healine"],
     "Text": ["Text"],
     "URL": ["URL"],
+}
+
+TAG_PATTERNS = {
+    tag: [re.compile(rf".*?<{label}>(.*?)</{label}>.*?", re.MULTILINE | re.DOTALL) for label in labels]
+    for tag, labels in MISSPELLED_TAGS.items()
 }
 
 
@@ -130,41 +138,36 @@ class ArabicBillionWords(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _extract_tags(self, sample, tag):
-
-        # check if the tag is misspelled
-        for tg in MISS_SPELLED_TAGS[tag]:
-            pattern = f"<{tg}>(.*?)</{tg}>"
-            out = re.findall(r"" + pattern, sample.group(0), re.MULTILINE | re.DOTALL)
-            if len(out) > 0:
-                break
-        return out[0]
-
-    def _clean_text(self, text):
-        return text.replace("?", "")
-
     def _generate_examples(self, filepath):
         """Yields examples."""
-        current_multi_line = ""
-        _idx = 0
         data_tag = self.config.name
+        pattern = re.compile(rf".*?<{data_tag}(.*?)</{data_tag}.*?", re.MULTILINE | re.DOTALL)
+        key = 0
+        lines = ""
         with open(filepath, mode="r", encoding="utf-8") as f:
             for i, line in enumerate(f):
-                if i == 0:
-                    continue
-                current_multi_line += line
-                if i % 8 == 0:
-                    pattern = f"<{data_tag}(.*?)</{data_tag}>"
-                    data = re.finditer(r"" + pattern, current_multi_line, re.MULTILINE | re.DOTALL)
-                    text, url, head_line, date = ["", "", "", ""]
-                    for record in data:
-                        try:
-                            text = self._clean_text(self._extract_tags(record, "Text"))
-                            url = self._extract_tags(record, "URL")
-                            head_line = self._clean_text(self._extract_tags(record, "Headline"))
-                            date = self._extract_tags(record, "Dateline")
-                        except IndexError:
-                            continue
-                        yield str(_idx), {"url": url, "head_line": head_line, "date": date, "text": text}
-                        _idx += 1
-                    current_multi_line = ""
+                lines += line
+                if f"</{data_tag}" in line:
+                    match = pattern.match(lines)
+                    lines = ""
+                    if match:
+                        record = match.group(1)
+                        text = self._clean_text(self._extract_tag("Text", record))
+                        url = self._extract_tag("URL", record)
+                        head_line = self._clean_text(self._extract_tag("Headline", record))
+                        date = self._extract_tag("Dateline", record)
+                        yield key, {"url": url, "head_line": head_line, "date": date, "text": text}
+                        key += 1
+
+    @staticmethod
+    def _extract_tag(tag, text):
+        # check if the tag is misspelled
+        for pattern in TAG_PATTERNS[tag]:
+            match = pattern.match(text)
+            if match:
+                return match.group(1)
+        return ""
+
+    @staticmethod
+    def _clean_text(text):
+        return text.replace("?", "")

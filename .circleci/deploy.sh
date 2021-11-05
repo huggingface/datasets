@@ -34,6 +34,9 @@ deploy_doc "master" master
 
 # Example of how to deploy a doc on a certain commit (the commit doesn't have to be on the master branch).
 # The following commit would live on huggingface.co/docs/datasets/v1.0.0
+deploy_doc "0181006" v1.15.1
+deploy_doc "dcaa3c0" v1.15.0
+deploy_doc "ec82422" v1.14.0
 deploy_doc "10dc68c" v1.13.3
 deploy_doc "e82164f" v1.13.2
 deploy_doc "2ed762b" v1.13.1

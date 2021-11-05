@@ -8,7 +8,7 @@ This guide will show you how to build an index for your dataset that will allow 
 FAISS
 -----
 
-FAISS retrieves documents based on the similiarity of their vector representations. In this example, you will generate the vector representations with the `DPR <https://huggingface.co/transformers/model_doc/dpr.html>`_ model.
+FAISS retrieves documents based on the similarity of their vector representations. In this example, you will generate the vector representations with the `DPR <https://huggingface.co/transformers/model_doc/dpr.html>`_ model.
 
 1. Download the DPR model from 🤗 Transformers:
 
