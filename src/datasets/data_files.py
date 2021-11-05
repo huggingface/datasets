@@ -185,6 +185,89 @@ def resolve_patterns_locally_or_by_urls(
 
 
 def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
+    """
+    Get the default pattern from a directory testing all the supported patterns.
+    The first patterns to return a non-empty list of data files is returned.
+
+    Some examples of supported patterns:
+
+    Input:
+
+        my_dataset_repository/
+        ├── README.md
+        └── dataset.csv
+
+    Output:
+
+        {"train": ["*"]}
+
+    Input:
+
+        my_dataset_repository/
+        ├── README.md
+        ├── train.csv
+        └── test.csv
+
+        my_dataset_repository/
+        ├── README.md
+        └── data/
+            ├── train.csv
+            └── test.csv
+
+        my_dataset_repository/
+        ├── README.md
+        ├── train_0.csv
+        ├── train_1.csv
+        ├── train_2.csv
+        ├── train_3.csv
+        ├── test_0.csv
+        └── test_1.csv
+
+    Output:
+
+        {"train": [*train*], "test": ["*test*"]}
+
+    Input:
+
+        my_dataset_repository/
+        ├── README.md
+        └── data/
+            ├── train/
+            │   ├── shard_0.csv
+            │   ├── shard_1.csv
+            │   ├── shard_2.csv
+            │   └── shard_3.csv
+            └── test/
+                ├── shard_0.csv
+                └── shard_1.csv
+
+    Output:
+
+        {"train": [*train*/*, "*train*/**/*"], "test": ["*test*/*", "*test*/**/*"]}
+
+    Input:
+
+        my_dataset_repository/
+        ├── README.md
+        └── data/
+            ├── train-00000-of-00003.csv
+            ├── train-00001-of-00003.csv
+            ├── train-00002-of-00003.csv
+            ├── test-00000-of-00001.csv
+            ├── random-00000-of-00003.csv
+            ├── random-00001-of-00003.csv
+            └── random-00002-of-00003.csv
+
+    Output:
+
+        {
+            "train": [data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*],
+            "test": [data/test-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*],
+            "random": [data/random-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*],
+        }
+
+    In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
+    """
     resolver = partial(_resolve_single_pattern_locally, base_path)
     try:
         return _get_data_files_patterns(resolver)
@@ -267,6 +350,89 @@ def resolve_patterns_in_dataset_repository(
 
 
 def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.DatasetInfo) -> Dict[str, List[str]]:
+    """
+    Get the default pattern from a repository by testing all the supported patterns.
+    The first patterns to return a non-empty list of data files is returned.
+
+    Some examples of supported patterns:
+
+    Input:
+
+        my_dataset_repository/
+        ├── README.md
+        └── dataset.csv
+
+    Output:
+
+        {"train": ["*"]}
+
+    Input:
+
+        my_dataset_repository/
+        ├── README.md
+        ├── train.csv
+        └── test.csv
+
+        my_dataset_repository/
+        ├── README.md
+        └── data/
+            ├── train.csv
+            └── test.csv
+
+        my_dataset_repository/
+        ├── README.md
+        ├── train_0.csv
+        ├── train_1.csv
+        ├── train_2.csv
+        ├── train_3.csv
+        ├── test_0.csv
+        └── test_1.csv
+
+    Output:
+
+        {"train": ["*train*"], "test": ["*test*"]}
+
+    Input:
+
+        my_dataset_repository/
+        ├── README.md
+        └── data/
+            ├── train/
+            │   ├── shard_0.csv
+            │   ├── shard_1.csv
+            │   ├── shard_2.csv
+            │   └── shard_3.csv
+            └── test/
+                ├── shard_0.csv
+                └── shard_1.csv
+
+    Output:
+
+        {"train": ["*train*/*", "*train*/**/*"], "test": ["*test*/*", "*test*/**/*"]}
+
+    Input:
+
+        my_dataset_repository/
+        ├── README.md
+        └── data/
+            ├── train-00000-of-00003.csv
+            ├── train-00001-of-00003.csv
+            ├── train-00002-of-00003.csv
+            ├── test-00000-of-00001.csv
+            ├── random-00000-of-00003.csv
+            ├── random-00001-of-00003.csv
+            └── random-00002-of-00003.csv
+
+    Output:
+
+        {
+            "train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
+            "test": ["data/test-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
+            "random": ["data/random-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
+        }
+
+    In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
+    """
     resolver = partial(_resolve_single_pattern_in_dataset_repository, dataset_info)
     try:
         return _get_data_files_patterns(resolver)
