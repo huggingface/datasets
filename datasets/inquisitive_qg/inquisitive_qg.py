@@ -146,7 +146,7 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
                     continue
 
                 fname = str(article_id).rjust(4, "0") + ".txt"
-                article_path = os.path.join(articles_dir, fname)
+                article_path = articles_dir + "/" + fname
                 article = articles[article_path]
 
                 id_ = str(questions_counter)
