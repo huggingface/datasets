@@ -336,6 +336,7 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
 class TempPickleRegistry:
     """Class to use as a context manager. It allows you to register and use functions
     only within this block. When the block is exited, the registry is reset to the default"""
+
     def __enter__(self):
         return self
 

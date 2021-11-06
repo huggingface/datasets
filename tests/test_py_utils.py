@@ -6,9 +6,12 @@ import pytest
 
 from datasets.utils.py_utils import (
     NestedDataStructure,
-    TempPickleRegistry, dumps, flatten_nest_dict,
+    TempPickleRegistry,
+    dumps,
+    flatten_nest_dict,
     map_nested,
-    pklregister, temporary_assignment,
+    pklregister,
+    temporary_assignment,
     zip_dict,
     zip_nested,
 )
@@ -129,6 +132,7 @@ class PyUtilsTest(TestCase):
         with TempPickleRegistry():
             for allow_subclasses in (True, False):
                 with self.subTest(allow_subclasses=allow_subclasses):
+
                     @pklregister(ParentClass, allow_subclasses=allow_subclasses)
                     def pickle_registry_test(pickler, _):
                         pickler.save(True)
@@ -142,8 +146,9 @@ class PyUtilsTest(TestCase):
 
     def test_pickle_registry_inheritance(self):
         with TempPickleRegistry():
+
             @pklregister(BaseClass, allow_subclasses=False)
-            def pickle_registry_test(pickler, _):
+            def pickle_registry_test_false(pickler, _):
                 pickler.save(True)
 
             # Registered on BaseClass, and allow_subclasses=False
@@ -155,8 +160,9 @@ class PyUtilsTest(TestCase):
             self.assertIsInstance(unpickled, ChildClass)
 
         with TempPickleRegistry():
+
             @pklregister(BaseClass, allow_subclasses=True)
-            def pickle_registry_test(pickler, _):
+            def pickle_registry_test_true(pickler, _):
                 pickler.save(True)
 
             # Registered on BaseClass, and allow_subclasses=True
@@ -169,7 +175,6 @@ class PyUtilsTest(TestCase):
             unpickled = loads(dumps(ChildClass()))
             self.assertIsInstance(unpickled, bool)
             self.assertTrue(unpickled)
-
 
 
 @pytest.mark.parametrize("input_data", [{}])
@@ -204,5 +209,3 @@ def test_nested_data_structure_data(input_data):
 def test_flatten(data, expected_output):
     output = NestedDataStructure(data).flatten()
     assert output == expected_output
-
-
