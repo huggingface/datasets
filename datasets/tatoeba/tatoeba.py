@@ -43,9 +43,9 @@ _CITATION = """\
  }
 """
 
-_VERSION = "2020.11.9"
+_VERSION = "2021.7.22"
 _BASE_NAME = "Tatoeba.{}.{}"
-_BASE_URL = "https://object.pouta.csc.fi/OPUS-Tatoeba/v2020-11-09/moses/{}-{}.txt.zip"
+_BASE_URL = "https://object.pouta.csc.fi/OPUS-Tatoeba/v2021-07-22/moses/{}-{}.txt.zip"
 
 # Please note that only few pairs are shown here. You can use config to generate data for all language pairs
 _LANGUAGE_PAIRS = [
