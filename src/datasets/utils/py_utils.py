@@ -419,6 +419,7 @@ def pklregister(t: Type, allow_subclasses: bool = False):
     type is encountered, it will be pickled with the provided function instead of the default.
     When `allow_subclasses=True, the type and function will also be saved in a special table so
     that future objects who are a subclass of `t` will also use the given function."""
+
     def proxy(func):
         if allow_subclasses:
             Pickler.sublcass_dispatch[t] = func
