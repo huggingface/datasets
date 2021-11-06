@@ -333,6 +333,17 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
     return needed_bytes < free_bytes
 
 
+class TempPickleRegistry:
+    """Class to use as a context manager. It allows you to register and use functions
+    only within this block. When the block is exited, the registry is reset to the default"""
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        Pickler.dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
+        Pickler.sublcass_dispatch = {}
+
+
 class Pickler(dill.Pickler):
     """Same Pickler as the one from dill, but improved for notebooks and shells"""
 
