@@ -1,3 +1,4 @@
+from pickle import loads
 from unittest import TestCase
 
 import numpy as np
@@ -5,12 +6,24 @@ import pytest
 
 from datasets.utils.py_utils import (
     NestedDataStructure,
-    flatten_nest_dict,
+    TempPickleRegistry, dumps, flatten_nest_dict,
     map_nested,
-    temporary_assignment,
+    pklregister, temporary_assignment,
     zip_dict,
     zip_nested,
 )
+
+
+class BaseClass:
+    pass
+
+
+class ParentClass(BaseClass):
+    pass
+
+
+class ChildClass(ParentClass):
+    pass
 
 
 def np_sum(x):  # picklable for multiprocessing
@@ -112,6 +125,52 @@ class PyUtilsTest(TestCase):
             self.assertEqual(foo.my_attr, "BAR")
         self.assertEqual(foo.my_attr, "bar")
 
+    def test_pickle_registry_base(self):
+        with TempPickleRegistry():
+            for allow_subclasses in (True, False):
+                with self.subTest(allow_subclasses=allow_subclasses):
+                    @pklregister(ParentClass, allow_subclasses=allow_subclasses)
+                    def pickle_registry_test(pickler, _):
+                        pickler.save(True)
+
+                    # dump with our pickler and load with native pickle
+                    # Expecting True with both values of allow_subclasses
+                    # because we registered on the same class ParentClass
+                    unpickled = loads(dumps(ParentClass()))
+                    self.assertIsInstance(unpickled, bool)
+                    self.assertTrue(unpickled)
+
+    def test_pickle_registry_inheritance(self):
+        with TempPickleRegistry():
+            @pklregister(BaseClass, allow_subclasses=False)
+            def pickle_registry_test(pickler, _):
+                pickler.save(True)
+
+            # Registered on BaseClass, and allow_subclasses=False
+            # so default pickling is used. That means
+            # that the unpickled value is the same as the input
+            unpickled = loads(dumps(ParentClass()))
+            self.assertIsInstance(unpickled, ParentClass)
+            unpickled = loads(dumps(ChildClass()))
+            self.assertIsInstance(unpickled, ChildClass)
+
+        with TempPickleRegistry():
+            @pklregister(BaseClass, allow_subclasses=True)
+            def pickle_registry_test(pickler, _):
+                pickler.save(True)
+
+            # Registered on BaseClass, and allow_subclasses=True
+            # so for all subclasses (and beyond), the registered function
+            # will be used. All values should be True
+            unpickled = loads(dumps(ParentClass()))
+            self.assertIsInstance(unpickled, bool)
+            self.assertTrue(unpickled)
+
+            unpickled = loads(dumps(ChildClass()))
+            self.assertIsInstance(unpickled, bool)
+            self.assertTrue(unpickled)
+
+
 
 @pytest.mark.parametrize("input_data", [{}])
 def test_nested_data_structure_data(input_data):
@@ -145,3 +204,5 @@ def test_nested_data_structure_data(input_data):
 def test_flatten(data, expected_output):
     output = NestedDataStructure(data).flatten()
     assert output == expected_output
+
+
