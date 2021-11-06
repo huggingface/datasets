@@ -192,6 +192,9 @@ If you want to cite our 🤗 Datasets [paper](https://arxiv.org/abs/2109.02846) 
     url = "https://aclanthology.org/2021.emnlp-demo.21",
     pages = "175--184",
     abstract = "The scale, variety, and quantity of publicly-available NLP datasets has grown rapidly as researchers propose new tasks, larger models, and novel benchmarks. Datasets is a community library for contemporary NLP designed to support this ecosystem. Datasets aims to standardize end-user interfaces, versioning, and documentation, while providing a lightweight front-end that behaves similarly for small datasets as for internet-scale corpora. The design of the library incorporates a distributed, community-driven approach to adding datasets and documenting usage. After a year of development, the library now includes more than 650 unique datasets, has more than 250 contributors, and has helped support a variety of novel cross-dataset research projects and shared tasks. The library is available at https://github.com/huggingface/datasets.",
+    eprint={2109.02846},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL},
 }
 ```
 ```bibtex
