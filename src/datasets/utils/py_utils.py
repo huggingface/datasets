@@ -339,6 +339,11 @@ class Pickler(dill.Pickler):
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
     sublcass_dispatch = {}
 
+    def save(self, obj):
+        # Save is called before save_global
+        self.maybe_register_superfunc(obj)
+        return super(Pickler, self).save(obj)
+
     def save_global(self, obj, name=None):
         if sys.version_info[:2] < (3, 7) and _CloudPickleTypeHintFix._is_parametrized_type_hint(
             obj
@@ -376,10 +381,6 @@ class Pickler(dill.Pickler):
                         # that we traverse is that of MRO, which is depth-first with some quirks
                         # see # https://stackoverflow.com/a/2010732/1150683
                         break
-
-    def dump(self, obj):
-        self.maybe_register_superfunc(obj)
-        return super().dump(obj)
 
 
 def dump(obj, file):
