@@ -363,7 +363,7 @@ class Pickler(dill.Pickler):
     def save(self, obj):
         """Overwrites the underyling pickle's save. To dynamically, potentially, set custom functions
         we do this right before actually saving with pickle. `dump` is not the right place for this,
-        as it is iteratively called in this subclass directly. For more, see `Pickler.maybe_register_superfunc`."""
+        as it is iteratively called in this subclass directly. For more, see `Pickler.maybe_register_superfunc`.make s"""
         self.maybe_register_superfunc(obj)
         return super(Pickler, self).save(obj)
 

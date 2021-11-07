@@ -6,7 +6,8 @@ import pytest
 
 from datasets.utils.py_utils import (
     NestedDataStructure,
-    Pickler, TempPickleRegistry,
+    Pickler,
+    TempPickleRegistry,
     dumps,
     flatten_nest_dict,
     map_nested,
@@ -130,8 +131,9 @@ class PyUtilsTest(TestCase):
 
     def test_temp_pickle_registry(self):
         with TempPickleRegistry():
+
             @pklregister(ChildClass)
-            def pickle_registry_test(pickler, _):
+            def pickle_registry_test_child(pickler, _):
                 pickler.save(True)
 
             self.assertIn(ChildClass, Pickler.dispatch)
@@ -139,8 +141,9 @@ class PyUtilsTest(TestCase):
             for allow_subclasses in (True, False):
                 with self.subTest(allow_subclasses=allow_subclasses):
                     with TempPickleRegistry():
+
                         @pklregister(ParentClass, allow_subclasses=allow_subclasses)
-                        def pickle_registry_test(pickler, _):
+                        def pickle_registry_test_parent(pickler, _):
                             pickler.save(True)
 
                         self.assertIn(ParentClass, Pickler.dispatch)
@@ -155,7 +158,6 @@ class PyUtilsTest(TestCase):
             self.assertIn(ChildClass, Pickler.dispatch)
         # We exited the with-block, so ChildClass should not be in here
         self.assertNotIn(ChildClass, Pickler.dispatch)
-
 
     def test_pickle_registry_base(self):
         with TempPickleRegistry():
