@@ -335,21 +335,30 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
 
 class TempPickleRegistry:
     """Class to use as a context manager. It allows you to register and use functions
-    only within this block. When the block is exited, the registry is reset to the default"""
+    only within this block. When the block is exited, the registry is reset to the state before
+    the block. Because this involves resetting the class variables, it feels like it makes sense
+    to keep this in a separate class instead of adding enter/exit to the Pickler class itself"""
+
+    def __init__(self):
+        self.prev_dispatch: Optional[Dict] = None
+        self.prev_subclass_dispatch: Optional[Dict] = None
 
     def __enter__(self):
+        self.prev_dispatch = Pickler.dispatch.copy()
+        self.prev_subclass_dispatch: Dict = Pickler.sublcass_dispatch.copy()
+
         return self
 
     def __exit__(self, *args):
-        Pickler.dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
-        Pickler.sublcass_dispatch = {}
+        Pickler.dispatch = dill._dill.MetaCatchingDict(self.prev_dispatch)
+        Pickler.sublcass_dispatch = self.prev_subclass_dispatch
 
 
 class Pickler(dill.Pickler):
     """Same Pickler as the one from dill, but improved for notebooks and shells"""
 
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
-    sublcass_dispatch = {}
+    sublcass_dispatch: Dict = {}
 
     def save(self, obj):
         # Save is called before save_global

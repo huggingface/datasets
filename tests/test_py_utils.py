@@ -6,7 +6,7 @@ import pytest
 
 from datasets.utils.py_utils import (
     NestedDataStructure,
-    TempPickleRegistry,
+    Pickler, TempPickleRegistry,
     dumps,
     flatten_nest_dict,
     map_nested,
@@ -127,6 +127,35 @@ class PyUtilsTest(TestCase):
         with temporary_assignment(foo, "my_attr", "BAR"):
             self.assertEqual(foo.my_attr, "BAR")
         self.assertEqual(foo.my_attr, "bar")
+
+    def test_temp_pickle_registry(self):
+        with TempPickleRegistry():
+            @pklregister(ChildClass)
+            def pickle_registry_test(pickler, _):
+                pickler.save(True)
+
+            self.assertIn(ChildClass, Pickler.dispatch)
+
+            for allow_subclasses in (True, False):
+                with self.subTest(allow_subclasses=allow_subclasses):
+                    with TempPickleRegistry():
+                        @pklregister(ParentClass, allow_subclasses=allow_subclasses)
+                        def pickle_registry_test(pickler, _):
+                            pickler.save(True)
+
+                        self.assertIn(ParentClass, Pickler.dispatch)
+                        self.assertEqual(ParentClass in Pickler.sublcass_dispatch, allow_subclasses)
+
+                    # As soon as we exit, the Pickler.dispatch and Pickler are reset to
+                    # the state before entering the with-block
+                    self.assertNotIn(ParentClass, Pickler.dispatch)
+                    self.assertNotIn(ParentClass, Pickler.sublcass_dispatch)
+
+            # We are still within this with-block, so ChildClass should still be in here
+            self.assertIn(ChildClass, Pickler.dispatch)
+        # We exited the with-block, so ChildClass should not be in here
+        self.assertNotIn(ChildClass, Pickler.dispatch)
+
 
     def test_pickle_registry_base(self):
         with TempPickleRegistry():
