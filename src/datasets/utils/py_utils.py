@@ -361,7 +361,9 @@ class Pickler(dill.Pickler):
     sublcass_dispatch: Dict = {}
 
     def save(self, obj):
-        # Save is called before save_global
+        """Overwrites the underyling pickle's save. To dynamically, potentially, set custom functions
+        we do this right before actually saving with pickle. `dump` is not the right place for this,
+        as it is iteratively called in this subclass directly. For more, see `Pickler.maybe_register_superfunc`."""
         self.maybe_register_superfunc(obj)
         return super(Pickler, self).save(obj)
 
