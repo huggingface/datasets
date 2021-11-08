@@ -1,4 +1,4 @@
-from pickle import loads
+from dill import loads
 from unittest import TestCase
 
 import numpy as np
