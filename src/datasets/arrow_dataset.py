@@ -3397,11 +3397,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         files = [file for file in files if file.startswith("data/")]
 
         def path_in_repo(_index):
-            return f"data/{split}_{_index:05d}_of_{num_shards:05d}.parquet"
+            return f"data/{split}-{_index:05d}-of-{num_shards:05d}.parquet"
 
         # Only delete file shards that don't currently exist. Others will be overwritten if the content is different
         # or will be left intact is the content is identical.
-        file_shards_to_delete = [file for file in files if file not in [path_in_repo(i) for i in range(num_shards)]]
+        def should_delete_file(file_name):
+            file_to_overwrite = file_name in [path_in_repo(i) for i in range(num_shards)]
+            file_from_same_split = file_name.startswith(f"data/{split}-")
+
+            return file_from_same_split and not file_to_overwrite
+
+        file_shards_to_delete = [file for file in files if should_delete_file(file)]
 
         def delete_file(file):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)

@@ -40,12 +40,7 @@ def with_staging_testing(func):
         HUB_DATASETS_URL=ENDPOINT_STAGING + "/datasets/{path}/resolve/{revision}/{name}",
     )
 
-    ds_hf_api = patch(
-        "datasets.hf_api.ENDPOINT",
-        ENDPOINT_STAGING,
-    )
-
-    return ds_hf_api(config(repository(hfh_hf_api(file_download(func)))))
+    return config(repository(hfh_hf_api(file_download(func))))
 
 
 @with_staging_testing
@@ -75,7 +70,7 @@ class TestPushToHub(TestCase):
 
             # Ensure that there is a single file on the repository that has the correct name
             files = self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token)
-            self.assertListEqual(files, [".gitattributes", "data/train_00000_of_00001.parquet"])
+            self.assertListEqual(files, [".gitattributes", "data/train-00000-of-00001.parquet"])
         finally:
             self._api.delete_repo(
                 ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"
@@ -97,7 +92,7 @@ class TestPushToHub(TestCase):
 
             # Ensure that there is a single file on the repository that has the correct name
             files = self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token)
-            self.assertListEqual(files, [".gitattributes", "data/train_00000_of_00001.parquet"])
+            self.assertListEqual(files, [".gitattributes", "data/train-00000-of-00001.parquet"])
         finally:
             self._api.delete_repo(
                 ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"
@@ -120,7 +115,7 @@ class TestPushToHub(TestCase):
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
             self.assertListEqual(
-                files, [".gitattributes", "data/train_00000_of_00002.parquet", "data/train_00001_of_00002.parquet"]
+                files, [".gitattributes", "data/train-00000-of-00002.parquet", "data/train-00001-of-00002.parquet"]
             )
         finally:
             self._api.delete_repo(
@@ -129,8 +124,9 @@ class TestPushToHub(TestCase):
 
     def test_push_dataset_dict_to_hub_overwrite_files(self):
         ds = Dataset.from_dict({"x": list(range(1000)), "y": list(range(1000))})
+        ds2 = Dataset.from_dict({"x": list(range(100)), "y": list(range(100))})
 
-        local_ds = DatasetDict({"train": ds})
+        local_ds = DatasetDict({"train": ds, "random": ds2})
 
         ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
 
@@ -157,8 +153,9 @@ class TestPushToHub(TestCase):
                 files,
                 [
                     ".gitattributes",
-                    "data/train_00000_of_00002.parquet",
-                    "data/train_00001_of_00002.parquet",
+                    "data/random-00000-of-00001.parquet",
+                    "data/train-00000-of-00002.parquet",
+                    "data/train-00001-of-00002.parquet",
                     "datafile.txt",
                 ],
             )
@@ -195,7 +192,15 @@ class TestPushToHub(TestCase):
 
             # Ensure that there are two files on the repository that have the correct name
             files = sorted(self._api.list_repo_files(ds_name, repo_type="dataset", token=self._token))
-            self.assertListEqual(files, [".gitattributes", "data/train_00000_of_00001.parquet", "datafile.txt"])
+            self.assertListEqual(
+                files,
+                [
+                    ".gitattributes",
+                    "data/random-00000-of-00001.parquet",
+                    "data/train-00000-of-00001.parquet",
+                    "datafile.txt",
+                ],
+            )
 
             # Keeping the "datafile.txt" breaks the load_dataset to think it's a text-based dataset
             self._api.delete_file("datafile.txt", repo_id=ds_name, repo_type="dataset", token=self._token)
@@ -233,7 +238,22 @@ class TestPushToHub(TestCase):
                 ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"
             )
 
-    @unittest.skip("This test cannot pass until #3027 is resolved")
+    def test_push_dataset_to_hub_custom_splits(self):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+        try:
+            ds.push_to_hub(ds_name, split="random", token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            self.assertListEqual(ds.column_names, hub_ds["random"].column_names)
+            self.assertListEqual(list(ds.features.keys()), list(hub_ds["random"].features.keys()))
+            self.assertDictEqual(ds.features, hub_ds["random"].features)
+        finally:
+            self._api.delete_repo(
+                ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"
+            )
+
     def test_push_dataset_dict_to_hub_custom_splits(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
 
