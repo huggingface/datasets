@@ -1,4 +1,5 @@
 ---
+pretty_name: SciCite
 languages:
 - en
 paperswithcode_id: scicite

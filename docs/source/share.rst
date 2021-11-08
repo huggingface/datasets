@@ -71,7 +71,7 @@ Create the repository
 ^^^^^^^^^^^^^^^^^^^^^
 
 Sharing a community dataset will require you to create an account on `hf.co <https://huggingface.co/join>`_ if you don't have one yet.
-You can directly create a `new dataset repository <https://huggingface.co/new-dataset>`_ from your account on the Hugging Face Hub, but this guide will show you how to upload a dataset from the terminal.
+You can directly create a `new dataset repository <https://huggingface.co/login?next=%2Fnew-dataset>`_ from your account on the Hugging Face Hub, but this guide will show you how to upload a dataset from the terminal.
 
 1. Make sure you are in the virtual environment where you installed Datasets, and run the following command:
 

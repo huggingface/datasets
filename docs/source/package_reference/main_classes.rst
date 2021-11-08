@@ -43,6 +43,10 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
 
 .. autofunction:: datasets.is_caching_enabled
 
+.. autofunction:: datasets.set_progress_bar_enabled
+
+.. autofunction:: datasets.is_progress_bar_enabled
+
 ``DatasetDict``
 ~~~~~~~~~~~~~~~~~~~~~
 

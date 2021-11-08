@@ -16,7 +16,7 @@
 
 
 import json
-import os
+from itertools import chain
 
 import datasets
 
@@ -118,53 +118,57 @@ class NeuralCodeSearch(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        my_urls = [url for config, url in _URLs.items() if config.startswith(self.config.name)]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        if self.config.name == "evaluation_dataset":
+            filepath = dl_manager.download_and_extract(_URLs[self.config.name])
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"filepath": filepath},
+                ),
+            ]
+        else:
+            my_urls = [url for config, url in _URLs.items() if config.startswith(self.config.name)]
+            archives = dl_manager.download(my_urls)
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "files": chain(*(dl_manager.iter_archive(archive) for archive in archives)),
+                    },
+                ),
+            ]
 
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "datapath": data_dir,
-                    "split": "train",
-                },
-            ),
-        ]
-
-    def _generate_examples(self, datapath, split):
+    def _generate_examples(self, filepath=None, files=None):
         """Yields examples."""
         id_ = 0
-        for dp in datapath:
-            if self.config.name == "evaluation_dataset":
-                with open(dp, encoding="utf-8") as f:
-                    data = json.load(f)
-                    for row in data:
-                        yield id_, {
-                            "stackoverflow_id": row["stackoverflow_id"],
-                            "question": row["question"],
-                            "question_url": row["question_url"],
-                            "question_author": row["question_author"],
-                            "question_author_url": row["question_author_url"],
-                            "answer": row["answer"],
-                            "answer_url": row["answer_url"],
-                            "answer_author": row["answer_author"],
-                            "answer_author_url": row["answer_author_url"],
-                            "examples": row["examples"],
-                            "examples_url": row["examples_url"],
-                        }
-                        id_ += 1
-            else:
-                for dirpath, _, fnames in sorted(os.walk(dp)):
-                    for fname in sorted(fnames):
-                        with open(os.path.join(dirpath, fname), encoding="utf-8") as f:
-                            for row in f:
-                                data_dict = json.loads(row)
-                                yield id_, {
-                                    "id": data_dict["id"],
-                                    "filepath": data_dict["filepath"],
-                                    "method_name": data_dict["method_name"],
-                                    "start_line": data_dict["start_line"],
-                                    "end_line": data_dict["end_line"],
-                                    "url": data_dict["url"],
-                                }
-                                id_ += 1
+        if self.config.name == "evaluation_dataset":
+            with open(filepath, encoding="utf-8") as f:
+                data = json.load(f)
+                for row in data:
+                    yield id_, {
+                        "stackoverflow_id": row["stackoverflow_id"],
+                        "question": row["question"],
+                        "question_url": row["question_url"],
+                        "question_author": row["question_author"],
+                        "question_author_url": row["question_author_url"],
+                        "answer": row["answer"],
+                        "answer_url": row["answer_url"],
+                        "answer_author": row["answer_author"],
+                        "answer_author_url": row["answer_author_url"],
+                        "examples": row["examples"],
+                        "examples_url": row["examples_url"],
+                    }
+                    id_ += 1
+        else:
+            for _, f in files:
+                for row in f:
+                    data_dict = json.loads(row.decode("utf-8"))
+                    yield id_, {
+                        "id": data_dict["id"],
+                        "filepath": data_dict["filepath"],
+                        "method_name": data_dict["method_name"],
+                        "start_line": data_dict["start_line"],
+                        "end_line": data_dict["end_line"],
+                        "url": data_dict["url"],
+                    }
+                    id_ += 1

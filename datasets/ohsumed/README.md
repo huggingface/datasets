@@ -1,4 +1,5 @@
 ---
+pretty_name: Ohsumed
 annotations_creators:
 - human-annotated
 language_creators:

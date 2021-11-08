@@ -1,4 +1,5 @@
 ---
+pretty_name: CC-News
 annotations_creators:
 - no-annotation
 language_creators:

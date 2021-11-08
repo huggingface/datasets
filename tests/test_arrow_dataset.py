@@ -1823,10 +1823,6 @@ class BaseDatasetTest(TestCase):
 
                     self.assertNotEqual(dset._indices, None)
 
-                    # Test unique fail
-                    with self.assertRaises(ValueError):
-                        dset.unique(dset.column_names[0])
-
                     tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
                     fingerprint = dset._fingerprint
                     dset.set_format("numpy")
@@ -2114,7 +2110,15 @@ class MiscellaneousDatasetTest(TestCase):
             self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
 
         features = Features({"col_1": Value("string"), "col_2": Value("string")})
-        self.assertRaises(pa.ArrowTypeError, Dataset.from_dict, data, features=features)
+        with Dataset.from_dict(data, features=features) as dset:
+            # the integers are converted to strings
+            self.assertListEqual(dset["col_1"], [str(x) for x in data["col_1"]])
+            self.assertListEqual(dset["col_2"], data["col_2"])
+            self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+            self.assertDictEqual(dset.features, Features({"col_1": Value("string"), "col_2": Value("string")}))
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("int64")})
+        self.assertRaises(ValueError, Dataset.from_dict, data, features=features)
 
     def test_concatenate_mixed_memory_and_disk(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
@@ -2188,6 +2192,22 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
     dataset = concatenate_datasets(datasets, axis=axis)
     assert dataset.shape == expected_shape
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
+
+
+@pytest.mark.parametrize("axis", [0, 1])
+def test_concatenate_datasets_complex_features(axis):
+    n = 5
+    dataset1 = Dataset.from_dict(
+        {"col_1": [0] * n, "col_2": list(range(n))},
+        features=Features({"col_1": Value("int32"), "col_2": ClassLabel(num_classes=n)}),
+    )
+    if axis == 1:
+        dataset2 = dataset1.rename_columns({col: col + "_" for col in dataset1.column_names})
+        expected_features = Features({**dataset1.features, **dataset2.features})
+    else:
+        dataset2 = dataset1
+        expected_features = dataset1.features
+    assert concatenate_datasets([dataset1, dataset2], axis=axis).features == expected_features
 
 
 @pytest.mark.parametrize("other_dataset_type", ["in_memory", "memory_mapped", "concatenation"])

@@ -27,7 +27,7 @@
 
 🤗 Datasets is a lightweight library providing **two** main features:
 
-- **one-line dataloaders for many public datasets**: one liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (in 467 languages and dialects!) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
+- **one-line dataloaders for many public datasets**: one-liners to download and pre-process any of the ![number of datasets](https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen) major public datasets (in 467 languages and dialects!) provided on the [HuggingFace Datasets Hub](https://huggingface.co/datasets). With a simple command like `squad_dataset = load_dataset("squad")`, get any of these datasets ready to use in a dataloader for training/evaluating a ML model (Numpy/Pandas/PyTorch/TensorFlow/JAX),
 - **efficient data pre-processing**: simple, fast and reproducible data pre-processing for the above public datasets as well as your own local datasets in CSV/JSON/text. With simple commands like `tokenized_dataset = dataset.map(tokenize_example)`, efficiently prepare the dataset for inspection and ML model evaluation and training.
 
 [🎓 **Documentation**](https://huggingface.co/docs/datasets/) [🕹 **Colab tutorial**](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb)
@@ -46,7 +46,7 @@
 - Lightweight and fast with a transparent and pythonic API (multi-processing/caching/memory-mapping).
 - Built-in interoperability with NumPy, pandas, PyTorch, Tensorflow 2 and JAX.
 
-🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section [Main differences between 🤗 Datasets and `tfds`](#main-differences-between-🤗-datasets-and-tfds).
+🤗 Datasets originated from a fork of the awesome [TensorFlow Datasets](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between 🤗 Datasets and `tfds` can be found in the section [Main differences between 🤗 Datasets and `tfds`](#main-differences-between--datasets-and-tfds).
 
 # Installation
 
@@ -74,7 +74,7 @@ For more details on installation, check the installation page in the documentati
 
 If you plan to use 🤗 Datasets with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you should also install PyTorch, TensorFlow or pandas.
 
-For more details on using the library with NumPy, pandas, PyTorch or TensorFlow, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html
+For more details on using the library with NumPy, pandas, PyTorch or TensorFlow, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart.html
 
 # Usage
 
@@ -113,12 +113,12 @@ tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 tokenized_dataset = squad_dataset.map(lambda x: tokenizer(x['context']), batched=True)
 ```
 
-For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html and the specific pages on:
+For more details on using the library, check the quick start page in the documentation: https://huggingface.co/docs/datasets/quickstart.html and the specific pages on:
 
-- Loading a dataset https://huggingface.co/docs/datasets/loading_datasets.html
-- What's in a Dataset: https://huggingface.co/docs/datasets/exploring.html
-- Processing data with 🤗 Datasets: https://huggingface.co/docs/datasets/processing.html
-- Writing your own dataset loading script: https://huggingface.co/docs/datasets/add_dataset.html
+- Loading a dataset https://huggingface.co/docs/datasets/loading.html
+- What's in a Dataset: https://huggingface.co/docs/datasets/access.html
+- Processing data with 🤗 Datasets: https://huggingface.co/docs/datasets/process.html
+- Writing your own dataset loading script: https://huggingface.co/docs/datasets/dataset_script.html
 - etc.
 
 Another introduction to 🤗 Datasets is the tutorial on Google Colab here:
@@ -130,7 +130,7 @@ We have a very detailed step-by-step guide to add a new dataset to the ![number 
 
 You will find [the step-by-step guide here](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md) to add a dataset to this repository.
 
-You can also have your own repository for your dataset on the Hub under your or your organization's namespace and share it with the community. More information in [the documentation section about dataset sharing](https://huggingface.co/docs/datasets/share_dataset.html).
+You can also have your own repository for your dataset on the Hub under your or your organization's namespace and share it with the community. More information in [the documentation section about dataset sharing](https://huggingface.co/docs/datasets/share.html).
 
 # Main differences between 🤗 Datasets and `tfds`
 
@@ -147,14 +147,63 @@ Similar to TensorFlow Datasets, 🤗 Datasets is a utility library that download
 If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/datasets/issues/new). Thanks for your contribution to the ML community!
 
 ## BibTeX
-If you want to cite this framework you can use this:
+If you want to cite our 🤗 Datasets [paper](https://arxiv.org/abs/2109.02846) and library, you can use these:
 
 ```bibtex
-@software{quentin_lhoest_2021_5510481,
+@inproceedings{lhoest-etal-2021-datasets,
+    title = "Datasets: A Community Library for Natural Language Processing",
+    author = "Lhoest, Quentin  and
+      Villanova del Moral, Albert  and
+      Jernite, Yacine  and
+      Thakur, Abhishek  and
+      von Platen, Patrick  and
+      Patil, Suraj  and
+      Chaumond, Julien  and
+      Drame, Mariama  and
+      Plu, Julien  and
+      Tunstall, Lewis  and
+      Davison, Joe  and
+      {\v{S}}a{\v{s}}ko, Mario  and
+      Chhablani, Gunjan  and
+      Malik, Bhavitvya  and
+      Brandeis, Simon  and
+      Le Scao, Teven  and
+      Sanh, Victor  and
+      Xu, Canwen  and
+      Patry, Nicolas  and
+      McMillan-Major, Angelina  and
+      Schmid, Philipp  and
+      Gugger, Sylvain  and
+      Delangue, Cl{\'e}ment  and
+      Matussi{\`e}re, Th{\'e}o  and
+      Debut, Lysandre  and
+      Bekman, Stas  and
+      Cistac, Pierric  and
+      Goehringer, Thibault  and
+      Mustar, Victor  and
+      Lagunas, Fran{\c{c}}ois  and
+      Rush, Alexander  and
+      Wolf, Thomas",
+    booktitle = "Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing: System Demonstrations",
+    month = nov,
+    year = "2021",
+    address = "Online and Punta Cana, Dominican Republic",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2021.emnlp-demo.21",
+    pages = "175--184",
+    abstract = "The scale, variety, and quantity of publicly-available NLP datasets has grown rapidly as researchers propose new tasks, larger models, and novel benchmarks. Datasets is a community library for contemporary NLP designed to support this ecosystem. Datasets aims to standardize end-user interfaces, versioning, and documentation, while providing a lightweight front-end that behaves similarly for small datasets as for internet-scale corpora. The design of the library incorporates a distributed, community-driven approach to adding datasets and documenting usage. After a year of development, the library now includes more than 650 unique datasets, has more than 250 contributors, and has helped support a variety of novel cross-dataset research projects and shared tasks. The library is available at https://github.com/huggingface/datasets.",
+    eprint={2109.02846},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL},
+}
+```
+```bibtex
+@software{quentin_lhoest_2021_5639822,
   author       = {Quentin Lhoest and
                   Albert Villanova del Moral and
                   Patrick von Platen and
                   Thomas Wolf and
+                  Mario Šaško and
                   Yacine Jernite and
                   Abhishek Thakur and
                   Lewis Tunstall and
@@ -164,26 +213,29 @@ If you want to cite this framework you can use this:
                   Julien Plu and
                   Joe Davison and
                   Simon Brandeis and
-                  Teven Le Scao and
                   Victor Sanh and
+                  Teven Le Scao and
                   Kevin Canwen Xu and
                   Nicolas Patry and
+                  Steven Liu and
                   Angelina McMillan-Major and
                   Philipp Schmid and
                   Sylvain Gugger and
-                  Steven Liu and
                   Nathan Raw and
                   Sylvain Lesage and
+                  Anton Lozhkov and
+                  Matthew Carrigan and
                   Théo Matussière and
+                  Leandro von Werra and
                   Lysandre Debut and
                   Stas Bekman and
                   Clément Delangue},
-  title        = {huggingface/datasets: 1.12.1},
-  month        = sep,
+  title        = {huggingface/datasets: 1.15.1},
+  month        = nov,
   year         = 2021,
   publisher    = {Zenodo},
-  version      = {1.12.1},
-  doi          = {10.5281/zenodo.5510481},
-  url          = {https://doi.org/10.5281/zenodo.5510481}
+  version      = {1.15.1},
+  doi          = {10.5281/zenodo.5639822},
+  url          = {https://doi.org/10.5281/zenodo.5639822}
 }
 ```

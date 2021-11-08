@@ -8,6 +8,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
+import datasets
 from datasets import config
 from datasets.arrow_dataset import Dataset
 from datasets.features import ClassLabel, Features, Sequence, Value
@@ -30,6 +31,11 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
     monkeypatch.setattr("datasets.config.DOWNLOADED_DATASETS_PATH", str(test_downloaded_datasets_path))
     test_extracted_datasets_path = test_hf_datasets_cache / "downloads" / "extracted"
     monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(test_extracted_datasets_path))
+
+
+@pytest.fixture(autouse=True, scope="session")
+def disable_tqdm_output():
+    datasets.set_progress_bar_enabled(False)
 
 
 @pytest.fixture(autouse=True)
@@ -224,7 +230,7 @@ def arrow_path(tmp_path_factory):
 @pytest.fixture(scope="session")
 def csv_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.csv")
-    with open(path, "w") as f:
+    with open(path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["col_1", "col_2", "col_3"])
         writer.writeheader()
         for item in DATA:
@@ -235,7 +241,7 @@ def csv_path(tmp_path_factory):
 @pytest.fixture(scope="session")
 def csv2_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset2.csv")
-    with open(path, "w") as f:
+    with open(path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["col_1", "col_2", "col_3"])
         writer.writeheader()
         for item in DATA:

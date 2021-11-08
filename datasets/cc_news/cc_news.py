@@ -16,9 +16,9 @@
 # Lint as: python3
 """The CC-News dataset is based on Common Crawl News Dataset by Sebastian Nagel"""
 
-import glob
 import json
 import os
+from fnmatch import fnmatch
 
 import datasets
 
@@ -91,20 +91,16 @@ class CCNews(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        arch_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
+        archive = dl_manager.download(_DOWNLOAD_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"directory": arch_path}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive)}),
         ]
 
-    def _generate_examples(self, directory):
-        logger.info("CC-News dataset: generating examples from = %s", directory)
-        glob_target = os.path.join(directory, "**/*.json")
-        article_files = glob.glob(glob_target, recursive=True)
-        article_files = sorted(article_files)
+    def _generate_examples(self, files):
         id_ = 0
-        for article_file_path in article_files:
-            with open(article_file_path, mode="r", encoding="utf-8") as f:
+        for article_file_path, f in files:
+            if fnmatch(os.path.basename(article_file_path), "*.json"):
                 article = json.load(f)
                 yield id_, {
                     "title": article["title"].strip() if article["title"] is not None else "",

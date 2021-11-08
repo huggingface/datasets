@@ -1,4 +1,5 @@
 ---
+pretty_name: ATOMIC
 annotations_creators:
 - crowdsourced
 language_creators:

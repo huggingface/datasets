@@ -112,6 +112,20 @@ SLR71, SLR71, SLR72, SLR73, SLR74, SLR75:
     ISBN = {979-10-95546-34-4},
 }
 
+SLR83
+@inproceedings{demirsahin-etal-2020-open,
+    title = {{Open-source Multi-speaker Corpora of the English Accents in the British Isles}},
+    author = {Demirsahin, Isin and Kjartansson, Oddur and Gutkin, Alexander and Rivera, Clara},
+    booktitle = {Proceedings of The 12th Language Resources and Evaluation Conference (LREC)},
+    month = may,
+    year = {2020},
+    pages = {6532--6541},
+    address = {Marseille, France},
+    publisher = {European Language Resources Association (ELRA)},
+    url = {https://www.aclweb.org/anthology/2020.lrec-1.804},
+    ISBN = {979-10-95546-34-4},
+}
+
 SLR80
 @inproceedings{oo-etal-2020-burmese,
     title = {{Burmese Speech Corpus, Finite-State Text Normalization and Pronunciation Grammars with an Application
@@ -479,6 +493,39 @@ _RESOURCES = {
         "IndexFiles": ["line_index.tsv"],
         "DataDirs": [""],
     },
+    "SLR83": {
+        "Language": "English",
+        "LongName": "Crowdsourced high-quality UK and Ireland English Dialect speech data set",
+        "Category": "Speech",
+        "Summary": "Data set which contains male and female recordings of English from various dialects of the UK and Ireland",
+        "Files": [
+            "irish_english_male.zip",
+            "midlands_english_female.zip",
+            "midlands_english_male.zip",
+            "northern_english_female.zip",
+            "northern_english_male.zip",
+            "scottish_english_female.zip",
+            "scottish_english_male.zip",
+            "southern_english_female.zip",
+            "southern_english_male.zip",
+            "welsh_english_female.zip",
+            "welsh_english_male.zip",
+        ],
+        "IndexFiles": [
+            "line_index.csv",
+            "line_index.csv",
+            "line_index.csv",
+            "line_index.csv",
+            "line_index.csv",
+            "line_index.csv",
+            "line_index.csv",
+            "line_index.csv",
+            "line_index.csv",
+            "line_index.csv",
+            "line_index.csv",
+        ],
+        "DataDirs": ["", "", "", "", "", "", "", "", "", "", ""],
+    },
     "SLR86": {
         "Language": "Yoruba",
         "LongName": "Crowdsourced high-quality Yoruba speech data set",
@@ -537,6 +584,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "path": datasets.Value("string"),
+                "audio": datasets.features.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
             }
         )
@@ -591,7 +639,17 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                     path = str(path_to_data.resolve())
                     sentence = sentence_index[filename]
                     counter += 1
-                    yield counter, {"path": path, "sentence": sentence}
+                    yield counter, {"path": path, "audio": path, "sentence": sentence}
+        elif self.config.name in ["SLR83"]:
+            for i, path_to_index in enumerate(path_to_indexs):
+                with open(path_to_index, encoding="utf-8") as f:
+                    lines = f.readlines()
+                    for id_, line in enumerate(lines):
+                        field_values = re.split(r",\s?", line.strip())
+                        user_id, filename, sentence = field_values
+                        path = os.path.join(path_to_datas[i], f"{filename}.wav")
+                        counter += 1
+                        yield counter, {"path": path, "audio": path, "sentence": sentence}
         else:
             for i, path_to_index in enumerate(path_to_indexs):
                 with open(path_to_index, encoding="utf-8") as f:
@@ -607,4 +665,4 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                         # set absolute path for audio file
                         path = os.path.join(path_to_datas[i], f"{filename}.wav")
                         counter += 1
-                        yield counter, {"path": path, "sentence": sentence}
+                        yield counter, {"path": path, "audio": path, "sentence": sentence}

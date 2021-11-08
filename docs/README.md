@@ -144,7 +144,7 @@ XXXTokenizer
 Values that should be put in `code` should either be surrounded by double backticks: \`\`like so\`\` or be written as
 an object using the :obj: syntax: :obj:\`like so\`.
 
-When mentionning a class, it is recommended to use the :class: syntax as the mentioned class will be automatically
+When mentioning a class, it is recommended to use the :class: syntax as the mentioned class will be automatically
 linked by Sphinx: :class:\`transformers.XXXClass\`
 
 When mentioning a function, it is recommended to use the :func: syntax as the mentioned method will be automatically

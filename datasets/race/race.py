@@ -2,8 +2,6 @@
 
 
 import json
-import os
-from pathlib import Path
 
 import datasets
 
@@ -70,7 +68,7 @@ class Race(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         # Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
-        dl_dir = dl_manager.download_and_extract(_URL)
+        archive = dl_manager.download(_URL)
         case = str(self.config.name)
         if case == "all":
             case = ""
@@ -78,27 +76,25 @@ class Race(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"train_test_or_eval": os.path.join(dl_dir, f"RACE/test/{case}")},
+                gen_kwargs={"train_test_or_eval": f"RACE/test/{case}", "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"train_test_or_eval": os.path.join(dl_dir, f"RACE/train/{case}")},
+                gen_kwargs={"train_test_or_eval": f"RACE/train/{case}", "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"train_test_or_eval": os.path.join(dl_dir, f"RACE/dev/{case}")},
+                gen_kwargs={"train_test_or_eval": f"RACE/dev/{case}", "files": dl_manager.iter_archive(archive)},
             ),
         ]
 
-    def _generate_examples(self, train_test_or_eval):
+    def _generate_examples(self, train_test_or_eval, files):
         """Yields examples."""
-        current_path = Path(train_test_or_eval)
-        files_in_dir = [str(f.absolute()) for f in sorted(current_path.glob("**/*.txt"))]
-        for file_idx, file in enumerate(sorted(files_in_dir)):
-            with open(file, encoding="utf-8") as f:
-                data = json.load(f)
+        for file_idx, (path, f) in enumerate(files):
+            if path.startswith(train_test_or_eval) and path.endswith(".txt"):
+                data = json.loads(f.read().decode("utf-8"))
                 questions = data["questions"]
                 answers = data["answers"]
                 options = data["options"]

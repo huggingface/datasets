@@ -1,4 +1,5 @@
 ---
+pretty_name: Cifar100
 annotations_creators:
 - crowdsourced
 language_creators:

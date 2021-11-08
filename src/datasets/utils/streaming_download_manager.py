@@ -1,14 +1,15 @@
 import glob
 import os
 import re
+import tarfile
 import time
+from asyncio import TimeoutError
 from pathlib import Path, PurePosixPath
 from typing import Optional, Tuple, Union
 
 import fsspec
 import posixpath
 from aiohttp.client_exceptions import ClientError
-from fsspec.exceptions import FSTimeoutError
 
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
@@ -19,7 +20,21 @@ from .logging import get_logger
 
 logger = get_logger(__name__)
 
-BASE_KNOWN_EXTENSIONS = ["txt", "csv", "json", "jsonl", "tsv", "conll", "conllu", "parquet", "pkl", "pickle", "xml"]
+BASE_KNOWN_EXTENSIONS = [
+    "txt",
+    "csv",
+    "json",
+    "jsonl",
+    "tsv",
+    "conll",
+    "conllu",
+    "orig",
+    "parquet",
+    "pkl",
+    "pickle",
+    "rel",
+    "xml",
+]
 COMPRESSION_EXTENSION_TO_PROTOCOL = {
     # single file compression
     **{fs_class.extension.lstrip("."): fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS},
@@ -90,6 +105,32 @@ def xdirname(a):
     return "::".join([a] + b)
 
 
+def xbasename(a):
+    """
+    This function extends os.path.basename to support the "::" hop separator. It supports both paths and urls.
+
+    A shorthand, particularly useful where you have multiple hops, is to “chain” the URLs with the special separator "::".
+    This is used to access files inside a zip file over http for example.
+
+    Let's say you have a zip file at https://host.com/archive.zip, and you want to access the file inside the zip file at /folder1/file.txt.
+    Then you can just chain the url this way:
+
+        zip://folder1/file.txt::https://host.com/archive.zip
+
+    The xbasename function allows you to apply the basename on the first path of the chain.
+
+    Example::
+
+        >>> xbasename("zip://folder1/file.txt::https://host.com/archive.zip")
+        file.txt
+    """
+    a, *b = a.split("::")
+    if is_local_path(a):
+        return os.path.basename(Path(a).as_posix())
+    else:
+        return posixpath.basename(a)
+
+
 def _as_posix(path: Path):
     """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slashes after protocol.
 
@@ -127,7 +168,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
             try:
                 out = read(*args, **kwargs)
                 break
-            except (ClientError, FSTimeoutError):
+            except (ClientError, TimeoutError):
                 logger.warning(
                     f"Got disconnected from remote data host. Retrying in {config.STREAMING_READ_RETRY_INTERVAL}sec [{retry}/{max_retries}]"
                 )
@@ -149,7 +190,9 @@ def _get_extraction_protocol(urlpath: str) -> Optional[str]:
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
     elif path.endswith(".tar.gz") or path.endswith(".tgz"):
-        pass
+        raise NotImplementedError(
+            f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. Please use `dl_manager.iter_archive` instead."
+        )
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
     raise NotImplementedError(f"Extraction protocol '{extension}' for file at '{urlpath}' is not implemented yet")
@@ -282,10 +325,13 @@ def xpathsuffix(path: Path):
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
-def xpandas_read_csv(path, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
+def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
-    return pd.read_csv(xopen(path, use_auth_token=use_auth_token), **kwargs)
+    if hasattr(filepath_or_buffer, "read"):
+        return pd.read_csv(filepath_or_buffer, **kwargs)
+    else:
+        return pd.read_csv(xopen(filepath_or_buffer, use_auth_token=use_auth_token), **kwargs)
 
 
 class StreamingDownloadManager(object):
@@ -339,7 +385,7 @@ class StreamingDownloadManager(object):
             inner_file = inner_file[: inner_file.rindex(".")]
             # check for tar.gz, tar.bz2 etc.
             if inner_file.endswith(".tar"):
-                return f"tar://::{urlpath}"
+                return f"tar://::{protocol}://{inner_file}::{urlpath}"
             else:
                 return f"{protocol}://{inner_file}::{urlpath}"
         else:
@@ -347,3 +393,29 @@ class StreamingDownloadManager(object):
 
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
+
+    def iter_archive(self, urlpath: str):
+        """Returns iterator over files within archive.
+
+        Args:
+            path: path to archive.
+
+        Returns:
+            Generator yielding tuple (path_within_archive, file_obj).
+            File-Obj are opened in byte mode (io.BufferedReader)
+        """
+        with xopen(urlpath, "rb", use_auth_token=self._download_config.use_auth_token) as f:
+            stream = tarfile.open(fileobj=f, mode="r|*")
+            for tarinfo in stream:
+                file_path = tarinfo.name
+                if not tarinfo.isreg():
+                    continue
+                if file_path is None:
+                    continue
+                if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                    # skipping hidden files
+                    continue
+                file_obj = stream.extractfile(tarinfo)
+                yield (file_path, file_obj)
+                stream.members = []
+            del stream

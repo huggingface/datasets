@@ -234,8 +234,8 @@ class DownloadConfig:
         force_extract (:obj:`bool`, default ``False``): If True when extract_compressed_file is True and the archive
             was already extracted, re-extract the archive and override the folder where it was extracted.
         delete_extracted (:obj:`bool`, default ``False``): Whether to delete (or keep) the extracted files.
-        use_etag (:obj:`bool`, default ``True``):
-        num_proc (:obj:`int`, optional):
+        use_etag (:obj:`bool`, default ``True``): Whether to use the ETag HTTP response header to validate the cached files.
+        num_proc (:obj:`int`, optional): The number of processes to launch to download the files in parallel.
         max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
         use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
             for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
@@ -364,7 +364,7 @@ class OfflineModeIsEnabled(ConnectionError):
 
 
 def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
-    """Raise a OfflineModeIsEnabled error (subclass of ConnectionError) if HF_DATASETS_OFFLINE is True."""
+    """Raise an OfflineModeIsEnabled error (subclass of ConnectionError) if HF_DATASETS_OFFLINE is True."""
     if config.HF_DATASETS_OFFLINE:
         raise OfflineModeIsEnabled(
             "Offline mode is enabled." if msg is None else "Offline mode is enabled. " + str(msg)
@@ -655,7 +655,7 @@ def get_from_cache(
 
 def add_start_docstrings(*docstr):
     def docstring_decorator(fn):
-        fn.__doc__ = "".join(docstr) + (fn.__doc__ if fn.__doc__ is not None else "")
+        fn.__doc__ = "".join(docstr) + "\n\n" + (fn.__doc__ if fn.__doc__ is not None else "")
         return fn
 
     return docstring_decorator
@@ -663,7 +663,7 @@ def add_start_docstrings(*docstr):
 
 def add_end_docstrings(*docstr):
     def docstring_decorator(fn):
-        fn.__doc__ = (fn.__doc__ if fn.__doc__ is not None else "") + "".join(docstr)
+        fn.__doc__ = (fn.__doc__ if fn.__doc__ is not None else "") + "\n\n" + "".join(docstr)
         return fn
 
     return docstring_decorator

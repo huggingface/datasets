@@ -18,9 +18,10 @@
 
 from typing import Dict, List, Mapping, Optional, Sequence, Union
 
+import huggingface_hub
+
 from .features import Features
-from .hf_api import HfApi
-from .load import import_main_class, load_dataset_builder, prepare_module
+from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
 from .utils import DownloadConfig
 from .utils.download_manager import GenerateMode
 from .utils.logging import get_logger
@@ -36,25 +37,33 @@ class SplitsNotFoundError(ValueError):
 
 
 def list_datasets(with_community_datasets=True, with_details=False):
-    """List all the datasets scripts available on HuggingFace AWS bucket.
+    """List all the datasets scripts available on the Hugging Face Hub.
 
     Args:
         with_community_datasets (``bool``, optional, default ``True``): Include the community provided datasets.
         with_details (``bool``, optional, default ``False``): Return the full details on the datasets instead of only the short name.
     """
-    api = HfApi()
-    return api.dataset_list(with_community_datasets=with_community_datasets, id_only=bool(not with_details))
+    datasets = huggingface_hub.list_datasets(full=with_details)
+    if not with_community_datasets:
+        datasets = [dataset for dataset in datasets if "/" not in dataset.id]
+    if not with_details:
+        datasets = [dataset.id for dataset in datasets]
+    return datasets
 
 
 def list_metrics(with_community_metrics=True, with_details=False):
-    """List all the metrics script available on HuggingFace AWS bucket
+    """List all the metrics script available on the Hugging Face Hub.
 
     Args:
-        with_community_metrics (Optional ``bool``): Include the community provided metrics (default: ``True``)
-        with_details (Optional ``bool``): Return the full details on the metrics instead of only the short name (default: ``False``)
+        with_community_metrics (Optional ``bool``, default ``True``): Include the community provided metrics.
+        with_details (Optional ``bool``, default ``False``): Return the full details on the metrics instead of only the short name.
     """
-    api = HfApi()
-    return api.metric_list(with_community_metrics=with_community_metrics, id_only=bool(not with_details))
+    metrics = huggingface_hub.list_metrics()
+    if not with_community_metrics:
+        metrics = [metric for metric in metrics if "/" not in metric.id]
+    if not with_details:
+        metrics = [metric.id for metric in metrics]
+    return metrics
 
 
 def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
@@ -66,18 +75,18 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         local_path (``str``): path to the local folder to copy the datset script to.
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
-    module_path, _ = prepare_module(
-        path, download_config=download_config, dataset=True, force_local_path=local_path, **download_kwargs
+    dataset_module = dataset_module_factory(
+        path, download_config=download_config, force_local_path=local_path, **download_kwargs
     )
     print(
         f"The processing script for dataset {path} can be inspected at {local_path}. "
-        f"The main class is in {module_path}. "
+        f"The main class is in {dataset_module.module_path}. "
         f"You can modify this processing script and use it with `datasets.load_dataset({local_path})`."
     )
 
@@ -91,18 +100,18 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         local_path (``str``): path to the local folder to copy the datset script to.
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
         **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
-    module_path, _ = prepare_module(
-        path, download_config=download_config, dataset=False, force_local_path=local_path, **download_kwargs
+    metric_module = metric_module_factory(
+        path, download_config=download_config, force_local_path=local_path, **download_kwargs
     )
     print(
         f"The processing scripts for metric {path} can be inspected at {local_path}. "
-        f"The main class is in {module_path}. "
+        f"The main class is in {metric_module.module_path}. "
         f"You can modify this processing scripts and use it with `datasets.load_metric({local_path})`."
     )
 
@@ -124,7 +133,7 @@ def get_dataset_infos(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         revision (Optional ``Union[str, datasets.Version]``):
             If specified, the dataset module will be loaded from the datasets repository at this version.
@@ -143,9 +152,8 @@ def get_dataset_infos(
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
             for example ``use_auth_token``
     """
-    module_path, _ = prepare_module(
+    dataset_module = dataset_module_factory(
         path,
-        dataset=True,
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
@@ -154,7 +162,7 @@ def get_dataset_infos(
         data_files=data_files,
         **download_kwargs,
     )
-    builder_cls = import_main_class(module_path, dataset=True)
+    builder_cls = import_main_class(dataset_module.module_path, dataset=True)
     return builder_cls.get_all_exported_dataset_infos()
 
 
@@ -175,7 +183,7 @@ def get_dataset_config_names(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         revision (Optional ``Union[str, datasets.Version]``):
             If specified, the dataset module will be loaded from the datasets repository at this version.
@@ -194,9 +202,8 @@ def get_dataset_config_names(
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
             for example ``use_auth_token``
     """
-    module_path, _ = prepare_module(
+    dataset_module = dataset_module_factory(
         path,
-        dataset=True,
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
@@ -205,8 +212,8 @@ def get_dataset_config_names(
         data_files=data_files,
         **download_kwargs,
     )
-    builder_cls = import_main_class(module_path, dataset=True)
-    return list(builder_cls.builder_configs.keys())
+    builder_cls = import_main_class(dataset_module.module_path)
+    return list(builder_cls.builder_configs.keys()) or [dataset_module.builder_kwargs.get("name", "default")]
 
 
 def get_dataset_split_names(
@@ -229,7 +236,7 @@ def get_dataset_split_names(
 
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
         data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.

@@ -1,7 +1,12 @@
 ---
+pretty_name: Extreme Summarization (XSum)
 languages:
 - en
 paperswithcode_id: xsum
+task_categories:
+- conditional-text-generation
+task_ids:
+- summarization
 ---
 
 # Dataset Card for "xsum"

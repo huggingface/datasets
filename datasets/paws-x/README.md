@@ -1,4 +1,5 @@
 ---
+pretty_name: "PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification"
 annotations_creators:
 - expert-generated
 - machine-generated

@@ -75,6 +75,7 @@ Find your dataset today on the `Hugging Face Hub <https://huggingface.co/dataset
     share
     dataset_script
     dataset_card
+    repository_structure
     cache
     filesystems
     faiss_es
