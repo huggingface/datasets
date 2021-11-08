@@ -242,7 +242,9 @@ class ArrowWriter:
         self.current_rows: List[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
         self.hkey_record = []
-        self.typed_sequence_cls = TypedSequence if config.DISABLE_PYARROW_TYPES_OPTIMIZATION else OptimizedTypedSequence
+        self.typed_sequence_cls = (
+            TypedSequence if config.DISABLE_PYARROW_TYPES_OPTIMIZATION else OptimizedTypedSequence
+        )
 
     def __len__(self):
         """Return the number of writed and staged examples"""
