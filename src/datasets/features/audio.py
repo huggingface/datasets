@@ -34,6 +34,19 @@ class Audio:
     def __call__(self):
         return pa.struct({"path": pa.string(), "bytes": pa.binary()})
 
+    def encode_example(self, value):
+        """Encode example into a format for Arrow.
+
+        Args:
+            value (:obj:`str` or :obj:`dict`): Data passed as input to Audio feature.
+
+        Returns:
+            :obj:`dict`
+        """
+        if isinstance(value, str):
+            return {"path": value}
+        return value
+
     def decode_example(self, value):
         """Decode example audio file into audio data.
 
