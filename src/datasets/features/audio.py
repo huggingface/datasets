@@ -13,6 +13,7 @@ class Audio:
     Input: The Audio feature accepts as input:
     - A :obj:`str`: Absolute path to the audio file (i.e. random access is allowed).
     - A :obj:`dict` with the keys:
+
         - path: String with relative path of the audio file to the archive file.
         - bytes: Bytes of the audio file.
       This is useful for archived files with sequential access.
@@ -52,6 +53,7 @@ class Audio:
 
         Args:
             value (:obj:`dict`): Dictionary with keys:
+
                 - path: String with absolute or relative audio file path.
                 - bytes: Optionally, the bytes of the audio file.
 
