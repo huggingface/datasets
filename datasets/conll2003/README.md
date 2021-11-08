@@ -19,6 +19,7 @@ task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
 paperswithcode_id: conll-2003
+pretty_name: CoNLL-2003
 ---
 
 # Dataset Card for "conll2003"
