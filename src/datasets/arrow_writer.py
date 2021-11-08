@@ -130,6 +130,7 @@ class TypedSequence:
                         "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
                     )
             if self.optimized_int_type and self.type is None and self.try_type is None:
+                trying_int_optimization = True
                 if pa.types.is_int64(out.type):
                     out = out.cast(self.optimized_int_type)
                 elif pa.types.is_list(out.type):
@@ -154,6 +155,8 @@ class TypedSequence:
                                 type_(self.data), e
                             )
                         ) from None
+                    elif trying_int_optimization and "not in range" in str(e):
+                        return out
                     else:
                         raise
             elif "overflow" in str(e):
@@ -162,6 +165,8 @@ class TypedSequence:
                         type_(self.data), e
                     )
                 ) from None
+            elif trying_int_optimization and "not in range" in str(e):
+                return out
             else:
                 raise
 
