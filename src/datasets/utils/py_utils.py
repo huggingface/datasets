@@ -385,8 +385,8 @@ class Pickler(dill.Pickler):
         if type(obj) != str:
             dill.Pickler.memoize(self, obj)
 
-    @staticmethod
-    def maybe_register_superfunc(obj):
+    @classmethod
+    def maybe_register_superfunc(cls, obj):
         """Dynamically registers a custom pickling function for the type of this object `obj`
         by checking the `Pickler.sublcass_dispatch` table. All super-classes of `obj` are
         traversed through mro() and checked against the table. If there is a match between
@@ -394,16 +394,15 @@ class Pickler(dill.Pickler):
         of the found super-class to Pickler.dispatch. This will internally tell Pickle to use
         this function, originally related to the super-class, for this function as well."""
         t = type(obj)
-        if t not in Pickler.dispatch and t not in Pickler.sublcass_dispatch:
-            if hasattr(obj.__class__, "__mro__"):
-                for supercls in obj.__class__.__mro__:
-                    if supercls in Pickler.sublcass_dispatch:
-                        pklregister(t)(Pickler.sublcass_dispatch[supercls])
-                        # Break as soon as one match is found. We only want to most direct
-                        # ancestor class. _Some_ caution is needed here because the order
-                        # that we traverse is that of MRO, which is depth-first with some quirks
-                        # see # https://stackoverflow.com/a/2010732/1150683
-                        break
+        if t not in cls.dispatch and t not in cls.sublcass_dispatch:
+            for supercls in t.__mro__:
+                if supercls in cls.sublcass_dispatch:
+                    pklregister(t)(cls.sublcass_dispatch[supercls])
+                    # Break as soon as one match is found. We only want to most direct
+                    # ancestor class. _Some_ caution is needed here because the order
+                    # that we traverse is that of MRO, which is depth-first with some quirks
+                    # see # https://stackoverflow.com/a/2010732/1150683
+                    break
 
 
 def dump(obj, file):
