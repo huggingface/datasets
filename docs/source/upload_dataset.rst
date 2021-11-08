@@ -64,14 +64,18 @@ Your dataset can now be loaded by anyone in a single line of code!
 
    >>> from datasets import load_dataset
    >>> dataset = load_dataset("stevhliu/demo")
+   >>> dataset
+   DatasetDict({
+    train: Dataset({
+        features: ['id', 'package_name', 'review', 'date', 'star', 'version_id'],
+        num_rows: 5
+    })
+    test: Dataset({
+        features: ['id', 'package_name', 'review', 'date', 'star', 'version_id'],
+        num_rows: 5
+    })
+   })
 
-You can even map your data files to a specific split with the ``data_files`` parameter:
-
-.. code-block::
-
-   >>> data_files = {"train": "train.csv", "test": "test.csv"}
-   >>> dataset = load_dataset("stevhliu/demo", data_files=data_files)
-   >>> print(dataset["train"][0])
 
 Privacy
 -------

@@ -105,6 +105,32 @@ def xdirname(a):
     return "::".join([a] + b)
 
 
+def xbasename(a):
+    """
+    This function extends os.path.basename to support the "::" hop separator. It supports both paths and urls.
+
+    A shorthand, particularly useful where you have multiple hops, is to “chain” the URLs with the special separator "::".
+    This is used to access files inside a zip file over http for example.
+
+    Let's say you have a zip file at https://host.com/archive.zip, and you want to access the file inside the zip file at /folder1/file.txt.
+    Then you can just chain the url this way:
+
+        zip://folder1/file.txt::https://host.com/archive.zip
+
+    The xbasename function allows you to apply the basename on the first path of the chain.
+
+    Example::
+
+        >>> xbasename("zip://folder1/file.txt::https://host.com/archive.zip")
+        file.txt
+    """
+    a, *b = a.split("::")
+    if is_local_path(a):
+        return os.path.basename(Path(a).as_posix())
+    else:
+        return posixpath.basename(a)
+
+
 def _as_posix(path: Path):
     """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slashes after protocol.
 
@@ -299,10 +325,13 @@ def xpathsuffix(path: Path):
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
-def xpandas_read_csv(path, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
+def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
-    return pd.read_csv(xopen(path, use_auth_token=use_auth_token), **kwargs)
+    if hasattr(filepath_or_buffer, "read"):
+        return pd.read_csv(filepath_or_buffer, **kwargs)
+    else:
+        return pd.read_csv(xopen(filepath_or_buffer, use_auth_token=use_auth_token), **kwargs)
 
 
 class StreamingDownloadManager(object):

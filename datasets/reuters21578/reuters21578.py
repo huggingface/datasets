@@ -17,7 +17,6 @@
 """Reuters 21578"""
 
 
-import os
 from textwrap import dedent
 
 import datasets
@@ -253,33 +252,53 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_dir = dl_manager.download_and_extract(_DATA_URL)
-        files = [os.path.join(dl_dir, "reut2-" + "%03d" % i + ".sgm") for i in range(22)]
+        archive = dl_manager.download(_DATA_URL)
+        filepaths = ["reut2-" + "%03d" % i + ".sgm" for i in range(22)]
         if self.config.name == "ModHayes":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"filepath": files, "split": "PUBLISHED-TESTSET"},
+                    gen_kwargs={
+                        "filepaths": filepaths,
+                        "split": "PUBLISHED-TESTSET",
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"filepath": files, "split": "TRAINING-SET"},
+                    gen_kwargs={
+                        "filepaths": filepaths,
+                        "split": "TRAINING-SET",
+                        "files": dl_manager.iter_archive(archive),
+                    },
                 ),
             ]
         else:
             return [
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": files, "split": "TEST"}),
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": files, "split": "TRAIN"}),
-                datasets.SplitGenerator(name="unused", gen_kwargs={"filepath": files, "split": "NOT-USED"}),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepaths": filepaths, "split": "TEST", "files": dl_manager.iter_archive(archive)},
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"filepaths": filepaths, "split": "TRAIN", "files": dl_manager.iter_archive(archive)},
+                ),
+                datasets.SplitGenerator(
+                    name="unused",
+                    gen_kwargs={
+                        "filepaths": filepaths,
+                        "split": "NOT-USED",
+                        "files": dl_manager.iter_archive(archive),
+                    },
+                ),
             ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepaths, split, files):
         """This function returns the examples in the raw (text) form."""
-        for file in filepath:
-            with open(
-                file, encoding="utf-8", errors="ignore"
-            ) as f:  # only the file reut2-017 has one line non UTF-8 encoded so we can ignore it
-                line = f.readline()
+        for path, f in files:
+            if path in filepaths:
+                # only the file reut2-017 has one line non UTF-8 encoded so we can ignore it
+                line = f.readline().decode("utf-8", errors="ignore")
                 while line:
                     if line.startswith("<REUTERS"):
                         lewis_split = ""
@@ -301,7 +320,7 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                         old_id = line[4].split("=")[1]
                         new_id = line[5].split("=")[1][:-1]
                         has_topic = line[1].split("=")[1]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                         if (
                             (self.config.name == "ModHayes" and split not in cgis_split)
                             or (
@@ -325,7 +344,7 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                         ):  # skip example that are not in the current split
                             li = line
                             while li and not li.startswith("<REUTERS"):
-                                li = f.readline()
+                                li = f.readline().decode("utf-8", errors="ignore")
                             if li:
                                 line = li
                     elif line.startswith("<TOPICS>"):
@@ -333,65 +352,65 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                             line = line.split("<D>")
                             topics = [topic.replace("</D>", "") for topic in line[1:]]
                             topics = [topic.replace("</TOPICS>\n", "") for topic in topics]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                     elif line.startswith("<PLACES>"):
                         if line.replace("\n", "") != "<PLACES></PLACES>":
                             line = line.split("<D>")
                             places = [place.replace("</D>", "") for place in line[1:]]
                             places = [place.replace("</PLACES>\n", "") for place in places]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                     elif line.startswith("<PEOPLE>"):
                         if line.replace("\n", "") != "<PEOPLE></PEOPLE>":
                             line = line.split("<D>")
                             people = [p.replace("</D>", "") for p in line[1:]]
                             people = [p.replace("</PEOPLE>\n", "") for p in people]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                     elif line.startswith("<ORGS>"):
                         if line.replace("\n", "") != "<ORGS></ORGS>":
                             line = line.split("<D>")
                             orgs = [org.replace("</D>", "") for org in line[1:]]
                             orgs = [org.replace("</ORGS>\n", "") for org in orgs]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                     elif line.startswith("<EXCHANGES>"):
                         if line.replace("\n", "") != "<EXCHANGES></EXCHANGES>":
                             line = line.split("<D>")
                             exchanges = [ex.replace("</D>", "") for ex in line[1:]]
                             exchanges = [ex.replace("</EXCHANGES>\n", "") for ex in exchanges]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                     elif line.startswith("<DATE>"):
                         date = line.replace("\n", "")
                         date = line[6:-8]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                     elif line.startswith("<TITLE>"):
                         title = line[7:-9]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                     elif "*<TITLE>" in line:
                         # These lines start with a variable number of * chars
                         title = line.split("*<TITLE>")[1][:-1]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                         while "</TITLE>" not in line:
                             # Convert any \n in TYPE="BRIEF" text to spaces to match other titles
                             title += " " + line[:-1]
-                            line = f.readline()
+                            line = f.readline().decode("utf-8", errors="ignore")
                     elif "<BODY>" in line:
                         text = line.split("<BODY>")[1]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                         while "</BODY>" not in line:
                             text += line
-                            line = f.readline()
+                            line = f.readline().decode("utf-8", errors="ignore")
                     elif line.startswith('<TEXT TYPE="UNPROC">'):
                         text_type = '"UNPROC"'
                         text = line[20:]
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                         while "</TEXT>" not in line:
                             text += line
-                            line = f.readline()
+                            line = f.readline().decode("utf-8", errors="ignore")
                     elif line.startswith('<TEXT TYPE="BRIEF">'):
                         text_type = '"BRIEF"'
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                     elif line.startswith("<TEXT>"):
                         text_type = '"NORM"'
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                     elif line.startswith("</REUTERS>"):
                         yield new_id, {
                             "lewis_split": lewis_split,
@@ -408,6 +427,6 @@ class Reuters21578(datasets.GeneratorBasedBuilder):
                             "text": text,
                             "text_type": text_type,
                         }
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")
                     else:
-                        line = f.readline()
+                        line = f.readline().decode("utf-8", errors="ignore")

@@ -1823,10 +1823,6 @@ class BaseDatasetTest(TestCase):
 
                     self.assertNotEqual(dset._indices, None)
 
-                    # Test unique fail
-                    with self.assertRaises(ValueError):
-                        dset.unique(dset.column_names[0])
-
                     tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
                     fingerprint = dset._fingerprint
                     dset.set_format("numpy")

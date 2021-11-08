@@ -44,7 +44,7 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     yield repo_id
     try:
         hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
-    except requests.exceptions.HTTPError:
+    except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
 
@@ -70,7 +70,7 @@ def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_pa
     yield repo_id
     try:
         hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
-    except requests.exceptions.HTTPError:
+    except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
         pass
 
 
