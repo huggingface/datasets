@@ -82,12 +82,13 @@ class TypedSequence:
 
     """
 
-    def __init__(self, data, type=None, try_type=None, optimized_int_type=None):
+    def __init__(self, data, type=None, try_type=None, optimized_int_type=None, col=None):
         assert type is None or try_type is None, "You cannot specify both type and try_type"
         self.data = data
         self.type = type
         self.try_type = try_type  # is ignored if it doesn't match the data
         self.optimized_int_type = optimized_int_type
+        self.col = col  # ignore, here for consistency with `OptimizedTypedSequence`
 
     def __arrow_array__(self, type=None):
         """This function is called when calling pa.array(typed_sequence)"""
@@ -176,7 +177,7 @@ class OptimizedTypedSequence(TypedSequence):
         }
         if type is None and try_type is None:
             optimized_int_type = optimized_int_type_by_col.get(col, None)
-        super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type)
+        super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type, col=col)
 
 
 class ArrowWriter:
@@ -241,6 +242,7 @@ class ArrowWriter:
         self.current_rows: List[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
         self.hkey_record = []
+        self.typed_sequence_cls = OptimizedTypedSequence if config.OPTIMIZE_PYARROW_TYPES else TypedSequence
 
     def __len__(self):
         """Return the number of writed and staged examples"""
@@ -319,12 +321,12 @@ class ArrowWriter:
         for col in cols:
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
-            typed_sequence = OptimizedTypedSequence(
+            typed_sequence = self.typed_sequence_cls(
                 [row[0][col] for row in self.current_examples], type=col_type, try_type=col_try_type, col=col
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
-            first_example = pa.array(OptimizedTypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
+            first_example = pa.array(self.typed_sequence_cls(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
                 # This check fails with FloatArrays with nans, which is not what we want, so account for that:
                 if not isinstance(pa_array[0], pa.lib.FloatScalar):
@@ -422,7 +424,9 @@ class ArrowWriter:
         for col in sorted(batch_examples.keys()):
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
-            typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
+            typed_sequence = self.typed_sequence_cls(
+                batch_examples[col], type=col_type, try_type=col_try_type, col=col
+            )
             typed_sequence_examples[col] = typed_sequence
         pa_table = pa.Table.from_pydict(typed_sequence_examples)
         self.write_table(pa_table, writer_batch_size)
