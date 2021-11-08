@@ -52,7 +52,8 @@ class Audio:
         """Decode example audio file into audio data.
 
         Args:
-            value (:obj:`dict`): Dictionary with keys:
+            value (obj:`str` or :obj:`dict`): Either a string with the absolute audio file path or a dictionary with
+                keys:
 
                 - path: String with absolute or relative audio file path.
                 - bytes: Optionally, the bytes of the audio file.
@@ -60,6 +61,8 @@ class Audio:
         Returns:
             dict
         """
+        if isinstance(value, str):
+            value = {"path": value, "bytes": None}
         if value["bytes"]:
             path, file = value["path"], BytesIO(value["bytes"])
             array, sampling_rate = (
