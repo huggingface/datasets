@@ -165,9 +165,9 @@ DEFAULT_MAX_BATCH_SIZE = 10_000
 # For big tables, we write them on disk instead
 MAX_TABLE_NBYTES_FOR_PICKLING = 4 << 30
 
-# Whether to optimize PyArrow types in order to reduce the size of the generated cache files
-OPTIMIZE_PYARROW_TYPES = (
-    os.environ.get("HF_DATASETS_OPTIMIZE_PYARROW_TYPES", "AUTO").upper() in ENV_VARS_TRUE_AND_AUTO_VALUES
+# Control PyArrow types optimization - used to reduce the size of the generated cache files
+DISABLE_PYARROW_TYPES_OPTIMIZATION = (
+    os.environ.get("HF_DATASETS_DISABLE_PYARROW_TYPES_OPTIMIZATION", "AUTO").upper() in ENV_VARS_TRUE_VALUES
 )
 
 # Offline mode

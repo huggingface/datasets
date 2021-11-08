@@ -240,7 +240,7 @@ def test_arrow_writer_typed_sequence_cls(monkeypatch):
     with ArrowWriter(stream=stream) as writer:
         assert writer.typed_sequence_cls == OptimizedTypedSequence
 
-    monkeypatch.setattr(config, "OPTIMIZE_PYARROW_TYPES", False)
+    monkeypatch.setattr(config, "DISABLE_PYARROW_TYPES_OPTIMIZATION", True)
 
     with ArrowWriter(stream=stream) as writer:
         assert writer.typed_sequence_cls == TypedSequence
