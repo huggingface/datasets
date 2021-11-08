@@ -82,13 +82,12 @@ class TypedSequence:
 
     """
 
-    def __init__(self, data, type=None, try_type=None, optimized_int_type=None, col=None):
+    def __init__(self, data, type=None, try_type=None, optimized_int_type=None):
         assert type is None or try_type is None, "You cannot specify both type and try_type"
         self.data = data
         self.type = type
         self.try_type = try_type  # is ignored if it doesn't match the data
         self.optimized_int_type = optimized_int_type
-        self.col = col  # ignore, here for consistency with `OptimizedTypedSequence`
 
     def __arrow_array__(self, type=None):
         """This function is called when calling pa.array(typed_sequence)"""
@@ -177,7 +176,7 @@ class OptimizedTypedSequence(TypedSequence):
         }
         if type is None and try_type is None:
             optimized_int_type = optimized_int_type_by_col.get(col, None)
-        super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type, col=col)
+        super().__init__(data, type=type, try_type=try_type, optimized_int_type=optimized_int_type)
 
 
 class ArrowWriter:
