@@ -10,21 +10,21 @@ import pyarrow as pa
 class Audio:
     """Audio Feature to extract audio data from an audio file.
 
+    Input: The Audio feature accepts as input:
+    - A :obj:`str`: Absolute path to the audio file (i.e. random access is allowed).
+    - A :obj:`dict` with the keys:
+        - path: String with relative path of the audio file to the archive file.
+        - bytes: Bytes of the audio file.
+      This is useful for archived files with sequential access.
+
     Args:
         sampling_rate (:obj:`int`, optional): Target sampling rate. If `None`, the native sampling rate is used.
         mono (:obj:`bool`, default ``True``): Whether to convert the audio signal to mono by averaging samples across
             channels.
-        archived (:obj:`bool`, default ``False``): Whether the source data is archived with sequential access.
-
-            - If non-archived with sequential access (i.e. random access is allowed), the cache will only store the
-              absolute path to the audio file.
-            - If archived with sequential access, the cache will store the relative path of the audio file to the
-              archive file and the bytes of the audio file.
     """
 
     sampling_rate: Optional[int] = None
     mono: bool = True
-    archived: bool = False
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -32,19 +32,20 @@ class Audio:
     _type: str = field(default="Audio", init=False, repr=False)
 
     def __call__(self):
-        return pa.string() if not self.archived else pa.struct({"path": pa.string(), "bytes": pa.binary()})
+        return pa.struct({"path": pa.string(), "bytes": pa.binary()})
 
     def decode_example(self, value):
         """Decode example audio file into audio data.
 
         Args:
-            value: Either absolute audio file path (when ``archived=False``) or a dict with relative audio file path
-                and the bytes of the audio file.
+            value (:obj:`dict`): Dictionary with keys:
+                - path: String with absolute or relative audio file path.
+                - bytes: Optionally, the bytes of the audio file.
 
         Returns:
             dict
         """
-        if self.archived:
+        if value["bytes"]:
             path, file = value["path"], BytesIO(value["bytes"])
             array, sampling_rate = (
                 self._decode_example_with_torchaudio(file)
@@ -52,7 +53,7 @@ class Audio:
                 else self._decode_example_with_soundfile(file)
             )
         else:
-            path = value
+            path = value["path"]
             array, sampling_rate = (
                 self._decode_example_with_torchaudio(path)
                 if path.endswith(".mp3")
