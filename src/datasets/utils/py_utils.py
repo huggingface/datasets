@@ -46,9 +46,7 @@ try:  # pragma: no branch
 except ImportError:
     _typing_extensions = Literal = Final = None
 
-
 logger = logging.get_logger(__name__)
-
 
 # NOTE: When used on an instance method, the cache is shared across all
 # instances and IS NOT per-instance.
@@ -333,25 +331,16 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
     return needed_bytes < free_bytes
 
 
-class TempPickleRegistry:
-    """Class to use as a context manager. It allows you to register and use functions
-    only within this block. When the block is exited, the registry is reset to the state before
-    the block. Because this involves resetting the class variables, it feels like it makes sense
-    to keep this in a separate class instead of adding enter/exit to the Pickler class itself"""
-
-    def __init__(self):
-        self.prev_dispatch: Optional[Dict] = None
-        self.prev_subclass_dispatch: Optional[Dict] = None
-
-    def __enter__(self):
-        self.prev_dispatch = Pickler.dispatch.copy()
-        self.prev_subclass_dispatch: Dict = Pickler.sublcass_dispatch.copy()
-
-        return self
-
-    def __exit__(self, *args):
-        Pickler.dispatch = dill._dill.MetaCatchingDict(self.prev_dispatch)
-        Pickler.sublcass_dispatch = self.prev_subclass_dispatch
+@contextlib.contextmanager
+def temp_pickle_registry():
+    """Use as a context manager to temporarily register a reduction function within context."""
+    prev_dispatch = Pickler.dispatch.copy()
+    prev_subclass_dispatch = Pickler.sublcass_dispatch.copy()
+    try:
+        yield
+    finally:
+        Pickler.dispatch = dill._dill.MetaCatchingDict(prev_dispatch)
+        Pickler.sublcass_dispatch = prev_subclass_dispatch
 
 
 class Pickler(dill.Pickler):

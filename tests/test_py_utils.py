@@ -1,17 +1,17 @@
-from dill import loads
 from unittest import TestCase
 
 import numpy as np
 import pytest
+from dill import loads
 
 from datasets.utils.py_utils import (
     NestedDataStructure,
     Pickler,
-    TempPickleRegistry,
     dumps,
     flatten_nest_dict,
     map_nested,
     pklregister,
+    temp_pickle_registry,
     temporary_assignment,
     zip_dict,
     zip_nested,
@@ -130,7 +130,7 @@ class PyUtilsTest(TestCase):
         self.assertEqual(foo.my_attr, "bar")
 
     def test_temp_pickle_registry(self):
-        with TempPickleRegistry():
+        with temp_pickle_registry():
 
             @pklregister(ChildClass)
             def pickle_registry_test_child(pickler, _):
@@ -140,7 +140,7 @@ class PyUtilsTest(TestCase):
 
             for allow_subclasses in (True, False):
                 with self.subTest(allow_subclasses=allow_subclasses):
-                    with TempPickleRegistry():
+                    with temp_pickle_registry():
 
                         @pklregister(ParentClass, allow_subclasses=allow_subclasses)
                         def pickle_registry_test_parent(pickler, _):
@@ -160,7 +160,7 @@ class PyUtilsTest(TestCase):
         self.assertNotIn(ChildClass, Pickler.dispatch)
 
     def test_pickle_registry_base(self):
-        with TempPickleRegistry():
+        with temp_pickle_registry():
             for allow_subclasses in (True, False):
                 with self.subTest(allow_subclasses=allow_subclasses):
 
@@ -176,7 +176,7 @@ class PyUtilsTest(TestCase):
                     self.assertTrue(unpickled)
 
     def test_pickle_registry_inheritance(self):
-        with TempPickleRegistry():
+        with temp_pickle_registry():
 
             @pklregister(BaseClass, allow_subclasses=False)
             def pickle_registry_test_false(pickler, _):
@@ -190,7 +190,7 @@ class PyUtilsTest(TestCase):
             unpickled = loads(dumps(ChildClass()))
             self.assertIsInstance(unpickled, ChildClass)
 
-        with TempPickleRegistry():
+        with temp_pickle_registry():
 
             @pklregister(BaseClass, allow_subclasses=True)
             def pickle_registry_test_true(pickler, _):
