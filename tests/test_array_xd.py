@@ -1,4 +1,5 @@
 import os
+import random
 import tempfile
 import unittest
 
@@ -9,17 +10,22 @@ from absl.testing import parameterized
 
 import datasets
 from datasets.arrow_writer import ArrowWriter
-from datasets.features import Array2D, Array3D, Array4D, Array5D, Value, _ArrayXD
-from datasets.formatting.formatting import NumpyArrowExtractor
+from datasets.features import Array2D, Array3D, Array3DExtensionType, Array4D, Array5D, Value, _ArrayXD
+from datasets.formatting.formatting import NumpyArrowExtractor, SimpleArrowExtractor
 
 
 SHAPE_TEST_1 = (30, 487)
 SHAPE_TEST_2 = (36, 1024)
+SHAPE_TEST_3 = (None, 100)
 SPEED_TEST_SHAPE = (100, 100)
 SPEED_TEST_N_EXAMPLES = 100
 
 DEFAULT_FEATURES = datasets.Features(
-    {"text": Array2D(SHAPE_TEST_1, dtype="float32"), "image": Array2D(SHAPE_TEST_2, dtype="float32")}
+    {
+        "text": Array2D(SHAPE_TEST_1, dtype="float32"),
+        "image": Array2D(SHAPE_TEST_2, dtype="float32"),
+        "dynamic": Array2D(SHAPE_TEST_3, dtype="float32"),
+    }
 )
 
 
@@ -30,7 +36,11 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
         example = {}
         for col_id, (k, v) in enumerate(features.items()):
             if isinstance(v, _ArrayXD):
-                data = np.random.rand(*v.shape).astype(v.dtype)
+                if k == "dynamic":
+                    first_dim = random.randint(1, 3)
+                    data = np.random.rand(first_dim, *v.shape[1:]).astype(v.dtype)
+                else:
+                    data = np.random.rand(*v.shape).astype(v.dtype)
             elif isinstance(v, datasets.Value):
                 data = "foo"
             elif isinstance(v, datasets.Sequence):
@@ -79,8 +89,10 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             row = dataset[0]
             first_len = len(row["image"].shape)
             second_len = len(row["text"].shape)
+            third_len = len(row["dynamic"].shape)
             self.assertEqual(first_len, 2, "use a sequence type if dim is  < 2")
             self.assertEqual(second_len, 2, "use a sequence type if dim is  < 2")
+            self.assertEqual(third_len, 2, "use a sequence type if dim is  < 2")
             del dataset
 
     def test_compatability_with_string_values(self):
@@ -191,9 +203,7 @@ class ArrayXDTest(unittest.TestCase):
             self.assertEqual(dataset[:2]["matrix"].to_numpy().shape, (2, *shape_2))
 
     def test_write(self, array_feature, shape_1, shape_2):
-
         with tempfile.TemporaryDirectory() as tmp_dir:
-
             my_features = self.get_features(array_feature, shape_1, shape_2)
             my_examples = [
                 (0, self.get_dict_example_0(shape_1, shape_2)),
@@ -209,9 +219,7 @@ class ArrayXDTest(unittest.TestCase):
             del dataset
 
     def test_write_batch(self, array_feature, shape_1, shape_2):
-
         with tempfile.TemporaryDirectory() as tmp_dir:
-
             my_features = self.get_features(array_feature, shape_1, shape_2)
             dict_examples = self.get_dict_examples(shape_1, shape_2)
             dict_examples = my_features.encode_batch(dict_examples)
@@ -229,6 +237,67 @@ class ArrayXDTest(unittest.TestCase):
         )
         self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
         del dataset
+
+
+class ArrayXDDynamicTest(unittest.TestCase):
+    def get_one_col_dataset(self, first_dim_list, fixed_shape):
+        features = datasets.Features({"image": Array3D(shape=(None, *fixed_shape), dtype="float32")})
+        dict_values = {"image": [np.random.rand(fdim, *fixed_shape).astype("float32") for fdim in first_dim_list]}
+        dataset = datasets.Dataset.from_dict(dict_values, features=features)
+        return dataset
+
+    def get_two_col_datasset(self, first_dim_list, fixed_shape):
+        features = datasets.Features(
+            {"image": Array3D(shape=(None, *fixed_shape), dtype="float32"), "text": Value("string")}
+        )
+        dict_values = {
+            "image": [np.random.rand(fdim, *fixed_shape).astype("float32") for fdim in first_dim_list],
+            "text": ["text" for _ in first_dim_list],
+        }
+        dataset = datasets.Dataset.from_dict(dict_values, features=features)
+        return dataset
+
+    def test_to_pylist(self):
+        fixed_shape = (2, 2)
+        first_dim_list = [1, 3, 10]
+        dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
+        arr_xd = SimpleArrowExtractor().extract_column(dataset._data)
+        self.assertIsInstance(arr_xd.type, Array3DExtensionType)
+        pylist = arr_xd.to_pylist()
+
+        for first_dim, single_arr in zip(first_dim_list, pylist):
+            self.assertIsInstance(single_arr, np.ndarray)
+            self.assertEqual(single_arr.shape, (first_dim, *fixed_shape))
+
+    def test_iter_dataset(self):
+        fixed_shape = (2, 2)
+        first_dim_list = [1, 3, 10]
+        dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
+
+        for first_dim, ds_row in zip(first_dim_list, dataset):
+            single_arr = ds_row["image"]
+            self.assertIsInstance(single_arr, np.ndarray)
+            self.assertEqual(single_arr.shape, (first_dim, *fixed_shape))
+
+    def test_to_pandas_fail(self):
+        fixed_shape = (2, 2)
+        first_dim_list = [1, 3, 10]
+        dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
+        with self.assertRaises(NotImplementedError):
+            dataset.to_pandas()
+
+    def test_map_dataset(self):
+        fixed_shape = (2, 2)
+        first_dim_list = [1, 3, 10]
+        dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
+
+        dataset = dataset.map(lambda a: {"image": np.concatenate([a] * 2)}, input_columns="image")
+
+        # check also if above function resulted with 2x bigger first dim
+        for first_dim, ds_row in zip(first_dim_list, dataset):
+            single_arr = ds_row["image"]
+            self.assertIsInstance(single_arr, np.ndarray)
+            self.assertEqual(single_arr.shape, (first_dim * 2, *fixed_shape))
 
 
 @pytest.mark.parametrize("dtype, dummy_value", [("int32", 1), ("bool", True), ("float64", 1)])

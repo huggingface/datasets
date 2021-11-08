@@ -41,7 +41,7 @@ from .arrow_reader import (
     ReadInstruction,
 )
 from .arrow_writer import ArrowWriter, BeamWriter
-from .data_files import DataFilesDict, _sanitize_patterns
+from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
@@ -231,7 +231,7 @@ class DatasetBuilder:
                 For example to separate "squad" from "lhoestq/squad" (the builder name would be "lhoestq___squad").
             data_files: for builders like "csv" or "json" that need the user to specify data files. They can be either
                 local or remote files. For convenience you can use a DataFilesDict.
-            data_files: `str`, for builders that require manual download. It must be the path to the local directory containing
+            data_dir: `str`, for builders that require manual download. It must be the path to the local directory containing
                 the manually downloaded data.
             config_kwargs: will override the defaults kwargs in config
 
@@ -245,7 +245,7 @@ class DatasetBuilder:
 
         if data_files is not None and not isinstance(data_files, DataFilesDict):
             data_files = DataFilesDict.from_local_or_remote(
-                _sanitize_patterns(data_files), base_path=base_path, use_auth_token=use_auth_token
+                sanitize_patterns(data_files), base_path=base_path, use_auth_token=use_auth_token
             )
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
@@ -398,11 +398,11 @@ class DatasetBuilder:
     @utils.memoize()
     def builder_configs(cls):
         """Pre-defined list of configurations for this builder class."""
-        config_dict = {config.name: config for config in cls.BUILDER_CONFIGS}
-        if len(config_dict) != len(cls.BUILDER_CONFIGS):
+        configs = {config.name: config for config in cls.BUILDER_CONFIGS}
+        if len(configs) != len(cls.BUILDER_CONFIGS):
             names = [config.name for config in cls.BUILDER_CONFIGS]
             raise ValueError("Names in BUILDER_CONFIGS must not be duplicated. Got %s" % names)
-        return config_dict
+        return configs
 
     @property
     def cache_dir(self):
@@ -416,7 +416,7 @@ class DatasetBuilder:
             self.namespace___self.name/self.config.version/self.hash/
         If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
-        builder_data_dir = self.name if self.namespace is None else f"{self.namespace}___{self.name})"
+        builder_data_dir = self.name if self.namespace is None else f"{self.namespace}___{self.name}"
         builder_config = self.config
         hash = self.hash
         if builder_config:

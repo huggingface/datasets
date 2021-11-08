@@ -1,4 +1,5 @@
 ---
+pretty_name: BookCorpusOpen
 languages:
 - en
 paperswithcode_id: null

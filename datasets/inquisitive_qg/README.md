@@ -1,4 +1,5 @@
 ---
+pretty_name: InquisitiveQg
 annotations_creators:
 - crowdsourced
 language_creators:
@@ -20,7 +21,7 @@ task_ids:
 paperswithcode_id: inquisitive
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for InquisitiveQg
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

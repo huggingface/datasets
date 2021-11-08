@@ -16,9 +16,6 @@
 # Lint as: python3
 """The Polyglot-NER Dataset."""
 
-
-import os
-
 import datasets
 
 
@@ -76,16 +73,6 @@ _LANGUAGES = [
     "uk",
 ]
 
-_LANG_FILEPATHS = {
-    lang: os.path.join(
-        "acl_datasets",
-        lang,
-        "data" if lang != "zh" else "",  # they're all lang/data/lang_wiki.conll except "zh"
-        f"{lang}_wiki.conll",
-    )
-    for lang in _LANGUAGES
-}
-
 _DESCRIPTION = """\
 Polyglot-NER
 A training dataset automatically generated from Wikipedia and Freebase the task
@@ -107,10 +94,7 @@ class PolyglotNERConfig(datasets.BuilderConfig):
     def __init__(self, *args, languages=None, **kwargs):
         super().__init__(*args, version=datasets.Version(_VERSION, ""), **kwargs)
         self.languages = languages
-
-    @property
-    def filepaths(self):
-        return [_LANG_FILEPATHS[lang] for lang in self.languages]
+        assert all(lang in _LANGUAGES for lang in languages), f"Invalid languages. Please use a subset of {_LANGUAGES}"
 
 
 class PolyglotNER(datasets.GeneratorBasedBuilder):
@@ -145,47 +129,54 @@ class PolyglotNER(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        path = dl_manager.download_and_extract(_DATA_URL)
+        archive = dl_manager.download(_DATA_URL)
 
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path})]
+        return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive)})
+        ]
 
-    def _generate_examples(self, datapath):
+    def _generate_examples(self, files):
+        languages = list(self.config.languages)
         sentence_counter = 0
-        for filepath, lang in zip(self.config.filepaths, self.config.languages):
-            filepath = os.path.join(datapath, filepath)
-            with open(filepath, encoding="utf-8") as f:
-                current_words = []
-                current_ner = []
-                for row in f:
-                    row = row.rstrip()
-                    if row:
-                        token, label = row.split("\t")
-                        current_words.append(token)
-                        current_ner.append(label)
-                    else:
-                        # New sentence
-                        if not current_words:
-                            # Consecutive empty lines will cause empty sentences
-                            continue
-                        assert len(current_words) == len(current_ner), "💔 between len of words & ner"
-                        sentence = (
-                            sentence_counter,
-                            {
-                                "id": str(sentence_counter),
-                                "lang": lang,
-                                "words": current_words,
-                                "ner": current_ner,
-                            },
-                        )
-                        sentence_counter += 1
-                        current_words = []
-                        current_ner = []
-                        yield sentence
-                # Don't forget last sentence in dataset 🧐
-                if current_words:
-                    yield sentence_counter, {
-                        "id": str(sentence_counter),
-                        "lang": lang,
-                        "words": current_words,
-                        "ner": current_ner,
-                    }
+        for path, f in files:
+            if not languages:
+                break
+            if path.endswith("_wiki.conll"):
+                lang = path.split("/")[1]
+                if lang in languages:
+                    languages.remove(lang)
+                    current_words = []
+                    current_ner = []
+                    for row in f:
+                        row = row.decode("utf-8").rstrip()
+                        if row:
+                            token, label = row.split("\t")
+                            current_words.append(token)
+                            current_ner.append(label)
+                        else:
+                            # New sentence
+                            if not current_words:
+                                # Consecutive empty lines will cause empty sentences
+                                continue
+                            assert len(current_words) == len(current_ner), "💔 between len of words & ner"
+                            sentence = (
+                                sentence_counter,
+                                {
+                                    "id": str(sentence_counter),
+                                    "lang": lang,
+                                    "words": current_words,
+                                    "ner": current_ner,
+                                },
+                            )
+                            sentence_counter += 1
+                            current_words = []
+                            current_ner = []
+                            yield sentence
+                    # Don't forget last sentence in dataset 🧐
+                    if current_words:
+                        yield sentence_counter, {
+                            "id": str(sentence_counter),
+                            "lang": lang,
+                            "words": current_words,
+                            "ner": current_ner,
+                        }

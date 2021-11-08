@@ -17,8 +17,6 @@ It was built with the following goals in mind: (i) machine learning techniques s
 """
 
 
-import os
-
 import datasets
 
 
@@ -85,49 +83,45 @@ class WikiMovies(datasets.GeneratorBasedBuilder):
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir, "movieqa", "questions", "wiki_entities", "wiki-entities_qa_train.txt"
-                    ),
-                    "split": "train",
+                    "filepath": "/".join(["movieqa", "questions", "wiki_entities", "wiki-entities_qa_train.txt"]),
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir, "movieqa", "questions", "wiki_entities", "wiki-entities_qa_test.txt"
-                    ),
-                    "split": "test",
+                    "filepath": "/".join(["movieqa", "questions", "wiki_entities", "wiki-entities_qa_test.txt"]),
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir, "movieqa", "questions", "wiki_entities", "wiki-entities_qa_dev.txt"
-                    ),
-                    "split": "dev",
+                    "filepath": "/".join(["movieqa", "questions", "wiki_entities", "wiki-entities_qa_dev.txt"]),
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, files):
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                tmp_data = row.split("\t")
-                tmp_question = tmp_data[0][1:]
-                yield id_, {
-                    "question": tmp_question,
-                    "answer": tmp_data[1],
-                }
+        for path, f in files:
+            if path == filepath:
+                for id_, row in enumerate(f):
+                    tmp_data = row.decode("utf-8").split("\t")
+                    tmp_question = tmp_data[0][1:]
+                    yield id_, {
+                        "question": tmp_question,
+                        "answer": tmp_data[1],
+                    }
+                break

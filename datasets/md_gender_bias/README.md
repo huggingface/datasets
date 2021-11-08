@@ -1,4 +1,5 @@
 ---
+pretty_name: Multi-Dimensional Gender Bias Classification
 annotations_creators:
   convai2_inferred:
   - machine-generated

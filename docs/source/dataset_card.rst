@@ -8,7 +8,7 @@ This guide shows you how to create your own Dataset card.
 
 1. Create a new Dataset card by opening the `online card creator <https://huggingface.co/datasets/card-creator/>`_, or manually copying the template from `here <https://raw.githubusercontent.com/huggingface/datasets/master/templates/README.md>`_.
 
-2. Next, you need to generate structured tags. The tags help users discover your dataset on the Hub. Create the tags with the `online tagging app <https://huggingface.co/datasets/tagging/>`_, or clone and install the `Datasets tagging app <https://github.com/huggingface/datasets-tagging>`_ locally.
+2. Next, you need to generate structured tags. The tags help users discover your dataset on the Hub. Create the tags with the `online Datasets Tagging app <https://huggingface.co/spaces/huggingface/datasets-tagging>`_.
 
 3. Select the appropriate tags for your dataset from the dropdown menus, and save the file once you are done.
 

@@ -29,7 +29,7 @@ First, create a dataset repository and upload your data files. Then you can use 
 
 This dataset repository contains CSV files, and this code loads all the data from the CSV files.
 
-Some datasets may have more than one version, based on Git tags, branches or commits. Use the ``revision`` flag to specifiy which dataset version you want to load:
+Some datasets may have more than one version, based on Git tags, branches or commits. Use the ``revision`` flag to specify which dataset version you want to load:
 
 .. code-block::
 
@@ -100,6 +100,14 @@ To load remote CSV files via HTTP, you can pass the URLs:
 
    >>> base_url = "https://huggingface.co/datasets/lhoestq/demo1/resolve/main/data/"
    >>> dataset = load_dataset('csv', data_files={'train': base_url + 'train.csv', 'test': base_url + 'test.csv'})
+
+To load zipped CSV files:
+
+.. code::
+
+   >>> url = "https://domain.org/train_data.zip"
+   >>> data_files = {"train": url}
+   >>> dataset = load_dataset("csv", data_files=data_files)
 
 JSON
 ^^^^

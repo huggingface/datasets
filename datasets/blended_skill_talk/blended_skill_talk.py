@@ -2,7 +2,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -66,60 +65,71 @@ class BlendedSkillTalk(datasets.GeneratorBasedBuilder):
         # TODO(blended_skill_talk): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        data_dir = dl_manager.download_and_extract(_URL)
+        archive = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "train.json")},
+                gen_kwargs={
+                    "filepath": "train.json",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "valid.json")},
+                gen_kwargs={
+                    "filepath": "valid.json",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "test.json")},
+                gen_kwargs={
+                    "filepath": "test.json",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, files):
         """Yields examples."""
         # TODO(blended_skill_talk): Yields (key, example) tuples from the dataset
-        with open(filepath, encoding="utf-8") as f:
-            data = json.load(f)
-            for id_, row in enumerate(data):
-                personas = [row["personas"][1][0], row["personas"][1][1]]
-                dialogs = [dialog[1] for dialog in row["dialog"]]
-                free_messages = []
-                guided_messages = []
+        for path, f in files:
+            if path == filepath:
+                data = json.load(f)
+                for id_, row in enumerate(data):
+                    personas = [row["personas"][1][0], row["personas"][1][1]]
+                    dialogs = [dialog[1] for dialog in row["dialog"]]
+                    free_messages = []
+                    guided_messages = []
 
-                for i in range(len(dialogs) // 2):
-                    free_messages.append(dialogs[2 * i])
-                    guided_messages.append(dialogs[2 * i + 1])
-                context = row["context_dataset"]
-                add_context = row["additional_context"] if context == "wizard_of_wikipedia" else ""
-                previous_utterance = [row["free_turker_utterance"], row["guided_turker_utterance"]]
-                suggestions = row["suggestions"]
-                convai_suggestions = []
-                empathetic_suggestions = []
-                wow_suggestions = []
-                for i in range(len(suggestions) // 2):
-                    convai_suggestions.append(suggestions[2 * i + 1]["convai2"])
-                    empathetic_suggestions.append(suggestions[2 * i + 1]["empathetic_dialogues"])
-                    wow_suggestions.append(suggestions[2 * i + 1]["wizard_of_wikipedia"])
-                yield id_, {
-                    "personas": personas,
-                    "additional_context": add_context,
-                    "previous_utterance": previous_utterance,
-                    "context": context,
-                    "free_messages": free_messages,
-                    "guided_messages": guided_messages,
-                    "suggestions": {
-                        "convai2": convai_suggestions,
-                        "empathetic_dialogues": empathetic_suggestions,
-                        "wizard_of_wikipedia": wow_suggestions,
-                    },
-                }
+                    for i in range(len(dialogs) // 2):
+                        free_messages.append(dialogs[2 * i])
+                        guided_messages.append(dialogs[2 * i + 1])
+                    context = row["context_dataset"]
+                    add_context = row["additional_context"] if context == "wizard_of_wikipedia" else ""
+                    previous_utterance = [row["free_turker_utterance"], row["guided_turker_utterance"]]
+                    suggestions = row["suggestions"]
+                    convai_suggestions = []
+                    empathetic_suggestions = []
+                    wow_suggestions = []
+                    for i in range(len(suggestions) // 2):
+                        convai_suggestions.append(suggestions[2 * i + 1]["convai2"])
+                        empathetic_suggestions.append(suggestions[2 * i + 1]["empathetic_dialogues"])
+                        wow_suggestions.append(suggestions[2 * i + 1]["wizard_of_wikipedia"])
+                    yield id_, {
+                        "personas": personas,
+                        "additional_context": add_context,
+                        "previous_utterance": previous_utterance,
+                        "context": context,
+                        "free_messages": free_messages,
+                        "guided_messages": guided_messages,
+                        "suggestions": {
+                            "convai2": convai_suggestions,
+                            "empathetic_dialogues": empathetic_suggestions,
+                            "wizard_of_wikipedia": wow_suggestions,
+                        },
+                    }
+                break

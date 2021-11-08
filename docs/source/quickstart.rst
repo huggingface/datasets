@@ -76,7 +76,7 @@ Format the dataset
 
 Depending on whether you are using PyTorch, TensorFlow, or JAX, you will need to format the dataset accordingly. There are three changes you need to make to the dataset:
 
-1. Rename the ``label`` column to ``labels``, the expected input name in `BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#transformers.BertForSequenceClassification.forward>`__ or `TFBertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#tfbertforsequenceclassification>`__:
+1. Rename the ``label`` column to ``labels``, the expected input name in `BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html#transformers.BertForSequenceClassification.forward>`__ or `TFBertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html#tfbertforsequenceclassification>`__:
    
 .. code::
 

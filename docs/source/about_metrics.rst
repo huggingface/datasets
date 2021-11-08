@@ -6,7 +6,7 @@ All about metrics
 ELI5: ``load_metric``
 -------------------------------------------
 
-Loading a dataset and loading a metric share many similiarites. This was an intentional design choice because we wanted to create a simple and unified experience. When you call :func:`datasets.load_metric`, the metric loading script is downloaded and imported from GitHub (if it hasn't already been downloaded before). It contains information about the metric such as it's citation, homepage, and description.
+Loading a dataset and loading a metric share many similarities. This was an intentional design choice because we wanted to create a simple and unified experience. When you call :func:`datasets.load_metric`, the metric loading script is downloaded and imported from GitHub (if it hasn't already been downloaded before). It contains information about the metric such as it's citation, homepage, and description.
 
 The metric loading script will instantiate and return a :class:`datasets.Metric` object. This stores the predictions and references, which you need to compute the metric values. The :class:`datasets.Metric` object is stored as an Apache Arrow table. As a result, the predictions and references are stored directly on disk with memory-mapping. This enables 🤗 Datasets to do a lazy computation of the metric, and makes it easier to gather all the predictions in a distributed setting.
 

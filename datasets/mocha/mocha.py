@@ -18,7 +18,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -93,37 +92,42 @@ class Mocha(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_path = os.path.join(dl_manager.download_and_extract(_URL), "mocha")
+        archive = dl_manager.download(_URL)
 
         return [
             datasets.SplitGenerator(
                 name=split,
-                gen_kwargs={"filepath": os.path.join(dl_path, SPLIT_FILENAMES[split]), "split": split},
+                gen_kwargs={
+                    "filepath": "mocha/" + SPLIT_FILENAMES[split],
+                    "split": split,
+                    "files": dl_manager.iter_archive(archive),
+                },
             )
             for split in SPLIT_FILENAMES
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, split, files):
         """This function returns the examples in the raw (text) form."""
-        logger.info("Generating examples from = %s", filepath)
-        with open(filepath, encoding="utf-8") as f:
-            mocha = json.load(f)
-            for constituent_dataset, samples in mocha.items():
-                for id_, sample in samples.items():
-                    sample["id"] = id_
-                    sample["constituent_dataset"] = constituent_dataset
+        for path, f in files:
+            if path == filepath:
+                mocha = json.load(f)
+                for constituent_dataset, samples in mocha.items():
+                    for id_, sample in samples.items():
+                        sample["id"] = id_
+                        sample["constituent_dataset"] = constituent_dataset
 
-                    # Add default values
-                    if split == _MINIMAL_PAIRS_SPLIT:
-                        sample["candidate"] = sample["candidate1"]
-                        sample["score"] = sample["score1"]
-                        del sample["candidate1"], sample["score1"]
-                        sample["metadata"] = {"scores": [], "source": ""}
-                    else:
-                        if "score" not in sample:
-                            sample["score"] = -1.0
-                            sample["metadata"]["scores"] = []
-                        sample["candidate2"] = ""
-                        sample["score2"] = -1.0
+                        # Add default values
+                        if split == _MINIMAL_PAIRS_SPLIT:
+                            sample["candidate"] = sample["candidate1"]
+                            sample["score"] = sample["score1"]
+                            del sample["candidate1"], sample["score1"]
+                            sample["metadata"] = {"scores": [], "source": ""}
+                        else:
+                            if "score" not in sample:
+                                sample["score"] = -1.0
+                                sample["metadata"]["scores"] = []
+                            sample["candidate2"] = ""
+                            sample["score2"] = -1.0
 
-                    yield id_, sample
+                        yield id_, sample
+                break
