@@ -121,7 +121,7 @@ def test_dataset_with_audio_feature_tar(tar_wav_path):
     for file_path, file_obj in iter_archive(tar_wav_path):
         data["audio"].append({"path": file_path, "bytes": file_obj.read()})
         break
-    features = Features({"audio": Audio(archived=True)})
+    features = Features({"audio": Audio()})
     dset = Dataset.from_dict(data, features=features)
     item = dset[0]
     assert item.keys() == {"audio"}
