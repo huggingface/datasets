@@ -1,8 +1,9 @@
 ---
 annotations_creators:
-- other
+- crowdsourced
 language_creators:
-- other
+- crowdsourced
+- machine-generated
 languages:
 - en
 - zh
@@ -26,7 +27,7 @@ multilinguality:
 - multilingual
 pretty_name: X-CSR
 size_categories:
-- unknown
+- 1K<n<10K
 source_datasets:
 - extended|codah
 - extended|commonsense_qa
