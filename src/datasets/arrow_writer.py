@@ -100,6 +100,7 @@ class TypedSequence:
             trying_type = True
         else:
             type = self.type
+        trying_int_optimization = False
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 if isinstance(self.data, np.ndarray):
