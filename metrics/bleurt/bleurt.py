@@ -70,9 +70,9 @@ CHECKPOINT_URLS = {
     "bleurt-large-128": "https://storage.googleapis.com/bleurt-oss/bleurt-large-128.zip",
     "bleurt-large-512": "https://storage.googleapis.com/bleurt-oss/bleurt-large-512.zip",
     "bleurt-20-d3": "https://storage.googleapis.com/bleurt-oss-21/BLEURT-20-D3.zip",
-    "bleurt-20-d6": "https://storage.googleapis.com/bleurt-oss-21/BLEURT-20-D6.zip",    
+    "bleurt-20-d6": "https://storage.googleapis.com/bleurt-oss-21/BLEURT-20-D6.zip",
     "bleurt-20-d12": "https://storage.googleapis.com/bleurt-oss-21/BLEURT-20-D12.zip",
-    "bleurt-20": "https://storage.googleapis.com/bleurt-oss-21/BLEURT-20.zip",    
+    "bleurt-20": "https://storage.googleapis.com/bleurt-oss-21/BLEURT-20.zip",
 }
 
 
