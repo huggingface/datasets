@@ -46,7 +46,7 @@ The last step is to create a Dataset card. The Dataset card is essential for hel
 
 2. Get a quick start with our Dataset card `template <https://raw.githubusercontent.com/huggingface/datasets/master/templates/README.md>`_ to help you fill out all the relevant fields. 
 
-3. The Dataset card uses structured tags to help users discover your dataset on the Hub. Use the `online card creator <https://huggingface.co/datasets/tagging/>`_ to help you generate the appropriate tags.
+3. The Dataset card uses structured tags to help users discover your dataset on the Hub. Use the `online Datasets Tagging application <https://huggingface.co/spaces/huggingface/datasets-tagging>`_ to help you generate the appropriate tags.
 
 4. Copy the generated tags and paste them at the top of your Dataset card, then commit your changes.
 
