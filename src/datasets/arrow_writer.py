@@ -242,9 +242,6 @@ class ArrowWriter:
         self.current_rows: List[pa.Table] = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
         self.hkey_record = []
-        self.typed_sequence_cls = (
-            TypedSequence if config.DISABLE_PYARROW_TYPES_OPTIMIZATION else OptimizedTypedSequence
-        )
 
     def __len__(self):
         """Return the number of writed and staged examples"""
@@ -323,12 +320,12 @@ class ArrowWriter:
         for col in cols:
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
-            typed_sequence = self.typed_sequence_cls(
+            typed_sequence = OptimizedTypedSequence(
                 [row[0][col] for row in self.current_examples], type=col_type, try_type=col_try_type, col=col
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
-            first_example = pa.array(self.typed_sequence_cls(typed_sequence.data[:1], type=inferred_type))[0]
+            first_example = pa.array(OptimizedTypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
                 # This check fails with FloatArrays with nans, which is not what we want, so account for that:
                 if not isinstance(pa_array[0], pa.lib.FloatScalar):
@@ -426,9 +423,7 @@ class ArrowWriter:
         for col in sorted(batch_examples.keys()):
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
-            typed_sequence = self.typed_sequence_cls(
-                batch_examples[col], type=col_type, try_type=col_try_type, col=col
-            )
+            typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
             typed_sequence_examples[col] = typed_sequence
         pa_table = pa.Table.from_pydict(typed_sequence_examples)
         self.write_table(pa_table, writer_batch_size)

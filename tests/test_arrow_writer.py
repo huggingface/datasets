@@ -234,18 +234,6 @@ def test_optimized_typed_sequence(sequence, col, expected_dtype):
     assert get_base_dtype(arr.type) == expected_dtype
 
 
-def test_arrow_writer_typed_sequence_cls(monkeypatch):
-    stream = pa.BufferOutputStream()
-
-    with ArrowWriter(stream=stream) as writer:
-        assert writer.typed_sequence_cls == OptimizedTypedSequence
-
-    monkeypatch.setattr(config, "DISABLE_PYARROW_TYPES_OPTIMIZATION", True)
-
-    with ArrowWriter(stream=stream) as writer:
-        assert writer.typed_sequence_cls == TypedSequence
-
-
 @pytest.mark.parametrize("raise_exception", [False, True])
 def test_arrow_writer_closes_stream(raise_exception, tmp_path):
     path = str(tmp_path / "dataset-train.arrow")
