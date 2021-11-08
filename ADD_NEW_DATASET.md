@@ -23,9 +23,7 @@ This creates a copy of the code under your GitHub user account.
 	pip install -e ".[dev]"
 	```
 
-5. *Optionally*, prepare your tagging setup.
-  - Alternatively, you can use the [online Datasets Tagging application](https://huggingface.co/spaces/huggingface/datasets-tagging).
-  - Or clone the [Datasets Tagging application repository](https://github.com/huggingface/datasets-tagging) and run the app with [Streamlit](https://www.streamlit.io/).
+5. Open the [online Datasets Tagging application](https://huggingface.co/spaces/huggingface/datasets-tagging).
 
 6. You should also open the online form that will allow you to [create dataset cards](https://huggingface.co/datasets/card-creator/) in a browser window (courtesy of [Evrard t'Serstevens](https://huggingface.co/evrardts).)
 
@@ -252,9 +250,7 @@ Here are the step to open the Pull-Request on the main repo.
 2. Make sure that you have a dataset card (more information in the [next section](#tag-the-dataset-and-write-the-dataset-card)) with:
 
     1. **Required:**
-       - The YAML tags obtained with
-         - either the [online Datasets Tagging app](https://huggingface.co/spaces/huggingface/datasets-tagging),
-         - or the locally cloned [Datasets Tagging repo](https://github.com/huggingface/datasets-tagging).
+       - The YAML tags obtained with the [online Datasets Tagging app](https://huggingface.co/spaces/huggingface/datasets-tagging).
        - A description of the various fields in your dataset.
     2. Any relevant information you would like to share with users of your dataset in the appropriate paragraphs.
        - You can use the online [dataset card creator](https://huggingface.co/datasets/card-creator/)
@@ -305,19 +301,17 @@ Creating the dataset card goes in two steps:
 
 1. **Tagging the dataset using the Datasets Tagging app**
 
-   - Either use the [online Datasets Tagging application](https://huggingface.co/spaces/huggingface/datasets-tagging).
-   - Or clone the [Datasets Tagging application repository](https://github.com/huggingface/datasets-tagging).
-     - Run the app with the command detailed in the README: https://github.com/huggingface/datasets-tagging/blob/main/README.md
+   - Use the [online Datasets Tagging application](https://huggingface.co/spaces/huggingface/datasets-tagging).
 
-    Enter the full path to your dataset folder on the left, and tag the different configs :-) (And don't forget to save to file after you're done with a config!)
+   Enter the full path to your dataset folder on the left, and tag the different configs :-) (And don't forget to save to file after you're done with a config!)
 
 2. **Copy the tags in the dataset card and complete the dataset card**
 
-    - You can use the online [dataset card creator](https://huggingface.co/datasets/card-creator/)
+   - You can use the online [dataset card creator](https://huggingface.co/datasets/card-creator/)
 
-    - **Essential:** Once you have saved the tags for all configs, you can expand the **Show YAML output aggregating the tags** section on the right, which will show you a YAML formatted block to put in the relevant section of the [online form](https://huggingface.co/datasets/card-creator/) (or manually  paste into your README.md).
+   - **Essential:** Once you have saved the tags for all configs, you can expand the **Show YAML output aggregating the tags** section on the right, which will show you a YAML formatted block to put in the relevant section of the [online form](https://huggingface.co/datasets/card-creator/) (or manually  paste into your README.md).
 
-    - **Very important as well:** On the right side of the tagging app, you will also find an expandable section called **Show Markdown Data Fields**. This gives you a starting point for the description of the fields in your dataset: you should paste it into the **Data Fields** section of the [online form](https://huggingface.co/datasets/card-creator/) (or your local README.md), then modify the description as needed. Briefly describe each of the fields and indicate if they have a default value (e.g. when there is no label). If the data has span indices, describe their attributes (character level or word level, contiguous or not, etc). If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
+   - **Very important as well:** On the right side of the tagging app, you will also find an expandable section called **Show Markdown Data Fields**. This gives you a starting point for the description of the fields in your dataset: you should paste it into the **Data Fields** section of the [online form](https://huggingface.co/datasets/card-creator/) (or your local README.md), then modify the description as needed. Briefly describe each of the fields and indicate if they have a default value (e.g. when there is no label). If the data has span indices, describe their attributes (character level or word level, contiguous or not, etc). If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
 
         Example from the [ELI5 card](https://github.com/huggingface/datasets/tree/master/datasets/eli5#data-fields):
 
@@ -328,7 +322,7 @@ Creating the dataset card goes in two steps:
                 - title_urls: list of the extracted URLs, the nth element of the list was replaced by URL_n
 
 
-	- **Very nice to have but optional for now:** Complete all you can find in the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+   - **Very nice to have but optional for now:** Complete all you can find in the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
 
 		Here is a completed example: https://github.com/huggingface/datasets/tree/master/datasets/eli5 for inspiration
 
