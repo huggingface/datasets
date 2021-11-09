@@ -180,7 +180,7 @@ if os.name != "nt":
         ]
     )
 
-QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
