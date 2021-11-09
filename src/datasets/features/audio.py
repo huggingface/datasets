@@ -16,6 +16,7 @@ class Audio:
 
         - path: String with relative path of the audio file to the archive file.
         - bytes: Bytes of the audio file.
+
       This is useful for archived files with sequential access.
 
     Args:
