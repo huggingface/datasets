@@ -18,6 +18,7 @@
 
 import enum
 import os
+import tarfile
 from datetime import datetime
 from functools import partial
 from typing import Dict, Optional, Union
@@ -226,20 +227,21 @@ class DownloadManager:
             Generator yielding tuple (path_within_archive, file_obj).
             File-Obj are opened in byte mode (io.BufferedReader)
         """
-        logger.info("Extracting archive at %s", str(path))
-        extracted_path = self.extract(path)
-        if os.path.isfile(extracted_path):
-            with open(extracted_path, "rb") as file_obj:
-                yield (extracted_path, file_obj)
-
-        # We do this complex absolute/relative scheme to reproduce the API of iter_tar of tfds
-        for root, dirs, files in os.walk(extracted_path, topdown=False):
-            relative_dir_path = root.replace(os.path.abspath(extracted_path) + os.sep, "")
-            for name in files:
-                relative_file_path = os.path.join(relative_dir_path, name)
-                absolute_file_path = os.path.join(root, name)
-                with open(absolute_file_path, "rb") as file_obj:
-                    yield (relative_file_path.replace(os.sep, "/"), file_obj)
+        with open(path, "rb") as f:
+            stream = tarfile.open(fileobj=f, mode="r|*")
+            for tarinfo in stream:
+                file_path = tarinfo.name
+                if not tarinfo.isreg():
+                    continue
+                if file_path is None:
+                    continue
+                if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                    # skipping hidden files
+                    continue
+                file_obj = stream.extractfile(tarinfo)
+                yield (file_path, file_obj)
+                stream.members = []
+            del stream
 
     def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).

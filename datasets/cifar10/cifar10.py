@@ -17,7 +17,6 @@
 """CIFAR-10 Data Set"""
 
 
-import os
 import pickle
 
 import numpy as np
@@ -81,15 +80,18 @@ class Cifar10(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_dir = dl_manager.download_and_extract(_DATA_URL)
-        final_dir = os.path.join(dl_dir, "cifar-10-batches-py")
+        archive = dl_manager.download(_DATA_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": final_dir, "split": "train"}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": final_dir, "split": "test"}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive), "split": "train"}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"files": dl_manager.iter_archive(archive), "split": "test"}
+            ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, files, split):
         """This function returns the examples in the raw (text) form."""
 
         if split == "train":
@@ -97,13 +99,11 @@ class Cifar10(datasets.GeneratorBasedBuilder):
 
         if split == "test":
             batches = ["test_batch"]
+        batches = [f"cifar-10-batches-py/{filename}" for filename in batches]
 
-        for batch in batches:
+        for path, fo in files:
 
-            file = os.path.join(filepath, batch)
-
-            with open(file, "rb") as fo:
-
+            if path in batches:
                 dict = pickle.load(fo, encoding="bytes")
 
                 labels = dict[b"labels"]
@@ -113,7 +113,7 @@ class Cifar10(datasets.GeneratorBasedBuilder):
 
                     img_reshaped = np.transpose(np.reshape(images[idx], (3, 32, 32)), (1, 2, 0))
 
-                    yield f"{batch}_{idx}", {
+                    yield f"{path}_{idx}", {
                         "img": img_reshaped,
                         "label": labels[idx],
                     }

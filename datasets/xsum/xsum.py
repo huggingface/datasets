@@ -95,7 +95,7 @@ class Xsum(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         files_to_download = {"data": _URL_DATA, "splits": _URL_SPLITS}
-        downloaded_files = dl_manager.download_and_extract(files_to_download)
+        downloaded_files = dl_manager.download(files_to_download)
 
         return [
             datasets.SplitGenerator(
@@ -103,7 +103,8 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "split_path": downloaded_files["splits"],
                     "split_name": "train",
-                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data"),
+                    "data_dir": "bbc-summary-data",
+                    "files": dl_manager.iter_archive(downloaded_files["data"]),
                 },
             ),
             datasets.SplitGenerator(
@@ -111,7 +112,8 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "split_path": downloaded_files["splits"],
                     "split_name": "validation",
-                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data"),
+                    "data_dir": "bbc-summary-data",
+                    "files": dl_manager.iter_archive(downloaded_files["data"]),
                 },
             ),
             datasets.SplitGenerator(
@@ -119,37 +121,50 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "split_path": downloaded_files["splits"],
                     "split_name": "test",
-                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data"),
+                    "data_dir": "bbc-summary-data",
+                    "files": dl_manager.iter_archive(downloaded_files["data"]),
                 },
             ),
         ]
 
-    def _generate_examples(self, split_path, split_name, data_dir):
+    def _generate_examples(self, split_path, split_name, data_dir, files):
         """Yields examples."""
 
         with open(split_path, "r", encoding="utf-8") as f:
             split_ids = json.load(f)
+        split_ids = {k: set(v) for k, v in split_ids.items()}
 
-        for i in split_ids[split_name]:
-            with open(os.path.join(data_dir, i + ".summary"), "r", encoding="utf-8") as f:
-                text = "".join([line for line in f.readlines() if line not in _REMOVE_LINES and line.strip()])
-                # Each file follows below format:
-                # [SN]URL[SN]
-                # http://somelink
-                #
-                # [SN]TITLE[SN]
-                # some intro
-                #
-                # [SN]FIRST-SENTENCE[SN]
-                # some intro
-                #
-                # [SN]RESTBODY[SN]
-                # text line.
-                # another text line.
-                # "another text line."
+        for path, f in files:
+            if not split_ids[split_name]:
+                break
+            elif path.startswith(data_dir) and path.endswith(".summary"):
+                i = os.path.basename(path).split(".")[0]
+                if i in split_ids[split_name]:
+                    split_ids[split_name].remove(i)
+                    text = "".join(
+                        [
+                            line.decode("utf-8")
+                            for line in f.readlines()
+                            if line.decode("utf-8") not in _REMOVE_LINES and line.strip()
+                        ]
+                    )
+                    # Each file follows below format:
+                    # [SN]URL[SN]
+                    # http://somelink
+                    #
+                    # [SN]TITLE[SN]
+                    # some intro
+                    #
+                    # [SN]FIRST-SENTENCE[SN]
+                    # some intro
+                    #
+                    # [SN]RESTBODY[SN]
+                    # text line.
+                    # another text line.
+                    # "another text line."
 
-                # According to the following issue, FIRST-SENTENCE
-                # is the reference summary and TITLE is unused:
-                # https://github.com/EdinburghNLP/XSum/issues/22
-                segs = text.split("[SN]")
-                yield i, {_DOCUMENT: segs[8].strip(), _SUMMARY: segs[6].strip(), _ID: i}
+                    # According to the following issue, FIRST-SENTENCE
+                    # is the reference summary and TITLE is unused:
+                    # https://github.com/EdinburghNLP/XSum/issues/22
+                    segs = text.split("[SN]")
+                    yield i, {_DOCUMENT: segs[8].strip(), _SUMMARY: segs[6].strip(), _ID: i}

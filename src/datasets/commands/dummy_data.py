@@ -10,7 +10,7 @@ from typing import Optional
 
 from datasets import config
 from datasets.commands import BaseDatasetsCLICommand
-from datasets.load import import_main_class, prepare_module
+from datasets.load import dataset_module_factory, import_main_class
 from datasets.utils import MockDownloadManager
 from datasets.utils.download_manager import DownloadManager
 from datasets.utils.file_utils import DownloadConfig
@@ -287,8 +287,8 @@ class DummyDataCommand(BaseDatasetsCLICommand):
 
     def run(self):
         set_verbosity_warning()
-        module_path, hash = prepare_module(self._path_to_dataset)
-        builder_cls = import_main_class(module_path)
+        dataset_module = dataset_module_factory(self._path_to_dataset)
+        builder_cls = import_main_class(dataset_module.module_path)
 
         # use `None` as config if no configs
         builder_configs = builder_cls.BUILDER_CONFIGS or [None]
@@ -302,7 +302,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
                     version = builder_config.version
                     name = builder_config.name
 
-                dataset_builder = builder_cls(name=name, hash=hash, cache_dir=tmp_dir)
+                dataset_builder = builder_cls(name=name, hash=dataset_module.hash, cache_dir=tmp_dir)
                 mock_dl_manager = MockDownloadManager(
                     dataset_name=self._dataset_name,
                     config=builder_config,

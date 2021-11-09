@@ -129,11 +129,10 @@ TESTS_REQUIRE = [
     "botocore",
     "faiss-cpu>=1.6.4",
     "fsspec[s3]",
-    "keras<2.7.0", # Temporary fix https://github.com/keras-team/keras/issues/15579
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
     "s3fs==2021.08.1",
-    "tensorflow>=2.3",
+    "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
     "torchaudio",
     "transformers",
@@ -187,8 +186,8 @@ QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "apache-beam": ["apache-beam>=2.26.0"],
-    "tensorflow": ["tensorflow>=2.2.0", "keras<2.7.0"],  # tmp
-    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0", "keras<2.7.0"],  # tmp
+    "tensorflow": ["tensorflow>=2.2.0,!=2.6.0,!=2.6.1"],
+    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
     "s3": [
         "fsspec",
