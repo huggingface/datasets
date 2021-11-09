@@ -157,6 +157,8 @@ class TypedSequence:
                             )
                         ) from None
                     elif trying_int_optimization and "not in range" in str(e):
+                        optimized_int_type_str = np.dtype(self.optimized_int_type.to_pandas_dtype()).name
+                        logger.info(f"Failed to cast a sequence to {optimized_int_type_str}. Falling back to int64.")
                         return out
                     else:
                         raise
@@ -167,6 +169,8 @@ class TypedSequence:
                     )
                 ) from None
             elif trying_int_optimization and "not in range" in str(e):
+                optimized_int_type_str = np.dtype(self.optimized_int_type.to_pandas_dtype()).name
+                logger.info(f"Failed to cast a sequence to {optimized_int_type_str}. Falling back to int64.")
                 return out
             else:
                 raise
