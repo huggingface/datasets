@@ -49,25 +49,25 @@ class Wikitext(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         WikitextConfig(
-            name="wikitext-103-raw-v1",
-            data_url=_DATA_URL + "/" + "wikitext-103-raw-v1.zip",
-            description="word level dataset. No processing is needed other than replacing newlines with <eos> tokens.",
-        ),
-        WikitextConfig(
-            name="wikitext-2-raw-v1",
-            data_url=_DATA_URL + "/" + "wikitext-2-raw-v1.zip",
-            description="word level dataset. No processing is needed other than replacing newlines with <eos> tokens.",
-        ),
-        WikitextConfig(
             name="wikitext-103-v1",
             data_url=_DATA_URL + "/" + "wikitext-103-v1.zip",
-            description="raw level dataset. The raw tokens before the addition of <unk> tokens. "
-            "They should only be used for character level work or for creating newly derived datasets.",
+            description="Word level dataset. No processing is needed other than replacing newlines with <eos> tokens.",
         ),
         WikitextConfig(
             name="wikitext-2-v1",
             data_url=_DATA_URL + "/" + "wikitext-2-v1.zip",
-            description="raw level dataset. The raw tokens before the addition of <unk> tokens. "
+            description="Word level dataset. No processing is needed other than replacing newlines with <eos> tokens.",
+        ),
+        WikitextConfig(
+            name="wikitext-103-raw-v1",
+            data_url=_DATA_URL + "/" + "wikitext-103-raw-v1.zip",
+            description="Raw level dataset: the raw tokens before the addition of <unk> tokens. "
+            "They should only be used for character level work or for creating newly derived datasets.",
+        ),
+        WikitextConfig(
+            name="wikitext-2-raw-v1",
+            data_url=_DATA_URL + "/" + "wikitext-2-raw-v1.zip",
+            description="Raw level dataset: the raw tokens before the addition of <unk> tokens. "
             "They should only be used for character level work or for creating newly derived datasets.",
         ),
     ]
