@@ -3738,7 +3738,12 @@ def get_indices_from_mask_function(
     **fn_kwargs,
 ):
     if batched:
-        mask = function(*args)
+        if with_indices:
+            mask = function(*args, **fn_kwargs)
+        else:
+            # we extract indices from args
+            *inputs, indices = args
+            mask = function(*inputs, **fn_kwargs)
     else:
         # we get batched data (to do less look-ups) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask
