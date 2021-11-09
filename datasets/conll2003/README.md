@@ -114,7 +114,7 @@ The data fields are the same among all splits.
 #### conll2003
 - `id`: a `string` feature.
 - `tokens`: a `list` of `string` features.
-- `pos_tags`: a `list` of classification labels (`str`). Full tagset with indices:
+- `pos_tags`: a `list` of classification labels (`int`). Full tagset with indices:
 
 ```python
 {'"': 0, "''": 1, '#': 2, '$': 3, '(': 4, ')': 5, ',': 6, '.': 7, ':': 8, '``': 9, 'CC': 10, 'CD': 11, 'DT': 12,
@@ -124,7 +124,7 @@ The data fields are the same among all splits.
  'WP': 44, 'WP$': 45, 'WRB': 46}
 ```
 
-- `chunk_tags`: a `list` of classification labels (`str`). Full tagset with indices:
+- `chunk_tags`: a `list` of classification labels (`int`). Full tagset with indices:
 
 ```python
 {'O': 0, 'B-ADJP': 1, 'I-ADJP': 2, 'B-ADVP': 3, 'I-ADVP': 4, 'B-CONJP': 5, 'I-CONJP': 6, 'B-INTJ': 7, 'I-INTJ': 8,
@@ -132,7 +132,7 @@ The data fields are the same among all splits.
  'I-SBAR': 18, 'B-UCP': 19, 'I-UCP': 20, 'B-VP': 21, 'I-VP': 22}
 ```
 
-- `ner_tags`: a `list` of classification labels (`str`). Full tagset with indices:
+- `ner_tags`: a `list` of classification labels (`int`). Full tagset with indices:
 
 ```python
 {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-ORG': 3, 'I-ORG': 4, 'B-LOC': 5, 'I-LOC': 6, 'B-MISC': 7, 'I-MISC': 8}
