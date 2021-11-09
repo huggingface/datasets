@@ -1188,9 +1188,9 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = Dataset.from_dict({"col": [0, 1, 2]})
             with self._to(in_memory, tmp_dir, dset) as dset:
-                with dset.filter(lambda x: x["col"] > 0, batched=True) as dset:
+                with dset.filter(lambda x: [i > 0 for i in x["col"]], batched=True) as dset:
                     self.assertListEqual(dset["col"], [1, 2])
-                    with dset.filter(lambda x: x["col"] < 2, batched=True) as dset:
+                    with dset.filter(lambda x: [i < 2 for i in x["col"]], batched=True) as dset:
                         self.assertListEqual(dset["col"], [1])
 
     def test_filter_fn_kwargs(self, in_memory):
