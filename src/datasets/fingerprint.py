@@ -7,6 +7,7 @@ import tempfile
 import weakref
 from dataclasses import asdict
 from functools import wraps
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
@@ -82,7 +83,7 @@ def maybe_register_dataset_for_temp_dir_deletion(dataset):
     if _DATASETS_WITH_TABLE_IN_TEMP_DIR is None:
         _DATASETS_WITH_TABLE_IN_TEMP_DIR = weakref.WeakSet()
     if any(
-        os.path.samefile(os.path.dirname(cache_file["filename"]), _TEMP_DIR_FOR_TEMP_CACHE_FILES.name)
+        Path(_TEMP_DIR_FOR_TEMP_CACHE_FILES.name) in Path(cache_file["filename"]).parents
         for cache_file in dataset.cache_files
     ):
         _DATASETS_WITH_TABLE_IN_TEMP_DIR.add(dataset)

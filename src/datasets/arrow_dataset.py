@@ -1043,8 +1043,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
-            tmp_dir = tempfile.TemporaryDirectory()
-            dataset_path = Path(tmp_dir.name, src_dataset_path)
+            tmp_dir = get_temporary_cache_files_directory()
+            dataset_path = Path(tmp_dir, src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
         with open(

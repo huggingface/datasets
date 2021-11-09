@@ -2721,8 +2721,10 @@ def test_dummy_dataset_serialize_s3(s3, dataset):
     features = dataset.features
     dataset.save_to_disk(dataset_path, s3)
     dataset = dataset.load_from_disk(dataset_path, s3)
+    assert os.path.isfile(dataset.cache_files[0]["filename"])
 
     assert len(dataset) == 10
+    assert len(dataset.shuffle()) == 10
     assert dataset.features == features
     assert dataset[0]["id"] == 0
     assert dataset["id"][0] == 0
