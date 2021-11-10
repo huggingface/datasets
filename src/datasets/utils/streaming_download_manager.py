@@ -14,7 +14,7 @@ from aiohttp.client_exceptions import ClientError
 from .. import config
 from ..filesystems import COMPRESSION_FILESYSTEMS
 from .download_manager import DownloadConfig, map_nested
-from .file_utils import get_authentication_headers_for_url, is_local_path, is_relative_path, url_or_path_join
+from .file_utils import get_authentication_headers_for_url, http_head, is_local_path, is_relative_path, url_or_path_join
 from .logging import get_logger
 
 
@@ -45,6 +45,22 @@ COMPRESSION_EXTENSION_TO_PROTOCOL = {
 }
 SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSION_FILESYSTEMS}
 SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
+
+
+MAGIC_NUMBER_MAX_LENGTH = 4
+MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL = {
+    bytes.fromhex("504B0304"): "zip",
+    bytes.fromhex("504B0506"): "zip",  # empty archive
+    bytes.fromhex("504B0708"): "zip",  # spanned archive
+    bytes.fromhex("425A68"): "bz2",
+    bytes.fromhex("1F8B"): "gzip",
+    bytes.fromhex("FD377A585A00"): "xz",
+    bytes.fromhex("04224D18"): "lz4",
+    bytes.fromhex("28B52FFD"): "zstd",
+}
+MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL = {
+    b"Rar!": "rar",
+}
 
 
 def xjoin(a, *p):
@@ -179,8 +195,14 @@ def _add_retries_to_file_obj_read_method(file_obj):
 
     file_obj.read = read_with_retries
 
+    
+def _get_extraction_protocol_with_magic_number(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
+    if fsspec.get_fs_token_paths(urlpath)[0].protocol == "https":
+        urlpath, kwargs = _prepare_http_url_kwargs(file, use_auth_token=use_auth_token)
+    of = fsspec.open(urlpath, "rb", compression="hf-infer", **kwargs)
 
-def _get_extraction_protocol(urlpath: str) -> Optional[str]:
+
+def _get_extraction_protocol(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
     # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
     path = urlpath.split("::")[0]
     # Get extension: https://foo.bar/train.json.gz -> gz
@@ -195,10 +217,29 @@ def _get_extraction_protocol(urlpath: str) -> Optional[str]:
         )
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
-    raise NotImplementedError(f"Extraction protocol '{extension}' for file at '{urlpath}' is not implemented yet")
+    else:
+        return _get_extraction_protocol_with_magic_number(urlpath, use_auth_token=use_auth_token)
 
 
-def xopen(file, mode="r", *args, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
+def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> Tuple[str, dict]:
+    """
+    Prepare the URL and the kwargs that must be passed to the HttpFileSystem or to requests.get/head
+
+    In particular it resolves google drive URLs and it adds the authentication headers for the Hugging Face Hub.
+    """
+    kwargs = {"headers":  get_authentication_headers_for_url(url, use_auth_token=use_auth_token)}
+    if "drive.google.com" in url:
+        response = http_head(url)
+        cookies = None
+        for k, v in response.cookies.items():
+            if k.startswith("download_warning"):
+                url += "&confirm=" + v
+                cookies = response.cookies
+                kwargs["cookies"] = cookies
+    return url, kwargs
+
+
+def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     """
     This function extends the builtin `open` function to support remote files using fsspec.
 
@@ -206,7 +247,7 @@ def xopen(file, mode="r", *args, use_auth_token: Optional[Union[str, bool]] = No
     The args and kwargs are passed to fsspec.open, except `use_auth_token` which is used for queries to private repos on huggingface.co
     """
     if fsspec.get_fs_token_paths(file)[0].protocol == "https":
-        kwargs["headers"] = get_authentication_headers_for_url(file, use_auth_token=use_auth_token)
+        file, kwargs = _prepare_http_url_kwargs(file, use_auth_token=use_auth_token)
     file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
@@ -242,9 +283,10 @@ def xglob(urlpath, *, recursive=False, use_auth_token: Optional[Union[str, bool]
     else:
         # globbing inside a zip in a private repo requires authentication
         if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
-            storage_options = {
-                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
-            }
+            url = rest_hops[0]
+            url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": kwargs}
+            urlpath = "::".join([main_hop, url, *rest_hops[1:]])
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
@@ -273,9 +315,10 @@ def xpathglob(path, pattern, use_auth_token: Optional[Union[str, bool]] = None):
     else:
         # globbing inside a zip in a private repo requires authentication
         if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
-            storage_options = {
-                "headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)
-            }
+            url = rest_hops[0]
+            url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": kwargs}
+            path = "::".join([main_hop, url, *rest_hops[1:]])
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(xjoin(posix_path, pattern), storage_options=storage_options)
@@ -375,7 +418,7 @@ class StreamingDownloadManager(object):
 
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
-        protocol = _get_extraction_protocol(urlpath)
+        protocol = _get_extraction_protocol(urlpath, use_auth_token=self._download_config.use_auth_token)
         if protocol is None:
             # no extraction
             return urlpath
