@@ -27,6 +27,7 @@ class Audio:
 
     sampling_rate: Optional[int] = None
     mono: bool = True
+    _storage_dtype: str = "struct"
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -34,7 +35,9 @@ class Audio:
     _type: str = field(default="Audio", init=False, repr=False)
 
     def __call__(self):
-        return pa.struct({"path": pa.string(), "bytes": pa.binary()})
+        return (
+            pa.struct({"path": pa.string(), "bytes": pa.binary()}) if self._storage_dtype == "struct" else pa.string()
+        )
 
     def encode_example(self, value):
         """Encode example into a format for Arrow.
