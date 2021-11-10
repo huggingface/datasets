@@ -74,14 +74,15 @@ Args:
     timeout:
 Returns:
     pass_at_k: dict with pass rates for each k
+    results: dict with granular results of each unittest
 Examples:
     >>> import os
     >>> os.environ["HF_ALLOW_CODE_EVAL"] = "1"
     >>> code_eval = datasets.load_metric("code_eval")
     >>> test_cases = ["assert add(2,3)==5"]
     >>> candidates = [["def add(a,b): return a*b", "def add(a, b): return a+b"]]
-    >>> results = code_eval.compute(references=test_cases, predictions=candidates, k=[1, 2])
-    >>> print(results)
+    >>> pass_at_k, results = code_eval.compute(references=test_cases, predictions=candidates, k=[1, 2])
+    >>> print(pass_at_k)
     {'pass@1': 0.5, 'pass@2': 1.0}
 """
 
@@ -165,7 +166,7 @@ class CodeEval(datasets.Metric):
         ks = k
         pass_at_k = {f"pass@{k}": estimate_pass_at_k(total, correct, k).mean() for k in ks if (total >= k).all()}
 
-        return pass_at_k
+        return pass_at_k, results
 
 
 def estimate_pass_at_k(num_samples, num_correct, k):
