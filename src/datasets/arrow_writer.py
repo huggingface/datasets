@@ -322,7 +322,7 @@ class ArrowWriter:
         arrays = []
         inferred_types = []
         for col in cols:
-            col_type = schema.field(col).type if schema is not None else None
+            col_type = schema.field(col).type if schema else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = OptimizedTypedSequence(
                 [row[0][col] for row in self.current_examples], type=col_type, try_type=col_try_type, col=col
@@ -421,11 +421,11 @@ class ArrowWriter:
         """
         if batch_examples and len(next(iter(batch_examples.values()))) == 0:
             return
-        schema = None if self.pa_writer is None and self.update_features else self._schema
-        try_schema = self._schema if self.pa_writer is None and self.update_features else None
+        schema = None if self.pa_writer is None and self.update_features else self.schema
+        try_schema = self.schema if self.pa_writer is None and self.update_features else None
         typed_sequence_examples = {}
         for col in sorted(batch_examples.keys()):
-            col_type = schema.field(col).type if schema is not None else None
+            col_type = schema.field(col).type if schema else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
             typed_sequence_examples[col] = typed_sequence
@@ -460,8 +460,8 @@ class ArrowWriter:
             self.hkey_record = []
         self.write_examples_on_file()
         if self.pa_writer is None:
-            if self._schema is not None:
-                self._build_writer(self._schema)
+            if self.schema:
+                self._build_writer(self.schema)
             else:
                 raise ValueError("Please pass `features` or at least one example when writing data")
         self.pa_writer.close()
