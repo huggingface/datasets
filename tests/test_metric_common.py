@@ -39,6 +39,7 @@ _has_fairseq = importlib.util.find_spec("fairseq") is not None
 UNSUPPORTED_ON_WINDOWS = {"code_eval"}
 _on_windows = os.name == "nt"
 
+
 def skip_if_metric_requires_fairseq(test_case):
     @wraps(test_case)
     def wrapper(self, metric_name):
@@ -49,6 +50,7 @@ def skip_if_metric_requires_fairseq(test_case):
 
     return wrapper
 
+
 def skip_on_windows_if_not_windows_compatible(test_case):
     @wraps(test_case)
     def wrapper(self, metric_name):
@@ -58,6 +60,7 @@ def skip_on_windows_if_not_windows_compatible(test_case):
             test_case(self, metric_name)
 
     return wrapper
+
 
 def get_local_metric_names():
     metrics = [metric_dir.split(os.sep)[-2] for metric_dir in glob.glob("./metrics/*/")]

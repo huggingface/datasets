@@ -136,10 +136,10 @@ class CodeEval(datasets.Metric):
 
         if os.getenv("HF_ALLOW_CODE_EVAL", 0) != "1":
             raise ValueError(_WARNING)
-        
+
         if os.name == "nt":
             raise NotImplementedError("This metric is currently not supported on Windows.")
-        
+
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
             futures = []
             completion_id = Counter()
