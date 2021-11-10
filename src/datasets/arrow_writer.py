@@ -201,7 +201,7 @@ class ArrowWriter:
             raise ValueError("At least one of path and stream must be provided.")
         if features is not None:
             self._features = features
-            self._schema = pa.schema(features.type)
+            self._schema = None
         elif schema is not None:
             self._schema: pa.Schema = schema
             self._features = Features.from_arrow_schema(self._schema)
@@ -216,9 +216,7 @@ class ArrowWriter:
             self._hasher = KeyHasher("")
 
         self._check_duplicates = check_duplicates
-
-        if disable_nullable and self._schema is not None:
-            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
+        self._disable_nullable = disable_nullable
 
         self._path = path
         if stream is None:
@@ -287,7 +285,14 @@ class ArrowWriter:
 
     @property
     def schema(self):
-        return self._schema if self._schema is not None else []
+        _schema = (
+            self._schema
+            if self._schema is not None
+            else (pa.schema(self._features.type) if self._features is not None else None)
+        )
+        if self._disable_nullable and _schema is not None:
+            _schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in _schema)
+        return _schema if _schema is not None else []
 
     @staticmethod
     def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
