@@ -4,6 +4,7 @@ import tarfile
 from ctypes.util import find_library
 from importlib.util import find_spec
 
+import pyarrow as pa
 import pytest
 
 from datasets import Dataset, load_dataset
@@ -47,10 +48,13 @@ def iter_archive(archive_path):
 
 def test_audio_instantiation():
     audio = Audio()
+    assert audio.sampling_rate is None
+    assert audio.mono is True
     assert audio.id is None
     assert audio.dtype == "dict"
     assert audio.pa_type is None
     assert audio._type == "Audio"
+    assert audio._storage_dtype == "struct"
 
 
 @require_sndfile
