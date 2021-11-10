@@ -198,7 +198,7 @@ def _add_retries_to_file_obj_read_method(file_obj):
     
 def _get_extraction_protocol_with_magic_number(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
     if fsspec.get_fs_token_paths(urlpath)[0].protocol == "https":
-        urlpath, kwargs = _prepare_http_url_kwargs(file, use_auth_token=use_auth_token)
+        urlpath, kwargs = _prepare_http_url_kwargs(urlpath, use_auth_token=use_auth_token)
     of = fsspec.open(urlpath, "rb", compression="hf-infer", **kwargs)
 
 
