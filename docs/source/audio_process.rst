@@ -25,7 +25,7 @@ Users should also install `torchaudio <https://pytorch.org/audio/stable/index.ht
 
 .. important::
 
-    torchaudio's ``sox_io`` `backend <https://pytorch.org/audio/stable/backend.html#>`_ supports decoding ``mp3`` files. Unfortunately, the ``sox_io`` backend is only available on Linux/macOS, and is unsupported by Windows.
+    torchaudio's ``sox_io`` `backend <https://pytorch.org/audio/stable/backend.html#>`_ supports decoding ``mp3`` files. Unfortunately, the ``sox_io`` backend is only available on Linux/macOS, and is not supported by Windows.
 
 Then you can load an audio dataset the same way you would load a text dataset. For example, load the `Common Voice <https://huggingface.co/datasets/common_voice>`_ dataset with the Turkish configuration:
 
@@ -37,7 +37,7 @@ Then you can load an audio dataset the same way you would load a text dataset. F
 Audio datasets
 --------------
 
-Audio datasets commonly have an ``audio`` and ``path`` column.
+Audio datasets commonly have an ``audio`` and ``path`` or ``file`` column.
 
 ``audio`` is the actual audio file that is loaded and resampled on-the-fly upon calling it.
 
@@ -51,7 +51,7 @@ Audio datasets commonly have an ``audio`` and ``path`` column.
 
 When you access an audio file, it is automatically decoded and resampled. Generally, you should query an audio file like: ``common_voice[0]["audio"]``. If you query an audio file with ``common_voice["audio"][0]`` instead, **all** the audio files in your dataset will be decoded and resampled. This process can take a long time if you have a large dataset.
 
-``path`` is an absolute path to an audio file.
+``path`` or ``file`` is an absolute path to an audio file.
 
 .. code::
 
@@ -87,18 +87,29 @@ The next time you load the audio file, the :class:`datasets.Audio` feature will 
 ``Map``
 -------
 
-Just like text datasets, you can apply a preprocessing function over an entire dataset with :func:`datasets.Dataset.map`, which is useful for preprocessing all of your audio data at once. Create a convenient ``processor`` object that contains:
+Just like text datasets, you can apply a preprocessing function over an entire dataset with :func:`datasets.Dataset.map`, which is useful for preprocessing all of your audio data at once. Start with a `speech recognition model <https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&sort=downloads>`_ of your choice, and load a ``processor`` object that contains:
 
-1. A feature extractor to convert the speech signal to the model's input format.
-2. A tokenizer to convert the model's output format to text.
+1. A feature extractor to convert the speech signal to the model's input format. Every speech recognition model on the 🤗 `Hub <https://huggingface.co/models?pipeline_tag=automatic-speech-recognition&sort=downloads>`_ contains a predefined feature extractor that can be easily loaded with ``AutoFeatureExtractor.from_pretrained(...)``.
+
+2. A tokenizer to convert the model's output format to text. Fine-tuned speech recognition models, such as `facebook/wav2vec2-base-960h <https://huggingface.co/facebook/wav2vec2-base-960h>`_, contain a predefined tokenizer that can be easily loaded with ``AutoTokenizer.from_pretrained(...)``.
+
+   For pretrained speech recognition models, such as `facebook/wav2vec2-large-xlsr-53 <https://huggingface.co/facebook/wav2vec2-large-xlsr-53>`_, a tokenizer needs to be created from the target text as explained `here <https://huggingface.co/blog/fine-tune-wav2vec2-english>`_. The following example demonstrates how to load a feature extractor, tokenizer and processor for a pretrained speech recognition model:
 
 .. code-block::
 
-    >>> from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wac2Vec2Processor
+    >>> from transformers import AutoTokenizer, AutoFeatureExtractor, Wav2Vec2Processor
     >>> model_checkpoint = "facebook/wav2vec2-large-xlsr-53"
-    >>> tokenizer = Wav2Vec2CTCTokenizer("./vocab.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
-    >>> feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, sampling_rate=16000, padding_value=0.0, do_normalize=True, return_attention_mask=False)
-    >>> processor = Wav2Vec2Processor(feature_extractor=feature_extractor, tokenizer=tokenizer)
+    >>> # after defining a vocab.json file you can instantiate a tokenizer object:
+    >>> tokenizer = AutoTokenizer("./vocab.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
+    >>> feature_extractor = AutoFeatureExtractor.from_pretrained(model_checkpoint)
+    >>> processor = Wav2Vec2Processor.from_pretrained(feature_extractor=feature_extractor, tokenizer=tokenizer)
+
+For fine-tuned speech recognition models, you can simply load a predefined ``processor`` object with:
+
+.. code-block::
+
+    >>> from transformers import Wav2Vec2Processor
+    >>> processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 
 Make sure to include the ``audio`` key in your preprocessing function when you call :func:`datasets.Dataset.map` so that you are actually resampling the audio data:
 
