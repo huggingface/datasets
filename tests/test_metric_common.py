@@ -39,7 +39,7 @@ _has_fairseq = importlib.util.find_spec("fairseq") is not None
 UNSUPPORTED_ON_WINDOWS = {"code_eval"}
 _on_windows = os.name == "nt"
 
-def skip_if_dataset_requires_fairseq(test_case):
+def skip_if_metric_requires_fairseq(test_case):
     @wraps(test_case)
     def wrapper(self, metric_name):
         if not _has_fairseq and metric_name in REQUIRE_FAIRSEQ:
@@ -65,7 +65,7 @@ def get_local_metric_names():
 
 
 @parameterized.named_parameters(get_local_metric_names())
-@for_all_test_methods(skip_if_dataset_requires_fairseq, skip_on_windows_if_not_windows_compatible)
+@for_all_test_methods(skip_if_metric_requires_fairseq, skip_on_windows_if_not_windows_compatible)
 @local
 class LocalMetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
