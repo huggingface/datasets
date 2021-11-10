@@ -104,6 +104,7 @@ class TypedSequence:
             trying_type = True
         else:
             type = self.type
+        trying_int_optimization = False
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 if isinstance(self.data, np.ndarray):
@@ -143,6 +144,7 @@ class TypedSequence:
                         "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
                     )
             if self.optimized_int_type and self.type is None and self.try_type is None:
+                trying_int_optimization = True
                 if pa.types.is_int64(out.type):
                     out = out.cast(self.optimized_int_type)
                 elif pa.types.is_list(out.type):
@@ -167,6 +169,10 @@ class TypedSequence:
                                 type_(self.data), e
                             )
                         ) from None
+                    elif trying_int_optimization and "not in range" in str(e):
+                        optimized_int_type_str = np.dtype(self.optimized_int_type.to_pandas_dtype()).name
+                        logger.info(f"Failed to cast a sequence to {optimized_int_type_str}. Falling back to int64.")
+                        return out
                     else:
                         raise
             elif "overflow" in str(e):
@@ -175,6 +181,10 @@ class TypedSequence:
                         type_(self.data), e
                     )
                 ) from None
+            elif trying_int_optimization and "not in range" in str(e):
+                optimized_int_type_str = np.dtype(self.optimized_int_type.to_pandas_dtype()).name
+                logger.info(f"Failed to cast a sequence to {optimized_int_type_str}. Falling back to int64.")
+                return out
             else:
                 raise
 

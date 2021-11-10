@@ -1,4 +1,5 @@
 ---
+pretty_name: ASSIN
 annotations_creators:
 - expert-generated
 language_creators:

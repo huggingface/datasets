@@ -1,4 +1,5 @@
 ---
+pretty_name: EXAMS
 annotations_creators:
 - found
 language_creators:

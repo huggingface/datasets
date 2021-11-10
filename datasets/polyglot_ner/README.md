@@ -1,4 +1,5 @@
 ---
+pretty_name: Polyglot-NER
 paperswithcode_id: polyglot-ner
 ---
 

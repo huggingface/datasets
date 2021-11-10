@@ -14,7 +14,6 @@
 # limitations under the License.
 
 # Lint as: python3
-import os
 
 import datasets
 
@@ -125,29 +124,35 @@ class Setimes(datasets.GeneratorBasedBuilder):
             return _BASE_URL.format(lang1, lang2)
 
         download_url = _base_url(self.config.lang1, self.config.lang2)
-        path = dl_manager.download_and_extract(download_url)
+        archive = dl_manager.download(download_url)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": path},
+                gen_kwargs={
+                    "l1_files": dl_manager.iter_archive(archive),
+                    "l2_files": dl_manager.iter_archive(archive),
+                },
             )
         ]
 
-    def _generate_examples(self, datapath):
+    def _generate_examples(self, l1_files, l2_files):
         l1, l2 = self.config.lang1, self.config.lang2
         l1_file = _BASE_NAME.format(l1, l2, l1)
         l2_file = _BASE_NAME.format(l1, l2, l2)
-        l1_path = os.path.join(datapath, l1_file)
-        l2_path = os.path.join(datapath, l2_file)
-        with open(l1_path, encoding="utf-8") as f1, open(l2_path, encoding="utf-8") as f2:
-            for sentence_counter, (x, y) in enumerate(zip(f1, f2)):
-                x = x.strip()
-                y = y.strip()
-                result = (
-                    sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "translation": {l1: x, l2: y},
-                    },
-                )
-                yield result
+        for path1, f1 in l1_files:
+            if path1 == l1_file:
+                for path2, f2 in l2_files:
+                    if path2 == l2_file:
+                        for sentence_counter, (x, y) in enumerate(zip(f1, f2)):
+                            x = x.decode("utf-8").strip()
+                            y = y.decode("utf-8").strip()
+                            result = (
+                                sentence_counter,
+                                {
+                                    "id": str(sentence_counter),
+                                    "translation": {l1: x, l2: y},
+                                },
+                            )
+                            yield result
+                        break
+                break

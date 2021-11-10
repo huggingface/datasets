@@ -1,4 +1,5 @@
 ---
+pretty_name: Mathematics Dataset
 languages:
 - en
 paperswithcode_id: mathematics

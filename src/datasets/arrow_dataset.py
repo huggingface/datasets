@@ -1043,8 +1043,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
-            tmp_dir = tempfile.TemporaryDirectory()
-            dataset_path = Path(tmp_dir.name, src_dataset_path)
+            tmp_dir = get_temporary_cache_files_directory()
+            dataset_path = Path(tmp_dir, src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
         with open(
@@ -1951,7 +1951,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (:obj:`bool`, default `True`): Disallow null values in the table.
+            disable_nullable (:obj:`bool`, default `False`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
             num_proc (`Optional[int]`, default `None`): Max number of processes when generating cache. Already cached shards are loaded sequentially
             suffix_template (:obj:`str`):
@@ -2208,7 +2208,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (:obj:`bool`, defaults to `True`): Disallow null values in the table.
+            disable_nullable (:obj:`bool`, defaults to `False`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
@@ -2474,8 +2474,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             function (:obj:`Callable`): Callable with one of the following signatures:
 
-                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False``
-                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True``
+                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
 
                 If no function is provided, defaults to an always True function: ``lambda x: True``.
             with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
@@ -2547,7 +2549,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
-        disable_nullable: bool = True,
+        disable_nullable: bool = False,
         new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Create and cache a new Dataset by flattening the indices mapping.
@@ -2561,7 +2563,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (:obj:`bool`, default `True`): Allow null values in the table.
+            disable_nullable (:obj:`bool`, default `False`): Allow null values in the table.
             new_fingerprint (`Optional[str]`, default `None`): The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
@@ -3736,7 +3738,12 @@ def get_indices_from_mask_function(
     **fn_kwargs,
 ):
     if batched:
-        mask = function(*args)
+        # we extract indices from args
+        *inputs, indices = args
+        if with_indices:
+            mask = function(*inputs, indices, **fn_kwargs)
+        else:
+            mask = function(*inputs, **fn_kwargs)
     else:
         # we get batched data (to do less look-ups) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask

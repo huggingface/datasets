@@ -283,47 +283,52 @@ class Flue(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         if self.config.name == "CLS":
-            data_folder = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, "cls-acl10-unprocessed", "fr"),
+                        "data_file": ("cls-acl10-unprocessed", "fr"),
                         "split": "train",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, "cls-acl10-unprocessed", "fr"),
+                        "data_file": ("cls-acl10-unprocessed", "fr"),
                         "split": "test",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
         elif self.config.name == "PAWS-X":
-            data_folder = dl_manager.download_and_extract(self.config.data_url)
+            archive = dl_manager.download(self.config.data_url)
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, "x-final", "fr", "dev_2k.tsv"),
+                        "data_file": ("x-final", "fr", "dev_2k.tsv"),
                         "split": "",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, "x-final", "fr", "test_2k.tsv"),
+                        "data_file": ("x-final", "fr", "test_2k.tsv"),
                         "split": "",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder, "x-final", "fr", "translated_train.tsv"),
+                        "data_file": ("x-final", "fr", "translated_train.tsv"),
                         "split": "",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
@@ -355,6 +360,7 @@ class Flue(datasets.GeneratorBasedBuilder):
                 ),
             ]
         elif self.config.name == "WSD-V":
+            # TODO(QL): make streamable using iter_archive
             data_folder = dl_manager.download_and_extract(self.config.data_url)
             self._wsdv_prepare_data(os.path.join(data_folder, self.config.data_dir))
 
@@ -375,33 +381,35 @@ class Flue(datasets.GeneratorBasedBuilder):
                 ),
             ]
 
-    def _generate_examples(self, data_file, split):
+    def _generate_examples(self, data_file, split, files=None):
         if self.config.name == "CLS":
-            for category in ["books", "dvd", "music"]:
-                file_path = os.path.join(data_file, category, split + ".review")
-                with open(file_path, "rt", encoding="utf-8") as f:
-                    next(f)
-                    id = 0
-                    text = f.read()
-                    for id_, line in enumerate(text.split("\n\n")):
-                        if len(line) > 9:
-                            id += 1
-                            review_text, label = self._cls_extractor(line)
-                            yield f"{category}_{id_}", {"idx": id, "text": review_text, "label": label}
+            for path, f in files:
+                for category in ["books", "dvd", "music"]:
+                    file_path = "/".join(data_file + (category, split + ".review"))
+                    if path == file_path:
+                        next(f)
+                        id = 0
+                        text = f.read().decode("utf-8")
+                        for id_, line in enumerate(text.split("\n\n")):
+                            if len(line) > 9:
+                                id += 1
+                                review_text, label = self._cls_extractor(line)
+                                yield f"{category}_{id_}", {"idx": id, "text": review_text, "label": label}
         elif self.config.name == "PAWS-X":
-            with open(data_file, encoding="utf-8") as f:
-                data = csv.reader(f, delimiter="\t")
-                next(data)  # skip header
-                id = 0
-                for id_, row in enumerate(data):
-                    if len(row) == 4:
-                        id += 1
-                        yield id_, {
-                            "idx": id,
-                            "sentence1": self._cleaner(row[1]),
-                            "sentence2": self._cleaner(row[2]),
-                            "label": int(row[3].strip()),
-                        }
+            for path, f in files:
+                if path == "/".join(data_file):
+                    data = csv.reader((line.decode("utf-8") for line in f), delimiter="\t")
+                    next(data)  # skip header
+                    id = 0
+                    for id_, row in enumerate(data):
+                        if len(row) == 4:
+                            id += 1
+                            yield id_, {
+                                "idx": id,
+                                "sentence1": self._cleaner(row[1]),
+                                "sentence2": self._cleaner(row[2]),
+                                "label": int(row[3].strip()),
+                            }
         elif self.config.name == "XNLI":
             with open(data_file, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)

@@ -1,4 +1,5 @@
 ---
+pretty_name: IndicGLUE
 paperswithcode_id: null
 ---
 
