@@ -67,20 +67,20 @@ class Audio:
         """
         if isinstance(value, str):
             value = {"path": value, "bytes": None}
-        if value["bytes"]:
-            path, file = value["path"], BytesIO(value["bytes"])
-            array, sampling_rate = (
-                self._decode_example_with_torchaudio(file)
-                if path.endswith(".mp3")
-                else self._decode_example_with_soundfile(file)
-            )
+        if value["path"].endswith("mp3"):
+            if value["bytes"]:
+                path, file = value["path"], BytesIO(value["bytes"])
+                array, sampling_rate = self._decode_example_with_torchaudio(file)
+            else:
+                path = value["path"]
+                array, sampling_rate = self._decode_example_with_torchaudio(path)
         else:
-            path = value["path"]
-            array, sampling_rate = (
-                self._decode_example_with_torchaudio(path)
-                if path.endswith(".mp3")
-                else self._decode_example_with_librosa(path)
-            )
+            if value["bytes"]:
+                path, file = value["path"], BytesIO(value["bytes"])
+                array, sampling_rate = self._decode_example_with_soundfile(file)
+            else:
+                path = value["path"]
+                array, sampling_rate = self._decode_example_with_librosa(path)
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
     def _decode_example_with_librosa(self, value):
