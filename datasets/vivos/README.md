@@ -86,13 +86,20 @@ A typical data point comprises the path to the audio file, called `path` and its
 ```
 {'speaker_id': 'VIVOSSPK01',
  'path': '/home/admin/.cache/huggingface/datasets/downloads/extracted/b7ded9969e09942ab65313e691e6fc2e12066192ee8527e21d634aca128afbe2/vivos/train/waves/VIVOSSPK01/VIVOSSPK01_R001.wav',
+ 'audio': {'path': '/home/admin/.cache/huggingface/datasets/downloads/extracted/b7ded9969e09942ab65313e691e6fc2e12066192ee8527e21d634aca128afbe2/vivos/train/waves/VIVOSSPK01/VIVOSSPK01_R001.wav',
+		   'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
+		   'sampling_rate': 16000},
  'sentence': 'KHÁCH SẠN'}
 ```
 
 ### Data Fields
 
 - speaker_id: An id for which speaker (voice) made the recording
+
 - path: The path to the audio file
+
+- audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
+
 - sentence: The sentence the user was prompted to speak
 
 ### Data Splits

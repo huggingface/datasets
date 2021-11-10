@@ -17,7 +17,6 @@
 """CIFAR-100 Dataset"""
 
 
-import os
 import pickle
 
 import numpy as np
@@ -196,33 +195,35 @@ class Cifar100(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_dir = dl_manager.download_and_extract(_DATA_URL)
-        actual_path = os.path.join(dl_dir, "cifar-100-python")
-        train_path = os.path.join(actual_path, "train")
-        test_path = os.path.join(actual_path, "test")
+        archive = dl_manager.download(_DATA_URL)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive), "split": "train"}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"files": dl_manager.iter_archive(archive), "split": "test"}
+            ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, files, split):
         """This function returns the examples in the array form."""
 
-        with open(filepath, "rb") as fo:
+        for path, fo in files:
+            if path == f"cifar-100-python/{split}":
+                dict = pickle.load(fo, encoding="bytes")
 
-            dict = pickle.load(fo, encoding="bytes")
+                fine_labels = dict[b"fine_labels"]
+                coarse_labels = dict[b"coarse_labels"]
+                images = dict[b"data"]
 
-            fine_labels = dict[b"fine_labels"]
-            coarse_labels = dict[b"coarse_labels"]
-            images = dict[b"data"]
+                for idx, _ in enumerate(images):
 
-            for idx, _ in enumerate(images):
+                    img_reshaped = np.transpose(np.reshape(images[idx], (3, 32, 32)), (1, 2, 0))
 
-                img_reshaped = np.transpose(np.reshape(images[idx], (3, 32, 32)), (1, 2, 0))
-
-                yield idx, {
-                    "img": img_reshaped,
-                    "fine_label": fine_labels[idx],
-                    "coarse_label": coarse_labels[idx],
-                }
+                    yield idx, {
+                        "img": img_reshaped,
+                        "fine_label": fine_labels[idx],
+                        "coarse_label": coarse_labels[idx],
+                    }
+                break

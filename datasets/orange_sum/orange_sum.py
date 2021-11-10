@@ -15,8 +15,6 @@
 """OrangeSum dataset"""
 
 
-import os
-
 import datasets
 
 
@@ -70,14 +68,15 @@ class OrangeSum(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URL_DATA[self.config.name])
+        archive = dl_manager.download(_URL_DATA[self.config.name])
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": data_dir,
+                    "source_files": dl_manager.iter_archive(archive),
+                    "target_files": dl_manager.iter_archive(archive),
                     "split": "train",
                 },
             ),
@@ -85,7 +84,8 @@ class OrangeSum(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": data_dir,
+                    "source_files": dl_manager.iter_archive(archive),
+                    "target_files": dl_manager.iter_archive(archive),
                     "split": "test",
                 },
             ),
@@ -93,18 +93,22 @@ class OrangeSum(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": data_dir,
+                    "source_files": dl_manager.iter_archive(archive),
+                    "target_files": dl_manager.iter_archive(archive),
                     "split": "valid",
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, source_files, target_files, split):
         """Yields examples."""
-        with open(
-            os.path.join(filepath, self.config.name, "{}.source".format(split)), encoding="utf-8"
-        ) as f_source, open(
-            os.path.join(filepath, self.config.name, "{}.target".format(split)), encoding="utf-8"
-        ) as f_target:
-            for idx, (document, summary) in enumerate(zip(f_source, f_target)):
-                yield idx, {_DOCUMENT: document, _SUMMARY: summary}
+        expected_source_path = f"{self.config.name}/{split}.source"
+        expected_target_path = f"{self.config.name}/{split}.target"
+        for source_path, f_source in source_files:
+            if source_path == expected_source_path:
+                for target_path, f_target in target_files:
+                    if target_path == expected_target_path:
+                        for idx, (document, summary) in enumerate(zip(f_source, f_target)):
+                            yield idx, {_DOCUMENT: document.decode("utf-8"), _SUMMARY: summary.decode("utf-8")}
+                        break
+                break

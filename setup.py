@@ -1,5 +1,5 @@
 # Lint as: python3
-""" HuggingFace/Datasets is an open library of NLP datasets.
+""" HuggingFace/Datasets is an open library of datasets.
 
 Note:
 
@@ -70,9 +70,6 @@ import sys
 from setuptools import find_packages, setup
 
 
-DOCLINES = __doc__.split("\n")
-
-
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
@@ -102,9 +99,13 @@ REQUIRED_PKGS = [
     # for data streaming via http
     "aiohttp",
     # To get datasets from the Datasets Hub on huggingface.co
-    "huggingface_hub>=0.0.14,<0.1.0",
+    "huggingface_hub>=0.1.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
+]
+
+AUDIO_REQUIRE = [
+    "librosa",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -118,6 +119,7 @@ TESTS_REQUIRE = [
     # test dependencies
     "absl-py",
     "pytest",
+    "pytest-datadir",
     "pytest-xdist",
     # optional dependencies
     "apache-beam>=2.26.0",
@@ -125,13 +127,14 @@ TESTS_REQUIRE = [
     "aiobotocore",
     "boto3",
     "botocore",
-    "faiss-cpu",
+    "faiss-cpu>=1.6.4",
     "fsspec[s3]",
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
     "s3fs==2021.08.1",
-    "tensorflow>=2.3",
+    "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
+    "torchaudio",
     "transformers",
     # datasets dependencies
     "bs4",
@@ -164,9 +167,7 @@ TESTS_REQUIRE = [
     "importlib_resources;python_version<'3.7'",
 ]
 
-if os.name == "nt":  # windows
-    TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
-else:
+if os.name != "nt":
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
     TESTS_REQUIRE.extend(
@@ -179,14 +180,14 @@ else:
         ]
     )
 
-
 QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
+    "audio": AUDIO_REQUIRE,
     "apache-beam": ["apache-beam>=2.26.0"],
-    "tensorflow": ["tensorflow>=2.2.0"],
-    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0"],
+    "tensorflow": ["tensorflow>=2.2.0,!=2.6.0,!=2.6.1"],
+    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
     "s3": [
         "fsspec",
@@ -207,7 +208,7 @@ EXTRAS_REQUIRE = {
         "sphinx-rtd-theme==0.4.3",
         "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
-        "fsspec",
+        "fsspec<2021.9.0",
         "s3fs",
         "sphinx-panels",
         "sphinx-inline-tabs",
@@ -217,10 +218,10 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.12.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
-    description=DOCLINES[0],
-    long_description="\n".join(DOCLINES[2:]),
-    long_description_content_type='text/markdown',
+    version="1.15.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    description="HuggingFace community-driven open-source library of datasets",
+    long_description=open("README.md", "r", encoding="utf-8").read(),
+    long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",
     url="https://github.com/huggingface/datasets",

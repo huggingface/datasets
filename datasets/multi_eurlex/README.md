@@ -201,32 +201,35 @@ for sample in dataset:
 ```
 
 ### Data Splits
+<table>
+<tr><td> Language </td> <td>   ISO code </td> <td>  Member Countries where official </td> <td>  EU Speakers [1] </td> <td>   Number of Documents [2] </td> </tr> 
+<tr><td> English     </td> <td> <b>en</b>   </td> <td>  United Kingdom (1973-2020), Ireland (1973), Malta (2004)   </td> <td> 13/ 51% </td> <td>  55,000 / 5,000 / 5,000 </td> </tr> 
+<tr><td> German    </td> <td>  <b>de</b>   </td> <td> Germany (1958), Belgium (1958), Luxembourg (1958)  </td> <td> 16/32% </td> <td> 55,000 / 5,000 / 5,000 </td> </tr> 
+<tr><td> French    </td> <td>  <b>fr</b>   </td> <td> France (1958), Belgium(1958), Luxembourg (1958)  </td> <td> 12/26% </td> <td> 55,000 / 5,000 / 5,000 </td> </tr> 
+<tr><td> Italian     </td> <td>  <b>it</b>   </td> <td> Italy (1958)   </td> <td>  13/16% </td> <td>  55,000 / 5,000 / 5,000 </td> </tr> 
+<tr><td> Spanish     </td> <td>  <b>es</b>   </td> <td> Spain (1986)  </td> <td>  8/15% </td> <td>  52,785 / 5,000 / 5,000 </td> </tr> 
+<tr><td> Polish      </td> <td>  <b>pl</b>   </td> <td> Poland (2004)  </td> <td>  8/9% </td> <td>  23,197 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Romanian    </td> <td>  <b>ro</b>   </td> <td> Romania (2007)  </td> <td>  5/5% </td> <td>  15,921 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Dutch       </td> <td>  <b>nl</b>   </td> <td> Netherlands (1958), Belgium (1958)  </td> <td>  4/5% </td> <td>  55,000 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Greek       </td> <td>  <b>el</b>   </td> <td> Greece (1981), Cyprus (2008) </td> <td>  3/4% </td> <td>  55,000 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Hungarian   </td> <td>  <b>hu</b>   </td> <td> Hungary (2004)  </td> <td>  3/3% </td> <td>  22,664 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Portuguese  </td> <td>  <b>pt</b>   </td> <td> Portugal (1986)  </td> <td>  2/3% </td> <td>  23,188 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Czech       </td> <td>  <b>cs</b>   </td> <td> Czech Republic (2004)  </td> <td>  2/3% </td> <td>  23,187 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Swedish     </td> <td>  <b>sv</b>   </td> <td> Sweden (1995)  </td> <td>  2/3% </td> <td>  42,490 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Bulgarian   </td> <td>  <b>bg</b>   </td> <td> Bulgaria (2007)  </td> <td>  2/2% </td> <td>  15,986 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Danish      </td> <td>  <b>da</b>   </td> <td> Denmark (1973)  </td> <td>  1/1% </td> <td>  55,000 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Finnish     </td> <td>  <b>fi</b>   </td> <td> Finland (1995)  </td> <td>  1/1% </td> <td>  42,497 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Slovak      </td> <td>  <b>sk</b>   </td> <td> Slovakia (2004)  </td> <td>  1/1% </td> <td>  15,986 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Lithuanian  </td> <td>  <b>lt</b>   </td> <td> Lithuania (2004)   </td> <td>  1/1% </td> <td>  23,188 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Croatian    </td> <td>  <b>hr</b>   </td> <td> Croatia (2013) </td> <td>  1/1% </td> <td>  7,944 / 2,500 / 5,000 </td> </tr>  
+<tr><td> Slovene     </td> <td>  <b>sl</b>   </td> <td> Slovenia (2004) </td> <td>  <1/<1% </td> <td>  23,184 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Estonian    </td> <td>  <b>et</b>   </td> <td> Estonia (2004) </td> <td>  <1/<1% </td> <td>  23,126 / 5,000 / 5,000 </td> </tr> 
+<tr><td> Latvian     </td> <td>  <b>lv</b>   </td> <td> Latvia (2004) </td> <td>  <1/<1% </td> <td>  23,188 / 5,000 / 5,000 </td> </tr>  
+<tr><td> Maltese     </td> <td>  <b>mt</b>   </td> <td> Malta (2004) </td> <td>  <1/<1% </td> <td>  17,521 / 5,000 / 5,000 </td> </tr>  
+</table>
 
-| Language |  ISO code | Member Countries where official | EU Speakers (%) (Native / Total) |  Number of Documents (Training/Dev/Test) | 
-| ---- | ---- |  ---- |  ---- |  ---- |  
-English     |**en**   | United Kingdom (1973-2020), Ireland (1973), Malta (2004)   |13/ 51\% | 55,000 / 5,000 / 5,000 |
-| German    | **de**   |Germany (1958), Belgium (1958), Luxembourg (1958)  |16/32\% |55,000 / 5,000 / 5,000
-| French    | **fr**   |France (1958), Belgium(1958), Luxembourg (1958)  |12/26\% |55,000 / 5,000 / 5,000
-Italian     | **it**   |Italy (1958)   | 13/16\% | 55,000 / 5,000 / 5,000 
-Spanish     | **es**   |Spain (1986)  | 8/15\% | 52,785 / 5,000 / 5,000 
-Polish      | **pl**   |Poland (2004)  | 8/9\% | 23,197 / 5,000 / 5,000 | 
-Romanian    | **ro**   |Romania (2007)  | 5/5\% | 15,921 / 5,000 / 5,000 | 
-Dutch       | **nl**   |Netherlands (1958), Belgium (1958)  | 4/5\% | 55,000 / 5,000 / 5,000 | 
-Greek       | **el**   |Greece (1981), Cyprus (2008) | 3/4\% | 55,000 / 5,000 / 5,000 | 
-Hungarian   | **hu**   |Hungary (2004)  | 3/3\% | 22,664 / 5,000 / 5,000 | 
-Portuguese  | **pt**   |Portugal (1986)  | 2/3\% | 23,188 / 5,000 / 5,000 | 
-Czech       | **cs**   |Czech Republic (2004)  | 2/3\% | 23,187 / 5,000 / 5,000 | 
-Swedish     | **sv**   |Sweden (1995)  | 2/3\% | 42,490 / 5,000 / 5,000 | 
-Bulgarian   | **bg**   |Bulgaria (2007)  | 2/2\% | 15,986 / 5,000 / 5,000 | 
-Danish      | **da**   |Denmark (1973)  | 1/1\% | 55,000 / 5,000 / 5,000 | 
-Finnish     | **fi**   |Finland (1995)  | 1/1\% | 42,497 / 5,000 / 5,000 | 
-Slovak      | **sk**   |Slovakia (2004)  | 1/1\% | 15,986 / 5,000 / 5,000 | 
-Lithuanian  | **lt**   |Lithuania (2004)   | 1/1\% | 23,188 / 5,000 / 5,000 | 
-Croatian    | **hr**   |Croatia (2013) | 1/1\% | 7,944 / 2,500 / 5,000 | 
-Slovene     | **sl**   |Slovenia (2004) | <1/<1\% | 23,184 / 5,000 / 5,000 | 
-Estonian    | **et**   |Estonia (2004) | <1/<1\% | 23,126 / 5,000 / 5,000 |
-Latvian     | **lv**   |Latvia (2004) | <1/<1\% | 23,188 / 5,000 / 5,000 | 
-Maltese     | **mt**   |Malta (2004) | <1/<1\% | 17,521 / 5,000 / 5,000 | 
+[1] Native and Total EU speakers percentage (%) \
+[2] Training / Development / Test Splits 
 
 ## Dataset Creation
 

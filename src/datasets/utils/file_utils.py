@@ -14,24 +14,23 @@ import sys
 import tempfile
 import time
 import urllib
+import warnings
 from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, List, Optional, TypeVar, Union
+from typing import Dict, Optional, TypeVar, Union
 from urllib.parse import urlparse
 
 import numpy as np
 import posixpath
 import requests
-from tqdm.contrib.concurrent import thread_map
 
 from .. import __version__, config, utils
 from . import logging
 from .extract import ExtractManager
 from .filelock import FileLock
-from .tqdm_utils import tqdm
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
@@ -147,33 +146,40 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
 def head_hf_s3(
     identifier: str, filename: str, use_cdn=False, dataset=True, max_retries=0
 ) -> Union[requests.Response, Exception]:
-    try:
-        return http_head(
-            hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
-            max_retries=max_retries,
-        )
-    except Exception as e:
-        return e
+    return http_head(
+        hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset),
+        max_retries=max_retries,
+    )
 
 
-def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
+def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None, version="deprecated") -> str:
     from .. import SCRIPTS_VERSION
 
-    version = version or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
+    if version != "deprecated":
+        warnings.warn(
+            "'version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
+        )
+        revision = version
+    revision = revision or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
     if dataset:
-        return config.REPO_DATASETS_URL.format(version=version, path=path, name=name)
+        return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
     else:
-        return config.REPO_METRICS_URL.format(version=version, path=path, name=name)
+        return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
 
 
-def hf_hub_url(path: str, name: str, version: Optional[str] = None) -> str:
-    version = version or config.HUB_DEFAULT_VERSION
-    return config.HUB_DATASETS_URL.format(path=path, name=name, version=version)
+def hf_hub_url(path: str, name: str, revision: Optional[str] = None, version="deprecated") -> str:
+    if version != "deprecated":
+        warnings.warn(
+            "'version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
+        )
+        revision = version
+    revision = revision or config.HUB_DEFAULT_VERSION
+    return config.HUB_DATASETS_URL.format(path=path, name=name, revision=revision)
 
 
 def url_or_path_join(base_name: str, *pathnames: str) -> str:
     if is_remote_url(base_name):
-        return posixpath.join(base_name, *(str(pathname).lstrip("/") for pathname in pathnames))
+        return posixpath.join(base_name, *(str(pathname).replace(os.sep, "/").lstrip("/") for pathname in pathnames))
     else:
         return Path(base_name, *pathnames).as_posix()
 
@@ -228,8 +234,8 @@ class DownloadConfig:
         force_extract (:obj:`bool`, default ``False``): If True when extract_compressed_file is True and the archive
             was already extracted, re-extract the archive and override the folder where it was extracted.
         delete_extracted (:obj:`bool`, default ``False``): Whether to delete (or keep) the extracted files.
-        use_etag (:obj:`bool`, default ``True``):
-        num_proc (:obj:`int`, optional):
+        use_etag (:obj:`bool`, default ``True``): Whether to use the ETag HTTP response header to validate the cached files.
+        num_proc (:obj:`int`, optional): The number of processes to launch to download the files in parallel.
         max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
         use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
             for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
@@ -340,7 +346,7 @@ def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> st
 def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[str, bool]] = None) -> dict:
     """Handle the HF authentication"""
     headers = {}
-    if url.startswith("https://huggingface.co/"):
+    if url.startswith(config.HF_ENDPOINT):
         token = None
         if isinstance(use_auth_token, str):
             token = use_auth_token
@@ -358,7 +364,7 @@ class OfflineModeIsEnabled(ConnectionError):
 
 
 def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
-    """Raise a OfflineModeIsEnabled error (subclass of ConnectionError) if HF_DATASETS_OFFLINE is True."""
+    """Raise an OfflineModeIsEnabled error (subclass of ConnectionError) if HF_DATASETS_OFFLINE is True."""
     if config.HF_DATASETS_OFFLINE:
         raise OfflineModeIsEnabled(
             "Offline mode is enabled." if msg is None else "Offline mode is enabled. " + str(msg)
@@ -421,7 +427,7 @@ def ftp_get(url, temp_file, timeout=10.0):
         with closing(urllib.request.urlopen(url, timeout=timeout)) as r:
             shutil.copyfileobj(r, temp_file)
     except urllib.error.URLError as e:
-        raise ConnectionError(e)
+        raise ConnectionError(e) from None
 
 
 def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=100.0, max_retries=0):
@@ -482,24 +488,6 @@ def request_etag(url: str, use_auth_token: Optional[Union[str, bool]] = None) ->
     response.raise_for_status()
     etag = response.headers.get("ETag") if response.ok else None
     return etag
-
-
-def request_etags(
-    urls: List[str],
-    use_auth_token: Optional[Union[str, bool]] = None,
-    max_workers=64,
-    tqdm_kwargs: Optional[dict] = None,
-) -> List[Optional[str]]:
-    tqdm_kwargs = tqdm_kwargs if tqdm_kwargs is not None else {}
-    tqdm_kwargs["desc"] = tqdm_kwargs.get("desc", "Get ETags")
-    tqdm_kwargs["disable"] = tqdm_kwargs.get("disable", len(urls) <= 16 or logging.get_verbosity() == logging.NOTSET)
-    return thread_map(
-        partial(request_etag, use_auth_token=use_auth_token),
-        urls,
-        max_workers=max_workers,
-        tqdm_class=tqdm,
-        **tqdm_kwargs,
-    )
 
 
 def get_from_cache(
@@ -667,7 +655,7 @@ def get_from_cache(
 
 def add_start_docstrings(*docstr):
     def docstring_decorator(fn):
-        fn.__doc__ = "".join(docstr) + (fn.__doc__ if fn.__doc__ is not None else "")
+        fn.__doc__ = "".join(docstr) + "\n\n" + (fn.__doc__ if fn.__doc__ is not None else "")
         return fn
 
     return docstring_decorator
@@ -675,7 +663,7 @@ def add_start_docstrings(*docstr):
 
 def add_end_docstrings(*docstr):
     def docstring_decorator(fn):
-        fn.__doc__ = (fn.__doc__ if fn.__doc__ is not None else "") + "".join(docstr)
+        fn.__doc__ = (fn.__doc__ if fn.__doc__ is not None else "") + "\n\n" + "".join(docstr)
         return fn
 
     return docstring_decorator

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: scitldr
+pretty_name: SciTLDR
 ---
 
 # Dataset Card for SciTLDR
