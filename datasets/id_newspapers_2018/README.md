@@ -157,7 +157,7 @@ The dataset contains train set of 499164 samples.
 
 ### Licensing Information
 
-[More Information Needed]
+This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License. The dataset is shared for the sole purpose of aiding open scientific research in Bahasa Indonesia (computing or linguistics), and can only be used for that purpose. The ownership of each article within the dataset belongs to the respective newspaper from which it was extracted; and the maintainer of the repository does not claim ownership of any of the content within it. If you think, by any means, that this dataset breaches any established copyrights; please contact the repository maintainer.
 
 ### Citation Information
 
