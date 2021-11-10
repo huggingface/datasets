@@ -133,8 +133,13 @@ class CodeEval(datasets.Metric):
 
     def _compute(self, predictions, references, k=[1, 10, 100], num_workers=4, timeout=3.0):
         """Returns the scores"""
+
         if os.getenv("HF_ALLOW_CODE_EVAL", 0) != "1":
             raise ValueError(_WARNING)
+        
+        if os.name == "nt":
+            raise NotImplementedError("This metric is currently not supported on Windows.")
+        
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
             futures = []
             completion_id = Counter()
