@@ -261,6 +261,7 @@ class ArrowWriter:
             self.stream.close()  # This also closes self.pa_writer if it is opened
 
     def _build_writer(self, inferred_schema: pa.Schema):
+        schema = self.schema
         inferred_features = Features.from_arrow_schema(inferred_schema)
         if self._features is not None:
             if self.update_features:  # keep original features it they match, or update them
@@ -271,17 +272,16 @@ class ArrowWriter:
                         if inferred_field == fields[name]:
                             inferred_features[name] = self._features[name]
                 self._features = inferred_features
-                self._schema: pa.Schema = inferred_schema
+                schema: pa.Schema = inferred_schema
         else:
             self._features = inferred_features
-            self._schema: pa.Schema = inferred_schema
+            schema: pa.Schema = inferred_schema
         if self.disable_nullable:
-            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
+            schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in schema)
         if self.with_metadata:
-            self._schema = self._schema.with_metadata(
-                self._build_metadata(DatasetInfo(features=self._features), self.fingerprint)
-            )
-        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
+            schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features), self.fingerprint))
+        self._schema = schema
+        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, schema)
 
     @property
     def schema(self):
