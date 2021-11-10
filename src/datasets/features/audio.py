@@ -69,7 +69,7 @@ class Audio:
             value = {"path": value, "bytes": None}
         if value["path"].endswith("mp3"):
             if value["bytes"]:
-                path, file = value["path"], BytesIO(value["bytes"])
+                path, file = value["path"], value["bytes"]
                 array, sampling_rate = self._decode_example_with_torchaudio(file)
             else:
                 path = value["path"]
