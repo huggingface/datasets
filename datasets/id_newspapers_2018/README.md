@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: null
+pretty_name: Indonesian Newspapers 2018
 ---
 
 # Dataset Card for Indonesian Newspapers 2018
