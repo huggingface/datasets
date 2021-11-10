@@ -21,8 +21,9 @@ from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import PIL.Image
 import pyarrow as pa
+
+from datasets.features.image import list_of_images_to_list_of_encoded_images
 
 from . import config, utils
 from .features import (
@@ -30,9 +31,7 @@ from .features import (
     _ArrayXDExtensionType,
     _ImageExtensionType,
     cast_to_python_objects,
-    list_of_image_dicts_to_list_of_encoded_images,
     list_of_np_array_to_pyarrow_listarray,
-    list_of_pil_images_to_list_of_encoded_images,
     numpy_to_pyarrow_listarray,
 )
 from .info import DatasetInfo
@@ -115,13 +114,7 @@ class TypedSequence:
                     storage = pa.array(self.data, type.storage_dtype)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(type, _ImageExtensionType):
-                is_non_empty_list = isinstance(self.data, list) and self.data
-                if is_non_empty_list and isinstance(self.data[0], PIL.Image.Image):
-                    storage = pa.array(list_of_pil_images_to_list_of_encoded_images(self.data), type.storage_type)
-                elif is_non_empty_list and isinstance(self.data[0], dict):
-                    storage = pa.array(list_of_image_dicts_to_list_of_encoded_images(self.data), type.storage_type)
-                else:
-                    storage = pa.array(self.data, type.storage_type)
+                storage = pa.array(list_of_images_to_list_of_encoded_images(self.data), type.storage_type)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)

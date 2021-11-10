@@ -117,3 +117,16 @@ def list_of_image_dicts_to_list_of_encoded_images(l_image_dicts: List[Dict[str, 
         {map_key_to_field(k): v if k != "image" else convert_pil_image_to_bytes(v) for k, v in image_dict.items()}
         for image_dict in l_image_dicts
     ]
+
+
+def list_of_images_to_list_of_encoded_images(data):
+    import PIL.Image  # TODO(mario): add PIL_AVAILABLE to config.py
+
+    is_non_empty_list = isinstance(data, list) and data
+    if is_non_empty_list and isinstance(data[0], PIL.Image.Image):
+        encoded_images = list_of_pil_images_to_list_of_encoded_images(data)
+    elif is_non_empty_list and isinstance(data[0], dict):
+        encoded_images = list_of_image_dicts_to_list_of_encoded_images(data)
+    else:
+        encoded_images = data
+    return encoded_images
