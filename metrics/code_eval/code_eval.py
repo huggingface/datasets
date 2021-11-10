@@ -70,7 +70,7 @@ Args:
     references: a list with a test for each prediction. Each test should evaluate the
         correctness of a code candidate.
     k: number of code candidates to consider in the evaluation (Default: [1, 10, 100])
-    n_workers: number of workers used to evaluate the canidate programs (Default: 4).
+    num_workers: number of workers used to evaluate the canidate programs (Default: 4).
     timeout:
 Returns:
     pass_at_k: dict with pass rates for each k
