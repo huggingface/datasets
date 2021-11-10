@@ -4,7 +4,6 @@ import tarfile
 from ctypes.util import find_library
 from importlib.util import find_spec
 
-import pyarrow as pa
 import pytest
 
 from datasets import Dataset, load_dataset
