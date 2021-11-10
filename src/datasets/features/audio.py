@@ -49,7 +49,7 @@ class Audio:
             :obj:`dict`
         """
         if isinstance(value, str):
-            return {"path": value}
+            self._storage_dtype = "string"
         return value
 
     def decode_example(self, value):
