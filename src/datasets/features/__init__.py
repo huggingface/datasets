@@ -8,5 +8,10 @@ from .features import (
     _cast_to_python_objects,
     _is_zero_copy_only,
 )
-from .image import Image
+from .image import (
+    Image,
+    _ImageExtensionType,
+    list_of_image_dicts_to_list_of_encoded_images,
+    list_of_pil_images_to_list_of_encoded_images,
+)
 from .translation import Translation, TranslationVariableLanguages

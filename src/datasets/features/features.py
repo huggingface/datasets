@@ -37,7 +37,7 @@ from pyarrow.types import is_boolean, is_primitive
 
 from datasets import config, utils
 from datasets.features.audio import Audio
-from datasets.features.image import Image
+from datasets.features.image import Image, _ImageExtensionType
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.utils.logging import get_logger
 
@@ -853,7 +853,7 @@ def encode_nested_example(schema, obj):
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+    elif isinstance(schema, (Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
         return schema.encode_example(obj)
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
@@ -907,6 +907,8 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
+    elif isinstance(pa_type, _ImageExtensionType):
+        return Image()  # TODO(mario): some args for optimizations?
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
