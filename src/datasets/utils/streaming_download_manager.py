@@ -4,6 +4,7 @@ import re
 import tarfile
 import time
 from asyncio import TimeoutError
+from itertools import chain
 from pathlib import Path, PurePosixPath
 from typing import Optional, Tuple, Union
 
@@ -54,7 +55,6 @@ SINGLE_FILE_COMPRESSION_PROTOCOLS = {fs_class.protocol for fs_class in COMPRESSI
 SINGLE_SLASH_AFTER_PROTOCOL_PATTERN = re.compile(r"(?<!:):/")
 
 
-MAGIC_NUMBER_MAX_LENGTH = 4
 MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL = {
     bytes.fromhex("504B0304"): "zip",
     bytes.fromhex("504B0506"): "zip",  # empty archive
@@ -68,6 +68,10 @@ MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL = {
 MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL = {
     b"Rar!": "rar",
 }
+MAGIC_NUMBER_MAX_LENGTH = max(
+    len(magic_number)
+    for magic_number in chain(MAGIC_NUMBER_TO_COMPRESSION_PROTOCOL, MAGIC_NUMBER_TO_UNSUPPORTED_COMPRESSION_PROTOCOL)
+)
 
 
 def xjoin(a, *p):
