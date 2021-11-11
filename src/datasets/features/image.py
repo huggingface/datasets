@@ -25,8 +25,10 @@ class Image:
     Input: The Image feature accepts as input:
     - A :obj:`str`: Absolute path to the image file (i.e. random access is allowed).
     - A :obj:`dict` with the keys:
+
         - path: String with relative path of the image file to the archive file.
         - bytes: Bytes of the image file.
+
       This is useful for archived files with sequential access.
     """
 
