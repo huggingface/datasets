@@ -16,8 +16,6 @@
 import json
 import os
 import re
-import shutil
-from pathlib import Path
 import datasets
 
 
@@ -64,7 +62,7 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "date": datasets.Value("string"),
-                "history": datasets.Sequence(
+                "history": datasets.features.Sequence(
                     {
                         "docIdx": datasets.Value("int64"),
                         "text": datasets.Value("string"),
@@ -78,20 +76,18 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
                 "uid1LogOutTime": datasets.Value("string"),
                 "uid1response": datasets.Sequence(
                     {
-                        "feedback": datasets.Value("string"),
-                        "response": datasets.Sequence([datasets.Value("int64")]),
+                        "response": datasets.Value("int64"),
                         "type": datasets.Value("string"),
                     }
                 ),
                 "uid2response": datasets.Sequence(
                     {
-                        "feedback": datasets.Value("string"),
-                        "response": datasets.Sequence([datasets.Value("int64")]),
+                        "response": datasets.Value("int64"),
                         "type": datasets.Value("string"),
                     }
                 ),
                 "user2_id": datasets.Value("string"),
-                "whoSawDoc": datasets.Sequence([datasets.Value("string")]),
+                "whoSawDoc": datasets.Sequence(datasets.Value("string")),
                 "wikiDocumentIdx": datasets.Value("int64"),
             }
         )
@@ -108,11 +104,6 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
         Refer here for the original script https://github.com/microsoft/GLUECoS/blob/7fdc51653e37a32aee17505c47b7d1da364fa77e/Data/Preprocess_Scripts/preprocess_mt_en_hi.py"""
 
         eng_path = dl_manager.download_and_extract(_URL_ENGLISH)
-
-        # WikiData file is not required for this
-        if os.path.isdir(os.path.join(eng_path, "datasets-CMU_DoG-master", "WikiData")):
-            shutil.rmtree(os.path.join(eng_path, "datasets-CMU_DoG-master", "WikiData"))
-
         data_dir_en = os.path.join(eng_path, "datasets-CMU_DoG-master", "Conversations")
 
         hi_en_path = dl_manager.download_and_extract(_URL_HINGLISH)
@@ -120,58 +111,67 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
             hi_en_path, "CMUHinglishDoG", "Conversations_Hinglish"
         )
 
-        # Extensions in Hinglish dataset are .json_1 and .json_2, converting them to .json
-        for split in os.listdir(data_dir_hi_en):
-            for f in os.listdir(os.path.join(data_dir_hi_en, split)):
-                f = os.path.join(os.path.join(data_dir_hi_en, split, f))
-                p = Path(f)
-                os.rename(f, p.with_suffix(".json"))
-
         hi_en_dirs = {
             "train": os.path.join(data_dir_hi_en, "train"),
             "valid": os.path.join(data_dir_hi_en, "valid"),
             "test": os.path.join(data_dir_hi_en, "test"),
         }
 
-        en_dirs = {
-            "train": os.path.join(data_dir_en, "train"),
-            "valid": os.path.join(data_dir_en, "valid"),
-            "test": os.path.join(data_dir_en, "test"),
-        }
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "hi_en_dir": hi_en_dirs["train"],
-                    "en_dir": en_dirs["train"],
+                    "data_dir_en": data_dir_en,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"hi_en_dir": hi_en_dirs["test"], "en_dir": en_dirs["test"]},
+                gen_kwargs={
+                    "hi_en_dir": hi_en_dirs["test"],
+                    "data_dir_en": data_dir_en,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "hi_en_dir": hi_en_dirs["valid"],
-                    "en_dir": en_dirs["valid"],
+                    "data_dir_en": data_dir_en,
                 },
             ),
         ]
 
-    def _generate_examples(self, hi_en_dir, en_dir):
+    def _generate_examples(self, hi_en_dir, data_dir_en):
         """Yields examples."""
-        english_files = os.listdir(en_dir)
+        english_files_train = os.listdir(os.path.join(data_dir_en, "train"))
+        english_files_val = os.listdir(os.path.join(data_dir_en, "valid"))
+        english_files_test = os.listdir(os.path.join(data_dir_en, "test"))
+
         hinglish_files = os.listdir(hi_en_dir)
         key = 0
         for f in hinglish_files:
             en_file_path = f.split(".json")[0] + ".json"
-
-            if en_file_path in english_files:
-                en = json.load(open(os.path.join(en_dir, en_file_path)))
+            found = True
+            # Looks for the corresponding english file in all 3 splits
+            if en_file_path in english_files_train:
+                en = json.load(
+                    open(os.path.join(os.path.join(data_dir_en, "train"), en_file_path))
+                )
+            elif en_file_path in english_files_val:
+                en = json.load(
+                    open(os.path.join(os.path.join(data_dir_en, "valid"), en_file_path))
+                )
+            elif en_file_path in english_files_test:
+                en = json.load(
+                    open(os.path.join(os.path.join(data_dir_en, "test"), en_file_path))
+                )
+            else:
+                found = False
+            if found:
                 hi_en = json.load(open(os.path.join(hi_en_dir, f)))
 
                 assert len(en["history"]) == len(hi_en["history"])
+
                 for x, y in zip(en["history"], hi_en["history"]):
                     assert x["docIdx"] == y["docIdx"]
                     assert x["uid"] == y["uid"]
@@ -180,10 +180,28 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
                     x["text"] = re.sub("\t|\n", " ", x["text"])
                     y["text"] = re.sub("\t|\n", " ", y["text"])
                     line = {
-                        "uid": x["uid"],
-                        "docIdx": x["docIdx"],
-                        "hi_en": y["text"],
-                        "en": x["text"],
+                        "date": hi_en["date"],
+                        "history": {
+                            "uid": x["uid"],
+                            "docIdx": [x["docIdx"]],
+                            "utcTimestamp": x["utcTimestamp"],
+                            "text": x["text"] + "_" + y["text"],
+                        },
+                        "rating": hi_en["rating"],
+                        "status": hi_en["status"],
+                        "uid1LogOutTime": hi_en["uid1LogOutTime"],
+                        "uid1LogInTime": hi_en["uid1LogInTime"],
+                        "uid1response": {
+                            "response": hi_en["uid1response"]["response"],
+                            "type": hi_en["uid1response"]["type"],
+                        },
+                        "uid2response": {
+                            "response": hi_en["uid2response"]["response"],
+                            "type": hi_en["uid2response"]["type"],
+                        },
+                        "user2_id": hi_en["user2_id"],
+                        "whoSawDoc": hi_en["whoSawDoc"],
+                        "wikiDocumentIdx": hi_en["wikiDocumentIdx"],
                     }
 
                     yield key, line
