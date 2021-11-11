@@ -35,13 +35,13 @@ _CITATION = """\
 _VERSION = "4.0.0"
 
 _URL = {
-    "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/v4-dataset.zip",
+    "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/v6-dataset.zip",
 }
 
 # update inter-language pairs
 language_pairs = [
     "en-lug", "en-run", "en-ach", "en-teo", "en-lgg", "lug-ach", "lug-run", "lug-lgg", 
-    "lug-teo", "ach-run", "ach-lgg", "ach-teo", "teo-lgg", "teo-run", "run-lgg"
+    "lug-teo", "ach-run", "ach-lgg", "ach-teo", "teo-lgg", "teo-run", "run-lgg","src-tgt"
 ]
 
 class SunbirdConfig(datasets.BuilderConfig):
@@ -91,7 +91,7 @@ class Sunbird(datasets.GeneratorBasedBuilder):
             print(_URL["supervised"].format(lang_pair))
             dl_dir = dl_manager.download_and_extract(_URL["supervised"].format(lang_pair))
 
-        data_dir = os.path.join(dl_dir, os.path.join("v4-dataset/v4.0", domain, lang_pair))
+        data_dir = os.path.join(dl_dir, os.path.join("v6-dataset/v6.0", domain, lang_pair))
 
         output=[]
 
