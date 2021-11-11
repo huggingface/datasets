@@ -24,7 +24,7 @@ _CITATION = """\
 
 
 _DESCRIPTION = """\
-The ETHICS dataset tests a machine learning system's ability to predict basic human ethical judgements in open-world settings. The dataset is based in natural language scenarios, which enables us to construct diverse situations involving interpersonal relationships, everyday events, and thousands of objects. This means models must connect diverse facts about the world to their ethical consequences. For instance, taking a penny lying on the street is usually acceptable, whereas taking cash from a wallet lying on the street is not. 
+The ETHICS dataset tests a machine learning system's ability to predict basic human ethical judgements in open-world settings. The dataset is based in natural language scenarios, which enables us to construct diverse situations involving interpersonal relationships, everyday events, and thousands of objects. This means models must connect diverse facts about the world to their ethical consequences. For instance, taking a penny lying on the street is usually acceptable, whereas taking cash from a wallet lying on the street is not.
 
 The ETHICS dataset has contextualized scenarios about justice, deontology, virtue ethics, utilitarianism, and commonsense moral intuitions. To do well on the ETHICS dataset, models must know about the morally relevant factors emphasized by each of these ethical systems.
 """
