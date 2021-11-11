@@ -50,9 +50,7 @@ This is a collection of text conversations in Hinglish (code mixing between Hind
 
 _HOMEPAGE = "http://festvox.org/cedar/data/notyet/"
 _URL_HINGLISH = "http://festvox.org/cedar/data/notyet/CMUHinglishDoG.zip"
-_URL_ENGLISH = (
-    "https://github.com/festvox/datasets-CMU_DoG/archive/master/Conversations.zip"
-)
+_URL_ENGLISH = "https://github.com/festvox/datasets-CMU_DoG/archive/master/Conversations.zip"
 
 
 class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
@@ -107,9 +105,7 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
         data_dir_en = os.path.join(eng_path, "datasets-CMU_DoG-master", "Conversations")
 
         hi_en_path = dl_manager.download_and_extract(_URL_HINGLISH)
-        data_dir_hi_en = os.path.join(
-            hi_en_path, "CMUHinglishDoG", "Conversations_Hinglish"
-        )
+        data_dir_hi_en = os.path.join(hi_en_path, "CMUHinglishDoG", "Conversations_Hinglish")
 
         hi_en_dirs = {
             "train": os.path.join(data_dir_hi_en, "train"),
@@ -154,17 +150,11 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
             found = True
             # Looks for the corresponding english file in all 3 splits
             if en_file_path in english_files_train:
-                en = json.load(
-                    open(os.path.join(os.path.join(data_dir_en, "train"), en_file_path))
-                )
+                en = json.load(open(os.path.join(os.path.join(data_dir_en, "train"), en_file_path)))
             elif en_file_path in english_files_val:
-                en = json.load(
-                    open(os.path.join(os.path.join(data_dir_en, "valid"), en_file_path))
-                )
+                en = json.load(open(os.path.join(os.path.join(data_dir_en, "valid"), en_file_path)))
             elif en_file_path in english_files_test:
-                en = json.load(
-                    open(os.path.join(os.path.join(data_dir_en, "test"), en_file_path))
-                )
+                en = json.load(open(os.path.join(os.path.join(data_dir_en, "test"), en_file_path)))
             else:
                 found = False
             if found:
