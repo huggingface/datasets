@@ -158,9 +158,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_examples(
-        self, filepath, split
-    ):
+    def _generate_examples(self, filepath, split):
         """Yields examples as (key, example) tuples."""
         with open(filepath, encoding="utf-8") as f:
             fieldnames = None
