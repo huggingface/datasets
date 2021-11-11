@@ -12,16 +12,17 @@ the, potentially expensive, preprocessing process again.
 In most cases, this works really well out of the box! However, sometimes you may find that your tedious data-crunching
 functions are running every time instead of being loaded from cache. This means that there is an object that is part of
 your processing function whose serialization is different on every run. Consequently, the fingerprint will also be
-different and ``datasets`` thinks it is a different processing function altogether. This is particularly likely to
+different and ``datasets`` will think it is a different processing function altogether. This is particularly likely to
 happen with complex, deep objects or third-party libraries. Luckily, it is possible to register your own serialization
 methods for specific objects to ensure deterministic serialization!
 
 Register your own serialization function
 ----------------------------------------
 
-In this section we will go over an example on how to register your own serialization function. We will use the popular linguistic parser `spaCy <https://spacy.io/>`_ as an example.
-
-In the following snippet, we load up a large text file with plain text. We would like to tokenize the text with spaCy. We can easily do this with ``datasets`` by running our tokenization function in :func:`map()` on our dataset.
+In this section we will go over an example on how to register your own serialization function. We will use the popular
+linguistic parser `spaCy <https://spacy.io/>`_ as an example. In the following snippet, we load up a large text file
+with plain text. We would like to tokenize the text with spaCy. We can easily do this with ``datasets`` by running our
+tokenization function in :func:`map()` on our dataset.
 
 .. code-block::
 
@@ -47,8 +48,9 @@ different function.
 
 .. tip::
 
-    As a rule of thumb when debugging behavior like above: read the documentation of the libraries that you are using
-    - they may provide useful background on how they save/load and serialize their own objects!
+    When debugging unexpected behavior like above where caching seems to fail, always read the documentation of the
+    libraries that you are using. They may provide useful background information on how they save/load and serialize
+    their own objects. This information then can help you to write your custom serialization function for ``datasets``.
 
 In the spaCy documentation we find that it has `built-in serialization methods <https://spacy.io/usage/saving-loading#pipeline>`_
 that are preferred over other means of automatic serialization, like the one that we use in ``datasets`` (``dill``).
@@ -94,13 +96,57 @@ and will lead to problems during caching, as illustrated above. Instead it shoul
     Do not forget :func:`pickler.save` in your custom functions! Depending on your exact use-case and objects,
     this is a crucial part of creating unique, and deterministic, serialized objects.
 
+Even though this works great, there are also cases where you do not beforehand the exact ``type`` of an object but you
+do have an idea about one or more of its super classes. Read on to find out how to use that information to enable
+caching!
 
 Registering functions for sub-classes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------------
 
-TODO
+The snippet above works well. Because ``nlp`` is an object of type ``English``, our custom serialization method will
+be used on it. However, sometimes we do not know in advance the exact ``type()`` but we do know a super-class. In that
+case, we can register a function for a ``type`` and  *objects that are derived from that class (sub-classes)*. To do
+so, we can use the keyword ``allow_subclasses=True``. Let's dig into a new, but similar, example.
+
+In the example above, we knew beforehand that ``nlp`` would be an ``English`` object because we were loading an English
+spaCy model. But what if the model name to load is out of your hands, for instance given by a command-line argument?
+In that case you are not sure whether ``nlp`` will be of type ``English``, or maybe Spanish, or even ``Latvian``!
+What we do know, however - from reading the spaCy documentation - is that any of those classes are a sub-class of
+`Language`. In code, that means that ``isinstance(nlp, Language)`` will always return ``True``, regardless of the spaCy
+model or language used. So what we want to do is change our initial registration in such a way that a) we target the
+``Language`` type and b) allow sub-classes such as ``English`` and ``Latvian`` to also be processed by this function.
+
+.. code-block::
+
+    >>> # a) Register the more general class Language
+    >>> # b) Also register this function for any sub-classes
+    >>> @pklregister(Language, allow_subclasses=True)
+    >>> def pickle_spacy_language(pickler, nlp: Language):
+    >>>     pickler.save(nlp.to_bytes())
+
+
+We can now use *any* spaCy model successfully in our :func:`map` or :func:`filter` methods while also ensuring that the
+process is cached. When we run our code a second time, the previously processed (cached) dataset can be retrieved and
+we do not have to wait a long time before the dataset is processed again!
 
 Temporarily using a user-defined serialization function
 -------------------------------------------------------
 
-TODO
+Advanced users may have a specific need to only briefly register a custom serialization function, for instance to
+write unit tests. This is possible with the context manager :func:`datasets.py_utils.temp_pickle_registry`. As soon as
+the context is exited, any functions that were registered within the context will be discarded, and the state of the
+register reset to before entering the context.
+
+.. code-block::
+
+    >>> with temp_pickle_registry():
+    >>>     @pklregister(MyObjClass)
+    >>>     def pickle_registry_test(pickler, obj):
+    >>>         pickler.save(obj.fancy_method())
+
+    >>>     some_obj = MyObjClass()
+    >>>     dumps(some_obj)
+    >>>     # Run some tests with the temporary register...
+    >>>     # `MyObjClass` is in Pickler.dispatch
+
+    >>> # ... `MyObjClass` is _not_ in Pickler.dispatch anymore
