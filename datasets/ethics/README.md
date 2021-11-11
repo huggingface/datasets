@@ -36,7 +36,7 @@ task_ids:
     - [Deontology](#deontology)
     - [Virtue Ethics](#virtue-ethics)
     - [Utilitarianism](#utilitarianism)
-    - [Commonsense Morailty](#commonsense-morailty)
+    - [Commonsense Morality](#commonsense-morality)
   - [Data Splits](#data-instances)
 - [Dataset Creation](#dataset-creation)
   - [Curation Rationale](#curation-rationale)
@@ -123,7 +123,7 @@ Given a scenario and an individual trait, models predict whether the free-respon
 ```
 Models should be trained to output a scalar utility for each given scenario. To facilitate training, each datapoint contains one scenario that is more pleasant than the other. If the model learns a utility function `U`, it should be trained such that `U(more_pleasant) > U(less_pleasant)`.
 
-#### Commonsense Morailty:
+#### Commonsense Morality:
 ```json
 {
      "label": 1,
