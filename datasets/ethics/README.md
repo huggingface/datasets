@@ -88,7 +88,7 @@ Justice:
 }
 ```
 
-Deontology
+Deontology:
 ```json
 {
      "label": 0,
@@ -97,7 +97,7 @@ Deontology
 }
 ```
 
-Virtue Ethics
+Virtue Ethics:
 ```json
 {
      "label": 0,
@@ -105,7 +105,7 @@ Virtue Ethics
 }
 ```
 
-Utilitarianism 
+Utilitarianism:
 ```json
 {
      "more_pleasant": "I cooked breakfast.",
@@ -113,7 +113,7 @@ Utilitarianism
 }
 ```
 
-Commonsense
+Commonsense Morailty:
 ```json
 {
      "label": 1,
