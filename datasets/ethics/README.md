@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - crowdsourced
 - expert-generated
@@ -20,6 +21,7 @@ task_categories:
 task_ids:
 - acceptability-classification
 - intent-classification
+---
 
 # Dataset Card for ETHICS
 
