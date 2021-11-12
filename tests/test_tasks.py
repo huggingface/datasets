@@ -40,6 +40,13 @@ class TextClassificationTest(TestCase):
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
 
+    def test_value_error_unique_labels(self):
+        with self.assertRaises(ValueError):
+            # Add duplicate labels
+            labels = self.labels + self.labels[:1]
+            task = TextClassification(text_column="input_text", label_column="input_label", labels=labels)
+            self.assertEqual("text-classification", task.task)
+
 
 class QuestionAnsweringTest(TestCase):
     def test_column_mapping(self):
