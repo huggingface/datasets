@@ -376,8 +376,9 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: tatoeba
+pretty_name: Tatoeba
 ---
-# Dataset Card Creation Guide
+# Dataset Card for Tatoeba
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -413,6 +414,7 @@ paperswithcode_id: tatoeba
 
 ### Dataset Summary
 
+Tatoeba is a collection of sentences and translations.
 
 To load a language pair which isn't part of the config, all you need to do is specify the language code as pairs.
 You can find the valid pairs in Homepage section of Dataset Description: http://opus.nlpl.eu/Tatoeba.php
