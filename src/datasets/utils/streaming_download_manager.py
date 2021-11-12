@@ -227,7 +227,9 @@ def _get_extraction_protocol(urlpath: str, use_auth_token: Optional[Union[str, b
     # Get extension: https://foo.bar/train.json.gz -> gz
     extension = path.split(".")[-1]
     # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
-    extension = extension.split("?")[0]
+    # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
+    for symb in "?-_":
+        extension = extension.split(symb)[0]
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
     elif path.endswith(".tar.gz") or path.endswith(".tgz"):
