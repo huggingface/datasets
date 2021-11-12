@@ -94,9 +94,7 @@ class Capes(datasets.GeneratorBasedBuilder):
                             l1 = l1.decode("utf-8").strip()
                             l2 = l2.decode("utf-8").strip()
                             if l1 and l2:
-                                result = {
-                                    "translation": {source: l1, target: l2}
-                                }
+                                result = {"translation": {source: l1, target: l2}}
                                 yield idx, result
                         break
                 break
