@@ -571,6 +571,7 @@ def get_from_cache(
                     response.status_code == 403
                     and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
                 )
+                or (response.status_code == 403 and "ndownloader.figstatic.com" in url)
             ):
                 connected = True
                 logger.info("Couldn't get ETag version for url {}".format(url))

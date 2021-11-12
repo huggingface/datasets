@@ -11,6 +11,7 @@ from datasets.utils.streaming_download_manager import (
     StreamingDownloadManager,
     _as_posix,
     _get_extraction_protocol,
+    xbasename,
     xglob,
     xjoin,
     xopen,
@@ -27,6 +28,16 @@ from .utils import require_lz4, require_zstandard
 
 TEST_URL = "https://huggingface.co/datasets/lhoestq/test/raw/main/some_text.txt"
 TEST_URL_CONTENT = "foo\nbar\nfoobar"
+
+TEST_GG_DRIVE_FILENAME = "train.tsv"
+TEST_GG_DRIVE_URL = "https://drive.google.com/uc?export=download&id=17bOgBDc3hRCoPZ89EYtKDzK-yXAWat94"
+TEST_GG_DRIVE_GZIPPED_URL = "https://drive.google.com/uc?export=download&id=1Bt4Garpf0QLiwkJhHJzXaVa0I0H5Qhwz"
+TEST_GG_DRIVE_ZIPPED_URL = "https://drive.google.com/uc?export=download&id=1k92sUfpHxKq8PXWRr7Y5aNHXwOCNUmqh"
+TEST_GG_DRIVE_CONTENT = """\
+pokemon_name, type
+Charmander, fire
+Squirtle, water
+Bulbasaur, grass"""
 
 
 class DummyTestFS(AbstractFileSystem):
@@ -463,6 +474,8 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("https://github.com/user/repo/blob/master/data/morph_train.tsv?raw=true", None),
         ("https://repo.org/bitstream/handle/20.500.12185/346/annotated_corpus.zip?sequence=3&isAllowed=y", "zip"),
         ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
+        (TEST_GG_DRIVE_GZIPPED_URL, "gzip"),
+        (TEST_GG_DRIVE_ZIPPED_URL, "zip"),
     ],
 )
 def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol):
@@ -480,3 +493,29 @@ def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
     _get_extraction_protocol(urlpath)
+
+
+def test_streaming_gg_drive():
+    with xopen(TEST_GG_DRIVE_URL) as f:
+        assert f.read() == TEST_GG_DRIVE_CONTENT
+
+
+def test_streaming_gg_drive_no_extract():
+    urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_URL)
+    with xopen(urlpath) as f:
+        assert f.read() == TEST_GG_DRIVE_CONTENT
+
+
+def test_streaming_gg_drive_gzipped():
+    urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_GZIPPED_URL)
+    with xopen(urlpath) as f:
+        assert f.read() == TEST_GG_DRIVE_CONTENT
+
+
+def test_streaming_gg_drive_zipped():
+    urlpath = StreamingDownloadManager().download_and_extract(TEST_GG_DRIVE_ZIPPED_URL)
+    all_files = list(xglob(xjoin(urlpath, "*")))
+    assert len(all_files) == 1
+    assert xbasename(all_files[0]) == TEST_GG_DRIVE_FILENAME
+    with xopen(all_files[0]) as f:
+        assert f.read() == TEST_GG_DRIVE_CONTENT
