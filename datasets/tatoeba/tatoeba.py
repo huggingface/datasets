@@ -98,7 +98,7 @@ class Tatoeba(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         def _base_url(lang1, lang2, date):
-            return.format(date, lang1, lang2)
+            return _BASE_URL.format(date, lang1, lang2)
 
         download_url = _base_url(self.config.lang1, self.config.lang2, self.config.date)
         path = dl_manager.download_and_extract(download_url)
