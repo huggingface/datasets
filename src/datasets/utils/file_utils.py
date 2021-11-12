@@ -569,7 +569,10 @@ def get_from_cache(
                 or (response.status_code == 405 and "drive.google.com" in url)
                 or (
                     response.status_code == 403
-                    and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
+                    and (
+                        re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
+                        or re.match(r"^https://.*?s3.*?amazonaws.com/.*?$", response.url)
+                    )
                 )
                 or (response.status_code == 403 and "ndownloader.figstatic.com" in url)
             ):
