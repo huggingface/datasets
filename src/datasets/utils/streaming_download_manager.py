@@ -1,5 +1,6 @@
 import glob
 import os
+import posixpath
 import re
 import tarfile
 import time
@@ -8,7 +9,6 @@ from pathlib import Path, PurePosixPath
 from typing import Optional, Tuple, Union
 
 import fsspec
-import posixpath
 from aiohttp.client_exceptions import ClientError
 
 from .. import config
