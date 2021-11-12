@@ -15,8 +15,6 @@
 """Capes: Parallel corpus of theses and dissertation abstracts in Portuguese and English from CAPES"""
 
 
-import os
-
 import datasets
 
 
