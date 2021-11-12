@@ -422,6 +422,10 @@ E.g.
 
 `dataset = load_dataset("tatoeba", lang1="en", lang2="he")`
 
+The default date is v2021-07-22, but you can also change the date with
+
+`dataset = load_dataset("tatoeba", lang1="en", lang2="he", date="v2020-11-09")`
+
 
 ### Supported Tasks and Leaderboards
 
