@@ -43,8 +43,8 @@ class TextClassificationTest(TestCase):
     def test_value_error_unique_labels(self):
         with self.assertRaises(ValueError):
             # Add duplicate labels
-            self.labels.append("neg")
-            task = TextClassification(text_column="input_text", label_column="input_label", labels=self.labels)
+            labels = self.labels + self.labels[:1]
+            task = TextClassification(text_column="input_text", label_column="input_label", labels=labels)
             self.assertEqual("text-classification", task.task)
 
 
