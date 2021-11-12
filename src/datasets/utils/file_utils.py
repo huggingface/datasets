@@ -8,6 +8,7 @@ import copy
 import io
 import json
 import os
+import posixpath
 import re
 import shutil
 import sys
@@ -24,7 +25,6 @@ from typing import Dict, Optional, TypeVar, Union
 from urllib.parse import urlparse
 
 import numpy as np
-import posixpath
 import requests
 
 from .. import __version__, config, utils
