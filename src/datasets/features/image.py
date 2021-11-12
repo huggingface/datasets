@@ -88,7 +88,8 @@ class Image:
 
         image = PIL.Image.open(file)
         # note: this operation removes the underlying plugin if there is one,
-        # which also makes format-specific methods unavailable (e.g. get_format_mimetype, etc.)
+        # which also makes format-specific methods unavailable
+        # (e.g. get_format_mimetype, filename, n_frames for GIF, etc.)
         image = PIL.ImageOps.exif_transpose(image)
         return {"path": path, "image": image}
 
