@@ -60,14 +60,15 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "date": datasets.Value("string"),
-                "history": datasets.features.Sequence(
+                "docIdx": datasets.Value("int64"),
+                "translation": datasets.Sequence(
                     {
-                        "docIdx": datasets.Value("int64"),
-                        "text": datasets.Value("string"),
-                        "uid": datasets.Value("string"),
-                        "utcTimestamp": datasets.Value("string"),
+                        "hi_en": datasets.Value("string"),
+                        "en": datasets.Value("string"),
                     }
                 ),
+                "uid": datasets.Value("string"),
+                "utcTimestamp": datasets.Value("string"),
                 "rating": datasets.Value("int64"),
                 "status": datasets.Value("int64"),
                 "uid1LogInTime": datasets.Value("string"),
@@ -171,12 +172,10 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
                     y["text"] = re.sub("\t|\n", " ", y["text"])
                     line = {
                         "date": hi_en["date"],
-                        "history": {
-                            "uid": x["uid"],
-                            "docIdx": [x["docIdx"]],
-                            "utcTimestamp": x["utcTimestamp"],
-                            "text": x["text"] + "_" + y["text"],
-                        },
+                        "uid": x["uid"],
+                        "docIdx": x["docIdx"],
+                        "utcTimestamp": x["utcTimestamp"],
+                        "translation": {"hi_en": y["text"], "en": x["text"]},
                         "rating": hi_en["rating"],
                         "status": hi_en["status"],
                         "uid1LogOutTime": hi_en["uid1LogOutTime"],
