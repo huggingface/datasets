@@ -61,9 +61,17 @@ class Xcopa(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         XcopaConfig(
             name=lang,
-            description="Xcopa language {}".format(lang),
+            description=f"Xcopa language {lang}",
         )
         for lang in _LANG
+    ]
+    BUILDER_CONFIGS += [
+        XcopaConfig(
+            name=f"translation-{lang}",
+            description=f"Xcopa English translation for language {lang}",
+        )
+        for lang in _LANG
+        if lang != "qu"
     ]
 
     def _info(self):
@@ -100,17 +108,19 @@ class Xcopa(datasets.GeneratorBasedBuilder):
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
 
-        data_dir = os.path.join(dl_dir, "xcopa-master", "data", self.config.name)
+        *translation_prefix, lang = self.config.name.split("-")
+        sub_dir = "data" if not translation_prefix else "data-gmt"
+        data_dir = os.path.join(dl_dir, "xcopa-master", sub_dir, lang)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "test." + self.config.name + ".jsonl")},
+                gen_kwargs={"filepath": os.path.join(data_dir, "test." + lang + ".jsonl")},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "val." + self.config.name + ".jsonl")},
+                gen_kwargs={"filepath": os.path.join(data_dir, "val." + lang + ".jsonl")},
             ),
         ]
 
