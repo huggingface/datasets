@@ -1,4 +1,5 @@
 ---
+pretty_name: Wikicorpus
 annotations_creators:
   raw_ca:
   - no-annotation

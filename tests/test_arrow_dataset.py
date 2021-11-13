@@ -1184,6 +1184,15 @@ class BaseDatasetTest(TestCase):
                     with dset.filter(lambda x: x["col"] < 2) as dset:
                         self.assertListEqual(dset["col"], [1])
 
+    def test_filter_batched(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict({"col": [0, 1, 2]})
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with dset.filter(lambda x: [i > 0 for i in x["col"]], batched=True) as dset:
+                    self.assertListEqual(dset["col"], [1, 2])
+                    with dset.filter(lambda x: [i < 2 for i in x["col"]], batched=True) as dset:
+                        self.assertListEqual(dset["col"], [1])
+
     def test_filter_fn_kwargs(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict({"id": range(10)}) as dset:
@@ -1822,10 +1831,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset), 10)
 
                     self.assertNotEqual(dset._indices, None)
-
-                    # Test unique fail
-                    with self.assertRaises(ValueError):
-                        dset.unique(dset.column_names[0])
 
                     tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
                     fingerprint = dset._fingerprint
@@ -2725,8 +2730,10 @@ def test_dummy_dataset_serialize_s3(s3, dataset):
     features = dataset.features
     dataset.save_to_disk(dataset_path, s3)
     dataset = dataset.load_from_disk(dataset_path, s3)
+    assert os.path.isfile(dataset.cache_files[0]["filename"])
 
     assert len(dataset) == 10
+    assert len(dataset.shuffle()) == 10
     assert dataset.features == features
     assert dataset[0]["id"] == 0
     assert dataset["id"][0] == 0

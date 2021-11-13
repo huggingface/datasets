@@ -133,30 +133,28 @@ class GreatCode(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, datapath, datatype):
         for file_idx, dp in enumerate(datapath):
             with open(dp, "r", encoding="utf-8") as json_file:
-                json_list = list(json_file)
-
-            for example_counter, json_str in enumerate(json_list):
-                result = json.loads(json_str)
-                response = {
-                    "id": example_counter,
-                    "source_tokens": result["source_tokens"],
-                    "has_bug": result["has_bug"],
-                    "error_location": result["error_location"],
-                    "repair_candidates": [str(x) for x in result["repair_candidates"]],
-                    "bug_kind": result["bug_kind"],
-                    "bug_kind_name": result["bug_kind_name"],
-                    "repair_targets": result["repair_targets"],
-                    "edges": [
-                        [
-                            {
-                                "before_index": result["edges"][x][0],
-                                "after_index": result["edges"][x][1],
-                                "edge_type": result["edges"][x][2],
-                                "edge_type_name": result["edges"][x][3],
-                            }
-                        ]
-                        for x in range(len(result["edges"]))
-                    ],
-                    "provenances": result["provenances"],
-                }
-                yield f"{file_idx}_{example_counter}", response
+                for example_counter, json_str in enumerate(json_file):
+                    result = json.loads(json_str)
+                    response = {
+                        "id": example_counter,
+                        "source_tokens": result["source_tokens"],
+                        "has_bug": result["has_bug"],
+                        "error_location": result["error_location"],
+                        "repair_candidates": [str(x) for x in result["repair_candidates"]],
+                        "bug_kind": result["bug_kind"],
+                        "bug_kind_name": result["bug_kind_name"],
+                        "repair_targets": result["repair_targets"],
+                        "edges": [
+                            [
+                                {
+                                    "before_index": result["edges"][x][0],
+                                    "after_index": result["edges"][x][1],
+                                    "edge_type": result["edges"][x][2],
+                                    "edge_type_name": result["edges"][x][3],
+                                }
+                            ]
+                            for x in range(len(result["edges"]))
+                        ],
+                        "provenances": result["provenances"],
+                    }
+                    yield f"{file_idx}_{example_counter}", response

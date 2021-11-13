@@ -6,6 +6,9 @@ Dataset streaming lets you get started with a dataset without waiting for the en
 * You don't want to wait for an extremely large dataset to download.
 * The dataset size exceeds the amount of disk space on your computer.
 
+.. image:: /imgs/stream.gif
+   :align: center
+
 For example, the English split of the `OSCAR <https://huggingface.co/datasets/oscar>`_ dataset is 1.2 terabytes, but you can use it instantly with streaming. Stream a dataset by setting ``streaming=True`` in :func:`datasets.load_dataset` as shown below:
 
 .. code-block::
@@ -103,3 +106,14 @@ Define sampling probabilities from each of the original datasets for more contro
    [{'text': 'Mtendere Village was inspired by the vision...}, {'text': 'Lily James cannot fight the music...}]
 
 Around 80% of the final dataset is made of the ``en_dataset``, and 20% of the ``fr_dataset``.
+
+Remove
+^^^^^^
+
+Remove columns on-the-fly with :func:`datasets.IterableDataset.remove_columns`. Specify the name of the column to remove:
+
+.. code-block::
+
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset('m4', 'en', streaming=True, split='train')
+   >>> dataset = dataset.remove_columns('timestamp')

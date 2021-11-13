@@ -101,6 +101,14 @@ To load remote CSV files via HTTP, you can pass the URLs:
    >>> base_url = "https://huggingface.co/datasets/lhoestq/demo1/resolve/main/data/"
    >>> dataset = load_dataset('csv', data_files={'train': base_url + 'train.csv', 'test': base_url + 'test.csv'})
 
+To load zipped CSV files:
+
+.. code::
+
+   >>> url = "https://domain.org/train_data.zip"
+   >>> data_files = {"train": url}
+   >>> dataset = load_dataset("csv", data_files=data_files)
+
 JSON
 ^^^^
 

@@ -1,4 +1,5 @@
 ---
+pretty_name: Thai Literature Corpora (TLC)
 annotations_creators:
 - expert-generated
 - no-annotation

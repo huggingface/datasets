@@ -2,7 +2,6 @@
 
 
 import csv
-import os
 
 import datasets
 
@@ -61,47 +60,47 @@ class EmpatheticDialogues(datasets.GeneratorBasedBuilder):
         # TODO(empathetic_dialogues): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        dl_dir = dl_manager.download_and_extract(_URL)
-        data_dir = os.path.join(dl_dir, "empatheticdialogues")
+        archive = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "train.csv")},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "split_file": "empatheticdialogues/train.csv"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "valid.csv")},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "split_file": "empatheticdialogues/valid.csv"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "test.csv")},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "split_file": "empatheticdialogues/test.csv"},
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, files, split_file):
         """Yields examples."""
-        # TODO(empathetic_dialogues): Yields (key, example) tuples from the dataset
-        with open(filepath, encoding="utf-8") as f:
-            data = csv.DictReader(f)
-            for id_, row in enumerate(data):
-                utterance = row["utterance"]
-                speaker_id = int(row["speaker_idx"])
-                context = row["context"]
-                conv_id = row["conv_id"]
-                tags = row["tags"] if row["tags"] else ""
-                selfeval = row["selfeval"] if row["selfeval"] else ""
-                utterance_id = int(row["utterance_idx"])
-                prompt = row["prompt"]
-                yield id_, {
-                    "utterance": utterance,
-                    "utterance_idx": utterance_id,
-                    "context": context,
-                    "speaker_idx": speaker_id,
-                    "conv_id": conv_id,
-                    "selfeval": selfeval,
-                    "prompt": prompt,
-                    "tags": tags,
-                }
+        for path, f in files:
+            if split_file == path:
+                data = csv.DictReader(line.decode("utf-8") for line in f)
+                for id_, row in enumerate(data):
+                    utterance = row["utterance"]
+                    speaker_id = int(row["speaker_idx"])
+                    context = row["context"]
+                    conv_id = row["conv_id"]
+                    tags = row["tags"] if row["tags"] else ""
+                    selfeval = row["selfeval"] if row["selfeval"] else ""
+                    utterance_id = int(row["utterance_idx"])
+                    prompt = row["prompt"]
+                    yield id_, {
+                        "utterance": utterance,
+                        "utterance_idx": utterance_id,
+                        "context": context,
+                        "speaker_idx": speaker_id,
+                        "conv_id": conv_id,
+                        "selfeval": selfeval,
+                        "prompt": prompt,
+                        "tags": tags,
+                    }
+                break

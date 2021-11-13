@@ -15,8 +15,6 @@
 """The bAbI tasks dataset."""
 
 
-import os
-
 import datasets
 
 
@@ -851,20 +849,22 @@ class BabiQa(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = ZIP_URL
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         splits = [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, paths[self.config.type][self.config.task_no]["train"]),
+                    "filepath": paths[self.config.type][self.config.task_no]["train"],
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, paths[self.config.type][self.config.task_no]["test"]),
+                    "filepath": paths[self.config.type][self.config.task_no]["test"],
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
@@ -874,73 +874,77 @@ class BabiQa(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, paths[self.config.type][self.config.task_no]["valid"]),
+                        "filepath": paths[self.config.type][self.config.task_no]["valid"],
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
         return splits
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, files):
 
-        with open(filepath, encoding="utf-8") as f:
-            story = []
-            example_idx = 0
-            for idx, line in enumerate(f):
-                if line.strip() == "":
+        for path, f in files:
+            if path == filepath:
+                story = []
+                example_idx = 0
+                for idx, line in enumerate(f):
+                    line = line.decode("utf-8")
+                    if line.strip() == "":
+                        if story != []:
+                            yield example_idx, {"story": story}
+                            example_idx += 1
+                            story = []
+                    elif line.strip().split()[0] == "1":  # New story
+                        if story != []:  # Already some story, flush it out
+                            yield example_idx, {"story": story}
+                            example_idx += 1
+                            story = []
+                        line_no = line.split()[0]
+                        line_split = line[len(line_no) :].strip().split("\t")
+                        if len(line_split) > 1:
+                            story.append(
+                                {
+                                    "id": line_no,
+                                    "type": 1,  # question
+                                    "supporting_ids": line_split[-1].split(" "),
+                                    "text": line_split[0].strip(),
+                                    "answer": line_split[1].strip(),
+                                }
+                            )
+                        else:
+                            story.append(
+                                {
+                                    "id": line_no,
+                                    "type": 0,  # context
+                                    "supporting_ids": [],
+                                    "text": line_split[0].strip(),
+                                    "answer": "",
+                                }
+                            )
+                    else:
+                        line_no = line.split()[0]
+                        line_split = line[len(line_no) :].strip().split("\t")
+                        if len(line_split) > 1:
+                            story.append(
+                                {
+                                    "id": line_no,
+                                    "type": 1,  # question
+                                    "supporting_ids": line_split[-1].split(" "),
+                                    "text": line_split[0].strip(),
+                                    "answer": line_split[1].strip(),
+                                }
+                            )
+                        else:
+                            story.append(
+                                {
+                                    "id": line_no,
+                                    "type": 0,  # context
+                                    "supporting_ids": [],
+                                    "text": line_split[0].strip(),
+                                    "answer": "",
+                                }
+                            )
+                else:  # After last line
                     if story != []:
                         yield example_idx, {"story": story}
-                        example_idx += 1
-                        story = []
-                elif line.strip().split()[0] == "1":  # New story
-                    if story != []:  # Already some story, flush it out
-                        yield example_idx, {"story": story}
-                        example_idx += 1
-                        story = []
-                    line_no = line.split()[0]
-                    line_split = line[len(line_no) :].strip().split("\t")
-                    if len(line_split) > 1:
-                        story.append(
-                            {
-                                "id": line_no,
-                                "type": 1,  # question
-                                "supporting_ids": line_split[-1].split(" "),
-                                "text": line_split[0].strip(),
-                                "answer": line_split[1].strip(),
-                            }
-                        )
-                    else:
-                        story.append(
-                            {
-                                "id": line_no,
-                                "type": 0,  # context
-                                "supporting_ids": [],
-                                "text": line_split[0].strip(),
-                                "answer": "",
-                            }
-                        )
-                else:
-                    line_no = line.split()[0]
-                    line_split = line[len(line_no) :].strip().split("\t")
-                    if len(line_split) > 1:
-                        story.append(
-                            {
-                                "id": line_no,
-                                "type": 1,  # question
-                                "supporting_ids": line_split[-1].split(" "),
-                                "text": line_split[0].strip(),
-                                "answer": line_split[1].strip(),
-                            }
-                        )
-                    else:
-                        story.append(
-                            {
-                                "id": line_no,
-                                "type": 0,  # context
-                                "supporting_ids": [],
-                                "text": line_split[0].strip(),
-                                "answer": "",
-                            }
-                        )
-            else:  # After last line
-                if story != []:
-                    yield example_idx, {"story": story}
+                break
