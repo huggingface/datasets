@@ -1151,16 +1151,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if src_feat.dtype != "string":
             dset = self.map(
-<<<<<<< HEAD
                 lambda batch: {column: [str(sample) if sample is not None else None for sample in batch]},
                 input_columns=column,
                 batched=True,
-=======
-                lambda batch: {column: [str(sample) for sample in batch]},
-                input_columns=column,
-                batched=True,
                 desc="Stringifying the column",
->>>>>>> d30d25d3dad590dffe2d3004b4b301dd562dd4f2
             )
         else:
             dset = self
