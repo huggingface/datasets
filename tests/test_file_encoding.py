@@ -19,7 +19,9 @@ class TestFileEncoding(TestCase):
         """
 
         with open(filepath, "r", encoding="utf-8") as input_file:
-            regexp = re.compile(r"(?!.*\b(?:encoding|rb|w|wb|w+|wb+|ab|ab+)\b)(?<=\s)(open)\((.*)\)")
+            regexp = re.compile(
+                r"(?!.*\b(?:encoding|rb|w|wb|w+|wb+|ab|ab+)\b)(?<=\s)(open)\((.*)\)"
+            )
             input_text = input_file.read()
             match = regexp.search(input_text)
 

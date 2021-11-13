@@ -14,10 +14,8 @@
 # limitations under the License.
 """F1 metric."""
 
-from sklearn.metrics import f1_score
-
 import datasets
-
+from sklearn.metrics import f1_score
 
 _DESCRIPTION = """
 The F1 score is the harmonic mean of the precision and recall. It can be computed with:
@@ -109,11 +107,26 @@ class F1(datasets.Metric):
                     "references": datasets.Value("int32"),
                 }
             ),
-            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html"],
+            reference_urls=[
+                "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html"
+            ],
         )
 
-    def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
+    def _compute(
+        self,
+        predictions,
+        references,
+        labels=None,
+        pos_label=1,
+        average="binary",
+        sample_weight=None,
+    ):
         score = f1_score(
-            references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
+            references,
+            predictions,
+            labels=labels,
+            pos_label=pos_label,
+            average=average,
+            sample_weight=sample_weight,
         )
         return {"f1": float(score) if score.size == 1 else score}

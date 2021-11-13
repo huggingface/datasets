@@ -14,10 +14,8 @@
 # limitations under the License.
 """Precision metric."""
 
-from sklearn.metrics import precision_score
-
 import datasets
-
+from sklearn.metrics import precision_score
 
 _DESCRIPTION = """
 Precision is the fraction of the true examples among the predicted examples. It can be computed with:
@@ -111,11 +109,26 @@ class Precision(datasets.Metric):
                     "references": datasets.Value("int32"),
                 }
             ),
-            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html"],
+            reference_urls=[
+                "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html"
+            ],
         )
 
-    def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
+    def _compute(
+        self,
+        predictions,
+        references,
+        labels=None,
+        pos_label=1,
+        average="binary",
+        sample_weight=None,
+    ):
         score = precision_score(
-            references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
+            references,
+            predictions,
+            labels=labels,
+            pos_label=pos_label,
+            average=average,
+            sample_weight=sample_weight,
         )
         return {"precision": float(score) if score.size == 1 else score}

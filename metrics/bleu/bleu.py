@@ -16,8 +16,8 @@
 
 import datasets
 
-from .nmt_bleu import compute_bleu  # From: https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py
-
+from .nmt_bleu import \
+    compute_bleu  # From: https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py
 
 _CITATION = """\
 @INPROCEEDINGS{Papineni02bleu:a,
@@ -99,13 +99,20 @@ class Bleu(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
+                    "predictions": datasets.Sequence(
+                        datasets.Value("string", id="token"), id="sequence"
+                    ),
                     "references": datasets.Sequence(
-                        datasets.Sequence(datasets.Value("string", id="token"), id="sequence"), id="references"
+                        datasets.Sequence(
+                            datasets.Value("string", id="token"), id="sequence"
+                        ),
+                        id="references",
                     ),
                 }
             ),
-            codebase_urls=["https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py"],
+            codebase_urls=[
+                "https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py"
+            ],
             reference_urls=[
                 "https://en.wikipedia.org/wiki/BLEU",
                 "https://towardsdatascience.com/evaluating-text-output-in-nlp-bleu-at-your-own-risk-e8609665a213",
@@ -114,7 +121,10 @@ class Bleu(datasets.Metric):
 
     def _compute(self, predictions, references, max_order=4, smooth=False):
         score = compute_bleu(
-            reference_corpus=references, translation_corpus=predictions, max_order=max_order, smooth=smooth
+            reference_corpus=references,
+            translation_corpus=predictions,
+            max_order=max_order,
+            smooth=smooth,
         )
         (bleu, precisions, bp, ratio, translation_length, reference_length) = score
         return {

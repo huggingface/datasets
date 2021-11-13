@@ -16,13 +16,12 @@
 
 import random
 
+import datasets
 import numpy as np
 import scipy.stats
 
-import datasets
-
-from .gec_gleu import GLEU  # From: https://github.com/cnap/gec-ranking/blob/master/scripts/gleu.py
-
+from .gec_gleu import \
+    GLEU  # From: https://github.com/cnap/gec-ranking/blob/master/scripts/gleu.py
 
 _CITATION = """\
 @InProceedings{napoles-EtAl:2015:ACL-IJCNLP,
@@ -91,9 +90,14 @@ class Gleu(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
+                    "predictions": datasets.Sequence(
+                        datasets.Value("string", id="token"), id="sequence"
+                    ),
                     "references": datasets.Sequence(
-                        datasets.Sequence(datasets.Value("string", id="token"), id="sequence"), id="references"
+                        datasets.Sequence(
+                            datasets.Value("string", id="token"), id="sequence"
+                        ),
+                        id="references",
                     ),
                 }
             ),
@@ -101,7 +105,9 @@ class Gleu(datasets.Metric):
             reference_urls=["https://github.com/cnap/gec-ranking"],
         )
 
-    def _compute(self, predictions, references, source, num_iterations=500, debug=False):
+    def _compute(
+        self, predictions, references, source, num_iterations=500, debug=False
+    ):
         raise NotImplementedError("To finish")
         gleu_calculator = GLEU()
 
@@ -113,7 +119,12 @@ class Gleu(datasets.Metric):
         indices = []
         for j in range(num_iterations):
             random.seed(j * 101)
-            indices.append([random.randint(0, len(references) - 1) for i in range(len(predictions))])
+            indices.append(
+                [
+                    random.randint(0, len(references) - 1)
+                    for i in range(len(predictions))
+                ]
+            )
 
         if debug:
             print("===== Sentence-level scores =====")
@@ -137,20 +148,39 @@ class Gleu(datasets.Metric):
                     this_stats = [s for s in gleu_calculator.gleu_stats(i, r_ind=ref)]
                     stats_by_ref[ref] = this_stats
 
-                iter_stats[j] = [sum(scores) for scores in zip(iter_stats[j], this_stats)]
+                iter_stats[j] = [
+                    sum(scores) for scores in zip(iter_stats[j], this_stats)
+                ]
 
             if debug:
                 # sentence-level GLEU is the mean GLEU of the hypothesis
                 # compared to each reference
                 for r in range(len(references)):
                     if stats_by_ref[r] is None:
-                        stats_by_ref[r] = [s for s in gleu_calculator.gleu_stats(i, r_ind=r)]
+                        stats_by_ref[r] = [
+                            s for s in gleu_calculator.gleu_stats(i, r_ind=r)
+                        ]
 
                 print(i)
-                print(" ".join(get_gleu_stats([gleu_calculator.gleu(stats, smooth=True) for stats in stats_by_ref])))
+                print(
+                    " ".join(
+                        get_gleu_stats(
+                            [
+                                gleu_calculator.gleu(stats, smooth=True)
+                                for stats in stats_by_ref
+                            ]
+                        )
+                    )
+                )
 
         if debug:
             print("\n==== Overall score =====")
             print("Mean Stdev 95%CI GLEU")
-            print(" ".join(get_gleu_stats([gleu_calculator.gleu(stats) for stats in iter_stats])))
+            print(
+                " ".join(
+                    get_gleu_stats(
+                        [gleu_calculator.gleu(stats) for stats in iter_stats]
+                    )
+                )
+            )
         return get_gleu_stats([gleu_calculator.gleu(stats) for stats in iter_stats])[0]

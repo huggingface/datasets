@@ -8,7 +8,6 @@ import sys
 
 import numpy as np
 
-
 IOU_THRESH = 0.5
 
 
@@ -20,7 +19,9 @@ def get_jaccard(prediction, ground_truth):
         prediction = prediction.replace(token, "")
 
     ground_truth, prediction = ground_truth.lower(), prediction.lower()
-    ground_truth, prediction = ground_truth.replace("/", " "), prediction.replace("/", " ")
+    ground_truth, prediction = ground_truth.replace("/", " "), prediction.replace(
+        "/", " "
+    )
     ground_truth, prediction = set(ground_truth.split(" ")), set(prediction.split(" "))
 
     intersection = ground_truth.intersection(prediction)
@@ -64,7 +65,10 @@ def compute_precision_recall(predictions, ground_truths, qa_id):
             match_found = False
             for pred in predictions:
                 if substr_ok:
-                    is_match = get_jaccard(pred, ground_truth) >= IOU_THRESH or ground_truth in pred
+                    is_match = (
+                        get_jaccard(pred, ground_truth) >= IOU_THRESH
+                        or ground_truth in pred
+                    )
                 else:
                     is_match = get_jaccard(pred, ground_truth) >= IOU_THRESH
                 if is_match:
@@ -85,7 +89,10 @@ def compute_precision_recall(predictions, ground_truths, qa_id):
             for ground_truth in ground_truths:
                 assert len(ground_truth) > 0
                 if substr_ok:
-                    is_match = get_jaccard(pred, ground_truth) >= IOU_THRESH or ground_truth in pred
+                    is_match = (
+                        get_jaccard(pred, ground_truth) >= IOU_THRESH
+                        or ground_truth in pred
+                    )
                 else:
                     is_match = get_jaccard(pred, ground_truth) >= IOU_THRESH
                 if is_match:
@@ -140,7 +147,9 @@ def metric_max_over_ground_truths(metric_fn, predictions, ground_truths):
     for pred in predictions:
         for ground_truth in ground_truths:
             score = metric_fn(pred, ground_truth)
-            if score == 1:  # break the loop when one prediction matches the ground truth
+            if (
+                score == 1
+            ):  # break the loop when one prediction matches the ground truth
                 break
         if score == 1:
             break
@@ -156,12 +165,16 @@ def evaluate(dataset, predictions):
             for qa in paragraph["qas"]:
                 total += 1
                 if qa["id"] not in predictions:
-                    message = "Unanswered question " + qa["id"] + " will receive score 0."
+                    message = (
+                        "Unanswered question " + qa["id"] + " will receive score 0."
+                    )
                     print(message, file=sys.stderr)
                     continue
                 ground_truths = list(map(lambda x: x["text"], qa["answers"]))
                 prediction = predictions[qa["id"]]
-                precision, recall = compute_precision_recall(prediction, ground_truths, qa["id"])
+                precision, recall = compute_precision_recall(
+                    prediction, ground_truths, qa["id"]
+                )
 
                 precisions.append(precision)
                 recalls.append(recall)
@@ -171,7 +184,9 @@ def evaluate(dataset, predictions):
                 else:
                     f1 += 2 * (precision * recall) / (precision + recall)
 
-                exact_match += metric_max_over_ground_truths(exact_match_score, prediction, ground_truths)
+                exact_match += metric_max_over_ground_truths(
+                    exact_match_score, prediction, ground_truths
+                )
 
     precisions = [x for _, x in sorted(zip(recalls, precisions))]
     recalls.sort()

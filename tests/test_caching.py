@@ -8,11 +8,10 @@ from types import CodeType, FunctionType
 from unittest import TestCase
 from unittest.mock import patch
 
-from multiprocess import Pool
-
 import datasets
 from datasets.fingerprint import Hasher, fingerprint_transform
 from datasets.table import InMemoryTable
+from multiprocess import Pool
 
 from .utils import require_regex, require_transformers
 
@@ -191,15 +190,32 @@ class RecurseDumpTest(TestCase):
 
             code = func.__code__
             # Use _create_code from dill in order to make it work for different python versions
-            code = _create_code(*[getattr(code, k) if k != "co_filename" else co_filename for k in code_args])
-            return FunctionType(code, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+            code = _create_code(
+                *[
+                    getattr(code, k) if k != "co_filename" else co_filename
+                    for k in code_args
+                ]
+            )
+            return FunctionType(
+                code,
+                func.__globals__,
+                func.__name__,
+                func.__defaults__,
+                func.__closure__,
+            )
 
         co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [0]
-        hash1 = md5(datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
+        hash1 = md5(
+            datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))
+        ).hexdigest()
         co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [1]
-        hash2 = md5(datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
+        hash2 = md5(
+            datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))
+        ).hexdigest()
         co_filename, returned_obj = "<ipython-input-5-713f6613acf3>", [0]
-        hash3 = md5(datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
+        hash3 = md5(
+            datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))
+        ).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
@@ -217,10 +233,14 @@ class RecurseDumpTest(TestCase):
         def globalvars_mock2_side_effect(func, *args, **kwargs):
             return {"bar": bar, "foo": foo}
 
-        with patch("dill.detect.globalvars", side_effect=globalvars_mock1_side_effect) as globalvars_mock1:
+        with patch(
+            "dill.detect.globalvars", side_effect=globalvars_mock1_side_effect
+        ) as globalvars_mock1:
             hash1 = md5(datasets.utils.dumps(func)).hexdigest()
             self.assertGreater(globalvars_mock1.call_count, 0)
-        with patch("dill.detect.globalvars", side_effect=globalvars_mock2_side_effect) as globalvars_mock2:
+        with patch(
+            "dill.detect.globalvars", side_effect=globalvars_mock2_side_effect
+        ) as globalvars_mock2:
             hash2 = md5(datasets.utils.dumps(func)).hexdigest()
             self.assertGreater(globalvars_mock2.call_count, 0)
         self.assertEqual(hash1, hash2)

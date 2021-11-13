@@ -11,7 +11,8 @@ from datasets.arrow_reader import ArrowReader, BaseReader, ReadInstruction
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit, Split, SplitDict, SplitInfo
 
-from .utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
+from .utils import (assert_arrow_memory_doesnt_increase,
+                    assert_arrow_memory_increases)
 
 
 class ReaderTest(BaseReader):
@@ -57,8 +58,12 @@ class BaseReaderTest(TestCase):
             instructions1 = ["train", "test[:33%]"]
             instructions2 = [Split.TRAIN, ReadInstruction.from_spec("test[:33%]")]
             for instructions in [instructions1, instructions2]:
-                datasets_kwargs = [reader.read(name, instr, split_infos) for instr in instructions]
-                train_dset, test_dset = [Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs]
+                datasets_kwargs = [
+                    reader.read(name, instr, split_infos) for instr in instructions
+                ]
+                train_dset, test_dset = [
+                    Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs
+                ]
                 self.assertEqual(train_dset["filename"][0], f"{name}-train")
                 self.assertEqual(train_dset.num_rows, 100)
                 self.assertEqual(train_dset.num_columns, 1)
@@ -86,7 +91,9 @@ class BaseReaderTest(TestCase):
                 {"filename": os.path.join(tmp_dir, "train")},
                 {"filename": os.path.join(tmp_dir, "test"), "skip": 10, "take": 10},
             ]
-            dset = Dataset(**reader.read_files(files, original_instructions="train+test[10:20]"))
+            dset = Dataset(
+                **reader.read_files(files, original_instructions="train+test[10:20]")
+            )
             self.assertEqual(dset.num_rows, 110)
             self.assertEqual(dset.num_columns, 1)
             del dset
@@ -99,7 +106,9 @@ def test_read_table(in_memory, dataset, arrow_file):
         table = ArrowReader.read_table(filename, in_memory=in_memory)
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
-    assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
+    assert dict(table.to_pydict()) == dict(
+        dataset.data.to_pydict()
+    )  # to_pydict returns OrderedDict
 
 
 @pytest.mark.parametrize("in_memory", [False, True])
@@ -107,17 +116,24 @@ def test_read_files(in_memory, dataset, arrow_file):
     filename = arrow_file
     reader = ArrowReader("", None)
     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
-        dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
+        dataset_kwargs = reader.read_files(
+            [{"filename": filename}], in_memory=in_memory
+        )
     assert dataset_kwargs.keys() == set(["arrow_table", "info", "split"])
     table = dataset_kwargs["arrow_table"]
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
-    assert dict(table.to_pydict()) == dict(dataset.data.to_pydict())  # to_pydict returns OrderedDict
+    assert dict(table.to_pydict()) == dict(
+        dataset.data.to_pydict()
+    )  # to_pydict returns OrderedDict
 
 
 def test_read_instruction_spec():
     assert ReadInstruction("train", to=10, unit="abs").to_spec() == "train[:10]"
-    assert ReadInstruction("train", from_=-80, to=10, unit="%").to_spec() == "train[-80%:10%]"
+    assert (
+        ReadInstruction("train", from_=-80, to=10, unit="%").to_spec()
+        == "train[-80%:10%]"
+    )
 
     spec_train_test = "train+test"
     assert ReadInstruction.from_spec(spec_train_test).to_spec() == spec_train_test
@@ -132,7 +148,15 @@ def test_read_instruction_spec():
     assert ReadInstruction.from_spec(spec_train_pct_rounding).to_spec() == "train[:10%]"
 
     spec_train_pct_rounding = "train[:10%](pct1_dropremainder)"
-    assert ReadInstruction.from_spec(spec_train_pct_rounding).to_spec() == spec_train_pct_rounding
+    assert (
+        ReadInstruction.from_spec(spec_train_pct_rounding).to_spec()
+        == spec_train_pct_rounding
+    )
 
-    spec_train_test_pct_rounding = "train[:10%](pct1_dropremainder)+test[-10%:](pct1_dropremainder)"
-    assert ReadInstruction.from_spec(spec_train_test_pct_rounding).to_spec() == spec_train_test_pct_rounding
+    spec_train_test_pct_rounding = (
+        "train[:10%](pct1_dropremainder)+test[-10%:](pct1_dropremainder)"
+    )
+    assert (
+        ReadInstruction.from_spec(spec_train_test_pct_rounding).to_spec()
+        == spec_train_test_pct_rounding
+    )

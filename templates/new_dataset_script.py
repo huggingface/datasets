@@ -21,7 +21,6 @@ import os
 
 import datasets
 
-
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
@@ -49,8 +48,8 @@ _LICENSE = ""
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    'first_domain': "https://huggingface.co/great-new-dataset-first_domain.zip",
-    'second_domain': "https://huggingface.co/great-new-dataset-second_domain.zip",
+    "first_domain": "https://huggingface.co/great-new-dataset-first_domain.zip",
+    "second_domain": "https://huggingface.co/great-new-dataset-second_domain.zip",
 }
 
 
@@ -72,15 +71,25 @@ class NewDataset(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"),
-        datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
+        datasets.BuilderConfig(
+            name="first_domain",
+            version=VERSION,
+            description="This part of my dataset covers a first domain",
+        ),
+        datasets.BuilderConfig(
+            name="second_domain",
+            version=VERSION,
+            description="This part of my dataset covers a second domain",
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above
+        if (
+            self.config.name == "first_domain"
+        ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
@@ -139,7 +148,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "test.jsonl"),
-                    "split": "test"
+                    "split": "test",
                 },
             ),
             datasets.SplitGenerator(
@@ -153,9 +162,11 @@ class NewDataset(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(
-        self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+        self,
+        filepath,
+        split,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
 
@@ -172,5 +183,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         "sentence": data["sentence"],
                         "option2": data["option2"],
-                        "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
+                        "second_domain_answer": ""
+                        if split == "test"
+                        else data["second_domain_answer"],
                     }

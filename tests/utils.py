@@ -24,7 +24,7 @@ def parse_flag_from_env(key, default=False):
             _value = strtobool(value)
         except ValueError:
             # More values are supported, but let's keep the message simple.
-            raise ValueError("If set, {} must be yes or no.".format(key))
+            raise ValueError(f"If set, {key} must be yes or no.")
     return _value
 
 
@@ -296,7 +296,9 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
             # The following changes in the error are just here to make the offline timeout error prettier
             e.request.url = url
             max_retry_error = e.args[0]
-            max_retry_error.args = (max_retry_error.args[0].replace("10.255.255.1", f"OfflineMock[{url}]"),)
+            max_retry_error.args = (
+                max_retry_error.args[0].replace("10.255.255.1", f"OfflineMock[{url}]"),
+            )
             e.args = (max_retry_error,)
             raise
 
@@ -337,7 +339,9 @@ def assert_arrow_memory_increases():
     gc.collect()
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
-    assert pa.total_allocated_bytes() - previous_allocated_memory > 0, "Arrow memory didn't increase."
+    assert (
+        pa.total_allocated_bytes() - previous_allocated_memory > 0
+    ), "Arrow memory didn't increase."
 
 
 @contextmanager
@@ -347,4 +351,6 @@ def assert_arrow_memory_doesnt_increase():
     gc.collect()
     previous_allocated_memory = pa.total_allocated_bytes()
     yield
-    assert pa.total_allocated_bytes() - previous_allocated_memory <= 0, "Arrow memory wasn't expected to increase."
+    assert (
+        pa.total_allocated_bytes() - previous_allocated_memory <= 0
+    ), "Arrow memory wasn't expected to increase."

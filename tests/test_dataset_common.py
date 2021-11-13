@@ -27,16 +27,18 @@ from absl.testing import parameterized
 import datasets
 from datasets.builder import BuilderConfig, DatasetBuilder
 from datasets.features import ClassLabel, Features, Value
-from datasets.load import dataset_module_factory, import_main_class, load_dataset
+from datasets.load import (dataset_module_factory, import_main_class,
+                           load_dataset)
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
 from datasets.utils.download_manager import GenerateMode
-from datasets.utils.file_utils import DownloadConfig, cached_path, is_remote_url
+from datasets.utils.file_utils import (DownloadConfig, cached_path,
+                                       is_remote_url)
 from datasets.utils.logging import get_logger
 from datasets.utils.mock_download_manager import MockDownloadManager
 
-from .utils import OfflineSimulationMode, for_all_test_methods, local, offline, packaged, slow
-
+from .utils import (OfflineSimulationMode, for_all_test_methods, local,
+                    offline, packaged, slow)
 
 logger = get_logger(__name__)
 
@@ -63,9 +65,15 @@ def skip_if_not_compatible_with_windows(test_case):
             try:
                 test_case(self, dataset_name)
             except FileNotFoundError as e:
-                if "[WinError 206]" in str(e):  # if there's a path that exceeds windows' 256 characters limit
-                    warnings.warn("test not compatible with windows ([WinError 206] error)")
-                    self.skipTest('"test not compatible with windows ([WinError 206] error)"')
+                if "[WinError 206]" in str(
+                    e
+                ):  # if there's a path that exceeds windows' 256 characters limit
+                    warnings.warn(
+                        "test not compatible with windows ([WinError 206] error)"
+                    )
+                    self.skipTest(
+                        '"test not compatible with windows ([WinError 206] error)"'
+                    )
                 else:
                     raise
 
@@ -75,7 +83,13 @@ def skip_if_not_compatible_with_windows(test_case):
 
 
 def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
-    extensions = {"text": "txt", "json": "json", "pandas": "pkl", "csv": "csv", "parquet": "parquet"}
+    extensions = {
+        "text": "txt",
+        "json": "json",
+        "pandas": "pkl",
+        "csv": "csv",
+        "parquet": "parquet",
+    }
     return {
         "train": os.path.join(path_to_dummy_data, "train." + extensions[dataset_name]),
         "test": os.path.join(path_to_dummy_data, "test." + extensions[dataset_name]),
@@ -100,14 +114,20 @@ class DatasetTester:
     def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
         if is_local is True:
-            dataset_module = dataset_module_factory(os.path.join("datasets", dataset_name))
+            dataset_module = dataset_module_factory(
+                os.path.join("datasets", dataset_name)
+            )
         else:
-            dataset_module = dataset_module_factory(dataset_name, download_config=DownloadConfig(force_download=True))
+            dataset_module = dataset_module_factory(
+                dataset_name, download_config=DownloadConfig(force_download=True)
+            )
         # Get dataset builder class
         builder_cls = import_main_class(dataset_module.module_path)
         return builder_cls
 
-    def load_all_configs(self, dataset_name, is_local=False) -> List[Optional[BuilderConfig]]:
+    def load_all_configs(
+        self, dataset_name, is_local=False
+    ) -> List[Optional[BuilderConfig]]:
         # get builder class
         builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
         builder = builder_cls
@@ -116,14 +136,20 @@ class DatasetTester:
             return [None]
         return builder.BUILDER_CONFIGS
 
-    def check_load_dataset(self, dataset_name, configs, is_local=False, use_local_dummy_data=False):
+    def check_load_dataset(
+        self, dataset_name, configs, is_local=False, use_local_dummy_data=False
+    ):
         for config in configs:
             with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
 
                 # create config and dataset
-                dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
+                dataset_builder_cls = self.load_builder_class(
+                    dataset_name, is_local=is_local
+                )
                 name = config.name if config is not None else None
-                dataset_builder = dataset_builder_cls(name=name, cache_dir=processed_temp_dir)
+                dataset_builder = dataset_builder_cls(
+                    name=name, cache_dir=processed_temp_dir
+                )
 
                 # TODO: skip Beam datasets and datasets that lack dummy data for now
                 if not dataset_builder.test_dummy_data:
@@ -137,7 +163,9 @@ class DatasetTester:
 
                 def check_if_url_is_valid(url):
                     if is_remote_url(url) and "\\" in url:
-                        raise ValueError(f"Bad remote url '{url} since it contains a backslash")
+                        raise ValueError(
+                            f"Bad remote url '{url} since it contains a backslash"
+                        )
 
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
                 mock_dl_manager = MockDownloadManager(
@@ -154,10 +182,14 @@ class DatasetTester:
                 if builder_name in _PACKAGED_DATASETS_MODULES:
                     mock_dl_manager.download_dummy_data()
                     path_to_dummy_data = mock_dl_manager.dummy_file
-                    dataset_builder.config.data_files = get_packaged_dataset_dummy_data_files(
-                        builder_name, path_to_dummy_data
+                    dataset_builder.config.data_files = (
+                        get_packaged_dataset_dummy_data_files(
+                            builder_name, path_to_dummy_data
+                        )
                     )
-                    for config_attr, value in get_packaged_dataset_config_attributes(builder_name).items():
+                    for config_attr, value in get_packaged_dataset_config_attributes(
+                        builder_name
+                    ).items():
                         setattr(dataset_builder.config, config_attr, value)
 
                 # mock size needed for dummy data instead of actual dataset
@@ -180,7 +212,9 @@ class DatasetTester:
                 dataset = dataset_builder.as_dataset(ignore_verifications=True)
 
                 # check that dataset is not empty
-                self.parent.assertListEqual(sorted(dataset_builder.info.splits.keys()), sorted(dataset))
+                self.parent.assertListEqual(
+                    sorted(dataset_builder.info.splits.keys()), sorted(dataset)
+                )
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.parent.assertTrue(len(dataset[split]) > 0)
@@ -192,7 +226,9 @@ class DatasetTester:
                         task_features = {**task.input_schema, **task.label_schema}
                         for split in dataset:
                             casted_dataset = dataset[split].prepare_for_task(task)
-                            self.parent.assertDictEqual(task_features, casted_dataset.features)
+                            self.parent.assertDictEqual(
+                                task_features, casted_dataset.features
+                            )
                             del casted_dataset
                 del dataset
 
@@ -200,7 +236,9 @@ class DatasetTester:
 def test_datasets_dir_and_script_names():
     for dataset_dir in glob.glob("./datasets/*/"):
         name = dataset_dir.split(os.sep)[-2]
-        if not name.startswith("__") and len(os.listdir(dataset_dir)) > 0:  # ignore __pycache__ and empty dirs
+        if (
+            not name.startswith("__") and len(os.listdir(dataset_dir)) > 0
+        ):  # ignore __pycache__ and empty dirs
             if name in _PACKAGED_DATASETS_MODULES:
                 continue
             else:
@@ -214,13 +252,17 @@ def get_local_dataset_names():
     datasets = [
         dataset_dir.split(os.sep)[-2]
         for dataset_dir in glob.glob("./datasets/*/")
-        if os.path.exists(os.path.join(dataset_dir, dataset_dir.split(os.sep)[-2] + ".py"))
+        if os.path.exists(
+            os.path.join(dataset_dir, dataset_dir.split(os.sep)[-2] + ".py")
+        )
     ]
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 
 @parameterized.named_parameters(get_local_dataset_names())
-@for_all_test_methods(skip_if_dataset_requires_faiss, skip_if_not_compatible_with_windows)
+@for_all_test_methods(
+    skip_if_dataset_requires_faiss, skip_if_not_compatible_with_windows
+)
 @local
 class LocalDatasetTest(parameterized.TestCase):
     dataset_name = None
@@ -230,36 +272,56 @@ class LocalDatasetTest(parameterized.TestCase):
 
     def test_load_dataset(self, dataset_name):
         configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)[:1]
-        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True, use_local_dummy_data=True)
+        self.dataset_tester.check_load_dataset(
+            dataset_name, configs, is_local=True, use_local_dummy_data=True
+        )
 
     def test_builder_class(self, dataset_name):
-        builder_cls = self.dataset_tester.load_builder_class(dataset_name, is_local=True)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        builder_cls = self.dataset_tester.load_builder_class(
+            dataset_name, is_local=True
+        )
+        name = (
+            builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        )
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
             self.assertIsInstance(builder, DatasetBuilder)
 
     def test_builder_configs(self, dataset_name):
-        builder_configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
+        builder_configs = self.dataset_tester.load_all_configs(
+            dataset_name, is_local=True
+        )
         self.assertTrue(len(builder_configs) > 0)
 
         if builder_configs[0] is not None:
-            all(self.assertIsInstance(config, BuilderConfig) for config in builder_configs)
+            all(
+                self.assertIsInstance(config, BuilderConfig)
+                for config in builder_configs
+            )
 
     @slow
     def test_load_dataset_all_configs(self, dataset_name):
         configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
-        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True, use_local_dummy_data=True)
+        self.dataset_tester.check_load_dataset(
+            dataset_name, configs, is_local=True, use_local_dummy_data=True
+        )
 
     @slow
     def test_load_real_dataset(self, dataset_name):
         path = "./datasets/" + dataset_name
-        dataset_module = dataset_module_factory(path, download_config=DownloadConfig(local_files_only=True))
+        dataset_module = dataset_module_factory(
+            path, download_config=DownloadConfig(local_files_only=True)
+        )
         builder_cls = import_main_class(dataset_module.module_path)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        name = (
+            builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        )
         with tempfile.TemporaryDirectory() as temp_cache_dir:
             dataset = load_dataset(
-                path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                path,
+                name=name,
+                cache_dir=temp_cache_dir,
+                download_mode=GenerateMode.FORCE_REDOWNLOAD,
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
@@ -268,15 +330,22 @@ class LocalDatasetTest(parameterized.TestCase):
     @slow
     def test_load_real_dataset_all_configs(self, dataset_name):
         path = "./datasets/" + dataset_name
-        dataset_module = dataset_module_factory(path, download_config=DownloadConfig(local_files_only=True))
+        dataset_module = dataset_module_factory(
+            path, download_config=DownloadConfig(local_files_only=True)
+        )
         builder_cls = import_main_class(dataset_module.module_path)
         config_names = (
-            [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
+            [config.name for config in builder_cls.BUILDER_CONFIGS]
+            if len(builder_cls.BUILDER_CONFIGS) > 0
+            else [None]
         )
         for name in config_names:
             with tempfile.TemporaryDirectory() as temp_cache_dir:
                 dataset = load_dataset(
-                    path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                    path,
+                    name=name,
+                    cache_dir=temp_cache_dir,
+                    download_mode=GenerateMode.FORCE_REDOWNLOAD,
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
@@ -284,9 +353,16 @@ class LocalDatasetTest(parameterized.TestCase):
 
 
 def get_packaged_dataset_names():
-    packaged_datasets = [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
-    if datasets.config.PYARROW_VERSION.major < 3:  # parquet is not supported for pyarrow<3.0.0
-        packaged_datasets = [pd for pd in packaged_datasets if pd["dataset_name"] != "parquet"]
+    packaged_datasets = [
+        {"testcase_name": x, "dataset_name": x}
+        for x in _PACKAGED_DATASETS_MODULES.keys()
+    ]
+    if (
+        datasets.config.PYARROW_VERSION.major < 3
+    ):  # parquet is not supported for pyarrow<3.0.0
+        packaged_datasets = [
+            pd for pd in packaged_datasets if pd["dataset_name"] != "parquet"
+        ]
     return packaged_datasets
 
 
@@ -302,11 +378,15 @@ class PackagedDatasetTest(parameterized.TestCase):
         for offline_simulation_mode in list(OfflineSimulationMode):
             with offline(offline_simulation_mode):
                 configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
-                self.dataset_tester.check_load_dataset(dataset_name, configs, use_local_dummy_data=True)
+                self.dataset_tester.check_load_dataset(
+                    dataset_name, configs, use_local_dummy_data=True
+                )
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)
-        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        name = (
+            builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        )
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
             self.assertIsInstance(builder, DatasetBuilder)
@@ -316,7 +396,10 @@ class PackagedDatasetTest(parameterized.TestCase):
         self.assertTrue(len(builder_configs) > 0)
 
         if builder_configs[0] is not None:
-            all(self.assertIsInstance(config, BuilderConfig) for config in builder_configs)
+            all(
+                self.assertIsInstance(config, BuilderConfig)
+                for config in builder_configs
+            )
 
 
 def distributed_load_dataset(args):
@@ -330,9 +413,14 @@ class DistributedDatasetTest(TestCase):
         num_workers = 5
         with tempfile.TemporaryDirectory() as tmp_dir:
             data_name = "csv"
-            data_base_path = os.path.join("datasets", data_name, "dummy", "0.0.0", "dummy_data.zip")
+            data_base_path = os.path.join(
+                "datasets", data_name, "dummy", "0.0.0", "dummy_data.zip"
+            )
             local_path = cached_path(
-                data_base_path, cache_dir=tmp_dir, extract_compressed_file=True, force_extract=True
+                data_base_path,
+                cache_dir=tmp_dir,
+                extract_compressed_file=True,
+                force_extract=True,
             )
             datafiles = {
                 "train": os.path.join(local_path, "dummy_data/train.csv"),
@@ -463,10 +551,15 @@ class CsvTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             open(os.path.join(tmp_dir, "table_comma.csv"), "w", encoding="utf-8").write(
-                "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+                "\n".join(
+                    ",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1)
+                )
             )
             open(os.path.join(tmp_dir, "table_tab.csv"), "w", encoding="utf-8").write(
-                "\n".join("\t".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+                "\n".join(
+                    "\t".join([str(i) for i in range(n_cols)])
+                    for _ in range(n_rows + 1)
+                )
             )
             ds = load_dataset(
                 "csv",
@@ -508,9 +601,15 @@ class CsvTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
-                "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+                "\n".join(
+                    ",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1)
+                )
             )
-            for type in [Value("float64"), Value("int8"), ClassLabel(num_classes=n_cols)]:
+            for type in [
+                Value("float64"),
+                Value("int8"),
+                ClassLabel(num_classes=n_cols),
+            ]:
                 features = get_features(type)
                 ds = load_dataset(
                     "csv",

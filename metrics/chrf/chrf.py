@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ Chrf(++) metric as available in sacrebleu. """
+import datasets
 import sacrebleu as scb
 from packaging import version
 from sacrebleu import CHRF
-
-import datasets
-
 
 _CITATION = """\
 @inproceedings{popovic-2015-chrf,
@@ -118,7 +116,9 @@ class ChrF(datasets.Metric):
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("string", id="sequence"),
-                    "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
+                    "references": datasets.Sequence(
+                        datasets.Value("string", id="sequence"), id="references"
+                    ),
                 }
             ),
             codebase_urls=["https://github.com/mjpost/sacreBLEU#chrf--chrf"],
@@ -140,10 +140,16 @@ class ChrF(datasets.Metric):
     ):
         references_per_prediction = len(references[0])
         if any(len(refs) != references_per_prediction for refs in references):
-            raise ValueError("Sacrebleu requires the same number of references for each prediction")
-        transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
+            raise ValueError(
+                "Sacrebleu requires the same number of references for each prediction"
+            )
+        transformed_references = [
+            [refs[i] for refs in references] for i in range(references_per_prediction)
+        ]
 
-        sb_chrf = CHRF(char_order, word_order, beta, lowercase, whitespace, eps_smoothing)
+        sb_chrf = CHRF(
+            char_order, word_order, beta, lowercase, whitespace, eps_smoothing
+        )
         output = sb_chrf.corpus_score(predictions, transformed_references)
 
         return {

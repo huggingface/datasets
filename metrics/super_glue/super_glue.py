@@ -14,12 +14,10 @@
 # limitations under the License.
 """The SuperGLUE benchmark metric."""
 
+import datasets
 from sklearn.metrics import f1_score, matthews_corrcoef
 
-import datasets
-
 from .record_evaluation import evaluate as evaluate_record
-
 
 _CITATION = """\
 @article{wang2019superglue,
@@ -125,7 +123,7 @@ def evaluate_multirc(ids_preds, labels):
     """
     question_map = {}
     for id_pred, label in zip(ids_preds, labels):
-        question_id = "{}-{}".format(id_pred["idx"]["paragraph"], id_pred["idx"]["question"])
+        question_id = f'{id_pred["idx"]["paragraph"]}-{id_pred["idx"]["question"]}'
         pred = id_pred["prediction"]
         if question_id in question_map:
             question_map[question_id].append((pred, label))
@@ -140,7 +138,9 @@ def evaluate_multirc(ids_preds, labels):
         ems.append(em)
     f1_m = float((sum(f1s) / len(f1s)))
     em = sum(ems) / len(ems)
-    f1_a = float(f1_score(y_true=labels, y_pred=[id_pred["prediction"] for id_pred in ids_preds]))
+    f1_a = float(
+        f1_score(y_true=labels, y_pred=[id_pred["prediction"] for id_pred in ids_preds])
+    )
     return {"exact_match": em, "f1_m": f1_m, "f1_a": f1_a}
 
 
@@ -171,7 +171,9 @@ class SuperGlue(datasets.Metric):
             features=datasets.Features(self._get_feature_types()),
             codebase_urls=[],
             reference_urls=[],
-            format="numpy" if not self.config_name == "record" and not self.config_name == "multirc" else None,
+            format="numpy"
+            if not self.config_name == "record" and not self.config_name == "multirc"
+            else None,
         )
 
     def _get_feature_types(self):
@@ -219,16 +221,29 @@ class SuperGlue(datasets.Metric):
             dataset = [
                 {
                     "qas": [
-                        {"id": ref["idx"]["query"], "answers": [{"text": ans} for ans in ref["answers"]]}
+                        {
+                            "id": ref["idx"]["query"],
+                            "answers": [{"text": ans} for ans in ref["answers"]],
+                        }
                         for ref in references
                     ]
                 }
             ]
-            predictions = {pred["idx"]["query"]: pred["prediction_text"] for pred in predictions}
+            predictions = {
+                pred["idx"]["query"]: pred["prediction_text"] for pred in predictions
+            }
             return evaluate_record(dataset, predictions)[0]
         elif self.config_name == "multirc":
             return evaluate_multirc(predictions, references)
-        elif self.config_name in ["copa", "rte", "wic", "wsc", "wsc.fixed", "boolq", "axg"]:
+        elif self.config_name in [
+            "copa",
+            "rte",
+            "wic",
+            "wsc",
+            "wsc.fixed",
+            "boolq",
+            "axg",
+        ]:
             return {"accuracy": simple_accuracy(predictions, references)}
         else:
             raise KeyError(

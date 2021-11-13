@@ -14,10 +14,8 @@
 # limitations under the License.
 """Pearson correlation coefficient metric."""
 
-from scipy.stats import pearsonr
-
 import datasets
-
+from scipy.stats import pearsonr
 
 _DESCRIPTION = """
 Pearson correlation coefficient and p-value for testing non-correlation.
@@ -89,7 +87,9 @@ class Pearsonr(datasets.Metric):
                     "references": datasets.Value("int32"),
                 }
             ),
-            reference_urls=["https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html"],
+            reference_urls=[
+                "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html"
+            ],
         )
 
     def _compute(self, predictions, references):

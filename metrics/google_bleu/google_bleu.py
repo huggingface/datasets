@@ -16,11 +16,9 @@
 
 from typing import Dict, List
 
-from nltk.translate import gleu_score
-
 import datasets
 from datasets import MetricInfo
-
+from nltk.translate import gleu_score
 
 _CITATION = """\
 @misc{wu2016googles,
@@ -109,9 +107,14 @@ class GoogleBleu(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
+                    "predictions": datasets.Sequence(
+                        datasets.Value("string", id="token"), id="sequence"
+                    ),
                     "references": datasets.Sequence(
-                        datasets.Sequence(datasets.Value("string", id="token"), id="sequence"), id="references"
+                        datasets.Sequence(
+                            datasets.Value("string", id="token"), id="sequence"
+                        ),
+                        id="references",
                     ),
                 }
             ),
@@ -126,6 +129,9 @@ class GoogleBleu(datasets.Metric):
     ) -> Dict[str, float]:
         return {
             "google_bleu": gleu_score.corpus_gleu(
-                list_of_references=references, hypotheses=predictions, min_len=min_len, max_len=max_len
+                list_of_references=references,
+                hypotheses=predictions,
+                min_len=min_len,
+                max_len=max_len,
             )
         }

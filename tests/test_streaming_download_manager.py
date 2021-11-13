@@ -8,31 +8,25 @@ from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 import datasets
 from datasets.filesystems import COMPRESSION_FILESYSTEMS
 from datasets.utils.streaming_download_manager import (
-    StreamingDownloadManager,
-    _as_posix,
-    _get_extraction_protocol,
-    xbasename,
-    xglob,
-    xjoin,
-    xopen,
-    xpathglob,
-    xpathjoin,
-    xpathopen,
-    xpathrglob,
-    xpathstem,
-    xpathsuffix,
-)
+    StreamingDownloadManager, _as_posix, _get_extraction_protocol, xbasename,
+    xglob, xjoin, xopen, xpathglob, xpathjoin, xpathopen, xpathrglob,
+    xpathstem, xpathsuffix)
 
 from .utils import require_lz4, require_zstandard
-
 
 TEST_URL = "https://huggingface.co/datasets/lhoestq/test/raw/main/some_text.txt"
 TEST_URL_CONTENT = "foo\nbar\nfoobar"
 
 TEST_GG_DRIVE_FILENAME = "train.tsv"
-TEST_GG_DRIVE_URL = "https://drive.google.com/uc?export=download&id=17bOgBDc3hRCoPZ89EYtKDzK-yXAWat94"
-TEST_GG_DRIVE_GZIPPED_URL = "https://drive.google.com/uc?export=download&id=1Bt4Garpf0QLiwkJhHJzXaVa0I0H5Qhwz"
-TEST_GG_DRIVE_ZIPPED_URL = "https://drive.google.com/uc?export=download&id=1k92sUfpHxKq8PXWRr7Y5aNHXwOCNUmqh"
+TEST_GG_DRIVE_URL = (
+    "https://drive.google.com/uc?export=download&id=17bOgBDc3hRCoPZ89EYtKDzK-yXAWat94"
+)
+TEST_GG_DRIVE_GZIPPED_URL = (
+    "https://drive.google.com/uc?export=download&id=1Bt4Garpf0QLiwkJhHJzXaVa0I0H5Qhwz"
+)
+TEST_GG_DRIVE_ZIPPED_URL = (
+    "https://drive.google.com/uc?export=download&id=1k92sUfpHxKq8PXWRr7Y5aNHXwOCNUmqh"
+)
 TEST_GG_DRIVE_CONTENT = """\
 pokemon_name, type
 Charmander, fire
@@ -86,7 +80,7 @@ class DummyTestFS(AbstractFileSystem):
         for item in self._fs_contents:
             if item["name"] == name:
                 return item
-        raise IndexError("{name} not found!".format(name=name))
+        raise IndexError(f"{name} not found!".format())
 
     def ls(self, path, detail=True, refresh=True, **kwargs):
         if kwargs.pop("strip_proto", True):
@@ -94,7 +88,9 @@ class DummyTestFS(AbstractFileSystem):
 
         files = not refresh and self._ls_from_cache(path)
         if not files:
-            files = [file for file in self._fs_contents if path == self._parent(file["name"])]
+            files = [
+                file for file in self._fs_contents if path == self._parent(file["name"])
+            ]
             files.sort(key=lambda file: file["name"])
             self.dircache[path.rstrip("/")] = files
 
@@ -105,7 +101,11 @@ class DummyTestFS(AbstractFileSystem):
     @classmethod
     def get_test_paths(cls, start_with=""):
         """Helper to return directory and file paths with no details"""
-        all = [file["name"] for file in cls._fs_contents if file["name"].startswith(start_with)]
+        all = [
+            file["name"]
+            for file in cls._fs_contents
+            if file["name"].startswith(start_with)
+        ]
         return all
 
     def _open(
@@ -130,9 +130,14 @@ class DummyTestFS(AbstractFileSystem):
 
 @pytest.fixture
 def mock_fsspec(monkeypatch):
-    dummy_registry = datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
+    dummy_registry = (
+        datasets.utils.streaming_download_manager.fsspec.registry.target.copy()
+    )
     dummy_registry["mock"] = DummyTestFS
-    monkeypatch.setattr("datasets.utils.streaming_download_manager.fsspec.registry.target", dummy_registry)
+    monkeypatch.setattr(
+        "datasets.utils.streaming_download_manager.fsspec.registry.target",
+        dummy_registry,
+    )
 
 
 def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
@@ -159,7 +164,12 @@ def _readd_double_slash_removed_by_path(path_as_posix: str) -> str:
 
 @pytest.mark.parametrize(
     "input_path, expected_path",
-    [("zip:/test.txt::/Users/username/bar.zip", "zip://test.txt::/Users/username/bar.zip")],
+    [
+        (
+            "zip:/test.txt::/Users/username/bar.zip",
+            "zip://test.txt::/Users/username/bar.zip",
+        )
+    ],
 )
 def test_as_posix(input_path, expected_path):
     assert _as_posix(Path(input_path)) == expected_path
@@ -168,8 +178,16 @@ def test_as_posix(input_path, expected_path):
 @pytest.mark.parametrize(
     "input_path, paths_to_join, expected_path",
     [
-        (str(Path(__file__).resolve().parent), (Path(__file__).name,), str(Path(__file__).resolve())),
-        ("https://host.com/archive.zip", ("file.txt",), "https://host.com/archive.zip/file.txt"),
+        (
+            str(Path(__file__).resolve().parent),
+            (Path(__file__).name,),
+            str(Path(__file__).resolve()),
+        ),
+        (
+            "https://host.com/archive.zip",
+            ("file.txt",),
+            "https://host.com/archive.zip/file.txt",
+        ),
         (
             "zip://::https://host.com/archive.zip",
             ("file.txt",),
@@ -195,7 +213,9 @@ def test_as_posix(input_path, expected_path):
 def test_xjoin(input_path, paths_to_join, expected_path):
     output_path = xjoin(input_path, *paths_to_join)
     output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
-    assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    assert output_path == _readd_double_slash_removed_by_path(
+        Path(expected_path).as_posix()
+    )
     output_path = xpathjoin(Path(input_path), *paths_to_join)
     assert output_path == Path(expected_path)
 
@@ -220,13 +240,19 @@ def test_xdirname(input_path, expected_path):
 
     output_path = xdirname(input_path)
     output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
-    assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    assert output_path == _readd_double_slash_removed_by_path(
+        Path(expected_path).as_posix()
+    )
 
 
 def test_xopen_local(text_path):
-    with xopen(text_path, "r", encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+    with xopen(text_path, "r", encoding="utf-8") as f, open(
+        text_path, encoding="utf-8"
+    ) as expected_file:
         assert list(f) == list(expected_file)
-    with xpathopen(Path(text_path), "r", encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+    with xpathopen(Path(text_path), "r", encoding="utf-8") as f, open(
+        text_path, encoding="utf-8"
+    ) as expected_file:
         assert list(f) == list(expected_file)
 
 
@@ -393,7 +419,9 @@ def test_xpathsuffix(input_path, expected):
     assert xpathsuffix(Path(input_path)) == expected
 
 
-@pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
+@pytest.mark.parametrize(
+    "urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"]
+)
 def test_streaming_dl_manager_download_dummy_path(urlpath):
     dl_manager = StreamingDownloadManager()
     assert dl_manager.download(urlpath) == urlpath
@@ -403,11 +431,15 @@ def test_streaming_dl_manager_download(text_path):
     dl_manager = StreamingDownloadManager()
     out = dl_manager.download(text_path)
     assert out == text_path
-    with xopen(out, encoding="utf-8") as f, open(text_path, encoding="utf-8") as expected_file:
+    with xopen(out, encoding="utf-8") as f, open(
+        text_path, encoding="utf-8"
+    ) as expected_file:
         assert f.read() == expected_file.read()
 
 
-@pytest.mark.parametrize("urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"])
+@pytest.mark.parametrize(
+    "urlpath", [r"C:\\foo\bar.txt", "/foo/bar.txt", "https://f.oo/bar.txt"]
+)
 def test_streaming_dl_manager_download_and_extract_no_extraction(urlpath):
     dl_manager = StreamingDownloadManager()
     assert dl_manager.download_and_extract(urlpath) == urlpath
@@ -424,7 +456,9 @@ def test_streaming_dl_manager_extract(text_gz_path, text_path):
         assert f.read() == expected_file.read()
 
 
-def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path, text_path):
+def test_streaming_dl_manager_download_and_extract_with_extraction(
+    text_gz_path, text_path
+):
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.download_and_extract(text_gz_path)
     path = os.path.basename(text_gz_path)
@@ -437,9 +471,17 @@ def test_streaming_dl_manager_download_and_extract_with_extraction(text_gz_path,
 
 @pytest.mark.parametrize(
     "input_path, filename, expected_path",
-    [("https://domain.org/archive.zip", "filename.jsonl", "zip://filename.jsonl::https://domain.org/archive.zip")],
+    [
+        (
+            "https://domain.org/archive.zip",
+            "filename.jsonl",
+            "zip://filename.jsonl::https://domain.org/archive.zip",
+        )
+    ],
 )
-def test_streaming_dl_manager_download_and_extract_with_join(input_path, filename, expected_path):
+def test_streaming_dl_manager_download_and_extract_with_join(
+    input_path, filename, expected_path
+):
     dl_manager = StreamingDownloadManager()
     extracted_path = dl_manager.download_and_extract(input_path)
     output_path = xjoin(extracted_path, filename)
@@ -452,7 +494,13 @@ def test_streaming_dl_manager_download_and_extract_with_join(input_path, filenam
 def test_streaming_dl_manager_extract_all_supported_single_file_compression_types(
     compression_fs_class, gz_file, xz_file, zstd_file, bz2_file, lz4_file, text_file
 ):
-    input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_file, "bz2": bz2_file, "lz4": lz4_file}
+    input_paths = {
+        "gzip": gz_file,
+        "xz": xz_file,
+        "zstd": zstd_file,
+        "bz2": bz2_file,
+        "lz4": lz4_file,
+    }
     input_path = str(input_paths[compression_fs_class.protocol])
     dl_manager = StreamingDownloadManager()
     output_path = dl_manager.extract(input_path)
@@ -470,9 +518,18 @@ def test_streaming_dl_manager_extract_all_supported_single_file_compression_type
         ("zip://train-00000.json.gz::https://foo.bar/data.zip", "gzip"),
         ("https://foo.bar/train.json.gz?dl=1", "gzip"),
         ("http://opus.nlpl.eu/download.php?f=Bianet/v1/moses/en-ku.txt.zip", "zip"),
-        ("https://github.com/user/what-time-is-it/blob/master/gutenberg_time_phrases.zip?raw=true", "zip"),
-        ("https://github.com/user/repo/blob/master/data/morph_train.tsv?raw=true", None),
-        ("https://repo.org/bitstream/handle/20.500.12185/346/annotated_corpus.zip?sequence=3&isAllowed=y", "zip"),
+        (
+            "https://github.com/user/what-time-is-it/blob/master/gutenberg_time_phrases.zip?raw=true",
+            "zip",
+        ),
+        (
+            "https://github.com/user/repo/blob/master/data/morph_train.tsv?raw=true",
+            None,
+        ),
+        (
+            "https://repo.org/bitstream/handle/20.500.12185/346/annotated_corpus.zip?sequence=3&isAllowed=y",
+            "zip",
+        ),
         ("https://zenodo.org/record/2787612/files/SICK.zip?download=1", "zip"),
         (TEST_GG_DRIVE_GZIPPED_URL, "gzip"),
         (TEST_GG_DRIVE_ZIPPED_URL, "zip"),

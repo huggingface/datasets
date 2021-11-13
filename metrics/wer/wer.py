@@ -14,10 +14,8 @@
 # limitations under the License.
 """ Word Error Ratio (WER) metric. """
 
-from jiwer import compute_measures
-
 import datasets
-
+from jiwer import compute_measures
 
 _CITATION = """\
 @inproceedings{inproceedings,
@@ -101,6 +99,12 @@ class WER(datasets.Metric):
             total = 0
             for prediction, reference in zip(predictions, references):
                 measures = compute_measures(reference, prediction)
-                incorrect += measures["substitutions"] + measures["deletions"] + measures["insertions"]
-                total += measures["substitutions"] + measures["deletions"] + measures["hits"]
+                incorrect += (
+                    measures["substitutions"]
+                    + measures["deletions"]
+                    + measures["insertions"]
+                )
+                total += (
+                    measures["substitutions"] + measures["deletions"] + measures["hits"]
+                )
             return incorrect / total

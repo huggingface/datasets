@@ -3,14 +3,9 @@ from unittest import TestCase
 import numpy as np
 import pytest
 
-from datasets.utils.py_utils import (
-    NestedDataStructure,
-    flatten_nest_dict,
-    map_nested,
-    temporary_assignment,
-    zip_dict,
-    zip_nested,
-)
+from datasets.utils.py_utils import (NestedDataStructure, flatten_nest_dict,
+                                     map_nested, temporary_assignment,
+                                     zip_dict, zip_nested)
 
 
 def np_sum(x):  # picklable for multiprocessing
@@ -60,14 +55,30 @@ class PyUtilsTest(TestCase):
         self.assertEqual(map_nested(add_one, s8), expected_map_nested_s8)
 
         num_proc = 2
-        self.assertEqual(map_nested(add_one, s1, num_proc=num_proc), expected_map_nested_s1)
-        self.assertEqual(map_nested(add_one, s2, num_proc=num_proc), expected_map_nested_s2)
-        self.assertEqual(map_nested(add_one, s3, num_proc=num_proc), expected_map_nested_s3)
-        self.assertEqual(map_nested(add_one, s4, num_proc=num_proc), expected_map_nested_s4)
-        self.assertEqual(map_nested(add_one, s5, num_proc=num_proc), expected_map_nested_s5)
-        self.assertEqual(map_nested(add_one, s6, num_proc=num_proc), expected_map_nested_s6)
-        self.assertEqual(map_nested(add_one, s7, num_proc=num_proc), expected_map_nested_s7)
-        self.assertEqual(map_nested(add_one, s8, num_proc=num_proc), expected_map_nested_s8)
+        self.assertEqual(
+            map_nested(add_one, s1, num_proc=num_proc), expected_map_nested_s1
+        )
+        self.assertEqual(
+            map_nested(add_one, s2, num_proc=num_proc), expected_map_nested_s2
+        )
+        self.assertEqual(
+            map_nested(add_one, s3, num_proc=num_proc), expected_map_nested_s3
+        )
+        self.assertEqual(
+            map_nested(add_one, s4, num_proc=num_proc), expected_map_nested_s4
+        )
+        self.assertEqual(
+            map_nested(add_one, s5, num_proc=num_proc), expected_map_nested_s5
+        )
+        self.assertEqual(
+            map_nested(add_one, s6, num_proc=num_proc), expected_map_nested_s6
+        )
+        self.assertEqual(
+            map_nested(add_one, s7, num_proc=num_proc), expected_map_nested_s7
+        )
+        self.assertEqual(
+            map_nested(add_one, s8, num_proc=num_proc), expected_map_nested_s8
+        )
 
         sn1 = {"a": np.eye(2), "b": np.zeros(3), "c": np.ones(2)}
         expected_map_nested_sn1_sum = {"a": 2, "b": 0, "c": 2}
@@ -76,14 +87,24 @@ class PyUtilsTest(TestCase):
             "b": np.zeros(3).astype(int),
             "c": np.ones(2).astype(int),
         }
-        self.assertEqual(map_nested(np_sum, sn1, map_numpy=False), expected_map_nested_sn1_sum)
+        self.assertEqual(
+            map_nested(np_sum, sn1, map_numpy=False), expected_map_nested_sn1_sum
+        )
         self.assertEqual(
             {k: v.tolist() for k, v in map_nested(int, sn1, map_numpy=True).items()},
             {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()},
         )
-        self.assertEqual(map_nested(np_sum, sn1, map_numpy=False, num_proc=num_proc), expected_map_nested_sn1_sum)
         self.assertEqual(
-            {k: v.tolist() for k, v in map_nested(int, sn1, map_numpy=True, num_proc=num_proc).items()},
+            map_nested(np_sum, sn1, map_numpy=False, num_proc=num_proc),
+            expected_map_nested_sn1_sum,
+        )
+        self.assertEqual(
+            {
+                k: v.tolist()
+                for k, v in map_nested(
+                    int, sn1, map_numpy=True, num_proc=num_proc
+                ).items()
+            },
             {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()},
         )
         with self.assertRaises(AttributeError):  # can't pickle a local lambda

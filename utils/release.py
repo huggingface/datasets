@@ -15,7 +15,6 @@
 
 import argparse
 
-
 CUSTOM_JS_FILE = "docs/source/_static/js/custom.js"
 
 

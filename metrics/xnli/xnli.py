@@ -16,7 +16,6 @@
 
 import datasets
 
-
 _CITATION = """\
 @InProceedings{conneau2018xnli,
   author = "Conneau, Alexis
@@ -74,8 +73,12 @@ class Xnli(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Value("int64" if self.config_name != "sts-b" else "float32"),
-                    "references": datasets.Value("int64" if self.config_name != "sts-b" else "float32"),
+                    "predictions": datasets.Value(
+                        "int64" if self.config_name != "sts-b" else "float32"
+                    ),
+                    "references": datasets.Value(
+                        "int64" if self.config_name != "sts-b" else "float32"
+                    ),
                 }
             ),
             codebase_urls=[],

@@ -14,10 +14,8 @@
 # limitations under the License.
 """Matthews Correlation metric."""
 
-from sklearn.metrics import matthews_corrcoef
-
 import datasets
-
+from sklearn.metrics import matthews_corrcoef
 
 _DESCRIPTION = """
 Compute the Matthews correlation coefficient (MCC)
@@ -82,5 +80,7 @@ class MatthewsCorrelation(datasets.Metric):
 
     def _compute(self, predictions, references, sample_weight=None):
         return {
-            "matthews_correlation": float(matthews_corrcoef(references, predictions, sample_weight=sample_weight)),
+            "matthews_correlation": float(
+                matthews_corrcoef(references, predictions, sample_weight=sample_weight)
+            ),
         }

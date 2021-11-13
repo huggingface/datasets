@@ -14,10 +14,8 @@
 # limitations under the License.
 """Recall metric."""
 
-from sklearn.metrics import recall_score
-
 import datasets
-
+from sklearn.metrics import recall_score
 
 _DESCRIPTION = """
 Recall is the fraction of the total amount of relevant examples that were actually retrieved. It can be computed with:
@@ -111,11 +109,26 @@ class Recall(datasets.Metric):
                     "references": datasets.Value("int32"),
                 }
             ),
-            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html"],
+            reference_urls=[
+                "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html"
+            ],
         )
 
-    def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
+    def _compute(
+        self,
+        predictions,
+        references,
+        labels=None,
+        pos_label=1,
+        average="binary",
+        sample_weight=None,
+    ):
         score = recall_score(
-            references, predictions, labels=labels, pos_label=pos_label, average=average, sample_weight=sample_weight
+            references,
+            predictions,
+            labels=labels,
+            pos_label=pos_label,
+            average=average,
+            sample_weight=sample_weight,
         )
         return {"recall": float(score) if score.size == 1 else score}

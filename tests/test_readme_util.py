@@ -7,7 +7,6 @@ import yaml
 
 from datasets.utils.readme import ReadMe
 
-
 # @pytest.fixture
 # def example_yaml_structure():
 
@@ -55,7 +54,12 @@ CORRECT_DICT = {
             "text": "",
             "is_empty_text": True,
             "subsections": [
-                {"name": "Table of Contents", "text": "Some text here.", "is_empty_text": False, "subsections": []},
+                {
+                    "name": "Table of Contents",
+                    "text": "Some text here.",
+                    "is_empty_text": False,
+                    "subsections": [],
+                },
                 {
                     "name": "Dataset Description",
                     "text": "Some text here.",
@@ -73,7 +77,12 @@ CORRECT_DICT = {
                             "is_empty_text": True,
                             "subsections": [],
                         },
-                        {"name": "Languages", "text": "Language Text", "is_empty_text": False, "subsections": []},
+                        {
+                            "name": "Languages",
+                            "text": "Language Text",
+                            "is_empty_text": False,
+                            "subsections": [],
+                        },
                     ],
                 },
             ],
@@ -132,7 +141,12 @@ CORRECT_DICT_FOUR_LEVEL = {
             "text": "",
             "is_empty_text": True,
             "subsections": [
-                {"name": "Table of Contents", "text": "Some text here.", "is_empty_text": False, "subsections": []},
+                {
+                    "name": "Table of Contents",
+                    "text": "Some text here.",
+                    "is_empty_text": False,
+                    "subsections": [],
+                },
                 {
                     "name": "Dataset Description",
                     "text": "Some text here.",
@@ -157,7 +171,12 @@ CORRECT_DICT_FOUR_LEVEL = {
                             "is_empty_text": True,
                             "subsections": [],
                         },
-                        {"name": "Languages", "text": "Language Text", "is_empty_text": False, "subsections": []},
+                        {
+                            "name": "Languages",
+                            "text": "Language Text",
+                            "is_empty_text": False,
+                            "subsections": [],
+                        },
                     ],
                 },
             ],
@@ -180,9 +199,7 @@ Some text here.
 Language Text
 """
 
-EXPECTED_ERROR_README_EMPTY_YAML = (
-    "The following issues were found for the README at `{path}`:\n-\tEmpty YAML markers are present in the README."
-)
+EXPECTED_ERROR_README_EMPTY_YAML = "The following issues were found for the README at `{path}`:\n-\tEmpty YAML markers are present in the README."
 
 README_NO_YAML = """\
 # Dataset Card for My Dataset
@@ -197,9 +214,7 @@ Some text here.
 Language Text
 """
 
-EXPECTED_ERROR_README_NO_YAML = (
-    "The following issues were found for the README at `{path}`:\n-\tNo YAML markers are present in the README."
-)
+EXPECTED_ERROR_README_NO_YAML = "The following issues were found for the README at `{path}`:\n-\tNo YAML markers are present in the README."
 
 README_INCORRECT_YAML = """\
 ---
@@ -386,7 +401,9 @@ EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1 = "The following issues were found
     ],
 )
 def test_readme_from_string_correct(readme_md, expected_dict):
-    assert ReadMe.from_string(readme_md, example_yaml_structure).to_dict() == expected_dict
+    assert (
+        ReadMe.from_string(readme_md, example_yaml_structure).to_dict() == expected_dict
+    )
 
 
 @pytest.mark.parametrize(
@@ -401,7 +418,10 @@ def test_readme_from_string_correct(readme_md, expected_dict):
         (README_MISSING_SUBSECTION, EXPECTED_ERROR_README_MISSING_SUBSECTION),
         (README_MISSING_TEXT, EXPECTED_ERROR_README_MISSING_TEXT),
         (README_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_WRONG_FIRST_LEVEL),
-        (README_MULTIPLE_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL),
+        (
+            README_MULTIPLE_WRONG_FIRST_LEVEL,
+            EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL,
+        ),
         (README_MISSING_CONTENT, EXPECTED_ERROR_README_MISSING_CONTENT),
     ],
 )
@@ -463,7 +483,10 @@ def test_readme_from_readme_correct(readme_md, expected_dict):
         (README_MISSING_SUBSECTION, EXPECTED_ERROR_README_MISSING_SUBSECTION),
         (README_MISSING_TEXT, EXPECTED_ERROR_README_MISSING_TEXT),
         (README_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_WRONG_FIRST_LEVEL),
-        (README_MULTIPLE_WRONG_FIRST_LEVEL, EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL),
+        (
+            README_MULTIPLE_WRONG_FIRST_LEVEL,
+            EXPECTED_ERROR_README_MULTIPLE_WRONG_FIRST_LEVEL,
+        ),
         (README_MISSING_CONTENT, EXPECTED_ERROR_README_MISSING_CONTENT),
     ],
 )

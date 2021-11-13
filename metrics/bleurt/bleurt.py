@@ -16,10 +16,9 @@
 
 import os
 
-from bleurt import score  # From: git+https://github.com/google-research/bleurt.git
-
 import datasets
-
+from bleurt import \
+    score  # From: git+https://github.com/google-research/bleurt.git
 
 logger = datasets.logging.get_logger(__name__)
 
@@ -92,7 +91,10 @@ class BLEURT(datasets.Metric):
                 }
             ),
             codebase_urls=["https://github.com/google-research/bleurt"],
-            reference_urls=["https://github.com/google-research/bleurt", "https://arxiv.org/abs/2004.04696"],
+            reference_urls=[
+                "https://github.com/google-research/bleurt",
+                "https://arxiv.org/abs/2004.04696",
+            ],
         )
 
     def _download_and_prepare(self, dl_manager):

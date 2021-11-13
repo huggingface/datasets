@@ -54,7 +54,9 @@ def text_file(tmp_path):
     return str(filename)
 
 
-def test_csv_generate_tables_raises_error_with_malformed_csv(csv_file, malformed_csv_file, caplog):
+def test_csv_generate_tables_raises_error_with_malformed_csv(
+    csv_file, malformed_csv_file, caplog
+):
     csv = Csv()
     generator = csv._generate_tables([csv_file, malformed_csv_file])
     with pytest.raises(ValueError, match="Error tokenizing data"):
@@ -74,5 +76,7 @@ def test_text_linebreaks(text_file, keep_linebreaks):
         expected_content = f.read().splitlines(keepends=keep_linebreaks)
     text = Text(keep_linebreaks=keep_linebreaks)
     generator = text._generate_tables([text_file])
-    generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()["text"]
+    generated_content = pa.concat_tables([table for _, table in generator]).to_pydict()[
+        "text"
+    ]
     assert generated_content == expected_content

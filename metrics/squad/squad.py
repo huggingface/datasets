@@ -18,7 +18,6 @@ import datasets
 
 from .evaluate import evaluate
 
-
 _CITATION = """\
 @inproceedings{Rajpurkar2016SQuAD10,
   title={SQuAD: 100, 000+ Questions for Machine Comprehension of Text},
@@ -73,7 +72,10 @@ class Squad(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": {"id": datasets.Value("string"), "prediction_text": datasets.Value("string")},
+                    "predictions": {
+                        "id": datasets.Value("string"),
+                        "prediction_text": datasets.Value("string"),
+                    },
                     "references": {
                         "id": datasets.Value("string"),
                         "answers": datasets.features.Sequence(
@@ -90,14 +92,20 @@ class Squad(datasets.Metric):
         )
 
     def _compute(self, predictions, references):
-        pred_dict = {prediction["id"]: prediction["prediction_text"] for prediction in predictions}
+        pred_dict = {
+            prediction["id"]: prediction["prediction_text"]
+            for prediction in predictions
+        }
         dataset = [
             {
                 "paragraphs": [
                     {
                         "qas": [
                             {
-                                "answers": [{"text": answer_text} for answer_text in ref["answers"]["text"]],
+                                "answers": [
+                                    {"text": answer_text}
+                                    for answer_text in ref["answers"]["text"]
+                                ],
                                 "id": ref["id"],
                             }
                             for ref in references

@@ -4,18 +4,24 @@ import unittest
 from dataclasses import asdict
 from pathlib import Path
 
-from datasets.utils.metadata import (
-    DatasetMetadata,
-    metadata_dict_from_readme,
-    tagset_validator,
-    validate_metadata_type,
-    yaml_block_from_readme,
-)
+from datasets.utils.metadata import (DatasetMetadata,
+                                     metadata_dict_from_readme,
+                                     tagset_validator, validate_metadata_type,
+                                     yaml_block_from_readme)
 
 
 def _dedent(string: str) -> str:
-    indent_level = min(re.search("^ +", t).end() if t.startswith(" ") else 0 for t in string.splitlines())
-    return "\n".join([line[indent_level:] for line in string.splitlines() if indent_level < len(line)])
+    indent_level = min(
+        re.search("^ +", t).end() if t.startswith(" ") else 0
+        for t in string.splitlines()
+    )
+    return "\n".join(
+        [
+            line[indent_level:]
+            for line in string.splitlines()
+            if indent_level < len(line)
+        ]
+    )
 
 
 README_YAML = """\
@@ -70,27 +76,38 @@ class TestMetadataUtils(unittest.TestCase):
 
         items = ["tag1", "tag2", "tag2", "tag3"]
         reference_values = ["tag1", "tag2", "tag3"]
-        returned_values, error = tagset_validator(items=items, reference_values=reference_values, name=name, url=url)
+        returned_values, error = tagset_validator(
+            items=items, reference_values=reference_values, name=name, url=url
+        )
         self.assertListEqual(returned_values, items)
         self.assertIsNone(error)
 
         items = []
         reference_values = ["tag1", "tag2", "tag3"]
-        items, error = tagset_validator(items=items, reference_values=reference_values, name=name, url=url)
+        items, error = tagset_validator(
+            items=items, reference_values=reference_values, name=name, url=url
+        )
         self.assertListEqual(items, [])
         self.assertIsNone(error)
 
         items = []
         reference_values = []
-        returned_values, error = tagset_validator(items=items, reference_values=reference_values, name=name, url=url)
+        returned_values, error = tagset_validator(
+            items=items, reference_values=reference_values, name=name, url=url
+        )
         self.assertListEqual(returned_values, [])
         self.assertIsNone(error)
 
         items = ["tag1", "tag2", "tag2", "tag3", "unknown tag"]
         reference_values = ["tag1", "tag2", "tag3"]
-        returned_values, error = tagset_validator(items=items, reference_values=reference_values, name=name, url=url)
+        returned_values, error = tagset_validator(
+            items=items, reference_values=reference_values, name=name, url=url
+        )
         self.assertListEqual(returned_values, [])
-        self.assertEqual(error, f"{['unknown tag']} are not registered tags for '{name}', reference at {url}")
+        self.assertEqual(
+            error,
+            f"{['unknown tag']} are not registered tags for '{name}', reference at {url}",
+        )
 
         def predicate_fn(string):
             return "ignore" in string
@@ -105,7 +122,10 @@ class TestMetadataUtils(unittest.TestCase):
             escape_validation_predicate_fn=predicate_fn,
         )
         self.assertListEqual(returned_values, [])
-        self.assertEqual(error, f"{['process me']} are not registered tags for '{name}', reference at {url}")
+        self.assertEqual(
+            error,
+            f"{['process me']} are not registered tags for '{name}', reference at {url}",
+        )
 
         items = ["process me", "process me too", "ignore me"]
         reference_values = ["process me too", "process me"]
@@ -173,7 +193,10 @@ class TestMetadataUtils(unittest.TestCase):
             with open(path, "w+") as readme_file:
                 readme_file.write(README_YAML)
             metadata_dict = metadata_dict_from_readme(path)
-            self.assertDictEqual(metadata_dict, {"languages": ["zh", "en"], "task_ids": ["sentiment-classification"]})
+            self.assertDictEqual(
+                metadata_dict,
+                {"languages": ["zh", "en"], "task_ids": ["sentiment-classification"]},
+            )
 
             with open(path, "w+") as readme_file:
                 readme_file.write(README_EMPTY_YAML)
@@ -345,7 +368,9 @@ class TestMetadataUtils(unittest.TestCase):
             """
         )
         with self.assertRaises(TypeError):
-            metadata = DatasetMetadata.from_yaml_string(valid_yaml_string_with_duplicate_configs)
+            metadata = DatasetMetadata.from_yaml_string(
+                valid_yaml_string_with_duplicate_configs
+            )
             metadata.validate()
 
         valid_yaml_string_with_paperswithcode_id = _dedent(
@@ -426,7 +451,9 @@ class TestMetadataUtils(unittest.TestCase):
             """
         )
         with self.assertRaises(TypeError):
-            metadata = DatasetMetadata.from_yaml_string(valid_yaml_string_with_list_paperswithcode_id)
+            metadata = DatasetMetadata.from_yaml_string(
+                valid_yaml_string_with_list_paperswithcode_id
+            )
             metadata.validate()
 
     def test_get_metadata_by_config_name(self):

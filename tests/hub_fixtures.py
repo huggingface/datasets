@@ -3,15 +3,17 @@ from unittest.mock import patch
 
 import pytest
 import requests
-from huggingface_hub.hf_api import HfApi
 
+from huggingface_hub.hf_api import HfApi
 
 USER = "__DUMMY_TRANSFORMERS_USER__"
 FULL_NAME = "Dummy User"
 PASS = "__DUMMY_TRANSFORMERS_PASS__"
 
 ENDPOINT_STAGING = "https://moon-staging.huggingface.co"
-ENDPOINT_STAGING_DATASETS_URL = ENDPOINT_STAGING + "/datasets/{path}/resolve/{revision}/{name}"
+ENDPOINT_STAGING_DATASETS_URL = (
+    ENDPOINT_STAGING + "/datasets/{path}/resolve/{revision}/{name}"
+)
 
 
 @pytest.fixture(scope="session")
@@ -31,8 +33,10 @@ def hf_token(hf_api: HfApi):
 
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
-    repo_name = "repo_txt_data-{}".format(int(time.time() * 10e3))
-    hf_api.create_repo(token=hf_token, name=repo_name, repo_type="dataset", private=True)
+    repo_name = f"repo_txt_data-{int(time.time() * 10e3)}"
+    hf_api.create_repo(
+        token=hf_token, name=repo_name, repo_type="dataset", private=True
+    )
     repo_id = f"{USER}/{repo_name}"
     hf_api.upload_file(
         token=hf_token,
@@ -44,7 +48,10 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     yield repo_id
     try:
         hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
-    except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
+    except (
+        requests.exceptions.HTTPError,
+        ValueError,
+    ):  # catch http error and token invalid error
         pass
 
 
@@ -57,8 +64,10 @@ def hf_private_dataset_repo_txt_data(hf_private_dataset_repo_txt_data_):
 
 @pytest.fixture(scope="session")
 def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_path):
-    repo_name = "repo_zipped_txt_data-{}".format(int(time.time() * 10e3))
-    hf_api.create_repo(token=hf_token, name=repo_name, repo_type="dataset", private=True)
+    repo_name = f"repo_zipped_txt_data-{int(time.time() * 10e3)}"
+    hf_api.create_repo(
+        token=hf_token, name=repo_name, repo_type="dataset", private=True
+    )
     repo_id = f"{USER}/{repo_name}"
     hf_api.upload_file(
         token=hf_token,
@@ -70,7 +79,10 @@ def hf_private_dataset_repo_zipped_txt_data_(hf_api: HfApi, hf_token, zip_csv_pa
     yield repo_id
     try:
         hf_api.delete_repo(token=hf_token, name=repo_name, repo_type="dataset")
-    except (requests.exceptions.HTTPError, ValueError):  # catch http error and token invalid error
+    except (
+        requests.exceptions.HTTPError,
+        ValueError,
+    ):  # catch http error and token invalid error
         pass
 
 

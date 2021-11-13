@@ -4,14 +4,9 @@ from unittest.case import TestCase
 from datasets.arrow_dataset import Dataset
 from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
-from datasets.tasks import (
-    AutomaticSpeechRecognition,
-    ImageClassification,
-    QuestionAnsweringExtractive,
-    Summarization,
-    TextClassification,
-)
-
+from datasets.tasks import (AutomaticSpeechRecognition, ImageClassification,
+                            QuestionAnsweringExtractive, Summarization,
+                            TextClassification)
 
 SAMPLE_QUESTION_ANSWERING_EXTRACTIVE = {
     "id": "5733be284776f41900661182",
@@ -27,14 +22,22 @@ class TextClassificationTest(TestCase):
         self.labels = sorted(["pos", "neg"])
 
     def test_column_mapping(self):
-        task = TextClassification(text_column="input_text", label_column="input_label", labels=self.labels)
-        self.assertDictEqual({"input_text": "text", "input_label": "labels"}, task.column_mapping)
+        task = TextClassification(
+            text_column="input_text", label_column="input_label", labels=self.labels
+        )
+        self.assertDictEqual(
+            {"input_text": "text", "input_label": "labels"}, task.column_mapping
+        )
 
     def test_from_dict(self):
         input_schema = Features({"text": Value("string")})
         # Labels are cast to tuple during `TextClassification.__post_init__`, so we do the same here
         label_schema = Features({"labels": ClassLabel(names=tuple(self.labels))})
-        template_dict = {"text_column": "input_text", "label_column": "input_labels", "labels": self.labels}
+        template_dict = {
+            "text_column": "input_text",
+            "label_column": "input_labels",
+            "labels": self.labels,
+        }
         task = TextClassification.from_dict(template_dict)
         self.assertEqual("text-classification", task.task)
         self.assertEqual(input_schema, task.input_schema)
@@ -44,21 +47,32 @@ class TextClassificationTest(TestCase):
         with self.assertRaises(ValueError):
             # Add duplicate labels
             labels = self.labels + self.labels[:1]
-            task = TextClassification(text_column="input_text", label_column="input_label", labels=labels)
+            task = TextClassification(
+                text_column="input_text", label_column="input_label", labels=labels
+            )
             self.assertEqual("text-classification", task.task)
 
 
 class QuestionAnsweringTest(TestCase):
     def test_column_mapping(self):
         task = QuestionAnsweringExtractive(
-            context_column="input_context", question_column="input_question", answers_column="input_answers"
+            context_column="input_context",
+            question_column="input_question",
+            answers_column="input_answers",
         )
         self.assertDictEqual(
-            {"input_context": "context", "input_question": "question", "input_answers": "answers"}, task.column_mapping
+            {
+                "input_context": "context",
+                "input_question": "question",
+                "input_answers": "answers",
+            },
+            task.column_mapping,
         )
 
     def test_from_dict(self):
-        input_schema = Features({"question": Value("string"), "context": Value("string")})
+        input_schema = Features(
+            {"question": Value("string"), "context": Value("string")}
+        )
         label_schema = Features(
             {
                 "answers": Sequence(
@@ -83,7 +97,9 @@ class QuestionAnsweringTest(TestCase):
 class SummarizationTest(TestCase):
     def test_column_mapping(self):
         task = Summarization(text_column="input_text", summary_column="input_summary")
-        self.assertDictEqual({"input_text": "text", "input_summary": "summary"}, task.column_mapping)
+        self.assertDictEqual(
+            {"input_text": "text", "input_summary": "summary"}, task.column_mapping
+        )
 
     def test_from_dict(self):
         input_schema = Features({"text": Value("string")})
@@ -98,10 +114,15 @@ class SummarizationTest(TestCase):
 class AutomaticSpeechRecognitionTest(TestCase):
     def test_column_mapping(self):
         task = AutomaticSpeechRecognition(
-            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
+            audio_file_path_column="input_audio_file_path",
+            transcription_column="input_transcription",
         )
         self.assertDictEqual(
-            {"input_audio_file_path": "audio_file_path", "input_transcription": "transcription"}, task.column_mapping
+            {
+                "input_audio_file_path": "audio_file_path",
+                "input_transcription": "transcription",
+            },
+            task.column_mapping,
         )
 
     def test_from_dict(self):
@@ -122,8 +143,13 @@ class ImageClassificationTest(TestCase):
         self.labels = sorted(["pos", "neg"])
 
     def test_column_mapping(self):
-        task = ImageClassification(image_file_path_column="file_paths", label_column="input_label")
-        self.assertDictEqual({"file_paths": "image_file_path", "input_label": "labels"}, task.column_mapping)
+        task = ImageClassification(
+            image_file_path_column="file_paths", label_column="input_label"
+        )
+        self.assertDictEqual(
+            {"file_paths": "image_file_path", "input_label": "labels"},
+            task.column_mapping,
+        )
 
     def test_from_dict(self):
         input_schema = Features({"image_file_path": Value("string")})
@@ -142,7 +168,9 @@ class ImageClassificationTest(TestCase):
 class DatasetWithTaskProcessingTest(TestCase):
     def test_map_on_task_template(self):
         info = DatasetInfo(task_templates=QuestionAnsweringExtractive())
-        dataset = Dataset.from_dict({k: [v] for k, v in SAMPLE_QUESTION_ANSWERING_EXTRACTIVE.items()}, info=info)
+        dataset = Dataset.from_dict(
+            {k: [v] for k, v in SAMPLE_QUESTION_ANSWERING_EXTRACTIVE.items()}, info=info
+        )
         assert isinstance(dataset.info.task_templates, list)
         assert len(dataset.info.task_templates) == 1
 
@@ -167,10 +195,14 @@ class DatasetWithTaskProcessingTest(TestCase):
         assert mapped_dataset.info.task_templates == []
 
     def test_remove_and_map_on_task_template(self):
-        features = Features({"text": Value("string"), "label": ClassLabel(names=("pos", "neg"))})
+        features = Features(
+            {"text": Value("string"), "label": ClassLabel(names=("pos", "neg"))}
+        )
         task_templates = TextClassification(text_column="text", label_column="label")
         info = DatasetInfo(features=features, task_templates=task_templates)
-        dataset = Dataset.from_dict({"text": ["A sentence."], "label": ["pos"]}, info=info)
+        dataset = Dataset.from_dict(
+            {"text": ["A sentence."], "label": ["pos"]}, info=info
+        )
 
         def process(example):
             return example

@@ -14,10 +14,8 @@
 # limitations under the License.
 """Spearman correlation coefficient metric."""
 
-from scipy.stats import spearmanr
-
 import datasets
-
+from scipy.stats import spearmanr
 
 _DESCRIPTION = """
 Calculate a Spearman correlation coefficient with associated p-value.
@@ -91,7 +89,9 @@ class Spearmanr(datasets.Metric):
                     "references": datasets.Value("int32"),
                 }
             ),
-            reference_urls=["https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html"],
+            reference_urls=[
+                "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html"
+            ],
         )
 
     def _compute(self, predictions, references):

@@ -7,7 +7,6 @@ import pytest
 from datasets.utils.download_manager import DownloadManager
 from datasets.utils.file_utils import DownloadConfig, hash_url_to_filename
 
-
 URL = "http://www.mocksite.com/file1.txt"
 CONTENT = '"text": ["foo", "foo"]'
 HASH = "6d8ce9aa78a471c7477201efbeabd3bb01ac2e7d100a6dc024ba1608361f90a8"
@@ -46,7 +45,9 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
         cache_dir=os.path.join(cache_dir_root, cache_subdir),
         use_etag=False,
     )
-    dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
+    dl_manager = DownloadManager(
+        dataset_name=dataset_name, download_config=download_config
+    )
     downloaded_paths = dl_manager.download(urls)
     input_urls = urls
     for downloaded_paths in [downloaded_paths]:
@@ -89,7 +90,9 @@ def test_download_manager_extract(paths_type, xz_file, text_file):
         cache_dir=cache_dir,
         use_etag=False,
     )
-    dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
+    dl_manager = DownloadManager(
+        dataset_name=dataset_name, download_config=download_config
+    )
     extracted_paths = dl_manager.extract(paths)
     input_paths = paths
     for extracted_paths in [extracted_paths]:

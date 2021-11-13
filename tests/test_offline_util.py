@@ -3,7 +3,8 @@ import requests
 
 from datasets.utils.file_utils import http_head
 
-from .utils import OfflineSimulationMode, RequestWouldHangIndefinitelyError, offline
+from .utils import (OfflineSimulationMode, RequestWouldHangIndefinitelyError,
+                    offline)
 
 
 def test_offline_with_timeout():

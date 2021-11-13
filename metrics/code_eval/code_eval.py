@@ -22,12 +22,10 @@ import os
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import datasets
 import numpy as np
 
-import datasets
-
 from .execute import check_correctness
-
 
 _CITATION = """\
 @misc{chen2021evaluating,
@@ -152,14 +150,18 @@ class CodeEval(datasets.Metric):
             license=_LICENSE,
         )
 
-    def _compute(self, predictions, references, k=[1, 10, 100], num_workers=4, timeout=3.0):
+    def _compute(
+        self, predictions, references, k=[1, 10, 100], num_workers=4, timeout=3.0
+    ):
         """Returns the scores"""
 
         if os.getenv("HF_ALLOW_CODE_EVAL", 0) != "1":
             raise ValueError(_WARNING)
 
         if os.name == "nt":
-            raise NotImplementedError("This metric is currently not supported on Windows.")
+            raise NotImplementedError(
+                "This metric is currently not supported on Windows."
+            )
 
         with ThreadPoolExecutor(max_workers=num_workers) as executor:
             futures = []
@@ -167,7 +169,9 @@ class CodeEval(datasets.Metric):
             n_samples = 0
             results = defaultdict(list)
 
-            for task_id, (candidates, test_case) in enumerate(zip(predictions, references)):
+            for task_id, (candidates, test_case) in enumerate(
+                zip(predictions, references)
+            ):
                 for candidate in candidates:
                     test_program = candidate + "\n" + test_case
                     args = (test_program, timeout, task_id, completion_id[task_id])
@@ -190,7 +194,11 @@ class CodeEval(datasets.Metric):
         correct = np.array(correct)
 
         ks = k
-        pass_at_k = {f"pass@{k}": estimate_pass_at_k(total, correct, k).mean() for k in ks if (total >= k).all()}
+        pass_at_k = {
+            f"pass@{k}": estimate_pass_at_k(total, correct, k).mean()
+            for k in ks
+            if (total >= k).all()
+        }
 
         return pass_at_k, results
 
@@ -210,4 +218,6 @@ def estimate_pass_at_k(num_samples, num_correct, k):
         assert len(num_samples) == len(num_correct)
         num_samples_it = iter(num_samples)
 
-    return np.array([estimator(int(n), int(c), k) for n, c in zip(num_samples_it, num_correct)])
+    return np.array(
+        [estimator(int(n), int(c), k) for n, c in zip(num_samples_it, num_correct)]
+    )

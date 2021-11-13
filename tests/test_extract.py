@@ -20,7 +20,9 @@ def test_zstd_extractor(zstd_file, tmp_path, text_file):
 
 @require_zstandard
 @pytest.mark.parametrize("compression_format", ["gzip", "xz", "zstd"])
-def test_extractor(compression_format, gz_file, xz_file, zstd_file, tmp_path, text_file):
+def test_extractor(
+    compression_format, gz_file, xz_file, zstd_file, tmp_path, text_file
+):
     input_paths = {"gzip": gz_file, "xz": xz_file, "zstd": zstd_file}
     input_path = str(input_paths[compression_format])
     output_path = str(tmp_path / "extracted.txt")

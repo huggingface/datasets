@@ -14,12 +14,10 @@
 # limitations under the License.
 """ METEOR metric. """
 
-import numpy as np
-from nltk.translate import meteor_score
-
 import datasets
+import numpy as np
 from datasets.config import importlib_metadata, version
-
+from nltk.translate import meteor_score
 
 NLTK_VERSION = version.parse(importlib_metadata.version("nltk"))
 if NLTK_VERSION >= version.Version("3.6.4"):
@@ -95,7 +93,9 @@ class Meteor(datasets.Metric):
                     "references": datasets.Value("string", id="sequence"),
                 }
             ),
-            codebase_urls=["https://github.com/nltk/nltk/blob/develop/nltk/translate/meteor_score.py"],
+            codebase_urls=[
+                "https://github.com/nltk/nltk/blob/develop/nltk/translate/meteor_score.py"
+            ],
             reference_urls=[
                 "https://www.nltk.org/api/nltk.translate.html#module-nltk.translate.meteor_score",
                 "https://en.wikipedia.org/wiki/METEOR",
@@ -113,13 +113,19 @@ class Meteor(datasets.Metric):
         if NLTK_VERSION >= version.Version("3.6.4"):
             scores = [
                 meteor_score.single_meteor_score(
-                    word_tokenize(ref), word_tokenize(pred), alpha=alpha, beta=beta, gamma=gamma
+                    word_tokenize(ref),
+                    word_tokenize(pred),
+                    alpha=alpha,
+                    beta=beta,
+                    gamma=gamma,
                 )
                 for ref, pred in zip(references, predictions)
             ]
         else:
             scores = [
-                meteor_score.single_meteor_score(ref, pred, alpha=alpha, beta=beta, gamma=gamma)
+                meteor_score.single_meteor_score(
+                    ref, pred, alpha=alpha, beta=beta, gamma=gamma
+                )
                 for ref, pred in zip(references, predictions)
             ]
 

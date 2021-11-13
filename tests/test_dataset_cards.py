@@ -26,14 +26,15 @@ from datasets.utils.readme import ReadMe
 
 from .utils import slow
 
-
 repo_path = Path.cwd()
 
 logger = get_logger(__name__)
 
 
 def get_changed_datasets(repo_path: Path) -> List[Path]:
-    diff_output = check_output(["git", "diff", "--name-only", "origin/master...HEAD"], cwd=repo_path)
+    diff_output = check_output(
+        ["git", "diff", "--name-only", "origin/master...HEAD"], cwd=repo_path
+    )
     changed_files = [Path(repo_path, f) for f in diff_output.decode().splitlines()]
 
     datasets_dir_path = repo_path / "datasets"
@@ -44,12 +45,20 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
         if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path))
     )
 
-    return sorted(dataset_name for dataset_name in changed_datasets if dataset_name not in _PACKAGED_DATASETS_MODULES)
+    return sorted(
+        dataset_name
+        for dataset_name in changed_datasets
+        if dataset_name not in _PACKAGED_DATASETS_MODULES
+    )
 
 
 def get_all_datasets(repo_path: Path) -> List[Path]:
     dataset_names = [path.parts[-1] for path in (repo_path / "datasets").iterdir()]
-    return [dataset_name for dataset_name in dataset_names if dataset_name not in _PACKAGED_DATASETS_MODULES]
+    return [
+        dataset_name
+        for dataset_name in dataset_names
+        if dataset_name not in _PACKAGED_DATASETS_MODULES
+    ]
 
 
 @pytest.mark.parametrize("dataset_name", get_changed_datasets(repo_path))

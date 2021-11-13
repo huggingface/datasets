@@ -16,7 +16,6 @@
 
 import datasets
 
-
 # TODO: Add BibTeX citation
 _CITATION = """\
 @InProceedings{huggingface:metric,
@@ -69,35 +68,51 @@ class NewMetric(datasets.Metric):
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
             # This defines the format of each prediction and reference
-            features=datasets.Features({
-                'predictions': datasets.Value('string'),
-                'references': datasets.Value('string'),
-            }),
+            features=datasets.Features(
+                {
+                    "predictions": datasets.Value("string"),
+                    "references": datasets.Value("string"),
+                }
+            ),
             # Homepage of the metric for documentation
             homepage="http://metric.homepage",
             # Additional links to the codebase or references
             codebase_urls=["http://github.com/path/to/codebase/of/new_metric"],
-            reference_urls=["http://path.to.reference.url/new_metric"]
+            reference_urls=["http://path.to.reference.url/new_metric"],
         )
 
     def _download_and_prepare(self, dl_manager):
         """Optional: download external resources useful to compute the scores"""
         # TODO: Download external resources if needed
         bad_words_path = dl_manager.download_and_extract(BAD_WORDS_URL)
-        self.bad_words = set([w.strip() for w in open(bad_words_path, "r", encoding="utf-8")])
+        self.bad_words = set(
+            [w.strip() for w in open(bad_words_path, "r", encoding="utf-8")]
+        )
 
     def _compute(self, predictions, references):
         """Returns the scores"""
         # TODO: Compute the different scores of the metric
-        accuracy = sum(i == j for i, j in zip(predictions, references)) / len(predictions)
+        accuracy = sum(i == j for i, j in zip(predictions, references)) / len(
+            predictions
+        )
 
         if self.config_name == "max":
-            second_score = max(abs(len(i) - len(j)) for i, j in zip(predictions, references) if i not in self.bad_words)
+            second_score = max(
+                abs(len(i) - len(j))
+                for i, j in zip(predictions, references)
+                if i not in self.bad_words
+            )
         elif self.config_name == "mean":
-            second_score = sum(abs(len(i) - len(j)) for i, j in zip(predictions, references) if i not in self.bad_words)
+            second_score = sum(
+                abs(len(i) - len(j))
+                for i, j in zip(predictions, references)
+                if i not in self.bad_words
+            )
             second_score /= sum(i not in self.bad_words for i in predictions)
         else:
-            raise ValueError("Invalid config name for NewMetric: {}. Please use 'max' or 'mean'.".format(self.config_name))
+            raise ValueError(
+                f"Invalid config name for NewMetric: {self.config_name}. Please use 'max' or 'mean'."
+            )
 
         return {
             "accuracy": accuracy,

@@ -14,11 +14,9 @@
 # limitations under the License.
 """ GLUE benchmark metric. """
 
+import datasets
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
-
-import datasets
-
 
 _CITATION = """\
 @inproceedings{wang2019glue,
@@ -130,8 +128,12 @@ class Glue(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Value("int64" if self.config_name != "stsb" else "float32"),
-                    "references": datasets.Value("int64" if self.config_name != "stsb" else "float32"),
+                    "predictions": datasets.Value(
+                        "int64" if self.config_name != "stsb" else "float32"
+                    ),
+                    "references": datasets.Value(
+                        "int64" if self.config_name != "stsb" else "float32"
+                    ),
                 }
             ),
             codebase_urls=[],
@@ -146,7 +148,16 @@ class Glue(datasets.Metric):
             return pearson_and_spearman(predictions, references)
         elif self.config_name in ["mrpc", "qqp"]:
             return acc_and_f1(predictions, references)
-        elif self.config_name in ["sst2", "mnli", "mnli_mismatched", "mnli_matched", "qnli", "rte", "wnli", "hans"]:
+        elif self.config_name in [
+            "sst2",
+            "mnli",
+            "mnli_mismatched",
+            "mnli_matched",
+            "qnli",
+            "rte",
+            "wnli",
+            "hans",
+        ]:
             return {"accuracy": simple_accuracy(predictions, references)}
         else:
             raise KeyError(

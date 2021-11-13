@@ -16,13 +16,11 @@
 
 # The dependencies in https://github.com/google-research/google-research/blob/master/rouge/requirements.txt
 import absl  # Here to have a nice missing dependency error message early on
+import datasets
 import nltk  # Here to have a nice missing dependency error message early on
 import numpy  # Here to have a nice missing dependency error message early on
 import six  # Here to have a nice missing dependency error message early on
 from rouge_score import rouge_scorer, scoring
-
-import datasets
-
 
 _CITATION = """\
 @inproceedings{lin-2004-rouge,
@@ -97,18 +95,29 @@ class Rouge(datasets.Metric):
                     "references": datasets.Value("string", id="sequence"),
                 }
             ),
-            codebase_urls=["https://github.com/google-research/google-research/tree/master/rouge"],
+            codebase_urls=[
+                "https://github.com/google-research/google-research/tree/master/rouge"
+            ],
             reference_urls=[
                 "https://en.wikipedia.org/wiki/ROUGE_(metric)",
                 "https://github.com/google-research/google-research/tree/master/rouge",
             ],
         )
 
-    def _compute(self, predictions, references, rouge_types=None, use_agregator=True, use_stemmer=False):
+    def _compute(
+        self,
+        predictions,
+        references,
+        rouge_types=None,
+        use_agregator=True,
+        use_stemmer=False,
+    ):
         if rouge_types is None:
             rouge_types = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
 
-        scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=use_stemmer)
+        scorer = rouge_scorer.RougeScorer(
+            rouge_types=rouge_types, use_stemmer=use_stemmer
+        )
         if use_agregator:
             aggregator = scoring.BootstrapAggregator()
         else:

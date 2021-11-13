@@ -14,11 +14,9 @@
 # limitations under the License.
 """ SACREBLEU metric. """
 
+import datasets
 import sacrebleu as scb
 from packaging import version
-
-import datasets
-
 
 _CITATION = """\
 @inproceedings{post-2018-call,
@@ -94,7 +92,9 @@ class Sacrebleu(datasets.Metric):
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("string", id="sequence"),
-                    "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
+                    "references": datasets.Sequence(
+                        datasets.Value("string", id="sequence"), id="references"
+                    ),
                 }
             ),
             codebase_urls=["https://github.com/mjpost/sacreBLEU"],
@@ -118,8 +118,12 @@ class Sacrebleu(datasets.Metric):
     ):
         references_per_prediction = len(references[0])
         if any(len(refs) != references_per_prediction for refs in references):
-            raise ValueError("Sacrebleu requires the same number of references for each prediction")
-        transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
+            raise ValueError(
+                "Sacrebleu requires the same number of references for each prediction"
+            )
+        transformed_references = [
+            [refs[i] for refs in references] for i in range(references_per_prediction)
+        ]
         output = scb.corpus_bleu(
             predictions,
             transformed_references,

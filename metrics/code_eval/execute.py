@@ -37,7 +37,9 @@ def check_correctness(check_program, timeout, task_id, completion_id):
     manager = multiprocessing.Manager()
     result = manager.list()
 
-    p = multiprocessing.Process(target=unsafe_execute, args=(check_program, result, timeout))
+    p = multiprocessing.Process(
+        target=unsafe_execute, args=(check_program, result, timeout)
+    )
     p.start()
     p.join(timeout=timeout + 1)
     if p.is_alive():
@@ -172,10 +174,16 @@ def reliability_guard(maximum_memory_bytes=None):
     if maximum_memory_bytes is not None:
         import resource
 
-        resource.setrlimit(resource.RLIMIT_AS, (maximum_memory_bytes, maximum_memory_bytes))
-        resource.setrlimit(resource.RLIMIT_DATA, (maximum_memory_bytes, maximum_memory_bytes))
+        resource.setrlimit(
+            resource.RLIMIT_AS, (maximum_memory_bytes, maximum_memory_bytes)
+        )
+        resource.setrlimit(
+            resource.RLIMIT_DATA, (maximum_memory_bytes, maximum_memory_bytes)
+        )
         if not platform.uname().system == "Darwin":
-            resource.setrlimit(resource.RLIMIT_STACK, (maximum_memory_bytes, maximum_memory_bytes))
+            resource.setrlimit(
+                resource.RLIMIT_STACK, (maximum_memory_bytes, maximum_memory_bytes)
+            )
 
     faulthandler.disable()
 

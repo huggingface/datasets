@@ -13,14 +13,9 @@ from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.splits import NamedSplit
 
 from .conftest import s3_test_bucket_name
-from .utils import (
-    assert_arrow_memory_doesnt_increase,
-    assert_arrow_memory_increases,
-    require_pyarrow_at_least_3,
-    require_s3,
-    require_tf,
-    require_torch,
-)
+from .utils import (assert_arrow_memory_doesnt_increase,
+                    assert_arrow_memory_increases, require_pyarrow_at_least_3,
+                    require_s3, require_tf, require_torch)
 
 
 class DatasetDictTest(TestCase):
@@ -30,7 +25,12 @@ class DatasetDictTest(TestCase):
             dset = Dataset.from_dict(data)
         else:
             dset = Dataset.from_dict(
-                {"filename": ["my_name-train" + "_" + "{:03d}".format(x) for x in np.arange(30).tolist()]}
+                {
+                    "filename": [
+                        "my_name-train" + "_" + f"{x:03d}"
+                        for x in np.arange(30).tolist()
+                    ]
+                }
             )
         return dset
 
@@ -45,28 +45,38 @@ class DatasetDictTest(TestCase):
     def test_flatten_in_place(self):
         dset_split = Dataset.from_dict(
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
-            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
+            features=Features(
+                {"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}
+            ),
         )
         dset = DatasetDict({"train": dset_split, "test": dset_split})
         dset.flatten_()
-        self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
+        self.assertDictEqual(
+            dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]}
+        )
         self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(
-            dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
+            dset["train"].features,
+            Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")}),
         )
         del dset
 
     def test_flatten(self):
         dset_split = Dataset.from_dict(
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
-            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
+            features=Features(
+                {"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}
+            ),
         )
         dset = DatasetDict({"train": dset_split, "test": dset_split})
         dset = dset.flatten()
-        self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
+        self.assertDictEqual(
+            dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]}
+        )
         self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(
-            dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
+            dset["train"].features,
+            Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")}),
         )
         del dset
 
@@ -268,7 +278,9 @@ class DatasetDictTest(TestCase):
 
     def test_rename_column(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset = dset.rename_column(original_column_name="col_1", new_column_name="new_name")
+        dset = dset.rename_column(
+            original_column_name="col_1", new_column_name="new_name"
+        )
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 2)
             self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
@@ -278,26 +290,37 @@ class DatasetDictTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
 
-            mapped_dsets_1: DatasetDict = dsets.map(lambda ex: {"foo": ["bar"] * len(ex["filename"])}, batched=True)
+            mapped_dsets_1: DatasetDict = dsets.map(
+                lambda ex: {"foo": ["bar"] * len(ex["filename"])}, batched=True
+            )
             self.assertListEqual(list(dsets.keys()), list(mapped_dsets_1.keys()))
-            self.assertListEqual(mapped_dsets_1["train"].column_names, ["filename", "foo"])
+            self.assertListEqual(
+                mapped_dsets_1["train"].column_names, ["filename", "foo"]
+            )
 
             cache_file_names = {
                 "train": os.path.join(tmp_dir, "train.arrow"),
                 "test": os.path.join(tmp_dir, "test.arrow"),
             }
             mapped_dsets_2: DatasetDict = mapped_dsets_1.map(
-                lambda ex: {"bar": ["foo"] * len(ex["filename"])}, batched=True, cache_file_names=cache_file_names
+                lambda ex: {"bar": ["foo"] * len(ex["filename"])},
+                batched=True,
+                cache_file_names=cache_file_names,
             )
             self.assertListEqual(list(dsets.keys()), list(mapped_dsets_2.keys()))
-            self.assertListEqual(sorted(mapped_dsets_2["train"].column_names), sorted(["filename", "foo", "bar"]))
+            self.assertListEqual(
+                sorted(mapped_dsets_2["train"].column_names),
+                sorted(["filename", "foo", "bar"]),
+            )
             del dsets, mapped_dsets_1, mapped_dsets_2
 
     def test_filter(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
 
-            filtered_dsets_1: DatasetDict = dsets.filter(lambda ex: int(ex["filename"].split("_")[-1]) < 10)
+            filtered_dsets_1: DatasetDict = dsets.filter(
+                lambda ex: int(ex["filename"].split("_")[-1]) < 10
+            )
             self.assertListEqual(list(dsets.keys()), list(filtered_dsets_1.keys()))
             self.assertEqual(len(filtered_dsets_1["train"]), 10)
 
@@ -306,7 +329,8 @@ class DatasetDictTest(TestCase):
                 "test": os.path.join(tmp_dir, "test.arrow"),
             }
             filtered_dsets_2: DatasetDict = filtered_dsets_1.filter(
-                lambda ex: int(ex["filename"].split("_")[-1]) < 5, cache_file_names=cache_file_names
+                lambda ex: int(ex["filename"].split("_")[-1]) < 5,
+                cache_file_names=cache_file_names,
             )
             self.assertListEqual(list(dsets.keys()), list(filtered_dsets_2.keys()))
             self.assertEqual(len(filtered_dsets_2["train"]), 5)
@@ -320,7 +344,7 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_1.keys()))
             self.assertListEqual(
                 [f.split("_")[-1] for f in sorted_dsets_1["train"]["filename"]],
-                sorted("{:03d}".format(x) for x in range(30)),
+                sorted(f"{x:03d}" for x in range(30)),
             )
 
             indices_cache_file_names = {
@@ -328,12 +352,14 @@ class DatasetDictTest(TestCase):
                 "test": os.path.join(tmp_dir, "test.arrow"),
             }
             sorted_dsets_2: DatasetDict = sorted_dsets_1.sort(
-                "filename", indices_cache_file_names=indices_cache_file_names, reverse=True
+                "filename",
+                indices_cache_file_names=indices_cache_file_names,
+                reverse=True,
             )
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_2.keys()))
             self.assertListEqual(
                 [f.split("_")[-1] for f in sorted_dsets_2["train"]["filename"]],
-                sorted(("{:03d}".format(x) for x in range(30)), reverse=True),
+                sorted((f"{x:03d}" for x in range(30)), reverse=True),
             )
             del dsets, sorted_dsets_1, sorted_dsets_2
 
@@ -350,15 +376,28 @@ class DatasetDictTest(TestCase):
                 "test": 1234,
             }
             dsets_shuffled = dsets.shuffle(
-                seeds=seeds, indices_cache_file_names=indices_cache_file_names, load_from_cache_file=False
+                seeds=seeds,
+                indices_cache_file_names=indices_cache_file_names,
+                load_from_cache_file=False,
             )
-            self.assertListEqual(dsets_shuffled["train"]["filename"], dsets_shuffled["test"]["filename"])
+            self.assertListEqual(
+                dsets_shuffled["train"]["filename"], dsets_shuffled["test"]["filename"]
+            )
 
             self.assertEqual(len(dsets_shuffled["train"]), 30)
-            self.assertEqual(dsets_shuffled["train"][0]["filename"], "my_name-train_028")
-            self.assertEqual(dsets_shuffled["train"][2]["filename"], "my_name-train_010")
-            self.assertDictEqual(dsets["train"].features, Features({"filename": Value("string")}))
-            self.assertDictEqual(dsets_shuffled["train"].features, Features({"filename": Value("string")}))
+            self.assertEqual(
+                dsets_shuffled["train"][0]["filename"], "my_name-train_028"
+            )
+            self.assertEqual(
+                dsets_shuffled["train"][2]["filename"], "my_name-train_010"
+            )
+            self.assertDictEqual(
+                dsets["train"].features, Features({"filename": Value("string")})
+            )
+            self.assertDictEqual(
+                dsets_shuffled["train"].features,
+                Features({"filename": Value("string")}),
+            )
 
             # Reproducibility
             indices_cache_file_names_2 = {
@@ -366,9 +405,14 @@ class DatasetDictTest(TestCase):
                 "test": os.path.join(tmp_dir, "test_2.arrow"),
             }
             dsets_shuffled_2 = dsets.shuffle(
-                seeds=seeds, indices_cache_file_names=indices_cache_file_names_2, load_from_cache_file=False
+                seeds=seeds,
+                indices_cache_file_names=indices_cache_file_names_2,
+                load_from_cache_file=False,
             )
-            self.assertListEqual(dsets_shuffled["train"]["filename"], dsets_shuffled_2["train"]["filename"])
+            self.assertListEqual(
+                dsets_shuffled["train"]["filename"],
+                dsets_shuffled_2["train"]["filename"],
+            )
 
             seeds = {
                 "train": 1234,
@@ -379,9 +423,14 @@ class DatasetDictTest(TestCase):
                 "test": os.path.join(tmp_dir, "test_3.arrow"),
             }
             dsets_shuffled_3 = dsets.shuffle(
-                seeds=seeds, indices_cache_file_names=indices_cache_file_names_3, load_from_cache_file=False
+                seeds=seeds,
+                indices_cache_file_names=indices_cache_file_names_3,
+                load_from_cache_file=False,
             )
-            self.assertNotEqual(dsets_shuffled_3["train"]["filename"], dsets_shuffled_3["test"]["filename"])
+            self.assertNotEqual(
+                dsets_shuffled_3["train"]["filename"],
+                dsets_shuffled_3["test"]["filename"],
+            )
 
             # other input types
             dsets_shuffled_int = dsets.shuffle(42)
@@ -440,17 +489,27 @@ class DatasetDictTest(TestCase):
         train_features = Features(
             {
                 "input_text": Value("string"),
-                "input_labels": ClassLabel(num_classes=3, names=["entailment", "neutral", "contradiction"]),
+                "input_labels": ClassLabel(
+                    num_classes=3, names=["entailment", "neutral", "contradiction"]
+                ),
             }
         )
         test_features = Features(
             {
                 "input_text": Value("string"),
-                "input_labels": ClassLabel(num_classes=3, names=["entailment", "contradiction", "neutral"]),
+                "input_labels": ClassLabel(
+                    num_classes=3, names=["entailment", "contradiction", "neutral"]
+                ),
             }
         )
-        train_data = {"input_text": ["a", "a", "b", "b", "c", "c"], "input_labels": [0, 0, 1, 1, 2, 2]}
-        test_data = {"input_text": ["a", "a", "c", "c", "b", "b"], "input_labels": [0, 0, 1, 1, 2, 2]}
+        train_data = {
+            "input_text": ["a", "a", "b", "b", "c", "c"],
+            "input_labels": [0, 0, 1, 1, 2, 2],
+        }
+        test_data = {
+            "input_text": ["a", "a", "c", "c", "b", "b"],
+            "input_labels": [0, 0, 1, 1, 2, 2],
+        }
         label2id = {"CONTRADICTION": 0, "ENTAILMENT": 2, "NEUTRAL": 1}
         id2label = {v: k for k, v in label2id.items()}
         train_expected_labels = [2, 2, 1, 1, 0, 0]
@@ -467,10 +526,12 @@ class DatasetDictTest(TestCase):
         self.assertListEqual(train_expected_labels, dsets["train"]["input_labels"])
         self.assertListEqual(test_expected_labels, dsets["test"]["input_labels"])
         train_aligned_label_names = [
-            dsets["train"].features["input_labels"].int2str(idx) for idx in dsets["train"]["input_labels"]
+            dsets["train"].features["input_labels"].int2str(idx)
+            for idx in dsets["train"]["input_labels"]
         ]
         test_aligned_label_names = [
-            dsets["test"].features["input_labels"].int2str(idx) for idx in dsets["test"]["input_labels"]
+            dsets["test"].features["input_labels"].int2str(idx)
+            for idx in dsets["test"]["input_labels"]
         ]
         self.assertListEqual(train_expected_label_names, train_aligned_label_names)
         self.assertListEqual(test_expected_label_names, test_aligned_label_names)
@@ -492,7 +553,9 @@ def test_datasetdict_from_csv_keep_in_memory(keep_in_memory, csv_path, tmp_path)
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = DatasetDict.from_csv({"train": csv_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+        dataset = DatasetDict.from_csv(
+            {"train": csv_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        )
     _check_csv_datasetdict(dataset, expected_features)
 
 
@@ -512,9 +575,13 @@ def test_datasetdict_from_csv_features(features, csv_path, tmp_path):
     default_expected_features = {"col_1": "int64", "col_2": "int64", "col_3": "float64"}
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
-    dataset = DatasetDict.from_csv({"train": csv_path}, features=features, cache_dir=cache_dir)
+    dataset = DatasetDict.from_csv(
+        {"train": csv_path}, features=features, cache_dir=cache_dir
+    )
     _check_csv_datasetdict(dataset, expected_features)
 
 
@@ -548,7 +615,9 @@ def test_datasetdict_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_pa
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = DatasetDict.from_json({"train": jsonl_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+        dataset = DatasetDict.from_json(
+            {"train": jsonl_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        )
     _check_json_datasetdict(dataset, expected_features)
 
 
@@ -564,12 +633,20 @@ def test_datasetdict_from_json_keep_in_memory(keep_in_memory, jsonl_path, tmp_pa
 )
 def test_datasetdict_from_json_features(features, jsonl_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    default_expected_features = {
+        "col_1": "string",
+        "col_2": "int64",
+        "col_3": "float64",
+    }
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
-    dataset = DatasetDict.from_json({"train": jsonl_path}, features=features, cache_dir=cache_dir)
+    dataset = DatasetDict.from_json(
+        {"train": jsonl_path}, features=features, cache_dir=cache_dir
+    )
     _check_json_datasetdict(dataset, expected_features)
 
 
@@ -600,11 +677,15 @@ def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",
 
 @require_pyarrow_at_least_3
 @pytest.mark.parametrize("keep_in_memory", [False, True])
-def test_datasetdict_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_path):
+def test_datasetdict_from_parquet_keep_in_memory(
+    keep_in_memory, parquet_path, tmp_path
+):
     cache_dir = tmp_path / "cache"
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = DatasetDict.from_parquet({"train": parquet_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+        dataset = DatasetDict.from_parquet(
+            {"train": parquet_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        )
     _check_parquet_datasetdict(dataset, expected_features)
 
 
@@ -621,12 +702,20 @@ def test_datasetdict_from_parquet_keep_in_memory(keep_in_memory, parquet_path, t
 )
 def test_datasetdict_from_parquet_features(features, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
-    default_expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
+    default_expected_features = {
+        "col_1": "string",
+        "col_2": "int64",
+        "col_3": "float64",
+    }
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
-    dataset = DatasetDict.from_parquet({"train": parquet_path}, features=features, cache_dir=cache_dir)
+    dataset = DatasetDict.from_parquet(
+        {"train": parquet_path}, features=features, cache_dir=cache_dir
+    )
     _check_parquet_datasetdict(dataset, expected_features)
 
 
@@ -661,7 +750,9 @@ def test_datasetdict_from_text_keep_in_memory(keep_in_memory, text_path, tmp_pat
     cache_dir = tmp_path / "cache"
     expected_features = {"text": "string"}
     with assert_arrow_memory_increases() if keep_in_memory else assert_arrow_memory_doesnt_increase():
-        dataset = DatasetDict.from_text({"train": text_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
+        dataset = DatasetDict.from_text(
+            {"train": text_path}, cache_dir=cache_dir, keep_in_memory=keep_in_memory
+        )
     _check_text_datasetdict(dataset, expected_features)
 
 
@@ -679,9 +770,13 @@ def test_datasetdict_from_text_features(features, text_path, tmp_path):
     default_expected_features = {"text": "string"}
     expected_features = features.copy() if features else default_expected_features
     features = (
-        Features({feature: Value(dtype) for feature, dtype in features.items()}) if features is not None else None
+        Features({feature: Value(dtype) for feature, dtype in features.items()})
+        if features is not None
+        else None
     )
-    dataset = DatasetDict.from_text({"train": text_path}, features=features, cache_dir=cache_dir)
+    dataset = DatasetDict.from_text(
+        {"train": text_path}, features=features, cache_dir=cache_dir
+    )
     _check_text_datasetdict(dataset, expected_features)
 
 

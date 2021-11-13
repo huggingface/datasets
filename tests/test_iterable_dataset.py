@@ -7,22 +7,13 @@ from datasets.combine import interleave_datasets
 from datasets.features import ClassLabel, Features, Value
 from datasets.info import DatasetInfo
 from datasets.iterable_dataset import (
-    BufferShuffledExamplesIterable,
-    CyclingMultiSourcesExamplesIterable,
-    ExamplesIterable,
-    IterableDataset,
-    MappedExamplesIterable,
-    RandomlyCyclingMultiSourcesExamplesIterable,
-    ShufflingConfig,
-    SkipExamplesIterable,
-    TakeExamplesIterable,
-    _batch_to_examples,
-    _examples_to_batch,
-    iterable_dataset,
-)
+    BufferShuffledExamplesIterable, CyclingMultiSourcesExamplesIterable,
+    ExamplesIterable, IterableDataset, MappedExamplesIterable,
+    RandomlyCyclingMultiSourcesExamplesIterable, ShufflingConfig,
+    SkipExamplesIterable, TakeExamplesIterable, _batch_to_examples,
+    _examples_to_batch, iterable_dataset)
 
 from .utils import require_torch
-
 
 DEFAULT_N_EXAMPLES = 20
 DEFAULT_FILEPATH = "file.txt"
@@ -45,7 +36,9 @@ def generate_examples_fn():
 @pytest.fixture
 def dataset(generate_examples_fn):
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
-    return IterableDataset(ex_iterable, info=DatasetInfo(description="dummy"), split="train")
+    return IterableDataset(
+        ex_iterable, info=DatasetInfo(description="dummy"), split="train"
+    )
 
 
 ################################
@@ -63,7 +56,9 @@ def test_examples_iterable(generate_examples_fn):
 
 
 def test_examples_iterable_with_kwargs(generate_examples_fn):
-    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"], "split": "train"})
+    ex_iterable = ExamplesIterable(
+        generate_examples_fn, {"filepaths": ["0.txt", "1.txt"], "split": "train"}
+    )
     expected = list(generate_examples_fn(filepaths=["0.txt", "1.txt"], split="train"))
     assert list(ex_iterable) == expected
     assert all("split" in ex for _, ex in ex_iterable)
@@ -71,9 +66,13 @@ def test_examples_iterable_with_kwargs(generate_examples_fn):
 
 
 def test_examples_iterable_shuffle_data_sources(generate_examples_fn):
-    ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]})
+    ex_iterable = ExamplesIterable(
+        generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]}
+    )
     ex_iterable = ex_iterable.shuffle_data_sources(42)
-    expected = list(generate_examples_fn(filepaths=["1.txt", "0.txt"]))  # shuffle the filepaths
+    expected = list(
+        generate_examples_fn(filepaths=["1.txt", "0.txt"])
+    )  # shuffle the filepaths
     assert list(ex_iterable) == expected
 
 
@@ -82,15 +81,25 @@ def test_buffer_shuffled_examples_iterable(generate_examples_fn, seed):
     n, buffer_size = 100, 30
     rng = np.random.default_rng(seed)
     expected_indices_used_for_shuffling = list(
-        islice(BufferShuffledExamplesIterable._iter_random_indices(rng, buffer_size=buffer_size), n - buffer_size)
+        islice(
+            BufferShuffledExamplesIterable._iter_random_indices(
+                rng, buffer_size=buffer_size
+            ),
+            n - buffer_size,
+        )
     )
     # indices to pick in the shuffle buffer should all be in the right range
-    assert all(0 <= index_to_pick < buffer_size for index_to_pick in expected_indices_used_for_shuffling)
+    assert all(
+        0 <= index_to_pick < buffer_size
+        for index_to_pick in expected_indices_used_for_shuffling
+    )
     # it should be random indices
     assert expected_indices_used_for_shuffling != list(range(buffer_size))
 
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    ex_iterable = BufferShuffledExamplesIterable(base_ex_iterable, buffer_size=buffer_size, seed=seed)
+    ex_iterable = BufferShuffledExamplesIterable(
+        base_ex_iterable, buffer_size=buffer_size, seed=seed
+    )
 
     # The final order of examples is the result of a shuffle buffer.
     all_examples = list(generate_examples_fn(n=n))
@@ -114,15 +123,22 @@ def test_cycling_multi_sources_examples_iterable(generate_examples_fn):
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"text": "foo"})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"text": "bar"})
     ex_iterable = CyclingMultiSourcesExamplesIterable([ex_iterable1, ex_iterable2])
-    expected = list(chain(*zip(generate_examples_fn(text="foo"), generate_examples_fn(text="bar"))))
+    expected = list(
+        chain(*zip(generate_examples_fn(text="foo"), generate_examples_fn(text="bar")))
+    )
 
     assert next(iter(ex_iterable)) == expected[0]
     assert list(ex_iterable) == expected
-    assert all((x["id"], x["text"]) == (i // 2, "bar" if i % 2 else "foo") for i, (_, x) in enumerate(ex_iterable))
+    assert all(
+        (x["id"], x["text"]) == (i // 2, "bar" if i % 2 else "foo")
+        for i, (_, x) in enumerate(ex_iterable)
+    )
 
 
 @pytest.mark.parametrize("probabilities", [None, (0.5, 0.5), (0.9, 0.1)])
-def test_randomly_cycling_multi_sources_examples_iterable(generate_examples_fn, probabilities):
+def test_randomly_cycling_multi_sources_examples_iterable(
+    generate_examples_fn, probabilities
+):
     seed = 42
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"text": "foo"})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"text": "bar"})
@@ -155,35 +171,56 @@ def test_randomly_cycling_multi_sources_examples_iterable(generate_examples_fn, 
         (3, lambda x: {"id+1": [x["id"][0] + 1]}, 1),  # same with bs=1
         (5, lambda x: {"id+1": [i + 1 for i in x["id"]]}, 10),  # same with bs=10
         (25, lambda x: {"id+1": [i + 1 for i in x["id"]]}, 10),  # same with bs=10
-        (3, lambda x: {k: v * 2 for k, v in x.items()}, 1),  # make a duplicate of each example
+        (
+            3,
+            lambda x: {k: v * 2 for k, v in x.items()},
+            1,
+        ),  # make a duplicate of each example
         (
             50,
-            lambda x: {"foo": ["bar"] * np.random.default_rng(x["id"][0]).integers(0, 10)},
+            lambda x: {
+                "foo": ["bar"] * np.random.default_rng(x["id"][0]).integers(0, 10)
+            },
             8,
         ),  # make a duplicate of each example
     ],
 )
 def test_mapped_examples_iterable(generate_examples_fn, n, func, batch_size):
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    ex_iterable = MappedExamplesIterable(base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size)
+    ex_iterable = MappedExamplesIterable(
+        base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size
+    )
     all_examples = list(generate_examples_fn(n=n))
     if batch_size is None:
         expected = [(key, func(x)) for key, x in all_examples]
     else:
         # For batched map we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
         expected_examples_per_batch = [
-            list(_batch_to_examples(func(_examples_to_batch([x for _, x in all_examples[i : i + batch_size]]))))
+            list(
+                _batch_to_examples(
+                    func(
+                        _examples_to_batch(
+                            [x for _, x in all_examples[i : i + batch_size]]
+                        )
+                    )
+                )
+            )
             for i in range(0, len(all_examples), batch_size)
         ]
         # The new key is the concatenation of the keys of each example in the batch
         expected_keys_per_batch = [
-            ["_".join(key for key, _ in all_examples[i : i + batch_size])] * len(examples)
-            for i, examples in zip(range(0, len(all_examples), batch_size), expected_examples_per_batch)
+            ["_".join(key for key, _ in all_examples[i : i + batch_size])]
+            * len(examples)
+            for i, examples in zip(
+                range(0, len(all_examples), batch_size), expected_examples_per_batch
+            )
         ]
         # Combine keys and examples
         expected = [
             (key, example)
-            for expected_keys, expected_examples in zip(expected_keys_per_batch, expected_examples_per_batch)
+            for expected_keys, expected_examples in zip(
+                expected_keys_per_batch, expected_examples_per_batch
+            )
             for key, example in zip(expected_keys, expected_examples)
         ]
     assert next(iter(ex_iterable)) == expected[0]
@@ -196,7 +233,9 @@ def test_skip_examples_iterable(generate_examples_fn):
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[count:]
     assert list(skip_ex_iterable) == expected
-    assert skip_ex_iterable.shuffle_data_sources(42) is skip_ex_iterable, "skip examples makes the shards order fixed"
+    assert (
+        skip_ex_iterable.shuffle_data_sources(42) is skip_ex_iterable
+    ), "skip examples makes the shards order fixed"
 
 
 def test_take_examples_iterable(generate_examples_fn):
@@ -205,7 +244,9 @@ def test_take_examples_iterable(generate_examples_fn):
     take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[:count]
     assert list(take_ex_iterable) == expected
-    assert take_ex_iterable.shuffle_data_sources(42) is take_ex_iterable, "skip examples makes the shards order fixed"
+    assert (
+        take_ex_iterable.shuffle_data_sources(42) is take_ex_iterable
+    ), "skip examples makes the shards order fixed"
 
 
 ############################
@@ -259,7 +300,9 @@ def test_iterable_dataset_set_epoch(dataset: IterableDataset):
 
 @pytest.mark.parametrize("seed", [None, 42, 1337])
 @pytest.mark.parametrize("epoch", [None, 0, 1, 10])
-def test_iterable_dataset_set_epoch_of_shuffled_dataset(dataset: IterableDataset, seed, epoch):
+def test_iterable_dataset_set_epoch_of_shuffled_dataset(
+    dataset: IterableDataset, seed, epoch
+):
     buffer_size = 10
     shuffled_dataset = dataset.shuffle(buffer_size, seed=seed)
     if epoch is not None:
@@ -267,7 +310,9 @@ def test_iterable_dataset_set_epoch_of_shuffled_dataset(dataset: IterableDataset
     if seed is None:
         assert shuffled_dataset._effective_seed is None
     else:
-        assert shuffled_dataset._effective_seed == seed + (epoch if epoch is not None else 0)
+        assert shuffled_dataset._effective_seed == seed + (
+            epoch if epoch is not None else 0
+        )
 
 
 def test_iterable_dataset_map(dataset: IterableDataset, generate_examples_fn):
@@ -292,7 +337,9 @@ def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_example
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 @pytest.mark.parametrize("epoch", [None, 0, 1])
-def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn, seed, epoch):
+def test_iterable_dataset_shuffle(
+    dataset: IterableDataset, generate_examples_fn, seed, epoch
+):
     buffer_size = 3
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
     dataset = dataset.shuffle(buffer_size, seed=seed)
@@ -306,7 +353,11 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn
         effective_seed = seed + epoch
     # Shuffling adds a shuffle buffer
     expected_first_example_index = next(
-        iter(BufferShuffledExamplesIterable._iter_random_indices(np.random.default_rng(effective_seed), buffer_size))
+        iter(
+            BufferShuffledExamplesIterable._iter_random_indices(
+                np.random.default_rng(effective_seed), buffer_size
+            )
+        )
     )
     assert isinstance(dataset._ex_iterable, BufferShuffledExamplesIterable)
     # It also shuffles the underlying examples iterable
@@ -314,7 +365,10 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn
         generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]}
     ).shuffle_data_sources(effective_seed)
     assert isinstance(dataset._ex_iterable.ex_iterable, ExamplesIterable)
-    assert next(iter(dataset)) == list(islice(expected_ex_iterable, expected_first_example_index + 1))[-1][1]
+    assert (
+        next(iter(dataset))
+        == list(islice(expected_ex_iterable, expected_first_example_index + 1))[-1][1]
+    )
 
 
 @pytest.mark.parametrize(
@@ -377,7 +431,10 @@ def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, metho
     seed = 42
     n, n_shards = 3, 10
     count = 7
-    ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "filepaths": [f"{i}.txt" for i in range(n_shards)]})
+    ex_iterable = ExamplesIterable(
+        generate_examples_fn,
+        {"n": n, "filepaths": [f"{i}.txt" for i in range(n_shards)]},
+    )
     dataset = IterableDataset(ex_iterable)
     dataset = dataset.skip(n) if method == "skip" else dataset.take(count)
     shuffled_dataset = dataset.shuffle(DEFAULT_N_EXAMPLES, seed=seed)
@@ -405,25 +462,41 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     merged_dataset = interleave_datasets(datasets, probabilities=probas, seed=seed)
     # Check the examples iterable
     assert isinstance(
-        merged_dataset._ex_iterable, (CyclingMultiSourcesExamplesIterable, RandomlyCyclingMultiSourcesExamplesIterable)
+        merged_dataset._ex_iterable,
+        (
+            CyclingMultiSourcesExamplesIterable,
+            RandomlyCyclingMultiSourcesExamplesIterable,
+        ),
     )
     # Check that it is deterministic
     if seed is not None:
-        merged_dataset2 = interleave_datasets([d1, d2, d3], probabilities=probas, seed=seed)
+        merged_dataset2 = interleave_datasets(
+            [d1, d2, d3], probabilities=probas, seed=seed
+        )
         assert list(merged_dataset) == list(merged_dataset2)
     # Check first example
     if seed is not None:
         rng = np.random.default_rng(seed)
-        i = next(iter(RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(rng, len(datasets), p=probas)))
+        i = next(
+            iter(
+                RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(
+                    rng, len(datasets), p=probas
+                )
+            )
+        )
         assert next(iter(merged_dataset)) == next(iter(datasets[i]))
     else:
-        assert any(next(iter(merged_dataset)) == next(iter(dataset)) for dataset in datasets)
+        assert any(
+            next(iter(merged_dataset)) == next(iter(dataset)) for dataset in datasets
+        )
     # Compute length it case it's random
     if expected_length is None:
         expected_length = 0
         counts = [len(list(d)) for d in datasets]
         rng = np.random.default_rng(seed)
-        for i in RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(rng, len(datasets), p=probas):
+        for i in RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(
+            rng, len(datasets), p=probas
+        ):
             if counts[i] == 0:
                 break
             counts[i] -= 1
@@ -432,7 +505,9 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
     assert len(list(merged_dataset)) == expected_length
 
 
-def test_interleave_datasets_with_features(dataset: IterableDataset, generate_examples_fn):
+def test_interleave_datasets_with_features(
+    dataset: IterableDataset, generate_examples_fn
+):
     features = Features(
         {
             "id": Value("int64"),
@@ -440,10 +515,18 @@ def test_interleave_datasets_with_features(dataset: IterableDataset, generate_ex
         }
     )
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 0})
-    dataset_with_features = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    dataset_with_features = IterableDataset(
+        ex_iterable, info=DatasetInfo(features=features)
+    )
 
-    merged_dataset = interleave_datasets([dataset, dataset_with_features], probabilities=[0, 1])
+    merged_dataset = interleave_datasets(
+        [dataset, dataset_with_features], probabilities=[0, 1]
+    )
     assert isinstance(merged_dataset._ex_iterable, CyclingMultiSourcesExamplesIterable)
-    assert isinstance(merged_dataset._ex_iterable.ex_iterables[1], MappedExamplesIterable)
-    assert merged_dataset._ex_iterable.ex_iterables[1].function == features.encode_example
+    assert isinstance(
+        merged_dataset._ex_iterable.ex_iterables[1], MappedExamplesIterable
+    )
+    assert (
+        merged_dataset._ex_iterable.ex_iterables[1].function == features.encode_example
+    )
     assert next(iter(merged_dataset)) == next(iter(dataset_with_features))

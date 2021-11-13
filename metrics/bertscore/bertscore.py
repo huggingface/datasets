@@ -18,15 +18,16 @@ import functools
 from contextlib import contextmanager
 
 import bert_score
-from packaging import version
-
 import datasets
+from packaging import version
 
 
 @contextmanager
 def filter_logging_context():
     def filter_log(record):
-        return False if "This IS expected if you are initializing" in record.msg else True
+        return (
+            False if "This IS expected if you are initializing" in record.msg else True
+        )
 
     logger = datasets.utils.logging.get_logger("transformers.modeling_utils")
     logger.addFilter(filter_log)
@@ -109,7 +110,9 @@ class BERTScore(datasets.Metric):
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("string", id="sequence"),
-                    "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
+                    "references": datasets.Sequence(
+                        datasets.Value("string", id="sequence"), id="references"
+                    ),
                 }
             ),
             codebase_urls=["https://github.com/Tiiiger/bert_score"],
@@ -140,7 +143,9 @@ class BERTScore(datasets.Metric):
         scorer = bert_score.BERTScorer
 
         if version.parse(bert_score.__version__) >= version.parse("0.3.10"):
-            get_hash = functools.partial(get_hash, use_fast_tokenizer=use_fast_tokenizer)
+            get_hash = functools.partial(
+                get_hash, use_fast_tokenizer=use_fast_tokenizer
+            )
             scorer = functools.partial(scorer, use_fast_tokenizer=use_fast_tokenizer)
         elif use_fast_tokenizer:
             raise ImportWarning(
@@ -164,7 +169,10 @@ class BERTScore(datasets.Metric):
         )
 
         with filter_logging_context():
-            if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
+            if (
+                not hasattr(self, "cached_bertscorer")
+                or self.cached_bertscorer.hash != hashcode
+            ):
                 self.cached_bertscorer = scorer(
                     model_type=model_type,
                     num_layers=num_layers,

@@ -32,7 +32,6 @@ from datasets import load_metric
 
 from .utils import for_all_test_methods, local, slow
 
-
 REQUIRE_FAIRSEQ = {"comet"}
 _has_fairseq = importlib.util.find_spec("fairseq") is not None
 
@@ -64,11 +63,15 @@ def skip_on_windows_if_not_windows_compatible(test_case):
 
 def get_local_metric_names():
     metrics = [metric_dir.split(os.sep)[-2] for metric_dir in glob.glob("./metrics/*/")]
-    return [{"testcase_name": x, "metric_name": x} for x in metrics if x != "gleu"]  # gleu is unfinished
+    return [
+        {"testcase_name": x, "metric_name": x} for x in metrics if x != "gleu"
+    ]  # gleu is unfinished
 
 
 @parameterized.named_parameters(get_local_metric_names())
-@for_all_test_methods(skip_if_metric_requires_fairseq, skip_on_windows_if_not_windows_compatible)
+@for_all_test_methods(
+    skip_if_metric_requires_fairseq, skip_on_windows_if_not_windows_compatible
+)
 @local
 class LocalMetricTest(parameterized.TestCase):
     INTENSIVE_CALLS_PATCHER = {}
@@ -77,18 +80,24 @@ class LocalMetricTest(parameterized.TestCase):
     def test_load_metric(self, metric_name):
         doctest.ELLIPSIS_MARKER = "[...]"
         metric_module = importlib.import_module(
-            datasets.load.metric_module_factory(os.path.join("metrics", metric_name)).module_path
+            datasets.load.metric_module_factory(
+                os.path.join("metrics", metric_name)
+            ).module_path
         )
         metric = datasets.load.import_main_class(metric_module.__name__, dataset=False)
         # check parameters
         parameters = inspect.signature(metric._compute).parameters
         self.assertTrue("predictions" in parameters)
         self.assertTrue("references" in parameters)
-        self.assertTrue(all([p.kind != p.VAR_KEYWORD for p in parameters.values()]))  # no **kwargs
+        self.assertTrue(
+            all([p.kind != p.VAR_KEYWORD for p in parameters.values()])
+        )  # no **kwargs
         # run doctest
         with self.patch_intensive_calls(metric_name, metric_module.__name__):
             with self.use_local_metrics():
-                results = doctest.testmod(metric_module, verbose=True, raise_on_error=True)
+                results = doctest.testmod(
+                    metric_module, verbose=True, raise_on_error=True
+                )
         self.assertEqual(results.failed, 0)
         self.assertGreater(results.attempted, 1)
 
@@ -96,7 +105,9 @@ class LocalMetricTest(parameterized.TestCase):
     def test_load_real_metric(self, metric_name):
         doctest.ELLIPSIS_MARKER = "[...]"
         metric_module = importlib.import_module(
-            datasets.load.metric_module_factory(os.path.join("metrics", metric_name)).module_path
+            datasets.load.metric_module_factory(
+                os.path.join("metrics", metric_name)
+            ).module_path
         )
         # run doctest
         with self.use_local_metrics():

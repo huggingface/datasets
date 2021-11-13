@@ -4,7 +4,6 @@ import time
 import pytest
 import requests
 
-
 # From: https://github.com/dask/s3fs/blob/ffe3a5293524869df56e74973af0d2c204ae9cbf/s3fs/tests/test_s3fs.py#L25-L141
 
 s3_test_bucket_name = "test"

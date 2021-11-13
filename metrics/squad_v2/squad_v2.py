@@ -16,15 +16,9 @@
 
 import datasets
 
-from .evaluate import (
-    apply_no_ans_threshold,
-    find_all_best_thresh,
-    get_raw_scores,
-    make_eval_dict,
-    make_qid_to_has_ans,
-    merge_eval,
-)
-
+from .evaluate import (apply_no_ans_threshold, find_all_best_thresh,
+                       get_raw_scores, make_eval_dict, make_qid_to_has_ans,
+                       merge_eval)
 
 _CITATION = """\
 @inproceedings{Rajpurkar2016SQuAD10,
@@ -103,7 +97,10 @@ class SquadV2(datasets.Metric):
                     "references": {
                         "id": datasets.Value("string"),
                         "answers": datasets.features.Sequence(
-                            {"text": datasets.Value("string"), "answer_start": datasets.Value("int32")}
+                            {
+                                "text": datasets.Value("string"),
+                                "answer_start": datasets.Value("int32"),
+                            }
                         ),
                     },
                 }
@@ -113,7 +110,9 @@ class SquadV2(datasets.Metric):
         )
 
     def _compute(self, predictions, references, no_answer_threshold=1.0):
-        no_answer_probabilities = dict((p["id"], p["no_answer_probability"]) for p in predictions)
+        no_answer_probabilities = dict(
+            (p["id"], p["no_answer_probability"]) for p in predictions
+        )
         dataset = [{"paragraphs": [{"qas": references}]}]
         predictions = dict((p["id"], p["prediction_text"]) for p in predictions)
 
@@ -122,15 +121,28 @@ class SquadV2(datasets.Metric):
         no_ans_qids = [k for k, v in qid_to_has_ans.items() if not v]
 
         exact_raw, f1_raw = get_raw_scores(dataset, predictions)
-        exact_thresh = apply_no_ans_threshold(exact_raw, no_answer_probabilities, qid_to_has_ans, no_answer_threshold)
-        f1_thresh = apply_no_ans_threshold(f1_raw, no_answer_probabilities, qid_to_has_ans, no_answer_threshold)
+        exact_thresh = apply_no_ans_threshold(
+            exact_raw, no_answer_probabilities, qid_to_has_ans, no_answer_threshold
+        )
+        f1_thresh = apply_no_ans_threshold(
+            f1_raw, no_answer_probabilities, qid_to_has_ans, no_answer_threshold
+        )
         out_eval = make_eval_dict(exact_thresh, f1_thresh)
 
         if has_ans_qids:
-            has_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=has_ans_qids)
+            has_ans_eval = make_eval_dict(
+                exact_thresh, f1_thresh, qid_list=has_ans_qids
+            )
             merge_eval(out_eval, has_ans_eval, "HasAns")
         if no_ans_qids:
             no_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=no_ans_qids)
             merge_eval(out_eval, no_ans_eval, "NoAns")
-        find_all_best_thresh(out_eval, predictions, exact_raw, f1_raw, no_answer_probabilities, qid_to_has_ans)
+        find_all_best_thresh(
+            out_eval,
+            predictions,
+            exact_raw,
+            f1_raw,
+            no_answer_probabilities,
+            qid_to_has_ans,
+        )
         return dict(out_eval)

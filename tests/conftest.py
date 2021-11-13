@@ -24,13 +24,19 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
     test_hf_datasets_cache = test_hf_cache_home / "datasets"
     test_hf_metrics_cache = test_hf_cache_home / "metrics"
     test_hf_modules_cache = test_hf_cache_home / "modules"
-    monkeypatch.setattr("datasets.config.HF_DATASETS_CACHE", str(test_hf_datasets_cache))
+    monkeypatch.setattr(
+        "datasets.config.HF_DATASETS_CACHE", str(test_hf_datasets_cache)
+    )
     monkeypatch.setattr("datasets.config.HF_METRICS_CACHE", str(test_hf_metrics_cache))
     monkeypatch.setattr("datasets.config.HF_MODULES_CACHE", str(test_hf_modules_cache))
     test_downloaded_datasets_path = test_hf_datasets_cache / "downloads"
-    monkeypatch.setattr("datasets.config.DOWNLOADED_DATASETS_PATH", str(test_downloaded_datasets_path))
+    monkeypatch.setattr(
+        "datasets.config.DOWNLOADED_DATASETS_PATH", str(test_downloaded_datasets_path)
+    )
     test_extracted_datasets_path = test_hf_datasets_cache / "downloads" / "extracted"
-    monkeypatch.setattr("datasets.config.EXTRACTED_DATASETS_PATH", str(test_extracted_datasets_path))
+    monkeypatch.setattr(
+        "datasets.config.EXTRACTED_DATASETS_PATH", str(test_extracted_datasets_path)
+    )
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -285,7 +291,9 @@ def parquet_path(tmp_path_factory):
     )
     with open(path, "wb") as f:
         writer = pq.ParquetWriter(f, schema=schema)
-        pa_table = pa.Table.from_pydict({k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema)
+        pa_table = pa.Table.from_pydict(
+            {k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema
+        )
         writer.write_table(pa_table)
         writer.close()
     return path
