@@ -60,7 +60,7 @@ _LICENSE = "CC-BY-SA 3.0"
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
     "manual": {
-        "train": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/train.tsv",
+        "train": "https://www.dropbox.com/sh/ohqaw41v48c7e5p/AACdl4UPKtu7CMMa-CJhz4G7a/wiki-manual/train.tsv?dl=1",
         "dev": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/dev.tsv",
         "test": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/test.tsv",
     },
@@ -77,8 +77,8 @@ _URLs = {
         "simple": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/GEM2021/full_with_split/train.dst",
     },
     "auto": {
-        "part_1": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/all_data/wiki-auto-part-1-data.json",
-        "part_2": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/all_data/wiki-auto-part-2-data.json",
+        "part_1": "https://www.dropbox.com/sh/ohqaw41v48c7e5p/AAATBDhU1zpdcT5x5WgO8DMaa/wiki-auto-all-data/wiki-auto-part-1-data.json?dl=1",
+        "part_2": "https://www.dropbox.com/sh/ohqaw41v48c7e5p/AAATgPkjo_tPt9z12vZxJ3MRa/wiki-auto-all-data/wiki-auto-part-2-data.json?dl=1",
     },
 }
 

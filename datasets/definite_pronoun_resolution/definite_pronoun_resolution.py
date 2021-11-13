@@ -42,7 +42,8 @@ the fourth line contains the correct antecedent. If the target pronoun appears
 more than once in the sentence, its first occurrence is the one to be resolved.
 """
 
-_DATA_URL_PATTERN = "http://www.hlt.utdallas.edu/~vince/data/emnlp12/{}.c.txt"
+
+_DATA_FILES = {"train": "train.c.txt", "test": "test.c.txt"}
 
 
 class DefinitePronounResolution(datasets.GeneratorBasedBuilder):
@@ -53,6 +54,7 @@ class DefinitePronounResolution(datasets.GeneratorBasedBuilder):
             name="plain_text",
             version=datasets.Version("1.0.0", ""),
             description="Plain text import of the Definite Pronoun Resolution Dataset.",  # pylint: disable=line-too-long
+            data_files=_DATA_FILES,
         )
     ]
 
@@ -73,12 +75,7 @@ class DefinitePronounResolution(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        files = dl_manager.download_and_extract(
-            {
-                "train": _DATA_URL_PATTERN.format("train"),
-                "test": _DATA_URL_PATTERN.format("test"),
-            }
-        )
+        files = dl_manager.download_and_extract(self.config.data_files)
         return [
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": files["test"]}),
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": files["train"]}),
