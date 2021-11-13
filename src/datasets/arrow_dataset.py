@@ -1134,11 +1134,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return dataset._data.column(column).unique().to_pylist()
 
-    def class_encode_column(self, column: str) -> "Dataset":
+    def class_encode_column(self, column: str, include_nulls: bool = False) -> "Dataset":
         """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the table.
 
         Args:
             column (`str`): The name of the column to cast (list all the column names with :func:`datasets.Dataset.column_names`)
+            include_nulls (`bool`, default `False`):
+                .. versionadded:: 1.14.2
+                    Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
         """
         # Sanity checks
         if column not in self._data.column_names:
@@ -1151,7 +1154,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if src_feat.dtype != "string":
             dset = self.map(
-                lambda batch: {column: [str(sample) if sample is not None else None for sample in batch]},
+                lambda batch: {
+                    column: [str(sample) if include_nulls or sample is not None else None for sample in batch]
+                },
                 input_columns=column,
                 batched=True,
                 desc="Stringifying the column",
@@ -1160,10 +1165,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dset = self
 
         # Create the new feature
-        class_names = sorted(sample for sample in dset.unique(column) if sample is not None)
+        class_names = sorted(sample for sample in dset.unique(column) if include_nulls or sample is not None)
         dst_feat = ClassLabel(names=class_names)
         dset = dset.map(
-            lambda batch: {column: [dst_feat.str2int(sample) for sample in batch if sample is not None]},
+            lambda batch: {
+                column: [dst_feat.str2int(sample) if include_nulls or sample is not None else None for sample in batch]
+            },
             input_columns=column,
             batched=True,
             desc="Casting to class labels",
@@ -2699,7 +2706,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         column: str,
         reverse: bool = False,
         kind: str = None,
-        none_position: str = "last",
+        null_placement: str = "last",
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         indices_cache_file_name: Optional[str] = None,
@@ -2718,7 +2725,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             kind (:obj:`str`, optional): Pandas algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                 The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
-            none_position (:obj:`str`, default `last`):
+            null_placement (:obj:`str`, default `last`):
                 .. versionadded:: 1.14.2
                     Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
             keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
@@ -2764,7 +2771,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         df_sorted = column_data.to_frame().sort_values(
-            column, ascending=not reverse, kind=kind, na_position=none_position
+            column, ascending=not reverse, kind=kind, na_position=null_placement
         )
         indices = df_sorted.index.to_numpy()
 

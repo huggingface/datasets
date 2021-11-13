@@ -265,14 +265,19 @@ class DatasetDict(dict):
             }
         )
 
-    def class_encode_column(self, column: str) -> "DatasetDict":
+    def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
         """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the tables.
 
         Args:
             column (`str`): The name of the column to cast
+            include_nulls (`bool`, default `False`):
+                .. versionadded:: 1.14.2
+                    Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
         """
         self._check_values_type()
-        return DatasetDict({k: dataset.class_encode_column(column=column) for k, dataset in self.items()})
+        return DatasetDict(
+            {k: dataset.class_encode_column(column=column, include_nulls=include_nulls) for k, dataset in self.items()}
+        )
 
     @contextlib.contextmanager
     def formatted_as(
@@ -575,6 +580,7 @@ class DatasetDict(dict):
         column: str,
         reverse: bool = False,
         kind: str = None,
+        null_placement: str = "last",
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
@@ -583,25 +589,27 @@ class DatasetDict(dict):
         """Create a new dataset sorted according to a column.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        Currently sorting according to a column name uses numpy sorting algorithm under the hood.
-        The column should thus be a numpy compatible type (in particular not a nested type).
+        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
+        The column should thus be a pandas compatible type (in particular not a nested type).
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
-            column (`str`): column name to sort by.
-            reverse: (`bool`, defaults to `False`): If True, sort by descending order rather then ascending.
-            kind (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
+            column (:obj:`str`): column name to sort by.
+            reverse (:obj:`bool`, default `False`): If True, sort by descending order rather then ascending.
+            kind (:obj:`str`, optional): Pandas algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                 The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            null_placement (:obj:`str`, default `last`):
+                .. versionadded:: 1.14.2
+                    Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
+            keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
+            load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
             indices_cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
+                Higher value gives smaller cache files, lower value consume less temporary memory.
         """
         self._check_values_type()
         if indices_cache_file_names is None:
@@ -612,6 +620,7 @@ class DatasetDict(dict):
                     column=column,
                     reverse=reverse,
                     kind=kind,
+                    null_placement=null_placement,
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
                     indices_cache_file_name=indices_cache_file_names[k],
