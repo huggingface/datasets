@@ -3724,6 +3724,7 @@ def concatenate_datasets(
     tables = [dset._data for dset in dsets]
     indices_tables = [dset._indices for dset in dsets]
     list_of_feautures = [dset.features for dset in dsets]
+
     if axis == 0:
         list_of_features = align_list_of_features(list_of_feautures)
         tables = [table.cast(pa.schema(features.type)) for table, features in zip(tables, list_of_features)]
