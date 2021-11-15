@@ -99,6 +99,7 @@ def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> 
 def _no_op_if_value_is_null(func):
     def wrapper(value):
         return func(value) if value is not None else None
+
     return wrapper
 
 

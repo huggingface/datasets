@@ -38,7 +38,6 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from multiprocess import Pool, RLock
-from numpy.core.numeric import indices
 from tqdm.auto import tqdm
 
 from datasets.tasks.text_classification import TextClassification
