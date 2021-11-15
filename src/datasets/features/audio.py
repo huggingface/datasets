@@ -74,10 +74,10 @@ class Audio:
             array = array.mean(axis=0)
         return array, sampling_rate
 
-    def decode_batch(self, values):
-        decoded_batch = defaultdict(list)
-        for value in values:
-            decoded_example = self.decode_example(value)
-            for k, v in decoded_example.items():
-                decoded_batch[k].append(v)
-        return dict(decoded_batch)
+    # def decode_batch(self, values):
+    #     decoded_batch = defaultdict(list)
+    #     for value in values:
+    #         decoded_example = self.decode_example(value)
+    #         for k, v in decoded_example.items():
+    #             decoded_batch[k].append(v)
+    #     return dict(decoded_batch)

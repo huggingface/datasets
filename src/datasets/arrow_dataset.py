@@ -109,7 +109,7 @@ class Example(LazyDict):
     def __getitem__(self, key):
         value = super().__getitem__(key)
         if self.decoding and self.features and key in self.features:
-            value = self.features[key].decode_example(value)
+            value = self.features[key].decode_example(value) if value is not None else None
             self[key] = value
             del self.features[key]
         return value
@@ -119,7 +119,7 @@ class Batch(LazyDict):
     def __getitem__(self, key):
         values = super().__getitem__(key)
         if self.decoding and self.features and key in self.features:
-            values = [self.features[key].decode_example(value) for value in values]
+            values = [self.features[key].decode_example(value) if value is not None else None for value in values]
             self[key] = values
             del self.features[key]
         return values

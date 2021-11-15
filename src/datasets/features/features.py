@@ -1060,7 +1060,7 @@ class Features(dict):
             :obj:`dict[str, Any]`
         """
         return {
-            column: feature.decode_example(value) if hasattr(feature, "decode_example") else value
+            column: feature.decode_example(value) if hasattr(feature, "decode_example") and value is not None else value
             for column, (feature, value) in utils.zip_dict(
                 {key: value for key, value in self.items() if key in example}, example
             )
@@ -1077,7 +1077,7 @@ class Features(dict):
             :obj:`list[Any]`
         """
         return (
-            [self[column_name].decode_example(value) for value in column]
+            [self[column_name].decode_example(value) if value is not None else None for value in column]
             if hasattr(self[column_name], "decode_example")
             else column
         )
@@ -1094,7 +1094,7 @@ class Features(dict):
         decoded_batch = {}
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
-                [self[column_name].decode_example(value) for value in column]
+                [self[column_name].decode_example(value) if value is not None else None for value in column]
                 if hasattr(self[column_name], "decode_example")
                 else column
             )
