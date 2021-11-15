@@ -7,7 +7,7 @@ import time
 from asyncio import TimeoutError
 from itertools import chain
 from pathlib import Path, PurePosixPath
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
@@ -288,6 +288,31 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
+
+
+def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> List[str]:
+    """Extend `os.listdir` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`list` of :obj:`str`
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.listdir(path)
+    else:
+        # globbing inside a zip in a private repo requires authentication
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        objects = fs.listdir(main_hop.split("://")[1])
+        return [os.path.basename(obj["name"]) for obj in objects]
 
 
 def xpathopen(path: Path, *args, **kwargs):
