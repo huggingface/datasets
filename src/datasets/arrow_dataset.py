@@ -673,8 +673,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ), f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}"
         _check_column_names(self._data.column_names)
 
-        # Update metadata
-
         self._data = update_metadata_with_features(self._data, self.features)
 
     @classmethod
@@ -3404,6 +3402,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset`
         """
         column_table = InMemoryTable.from_pydict({name: column})
+        _check_column_names(self.column_names + column_table.column_names)
         # Pad tables if needed to match the maximum length
         max_num_rows = max(self.num_rows, column_table.num_rows)
         dset_table = pad_table_to_length(self._data, max_num_rows)
@@ -3726,10 +3725,11 @@ def concatenate_datasets(
     indices_tables = [dset._indices for dset in dsets]
     list_of_feautures = [dset.features for dset in dsets]
     if axis == 0:
-        # aligned_schemas = align_schemas([dset.features for table in tables])
         list_of_features = align_list_of_features(list_of_feautures)
         tables = [table.cast(pa.schema(features.type)) for table, features in zip(tables, list_of_features)]
     elif axis == 1:
+        _check_column_names([col_name for table in tables for col_name in table.column_names])
+
         max_num_rows = max(dset.num_rows for dset in dsets)
         tables = [pad_table_to_length(table, max_num_rows) for table in tables]
         for i in range(len(indices_tables)):
@@ -3762,7 +3762,6 @@ def concatenate_datasets(
 
     # Concatenate indices if they exist
     if any(indices is not None for indices in indices_tables):
-
         # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
         # Applying an offset to an indices table also brings the table in memory.
         for i in range(len(dsets)):
