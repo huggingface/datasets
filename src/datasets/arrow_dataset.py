@@ -1219,11 +1219,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         dset = dset.map(
             cast_to_class_labels,
-            input_columns=column,
             batched=True,
             desc="Casting to class labels",
         )
-        dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = dset.features.copy()
         new_features[column] = dst_feat
