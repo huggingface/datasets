@@ -517,6 +517,7 @@ class DatasetBuilder:
                 download_config = DownloadConfig(
                     cache_dir=self._cache_downloaded_dir,
                     force_download=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
+                    force_extract=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
                     use_etag=False,
                     use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
