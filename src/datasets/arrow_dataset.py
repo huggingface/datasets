@@ -536,6 +536,7 @@ def transmit_tasks(func):
 def update_metadata_with_features(table: Table, features: Features):
     """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
     if table.schema.metadata is None or "huggingface".encode("utf-8") not in table.schema.metadata:
+        features = Features({col_name: features[col_name] for col_name in table.column_names})
         pa_metadata = ArrowWriter._build_metadata(DatasetInfo(features=features))
     else:
         metadata = json.loads(table.schema.metadata["huggingface".encode("utf-8")].decode())
@@ -568,21 +569,17 @@ def _check_column_names(column_names: List[str]):
         raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
 
 
-def align_schemas(schemas: List[pa.Schema]) -> List[pa.Schema]:
-    """Align types of the fields whose names appears in more than one schema with the type from the first schema."""
-    name2field = {}
-    for schema in schemas:
-        for field in schema:
-            if field.name not in name2field and not pa.types.is_null(field.type):
-                name2field[field.name] = field
+def align_list_of_features(list_of_feautures: List[Features]) -> List[Features]:
+    """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
+    null_feature = Value("null")
+    name2feature = {}
+    for features in list_of_feautures:
+        for k, v in features.items():
+            if k not in name2feature or name2feature[k] == null_feature:
+                name2feature[k] = v
 
-    aligned_schemas = []
-    for schema in schemas:
-        for i, field in enumerate(list(schema)):
-            if field.name in name2field:
-                schema = schema.set(i, name2field[field.name])
-        aligned_schemas.append(schema)
-    return aligned_schemas
+    list_of_aligned_features = [Features({k: name2feature[k] for k in features}) for features in list_of_feautures]
+    return list_of_aligned_features
 
 
 def pad_table_to_length(table: pa.Table, length: int) -> pa.Table:
@@ -600,9 +597,9 @@ def pad_table_to_length(table: pa.Table, length: int) -> pa.Table:
 def add_indices_to_indices_table(indices_table: pa.Table, indices: Iterable) -> pa.Table:
     """Append indices to the indices table."""
     indices_array = pa.array(indices, type=pa.uint64())
-    indices_table = InMemoryTable.from_arrays([indices_array], names=["indices"])
-    table = concat_tables([indices_table, indices_table])
-    return table
+    indices_table_to_add = InMemoryTable.from_arrays([indices_array], names=["indices"])
+    indices_table = concat_tables([indices_table, indices_table_to_add])
+    return indices_table
 
 
 class NonExistentDatasetError(Exception):
@@ -3631,17 +3628,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset`
         """
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
-        _, item_schema = align_schemas([self._data.schema, item_table.schema])
-        # Cast item
-        item_table = item_table.cast(item_schema)
+        dset_features, item_features = align_list_of_features(
+            [self.features, Features.from_arrow_schema(item_table.schema)]
+        )
+        # Cast tables
+        dset_table = self._data.cast(pa.schema(dset_features.type))
+        item_table = item_table.cast(pa.schema(item_features.type))
         # Concatenate tables
-        table = concat_tables([self._data, item_table])
+        table = concat_tables([dset_table, item_table])
         if self._indices is None:
             indices_table = None
         else:
-            indices_table = add_indices_to_indices_table(self._indices, [len(self._data)])
+            indices_table = add_indices_to_indices_table(self._indices, [len(dset_table)])
         info = self.info.copy()
-        info.features.update(Features.from_arrow_schema(item_table.schema))
+        info.features.update(item_features)
         table = update_metadata_with_features(table, info.features)
         return Dataset(
             table,
@@ -3724,9 +3724,11 @@ def concatenate_datasets(
     """
     tables = [dset._data for dset in dsets]
     indices_tables = [dset._indices for dset in dsets]
+    list_of_feautures = [dset.features for dset in dsets]
     if axis == 0:
-        aligned_schemas = align_schemas([table.schema for table in tables])
-        tables = [table.cast(schema) for table, schema in zip(tables, aligned_schemas)]
+        # aligned_schemas = align_schemas([dset.features for table in tables])
+        list_of_features = align_list_of_features(list_of_feautures)
+        tables = [table.cast(pa.schema(features.type)) for table, features in zip(tables, list_of_features)]
     elif axis == 1:
         max_num_rows = max(dset.num_rows for dset in dsets)
         tables = [pad_table_to_length(table, max_num_rows) for table in tables]
@@ -3744,7 +3746,11 @@ def concatenate_datasets(
         logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
     table = concat_tables(tables, axis=axis)
-    table = update_metadata_with_features(table, Features.from_arrow_schema(table.schema))
+    table_features = {}
+    for features in list_of_feautures:
+        table_features.update(features)
+    table_features = Features(table_features)
+    table = update_metadata_with_features(table, table_features)
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
@@ -3762,7 +3768,7 @@ def concatenate_datasets(
         for i in range(len(dsets)):
             if dsets[i]._indices is None:
                 dsets[i] = dsets[i].select(range(len(dsets[i])))
-                indices_table[i] = dsets[i]._indices
+                indices_tables[i] = dsets[i]._indices
         assert all(indices is not None for indices in indices_tables), "each dataset should have an indices table"
 
         # An offset needs to be applied to the indices before concatenating
