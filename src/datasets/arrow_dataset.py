@@ -3772,12 +3772,13 @@ def concatenate_datasets(
         assert all(indices is not None for indices in indices_tables), "each dataset should have an indices table"
 
         # An offset needs to be applied to the indices before concatenating
-        indices_tables = []
+        indices_tables_with_offset = []
         offset = 0
         for i, indices_table in enumerate(indices_tables):
-            indices_tables.append(apply_offset_to_indices_table(indices_tables, offset))
-            offset += len(dset[i]._data)
+            indices_tables_with_offset.append(apply_offset_to_indices_table(indices_table, offset))
+            offset += len(dsets[i]._data)
 
+        indices_tables = indices_tables_with_offset
         # Concatenate indices
         indices_tables = [t for t in indices_tables if len(t) > 0]
         if indices_tables:
