@@ -96,6 +96,12 @@ def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> 
     _raise_bad_key_type(key)
 
 
+def _no_op_if_value_is_null(func):
+    def wrapper(value):
+        return func(value) if value is not None else None
+    return wrapper
+
+
 class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
     Arrow extractor are used to extract data from pyarrow tables.
@@ -210,7 +216,7 @@ class PandasFeaturesDecoder:
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
         decode = (
             {
-                column_name: lambda example: feature.decode_example(example) if example is not None else None
+                column_name: _no_op_if_value_is_null(feature.decode_example)
                 for column_name, feature in self.features.items()
                 if column_name in row.columns and hasattr(feature, "decode_example")
             }
@@ -223,9 +229,7 @@ class PandasFeaturesDecoder:
 
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
         decode = (
-            lambda example: self.features[column_name].decode_example
-            if example is not None
-            else None
+            _no_op_if_value_is_null(self.features[column_name].decode_example)
             if self.features and column_name in self.features and hasattr(self.features[column_name], "decode_example")
             else None
         )
