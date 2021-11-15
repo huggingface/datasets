@@ -1,4 +1,5 @@
 ---
+pretty_name: TEDMulti
 paperswithcode_id: null
 ---
 

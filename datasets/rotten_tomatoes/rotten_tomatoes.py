@@ -16,9 +16,6 @@
 # Lint as: python3
 """Rotten tomatoes movie reviews dataset."""
 
-
-import os
-
 import datasets
 from datasets.tasks import TextClassification
 
@@ -62,41 +59,39 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
             task_templates=[TextClassification(text_column="text", label_column="label")],
         )
 
-    def _vocab_text_gen(self, train_file):
-        for _, ex in self._generate_examples(train_file):
-            yield ex["text"]
-
     def _split_generators(self, dl_manager):
         """Downloads Rotten Tomatoes sentences."""
-        extracted_folder_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
+        archive = dl_manager.download(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
+                gen_kwargs={"split_key": "train", "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"split_key": "validation", "data_dir": extracted_folder_path},
+                gen_kwargs={"split_key": "validation", "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
+                gen_kwargs={"split_key": "test", "files": dl_manager.iter_archive(archive)},
             ),
         ]
 
-    def _get_examples_from_split(self, split_key, data_dir):
+    def _get_examples_from_split(self, split_key, files):
         """Reads Rotten Tomatoes sentences and splits into 80% train,
         10% validation, and 10% test, as is the practice set out in Jinfeng
         Li, ``TEXTBUGGER: Generating Adversarial Text Against Real-world
         Applications.''
         """
-        data_dir = os.path.join(data_dir, "rt-polaritydata")
-
-        pos_samples = open(os.path.join(data_dir, "rt-polarity.pos"), encoding="latin-1").readlines()
-        pos_samples = list(map(lambda t: t.strip(), pos_samples))
-
-        neg_samples = open(os.path.join(data_dir, "rt-polarity.neg"), encoding="latin-1").readlines()
-        neg_samples = list(map(lambda t: t.strip(), neg_samples))
+        data_dir = "rt-polaritydata/"
+        pos_samples, neg_samples = None, None
+        for path, f in files:
+            if path == data_dir + "rt-polarity.pos":
+                pos_samples = [line.decode("latin-1").strip() for line in f]
+            elif path == data_dir + "rt-polarity.neg":
+                neg_samples = [line.decode("latin-1").strip() for line in f]
+            if pos_samples is not None and neg_samples is not None:
+                break
 
         # 80/10/10 split
         i1 = int(len(pos_samples) * 0.8 + 0.5)
@@ -117,9 +112,9 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
         else:
             raise ValueError(f"Invalid split key {split_key}")
 
-    def _generate_examples(self, split_key, data_dir):
+    def _generate_examples(self, split_key, files):
         """Yields examples for a given split of MR."""
-        split_text, split_labels = self._get_examples_from_split(split_key, data_dir)
+        split_text, split_labels = self._get_examples_from_split(split_key, files)
         for text, label in zip(split_text, split_labels):
             data_key = split_key + "_" + text
             feature_dict = {"text": text, "label": label}

@@ -1,4 +1,5 @@
 ---
+pretty_name: WMT20 - MultiLingual Quality Estimation (MLQE) Task2
 annotations_creators:
 - expert-generated
 - machine-generated

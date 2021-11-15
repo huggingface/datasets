@@ -25,13 +25,13 @@ from unittest import TestCase
 from absl.testing import parameterized
 
 import datasets
-from datasets import cached_path, import_main_class, load_dataset, prepare_module
 from datasets.builder import BuilderConfig, DatasetBuilder
 from datasets.features import ClassLabel, Features, Value
+from datasets.load import dataset_module_factory, import_main_class, load_dataset
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
 from datasets.utils.download_manager import GenerateMode
-from datasets.utils.file_utils import DownloadConfig, is_remote_url
+from datasets.utils.file_utils import DownloadConfig, cached_path, is_remote_url
 from datasets.utils.logging import get_logger
 from datasets.utils.mock_download_manager import MockDownloadManager
 
@@ -100,11 +100,11 @@ class DatasetTester:
     def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
         if is_local is True:
-            module_path, _ = prepare_module(os.path.join("datasets", dataset_name))
+            dataset_module = dataset_module_factory(os.path.join("datasets", dataset_name))
         else:
-            module_path, _ = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
+            dataset_module = dataset_module_factory(dataset_name, download_config=DownloadConfig(force_download=True))
         # Get dataset builder class
-        builder_cls = import_main_class(module_path)
+        builder_cls = import_main_class(dataset_module.module_path)
         return builder_cls
 
     def load_all_configs(self, dataset_name, is_local=False) -> List[Optional[BuilderConfig]]:
@@ -254,8 +254,8 @@ class LocalDatasetTest(parameterized.TestCase):
     @slow
     def test_load_real_dataset(self, dataset_name):
         path = "./datasets/" + dataset_name
-        module_path, hash = prepare_module(path, download_config=DownloadConfig(local_files_only=True), dataset=True)
-        builder_cls = import_main_class(module_path, dataset=True)
+        dataset_module = dataset_module_factory(path, download_config=DownloadConfig(local_files_only=True))
+        builder_cls = import_main_class(dataset_module.module_path)
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as temp_cache_dir:
             dataset = load_dataset(
@@ -268,8 +268,8 @@ class LocalDatasetTest(parameterized.TestCase):
     @slow
     def test_load_real_dataset_all_configs(self, dataset_name):
         path = "./datasets/" + dataset_name
-        module_path, hash = prepare_module(path, download_config=DownloadConfig(local_files_only=True), dataset=True)
-        builder_cls = import_main_class(module_path, dataset=True)
+        dataset_module = dataset_module_factory(path, download_config=DownloadConfig(local_files_only=True))
+        builder_cls = import_main_class(dataset_module.module_path)
         config_names = (
             [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
         )
