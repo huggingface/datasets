@@ -1193,11 +1193,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
         if src_feat.dtype != "string":
+
+            def stringify_column(batch):
+                batch[column] = [
+                    str(sample) if include_nulls or sample is not None else None for sample in batch[column]
+                ]
+                return batch
+
             dset = self.map(
-                lambda batch: {
-                    column: [str(sample) if include_nulls or sample is not None else None for sample in batch]
-                },
-                input_columns=column,
+                stringify_column,
                 batched=True,
                 desc="Stringifying the column",
             )
@@ -1207,10 +1211,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Create the new feature
         class_names = sorted(sample for sample in dset.unique(column) if include_nulls or sample is not None)
         dst_feat = ClassLabel(names=class_names)
+
+        def cast_to_class_labels(batch):
+            batch[column] = [
+                dst_feat.str2int(sample) if include_nulls or sample is not None else None for sample in batch[column]
+            ]
+            return batch
+
         dset = dset.map(
-            lambda batch: {
-                column: [dst_feat.str2int(sample) if include_nulls or sample is not None else None for sample in batch]
-            },
+            cast_to_class_labels,
             input_columns=column,
             batched=True,
             desc="Casting to class labels",
@@ -3683,8 +3692,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         int2str_function = label_feature.int2str
 
         def process_label_ids(batch):
-            dset_label_names = [int2str_function(label_id).lower() for label_id in batch[label_column]]
-            batch[label_column] = [label2id[label_name] for label_name in dset_label_names]
+            dset_label_names = [
+                int2str_function(label_id).lower() if label_id is not None else None
+                for label_id in batch[label_column]
+            ]
+            batch[label_column] = [
+                label2id[label_name] if label_name is not None else None for label_name in dset_label_names
+            ]
             return batch
 
         features = self.features.copy()
