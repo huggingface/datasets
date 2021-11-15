@@ -129,7 +129,7 @@ def get_array_feature_types():
     shape_2 = [3, 4, 5, 6, 7]
     return [
         {
-            "testcase_name": "{}d".format(d),
+            "testcase_name": f"{d}d",
             "array_feature": array_feature,
             "shape_1": tuple(shape_1[:d]),
             "shape_2": tuple(shape_2[:d]),

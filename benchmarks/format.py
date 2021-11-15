@@ -24,12 +24,12 @@ def format_json_to_md(input_json_file, output_md_file):
             old_val = metric_vals.get("old", None)
             dif_val = metric_vals.get("diff", None)
 
-            val_str = " {:f}".format(new_val) if isinstance(new_val, (int, float)) else "None"
+            val_str = f" {new_val:f}" if isinstance(new_val, (int, float)) else "None"
 
             if old_val is not None:
-                val_str += " / {:f}".format(old_val) if isinstance(old_val, (int, float)) else "None"
+                val_str += f" / {new_val:f}" if isinstance(old_val, (int, float)) else "None"
             if dif_val is not None:
-                val_str += " ({:f})".format(dif_val) if isinstance(dif_val, (int, float)) else "None"
+                val_str += f" ({dif_val:f})" if isinstance(dif_val, (int, float)) else "None"
 
             title += " " + metric_name + " |"
             lines += "---|"
