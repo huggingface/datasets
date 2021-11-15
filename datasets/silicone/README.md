@@ -78,6 +78,7 @@ task_ids:
   - language-modeling
   - text-classification-other-dialogue-act-classification
 paperswithcode_id: null
+pretty_name: SILICONE Benchmark
 ---
 
 # Dataset Card for SILICONE Benchmark
@@ -112,7 +113,7 @@ paperswithcode_id: null
 - **Repository:** https://github.com/eusip/SILICONE-benchmark
 - **Paper:** https://arxiv.org/abs/2009.11152
 - **Leaderboard:** [N/A]
-- **Point of Contact:** Ebenge Usip, ebenge.usip@telecom-paris.fr
+- **Point of Contact:** [Ebenge Usip](ebenge.usip@telecom-paris.fr)
 
 ### Dataset Summary
 

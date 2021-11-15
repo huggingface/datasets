@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: null
+pretty_name: NQ-Open
 ---
 
 # Dataset Card for nq_open
@@ -53,7 +54,7 @@ paperswithcode_id: null
 - **Repository:** https://github.com/google-research-datasets/natural-questions/tree/master/nq_open
 - **Paper:** https://www.aclweb.org/anthology/P19-1612.pdf
 - **Leaderboard:** https://ai.google.com/research/NaturalQuestions/efficientqa
-- **Point of Contact:** efficientqa@googlegroups.com
+- **Point of Contact:** [Mailing List](efficientqa@googlegroups.com)
 
 ### Dataset Summary
 
