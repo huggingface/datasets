@@ -38,6 +38,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
 from multiprocess import Pool, RLock
+from numpy.core.numeric import indices
 from tqdm.auto import tqdm
 
 from datasets.tasks.text_classification import TextClassification
@@ -61,7 +62,6 @@ from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split
 from .table import (
-    ConcatenationTable,
     InMemoryTable,
     MemoryMappedTable,
     Table,
@@ -561,6 +561,51 @@ def _check_table(table) -> Table:
         raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
 
 
+def _check_column_names(column_names: List[str]):
+    """Check the column names to make sure they don't contain duplicates."""
+    counter = Counter(column_names)
+    if not all(count == 1 for count in counter.values()):
+        duplicated_columns = [col for col in counter if counter[col] > 1]
+        raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
+
+
+def align_schemas(schemas: List[pa.Schema]) -> List[pa.Schema]:
+    """Align types of the fields whose names appears in more than one schema with the type from the first schema."""
+    name2field = {}
+    for schema in schemas:
+        for field in schema:
+            if field.name not in name2field and not pa.types.is_null(field.type):
+                name2field[field.name] = field
+
+    aligned_schemas = []
+    for schema in schemas:
+        for i, field in enumerate(list(schema)):
+            if field.name in name2field:
+                schema = schema.set(i, name2field[field.name])
+        aligned_schemas.append(schema)
+    return aligned_schemas
+
+
+def pad_table_to_length(table: pa.Table, length: int) -> pa.Table:
+    """Pad the columns of the table to the given length. Uses `None` as a pad value."""
+    # No-op if the table is already long enough
+    if table.num_rows >= length:
+        return table
+    rows_to_add = [None] * (length - table.num_rows)
+    table = concat_tables(
+        [table, InMemoryTable.from_pydict({col_name: rows_to_add for col_name in table.column_names})]
+    )
+    return table
+
+
+def add_indices_to_indices_table(indices_table: pa.Table, indices: Iterable) -> pa.Table:
+    """Append indices to the indices table."""
+    indices_array = pa.array(indices, type=pa.uint64())
+    indices_table = InMemoryTable.from_arrays([indices_array], names=["indices"])
+    table = concat_tables([indices_table, indices_table])
+    return table
+
+
 class NonExistentDatasetError(Exception):
     """Used when we expect the existence of a dataset"""
 
@@ -630,12 +675,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             assert pa.types.is_unsigned_integer(
                 self._indices.column(0)[0].type
             ), f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}"
-        counter = Counter(self._data.column_names)
-        if not all(count == 1 for count in counter.values()):
-            duplicated_columns = [col for col in counter if counter[col] > 1]
-            raise ValueError(
-                f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated."
-            )
+        _check_column_names(self._data.column_names)
 
         # Update metadata
 
@@ -3361,13 +3401,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset`
         """
         column_table = InMemoryTable.from_pydict({name: column})
+        # Pad tables if needed to match the maximum length
+        max_num_rows = max(self.num_rows, column_table.num_rows)
+        dset_table = pad_table_to_length(self._data, max_num_rows)
+        column_table = pad_table_to_length(column_table, max_num_rows)
+        indices_table = self._indices
+        if indices_table is not None and max_num_rows > self.num_rows:
+            indices_to_add = range(self._data.num_rows, self._data.num_rows + (max_num_rows - self.num_rows))
+            indices_table = add_indices_to_indices_table(self._indices, indices_to_add)
         # Concatenate tables horizontally
-        table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
+        table = concat_tables([dset_table, column_table], axis=1)
         # Update features
         info = self.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
-        return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
+        return Dataset(table, info=info, split=self.split, indices_table=indices_table, fingerprint=new_fingerprint)
 
     def add_faiss_index(
         self,
@@ -3576,21 +3624,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Returns:
             :class:`Dataset`
         """
-        item_table = InMemoryTable.from_pydict({k: [item[k]] for k in self.features.keys() if k in item})
+        item_table = InMemoryTable.from_pydict(item)
+        _, item_schema = align_schemas([self._data.schema, item_table.schema])
         # Cast item
-        schema = pa.schema(self.features.type)
-        item_table = item_table.cast(schema)
+        item_table = item_table.cast(item_schema)
         # Concatenate tables
         table = concat_tables([self._data, item_table])
         if self._indices is None:
             indices_table = None
         else:
-            item_indices_array = pa.array([len(self._data)], type=pa.uint64())
-            item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
-            indices_table = concat_tables([self._indices, item_indices_table])
+            indices_table = add_indices_to_indices_table(self._indices, [len(self._data)])
+        info = self.info.copy()
+        info.features.update(Features.from_arrow_schema(item_table.schema))
+        table = update_metadata_with_features(table, info.features)
         return Dataset(
             table,
-            info=self.info.copy(),
+            info=info,
             split=self.split,
             indices_table=indices_table,
             fingerprint=new_fingerprint,
@@ -3662,10 +3711,20 @@ def concatenate_datasets(
 
             .. versionadded:: 1.6.0
     """
-    if axis == 0 and not all([dset.features.type == dsets[0].features.type for dset in dsets]):
-        raise ValueError("Features must match for all datasets")
-    elif axis == 1 and not all([dset.num_rows == dsets[0].num_rows for dset in dsets]):
-        raise ValueError("Number of rows must match for all datasets")
+    tables = [dset._data for dset in dsets]
+    indices_tables = [dset._indices for dset in dsets]
+    if axis == 0:
+        aligned_schemas = align_schemas([table.schema for table in tables])
+        tables = [table.cast(schema) for table, schema in zip(tables, aligned_schemas)]
+    elif axis == 1:
+        max_num_rows = max(dset.num_rows for dset in dsets)
+        tables = [pad_table_to_length(table, max_num_rows) for table in tables]
+        for i in range(len(indices_tables)):
+            indices_table, dset = indices_tables[i], dsets[i]
+            if indices_table is not None and max_num_rows > dset.num_rows:
+                indices_to_add = range(dset._data.num_rows, dset._data.num_rows + (max_num_rows - dset.num_rows))
+                indices_table = add_indices_to_indices_table(dset._indices, indices_to_add)
+            indices_tables[i] = indices_table
 
     # Find common format or reset format
     format = dsets[0].format
@@ -3673,17 +3732,8 @@ def concatenate_datasets(
         format = {}
         logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
-    # Concatenate tables
-    tables_to_concat = [dset._data for dset in dsets if len(dset._data) > 0]
-    # There might be no table with data left hence return first empty table
-    if not tables_to_concat:
-        return dsets[0]
-    table = concat_tables(tables_to_concat, axis=axis)
-    if axis == 1:
-        # Merge features (ignore duplicated columns for now and let Dataset.__init__ check for those)
-        table = update_metadata_with_features(
-            table, Features({k: v for dset in dsets for k, v in dset.features.items()})
-        )
+    table = concat_tables(tables, axis=axis)
+    table = update_metadata_with_features(table, Features.from_arrow_schema(table.schema))
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
@@ -3694,21 +3744,22 @@ def concatenate_datasets(
             return InMemoryTable.from_arrays([new_array], names=["indices"])
 
     # Concatenate indices if they exist
-    if any(dset._indices is not None for dset in dsets):
+    if any(indices is not None for indices in indices_tables):
 
         # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
         # Applying an offset to an indices table also brings the table in memory.
         for i in range(len(dsets)):
             if dsets[i]._indices is None:
                 dsets[i] = dsets[i].select(range(len(dsets[i])))
-        assert all(dset._indices is not None for dset in dsets), "each dataset should have an indices table"
+                indices_table[i] = dsets[i]._indices
+        assert all(indices is not None for indices in indices_tables), "each dataset should have an indices table"
 
         # An offset needs to be applied to the indices before concatenating
         indices_tables = []
         offset = 0
-        for dset in dsets:
-            indices_tables.append(apply_offset_to_indices_table(dset._indices, offset))
-            offset += len(dset._data)
+        for i, indices_table in enumerate(indices_tables):
+            indices_tables.append(apply_offset_to_indices_table(indices_tables, offset))
+            offset += len(dset[i]._data)
 
         # Concatenate indices
         indices_tables = [t for t in indices_tables if len(t) > 0]

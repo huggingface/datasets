@@ -610,15 +610,7 @@ class ConcatenationTable(Table):
     def _concat_blocks(blocks: List[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
-            # Align schemas: re-order the columns to make the schemas match before concatenating over rows
-            schema = pa_tables[0].schema
-            pa_tables = [
-                table
-                if table.schema == schema
-                else pa.Table.from_arrays([table[name] for name in schema.names], names=schema.names)
-                for table in pa_tables
-            ]
-            return pa.concat_tables(pa_tables)
+            return pa.concat_tables(pa_tables, promote=True)
         elif axis == 1:
             for i, table in enumerate(pa_tables):
                 if i == 0:
