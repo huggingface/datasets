@@ -16,6 +16,7 @@
 import json
 import os
 import re
+
 import datasets
 
 
@@ -61,30 +62,21 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
             {
                 "date": datasets.Value("string"),
                 "docIdx": datasets.Value("int64"),
-                "translation": datasets.Sequence(
-                    {
-                        "hi_en": datasets.Value("string"),
-                        "en": datasets.Value("string"),
-                    }
-                ),
+                "translation": datasets.Translation(languages=["en", "hi_en"]),
                 "uid": datasets.Value("string"),
                 "utcTimestamp": datasets.Value("string"),
                 "rating": datasets.Value("int64"),
                 "status": datasets.Value("int64"),
                 "uid1LogInTime": datasets.Value("string"),
                 "uid1LogOutTime": datasets.Value("string"),
-                "uid1response": datasets.Sequence(
-                    {
-                        "response": datasets.Value("int64"),
-                        "type": datasets.Value("string"),
-                    }
-                ),
-                "uid2response": datasets.Sequence(
-                    {
-                        "response": datasets.Value("int64"),
-                        "type": datasets.Value("string"),
-                    }
-                ),
+                "uid1response": {
+                    "response": datasets.Sequence(datasets.Value("int64")),
+                    "type": datasets.Value("string"),
+                },
+                "uid2response": {
+                    "response": datasets.Sequence(datasets.Value("int64")),
+                    "type": datasets.Value("string"),
+                },
                 "user2_id": datasets.Value("string"),
                 "whoSawDoc": datasets.Sequence(datasets.Value("string")),
                 "wikiDocumentIdx": datasets.Value("int64"),
@@ -178,15 +170,15 @@ class CMUHinglishDoG(datasets.GeneratorBasedBuilder):
                         "translation": {"hi_en": y["text"], "en": x["text"]},
                         "rating": hi_en["rating"],
                         "status": hi_en["status"],
-                        "uid1LogOutTime": hi_en["uid1LogOutTime"],
+                        "uid1LogOutTime": hi_en.get("uid1LogOutTime"),
                         "uid1LogInTime": hi_en["uid1LogInTime"],
                         "uid1response": {
-                            "response": hi_en["uid1response"]["response"],
-                            "type": hi_en["uid1response"]["type"],
+                            "response": hi_en["uid1response"]["response"] if "uid1response" in hi_en else [],
+                            "type": hi_en["uid1response"]["type"] if "uid1response" in hi_en else None,
                         },
                         "uid2response": {
-                            "response": hi_en["uid2response"]["response"],
-                            "type": hi_en["uid2response"]["type"],
+                            "response": hi_en["uid2response"]["response"] if "uid2response" in hi_en else [],
+                            "type": hi_en["uid2response"]["type"] if "uid2response" in hi_en else None,
                         },
                         "user2_id": hi_en["user2_id"],
                         "whoSawDoc": hi_en["whoSawDoc"],
