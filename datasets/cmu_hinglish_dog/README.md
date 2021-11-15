@@ -23,7 +23,7 @@ task_ids:
 - machine-translation
 ---
 
-# Dataset Card for ELI5
+# Dataset Card for CMU Document Grounded Conversations
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
