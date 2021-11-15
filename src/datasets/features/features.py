@@ -1060,7 +1060,9 @@ class Features(dict):
             :obj:`dict[str, Any]`
         """
         return {
-            column: feature.decode_example(value) if hasattr(feature, "decode_example") and value is not None else value
+            column: feature.decode_example(value)
+            if hasattr(feature, "decode_example") and value is not None
+            else value
             for column, (feature, value) in utils.zip_dict(
                 {key: value for key, value in self.items() if key in example}, example
             )

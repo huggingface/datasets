@@ -223,7 +223,9 @@ class PandasFeaturesDecoder:
 
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
         decode = (
-            lambda example: self.features[column_name].decode_example if example is not None else None
+            lambda example: self.features[column_name].decode_example
+            if example is not None
+            else None
             if self.features and column_name in self.features and hasattr(self.features[column_name], "decode_example")
             else None
         )
