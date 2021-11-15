@@ -3633,7 +3633,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Returns:
             :class:`Dataset`
         """
-        item_table = InMemoryTable.from_pydict(item)
+        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
         _, item_schema = align_schemas([self._data.schema, item_table.schema])
         # Cast item
         item_table = item_table.cast(item_schema)
