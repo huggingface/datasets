@@ -159,7 +159,7 @@ def test_dataset_with_audio_feature_tar_wav(tar_wav_path):
 @require_sox
 @require_torchaudio
 def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
-    audio_filename = "test_audio_44100.wav"
+    audio_filename = "test_audio_44100.mp3"
     data = {"audio": []}
     for file_path, file_obj in iter_archive(tar_mp3_path):
         data["audio"].append({"path": file_path, "bytes": file_obj.read()})
