@@ -95,7 +95,7 @@ def _interpolation_search(arr: List[int], x: int) -> int:
 class IndexedTableMixin:
     def __init__(self, table: pa.Table):
         self._schema = table.schema
-        self._batches = table.to_batches()
+        self._batches = [recordbatch for recordbatch in table.to_batches() if len(recordbatch) > 0]
         self._offsets: np.ndarray = np.cumsum([0] + [len(b) for b in self._batches], dtype=np.int64)
 
     def fast_gather(self, indices: Union[List[int], np.ndarray]) -> pa.Table:
@@ -289,6 +289,10 @@ class Table(IndexedTableMixin):
     def cast(self, *args, **kwargs):
         raise NotImplementedError()
 
+    @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
+    def replace_schema_metadata(self, *args, **kwargs):
+        raise NotImplementedError()
+
     @inject_arrow_table_documentation(pa.Table.add_column)
     def add_column(self, *args, **kwargs):
         raise NotImplementedError()
@@ -389,6 +393,10 @@ class InMemoryTable(TableBlock):
     @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, *args, **kwargs):
         return InMemoryTable(self.table.cast(*args, **kwargs))
+
+    @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
+    def replace_schema_metadata(self, *args, **kwargs):
+        return InMemoryTable(self.table.replace_schema_metadata(*args, **kwargs))
 
     @inject_arrow_table_documentation(pa.Table.add_column)
     def add_column(self, *args, **kwargs):
@@ -503,6 +511,12 @@ class MemoryMappedTable(TableBlock):
         replay = ("cast", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
         return MemoryMappedTable(self.table.cast(*args, **kwargs), self.path, replays)
+
+    @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
+    def replace_schema_metadata(self, *args, **kwargs):
+        replay = ("replace_schema_metadata", copy.deepcopy(args), copy.deepcopy(kwargs))
+        replays = self._append_replay(replay)
+        return MemoryMappedTable(self.table.replace_schema_metadata(*args, **kwargs), self.path, replays)
 
     @inject_arrow_table_documentation(pa.Table.add_column)
     def add_column(self, *args, **kwargs):
@@ -783,6 +797,14 @@ class ConcatenationTable(Table):
                 new_tables.append(subtable.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
+
+    @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
+    def replace_schema_metadata(self, *args, **kwargs):
+        table = self.table.replace_schema_metadata(*args, **kwargs)
+        blocks = []
+        for tables in self.blocks:
+            blocks.append([t.replace_schema_metadata(*args, **kwargs) for t in tables])
+        return ConcatenationTable(table, self.blocks)
 
     @inject_arrow_table_documentation(pa.Table.add_column)
     def add_column(self, *args, **kwargs):

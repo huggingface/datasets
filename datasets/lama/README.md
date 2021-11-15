@@ -1,4 +1,5 @@
 ---
+pretty_name: "LAMA: LAnguage Model Analysis"
 annotations_creators:
 - crowdsourced
 - expert-generated

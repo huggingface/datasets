@@ -17,7 +17,8 @@ class ImageClassification(TaskTemplate):
 
     def __post_init__(self):
         if self.labels:
-            assert len(self.labels) == len(set(self.labels)), "Labels must be unique"
+            if len(self.labels) != len(set(self.labels)):
+                raise ValueError("Labels must be unique")
             # Cast labels to tuple to allow hashing
             self.__dict__["labels"] = tuple(sorted(self.labels))
             self.__dict__["label_schema"] = self.label_schema.copy()

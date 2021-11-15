@@ -24,21 +24,18 @@ The Blog Authorship Corpus consists of the collected posts of 19,320 bloggers ga
 Each blog is presented as a separate file, the name of which indicates a blogger id# and the blogger’s self-provided gender, age, industry and astrological sign. (All are labeled for gender and age but for many, industry and/or sign is marked as unknown.)
 
 All bloggers included in the corpus fall into one of three age groups:
-
-·          8240 "10s" blogs (ages 13-17),
-
-·          8086 "20s" blogs(ages 23-27)
-
-·          2994 "30s" blogs (ages 33-47).
+- 8240 "10s" blogs (ages 13-17),
+- 8086 "20s" blogs (ages 23-27),
+- 2994 "30s" blogs (ages 33-47).
 
 For each age group there are an equal number of male and female bloggers.
 
 Each blog in the corpus includes at least 200 occurrences of common English words. All formatting has been stripped with two exceptions. Individual posts within a single blogger are separated by the date of the following post and links within a post are denoted by the label urllink.
 
-The corpus may be freely used for non-commercial research purposes
+The corpus may be freely used for non-commercial research purposes.
 """
-_URL = "https://u.cs.biu.ac.il/~koppel/BlogCorpus.htm"
-_DATA_URL = "http://www.cs.biu.ac.il/~koppel/blogs/blogs.zip"
+_URL = "https://lingcog.blogspot.com/p/datasets.html"
+_DATA_URL = "https://drive.google.com/u/0/uc?id=1cGy4RNDV87ZHEXbiozABr9gsSrZpPaPz&export=download"
 
 
 class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):

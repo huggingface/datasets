@@ -9,6 +9,7 @@ licenses:
 - cc-by-sa-3.0
 multilinguality:
 - monolingual
+pretty_name: NQ-Open
 size_categories:
 - 10K<n<100K
 source_datasets:
@@ -52,7 +53,7 @@ paperswithcode_id: null
 - **Repository:** https://github.com/google-research-datasets/natural-questions/tree/master/nq_open
 - **Paper:** https://www.aclweb.org/anthology/P19-1612.pdf
 - **Leaderboard:** https://ai.google.com/research/NaturalQuestions/efficientqa
-- **Point of Contact:** efficientqa@googlegroups.com
+- **Point of Contact:** [Mailing List](efficientqa@googlegroups.com)
 
 ### Dataset Summary
 

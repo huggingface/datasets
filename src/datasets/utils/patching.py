@@ -7,10 +7,11 @@ logger = get_logger(__name__)
 class _PatchedModuleObj:
     """Set all the modules components as attributes of the _PatchedModuleObj object."""
 
-    def __init__(self, module):
+    def __init__(self, module, attrs=None):
+        attrs = attrs or []
         if module is not None:
             for key in getattr(module, "__all__", module.__dict__):
-                if not key.startswith("__"):
+                if key in attrs or not key.startswith("__"):
                     setattr(self, key, getattr(module, key))
 
 
@@ -21,11 +22,11 @@ class patch_submodule:
     Examples:
 
         >>> import importlib
-        >>> from datasets.load import prepare_module
+        >>> from datasets.load import dataset_module_factory
         >>> from datasets.streaming import patch_submodule, xjoin
         >>>
-        >>> snli_module_path, _ = prepare_module("snli")
-        >>> snli_module = importlib.import_module(snli_module_path)
+        >>> dataset_module = dataset_module_factory("snli")
+        >>> snli_module = importlib.import_module(dataset_module.module_path)
         >>> patcher = patch_submodule(snli_module, "os.path.join", xjoin)
         >>> patcher.start()
         >>> assert snli_module.os.path.join is xjoin
@@ -33,18 +34,19 @@ class patch_submodule:
 
     _active_patches = []
 
-    def __init__(self, obj, target: str, new):
+    def __init__(self, obj, target: str, new, attrs=None):
         self.obj = obj
         self.target = target
         self.new = new
         self.key = target.split(".")[0]
         self.original = getattr(obj, self.key, None)
+        self.attrs = attrs or []
 
     def __enter__(self):
         *submodules, attr = self.target.split(".")
         current = self.obj
         for key in submodules:
-            setattr(current, key, _PatchedModuleObj(getattr(current, key, None)))
+            setattr(current, key, _PatchedModuleObj(getattr(current, key, None), attrs=self.attrs))
             current = getattr(current, key)
         setattr(current, attr, self.new)
 

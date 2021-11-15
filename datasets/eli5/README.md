@@ -19,6 +19,7 @@ task_ids:
 - abstractive-qa
 - open-domain-qa
 paperswithcode_id: eli5
+pretty_name: ELI5
 ---
 
 # Dataset Card for ELI5
@@ -56,7 +57,7 @@ paperswithcode_id: eli5
 
 ### Dataset Summary
 
-The ELI5 dataset is an English-language dataset of questions and answers gathered from three subreddits were users ask factual questions requiring paragraph-length or longer answers. The dataset was created to support the task of open-domain long form abstractive question answering, and covers questions about general topics in its [r/explainlikeimfive](https://www.reddit.com/r/explainlikeimfive/) subset, science in it [r/askscience](https://www.reddit.com/r/askscience/) subset, and History in its [r/AskHistorians](https://www.reddit.com/r/AskHistorians/) subset.
+The ELI5 dataset is an English-language dataset of questions and answers gathered from three subreddits where users ask factual questions requiring paragraph-length or longer answers. The dataset was created to support the task of open-domain long form abstractive question answering, and covers questions about general topics in its [r/explainlikeimfive](https://www.reddit.com/r/explainlikeimfive/) subset, science in it [r/askscience](https://www.reddit.com/r/askscience/) subset, and History in its [r/AskHistorians](https://www.reddit.com/r/AskHistorians/) subset.
 
 ### Supported Tasks and Leaderboards
 
@@ -106,7 +107,7 @@ An example from the ELI5 test set looks as follows:
 
 The data is split into a training, validation and test set for each of the three subreddits. In order to avoid having duplicate questions in across sets, the `title` field of each of the questions were ranked by their tf-idf match to their nearest neighbor and the ones with the smallest value were used in the test and validation sets. The final split sizes are as follow:
 
-|                             | Tain   | Valid | Test |
+|                             | Train   | Valid | Test |
 | -----                       | ------ | ----- | ---- |
 | r/explainlikeimfive examples| 272634 |  9812 | 24512|
 | r/askscience examples       | 131778 |  2281 | 4462 |

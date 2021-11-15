@@ -24,7 +24,13 @@ import numpy as np
 import pyarrow as pa
 
 from . import config, utils
-from .features import Features, _ArrayXDExtensionType, numpy_to_pyarrow_listarray
+from .features import (
+    Features,
+    _ArrayXDExtensionType,
+    cast_to_python_objects,
+    list_of_np_array_to_pyarrow_listarray,
+    numpy_to_pyarrow_listarray,
+)
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .utils import logging
@@ -94,22 +100,38 @@ class TypedSequence:
             trying_type = True
         else:
             type = self.type
+        trying_int_optimization = False
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 if isinstance(self.data, np.ndarray):
                     storage = numpy_to_pyarrow_listarray(self.data, type=type.value_type)
+                elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                    storage = list_of_np_array_to_pyarrow_listarray(self.data, type=type.value_type)
                 else:
                     storage = pa.array(self.data, type.storage_dtype)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
+                if type is not None:
+                    out = out.cast(type)
+            elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                out = list_of_np_array_to_pyarrow_listarray(self.data)
+                if type is not None:
+                    out = out.cast(type)
             else:
-                out = pa.array(self.data, type=type)
-            if trying_type and out[0].as_py() != self.data[0]:
-                raise TypeError(
-                    "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
+                out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
+            if trying_type:
+                is_equal = (
+                    np.array_equal(np.array(out[0].as_py()), self.data[0])
+                    if isinstance(self.data[0], np.ndarray)
+                    else out[0].as_py() == self.data[0]
                 )
+                if not is_equal:
+                    raise TypeError(
+                        "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
+                    )
             if self.optimized_int_type and self.type is None and self.try_type is None:
+                trying_int_optimization = True
                 if pa.types.is_int64(out.type):
                     out = out.cast(self.optimized_int_type)
                 elif pa.types.is_list(out.type):
@@ -122,16 +144,22 @@ class TypedSequence:
             if trying_type:
                 try:  # second chance
                     if isinstance(self.data, np.ndarray):
-                        return numpy_to_pyarrow_listarray(self.data, type=None)
+                        return numpy_to_pyarrow_listarray(self.data)
+                    elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                        return list_of_np_array_to_pyarrow_listarray(self.data)
                     else:
-                        return pa.array(self.data, type=None)
+                        return pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True))
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(
                             "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
                                 type_(self.data), e
                             )
-                        )
+                        ) from None
+                    elif trying_int_optimization and "not in range" in str(e):
+                        optimized_int_type_str = np.dtype(self.optimized_int_type.to_pandas_dtype()).name
+                        logger.info(f"Failed to cast a sequence to {optimized_int_type_str}. Falling back to int64.")
+                        return out
                     else:
                         raise
             elif "overflow" in str(e):
@@ -139,7 +167,11 @@ class TypedSequence:
                     "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
                         type_(self.data), e
                     )
-                )
+                ) from None
+            elif trying_int_optimization and "not in range" in str(e):
+                optimized_int_type_str = np.dtype(self.optimized_int_type.to_pandas_dtype()).name
+                logger.info(f"Failed to cast a sequence to {optimized_int_type_str}. Falling back to int64.")
+                return out
             else:
                 raise
 
@@ -304,11 +336,13 @@ class ArrowWriter:
             inferred_type = pa_array.type
             first_example = pa.array(OptimizedTypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
-                raise OverflowError(
-                    "There was an overflow in the {}. Try to reduce writer_batch_size to have batches smaller than 2GB".format(
-                        type(pa_array)
+                # This check fails with FloatArrays with nans, which is not what we want, so account for that:
+                if not isinstance(pa_array[0], pa.lib.FloatScalar):
+                    raise OverflowError(
+                        "There was an overflow in the {}. Try to reduce writer_batch_size to have batches smaller than 2GB".format(
+                            type(pa_array)
+                        )
                     )
-                )
             arrays.append(pa_array)
             inferred_types.append(inferred_type)
         schema = pa.schema(zip(cols, inferred_types)) if self.pa_writer is None else self._schema
@@ -527,7 +561,7 @@ class BeamWriter:
                 parquet_to_arrow(sources, dest)
         except socket.error as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
             if e.errno != errno.EPIPE:  # not a broken pipe
-                raise e
+                raise
             logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
             local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
             os.makedirs(local_convert_dir, exist_ok=True)

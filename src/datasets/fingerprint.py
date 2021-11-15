@@ -7,6 +7,7 @@ import tempfile
 import weakref
 from dataclasses import asdict
 from functools import wraps
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
@@ -82,7 +83,7 @@ def maybe_register_dataset_for_temp_dir_deletion(dataset):
     if _DATASETS_WITH_TABLE_IN_TEMP_DIR is None:
         _DATASETS_WITH_TABLE_IN_TEMP_DIR = weakref.WeakSet()
     if any(
-        os.path.samefile(os.path.dirname(cache_file["filename"]), _TEMP_DIR_FOR_TEMP_CACHE_FILES.name)
+        Path(_TEMP_DIR_FOR_TEMP_CACHE_FILES.name) in Path(cache_file["filename"]).parents
         for cache_file in dataset.cache_files
     ):
         _DATASETS_WITH_TABLE_IN_TEMP_DIR.add(dataset)
@@ -164,7 +165,7 @@ def hashregister(*types):
 
 
 class Hasher:
-    """Hasher that accepts python objets as inputs."""
+    """Hasher that accepts python objects as inputs."""
 
     dispatch: Dict = {}
 
@@ -304,6 +305,7 @@ def fingerprint_transform(
     ignore_kwargs: Optional[List[str]] = None,
     fingerprint_names: Optional[List[str]] = None,
     randomized_function: bool = False,
+    version: Optional[str] = None,
 ):
     """
     Wrapper for dataset transforms to update the dataset fingerprint using ``update_fingerprint``
@@ -326,6 +328,11 @@ def fingerprint_transform(
             This way, even if users set "seed" and "generator" to None, then the fingerprint is
             going to be randomly generated depending on numpy's current state. In this case, the
             generator is set to np.random.default_rng(np.random.get_state()[1][0]).
+        version (Optional ``str``): version of the transform. The version is taken into account when
+            computing the fingerprint. If a datase transform changes (or at least if the output data
+            that are cached changes), then one should increase the version. If the version stays the
+            same, then old cached data could be reused that are not compatible with the new transform.
+            It should be in the format "MAJOR.MINOR.PATCH".
     """
 
     assert use_kwargs is None or isinstance(use_kwargs, list), "use_kwargs is supposed to be a list, not {}".format(
@@ -345,6 +352,10 @@ def fingerprint_transform(
         if randomized_function:  # randomized function have seed and generator parameters
             assert "seed" in func.__code__.co_varnames, "'seed' must be in {}'s signature".format(func)
             assert "generator" in func.__code__.co_varnames, "'generator' must be in {}'s signature".format(func)
+        # this has to be outside the wrapper or since __qualname__ changes in multiprocessing
+        transform = f"{func.__module__}.{func.__qualname__}"
+        if version is not None:
+            transform += f"@{version}"
 
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -381,7 +392,6 @@ def fingerprint_transform(
                     kwargs_for_fingerprint.pop(default_varname)
 
             # compute new_fingerprint and add it to the args of not in-place transforms
-            transform = func.__module__ + "." + func.__qualname__
             if inplace:
                 new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
             else:

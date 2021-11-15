@@ -17,7 +17,6 @@ Code is heavily inspired from https://github.com/huggingface/datasets/blob/maste
 
 
 import json
-import os
 
 import datasets
 
@@ -84,51 +83,56 @@ class Ropes(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URLs)
+        archives = dl_manager.download(_URLs)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["train+dev"], "ropes-train-dev-v1.0", "train-v1.0.json"),
+                    "filepath": "/".join(["ropes-train-dev-v1.0", "train-v1.0.json"]),
                     "split": "train",
+                    "files": dl_manager.iter_archive(archives["train+dev"]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["test"], "ropes-test-questions-v1.0", "test-1.0.json"),
+                    "filepath": "/".join(["ropes-test-questions-v1.0", "test-1.0.json"]),
                     "split": "test",
+                    "files": dl_manager.iter_archive(archives["test"]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir["train+dev"], "ropes-train-dev-v1.0", "dev-v1.0.json"),
+                    "filepath": "/".join(["ropes-train-dev-v1.0", "dev-v1.0.json"]),
                     "split": "dev",
+                    "files": dl_manager.iter_archive(archives["train+dev"]),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, split, files):
         """Yields examples."""
-        with open(filepath, encoding="utf-8") as f:
-            ropes = json.load(f)
-            for article in ropes["data"]:
-                for paragraph in article["paragraphs"]:
-                    background = paragraph["background"].strip()
-                    situation = paragraph["situation"].strip()
-                    for qa in paragraph["qas"]:
-                        question = qa["question"].strip()
-                        id_ = qa["id"]
-                        answers = [] if split == "test" else [answer["text"].strip() for answer in qa["answers"]]
+        for path, f in files:
+            if path == filepath:
+                ropes = json.loads(f.read().decode("utf-8"))
+                for article in ropes["data"]:
+                    for paragraph in article["paragraphs"]:
+                        background = paragraph["background"].strip()
+                        situation = paragraph["situation"].strip()
+                        for qa in paragraph["qas"]:
+                            question = qa["question"].strip()
+                            id_ = qa["id"]
+                            answers = [] if split == "test" else [answer["text"].strip() for answer in qa["answers"]]
 
-                        yield id_, {
-                            "background": background,
-                            "situation": situation,
-                            "question": question,
-                            "id": id_,
-                            "answers": {
-                                "text": answers,
-                            },
-                        }
+                            yield id_, {
+                                "background": background,
+                                "situation": situation,
+                                "question": question,
+                                "id": id_,
+                                "answers": {
+                                    "text": answers,
+                                },
+                            }
+                break

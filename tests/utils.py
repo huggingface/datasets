@@ -192,21 +192,6 @@ def require_s3(test_case):
         return test_case
 
 
-def require_streaming(test_case):
-    """
-    Decorator marking a test that requires aiohttp.
-
-    These tests are skipped when aiohttp isn't installed.
-
-    """
-    try:
-        import aiohttp  # noqa F401
-    except ImportError:
-        return unittest.skip("test requires aiohttp")(test_case)
-    else:
-        return test_case
-
-
 def slow(test_case):
     """
     Decorator marking a test as slow.
@@ -246,7 +231,7 @@ def packaged(test_case):
 
 def remote(test_case):
     """
-    Decorator marking a test as one that relies on github or aws.
+    Decorator marking a test as one that relies on GitHub or the Hugging Face Hub.
 
     Remote tests are skipped by default. Set the RUN_REMOTE environment variable
     to a falsy value to not run them.
@@ -325,7 +310,8 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     elif mode is OfflineSimulationMode.CONNECTION_TIMES_OUT:
         # inspired from https://stackoverflow.com/a/904609
         with patch("requests.request", timeout_request):
-            yield
+            with patch("requests.api.request", timeout_request):
+                yield
     elif mode is OfflineSimulationMode.HF_DATASETS_OFFLINE_SET_TO_1:
         with patch("datasets.config.HF_DATASETS_OFFLINE", True):
             yield

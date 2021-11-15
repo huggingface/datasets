@@ -1,11 +1,18 @@
+import json
 import pickle
+import subprocess
 from hashlib import md5
+from pathlib import Path
+from textwrap import dedent
 from types import CodeType, FunctionType
 from unittest import TestCase
 from unittest.mock import patch
 
+from multiprocess import Pool
+
 import datasets
-from datasets.fingerprint import Hasher
+from datasets.fingerprint import Hasher, fingerprint_transform
+from datasets.table import InMemoryTable
 
 from .utils import require_regex, require_transformers
 
@@ -16,6 +23,16 @@ class Foo:
 
     def __call__(self):
         return self.foo
+
+
+class DatasetChild(datasets.Dataset):
+    @fingerprint_transform(inplace=False)
+    def func1(self, new_fingerprint, *args, **kwargs):
+        return DatasetChild(self.data, fingerprint=new_fingerprint)
+
+    @fingerprint_transform(inplace=False)
+    def func2(self, new_fingerprint, *args, **kwargs):
+        return DatasetChild(self.data, fingerprint=new_fingerprint)
 
 
 class UnpicklableCallable:
@@ -258,3 +275,84 @@ class HashingTest(TestCase):
     def test_hash_unpicklable(self):
         with self.assertRaises(pickle.PicklingError):
             Hasher.hash(UnpicklableCallable(Foo("hello")))
+
+    def test_hash_same_strings(self):
+        string = "abc"
+        obj1 = [string, string]  # two strings have the same ids
+        obj2 = [string, string]
+        obj3 = json.loads(f'["{string}", "{string}"]')  # two strings have different ids
+        self.assertIs(obj1[0], string)
+        self.assertIs(obj1[0], obj1[1])
+        self.assertIs(obj2[0], string)
+        self.assertIs(obj2[0], obj2[1])
+        self.assertIsNot(obj3[0], string)
+        self.assertIsNot(obj3[0], obj3[1])
+        hash1 = Hasher.hash(obj1)
+        hash2 = Hasher.hash(obj2)
+        hash3 = Hasher.hash(obj3)
+        self.assertEqual(hash1, hash2)
+        self.assertEqual(hash1, hash3)
+
+
+def test_move_script_doesnt_change_hash(tmp_path: Path):
+    dir1 = tmp_path / "dir1"
+    dir2 = tmp_path / "dir2"
+    dir1.mkdir()
+    dir2.mkdir()
+    script_filename = "script.py"
+    code = dedent(
+        """
+    from datasets.fingerprint import Hasher
+    def foo():
+        pass
+    print(Hasher.hash(foo))
+    """
+    )
+    script_path1 = dir1 / script_filename
+    script_path2 = dir2 / script_filename
+    with script_path1.open("w") as f:
+        f.write(code)
+    with script_path2.open("w") as f:
+        f.write(code)
+    fingerprint1 = subprocess.check_output(["python", str(script_path1)])
+    fingerprint2 = subprocess.check_output(["python", str(script_path2)])
+    assert fingerprint1 == fingerprint2
+
+
+def test_fingerprint_in_multiprocessing():
+    data = {"a": [0, 1, 2]}
+    dataset = DatasetChild(InMemoryTable.from_pydict(data))
+    expected_fingerprint = dataset.func1()._fingerprint
+    assert expected_fingerprint == dataset.func1()._fingerprint
+    assert expected_fingerprint != dataset.func2()._fingerprint
+
+    with Pool(2) as p:
+        assert expected_fingerprint == p.apply_async(dataset.func1).get()._fingerprint
+        assert expected_fingerprint != p.apply_async(dataset.func2).get()._fingerprint
+
+
+def test_fingerprint_when_transform_version_changes():
+    data = {"a": [0, 1, 2]}
+
+    class DummyDatasetChild(datasets.Dataset):
+        @fingerprint_transform(inplace=False)
+        def func(self, new_fingerprint):
+            return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
+
+    fingeprint_no_version = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+
+    class DummyDatasetChild(datasets.Dataset):
+        @fingerprint_transform(inplace=False, version="1.0.0")
+        def func(self, new_fingerprint):
+            return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
+
+    fingeprint_1 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+
+    class DummyDatasetChild(datasets.Dataset):
+        @fingerprint_transform(inplace=False, version="2.0.0")
+        def func(self, new_fingerprint):
+            return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
+
+    fingeprint_2 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+
+    assert len(set([fingeprint_no_version, fingeprint_1, fingeprint_2])) == 3

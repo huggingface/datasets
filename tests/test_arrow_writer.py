@@ -1,7 +1,9 @@
+import copy
 import os
 import tempfile
 from unittest import TestCase
 
+import numpy as np
 import pyarrow as pa
 import pytest
 
@@ -211,6 +213,13 @@ def get_base_dtype(arr_type):
         return arr_type
 
 
+def change_first_primitive_element_in_list(lst, value):
+    if isinstance(lst[0], list):
+        change_first_primitive_element_in_list(lst[0], value)
+    else:
+        lst[0] = value
+
+
 @pytest.mark.parametrize("optimized_int_type, expected_dtype", [(None, pa.int64()), (pa.int32(), pa.int32())])
 @pytest.mark.parametrize("sequence", [[1, 2, 3], [[1, 2, 3]], [[[1, 2, 3]]]])
 def test_optimized_int_type_for_typed_sequence(sequence, optimized_int_type, expected_dtype):
@@ -230,8 +239,18 @@ def test_optimized_int_type_for_typed_sequence(sequence, optimized_int_type, exp
 )
 @pytest.mark.parametrize("sequence", [[1, 2, 3], [[1, 2, 3]], [[[1, 2, 3]]]])
 def test_optimized_typed_sequence(sequence, col, expected_dtype):
+    # in range
     arr = pa.array(OptimizedTypedSequence(sequence, col=col))
     assert get_base_dtype(arr.type) == expected_dtype
+
+    # not in range
+    if col != "other":
+        # avoids errors due to in-place modifications
+        sequence = copy.deepcopy(sequence)
+        value = np.iinfo(expected_dtype.to_pandas_dtype()).max + 1
+        change_first_primitive_element_in_list(sequence, value)
+        arr = pa.array(OptimizedTypedSequence(sequence, col=col))
+        assert get_base_dtype(arr.type) == pa.int64()
 
 
 @pytest.mark.parametrize("raise_exception", [False, True])

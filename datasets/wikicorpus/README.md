@@ -1,4 +1,5 @@
 ---
+pretty_name: Wikicorpus
 annotations_creators:
   raw_ca:
   - no-annotation
@@ -82,6 +83,7 @@ task_ids:
   - part-of-speech-tagging
   - text-classification-other-word-sense-disambiguation
 paperswithcode_id: null
+pretty_name: Wikicorpus
 ---
 
 # Dataset Card for Wikicorpus

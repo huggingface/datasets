@@ -53,9 +53,10 @@ def generate_example_dataset(dataset_path, features, num_examples=100, seq_shape
 
         num_final_examples, num_bytes = writer.finalize()
 
-    assert (
-        num_final_examples == num_examples
-    ), f"Error writing the dataset, wrote {num_final_examples} examples but should have written {num_examples}."
+    if not num_final_examples == num_examples:
+        raise ValueError(
+            f"Error writing the dataset, wrote {num_final_examples} examples but should have written {num_examples}."
+        )
 
     dataset = datasets.Dataset.from_file(filename=dataset_path, info=datasets.DatasetInfo(features=features))
 

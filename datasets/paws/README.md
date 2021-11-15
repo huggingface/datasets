@@ -1,4 +1,5 @@
 ---
+pretty_name: "PAWS: Paraphrase Adversaries from Word Scrambling"
 annotations_creators:
   labeled_final:
   - expert-generated

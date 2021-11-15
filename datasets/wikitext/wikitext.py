@@ -6,20 +6,24 @@ import os
 import datasets
 
 
-# TODO(wikitext): BibTeX citation
 _CITATION = """\
-@InProceedings{wikitext,
-    author={Stephen, Merity and Caiming ,Xiong and James, Bradbury and Richard Socher}
-    year={2016}
+@misc{merity2016pointer,
+      title={Pointer Sentinel Mixture Models},
+      author={Stephen Merity and Caiming Xiong and James Bradbury and Richard Socher},
+      year={2016},
+      eprint={1609.07843},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
 }
 """
 
-# TODO(wikitext):
 _DESCRIPTION = """\
  The WikiText language modeling dataset is a collection of over 100 million tokens extracted from the set of verified
- Good and Featured articles on Wikipedia. The dataset is available under the Creative Commons Attribution-ShareAlike License.
+ Good and Featured articles on Wikipedia. The dataset is available under the Creative Commons Attribution-ShareAlike
+ License.
 """
-_URL = "https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/"
+_HOMEPAGE = "https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/"
+_LICENSE = "Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)"
 _DATA_URL = "https://s3.amazonaws.com/research.metamind.io/wikitext"
 
 
@@ -49,25 +53,25 @@ class Wikitext(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         WikitextConfig(
-            name="wikitext-103-raw-v1",
-            data_url=_DATA_URL + "/" + "wikitext-103-raw-v1.zip",
-            description="word level dataset. No processing is needed other than replacing newlines with <eos> tokens.",
-        ),
-        WikitextConfig(
-            name="wikitext-2-raw-v1",
-            data_url=_DATA_URL + "/" + "wikitext-2-raw-v1.zip",
-            description="word level dataset. No processing is needed other than replacing newlines with <eos> tokens.",
-        ),
-        WikitextConfig(
             name="wikitext-103-v1",
             data_url=_DATA_URL + "/" + "wikitext-103-v1.zip",
-            description="raw level dataset. The raw tokens before the addition of <unk> tokens. "
-            "They should only be used for character level work or for creating newly derived datasets.",
+            description="Word level dataset. No processing is needed other than replacing newlines with <eos> tokens.",
         ),
         WikitextConfig(
             name="wikitext-2-v1",
             data_url=_DATA_URL + "/" + "wikitext-2-v1.zip",
-            description="raw level dataset. The raw tokens before the addition of <unk> tokens. "
+            description="Word level dataset. No processing is needed other than replacing newlines with <eos> tokens.",
+        ),
+        WikitextConfig(
+            name="wikitext-103-raw-v1",
+            data_url=_DATA_URL + "/" + "wikitext-103-raw-v1.zip",
+            description="Raw level dataset: the raw tokens before the addition of <unk> tokens. "
+            "They should only be used for character level work or for creating newly derived datasets.",
+        ),
+        WikitextConfig(
+            name="wikitext-2-raw-v1",
+            data_url=_DATA_URL + "/" + "wikitext-2-raw-v1.zip",
+            description="Raw level dataset: the raw tokens before the addition of <unk> tokens. "
             "They should only be used for character level work or for creating newly derived datasets.",
         ),
     ]
@@ -88,8 +92,8 @@ class Wikitext(datasets.GeneratorBasedBuilder):
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
             supervised_keys=None,
-            # Homepage of the dataset for documentation
-            homepage=_URL,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 

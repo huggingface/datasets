@@ -15,8 +15,6 @@
 """WMT20 MLQE Shared task 2."""
 
 
-import os
-
 import datasets
 
 
@@ -119,76 +117,89 @@ class Wmt20MlqeTask2(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        downloaded_files = dl_manager.download(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir["train+dev"], f"{self.config.src_lg}-{self.config.tgt_lg}", "train"
-                    ),
+                    "filepath": f"{self.config.src_lg}-{self.config.tgt_lg}/train",
                     "split": "train",
                     "source_lg": self.config.src_lg,
                     "target_lg": self.config.tgt_lg,
+                    "files": dl_manager.iter_archive(downloaded_files["train+dev"]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir["test"], f"{self.config.src_lg}-{self.config.tgt_lg}", "test-blind"
-                    ),
+                    "filepath": f"{self.config.src_lg}-{self.config.tgt_lg}/test-blind",
                     "split": "test",
                     "source_lg": self.config.src_lg,
                     "target_lg": self.config.tgt_lg,
+                    "files": dl_manager.iter_archive(downloaded_files["test"]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir["train+dev"], f"{self.config.src_lg}-{self.config.tgt_lg}", "dev"
-                    ),
+                    "filepath": f"{self.config.src_lg}-{self.config.tgt_lg}/dev",
                     "split": "dev",
                     "source_lg": self.config.src_lg,
                     "target_lg": self.config.tgt_lg,
+                    "files": dl_manager.iter_archive(downloaded_files["train+dev"]),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split, source_lg, target_lg):
+    def _generate_examples(self, filepath, split, source_lg, target_lg, files):
         """Yields examples."""
 
-        def open_and_read(fp):
-            with open(fp, encoding="utf-8") as f:
-                return f.read().splitlines()
-
-        srcs = open_and_read(os.path.join(filepath, f"{split}.src"))
-        mts = open_and_read(os.path.join(filepath, f"{split}.mt"))
-        alignments = [
-            [idx_.split("-") for idx_ in t.split(" ")]
-            for t in open_and_read(os.path.join(filepath, f"{split}.src-mt.alignments"))
-        ]
+        srcs_path = "/".join([filepath, f"{split}.src"])
+        mts_path = "/".join([filepath, f"{split}.mt"])
+        alignments_path = "/".join([filepath, f"{split}.src-mt.alignments"])
 
         if split != "test":
-            src_tags = [t.split(" ") for t in open_and_read(os.path.join(filepath, f"{split}.source_tags"))]
-            mt_tags = [t.split(" ") for t in open_and_read(os.path.join(filepath, f"{split}.tags"))]
-            pes = open_and_read(os.path.join(filepath, f"{split}.pe"))
-            hters = open_and_read(os.path.join(filepath, f"{split}.hter"))
-        else:
-            src_tags = [[]] * len(srcs)
-            mt_tags = [[]] * len(srcs)
-            pes = [""] * len(srcs)
-            hters = [-10_000] * len(srcs)
+            src_tags_path = "/".join([filepath, f"{split}.source_tags"])
+            mt_tags_path = "/".join([filepath, f"{split}.tags"])
+            pes_path = "/".join([filepath, f"{split}.pe"])
+            hters_path = "/".join([filepath, f"{split}.hter"])
 
-        for id_, (src_, src_tags_, mt_, mt_tags_, pe_, hter_, alignments_) in enumerate(
-            zip(srcs, src_tags, mts, mt_tags, pes, hters, alignments)
-        ):
-            yield id_, {
-                "translation": {source_lg: src_, target_lg: mt_},
-                "src_tags": src_tags_,
-                "mt_tags": mt_tags_,
-                "pe": pe_,
-                "hter": hter_,
-                "alignments": alignments_,
-            }
+        srcs, mts, alignments, src_tags, mt_tags, pes, hters = [None] * 7
+
+        for path, f in files:
+            if path == srcs_path:
+                srcs = f.read().decode("utf-8").splitlines()
+            elif path == mts_path:
+                mts = f.read().decode("utf-8").splitlines()
+            elif path == alignments_path:
+                alignments = [
+                    [idx_.split("-") for idx_ in t.split(" ")] for t in f.read().decode("utf-8").splitlines()
+                ]
+            if split != "test":
+                if path == src_tags_path:
+                    src_tags = [t.split(" ") for t in f.read().decode("utf-8").splitlines()]
+                elif path == mt_tags_path:
+                    mt_tags = [t.split(" ") for t in f.read().decode("utf-8").splitlines()]
+                elif path == pes_path:
+                    pes = f.read().decode("utf-8").splitlines()
+                elif path == hters_path:
+                    hters = f.read().decode("utf-8").splitlines()
+            elif srcs is not None and src_tags is None:
+                src_tags = [[]] * len(srcs)
+                mt_tags = [[]] * len(srcs)
+                pes = [""] * len(srcs)
+                hters = [-10_000] * len(srcs)
+
+            if all(x is not None for x in [srcs, mts, alignments, src_tags, mt_tags, pes, hters]):
+                for id_, (src_, src_tags_, mt_, mt_tags_, pe_, hter_, alignments_) in enumerate(
+                    zip(srcs, src_tags, mts, mt_tags, pes, hters, alignments)
+                ):
+                    yield id_, {
+                        "translation": {source_lg: src_, target_lg: mt_},
+                        "src_tags": src_tags_,
+                        "mt_tags": mt_tags_,
+                        "pe": pe_,
+                        "hter": hter_,
+                        "alignments": alignments_,
+                    }
+                break

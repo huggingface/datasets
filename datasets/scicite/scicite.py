@@ -18,7 +18,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -95,53 +94,56 @@ class Scicite(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_paths = dl_manager.download_and_extract(
-            {
-                "scicite": "https://s3-us-west-2.amazonaws.com/ai2-s2-research/scicite/scicite.tar.gz",
-            }
-        )
-        path = os.path.join(dl_paths["scicite"], "scicite")
+        archive = dl_manager.download("https://s3-us-west-2.amazonaws.com/ai2-s2-research/scicite/scicite.tar.gz")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"path": os.path.join(path, "train.jsonl")},
+                gen_kwargs={
+                    "filepath": "/".join(["scicite", "train.jsonl"]),
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"path": os.path.join(path, "dev.jsonl")},
+                gen_kwargs={"filepath": "/".join(["scicite", "dev.jsonl"]), "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"path": os.path.join(path, "test.jsonl")},
+                gen_kwargs={
+                    "filepath": "/".join(["scicite", "test.jsonl"]),
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 
-    def _generate_examples(self, path=None):
+    def _generate_examples(self, filepath, files):
         """Yields examples."""
-        with open(path, encoding="utf-8") as f:
-            unique_ids = {}
-            for line in f:
-                d = json.loads(line)
-                unique_id = str(d["unique_id"])
-                if unique_id in unique_ids:
-                    continue
-                unique_ids[unique_id] = True
-                yield unique_id, {
-                    "string": d["string"],
-                    "label": str(d["label"]),
-                    "sectionName": str(d["sectionName"]),
-                    "citingPaperId": str(d["citingPaperId"]),
-                    "citedPaperId": str(d["citedPaperId"]),
-                    "excerpt_index": int(d["excerpt_index"]),
-                    "isKeyCitation": bool(d["isKeyCitation"]),
-                    "label2": str(d.get("label2", "none")),
-                    "citeEnd": _safe_int(d["citeEnd"]),
-                    "citeStart": _safe_int(d["citeStart"]),
-                    "source": str(d["source"]),
-                    "label_confidence": float(d.get("label_confidence", 0.0)),
-                    "label2_confidence": float(d.get("label2_confidence", 0.0)),
-                    "id": str(d["id"]),
-                }
+        for path, f in files:
+            if path == filepath:
+                unique_ids = {}
+                for line in f:
+                    d = json.loads(line.decode("utf-8"))
+                    unique_id = str(d["unique_id"])
+                    if unique_id in unique_ids:
+                        continue
+                    unique_ids[unique_id] = True
+                    yield unique_id, {
+                        "string": d["string"],
+                        "label": str(d["label"]),
+                        "sectionName": str(d["sectionName"]),
+                        "citingPaperId": str(d["citingPaperId"]),
+                        "citedPaperId": str(d["citedPaperId"]),
+                        "excerpt_index": int(d["excerpt_index"]),
+                        "isKeyCitation": bool(d["isKeyCitation"]),
+                        "label2": str(d.get("label2", "none")),
+                        "citeEnd": _safe_int(d["citeEnd"]),
+                        "citeStart": _safe_int(d["citeStart"]),
+                        "source": str(d["source"]),
+                        "label_confidence": float(d.get("label_confidence", 0.0)),
+                        "label2_confidence": float(d.get("label2_confidence", 0.0)),
+                        "id": str(d["id"]),
+                    }
+                break
 
 
 def _safe_int(a):

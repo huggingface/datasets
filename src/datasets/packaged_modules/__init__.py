@@ -33,3 +33,12 @@ _PACKAGED_DATASETS_MODULES = {
     "text": (text.__name__, hash_python_lines(inspect.getsource(text).splitlines())),
     "imagefolder": (imagefolder.__name__, hash_python_lines(inspect.getsource(imagefolder).splitlines())),
 }
+
+_EXTENSION_TO_MODULE = {
+    "csv": "csv",
+    "tsv": "csv",
+    "json": "json",
+    "jsonl": "json",
+    "parquet": "parquet",
+    "txt": "text",
+}

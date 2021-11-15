@@ -1,10 +1,27 @@
 ---
+annotations_creators:
+- expert-generated
+language_creators:
+- crowdsourced
 languages:
 - en
+licenses:
+- mit
+multilinguality:
+- monolingual
 paperswithcode_id: docred
+pretty_name: DocRED
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-retrieval
+task_ids:
+- entity-linking-retrieval
 ---
 
-# Dataset Card for "docred"
+# Dataset Card for DocRED
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -32,9 +49,8 @@ paperswithcode_id: docred
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/thunlp/DocRED](https://github.com/thunlp/DocRED)
-- **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Repository:** [https://github.com/thunlp/DocRED](https://github.com/thunlp/DocRED)
+- **Paper:** [DocRED: A Large-Scale Document-Level Relation Extraction Dataset](https://arxiv.org/abs/1906.06127)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Size of downloaded dataset files:** 20.03 MB
 - **Size of the generated dataset:** 19.19 MB
@@ -121,7 +137,7 @@ The data fields are the same among all splits.
 
 | name  |train_annotated|train_distant|validation|test|
 |-------|--------------:|------------:|---------:|---:|
-|default|           3053|         1000|      1000|1000|
+|default|           3053|       101873|       998|1000|
 
 ## Dataset Creation
 

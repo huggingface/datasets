@@ -1,4 +1,5 @@
 ---
+pretty_name: WikiMovies
 annotations_creators:
 - crowdsourced
 language_creators:
