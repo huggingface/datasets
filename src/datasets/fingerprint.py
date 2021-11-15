@@ -335,12 +335,10 @@ def fingerprint_transform(
             It should be in the format "MAJOR.MINOR.PATCH".
     """
 
-    assert use_kwargs is None or isinstance(use_kwargs, list), "use_kwargs is supposed to be a list, not {}".format(
-        type(use_kwargs)
-    )
+    assert use_kwargs is None or isinstance(use_kwargs, list), f"use_kwargs is supposed to be a list, not {type(use_kwargs)}"
     assert ignore_kwargs is None or isinstance(
         ignore_kwargs, list
-    ), "ignore_kwargs is supposed to be a list, not {}".format(type(use_kwargs))
+    ), f"ignore_kwargs is supposed to be a list, not {type(use_kwargs)}"
     assert not inplace or not fingerprint_names, "fingerprint_names are only used when inplace is False"
     fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
 
@@ -348,10 +346,10 @@ def fingerprint_transform(
 
         assert inplace or all(  # check that not in-place functions require fingerprint parameters
             name in func.__code__.co_varnames for name in fingerprint_names
-        ), "function {} is missing parameters {} in signature".format(func, fingerprint_names)
+        ), f"function {func} is missing parameters {fingerprint_names} in signature"
         if randomized_function:  # randomized function have seed and generator parameters
-            assert "seed" in func.__code__.co_varnames, "'seed' must be in {}'s signature".format(func)
-            assert "generator" in func.__code__.co_varnames, "'generator' must be in {}'s signature".format(func)
+            assert "seed" in func.__code__.co_varnames, f"'seed' must be in {func}'s signature"
+            assert "generator" in func.__code__.co_varnames, f"'generator' must be in {func}'s signature"
         # this has to be outside the wrapper or since __qualname__ changes in multiprocessing
         transform = f"{func.__module__}.{func.__qualname__}"
         if version is not None:

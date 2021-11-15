@@ -152,9 +152,7 @@ class TypedSequence:
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(
-                            "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
-                                type_(self.data), e
-                            )
+                            f"There was an overflow with type {type_(self.data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
                         ) from None
                     elif trying_int_optimization and "not in range" in str(e):
                         optimized_int_type_str = np.dtype(self.optimized_int_type.to_pandas_dtype()).name
@@ -164,9 +162,7 @@ class TypedSequence:
                         raise
             elif "overflow" in str(e):
                 raise OverflowError(
-                    "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
-                        type_(self.data), e
-                    )
+                    f"There was an overflow with type {type_(self.data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
                 ) from None
             elif trying_int_optimization and "not in range" in str(e):
                 optimized_int_type_str = np.dtype(self.optimized_int_type.to_pandas_dtype()).name
@@ -339,9 +335,7 @@ class ArrowWriter:
                 # This check fails with FloatArrays with nans, which is not what we want, so account for that:
                 if not isinstance(pa_array[0], pa.lib.FloatScalar):
                     raise OverflowError(
-                        "There was an overflow in the {}. Try to reduce writer_batch_size to have batches smaller than 2GB".format(
-                            type(pa_array)
-                        )
+                        f"There was an overflow in the {type(pa_array)}. Try to reduce writer_batch_size to have batches smaller than 2GB"
                     )
             arrays.append(pa_array)
             inferred_types.append(inferred_type)
@@ -473,11 +467,7 @@ class ArrowWriter:
         if close_stream:
             self.stream.close()
         logger.debug(
-            "Done writing %s %s in %s bytes %s.",
-            self._num_examples,
-            self.unit,
-            self._num_bytes,
-            self._path if self._path else "",
+            f"Done writing {self._num_examples} {self.unit} in {self._num_bytes} bytes {self._path if self._path else ''}."
         )
         return self._num_examples, self._num_bytes
 
@@ -550,7 +540,7 @@ class BeamWriter:
         from .utils import beam_utils
 
         # Convert to arrow
-        logger.info("Converting parquet file {} to arrow {}".format(self._parquet_path, self._path))
+        logger.info(f"Converting parquet file {self._parquet_path} to arrow {self._path}")
         shards = [
             metadata.path
             for metadata in beam.io.filesystems.FileSystems.match([self._parquet_path + "*.parquet"])[0].metadata_list

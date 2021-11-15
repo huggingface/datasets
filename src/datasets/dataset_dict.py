@@ -29,7 +29,7 @@ class DatasetDict(dict):
         for dataset in self.values():
             if not isinstance(dataset, Dataset):
                 raise TypeError(
-                    "Values in `DatasetDict` should of type `Dataset` but got type '{}'".format(type(dataset))
+                    f"Values in `DatasetDict` should of type `Dataset` but got type '{type(dataset)}'"
                 )
 
     def __getitem__(self, k) -> Dataset:
