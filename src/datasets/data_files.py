@@ -9,7 +9,7 @@ from tqdm.contrib.concurrent import thread_map
 
 from .splits import Split
 from .utils import logging
-from .utils.file_utils import hf_hub_url, is_relative_path, is_remote_url, request_etag
+from .utils.file_utils import hf_hub_url, is_local_path, is_relative_path, is_remote_url, request_etag
 from .utils.py_utils import string_to_dict
 from .utils.tqdm_utils import tqdm
 
@@ -52,6 +52,22 @@ def contains_wildcards(pattern: str) -> bool:
     return any(wilcard_character in pattern for wilcard_character in WILDCARD_CHARACTERS)
 
 
+def _sanitize_pattern(pattern: str) -> List[str]:
+    """
+    When passing a path to a local directory, we want to resolve all the files inside it
+    Therefore this function appends '*' and '**/*' to it if this is thr path is a local directory.
+    """
+    if (
+        is_local_path(pattern)
+        and not contains_wildcards(pattern)
+        and not os.path.isfile(pattern)
+        and os.path.isdir(pattern)
+    ):
+        return [os.path.join(pattern, "*"), os.path.join(pattern, "**/*")]
+    else:
+        return [pattern]
+
+
 def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[str], "DataFilesList"]]:
     """
     Take the data_files patterns from the user, and format them into a dictionary.
@@ -62,13 +78,18 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
         patterns: dictionary of split_name -> list_of _atterns
     """
     if isinstance(patterns, dict):
-        return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
+        return {
+            str(key): [p for pattern in value for p in _sanitize_pattern(pattern)]
+            if isinstance(value, list)
+            else _sanitize_pattern(value)
+            for key, value in patterns.items()
+        }
     elif isinstance(patterns, str):
-        return {DEFAULT_SPLIT: [patterns]}
-    elif isinstance(patterns, list):
+        return {DEFAULT_SPLIT: _sanitize_pattern(patterns)}
+    elif isinstance(patterns, DataFilesList):
         return {DEFAULT_SPLIT: patterns}
     else:
-        return {DEFAULT_SPLIT: list(patterns)}
+        return {DEFAULT_SPLIT: [p for pattern in patterns for p in _sanitize_pattern(pattern)]}
 
 
 def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) -> Dict[str, List[str]]:
@@ -113,9 +134,13 @@ def _resolve_single_pattern_locally(
     """
     data_files_ignore = FILES_TO_IGNORE
     if is_relative_path(pattern):
-        glob_iter = list(Path(base_path).rglob(pattern))
+        glob_iter = (
+            list(Path(base_path).rglob(pattern)) if contains_wildcards(pattern) else [Path(base_path) / pattern]
+        )
     else:
-        glob_iter = [Path(filepath) for filepath in glob.glob(pattern)]
+        glob_iter = (
+            [Path(filepath) for filepath in glob.glob(pattern)] if contains_wildcards(pattern) else [Path(pattern)]
+        )
 
     matched_paths = [
         filepath.resolve()
