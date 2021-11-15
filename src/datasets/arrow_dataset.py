@@ -535,8 +535,8 @@ def transmit_tasks(func):
 
 def update_metadata_with_features(table: Table, features: Features):
     """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
+    features = Features({col_name: features[col_name] for col_name in table.column_names})
     if table.schema.metadata is None or "huggingface".encode("utf-8") not in table.schema.metadata:
-        features = Features({col_name: features[col_name] for col_name in table.column_names})
         pa_metadata = ArrowWriter._build_metadata(DatasetInfo(features=features))
     else:
         metadata = json.loads(table.schema.metadata["huggingface".encode("utf-8")].decode())
@@ -1638,7 +1638,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         dataset._data = dataset._data.rename_columns(new_column_names)
-        dataset._data = update_metadata_with_features(dataset._data, self.features)
+        dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset
 
