@@ -72,20 +72,20 @@ class Audio:
         if value["path"].endswith("mp3"):
             if value["bytes"]:
                 path, file = value["path"], BytesIO(value["bytes"])
-                array, sampling_rate = self._decode_example_with_torchaudio(file)
+                array, sampling_rate = self._decode_mp3(file)
             else:
                 path = value["path"]
-                array, sampling_rate = self._decode_example_with_torchaudio(path)
+                array, sampling_rate = self._decode_mp3(path)
         else:
             if value["bytes"]:
                 path, file = value["path"], BytesIO(value["bytes"])
-                array, sampling_rate = self._decode_example_with_soundfile(file)
+                array, sampling_rate = self._decode_non_mp3_file_like(file)
             else:
                 path = value["path"]
-                array, sampling_rate = self._decode_example_with_librosa(path)
+                array, sampling_rate = self._decode_non_mp3_path_like(path)
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
-    def _decode_example_with_librosa(self, value):
+    def _decode_non_mp3_path_like(self, value):
         try:
             import librosa
         except ImportError as err:
@@ -95,7 +95,7 @@ class Audio:
             array, sampling_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
         return array, sampling_rate
 
-    def _decode_example_with_soundfile(self, file):
+    def _decode_non_mp3_file_like(self, file):
         try:
             import librosa
             import soundfile as sf
@@ -111,7 +111,7 @@ class Audio:
             sampling_rate = self.sampling_rate
         return array, sampling_rate
 
-    def _decode_example_with_torchaudio(self, value):
+    def _decode_mp3(self, value):
         try:
             import torchaudio
             import torchaudio.transforms as T
