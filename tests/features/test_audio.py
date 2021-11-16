@@ -62,7 +62,7 @@ def test_audio_instantiation():
     assert audio.dtype == "dict"
     assert audio.pa_type is None
     assert audio._type == "Audio"
-    assert audio._storage_dtype == "struct"
+    assert audio._storage_dtype == "string"
 
 
 @require_sndfile

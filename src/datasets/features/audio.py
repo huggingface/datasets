@@ -29,7 +29,7 @@ class Audio:
 
     sampling_rate: Optional[int] = None
     mono: bool = True
-    _storage_dtype: str = "struct"
+    _storage_dtype: str = "string"
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -50,8 +50,8 @@ class Audio:
         Returns:
             :obj:`dict`
         """
-        if isinstance(value, str):
-            self._storage_dtype = "string"
+        if isinstance(value, dict):
+            self._storage_dtype = "struct"
         return value
 
     def decode_example(self, value):
