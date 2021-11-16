@@ -1,10 +1,27 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- found
 languages:
 - en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: BookCorpus
+size_categories:
+- 10M<n<100M
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- language-modeling
 paperswithcode_id: bookcorpus
 ---
 
-# Dataset Card for "bookcorpus"
+# Dataset Card for BookCorpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
