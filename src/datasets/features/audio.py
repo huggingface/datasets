@@ -48,7 +48,7 @@ class Audio:
             value (:obj:`str` or :obj:`dict`): Data passed as input to Audio feature.
 
         Returns:
-            :obj:`dict`
+            :obj:`str` or :obj:`dict`
         """
         if isinstance(value, dict):
             self._storage_dtype = "struct"
