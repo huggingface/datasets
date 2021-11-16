@@ -69,10 +69,7 @@ class Audio:
         """
         path, file = (value["path"], BytesIO(value["bytes"])) if isinstance(value, dict) else (value, None)
         if path.endswith("mp3"):
-            if file:
-                array, sampling_rate = self._decode_mp3(file)
-            else:
-                array, sampling_rate = self._decode_mp3(path)
+            array, sampling_rate = self._decode_mp3(file if file else path)
         else:
             if file:
                 array, sampling_rate = self._decode_non_mp3_file_like(file)
@@ -80,13 +77,13 @@ class Audio:
                 array, sampling_rate = self._decode_non_mp3_path_like(path)
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
-    def _decode_non_mp3_path_like(self, value):
+    def _decode_non_mp3_path_like(self, path):
         try:
             import librosa
         except ImportError as err:
             raise ImportError("To support decoding audio files, please install 'librosa'.") from err
 
-        with xopen(value, "rb") as f:
+        with xopen(path, "rb") as f:
             array, sampling_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
         return array, sampling_rate
 
@@ -106,7 +103,7 @@ class Audio:
             sampling_rate = self.sampling_rate
         return array, sampling_rate
 
-    def _decode_mp3(self, value):
+    def _decode_mp3(self, path_or_file):
         try:
             import torchaudio
             import torchaudio.transforms as T
@@ -117,7 +114,7 @@ class Audio:
         except RuntimeError as err:
             raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
 
-        array, sampling_rate = torchaudio.load(value, format="mp3")
+        array, sampling_rate = torchaudio.load(path_or_file, format="mp3")
         if self.sampling_rate and self.sampling_rate != sampling_rate:
             if not hasattr(self, "_resampler"):
                 self._resampler = T.Resample(sampling_rate, self.sampling_rate)
