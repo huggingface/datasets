@@ -64,6 +64,8 @@ class BookCorpusOpenConfig(datasets.BuilderConfig):
 class BookCorpusOpen(datasets.GeneratorBasedBuilder):
     """BookCorpus dataset."""
 
+    DEFAULT_WRITER_BATCH_SIZE = 256  # documents are full books and are quite heavy
+
     BUILDER_CONFIGS = [
         BookCorpusOpenConfig(
             name="plain_text",
