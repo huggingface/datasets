@@ -428,11 +428,18 @@ class ArrayExtensionArray(pa.ExtensionArray):
     def to_numpy(self, zero_copy_only=True):
         storage: pa.ListArray = self.storage
         size = 1
+
+        null_indices = np.arange(len(storage))[storage.is_null().to_numpy(zero_copy_only=False)]
+
         for i in range(self.type.ndims):
             size *= self.type.shape[i]
             storage = storage.flatten()
         numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
-        numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
+        numpy_arr = numpy_arr.reshape(len(self) - len(null_indices), *self.type.shape)
+
+        if len(null_indices):
+            numpy_arr = np.insert(numpy_arr.astype(np.float64, copy=False), null_indices, np.nan, axis=0)
+
         return numpy_arr
 
     def to_list_of_numpy(self, zero_copy_only=True):
@@ -443,17 +450,22 @@ class ArrayExtensionArray(pa.ExtensionArray):
         for dim in range(1, ndims):
             assert shape[dim] is not None, f"Support only dynamic size on first dimension. Got: {shape}"
 
+        null_indices = np.arange(len(storage))[storage.is_null().to_numpy(zero_copy_only=False)]
+
         arrays = []
         first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
         for i in range(len(storage)):
-            storage_el = storage[i : i + 1]
-            first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
-            # flatten storage
-            for _ in range(ndims):
-                storage_el = storage_el.flatten()
+            if i in null_indices:
+                arrays.append(np.nan)
+            else:
+                storage_el = storage[i : i + 1]
+                first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
+                # flatten storage
+                for _ in range(ndims):
+                    storage_el = storage_el.flatten()
 
-            numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
-            arrays.append(numpy_arr.reshape(first_dim, *shape[1:]))
+                numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
+                arrays.append(numpy_arr.reshape(first_dim, *shape[1:]))
 
         return arrays
 
