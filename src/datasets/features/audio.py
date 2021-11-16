@@ -67,21 +67,16 @@ class Audio:
         Returns:
             dict
         """
-        if isinstance(value, str):
-            value = {"path": value, "bytes": None}
-        if value["path"].endswith("mp3"):
-            if value["bytes"]:
-                path, file = value["path"], BytesIO(value["bytes"])
+        path, file = (value["path"], BytesIO(value["bytes"])) if isinstance(value, dict) else (value, None)
+        if path.endswith("mp3"):
+            if file:
                 array, sampling_rate = self._decode_mp3(file)
             else:
-                path = value["path"]
                 array, sampling_rate = self._decode_mp3(path)
         else:
-            if value["bytes"]:
-                path, file = value["path"], BytesIO(value["bytes"])
+            if file:
                 array, sampling_rate = self._decode_non_mp3_file_like(file)
             else:
-                path = value["path"]
                 array, sampling_rate = self._decode_non_mp3_path_like(path)
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
