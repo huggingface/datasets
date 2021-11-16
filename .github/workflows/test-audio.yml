@@ -1,9 +1,6 @@
 name: Test audio
 
 on:
-  push:
-    branches:
-    - master
   pull_request:
     branches:
     - master
@@ -18,7 +15,7 @@ jobs:
           sudo apt-get install libsndfile1 sox
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
