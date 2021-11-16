@@ -9,7 +9,7 @@ import requests
 
 s3_test_bucket_name = "test"
 s3_port = 5555
-s3_endpoint_uri = f"http://127.0.0.1:{s3_port}/" 
+s3_endpoint_uri = f"http://127.0.0.1:{s3_port}/"
 
 S3_FAKE_ENV_VARS = {
     "AWS_ACCESS_KEY_ID": "fake_access_key",

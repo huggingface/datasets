@@ -100,7 +100,7 @@ class ConvertCommand(BaseDatasetsCLICommand):
             file_names = [os.path.basename(self._tfds_path)]
 
         for f_name in file_names:
-            self._logger.info(f"Looking at file {f_name}" )
+            self._logger.info(f"Looking at file {f_name}")
             input_file = os.path.join(abs_tfds_path, f_name)
             output_file = os.path.join(abs_datasets_path, f_name)
 
@@ -167,7 +167,7 @@ class ConvertCommand(BaseDatasetsCLICommand):
                 output_dir = os.path.join(abs_datasets_path, dir_name)
                 output_file = os.path.join(output_dir, f_name)
                 os.makedirs(output_dir, exist_ok=True)
-                self._logger.info(f"Adding directory {output_dir}" )
+                self._logger.info(f"Adding directory {output_dir}")
                 imports_to_builder_map.update({imp: output_dir for imp in tfds_imports})
             else:
                 # Utilities will be moved at the end

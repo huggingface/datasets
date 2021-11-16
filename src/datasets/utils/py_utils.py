@@ -442,7 +442,7 @@ def _save_code(pickler, obj):
     This is a modified version that removes the origin (filename + line no.)
     of functions created in notebooks or shells for example.
     """
-    dill._dill.log.info(f"Co: {obj}" )
+    dill._dill.log.info(f"Co: {obj}")
     # The filename of a function is the .py file where it is defined.
     # Filenames of functions created in notebooks or shells start with '<'
     # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell

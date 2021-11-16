@@ -335,7 +335,9 @@ def fingerprint_transform(
             It should be in the format "MAJOR.MINOR.PATCH".
     """
 
-    assert use_kwargs is None or isinstance(use_kwargs, list), f"use_kwargs is supposed to be a list, not {type(use_kwargs)}"
+    assert use_kwargs is None or isinstance(
+        use_kwargs, list
+    ), f"use_kwargs is supposed to be a list, not {type(use_kwargs)}"
     assert ignore_kwargs is None or isinstance(
         ignore_kwargs, list
     ), f"ignore_kwargs is supposed to be a list, not {type(use_kwargs)}"

@@ -329,7 +329,7 @@ class DatasetBuilder:
         if name is None and self.BUILDER_CONFIGS and not config_kwargs:
             if self.DEFAULT_CONFIG_NAME is not None:
                 builder_config = self.builder_configs.get(self.DEFAULT_CONFIG_NAME)
-                logger.warning(f"No config specified, defaulting to: {self.name}/{builder_config.name}" )
+                logger.warning(f"No config specified, defaulting to: {self.name}/{builder_config.name}")
             else:
                 if len(self.BUILDER_CONFIGS) > 1:
                     example_of_usage = f"load_dataset('{self.name}', '{self.BUILDER_CONFIGS[0].name}')"
@@ -345,9 +345,7 @@ class DatasetBuilder:
         if isinstance(name, str):
             builder_config = self.builder_configs.get(name)
             if builder_config is None and self.BUILDER_CONFIGS:
-                raise ValueError(
-                    f"BuilderConfig {name} not found. Available: {list(self.builder_configs.keys())}"
-                )
+                raise ValueError(f"BuilderConfig {name} not found. Available: {list(self.builder_configs.keys())}")
 
         # if not using an existing config, then create a new config on the fly with config_kwargs
         if not builder_config:
@@ -384,7 +382,7 @@ class DatasetBuilder:
                     f"BuilderConfig. Change the name. Available BuilderConfigs: {list(self.builder_configs.keys())}"
                 )
             if not builder_config.version:
-                raise ValueError(f"BuilderConfig {builder_config.name} must have a version" )
+                raise ValueError(f"BuilderConfig {builder_config.name} must have a version")
             # if not builder_config.description:
             #     raise ValueError(f"BuilderConfig {builder_config.name} must have a description"  )
 
@@ -529,13 +527,13 @@ class DatasetBuilder:
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
             if data_exists and download_mode == GenerateMode.REUSE_DATASET_IF_EXISTS:
-                logger.warning(f"Reusing dataset {self.name} ({self._cache_dir})" )
+                logger.warning(f"Reusing dataset {self.name} ({self._cache_dir})")
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
                 self.info = self._load_info()
                 self.download_post_processing_resources(dl_manager)
                 return
-            logger.info(f"Generating dataset {self.name} ({self._cache_dir})" )
+            logger.info(f"Generating dataset {self.name} ({self._cache_dir})")
             if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
                 if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
                     raise IOError(
@@ -639,9 +637,7 @@ class DatasetBuilder:
                     resource_path = utils.cached_path(remote_cache_dir + "/" + resource_file_name)
                     shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
                 except ConnectionError:
-                    logger.info(
-                        f"Couldn't download resourse file {resource_file_name} from Hf google storage."
-                    )
+                    logger.info(f"Couldn't download resourse file {resource_file_name} from Hf google storage.")
         logger.info("Dataset downloaded from Hf google storage.")
 
     def _download_and_prepare(self, dl_manager, verify_infos, **prepare_split_kwargs):
@@ -677,7 +673,7 @@ class DatasetBuilder:
                     "._split_generator()."
                 )
 
-            logger.info(f"Generating split {split_generator.split_info.name}" )
+            logger.info(f"Generating split {split_generator.split_info.name}")
             split_dict.add(split_generator.split_info)
 
             try:
@@ -711,9 +707,7 @@ class DatasetBuilder:
                         split, resource_name, dl_manager
                     )
                     if downloaded_resource_path:
-                        logger.info(
-                            f"Downloaded post-processing resource {resource_name} as {resource_file_name}"
-                        )
+                        logger.info(f"Downloaded post-processing resource {resource_name} as {resource_file_name}")
                         shutil.move(downloaded_resource_path, resource_path)
 
     def _load_info(self) -> DatasetInfo:
@@ -757,12 +751,9 @@ class DatasetBuilder:
                     "builder.download_and_prepare(), or pass download=True to "
                     "datasets.load_dataset() before trying to access the Dataset object."
                 )
-                
             )
 
-        logger.debug(
-            f'Constructing Dataset for split {split or ", ".join(self.info.splits)}, from {self._cache_dir}' 
-        )
+        logger.debug(f'Constructing Dataset for split {split or ", ".join(self.info.splits)}, from {self._cache_dir}')
 
         # By default, return all splits
         if split is None:

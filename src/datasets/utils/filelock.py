@@ -269,7 +269,7 @@ class BaseFileLock:
             while True:
                 with self._thread_lock:
                     if not self.is_locked:
-                        logger().debug(f"Attempting to acquire lock {lock_id} on {lock_filename}" )
+                        logger().debug(f"Attempting to acquire lock {lock_id} on {lock_filename}")
                         self._acquire()
 
                 if self.is_locked:

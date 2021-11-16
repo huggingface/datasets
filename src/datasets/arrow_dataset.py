@@ -1210,9 +1210,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 break
         self.info.features = Features.from_arrow_schema(self._data.schema)
         self._data = update_metadata_with_features(self._data, self.features)
-        logger.info(
-            f'Flattened dataset from depth {depth} to depth { 1 if depth + 1 < max_depth else "unknown"}.'
-        )
+        logger.info(f'Flattened dataset from depth {depth} to depth { 1 if depth + 1 < max_depth else "unknown"}.')
 
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
@@ -1231,9 +1229,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 break
         dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
-        logger.info(
-            f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.'
-        )
+        logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
         dataset._fingerprint = new_fingerprint
         return dataset
 

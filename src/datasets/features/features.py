@@ -721,9 +721,7 @@ class ClassLabel:
 
         # Allowing -1 to mean no label.
         if not -1 <= example_data < self.num_classes:
-            raise ValueError(
-                f"Class label {example_data:d} greater than configured num_classes {self.num_classes}" 
-            )
+            raise ValueError(f"Class label {example_data:d} greater than configured num_classes {self.num_classes}")
         return example_data
 
     @staticmethod

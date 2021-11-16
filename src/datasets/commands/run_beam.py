@@ -91,7 +91,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
         builders: List[DatasetBuilder] = []
         if self._beam_pipeline_options:
             beam_options = beam.options.pipeline_options.PipelineOptions(
-                flags=[f"--{opt.strip()}"   for opt in self._beam_pipeline_options.split(",") if opt]
+                flags=[f"--{opt.strip()}" for opt in self._beam_pipeline_options.split(",") if opt]
             )
         else:
             beam_options = None

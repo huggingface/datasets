@@ -247,7 +247,7 @@ class DatasetInfo:
             dataset_info_dir (`str`): The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
         """
-        logger.info(f"Loading Dataset info from {dataset_info_dir}" )
+        logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
@@ -354,7 +354,7 @@ class MetricInfo:
             metric_info_dir: `str` The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
         """
-        logger.info(f"Loading Metric info from {metric_info_dir}" )
+        logger.info(f"Loading Metric info from {metric_info_dir}")
         if not metric_info_dir:
             raise ValueError("Calling MetricInfo.from_directory() with undefined metric_info_dir.")
 

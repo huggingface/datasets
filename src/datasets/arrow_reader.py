@@ -210,7 +210,7 @@ class BaseReader:
 
         files = self.get_file_instructions(name, instructions, split_infos)
         if not files:
-            msg = f'Instruction "{instructions}" corresponds to no data!' 
+            msg = f'Instruction "{instructions}" corresponds to no data!'
             raise AssertionError(msg)
         return self.read_files(files=files, original_instructions=instructions, in_memory=in_memory)
 
@@ -439,7 +439,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
     if abs(from_) > num_examples or abs(to) > num_examples:
-        msg = f'Requested slice [{from_ or ""}:{to or ""}] incompatible with {num_examples} examples.' 
+        msg = f'Requested slice [{from_ or ""}:{to or ""}] incompatible with {num_examples} examples.'
         raise AssertionError(msg)
     if from_ < 0:
         from_ = num_examples + from_

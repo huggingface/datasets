@@ -168,7 +168,7 @@ class ElasticSearchIndex(BaseIndex):
             logger.warning(
                 f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}"
             )
-        logger.info(f"Indexed {successes:d} documents" )
+        logger.info(f"Indexed {successes:d} documents")
 
     def search(self, query: str, k=10) -> SearchResults:
         """Find the nearest examples indices to the query.
