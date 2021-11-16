@@ -341,7 +341,10 @@ class IterableDataset(DatasetInfoMixin):
         for key, example in self._iter():
             if self.features:
                 # we encode the example for ClassLabel feature types for example
-                yield self.features.encode_example(example)
+                encoded_example = self.features.encode_example(example)
+                # Decode example for Audio feature, e.g.
+                decoded_example = self.features.decode_example(encoded_example)
+                yield decoded_example
             else:
                 yield example
 

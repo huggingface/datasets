@@ -403,6 +403,34 @@ def test_formatted_dataset_with_audio_feature(shared_datadir):
         assert column[0]["sampling_rate"] == 44100
 
 
+@pytest.fixture
+def jsonl_audio_dataset_path(shared_datadir, tmp_path_factory):
+    import json
+
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data = [{"audio": audio_path, "text": "Hello world!"}]
+    path = str(tmp_path_factory.mktemp("data") / "audio_dataset.jsonl")
+    with open(path, "w") as f:
+        for item in data:
+            f.write(json.dumps(item) + "\n")
+    return path
+
+
+@require_sndfile
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_with_audio_feature(streaming, jsonl_audio_dataset_path, shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data_files = jsonl_audio_dataset_path
+    features = Features({"audio": Audio(), "text": Value("string")})
+    dset = load_dataset("json", split="train", data_files=data_files, features=features, streaming=streaming)
+    item = dset[0] if not streaming else next(iter(dset))
+    assert item.keys() == {"audio", "text"}
+    assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+    assert item["audio"]["path"] == audio_path
+    assert item["audio"]["array"].shape == (202311,)
+    assert item["audio"]["sampling_rate"] == 44100
+
+
 @require_sndfile
 def test_dataset_with_audio_feature_loaded_from_cache():
     # load first time

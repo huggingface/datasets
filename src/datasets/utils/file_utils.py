@@ -8,6 +8,7 @@ import copy
 import io
 import json
 import os
+import posixpath
 import re
 import shutil
 import sys
@@ -24,7 +25,6 @@ from typing import Dict, Optional, TypeVar, Union
 from urllib.parse import urlparse
 
 import numpy as np
-import posixpath
 import requests
 
 from .. import __version__, config, utils
@@ -571,6 +571,7 @@ def get_from_cache(
                     response.status_code == 403
                     and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
                 )
+                or (response.status_code == 403 and "ndownloader.figstatic.com" in url)
             ):
                 connected = True
                 logger.info("Couldn't get ETag version for url {}".format(url))

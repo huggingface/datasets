@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: tsac
+pretty_name: Tunisian Sentiment Analysis Corpus
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Tunisian Sentiment Analysis Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

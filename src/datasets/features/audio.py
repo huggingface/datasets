@@ -5,6 +5,8 @@ from typing import Any, ClassVar, Optional
 
 import pyarrow as pa
 
+from ..utils.streaming_download_manager import xopen
+
 
 @dataclass(unsafe_hash=True)
 class Audio:
@@ -89,7 +91,7 @@ class Audio:
         except ImportError as err:
             raise ImportError("To support decoding audio files, please install 'librosa'.") from err
 
-        with open(value, "rb") as f:
+        with xopen(value, "rb") as f:
             array, sampling_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
         return array, sampling_rate
 
