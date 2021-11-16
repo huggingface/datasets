@@ -15,8 +15,6 @@
 """Parallel corpus of full-text articles in Portuguese, English and Spanish from SciELO"""
 
 
-import os
-
 import datasets
 
 
@@ -74,7 +72,7 @@ class Scielo(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URLS[self.config.name])
+        archive = dl_manager.download(_URLS[self.config.name])
         lang_pair = self.config.name.split("-")
         fname = self.config.name.replace("-", "_")
 
@@ -83,9 +81,10 @@ class Scielo(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "source_file": os.path.join(data_dir, f"{fname}.en"),
-                        "target_file": os.path.join(data_dir, f"{fname}.pt"),
-                        "target_file_2": os.path.join(data_dir, f"{fname}.es"),
+                        "source_file": f"{fname}.en",
+                        "target_file": f"{fname}.pt",
+                        "target_file_2": f"{fname}.es",
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
@@ -94,24 +93,25 @@ class Scielo(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "source_file": os.path.join(data_dir, f"{fname}.{lang_pair[0]}"),
-                    "target_file": os.path.join(data_dir, f"{fname}.{lang_pair[1]}"),
+                    "source_file": f"{fname}.{lang_pair[0]}",
+                    "target_file": f"{fname}.{lang_pair[1]}",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, source_file, target_file, target_file_2=None):
-        with open(source_file, encoding="utf-8") as f:
-            source_sentences = f.read().split("\n")
-        with open(target_file, encoding="utf-8") as f:
-            target_sentences = f.read().split("\n")
+    def _generate_examples(self, source_file, target_file, files, target_file_2=None):
+        for path, f in files:
+            if path == source_file:
+                source_sentences = f.read().decode("utf-8").split("\n")
+            elif path == target_file:
+                target_sentences = f.read().decode("utf-8").split("\n")
+            elif self.config.name == "en-pt-es" and path == target_file_2:
+                target_sentences_2 = f.read().decode("utf-8").split("\n")
 
         if self.config.name == "en-pt-es":
-            with open(target_file_2, encoding="utf-8") as f:
-                target_2_sentences = f.read().split("\n")
-
             source, target, target_2 = tuple(self.config.name.split("-"))
-            for idx, (l1, l2, l3) in enumerate(zip(source_sentences, target_sentences, target_2_sentences)):
+            for idx, (l1, l2, l3) in enumerate(zip(source_sentences, target_sentences, target_sentences_2)):
                 result = {"translation": {source: l1, target: l2, target_2: l3}}
                 yield idx, result
         else:
