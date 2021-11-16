@@ -396,7 +396,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
 
 def _check_valid_column_key(key: str, columns: List[str]) -> None:
     if key not in columns:
-        raise KeyError("Column {} not in the dataset. Current columns in the dataset: {}".format(key, columns))
+        raise KeyError(f"Column {key} not in the dataset. Current columns in the dataset: {columns}")
 
 
 def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -> None:

@@ -78,8 +78,8 @@ def size_str(size_in_bytes):
     for (name, size_bytes) in _NAME_LIST:
         value = size_in_bytes / size_bytes
         if value >= 1.0:
-            return "{:.2f} {}".format(value, name)
-    return "{} {}".format(int(size_in_bytes), "bytes")
+            return f"{value:.2f} {name}"
+    return f"{int(size_in_bytes)} bytes"
 
 
 def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
@@ -259,18 +259,16 @@ def map_nested(
             f"length: {sum(len(i[1]) for i in split_kwds)}"
         )
         logger.info(
-            "Spawning {} processes for {} objects in slices of {}".format(
-                num_proc, len(iterable), [len(i[1]) for i in split_kwds]
-            )
+            f"Spawning {num_proc} processes for {len(iterable)} objects in slices of {[len(i[1]) for i in split_kwds]}"
         )
         initargs, initializer = None, None
         if not disable_tqdm:
             initargs, initializer = (RLock(),), tqdm.set_lock
         with Pool(num_proc, initargs=initargs, initializer=initializer) as pool:
             mapped = pool.map(_single_map_nested, split_kwds)
-        logger.info("Finished {} processes".format(num_proc))
+        logger.info(f"Finished {num_proc} processes")
         mapped = [obj for proc_res in mapped for obj in proc_res]
-        logger.info("Unpacked {} objects".format(len(mapped)))
+        logger.info(f"Unpacked {len(mapped)} objects")
 
     if isinstance(data_struct, dict):
         return dict(zip(data_struct.keys(), mapped))
@@ -305,7 +303,7 @@ def flatten_nest_dict(d):
     flat_dict = NonMutableDict()
     for k, v in d.items():
         if isinstance(v, dict):
-            flat_dict.update({"{}/{}".format(k, k2): v2 for k2, v2 in flatten_nest_dict(v).items()})
+            flat_dict.update({f"{k}/{k2}": v2 for k2, v2 in flatten_nest_dict(v).items()})
         else:
             flat_dict[k] = v
     return flat_dict
@@ -433,7 +431,7 @@ class _CloudPickleTypeHintFix:
             else:
                 initargs = (obj.__origin__, (list(args[:-1]), args[-1]))
         else:  # pragma: no cover
-            raise pickle.PicklingError("Datasets pickle Error: Unknown type {}".format(type(obj)))
+            raise pickle.PicklingError(f"Datasets pickle Error: Unknown type {type(obj)}")
         pickler.save_reduce(_CloudPickleTypeHintFix._create_parametrized_type_hint, initargs, obj=obj)
 
 
@@ -444,7 +442,7 @@ def _save_code(pickler, obj):
     This is a modified version that removes the origin (filename + line no.)
     of functions created in notebooks or shells for example.
     """
-    dill._dill.log.info("Co: %s" % obj)
+    dill._dill.log.info(f"Co: {obj}" )
     # The filename of a function is the .py file where it is defined.
     # Filenames of functions created in notebooks or shells start with '<'
     # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
@@ -532,7 +530,7 @@ def save_function(pickler, obj):
     the keys in the output dictionary of globalvars can change.
     """
     if not dill._dill._locate_function(obj):
-        dill._dill.log.info("F1: %s" % obj)
+        dill._dill.log.info(f"F1: {obj}")
         if getattr(pickler, "_recurse", False):
             # recurse to get all globals referred to by obj
             globalvars = dill.detect.globalvars
@@ -591,7 +589,7 @@ def save_function(pickler, obj):
             pickler.clear_memo()
         dill._dill.log.info("# F1")
     else:
-        dill._dill.log.info("F2: %s" % obj)
+        dill._dill.log.info(f"F2: {obj}")
         name = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
         dill._dill.StockPickler.save_global(pickler, obj, name=name)
         dill._dill.log.info("# F2")
@@ -609,7 +607,7 @@ try:
 
     @pklregister(type(regex.Regex("", 0)))
     def _save_regex(pickler, obj):
-        dill._dill.log.info("Re: %s" % obj)
+        dill._dill.log.info(f"Re: {obj}")
         args = (
             obj.pattern,
             obj.flags,

@@ -88,7 +88,7 @@ class ConvertCommand(BaseDatasetsCLICommand):
 
         abs_datasets_path = os.path.abspath(self._datasets_directory)
 
-        self._logger.info("Converting datasets from %s to %s", abs_tfds_path, abs_datasets_path)
+        self._logger.info(f"Converting datasets from {abs_tfds_path} to {abs_datasets_path}")
 
         utils_files = []
         with_manual_update = []
@@ -100,7 +100,7 @@ class ConvertCommand(BaseDatasetsCLICommand):
             file_names = [os.path.basename(self._tfds_path)]
 
         for f_name in file_names:
-            self._logger.info("Looking at file %s", f_name)
+            self._logger.info(f"Looking at file {f_name}" )
             input_file = os.path.join(abs_tfds_path, f_name)
             output_file = os.path.join(abs_datasets_path, f_name)
 
@@ -167,7 +167,7 @@ class ConvertCommand(BaseDatasetsCLICommand):
                 output_dir = os.path.join(abs_datasets_path, dir_name)
                 output_file = os.path.join(output_dir, f_name)
                 os.makedirs(output_dir, exist_ok=True)
-                self._logger.info("Adding directory %s", output_dir)
+                self._logger.info(f"Adding directory {output_dir}" )
                 imports_to_builder_map.update({imp: output_dir for imp in tfds_imports})
             else:
                 # Utilities will be moved at the end
@@ -178,13 +178,13 @@ class ConvertCommand(BaseDatasetsCLICommand):
 
             with open(output_file, "w", encoding="utf-8") as f:
                 f.writelines(out_lines)
-            self._logger.info("Converted in %s", output_file)
+            self._logger.info(f"Converted in {output_file}")
 
         for utils_file in utils_files:
             try:
                 f_name = os.path.basename(utils_file)
                 dest_folder = imports_to_builder_map[f_name.replace(".py", "")]
-                self._logger.info("Moving %s to %s", utils_file, dest_folder)
+                self._logger.info(f"Moving {dest_folder} to {utils_file}")
                 shutil.copy(utils_file, dest_folder)
             except KeyError:
                 self._logger.error(f"Cannot find destination folder for {utils_file}. Please copy manually.")
