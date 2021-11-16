@@ -103,6 +103,10 @@ def _no_op_if_value_is_null(func):
     return wrapper
 
 
+def _is_array_with_nulls(pa_array: pa.Array) -> bool:
+    return pa_array.null_count > 0
+
+
 class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
     Arrow extractor are used to extract data from pyarrow tables.
@@ -161,7 +165,6 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         return {col: self._arrow_array_to_numpy(pa_table[col]) for col in pa_table.column_names}
 
     def _arrow_array_to_numpy(self, pa_array: pa.Array) -> np.ndarray:
-        zero_copy_only = _is_zero_copy_only(pa_array.type)
         if isinstance(pa_array, pa.ChunkedArray):
             # don't call to_numpy() directly or we end up with a np.array with dtype object
             # call to_numpy on the chunks instead
@@ -169,6 +172,9 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 array: List = [row for chunk in pa_array.chunks for row in chunk.to_pylist()]
             else:
+                zero_copy_only = _is_zero_copy_only(pa_array.type) and all(
+                    not _is_array_with_nulls(chunk) for chunk in pa_array.chunks
+                )
                 array: List = [
                     row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
                 ]
@@ -178,6 +184,7 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
             if isinstance(pa_array.type, _ArrayXDExtensionType):
                 array: List = pa_array.to_pylist()
             else:
+                zero_copy_only = _is_zero_copy_only(pa_array.type) and not _is_array_with_nulls(pa_array)
                 array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
         if len(array) > 0:
             if any(isinstance(x, np.ndarray) and (x.dtype == np.object or x.shape != array[0].shape) for x in array):
