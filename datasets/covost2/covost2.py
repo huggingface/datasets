@@ -87,7 +87,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
 
     @property
     def manual_download_instructions(self):
-        return f"""Please download the Common Voice Corpus 4 in {self.config.name.split('_')[0]} from https://commonvoice.mozilla.org/en/datasets and unpack it with `tar xvzf {self.config.name.split('_')[1]}.tar`. Make sure to pass the path to the directory in which you unpacked the downloaded file as `data_dir`: `datasets.load_dataset('covost2', data_dir="path/to/dir")`
+        return f"""Please download the Common Voice Corpus 4 in {self.config.name.split('_')[0]} from https://commonvoice.mozilla.org/en/datasets and unpack it with `tar xvzf {self.config.name.split('_')[0]}.tar`. Make sure to pass the path to the directory in which you unpacked the downloaded file as `data_dir`: `datasets.load_dataset('covost2', data_dir="path/to/dir")`
         """
 
     def _info(self):
