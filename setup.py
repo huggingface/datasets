@@ -123,7 +123,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "apache-beam>=2.26.0",
-    "elasticsearch",
+    "elasticsearch==7.10.1",
     "aiobotocore",
     "boto3",
     "botocore",

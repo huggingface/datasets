@@ -1,5 +1,7 @@
+import datetime
 import importlib.util
 import os
+import ssl
 import tempfile
 from pathlib import PurePath
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
@@ -15,6 +17,7 @@ if TYPE_CHECKING:
 
     try:
         from elasticsearch import Elasticsearch  # noqa: F401
+        from elasticsearch.exceptions import RequestError  # noqa: F401
 
     except ImportError:
         pass
@@ -27,7 +30,6 @@ if TYPE_CHECKING:
 _has_elasticsearch = importlib.util.find_spec("elasticsearch") is not None
 _has_faiss = importlib.util.find_spec("faiss") is not None
 
-
 logger = logging.get_logger(__name__)
 
 
@@ -37,12 +39,14 @@ class MissingIndex(Exception):
 
 SearchResults = NamedTuple("SearchResults", [("scores", List[float]), ("indices", List[int])])
 BatchedSearchResults = NamedTuple(
-    "BatchedSearchResults", [("total_scores", List[List[float]]), ("total_indices", List[List[int]])]
+    "BatchedSearchResults",
+    [("total_scores", List[List[float]]), ("total_indices", List[List[int]])],
 )
 
 NearestExamplesResults = NamedTuple("NearestExamplesResults", [("scores", List[float]), ("examples", dict)])
 BatchedNearestExamplesResults = NamedTuple(
-    "BatchedNearestExamplesResults", [("total_scores", List[List[float]]), ("total_examples", List[dict])]
+    "BatchedNearestExamplesResults",
+    [("total_scores", List[List[float]]), ("total_examples", List[dict])],
 )
 
 
@@ -101,10 +105,13 @@ class ElasticSearchIndex(BaseIndex):
         es_client: Optional["Elasticsearch"] = None,
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
+        es_username: Optional[str] = None,
+        es_psw: Optional[str] = None,
+        ca_file: Optional[str] = None,
     ):
         assert (
             _has_elasticsearch
-        ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
+        ), "You must install ElasticSearch to use ElasticSearchIndex. You can run `pip install elasticsearch==7.10.1`"
         assert es_client is None or (
             host is None and port is None
         ), "Please specify either `es_client` or `(host, port)`, but not both."
@@ -112,61 +119,160 @@ class ElasticSearchIndex(BaseIndex):
         port = port or 9200
 
         import elasticsearch.helpers  # noqa: need this to properly load all the es features
-        from elasticsearch import Elasticsearch  # noqa: F811
 
-        self.es_client = es_client if es_client is not None else Elasticsearch([{"host": host, "port": str(port)}])
-        self.es_index_name = (
-            es_index_name
-            if es_index_name is not None
-            else "huggingface_datasets_" + os.path.basename(tempfile.NamedTemporaryFile().name)
-        )
+        if es_client is not None:
+            self.es_client = es_client
+        else:
+            self.es_client = self.get_es_client(host, port, es_username, es_psw, ca_file)
+
+        self.es_index_name = ElasticSearchIndex.check_index_name_or_default(es_index_name)
+
         self.es_index_config = (
             es_index_config
             if es_index_config is not None
             else {
                 "settings": {
                     "number_of_shards": 1,
-                    "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                    "analysis": {
+                        "analyzer": {
+                            "stop_standard": {
+                                "type": "standard",
+                                " stopwords": "_english_",
+                            }
+                        }
+                    },
                 },
-                "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
+                "mappings": {
+                    "properties": {
+                        "text": {
+                            "type": "text",
+                            "analyzer": "standard",
+                            "similarity": "BM25",
+                        }
+                    }
+                },
             }
         )
+
+    @staticmethod
+    def check_index_name_or_default(es_index_name):
+        return (
+            es_index_name
+            if es_index_name is not None
+            else "huggingface_datasets_" + os.path.basename(tempfile.NamedTemporaryFile().name)
+        )
+
+    @staticmethod
+    def get_es_client(host, port, es_username=None, es_psw=None, ca_file=None):
+        """
+        Create the elasticsearch client instance and check the connection by issuing a simple ping request.
+
+        :param host: elasticsearch server hostname
+        :param port:  elasticsearch server port
+        :param es_username: user name for basic authentication (optional)
+        :param es_psw: password for basic authentication (optional)
+        :param ca_file: certificate file for https connection
+        :return: the client
+        """
+        from elasticsearch import Elasticsearch  # noqa: F811
+
+        server_url = ("https" if ca_file is not None else "http") + "://" + host + ":" + str(port)
+        ssl_context = None if ca_file is None else ssl.create_default_context(cafile=ca_file)
+
+        if es_username is None or es_psw is None:
+            es_client = Elasticsearch([server_url], ssl_context=ssl_context)
+        else:
+            # authenticate user
+            es_client = Elasticsearch([server_url], http_auth=(es_username, es_psw), ssl_context=ssl_context)
+
+        if not es_client.ping():
+            msg = f"Connection error: is the elasticsearch instance really at {server_url}?"
+            logger.critical(msg)
+            raise Exception(msg)
+
+        logger.info("Connection successful.")
+        return es_client
 
     def add_documents(self, documents: Union[List[str], "Dataset"], column: Optional[str] = None):
         """
         Add documents to the index.
         If the documents are inside a certain column, you can specify it using the `column` argument.
         """
+        from elasticsearch.exceptions import ElasticsearchException, RequestError  # noqa: F811
+
         index_name = self.es_index_name
         index_config = self.es_index_config
-        self.es_client.indices.create(index=index_name, body=index_config)
+
+        if hasattr(documents, "info"):
+            # add metadata from dataset info to the index mapping
+            index_config["mappings"]["_meta"] = {
+                "description": documents.info.description,
+                "citation": documents.info.citation,
+                "homepage": documents.info.homepage,
+                "license": documents.info.license,
+            }
+        else:
+            logger.warning(f"No meta on this dataset.")
+
+        index_config["settings"]["max_ngram_diff"] = 5
+
+        if self.es_client.indices.exists(index=index_name):
+            logger.info(f"The index {index_name} already exists:")
+            existing_index = self.es_client.indices.get(index=index_name)
+            logger.info(f"{existing_index}")
+            # TODO compare index_config with existing_index['oscar_unshuffled_deduplicated']
+            # check if mappings and settings are exactly the same
+        else:
+            try:
+                logger.info(f"Creating index {index_name}")
+                self.es_client.indices.create(index=index_name, body=index_config)
+
+            except ElasticsearchException as create_error:
+                if isinstance(create_error, RequestError) and create_error.status_code == 400:
+                    logger.info(f"The index {index_name} already exists:")
+                else:
+                    raise RuntimeError(create_error)
+
         number_of_docs = len(documents)
         progress = utils.tqdm(
-            unit="docs", total=number_of_docs, disable=bool(logging.get_verbosity() == logging.NOTSET)
+            unit="docs",
+            total=number_of_docs,
+            disable=bool(logging.get_verbosity() == logging.NOTSET),
         )
         successes = 0
 
         def passage_generator():
+            now = datetime.datetime.now().isoformat()
             if column is not None:
                 for i, example in enumerate(documents):
-                    yield {"text": example[column], "_id": i}
+                    yield {
+                        "_id": i,
+                        "text": example[column],
+                        "indexing_time": now,
+                        "length": len(example[column]),
+                    }
             else:
                 for i, example in enumerate(documents):
-                    yield {"text": example, "_id": i}
+                    yield {
+                        "text": example,
+                        "indexing_time": now,
+                        "length": len(example[column]),
+                    }
 
         # create the ES index
-        import elasticsearch as es
+        from elasticsearch.helpers import streaming_bulk
 
-        for ok, action in es.helpers.streaming_bulk(
+        for ok, action in streaming_bulk(
             client=self.es_client,
             index=index_name,
             actions=passage_generator(),
+            request_timeout=3600,
         ):
             progress.update(1)
             successes += ok
         if successes != len(documents):
             logger.warning(
-                f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}"
+                f"Some documents failed to be added to ElasticSearch. Failures: {len(documents) - successes}/{len(documents)}"
             )
         logger.info("Indexed %d documents" % (successes,))
 
@@ -183,7 +289,17 @@ class ElasticSearchIndex(BaseIndex):
         """
         response = self.es_client.search(
             index=self.es_index_name,
-            body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
+            body={
+                "query": {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ["text"],
+                        "type": "cross_fields",
+                    }
+                },
+                "size": k,
+            },
+            request_timeout=3600,
         )
         hits = response["hits"]["hits"]
         return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
@@ -426,7 +542,10 @@ class IndexableMixin:
         """
         index_name = index_name if index_name is not None else column
         faiss_index = FaissIndex(
-            device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
+            device=device,
+            string_factory=string_factory,
+            metric_type=metric_type,
+            custom_index=custom_index,
         )
         faiss_index.add_vectors(self, column=column, train_size=train_size, faiss_verbose=faiss_verbose)
         self._indexes[index_name] = faiss_index
@@ -460,9 +579,17 @@ class IndexableMixin:
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         faiss_index = FaissIndex(
-            device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
+            device=device,
+            string_factory=string_factory,
+            metric_type=metric_type,
+            custom_index=custom_index,
         )
-        faiss_index.add_vectors(external_arrays, column=None, train_size=train_size, faiss_verbose=faiss_verbose)
+        faiss_index.add_vectors(
+            external_arrays,
+            column=None,
+            train_size=train_size,
+            faiss_verbose=faiss_verbose,
+        )
         self._indexes[index_name] = faiss_index
 
     def save_faiss_index(self, index_name: str, file: Union[str, PurePath]):
@@ -513,6 +640,9 @@ class IndexableMixin:
         es_client: Optional["Elasticsearch"] = None,
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
+        es_username: Optional[str] = None,
+        es_psw: Optional[str] = None,
+        ca_file: Optional[str] = None,
     ):
         """Add a text index using ElasticSearch for fast retrieval.
 
@@ -530,6 +660,12 @@ class IndexableMixin:
             es_index_config (Optional :obj:`dict`):
                 The configuration of the elasticsearch index.
                 Default config is:
+            es_username(Optional :obj:`str`, defaults to None):
+                username for authentication on the elasticsearch server
+            es_psw(Optional :obj:`str`, defaults to None):
+                password for authentication on the elasticsearch server
+            ca_file(Optional :obj:`str`, defaults to None):
+                path to certificate file to create the ssl context used in connexion over https
 
         Config::
 
@@ -551,10 +687,71 @@ class IndexableMixin:
         """
         index_name = index_name if index_name is not None else column
         es_index = ElasticSearchIndex(
-            host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
+            host=host,
+            port=port,
+            es_client=es_client,
+            es_index_name=es_index_name,
+            es_index_config=es_index_config,
+            es_username=es_username,
+            es_psw=es_psw,
+            ca_file=ca_file,
         )
         es_index.add_documents(self, column=column)
         self._indexes[index_name] = es_index
+
+    def update_elasticsearch_documents(
+        self,
+        body: Optional[dict] = None,
+        host: str = "localhost",
+        port: int = 9200,
+        es_client: Optional["elasticsearch.Elasticsearch"] = None,  # noqa: F821
+        es_index_name: str = "_all",
+        es_username: Optional[str] = None,
+        es_psw: Optional[str] = None,
+        ca_file: Optional[str] = None,
+        **kwargs,
+    ):
+        """Update documents matching a query for a given index.
+
+        The `kwargs` are the parameters for [`update_by_query`](https://elasticsearch-py.readthedocs.io/en/master/api.html#elasticsearch.Elasticsearch.update_by_query)
+        (excluding `body`).
+
+        Args:
+            body (:obj:`str`):
+                The DSL query used for the update.
+            host (:obj:`str`, defaults to localhost):
+                host of where ElasticSearch is running.
+            port (:obj:`str`, defaults to 9200):
+                port of where ElasticSearch is running.
+            es_client (Optional :obj:`elasticsearch.Elasticsearch`):
+                The elasticsearch client used to update the documents.
+                If None, host and port will be used.
+            es_index_name (:obj:`str`):
+                The index_name/identifier of the index.
+                Pass `_all` or comma-separated names for multiple.
+                Defaults to `_all`, use all indexes.
+            es_username(Optional :obj:`str`, defaults to None):
+                username for authentication on the elasticsearch server
+            es_psw(Optional :obj:`str`, defaults to None):
+                password for authentication on the elasticsearch server
+            ca_file(Optional :obj:`str`, defaults to None):
+                path to certificate file to create the ssl context used in connexion over https
+        """
+
+        if self._indexes[es_index_name] is None:
+            es_index = ElasticSearchIndex(
+                host=host,
+                port=port,
+                es_client=es_client,
+                es_index_name=es_index_name,
+                es_index_config=None,
+                es_username=es_username,
+                es_psw=es_psw,
+                ca_file=ca_file,
+            )
+            self._indexes[es_index_name] = es_index
+
+        self._indexes[es_index_name].es_client.update_by_query(body=body, index=es_index_name, **kwargs)
 
     def load_elasticsearch_index(
         self,
@@ -562,6 +759,9 @@ class IndexableMixin:
         es_index_name: str,
         host: Optional[str] = None,
         port: Optional[int] = None,
+        es_username: Optional[str] = None,
+        es_psw: Optional[str] = None,
+        ca_file: Optional[str] = None,
         es_client: Optional["Elasticsearch"] = None,
         es_index_config: Optional[dict] = None,
     ):
@@ -574,6 +774,12 @@ class IndexableMixin:
                 host of where ElasticSearch is running
             port (Optional :obj:`str`, defaults to 9200):
                 port of where ElasticSearch is running
+            es_username(Optional :obj:`str`, defaults to None):
+                username for authentication on the elasticsearch server
+            es_psw(Optional :obj:`str`, defaults to None):
+                password for authentication on the elasticsearch server
+            ca_file(Optional :obj:`str`, defaults to None):
+                path to certificate file to create the ssl context used in connexion over https
             es_client (Optional :obj:`elasticsearch.Elasticsearch`):
                 The elasticsearch client used to create the index if host and port are None.
             es_index_config (Optional :obj:`dict`):
@@ -597,7 +803,14 @@ class IndexableMixin:
                     }
         """
         self._indexes[index_name] = ElasticSearchIndex(
-            host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
+            host=host,
+            port=port,
+            es_client=es_client,
+            es_index_name=es_index_name,
+            es_index_config=es_index_config,
+            es_username=es_username,
+            es_psw=es_psw,
+            ca_file=ca_file,
         )
 
     def drop_index(self, index_name: str):
@@ -673,5 +886,6 @@ class IndexableMixin:
         self._check_index_is_initialized(index_name)
         total_scores, total_indices = self.search_batch(index_name, queries, k)
         return BatchedNearestExamplesResults(
-            total_scores, [self[[i for i in indices if i >= 0]] for indices in total_indices]
+            total_scores,
+            [self[[i for i in indices if i >= 0]] for indices in total_indices],
         )

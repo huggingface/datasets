@@ -4,6 +4,7 @@ from hashlib import sha256
 from typing import List
 
 from .csv import csv
+from .elasticsearch import elasticsearch
 from .json import json
 from .pandas import pandas
 from .parquet import parquet
@@ -30,6 +31,7 @@ _PACKAGED_DATASETS_MODULES = {
     "pandas": (pandas.__name__, hash_python_lines(inspect.getsource(pandas).splitlines())),
     "parquet": (parquet.__name__, hash_python_lines(inspect.getsource(parquet).splitlines())),
     "text": (text.__name__, hash_python_lines(inspect.getsource(text).splitlines())),
+    "elasticsearch": (text.__name__, hash_python_lines(inspect.getsource(elasticsearch).splitlines())),
 }
 
 _EXTENSION_TO_MODULE = {
@@ -39,4 +41,5 @@ _EXTENSION_TO_MODULE = {
     "jsonl": "json",
     "parquet": "parquet",
     "txt": "text",
+    "elasticsearch": "elasticsearch",
 }
