@@ -208,7 +208,6 @@ EXTRAS_REQUIRE = {
         "sphinx-rtd-theme==0.4.3",
         "sphinxext-opengraph==0.4.1",
         "sphinx-copybutton",
-        "Markdown==3.3.4",  # to fix https://github.com/Python-Markdown/markdown/issues/1196  
         "fsspec<2021.9.0",
         "s3fs",
         "sphinx-panels",
