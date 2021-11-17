@@ -1,5 +1,3 @@
-import os
-import os.path
 from typing import List
 
 import datasets
@@ -34,27 +32,16 @@ class CodeXGlueCcCloneDetectionPoj104Impl(TrainValidTestChild):
 
     SPLIT_RANGES = {"train": (1, 65), "valid": (65, 81), "test": (81, 195)}
 
-    def generate_urls(self, split_name):
-        yield "data", "programs.tar.gz"
-
-    def _generate_examples(self, split_name, file_paths):
-        def files(path):
-            g = os.walk(path)
-            file = []
-            for path, dir_list, file_list in g:
-                for file_name in file_list:
-                    file.append(os.path.join(path, file_name))
-            return file
-
-        root_path = file_paths["data"]
+    def _generate_examples(self, files, split_name):
         cont = 0
-        for i in range(*self.SPLIT_RANGES[split_name]):
-            items = files(os.path.join(root_path, "ProgramData/{}".format(i)))
-            for item in items:
+        for path, f in files:
+            # path are in the format ProgramData/{index}/{filename}
+            label = int(path.split("/")[1])
+            if self.SPLIT_RANGES[split_name][0] <= label <= self.SPLIT_RANGES[split_name][1]:
                 js = {}
-                js["label"] = item.split("/")[1]
+                js["label"] = str(label)
                 js["id"] = cont
-                js["code"] = open(item, encoding="latin-1").read()
+                js["code"] = f.read().decode("latin-1")
                 yield cont, js
                 cont += 1
 
@@ -81,7 +68,26 @@ class CodeXGlueCcCloneDetectionPoj104(datasets.GeneratorBasedBuilder):
         return ret
 
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
-        return self.child._split_generators(dl_manager=dl_manager)
+        name = self.config.name
+        info = DEFINITIONS[name]
+        archive = dl_manager.download(info["raw_url"] + "/programs.tar.gz")
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "split_name": "train"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "split_name": "valid"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "split_name": "test"},
+            ),
+        ]
 
-    def _generate_examples(self, split_name, file_paths):
-        return self.child._generate_examples(split_name, file_paths)
+    def _generate_examples(self, files, split_name):
+        return self.child._generate_examples(files, split_name)

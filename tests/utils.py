@@ -231,7 +231,7 @@ def packaged(test_case):
 
 def remote(test_case):
     """
-    Decorator marking a test as one that relies on github or aws.
+    Decorator marking a test as one that relies on GitHub or the Hugging Face Hub.
 
     Remote tests are skipped by default. Set the RUN_REMOTE environment variable
     to a falsy value to not run them.

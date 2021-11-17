@@ -8,6 +8,7 @@ import copy
 import io
 import json
 import os
+import posixpath
 import re
 import shutil
 import sys
@@ -24,7 +25,6 @@ from typing import Dict, Optional, TypeVar, Union
 from urllib.parse import urlparse
 
 import numpy as np
-import posixpath
 import requests
 
 from .. import __version__, config, utils
@@ -234,8 +234,8 @@ class DownloadConfig:
         force_extract (:obj:`bool`, default ``False``): If True when extract_compressed_file is True and the archive
             was already extracted, re-extract the archive and override the folder where it was extracted.
         delete_extracted (:obj:`bool`, default ``False``): Whether to delete (or keep) the extracted files.
-        use_etag (:obj:`bool`, default ``True``):
-        num_proc (:obj:`int`, optional):
+        use_etag (:obj:`bool`, default ``True``): Whether to use the ETag HTTP response header to validate the cached files.
+        num_proc (:obj:`int`, optional): The number of processes to launch to download the files in parallel.
         max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
         use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
             for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
@@ -569,8 +569,12 @@ def get_from_cache(
                 or (response.status_code == 405 and "drive.google.com" in url)
                 or (
                     response.status_code == 403
-                    and re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
+                    and (
+                        re.match(r"^https?://github.com/.*?/.*?/releases/download/.*?/.*?$", url)
+                        or re.match(r"^https://.*?s3.*?amazonaws.com/.*?$", response.url)
+                    )
                 )
+                or (response.status_code == 403 and "ndownloader.figstatic.com" in url)
             ):
                 connected = True
                 logger.info("Couldn't get ETag version for url {}".format(url))

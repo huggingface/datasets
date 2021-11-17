@@ -55,7 +55,7 @@ pretty_name: COUNTER
 - **Repository:** [More Information Needed]
 - **Paper:** https://link.springer.com/article/10.1007%2Fs10579-016-9367-2
 - **Leaderboard:** [More Information Needed]
-- **Point of Contact:** ucrel@lancaster.ac.uk
+- **Point of Contact:** [UCREL](ucrel@lancaster.ac.uk)
 
 ### Dataset Summary
 

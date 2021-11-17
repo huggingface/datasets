@@ -15,8 +15,6 @@
 """OPUS-100"""
 
 
-import os
-
 import datasets
 
 
@@ -208,23 +206,25 @@ class Opus100(datasets.GeneratorBasedBuilder):
             domain = "zero-shot"
 
         if domain == "supervised":
-            dl_dir = dl_manager.download_and_extract(_URL["supervised"].format(lang_pair))
+            archive = dl_manager.download(_URL["supervised"].format(lang_pair))
         elif domain == "zero-shot":
-            dl_dir = dl_manager.download_and_extract(_URL["zero-shot"])
+            archive = dl_manager.download(_URL["zero-shot"])
 
-        data_dir = os.path.join(dl_dir, os.path.join("opus-100-corpus", "v1.0", domain, lang_pair))
+        data_dir = "/".join(["opus-100-corpus", "v1.0", domain, lang_pair])
         output = []
 
         test = datasets.SplitGenerator(
             name=datasets.Split.TEST,
             # These kwargs will be passed to _generate_examples
             gen_kwargs={
-                "filepath": os.path.join(data_dir, f"opus.{lang_pair}-test.{src_tag}"),
-                "labelpath": os.path.join(data_dir, f"opus.{lang_pair}-test.{tgt_tag}"),
+                "filepath": f"{data_dir}/opus.{lang_pair}-test.{src_tag}",
+                "labelpath": f"{data_dir}/opus.{lang_pair}-test.{tgt_tag}",
+                "files": dl_manager.iter_archive(archive),
             },
         )
 
-        if f"opus.{lang_pair}-test.{src_tag}" in os.listdir(data_dir):
+        available_files = [path for path, _ in dl_manager.iter_archive(archive)]
+        if f"{data_dir}/opus.{lang_pair}-test.{src_tag}" in available_files:
             output.append(test)
 
         if domain == "supervised":
@@ -232,33 +232,40 @@ class Opus100(datasets.GeneratorBasedBuilder):
             train = datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, f"opus.{lang_pair}-train.{src_tag}"),
-                    "labelpath": os.path.join(data_dir, f"opus.{lang_pair}-train.{tgt_tag}"),
+                    "filepath": f"{data_dir}/opus.{lang_pair}-train.{src_tag}",
+                    "labelpath": f"{data_dir}/opus.{lang_pair}-train.{tgt_tag}",
+                    "files": dl_manager.iter_archive(archive),
                 },
             )
 
-            if f"opus.{lang_pair}-train.{src_tag}" in os.listdir(data_dir):
+            if f"{data_dir}/opus.{lang_pair}-train.{src_tag}" in available_files:
                 output.append(train)
 
             valid = datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, f"opus.{lang_pair}-dev.{src_tag}"),
-                    "labelpath": os.path.join(data_dir, f"opus.{lang_pair}-dev.{tgt_tag}"),
+                    "filepath": f"{data_dir}/opus.{lang_pair}-dev.{src_tag}",
+                    "labelpath": f"{data_dir}/opus.{lang_pair}-dev.{tgt_tag}",
+                    "files": dl_manager.iter_archive(archive),
                 },
             )
 
-            if f"opus.{lang_pair}-dev.{src_tag}" in os.listdir(data_dir):
+            if f"{data_dir}/opus.{lang_pair}-dev.{src_tag}" in available_files:
                 output.append(valid)
 
         return output
 
-    def _generate_examples(self, filepath, labelpath):
+    def _generate_examples(self, filepath, labelpath, files):
         """Yields examples."""
         src_tag, tgt_tag = self.config.language_pair.split("-")
-        with open(filepath, encoding="utf-8") as f1, open(labelpath, encoding="utf-8") as f2:
-            src = f1.read().split("\n")[:-1]
-            tgt = f2.read().split("\n")[:-1]
-            for idx, (s, t) in enumerate(zip(src, tgt)):
-                yield idx, {"translation": {src_tag: s, tgt_tag: t}}
+        src, tgt = None, None
+        for path, f in files:
+            if path == filepath:
+                src = f.read().decode("utf-8").split("\n")[:-1]
+            elif path == labelpath:
+                tgt = f.read().decode("utf-8").split("\n")[:-1]
+            if src is not None and tgt is not None:
+                for idx, (s, t) in enumerate(zip(src, tgt)):
+                    yield idx, {"translation": {src_tag: s, tgt_tag: t}}
+                break

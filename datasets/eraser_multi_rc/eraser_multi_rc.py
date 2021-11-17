@@ -18,7 +18,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -73,46 +72,46 @@ class EraserMultiRc(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        dl_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
-        data_dir = os.path.join(dl_dir, "multirc")
+        archive = dl_manager.download(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "train.jsonl")},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "split_file": "multirc/train.jsonl"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "val.jsonl")},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "split_file": "multirc/val.jsonl"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "test.jsonl")},
+                gen_kwargs={"files": dl_manager.iter_archive(archive), "split_file": "multirc/test.jsonl"},
             ),
         ]
 
-    def _generate_examples(self, data_dir, filepath):
+    def _generate_examples(self, files, split_file):
         """Yields examples."""
 
-        multirc_dir = os.path.join(data_dir, "docs")
-        with open(filepath, encoding="utf-8") as f:
-            for line in f:
-                row = json.loads(line)
-                evidences = []
+        multirc_dir = "multirc/docs"
+        docs = {}
+        for path, f in files:
+            docs[path] = f.read().decode("utf-8")
+        for line in docs[split_file].splitlines():
+            row = json.loads(line)
+            evidences = []
 
-                for evidence in row["evidences"][0]:
-                    docid = evidence["docid"]
-                    evidences.append(evidence["text"])
+            for evidence in row["evidences"][0]:
+                docid = evidence["docid"]
+                evidences.append(evidence["text"])
 
-                passage_file = os.path.join(multirc_dir, docid)
-                with open(passage_file, encoding="utf-8") as f1:
-                    passage_text = f1.read()
+            passage_file = "/".join([multirc_dir, docid])
+            passage_text = docs[passage_file]
 
-                yield row["annotation_id"], {
-                    "passage": passage_text,
-                    "query_and_answer": row["query"],
-                    "label": row["classification"],
-                    "evidences": evidences,
-                }
+            yield row["annotation_id"], {
+                "passage": passage_text,
+                "query_and_answer": row["query"],
+                "label": row["classification"],
+                "evidences": evidences,
+            }

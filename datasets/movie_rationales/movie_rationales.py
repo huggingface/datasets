@@ -18,7 +18,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -49,6 +48,7 @@ class MovieRationales(datasets.GeneratorBasedBuilder):
     """Movie reviews with human annotated rationales."""
 
     VERSION = datasets.Version("0.1.0")
+    test_dummy_data = False  # dummy data don't support having a specific order for the files in the archive
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -67,43 +67,56 @@ class MovieRationales(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
-        data_dir = os.path.join(dl_dir, "movies")
+        archive = dl_manager.download(_DOWNLOAD_URL)
+        data_dir = "movies/"
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "train.jsonl")},
+                gen_kwargs={
+                    "reviews_dir": data_dir + "docs",
+                    "filepath": data_dir + "train.jsonl",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "val.jsonl")},
+                gen_kwargs={
+                    "reviews_dir": data_dir + "docs",
+                    "filepath": data_dir + "val.jsonl",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "test.jsonl")},
+                gen_kwargs={
+                    "reviews_dir": data_dir + "docs",
+                    "filepath": data_dir + "test.jsonl",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
         ]
 
-    def _generate_examples(self, data_dir, filepath):
+    def _generate_examples(self, reviews_dir, filepath, files):
         """Yields examples."""
-        reviews_dir = os.path.join(data_dir, "docs")
+        reviews = {}
+        for path, f in files:
+            if path.startswith(reviews_dir):
+                reviews[path.split("/")[-1]] = f.read().decode("utf-8")
+            elif path == filepath:
+                for line in f:
+                    row = json.loads(line.decode("utf-8"))
+                    doc_id = row["annotation_id"]
+                    review_text = reviews[doc_id]
 
-        with open(filepath, encoding="utf-8") as f:
-            for line in f:
-                row = json.loads(line)
-                doc_id = row["annotation_id"]
-                review_file = os.path.join(reviews_dir, doc_id)
-                with open(review_file, encoding="utf-8") as f1:
-                    review_text = f1.read()
+                    evidences = []
+                    for evidence in row["evidences"]:
+                        for e in evidence:
+                            evidences.append(e["text"])
 
-                evidences = []
-                for evidence in row["evidences"]:
-                    for e in evidence:
-                        evidences.append(e["text"])
-
-                yield doc_id, {
-                    "review": review_text,
-                    "label": row["classification"],
-                    "evidences": evidences,
-                }
+                    yield doc_id, {
+                        "review": review_text,
+                        "label": row["classification"],
+                        "evidences": evidences,
+                    }
+                break

@@ -1,4 +1,5 @@
 ---
+pretty_name: MovieRationales
 languages:
 - en
 paperswithcode_id: null

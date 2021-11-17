@@ -7,7 +7,7 @@ from absl.testing import parameterized
 from datasets import config
 from datasets.arrow_reader import HF_GCP_BASE_URL
 from datasets.builder import DatasetBuilder
-from datasets.load import import_main_class, prepare_module
+from datasets.load import dataset_module_factory, import_main_class
 from datasets.utils import cached_path
 
 
@@ -52,16 +52,16 @@ class TestDatasetOnHfGcp(TestCase):
     def test_dataset_info_available(self, dataset, config_name):
 
         with TemporaryDirectory() as tmp_dir:
-            local_module_path, local_hash = prepare_module(
-                os.path.join("datasets", dataset), dataset=True, cache_dir=tmp_dir, local_files_only=True
+            dataset_module = dataset_module_factory(
+                os.path.join("datasets", dataset), cache_dir=tmp_dir, local_files_only=True
             )
 
-            builder_cls = import_main_class(local_module_path, dataset=True)
+            builder_cls = import_main_class(dataset_module.module_path, dataset=True)
 
             builder_instance: DatasetBuilder = builder_cls(
                 cache_dir=tmp_dir,
                 name=config_name,
-                hash=local_hash,
+                hash=dataset_module.hash,
             )
 
             dataset_info_url = os.path.join(

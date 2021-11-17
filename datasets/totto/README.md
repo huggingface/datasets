@@ -53,7 +53,7 @@ pretty_name: ToTTo
 - **Repository:** https://github.com/google-research-datasets/ToTTo
 - **Paper:** https://arxiv.org/abs/2004.14373
 - **Leaderboard:** https://github.com/google-research-datasets/ToTTo#leaderboard
-- **Point of Contact:** totto@google.com
+- **Point of Contact:** [email](totto@google.com)
 
 ### Dataset Summary
 

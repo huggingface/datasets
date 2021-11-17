@@ -603,7 +603,7 @@ class BaseDatasetTest(TestCase):
             del dset1, dset2, dset3
 
     def test_concatenate_with_indices(self, in_memory):
-        data1, data2, data3 = {"id": [0, 1, 2] * 2}, {"id": [3, 4, 5] * 2}, {"id": [6, 7]}
+        data1, data2, data3 = {"id": [0, 1, 2] * 2}, {"id": [3, 4, 5] * 2}, {"id": [6, 7, 8]}
         info1 = DatasetInfo(description="Dataset1")
         info2 = DatasetInfo(description="Dataset2")
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -616,16 +616,46 @@ class BaseDatasetTest(TestCase):
             dset1, dset2, dset3 = dset1.select([0, 1, 2]), dset2.select([0, 1, 2]), dset3
 
             with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
-                self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
+                self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 3))
                 self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
-                self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
+                self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7, 8])
                 # in_memory = False:
-                # 3 cache files for the dset_concat._data table, and 1 for the dset_concat._indices_table
-                # no cache file for the indices
+                # 3 cache files for the dset_concat._data table
+                # no cache file for the indices because it's in memory
                 # in_memory = True:
                 # no cache files since both dset_concat._data and dset_concat._indices are in memory
                 self.assertEqual(len(dset_concat.cache_files), 0 if in_memory else 3)
                 self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
+
+            dset1 = dset1.rename_columns({"id": "id1"})
+            dset2 = dset2.rename_columns({"id": "id2"})
+            dset3 = dset3.rename_columns({"id": "id3"})
+            with concatenate_datasets([dset1, dset2, dset3], axis=1) as dset_concat:
+                self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 3))
+                self.assertEqual(len(dset_concat), len(dset1))
+                self.assertListEqual(dset_concat["id1"], [0, 1, 2])
+                self.assertListEqual(dset_concat["id2"], [3, 4, 5])
+                self.assertListEqual(dset_concat["id3"], [6, 7, 8])
+                # in_memory = False:
+                # 3 cache files for the dset_concat._data table
+                # no cache file for the indices because it's None
+                # in_memory = True:
+                # no cache files since dset_concat._data is in memory and dset_concat._indices is None
+                self.assertEqual(len(dset_concat.cache_files), 0 if in_memory else 3)
+                self.assertIsNone(dset_concat._indices)
+                self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
+
+            with concatenate_datasets([dset1], axis=1) as dset_concat:
+                self.assertEqual(len(dset_concat), len(dset1))
+                self.assertListEqual(dset_concat["id1"], [0, 1, 2])
+                # in_memory = False:
+                # 1 cache file for the dset_concat._data table
+                # no cache file for the indices because it's in memory
+                # in_memory = True:
+                # no cache files since both dset_concat._data and dset_concat._indices are in memory
+                self.assertEqual(len(dset_concat.cache_files), 0 if in_memory else 1)
+                self.assertTrue(dset_concat._indices == dset1._indices)
+                self.assertEqual(dset_concat.info.description, "Dataset1")
             del dset1, dset2, dset3
 
     def test_concatenate_with_indices_from_disk(self, in_memory):
@@ -1182,6 +1212,15 @@ class BaseDatasetTest(TestCase):
                 with dset.filter(lambda x: x["col"] > 0) as dset:
                     self.assertListEqual(dset["col"], [1, 2])
                     with dset.filter(lambda x: x["col"] < 2) as dset:
+                        self.assertListEqual(dset["col"], [1])
+
+    def test_filter_batched(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict({"col": [0, 1, 2]})
+            with self._to(in_memory, tmp_dir, dset) as dset:
+                with dset.filter(lambda x: [i > 0 for i in x["col"]], batched=True) as dset:
+                    self.assertListEqual(dset["col"], [1, 2])
+                    with dset.filter(lambda x: [i < 2 for i in x["col"]], batched=True) as dset:
                         self.assertListEqual(dset["col"], [1])
 
     def test_filter_fn_kwargs(self, in_memory):
@@ -1822,10 +1861,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(len(dset), 10)
 
                     self.assertNotEqual(dset._indices, None)
-
-                    # Test unique fail
-                    with self.assertRaises(ValueError):
-                        dset.unique(dset.column_names[0])
 
                     tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
                     fingerprint = dset._fingerprint
@@ -2725,8 +2760,10 @@ def test_dummy_dataset_serialize_s3(s3, dataset):
     features = dataset.features
     dataset.save_to_disk(dataset_path, s3)
     dataset = dataset.load_from_disk(dataset_path, s3)
+    assert os.path.isfile(dataset.cache_files[0]["filename"])
 
     assert len(dataset) == 10
+    assert len(dataset.shuffle()) == 10
     assert dataset.features == features
     assert dataset[0]["id"] == 0
     assert dataset["id"][0] == 0

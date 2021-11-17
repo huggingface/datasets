@@ -168,6 +168,12 @@ class TestMetric(TestCase):
 
         metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
         self.assertDictEqual({}, metric.compute(predictions=[], references=[]))
+        del metric
+
+        metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
+        with self.assertRaisesRegex(ValueError, "Mismatch in the number"):
+            metric.add_batch(predictions=[1, 2, 3], references=[1, 2, 3, 4])
+        del metric
 
     def test_metric_with_cache_dir(self):
         preds, refs = DummyMetric.predictions_and_references()

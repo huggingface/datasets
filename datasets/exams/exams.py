@@ -16,7 +16,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -196,14 +195,12 @@ class Exams(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URLs)
+        archives = dl_manager.download(_URLs)
         if self.config.name == "alignments":
             return [
                 datasets.SplitGenerator(
                     name="full",
-                    gen_kwargs={
-                        "filepath": data_dir["alignments"],
-                    },
+                    gen_kwargs={"filepath": archives["alignments"]},
                 ),
             ]
         elif self.config.name in ["multilingual", "multilingual_with_para"]:
@@ -211,9 +208,8 @@ class Exams(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=spl_enum,
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            data_dir[f"{self.config.name}_{spl}"], f"{spl}{self.config.with_para}.jsonl"
-                        ),
+                        "filepath": f"{spl}{self.config.with_para}.jsonl",
+                        "files": dl_manager.iter_archive(archives[f"{self.config.name}_{spl}"]),
                     },
                 )
                 for spl, spl_enum in [
@@ -227,9 +223,8 @@ class Exams(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            data_dir[f"{self.config.name}"], f"test{self.config.with_para}.jsonl"
-                        ),
+                        "filepath": f"test{self.config.with_para}.jsonl",
+                        "files": dl_manager.iter_archive(archives[self.config.name]),
                     },
                 ),
             ]
@@ -238,10 +233,8 @@ class Exams(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=spl_enum,
                     gen_kwargs={
-                        "filepath": os.path.join(
-                            data_dir[f"{self.config.name}_{spl}"],
-                            f"{spl}_{self.config.lang}{self.config.with_para}.jsonl",
-                        )
+                        "filepath": f"{spl}_{self.config.lang}{self.config.with_para}.jsonl",
+                        "files": dl_manager.iter_archive(archives[f"{self.config.name}_{spl}"]),
                     },
                 )
                 for spl, spl_enum in [
@@ -250,16 +243,19 @@ class Exams(datasets.GeneratorBasedBuilder):
                 ]
             ]
 
-    def _generate_examples(self, filepath):
-        f = open(filepath, encoding="utf-8")
+    def _generate_examples(self, filepath, files=None):
         if self.config.name == "alignments":
-            for id_, line in enumerate(f):
-                line_dict = json.loads(line.strip())
-                in_id, out_list = list(line_dict.items())[0]
-                yield id_, {"source_id": in_id, "target_id_list": out_list}
+            with open(filepath, encoding="utf-8") as f:
+                for id_, line in enumerate(f):
+                    line_dict = json.loads(line.strip())
+                    in_id, out_list = list(line_dict.items())[0]
+                    yield id_, {"source_id": in_id, "target_id_list": out_list}
         else:
-            for id_, line in enumerate(f):
-                line_dict = json.loads(line.strip())
-                for choice in line_dict["question"]["choices"]:
-                    choice["para"] = choice.get("para", "")
-                yield id_, line_dict
+            for path, f in files:
+                if path == filepath:
+                    for id_, line in enumerate(f):
+                        line_dict = json.loads(line.strip())
+                        for choice in line_dict["question"]["choices"]:
+                            choice["para"] = choice.get("para", "")
+                        yield id_, line_dict
+                    break

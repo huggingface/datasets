@@ -937,18 +937,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Saves a dataset to a dataset directory, or in a filesystem using either :class:`~filesystems.S3FileSystem` or
         any implementation of ``fsspec.spec.AbstractFileSystem``.
 
-
-        Note regarding sliced datasets:
-
-        If you sliced the dataset in some way (using shard, train_test_split or select for example), then an indices mapping
-        is added to avoid having to rewrite a new arrow Table (save time + disk/memory usage).
-        It maps the indices used by __getitem__ to the right rows if the arrow Table.
-        By default save_to_disk does save the full dataset table + the mapping.
-
-        If you want to only save the shard of the dataset instead of the original arrow file and the indices,
-        then you have to call :func:`datasets.Dataset.flatten_indices` before saving.
-        This will create a new arrow table by using the right rows of the original table.
-
         Args:
             dataset_path (:obj:`str`): Path (e.g. `dataset/train`) or remote URI (e.g. `s3://my-bucket/dataset/train`)
                 of the dataset directory where the dataset will be saved to.
@@ -958,6 +946,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
+
+        dataset = self.flatten_indices() if self._indices is not None else self
 
         if is_remote_filesystem(fs):
             dataset_path = extract_path_from_uri(dataset_path)
@@ -976,7 +966,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Get json serializable state
         state = {
-            key: self.__dict__[key]
+            key: dataset.__dict__[key]
             for key in [
                 "_fingerprint",
                 "_format_columns",
@@ -987,13 +977,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ]
         }
 
-        split = self.__dict__["_split"]
+        split = dataset.__dict__["_split"]
         state["_split"] = str(split) if split is not None else split
 
         state["_data_files"] = [{"filename": config.DATASET_ARROW_FILENAME}]
-        state["_indices_data_files"] = (
-            [{"filename": config.DATASET_INDICES_FILENAME}] if self._indices is not None else None
-        )
         for k in state["_format_kwargs"].keys():
             try:
                 json.dumps(state["_format_kwargs"][k])
@@ -1003,19 +990,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ) from None
 
         # Get json serializable dataset info
-        dataset_info = asdict(self._info)
+        dataset_info = asdict(dataset._info)
 
         # Save dataset + indices + state + info
         fs.makedirs(dataset_path, exist_ok=True)
         with fs.open(Path(dataset_path, config.DATASET_ARROW_FILENAME).as_posix(), "wb") as dataset_file:
             with ArrowWriter(stream=dataset_file) as writer:
-                writer.write_table(self._data)
+                writer.write_table(dataset._data)
                 writer.finalize()
-        if self._indices is not None:
-            with fs.open(Path(dataset_path, config.DATASET_INDICES_FILENAME).as_posix(), "wb") as indices_file:
-                with ArrowWriter(stream=indices_file) as writer:
-                    writer.write_table(self._indices)
-                    writer.finalize()
         with fs.open(
             Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "w", encoding="utf-8"
         ) as state_file:
@@ -1061,8 +1043,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
-            tmp_dir = tempfile.TemporaryDirectory()
-            dataset_path = Path(tmp_dir.name, src_dataset_path)
+            tmp_dir = get_temporary_cache_files_directory()
+            dataset_path = Path(tmp_dir, src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
         with open(
@@ -1083,20 +1065,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             table_cls.from_file(Path(dataset_path, data_file["filename"]).as_posix())
             for data_file in state["_data_files"]
         )
-        if state.get("_indices_data_files"):
-            indices_table = concat_tables(
-                table_cls.from_file(Path(dataset_path, indices_file["filename"]).as_posix())
-                for indices_file in state["_indices_data_files"]
-            )
-        else:
-            indices_table = None
 
         split = state["_split"]
         split = Split(split) if split is not None else split
 
         return Dataset(
             arrow_table=arrow_table,
-            indices_table=indices_table,
             info=dataset_info,
             split=split,
             fingerprint=state["_fingerprint"],
@@ -1154,13 +1128,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
 
         if self._indices is not None and self._indices.num_rows != self._data.num_rows:
-            raise ValueError(
-                f"This dataset is a shallow copy using an indices mapping of another Datset {self._data.num_rows}."
-                f"The `Dataset.unique()` method is currently not handled on shallow copy. Please use `Dataset.flatten_indices()` "
-                f"to create a deep copy of the dataset and be able to use `Dataset.unique()`."
-            )
+            dataset = self.flatten_indices()
+        else:
+            dataset = self
 
-        return self._data.column(column).unique().to_pylist()
+        return dataset._data.column(column).unique().to_pylist()
 
     def class_encode_column(self, column: str) -> "Dataset":
         """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the table.
@@ -1177,10 +1149,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Class encoding is only supported for {type(Value)} column, and column {column} is {type(src_feat)}."
             )
 
-        # Stringify the column
         if src_feat.dtype != "string":
             dset = self.map(
-                lambda batch: {column: [str(sample) for sample in batch]}, input_columns=column, batched=True
+                lambda batch: {column: [str(sample) for sample in batch]},
+                input_columns=column,
+                batched=True,
+                desc="Stringifying the column",
             )
         else:
             dset = self
@@ -1188,7 +1162,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Create the new feature
         class_names = sorted(dset.unique(column))
         dst_feat = ClassLabel(names=class_names)
-        dset = dset.map(lambda batch: {column: dst_feat.str2int(batch)}, input_columns=column, batched=True)
+        dset = dset.map(
+            lambda batch: {column: dst_feat.str2int(batch)},
+            input_columns=column,
+            batched=True,
+            desc="Casting to class labels",
+        )
         dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = dset.features.copy()
@@ -1319,6 +1298,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer_batch_size=writer_batch_size,
             num_proc=num_proc,
             features=features,
+            desc="Casting the dataset",
         )
         self._data = dataset._data
         self._info = dataset._info
@@ -1380,6 +1360,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer_batch_size=writer_batch_size,
             num_proc=num_proc,
             features=features,
+            desc="Casting the dataset",
         )
         dataset = dataset.with_format(**format)
         return dataset
@@ -1970,7 +1951,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (:obj:`bool`, default `True`): Disallow null values in the table.
+            disable_nullable (:obj:`bool`, default `False`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
             num_proc (`Optional[int]`, default `None`): Max number of processes when generating cache. Already cached shards are loaded sequentially
             suffix_template (:obj:`str`):
@@ -2227,7 +2208,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (:obj:`bool`, defaults to `True`): Disallow null values in the table.
+            disable_nullable (:obj:`bool`, defaults to `False`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
@@ -2493,8 +2474,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             function (:obj:`Callable`): Callable with one of the following signatures:
 
-                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False``
-                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True``
+                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
 
                 If no function is provided, defaults to an always True function: ``lambda x: True``.
             with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
@@ -2566,7 +2549,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
-        disable_nullable: bool = True,
+        disable_nullable: bool = False,
         new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Create and cache a new Dataset by flattening the indices mapping.
@@ -2580,7 +2563,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
-            disable_nullable (:obj:`bool`, default `True`): Allow null values in the table.
+            disable_nullable (:obj:`bool`, default `False`): Allow null values in the table.
             new_fingerprint (`Optional[str]`, default `None`): The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
@@ -2593,6 +2576,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features=features,
             disable_nullable=disable_nullable,
             new_fingerprint=new_fingerprint,
+            desc="Flattening the indices",
         )
 
     def _new_dataset_with_indices(
@@ -3619,21 +3603,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
                 ds_aligned = ds.align_labels_with_mapping(label2id, "label")
         """
-        features = self.features.copy()
-        int2str_function = features[label_column].int2str
+        # Sanity checks
+        if label_column not in self._data.column_names:
+            raise ValueError(f"Column ({label_column}) not in table columns ({self._data.column_names}).")
+
+        label_feature = self.features[label_column]
+        if not isinstance(label_feature, ClassLabel):
+            raise ValueError(
+                f"Aligning labels with a mapping is only supported for {ClassLabel.__name__} column, and column {label_feature} is {type(label_feature).__name__}."
+            )
+
         # Sort input mapping by ID value to ensure the label names are aligned
         label2id = dict(sorted(label2id.items(), key=lambda item: item[1]))
         label_names = list(label2id.keys())
-        features[label_column] = ClassLabel(num_classes=len(label_names), names=label_names)
         # Some label mappings use uppercase label names so we lowercase them during alignment
         label2id = {k.lower(): v for k, v in label2id.items()}
+        int2str_function = label_feature.int2str
 
         def process_label_ids(batch):
             dset_label_names = [int2str_function(label_id).lower() for label_id in batch[label_column]]
             batch[label_column] = [label2id[label_name] for label_name in dset_label_names]
             return batch
 
-        return self.map(process_label_ids, features=features, batched=True)
+        features = self.features.copy()
+        features[label_column] = ClassLabel(num_classes=len(label_names), names=label_names)
+        return self.map(process_label_ids, features=features, batched=True, desc="Aligning the labels")
 
 
 def concatenate_datasets(
@@ -3666,6 +3660,46 @@ def concatenate_datasets(
         format = {}
         logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
+    def apply_offset_to_indices_table(table, offset):
+        if offset == 0:
+            return table
+        else:
+            array = table["indices"]
+            new_array = pc.add(array, pa.scalar(offset, type=pa.uint64()))
+            return InMemoryTable.from_arrays([new_array], names=["indices"])
+
+    # Concatenate indices if they exist
+    if any(dset._indices is not None for dset in dsets):
+        if axis == 0:
+            # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
+            # Applying an offset to an indices table also brings the table in memory.
+            indices_tables = []
+            for i in range(len(dsets)):
+                if dsets[i]._indices is None:
+                    dsets[i] = dsets[i].select(range(len(dsets[i])))
+                indices_tables.append(dsets[i]._indices)
+
+            # An offset needs to be applied to the indices before concatenating
+            offset = 0
+            for i in range(len(dsets)):
+                indices_tables[i] = apply_offset_to_indices_table(indices_tables[i], offset)
+                offset += len(dsets[i]._data)
+
+            # Concatenate indices
+            indices_tables = [t for t in indices_tables if len(t) > 0]
+            if indices_tables:
+                indices_table = concat_tables(indices_tables)
+            else:
+                indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
+        elif axis == 1 and len(dsets) == 1:
+            indices_table = dsets[0]._indices
+        elif axis == 1 and len(dsets) > 1:
+            for i in range(len(dsets)):
+                dsets[i] = dsets[i].flatten_indices()
+            indices_table = None
+    else:
+        indices_table = None
+
     # Concatenate tables
     tables_to_concat = [dset._data for dset in dsets if len(dset._data) > 0]
     # There might be no table with data left hence return first empty table
@@ -3677,40 +3711,6 @@ def concatenate_datasets(
         table = update_metadata_with_features(
             table, Features({k: v for dset in dsets for k, v in dset.features.items()})
         )
-
-    def apply_offset_to_indices_table(table, offset):
-        if offset == 0:
-            return table
-        else:
-            array = table["indices"]
-            new_array = pc.add(array, pa.scalar(offset, type=pa.uint64()))
-            return InMemoryTable.from_arrays([new_array], names=["indices"])
-
-    # Concatenate indices if they exist
-    if any(dset._indices is not None for dset in dsets):
-
-        # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
-        # Applying an offset to an indices table also brings the table in memory.
-        for i in range(len(dsets)):
-            if dsets[i]._indices is None:
-                dsets[i] = dsets[i].select(range(len(dsets[i])))
-        assert all(dset._indices is not None for dset in dsets), "each dataset should have an indices table"
-
-        # An offset needs to be applied to the indices before concatenating
-        indices_tables = []
-        offset = 0
-        for dset in dsets:
-            indices_tables.append(apply_offset_to_indices_table(dset._indices, offset))
-            offset += len(dset._data)
-
-        # Concatenate indices
-        indices_tables = [t for t in indices_tables if len(t) > 0]
-        if indices_tables:
-            indices_table = concat_tables(indices_tables)
-        else:
-            indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
-    else:
-        indices_table = None
 
     # Concatenate infos
     if info is None:
@@ -3744,7 +3744,12 @@ def get_indices_from_mask_function(
     **fn_kwargs,
 ):
     if batched:
-        mask = function(*args)
+        # we extract indices from args
+        *inputs, indices = args
+        if with_indices:
+            mask = function(*inputs, indices, **fn_kwargs)
+        else:
+            mask = function(*inputs, **fn_kwargs)
     else:
         # we get batched data (to do less look-ups) but `function` only accepts one example
         # therefore we need to call `function` on each example of the batch to get the mask
