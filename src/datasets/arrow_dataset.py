@@ -3660,6 +3660,56 @@ def concatenate_datasets(
         format = {}
         logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
+    def apply_offset_to_indices_table(table, offset):
+        if offset == 0:
+            return table
+        else:
+            array = table["indices"]
+            new_array = pc.add(array, pa.scalar(offset, type=pa.uint64()))
+            return InMemoryTable.from_arrays([new_array], names=["indices"])
+
+    def prepare_dset_for_indices_table(dset, indices_table):
+        dset._indices = InMemoryTable.from_arrays(
+            [dset._indices.column(0).take(indices_table.column(0))], names=["indices"]
+        )
+        dset = dset.flatten_indices()
+        return dset
+
+    # Concatenate indices if they exist
+    if any(dset._indices is not None for dset in dsets):
+        # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
+        # Applying an offset to an indices table also brings the table in memory.
+        indices_tables = []
+        for i in range(len(dsets)):
+            if dsets[i]._indices is None:
+                dsets[i] = dsets[i].select(range(len(dsets[i])))
+            indices_tables.append(dsets[i]._indices)
+
+        if axis == 0:
+            # An offset needs to be applied to the indices before concatenating
+            offset = 0
+            for i in range(len(dsets)):
+                indices_tables[i] = apply_offset_to_indices_table(indices_tables[i], offset)
+                offset += len(dsets[i]._data)
+
+            # Concatenate indices
+            indices_tables = [t for t in indices_tables if len(t) > 0]
+            if indices_tables:
+                indices_table = concat_tables(indices_tables)
+            else:
+                indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
+        else:
+            # Avoid flattening the indices of the larget dataset
+            max_dset_size_idx = max(range(len(dsets)), key=lambda i: dsets[i]._data.nbytes)
+            indices_table = dsets[max_dset_size_idx]._indices
+            # Re-order the rest of the indices tables and flatten them 
+            # to prepare the corresponding datasets for the indices table of the larget dataset.
+            for i in range(len(dsets)):
+                if i != max_dset_size_idx:
+                    dsets[i] = prepare_dset_for_indices_table(dsets[i], indices_table)
+    else:
+        indices_table = None
+
     # Concatenate tables
     tables_to_concat = [dset._data for dset in dsets if len(dset._data) > 0]
     # There might be no table with data left hence return first empty table
@@ -3671,40 +3721,6 @@ def concatenate_datasets(
         table = update_metadata_with_features(
             table, Features({k: v for dset in dsets for k, v in dset.features.items()})
         )
-
-    def apply_offset_to_indices_table(table, offset):
-        if offset == 0:
-            return table
-        else:
-            array = table["indices"]
-            new_array = pc.add(array, pa.scalar(offset, type=pa.uint64()))
-            return InMemoryTable.from_arrays([new_array], names=["indices"])
-
-    # Concatenate indices if they exist
-    if any(dset._indices is not None for dset in dsets):
-
-        # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
-        # Applying an offset to an indices table also brings the table in memory.
-        for i in range(len(dsets)):
-            if dsets[i]._indices is None:
-                dsets[i] = dsets[i].select(range(len(dsets[i])))
-        assert all(dset._indices is not None for dset in dsets), "each dataset should have an indices table"
-
-        # An offset needs to be applied to the indices before concatenating
-        indices_tables = []
-        offset = 0
-        for dset in dsets:
-            indices_tables.append(apply_offset_to_indices_table(dset._indices, offset))
-            offset += len(dset._data)
-
-        # Concatenate indices
-        indices_tables = [t for t in indices_tables if len(t) > 0]
-        if indices_tables:
-            indices_table = concat_tables(indices_tables)
-        else:
-            indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
-    else:
-        indices_table = None
 
     # Concatenate infos
     if info is None:
