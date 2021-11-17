@@ -963,7 +963,8 @@ class Features(dict):
            :class:`datasets.Sequence`.
 
         - a :class:`Array2D`, :class:`Array3D`, :class:`Array4D` or :class:`Array5D` feature for multidimensional arrays
-        - a :class:`datasets.Audio` stores the path to an audio file and can extract audio data from it
+        - an :class:`Audio` feature to store the absolute path to an audio file or a dictionary with the relative path
+          to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
         - :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`, the two features specific to Machine Translation
     """
 
