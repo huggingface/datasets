@@ -21,7 +21,7 @@ import datasets
 
 _CITATION = """\
 @misc{gao2020pile,
-      title={The Pile: An 800GB Dataset of Diverse Text for Language Modeling}, 
+      title={The Pile: An 800GB Dataset of Diverse Text for Language Modeling},
       author={Leo Gao and Stella Biderman and Sid Black and Laurence Golding and Travis Hoppe and Charles Foster and Jason Phang and Horace He and Anish Thite and Noa Nabeshima and Shawn Presser and Connor Leahy},
       year={2020},
       eprint={2101.00027},
