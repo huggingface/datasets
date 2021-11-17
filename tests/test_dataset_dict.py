@@ -320,7 +320,7 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_1.keys()))
             self.assertListEqual(
                 [f.split("_")[-1] for f in sorted_dsets_1["train"]["filename"]],
-                sorted("f{x:03d}" for x in range(30)),
+                sorted(f"{x:03d}" for x in range(30)),
             )
 
             indices_cache_file_names = {
