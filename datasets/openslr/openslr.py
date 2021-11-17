@@ -619,7 +619,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                 for path, f in files:
                     if path.startswith(path_to_data):
                         counter += 1
-                        audio = {"path": path, "data": f.read()}
+                        audio = {"path": path, "bytes": f.read()}
                         yield counter, {"path": path, "audio": audio, "sentence": sentences[path]}
         else:
             for i, path_to_index in enumerate(path_to_indexs):
