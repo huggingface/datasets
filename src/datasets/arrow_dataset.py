@@ -3668,24 +3668,17 @@ def concatenate_datasets(
             new_array = pc.add(array, pa.scalar(offset, type=pa.uint64()))
             return InMemoryTable.from_arrays([new_array], names=["indices"])
 
-    def prepare_dset_for_indices_table(dset, indices_table):
-        dset._indices = InMemoryTable.from_arrays(
-            [dset._indices.column(0).take(indices_table.column(0))], names=["indices"]
-        )
-        dset = dset.flatten_indices()
-        return dset
-
     # Concatenate indices if they exist
     if any(dset._indices is not None for dset in dsets):
-        # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
-        # Applying an offset to an indices table also brings the table in memory.
-        indices_tables = []
-        for i in range(len(dsets)):
-            if dsets[i]._indices is None:
-                dsets[i] = dsets[i].select(range(len(dsets[i])))
-            indices_tables.append(dsets[i]._indices)
-
         if axis == 0:
+            # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
+            # Applying an offset to an indices table also brings the table in memory.
+            indices_tables = []
+            for i in range(len(dsets)):
+                if dsets[i]._indices is None:
+                    dsets[i] = dsets[i].select(range(len(dsets[i])))
+                indices_tables.append(dsets[i]._indices)
+
             # An offset needs to be applied to the indices before concatenating
             offset = 0
             for i in range(len(dsets)):
@@ -3698,15 +3691,12 @@ def concatenate_datasets(
                 indices_table = concat_tables(indices_tables)
             else:
                 indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
-        else:
-            # Avoid flattening the indices of the larget dataset
-            max_dset_size_idx = max(range(len(dsets)), key=lambda i: dsets[i]._data.nbytes)
-            indices_table = dsets[max_dset_size_idx]._indices
-            # Re-order the rest of the indices tables and flatten them 
-            # to prepare the corresponding datasets for the indices table of the larget dataset.
+        elif axis == 1 and len(dsets) == 1:
+            indices_table = dsets[0]._indices
+        elif axis == 1 and len(dsets) > 1:
             for i in range(len(dsets)):
-                if i != max_dset_size_idx:
-                    dsets[i] = prepare_dset_for_indices_table(dsets[i], indices_table)
+                dsets[i] = dsets[i].flatten_indices()
+            indices_table = None
     else:
         indices_table = None
 
