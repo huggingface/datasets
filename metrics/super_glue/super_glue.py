@@ -125,7 +125,7 @@ def evaluate_multirc(ids_preds, labels):
     """
     question_map = {}
     for id_pred, label in zip(ids_preds, labels):
-        question_id = "{}-{}".format(id_pred["idx"]["paragraph"], id_pred["idx"]["question"])
+        question_id = f'{id_pred["idx"]["paragraph"]}-{id_pred["idx"]["question"]}'
         pred = id_pred["prediction"]
         if question_id in question_map:
             question_map[question_id].append((pred, label))

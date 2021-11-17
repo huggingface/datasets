@@ -30,7 +30,7 @@ class DatasetDictTest(TestCase):
             dset = Dataset.from_dict(data)
         else:
             dset = Dataset.from_dict(
-                {"filename": ["my_name-train" + "_" + "{:03d}".format(x) for x in np.arange(30).tolist()]}
+                {"filename": ["my_name-train" + "_" + f"{x:03d}" for x in np.arange(30).tolist()]}
             )
         return dset
 
@@ -320,7 +320,7 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_1.keys()))
             self.assertListEqual(
                 [f.split("_")[-1] for f in sorted_dsets_1["train"]["filename"]],
-                sorted("{:03d}".format(x) for x in range(30)),
+                sorted(f"{x:03d}" for x in range(30)),
             )
 
             indices_cache_file_names = {
@@ -333,7 +333,7 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_2.keys()))
             self.assertListEqual(
                 [f.split("_")[-1] for f in sorted_dsets_2["train"]["filename"]],
-                sorted(("{:03d}".format(x) for x in range(30)), reverse=True),
+                sorted((f"{x:03d}" for x in range(30)), reverse=True),
             )
             del dsets, sorted_dsets_1, sorted_dsets_2
 

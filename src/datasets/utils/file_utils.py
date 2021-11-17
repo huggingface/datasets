@@ -309,10 +309,10 @@ def cached_path(
         output_path = url_or_filename
     elif is_local_path(url_or_filename):
         # File, but it doesn't exist.
-        raise FileNotFoundError("Local file {} doesn't exist".format(url_or_filename))
+        raise FileNotFoundError(f"Local file {url_or_filename} doesn't exist")
     else:
         # Something unknown
-        raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
+        raise ValueError(f"unable to parse {url_or_filename} as a URL or as a local path")
 
     if output_path is None:
         return output_path
@@ -326,18 +326,18 @@ def cached_path(
 
 
 def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
-    ua = "datasets/{}; python/{}".format(__version__, config.PY_VERSION)
-    ua += "; pyarrow/{}".format(config.PYARROW_VERSION)
+    ua = f"datasets/{__version__}; python/{config.PY_VERSION}"
+    ua += f"; pyarrow/{config.PYARROW_VERSION}"
     if config.TORCH_AVAILABLE:
-        ua += "; torch/{}".format(config.TORCH_VERSION)
+        ua += f"; torch/{config.TORCH_VERSION}"
     if config.TF_AVAILABLE:
-        ua += "; tensorflow/{}".format(config.TF_VERSION)
+        ua += f"; tensorflow/{config.TF_VERSION}"
     if config.JAX_AVAILABLE:
-        ua += "; jax/{}".format(config.JAX_VERSION)
+        ua += f"; jax/{config.JAX_VERSION}"
     if config.BEAM_AVAILABLE:
-        ua += "; apache_beam/{}".format(config.BEAM_VERSION)
+        ua += f"; apache_beam/{config.BEAM_VERSION}"
     if isinstance(user_agent, dict):
-        ua += "; " + "; ".join("{}/{}".format(k, v) for k, v in user_agent.items())
+        ua += f"; {'; '.join(f'{k}/{v}' for k, v in user_agent.items())}"
     elif isinstance(user_agent, str):
         ua += "; " + user_agent
     return ua
@@ -355,7 +355,7 @@ def get_authentication_headers_for_url(url: str, use_auth_token: Optional[Union[
 
             token = hf_api.HfFolder.get_token()
         if token:
-            headers["authorization"] = "Bearer {}".format(token)
+            headers["authorization"] = f"Bearer {token}"
     return headers
 
 
@@ -434,7 +434,7 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
     headers = copy.deepcopy(headers) or {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
-        headers["Range"] = "bytes=%d-" % (resume_size,)
+        headers["Range"] = f"bytes={resume_size:d}-"
     response = _request_with_retry(
         method="GET",
         url=url,
@@ -577,7 +577,7 @@ def get_from_cache(
                 or (response.status_code == 403 and "ndownloader.figstatic.com" in url)
             ):
                 connected = True
-                logger.info("Couldn't get ETag version for url {}".format(url))
+                logger.info(f"Couldn't get ETag version for url {url}")
         except (EnvironmentError, requests.exceptions.Timeout):
             # not connected
             pass
@@ -593,9 +593,9 @@ def get_from_cache(
                 " disabled. To enable file online look-ups, set 'local_files_only' to False."
             )
         elif response is not None and response.status_code == 404:
-            raise FileNotFoundError("Couldn't find file at {}".format(url))
+            raise FileNotFoundError(f"Couldn't find file at {url}")
         _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-        raise ConnectionError("Couldn't reach {}".format(url))
+        raise ConnectionError(f"Couldn't reach {url}")
 
     # Try a second time
     filename = hash_url_to_filename(original_url, etag)
@@ -629,7 +629,7 @@ def get_from_cache(
         # Download to temporary file, then copy to cache dir once finished.
         # Otherwise you get corrupt cache entries if the download gets interrupted.
         with temp_file_manager() as temp_file:
-            logger.info("%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name)
+            logger.info(f"{url} not found in cache or force_download set to True, downloading to {temp_file.name}")
 
             # GET file object
             if url.startswith("ftp://"):
@@ -645,10 +645,10 @@ def get_from_cache(
                     max_retries=max_retries,
                 )
 
-        logger.info("storing %s in cache at %s", url, cache_path)
+        logger.info(f"storing {url} in cache at {cache_path}")
         shutil.move(temp_file.name, cache_path)
 
-        logger.info("creating metadata file for %s", cache_path)
+        logger.info(f"creating metadata file for {cache_path}")
         meta = {"url": url, "etag": etag}
         meta_path = cache_path + ".json"
         with open(meta_path, "w", encoding="utf-8") as meta_file:
