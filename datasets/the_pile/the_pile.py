@@ -52,14 +52,18 @@ _DATA_URLS = {
 }
 
 _FEATURES = {
-    "all": datasets.Features({
-        "text": datasets.Value("string"),
-        "meta": {"pile_set_name": datasets.Value("string")},
-    }),
-    "pubmed_central": datasets.Features({
-        "id": datasets.Value("string"),
-        "text": datasets.Value("string"),
-    }),
+    "all": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": {"pile_set_name": datasets.Value("string")},
+        }
+    ),
+    "pubmed_central": datasets.Features(
+        {
+            "id": datasets.Value("string"),
+            "text": datasets.Value("string"),
+        }
+    ),
 }
 
 
@@ -104,7 +108,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
             # License for the dataset if available
-            license=_LICENSE,
+            license=_LICENSES[self.config.name],
             # Citation for the dataset
             citation=_CITATION,
         )
@@ -113,13 +117,14 @@ class ThePile(datasets.GeneratorBasedBuilder):
         """Return SplitGenerators."""
         if self.config.name == "all":
             data_dir = dl_manager.download_and_extract(_DATA_URLS[self.config.name])
-            return[
+            return [
                 datasets.SplitGenerator(
                     name=split,
                     gen_kwargs={
                         "files": data_dir[split],
                     },
-                ) for split in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
+                )
+                for split in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
             ]
         else:
             data_urls = {subset: _DATA_URLS[subset] for subset in self.config.subsets}
