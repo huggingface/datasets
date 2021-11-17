@@ -621,9 +621,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         assert self._fingerprint is not None, "Fingerprint can't be None in a Dataset object"
         if self.info.features.type != inferred_features.type:
             raise ValueError(
-                "External features info don't match the dataset:\nGot\n{}\nwith type\n{}\n\nbut expected something like\n{}\nwith type\n{}".format(
-                    self.info.features, self.info.features.type, inferred_features, inferred_features.type
-                )
+                f"External features info don't match the dataset:\nGot\n{self.info.features}\nwith type\n{self.info.features.type}\n\nbut expected something like\n{inferred_features}\nwith type\n{inferred_features.type}"
             )
 
         if self._indices is not None:
@@ -735,9 +733,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if info is not None and features is not None and info.features != features:
             raise ValueError(
-                "Features specified in `features` and `info.features` can't be different:\n{}\n{}".format(
-                    features, info.features
-                )
+                f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
         if info is None:
@@ -768,9 +764,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         if info is not None and features is not None and info.features != features:
             raise ValueError(
-                "Features specified in `features` and `info.features` can't be different:\n{}\n{}".format(
-                    features, info.features
-                )
+                f"Features specified in `features` and `info.features` can't be different:\n{features}\n{info.features}"
             )
         features = features if features is not None else info.features if info is not None else None
         if info is None:
@@ -1008,7 +1002,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             # Sort only the first level of keys, or we might shuffle fields of nested features if we use sort_keys=True
             sorted_keys_dataset_info = {key: dataset_info[key] for key in sorted(dataset_info)}
             json.dump(sorted_keys_dataset_info, dataset_info_file, indent=2)
-        logger.info("Dataset saved in {}".format(dataset_path))
+        logger.info(f"Dataset saved in {dataset_path}")
 
     @staticmethod
     def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
@@ -1216,9 +1210,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 break
         self.info.features = Features.from_arrow_schema(self._data.schema)
         self._data = update_metadata_with_features(self._data, self.features)
-        logger.info(
-            "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
-        )
+        logger.info(f'Flattened dataset from depth {depth} to depth { 1 if depth + 1 < max_depth else "unknown"}.')
 
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
@@ -1237,9 +1229,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 break
         dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
-        logger.info(
-            "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
-        )
+        logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
         dataset._fingerprint = new_fingerprint
         return dataset
 
@@ -1688,9 +1678,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             columns = list(columns)
         if columns is not None and any(col not in self._data.column_names for col in columns):
             raise ValueError(
-                "Columns {} not in the dataset. Current columns in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, columns)), self._data.column_names
-                )
+                f"Columns {list(filter(lambda col: col not in self._data.column_names, columns))} not in the dataset. Current columns in the dataset: {self._data.column_names}"
             )
         if columns is not None:
             columns = columns.copy()  # Ensures modifications made to the list after this call don't cause bugs
@@ -2002,9 +1990,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for input_column in input_columns:
                 if input_column not in self._data.column_names:
                     raise ValueError(
-                        "Input column {} not in the dataset. Current columns in the dataset: {}".format(
-                            input_column, self._data.column_names
-                        )
+                        f"Input column {input_column} not in the dataset. Current columns in the dataset: {self._data.column_names}"
                     )
 
         if isinstance(remove_columns, str):
@@ -2012,10 +1998,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
             raise ValueError(
-                "Column to remove {} not in the dataset. Current columns in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, remove_columns)),
-                    self._data.column_names,
-                )
+                f"Column to remove {list(filter(lambda col: col not in self._data.column_names, remove_columns))} not in the dataset. Current columns in the dataset: {self._data.column_names}"
             )
 
         load_from_cache_file = load_from_cache_file if load_from_cache_file is not None else is_caching_enabled()
@@ -2057,7 +2040,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 sep = cache_file_name.rindex(".")
                 base_name, extension = cache_file_name[:sep], cache_file_name[sep:]
                 cache_file_name = base_name + suffix_template.format(rank=rank, num_proc=num_proc) + extension
-                logger.info("Process #{} will write at {}".format(rank, cache_file_name))
+                logger.info(f"Process #{rank} will write at {cache_file_name}")
                 return cache_file_name
 
             prev_env = deepcopy(os.environ)
@@ -2126,7 +2109,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if nb_of_missing_shards > 0:
                 with Pool(nb_of_missing_shards, initargs=initargs, initializer=initializer) as pool:
                     os.environ = prev_env
-                    logger.info("Spawning {} processes".format(num_proc))
+                    logger.info(f"Spawning {num_proc} processes")
                     results = {
                         i: pool.apply_async(self.__class__._map_single, kwds=kwds)
                         for i, (kwds, cached_shard) in enumerate(zip(kwds_per_shard, transformed_shards))
@@ -2143,7 +2126,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 transformed_shards.count(None) == 0
             ), "All shards have to be defined Datasets, none should still be missing."
 
-            logger.info("Concatenating {} shards".format(num_proc))
+            logger.info(f"Concatenating {num_proc} shards")
             result = concatenate_datasets(transformed_shards)
             if new_fingerprint is not None:
                 result._fingerprint = new_fingerprint
@@ -2240,7 +2223,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # current dataset file and the mapping args
                 cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.warning("Loading cached processed dataset at %s", cache_file_name)
+                logger.warning(f"Loading cached processed dataset at {cache_file_name}")
                 info = self.info.copy()
                 info.features = features
                 info.task_templates = None
@@ -2262,9 +2245,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             """Validate output of the map function."""
             if processed_inputs is not None and not isinstance(processed_inputs, (Mapping, pa.Table)):
                 raise TypeError(
-                    "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects.".format(
-                        type(processed_inputs)
-                    )
+                    f"Provided `function` which is applied to all elements of table returns a variable of type {type(processed_inputs)}. Make sure provided `function` returns a variable of type `dict` (or a pyarrow table) to update the dataset or `None` if you are only interested in side effects."
                 )
             elif isinstance(indices, list) and isinstance(processed_inputs, Mapping):
                 allowed_batch_return_types = (list, np.ndarray)
@@ -2273,9 +2254,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 if all_dict_values_are_lists is False:
                     raise TypeError(
-                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
-                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
-                        )
+                        "Provided `function` which is applied to all elements of table returns a `dict` of types {[type(x) for x in processed_inputs.values()]}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{allowed_batch_return_types}`."
                     )
 
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
@@ -2338,7 +2317,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             else:
                 buf_writer = None
-                logger.info("Caching processed dataset at %s", cache_file_name)
+                logger.info(f"Caching processed dataset at {cache_file_name}")
                 tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
                 writer = ArrowWriter(
                     features=writer_features,
@@ -2653,7 +2632,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         else:
             buf_writer = None
-            logger.info("Caching indices mapping at %s", indices_cache_file_name)
+            logger.info(f"Caching indices mapping at {indices_cache_file_name}")
             tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(indices_cache_file_name), delete=False)
             writer = ArrowWriter(
                 path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
@@ -2738,10 +2717,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Check the column name
         if not isinstance(column, str) or column not in self._data.column_names:
             raise ValueError(
-                "Column '{}' not found in the dataset. Please provide a column selected in: {}".format(
-                    column,
-                    self._data.column_names,
-                )
+                f"Column '{column}' not found in the dataset. Please provide a column selected in: {self._data.column_names}"
             )
 
         # Check if we've already cached this computation (indexed by a hash)
@@ -2750,7 +2726,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.warning("Loading cached sorted indices for dataset at %s", indices_cache_file_name)
+                logger.warning(f"Loading cached sorted indices for dataset at {indices_cache_file_name}")
                 return self._new_dataset_with_indices(
                     fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
@@ -2833,7 +2809,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.warning("Loading cached shuffled indices for dataset at %s", indices_cache_file_name)
+                logger.warning(f"Loading cached shuffled indices for dataset at {indices_cache_file_name}")
                 return self._new_dataset_with_indices(
                     fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
@@ -3008,9 +2984,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 and load_from_cache_file
             ):
                 logger.warning(
-                    "Loading cached split indices for dataset at %s and %s",
-                    train_indices_cache_file_name,
-                    test_indices_cache_file_name,
+                    f"Loading cached split indices for dataset at {train_indices_cache_file_name} and {test_indices_cache_file_name}"
                 )
                 return DatasetDict(
                     {
@@ -3660,6 +3634,46 @@ def concatenate_datasets(
         format = {}
         logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
+    def apply_offset_to_indices_table(table, offset):
+        if offset == 0:
+            return table
+        else:
+            array = table["indices"]
+            new_array = pc.add(array, pa.scalar(offset, type=pa.uint64()))
+            return InMemoryTable.from_arrays([new_array], names=["indices"])
+
+    # Concatenate indices if they exist
+    if any(dset._indices is not None for dset in dsets):
+        if axis == 0:
+            # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
+            # Applying an offset to an indices table also brings the table in memory.
+            indices_tables = []
+            for i in range(len(dsets)):
+                if dsets[i]._indices is None:
+                    dsets[i] = dsets[i].select(range(len(dsets[i])))
+                indices_tables.append(dsets[i]._indices)
+
+            # An offset needs to be applied to the indices before concatenating
+            offset = 0
+            for i in range(len(dsets)):
+                indices_tables[i] = apply_offset_to_indices_table(indices_tables[i], offset)
+                offset += len(dsets[i]._data)
+
+            # Concatenate indices
+            indices_tables = [t for t in indices_tables if len(t) > 0]
+            if indices_tables:
+                indices_table = concat_tables(indices_tables)
+            else:
+                indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
+        elif axis == 1 and len(dsets) == 1:
+            indices_table = dsets[0]._indices
+        elif axis == 1 and len(dsets) > 1:
+            for i in range(len(dsets)):
+                dsets[i] = dsets[i].flatten_indices()
+            indices_table = None
+    else:
+        indices_table = None
+
     # Concatenate tables
     tables_to_concat = [dset._data for dset in dsets if len(dset._data) > 0]
     # There might be no table with data left hence return first empty table
@@ -3671,40 +3685,6 @@ def concatenate_datasets(
         table = update_metadata_with_features(
             table, Features({k: v for dset in dsets for k, v in dset.features.items()})
         )
-
-    def apply_offset_to_indices_table(table, offset):
-        if offset == 0:
-            return table
-        else:
-            array = table["indices"]
-            new_array = pc.add(array, pa.scalar(offset, type=pa.uint64()))
-            return InMemoryTable.from_arrays([new_array], names=["indices"])
-
-    # Concatenate indices if they exist
-    if any(dset._indices is not None for dset in dsets):
-
-        # Datasets with no indices tables are replaced with a dataset with an indices table in memory.
-        # Applying an offset to an indices table also brings the table in memory.
-        for i in range(len(dsets)):
-            if dsets[i]._indices is None:
-                dsets[i] = dsets[i].select(range(len(dsets[i])))
-        assert all(dset._indices is not None for dset in dsets), "each dataset should have an indices table"
-
-        # An offset needs to be applied to the indices before concatenating
-        indices_tables = []
-        offset = 0
-        for dset in dsets:
-            indices_tables.append(apply_offset_to_indices_table(dset._indices, offset))
-            offset += len(dset._data)
-
-        # Concatenate indices
-        indices_tables = [t for t in indices_tables if len(t) > 0]
-        if indices_tables:
-            indices_table = concat_tables(indices_tables)
-        else:
-            indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
-    else:
-        indices_table = None
 
     # Concatenate infos
     if info is None:

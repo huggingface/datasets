@@ -32,4 +32,4 @@ class EnvironmentCommand(BaseDatasetsCLICommand):
 
     @staticmethod
     def format_dict(d):
-        return "\n".join(["- {}: {}".format(prop, val) for prop, val in d.items()]) + "\n"
+        return "\n".join([f"- {prop}: {val}" for prop, val in d.items()]) + "\n"

@@ -168,7 +168,7 @@ class ElasticSearchIndex(BaseIndex):
             logger.warning(
                 f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}"
             )
-        logger.info("Indexed %d documents" % (successes,))
+        logger.info(f"Indexed {successes:d} documents")
 
     def search(self, query: str, k=10) -> SearchResults:
         """Find the nearest examples indices to the query.
@@ -267,7 +267,7 @@ class FaissIndex(BaseIndex):
                 self.faiss_res = faiss.StandardGpuResources()
                 index = faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
             self.faiss_index = index
-            logger.info("Created faiss index of type {}".format(type(self.faiss_index)))
+            logger.info(f"Created faiss index of type {type(self.faiss_index)}")
 
         # Set verbosity level
         if faiss_verbose is not None:
@@ -282,13 +282,13 @@ class FaissIndex(BaseIndex):
         # Train
         if train_size is not None:
             train_vecs = vectors[:train_size] if column is None else vectors[:train_size][column]
-            logger.info("Training the index with the first {} vectors".format(len(train_vecs)))
+            logger.info(f"Training the index with the first {len(train_vecs)} vectors")
             self.faiss_index.train(train_vecs)
         else:
             logger.info("Ignored the training step of the faiss index as `train_size` is None.")
 
         # Add vectors
-        logger.info("Adding {} vectors to the faiss index".format(len(vectors)))
+        logger.info(f"Adding {len(vectors)} vectors to the faiss index")
         for i in utils.tqdm(
             range(0, len(vectors), batch_size), disable=bool(logging.get_verbosity() == logging.NOTSET)
         ):
@@ -474,9 +474,9 @@ class IndexableMixin:
         """
         index = self.get_index(index_name)
         if not isinstance(index, FaissIndex):
-            raise ValueError("Index '{}' is not a FaissIndex but a '{}'".format(index_name, type(index)))
+            raise ValueError(f"Index '{index_name}' is not a FaissIndex but a '{type(index)}'")
         index.save(file)
-        logger.info("Saved FaissIndex {} at {}".format(index_name, file))
+        logger.info(f"Saved FaissIndex {index_name} at {file}")
 
     def load_faiss_index(
         self,
@@ -498,11 +498,9 @@ class IndexableMixin:
         index = FaissIndex.load(file, device=device)
         assert index.faiss_index.ntotal == len(
             self
-        ), "Index size should match Dataset size, but Index '{}' at {} has {} elements while the dataset has {} examples.".format(
-            index_name, file, index.faiss_index.ntotal, len(self)
-        )
+        ), f"Index size should match Dataset size, but Index '{index_name}' at {file} has {index.faiss_index.ntotal} elements while the dataset has {len(self)} examples."
         self._indexes[index_name] = index
-        logger.info("Loaded FaissIndex {} from {}".format(index_name, file))
+        logger.info(f"Loaded FaissIndex {index_name} from {file}")
 
     def add_elasticsearch_index(
         self,

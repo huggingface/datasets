@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional
 
 import numpy as np
 import pyarrow as pa
-from numpy.lib.arraysetops import isin
 
 from ..utils.streaming_download_manager import xopen
 
@@ -34,6 +33,7 @@ class Image:
 
     Input: The Image feature accepts as input:
     - A :obj:`str`: Absolute path to the image file (i.e. random access is allowed).
+    - A :obj:`bytes`: Encoded image bytes (used for transforms).
     - A :obj:`dict` with the keys:
 
         - path: String with relative path of the image file to the archive file.
