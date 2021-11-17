@@ -247,7 +247,7 @@ class DatasetInfo:
             dataset_info_dir (`str`): The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
         """
-        logger.info("Loading Dataset info from %s", dataset_info_dir)
+        logger.info(f"Loading Dataset info from {dataset_info_dir}")
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
@@ -279,17 +279,17 @@ class DatasetInfosDict(dict):
         total_dataset_infos = {}
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)
         if os.path.exists(dataset_infos_path) and not overwrite:
-            logger.info("Dataset Infos already exists in {}. Completing it with new infos.".format(dataset_infos_dir))
+            logger.info(f"Dataset Infos already exists in {dataset_infos_dir}. Completing it with new infos.")
             total_dataset_infos = self.from_directory(dataset_infos_dir)
         else:
-            logger.info("Writing new Dataset Infos in {}".format(dataset_infos_dir))
+            logger.info(f"Writing new Dataset Infos in {dataset_infos_dir}")
         total_dataset_infos.update(self)
         with open(dataset_infos_path, "w", encoding="utf-8") as f:
             json.dump({config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()}, f)
 
     @classmethod
     def from_directory(cls, dataset_infos_dir):
-        logger.info("Loading Dataset Infos from {}".format(dataset_infos_dir))
+        logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
         with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), "r", encoding="utf-8") as f:
             dataset_infos_dict = {
                 config_name: DatasetInfo.from_dict(dataset_info_dict)
@@ -354,7 +354,7 @@ class MetricInfo:
             metric_info_dir: `str` The directory containing the metadata file. This
                 should be the root directory of a specific dataset version.
         """
-        logger.info("Loading Metric info from %s", metric_info_dir)
+        logger.info(f"Loading Metric info from {metric_info_dir}")
         if not metric_info_dir:
             raise ValueError("Calling MetricInfo.from_directory() with undefined metric_info_dir.")
 

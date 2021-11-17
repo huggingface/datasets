@@ -116,7 +116,7 @@ if USE_BEAM in ENV_VARS_TRUE_AND_AUTO_VALUES:
     try:
         BEAM_VERSION = version.parse(importlib_metadata.version("apache_beam"))
         BEAM_AVAILABLE = True
-        logger.info("Apache Beam version {} available.".format(BEAM_VERSION))
+        logger.info(f"Apache Beam version {BEAM_VERSION} available.")
     except importlib_metadata.PackageNotFoundError:
         pass
 else:

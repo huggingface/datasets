@@ -29,9 +29,9 @@ def upload_local_to_remote(local_file_path, remote_file_path, force_upload=False
     fs = FileSystems
     if fs.exists(remote_file_path):
         if force_upload:
-            logger.info("Remote path already exist: {}. Overwriting it as force_upload=True.".format(remote_file_path))
+            logger.info(f"Remote path already exist: {remote_file_path}. Overwriting it as force_upload=True.")
         else:
-            logger.info("Remote path already exist: {}. Skipping it as force_upload=False.".format(remote_file_path))
+            logger.info(f"Remote path already exist: {remote_file_path}. Skipping it as force_upload=False.")
             return
     with fs.create(remote_file_path) as remote_file:
         with open(local_file_path, "rb") as local_file:
@@ -46,9 +46,9 @@ def download_remote_to_local(remote_file_path, local_file_path, force_download=F
     fs = FileSystems
     if os.path.exists(local_file_path):
         if force_download:
-            logger.info("Local path already exist: {}. Overwriting it as force_upload=True.".format(remote_file_path))
+            logger.info(f"Local path already exist: {remote_file_path}. Overwriting it as force_upload=True.")
         else:
-            logger.info("Local path already exist: {}. Skipping it as force_upload=False.".format(remote_file_path))
+            logger.info(f"Local path already exist: {remote_file_path}. Skipping it as force_upload=False.")
             return
     with fs.open(remote_file_path) as remote_file:
         with open(local_file_path, "wb") as local_file:
@@ -112,7 +112,7 @@ class WriteToParquet(PTransform):
 
         .. testcleanup::
 
-            for output in glob.glob('{}*'.format(filename)):
+            for output in glob.glob(f'{filename}*'):
                 os.remove(output)
 
         For more information on supported types and schema, please see the pyarrow

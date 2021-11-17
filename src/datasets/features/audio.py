@@ -17,7 +17,7 @@ class Audio:
     - A :obj:`dict` with the keys:
 
         - path: String with relative path of the audio file to the archive file.
-        - bytes: Bytes of the audio file.
+        - bytes: Bytes content of the audio file.
 
       This is useful for archived files with sequential access.
 
@@ -61,8 +61,8 @@ class Audio:
             value (obj:`str` or :obj:`dict`): Either a string with the absolute audio file path or a dictionary with
                 keys:
 
-                - path: String with absolute or relative audio file path.
-                - bytes: Optionally, the bytes of the audio file.
+                - path: String with relative audio file path.
+                - bytes: Bytes of the audio file.
 
         Returns:
             dict

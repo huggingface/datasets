@@ -28,9 +28,7 @@ class DatasetDict(dict):
     def _check_values_type(self):
         for dataset in self.values():
             if not isinstance(dataset, Dataset):
-                raise TypeError(
-                    "Values in `DatasetDict` should of type `Dataset` but got type '{}'".format(type(dataset))
-                )
+                raise TypeError(f"Values in `DatasetDict` should of type `Dataset` but got type '{type(dataset)}'")
 
     def __getitem__(self, k) -> Dataset:
         if isinstance(k, (str, NamedSplit)) or len(self) == 0:

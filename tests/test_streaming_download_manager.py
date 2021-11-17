@@ -87,7 +87,7 @@ class DummyTestFS(AbstractFileSystem):
         for item in self._fs_contents:
             if item["name"] == name:
                 return item
-        raise IndexError("{name} not found!".format(name=name))
+        raise IndexError(f"{name} not found!")
 
     def ls(self, path, detail=True, refresh=True, **kwargs):
         if kwargs.pop("strip_proto", True):
