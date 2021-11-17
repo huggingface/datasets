@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: newsph-nli
+pretty_name: NewsPH-NLI
 ---
 
 # Dataset Card for NewsPH
@@ -53,7 +54,7 @@ paperswithcode_id: newsph-nli
 - **Repository: **
 - **Paper:** [Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation](https://arxiv.org/abs/2010.11574)
 - **Leaderboard:**
-- **Point of Contact:** Jan Christian Blaise Cruz (jan_christian_cruz@dlsu.edu.ph)
+- **Point of Contact:** [Jan Christian Blaise Cruz](jan_christian_cruz@dlsu.edu.ph)
 
 ### Dataset Summary
 

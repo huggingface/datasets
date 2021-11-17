@@ -258,7 +258,6 @@ class DownloadManager:
         """
         download_config = self._download_config.copy()
         download_config.extract_compressed_file = True
-        download_config.force_extract = False
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config), path_or_paths, num_proc=num_proc, disable_tqdm=False
         )

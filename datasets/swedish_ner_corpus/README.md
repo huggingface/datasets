@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: Swedish NER Corpus
 ---
 
-# Swedish NER Corpus
+# Dataset Card of Swedish NER Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -50,7 +51,7 @@ paperswithcode_id: null
 
 - **Homepage:** [https://github.com/klintan/swedish-ner-corpus]()
 - **Repository:** [https://github.com/klintan/swedish-ner-corpus]()
-- **Point of contact:** Andreas Klintberg (ankl@kth.se)
+- **Point of contact:** [Andreas Klintberg](ankl@kth.se)
 
 ### Dataset Summary
 
