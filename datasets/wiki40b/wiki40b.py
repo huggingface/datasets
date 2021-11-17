@@ -101,7 +101,7 @@ class Wiki40bConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(Wiki40bConfig, self).__init__(
-            name=str(language), description="Wiki40B dataset for {0}.".format(language), **kwargs
+            name=str(language), description=f"Wiki40B dataset for {language}.", **kwargs
         )
         self.language = language
 

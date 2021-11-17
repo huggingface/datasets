@@ -141,7 +141,7 @@ class Xnli(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "filepaths": [
-                        os.path.join(train_dir, "multinli.train.{lang}.tsv".format(lang=lang))
+                        os.path.join(train_dir, f"multinli.train.{lang}.tsv")
                         for lang in self.config.languages
                     ],
                     "data_format": "XNLI-MT",
