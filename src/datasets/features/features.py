@@ -908,7 +908,7 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
     elif isinstance(pa_type, _ImageExtensionType):
-        return Image()  # TODO(mario): some args for optimizations?
+        return Image(pa_type.storage_dtype)
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
