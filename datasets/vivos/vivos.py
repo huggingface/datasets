@@ -67,7 +67,7 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
                 {
                     "speaker_id": datasets.Value("string"),
                     "path": datasets.Value("string"),
-                    "audio": {"path": datasets.Value("string"), "data": datasets.features.Value("binary")},
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     "sentence": datasets.Value("string"),
                 }
             ),
@@ -112,8 +112,6 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, prompts_path, path_to_clips, audio_files):
         """Yields examples as (key, example) tuples."""
-        # TODO(QL): use Audio featrue with data bytes instead of string path
-        raise Exception("TODO(QL): use Audio featrue with data bytes instead of string path")
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
         examples = {}
@@ -133,7 +131,7 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
             if path.startswith(path_to_clips):
                 inside_clips_dir = True
                 if path in examples:
-                    audio = {"path": path, "data": f.read()}
+                    audio = {"path": path, "bytes": f.read()}
                     yield id_, {**examples[path], "audio": audio}
                     id_ += 1
             elif inside_clips_dir:

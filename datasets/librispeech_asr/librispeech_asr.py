@@ -102,7 +102,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "audio": {"path": datasets.Value("string"), "data": datasets.features.Value("binary")},
+                    "audio": datasets.features.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "speaker_id": datasets.Value("int64"),
                     "chapter_id": datasets.Value("int64"),
@@ -170,7 +170,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
                         )
             if audio_data and len(audio_data) == len(transcripts):
                 for transcript in transcripts:
-                    audio = {"path": transcript["file"], "data": audio_data[transcript["id"]]}
+                    audio = {"path": transcript["file"], "bytes": audio_data[transcript["id"]]}
                     yield key, {"audio": audio, **transcript}
                     key += 1
                 audio_data = {}

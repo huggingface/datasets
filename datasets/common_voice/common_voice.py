@@ -631,7 +631,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             {
                 "client_id": datasets.Value("string"),
                 "path": datasets.Value("string"),
-                "audio": {"path": datasets.Value("string"), "data": datasets.features.Value("binary")},
+                "audio": datasets.features.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
                 "up_votes": datasets.Value("int64"),
                 "down_votes": datasets.Value("int64"),
@@ -739,6 +739,6 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                     result = {key: value for key, value in zip(data_fields, field_values)}
 
                     # set audio feature
-                    result["audio"] = {"path": path, "data": f.read()}
+                    result["audio"] = {"path": path, "bytes": f.read()}
 
                     yield id_, result

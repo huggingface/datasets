@@ -535,22 +535,13 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        if self.config.name in ["SLR32"]:
-            features = datasets.Features(
-                {
-                    "path": datasets.Value("string"),
-                    "audio": {"path": datasets.Value("string"), "data": datasets.features.Value("binary")},
-                    "sentence": datasets.Value("string"),
-                }
-            )
-        else:
-            features = datasets.Features(
-                {
-                    "path": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=48_000),
-                    "sentence": datasets.Value("string"),
-                }
-            )
+        features = datasets.Features(
+            {
+                "path": datasets.Value("string"),
+                "audio": datasets.features.Audio(sampling_rate=48_000),
+                "sentence": datasets.Value("string"),
+            }
+        )
 
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
