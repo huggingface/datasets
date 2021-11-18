@@ -213,6 +213,7 @@ EXTRAS_REQUIRE = {
         "sphinx-panels",
         "sphinx-inline-tabs",
         "myst-parser",
+        "Markdown!=3.3.5",
     ],
 }
 
