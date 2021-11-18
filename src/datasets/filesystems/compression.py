@@ -39,7 +39,11 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         )
         self.info = self.file.fs.info(self.file.path)
         self.compressed_name = os.path.basename(self.file.path.split("::")[0])
-        self.uncompressed_name = self.compressed_name[: self.compressed_name.rindex(".")]
+        self.uncompressed_name = (
+            self.compressed_name[: self.compressed_name.rindex(".")]
+            if "." in self.compressed_name
+            else self.compressed_name
+        )
         self.dir_cache = None
 
     @classmethod

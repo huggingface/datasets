@@ -3,19 +3,19 @@ Structure your repository
 
 To host and share your dataset, you can create a dataset repository on the Hugging Face Dataset Hub and upload your data files.
 
-This guide aims to explain what structure is expected when you upload a dataset.
-A dataset with a supported structure can be loaded automatically using ``load_dataset``, and also has a nice preview on its dataset page on the Hub.
+This guide will show you how to structure your dataset repository when you upload it.
+A dataset with a supported structure can be loaded automatically with ``load_dataset``, and it will have a preview on its dataset page on the Hub.
 
 .. Note::
 
-    In the following examples, CSV files are used. However you can use any supported format (text, JSON, JSON Lines, CSV, Parquet).
+    The following examples use CSV files, but you can use any supported format (text, JSON, JSON Lines, CSV, Parquet).
 
 Main use-case
 -------------
 
-Here is an easy structure that you can use for your repository. It contains two files: `train.csv` and `test.csv`.
+The simplest dataset structure has two files: `train.csv` and `test.csv`.
 
-It also contains the dataset card `README.md` that is the `dataset card <dataset_card.html>`__ that is displayed on the dataset webpage.
+Your repository will also contain a `README.md` file, the `dataset card <dataset_card.html>`__ displayed on your dataset page.
 
 ::
 
@@ -28,9 +28,11 @@ It also contains the dataset card `README.md` that is the `dataset card <dataset
 Splits and file names
 ---------------------
 
-The train/validation/test splits of your dataset are automatically infered from the file names.
-All the files that contain "train" in their names are considered part of the train split.
-This is the same for the test and validation split: all the files that contain "test" (resp. "valid") in their names are considered part of the test (resp. validation) split.
+🤗 Datasets automatically infers the train/validation/test splits of your dataset from the file names.
+All the files that contain **train** in their names are considered part of the train split. The same idea applies to the test and validation split: 
+* All the files that contain **test** in their names are considered part of the test split.
+* All the files that contain **valid** in their names are considered part of the validation split.
+
 Here is an example where all the files are placed into a directory named `data`:
 
 ::
@@ -46,7 +48,8 @@ Here is an example where all the files are placed into a directory named `data`:
 Multiple files per split
 ------------------------
 
-If your train is split into several files it also works.
+If one of your splits comprises several files, 🤗 Datasets can still infer whether it is the train/validation/ test split from the file name.
+For example, if your **train** and **test** splits span several files:
 
 ::
 
@@ -59,10 +62,11 @@ If your train is split into several files it also works.
     ├── test_0.csv
     └── test_1.csv
 
-Just make sure that all the files of your train set have "train" inside their names (same for test and validation).
-It doesn't matter if you add a prefix before "train" or a suffix after "train" in the file name (like "my_train_file_00001.csv" for example).
+Just make sure that all the files of your **train** set have **train** in their names (same for test and validation).
+It doesn’t matter if you add a prefix or suffix to **train** in the file name (like `my_train_file_00001.csv`, for example).
+🤗 Datasets can still infer the appropriate split.
 
-For convenience you can also place your data files into different directories. In this case the split name is infered from the directory name.
+For convenience, you can also place your data files into different directories. In this case, the split name is inferred from the directory name.
 
 ::
 
@@ -82,9 +86,9 @@ For convenience you can also place your data files into different directories. I
 Custom split names
 ------------------
 
-If you have other splits in addition to the traditionnal train/validation/test, you must use the following structure.
-Note that in this case you must follow the file name format exactly: "data/<split_name>-xxxxx-of-xxxxx.csv".
-Here is an example with three splits "train", "test" and "random":
+If you have other data files in addition to the traditional train/validation/test sets, you must use the following structure.
+Follow the file name format exactly for this type of structure: `data/<split_name>-xxxxx-of-xxxxx.csv`.
+Here is an example with three splits: **train**, **test**, and **random**:
 
 ::
 
@@ -103,7 +107,7 @@ Here is an example with three splits "train", "test" and "random":
 Multiple configuration (WIP)
 ----------------------------
 
-You can separate different configurations of your dataset (for example if it is splti in different languages) by using one directory per configuration.
+You can specify different configurations of your dataset (for example, if a dataset contains different languages) with one directory per configuration.
 
 These structures are not supported yet, but are a work in progress:
 

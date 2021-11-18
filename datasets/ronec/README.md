@@ -54,7 +54,7 @@ pretty_name: RONEC
 - **Repository:** https://github.com/dumitrescustefan/ronec
 - **Paper:** https://arxiv.org/abs/1909.01247
 - **Leaderboard:** https://lirobenchmark.github.io/
-- **Point of Contact:** dumitrescu.stefan@gmail.com, avram.andreimarius@gmail.com
+- **Point of Contact:** [Stefan](dumitrescu.stefan@gmail.com) and [Andrei-Marius](avram.andreimarius@gmail.com)
 
 ### Dataset Summary
 

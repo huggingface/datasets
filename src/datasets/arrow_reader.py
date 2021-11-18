@@ -44,9 +44,9 @@ logger = logging.get_logger(__name__)
 HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets"
 
 _SUB_SPEC_RE = re.compile(
-    r"""
+    fr"""
 ^
- (?P<split>{split_re})
+ (?P<split>{_split_re[1:-1]})
  (\[
     ((?P<from>-?\d+)
      (?P<from_pct>%)?)?
@@ -55,9 +55,7 @@ _SUB_SPEC_RE = re.compile(
      (?P<to_pct>%)?)?
  \])?(\((?P<rounding>[^\)]*)\))?
 $
-""".format(
-        split_re=_split_re[1:-1]
-    ),  # remove ^ and $
+""",  # remove ^ and $
     re.X,
 )
 
@@ -212,7 +210,7 @@ class BaseReader:
 
         files = self.get_file_instructions(name, instructions, split_infos)
         if not files:
-            msg = 'Instruction "%s" corresponds to no data!' % instructions
+            msg = f'Instruction "{instructions}" corresponds to no data!'
             raise AssertionError(msg)
         return self.read_files(files=files, original_instructions=instructions, in_memory=in_memory)
 
@@ -394,7 +392,7 @@ def _str_to_read_instruction(spec):
     """Returns ReadInstruction for given string."""
     res = _SUB_SPEC_RE.match(spec)
     if not res:
-        raise AssertionError("Unrecognized instruction format: %s" % spec)
+        raise AssertionError(f"Unrecognized instruction format: {spec}")
     unit = "%" if res.group("from_pct") or res.group("to_pct") else "abs"
     return ReadInstruction(
         split_name=res.group("split"),
@@ -430,7 +428,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
     pct_to_abs = _pct_to_abs_closest if rel_instr.rounding == "closest" else _pct_to_abs_pct1
     split = rel_instr.splitname
     if split not in name2len:
-        raise ValueError('Unknown split "{}". Should be one of {}.'.format(split, list(name2len)))
+        raise ValueError(f'Unknown split "{split}". Should be one of {list(name2len)}.')
     num_examples = name2len[split]
     from_ = rel_instr.from_
     to = rel_instr.to
@@ -441,7 +439,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
     if abs(from_) > num_examples or abs(to) > num_examples:
-        msg = "Requested slice [%s:%s] incompatible with %s examples." % (from_ or "", to or "", num_examples)
+        msg = f'Requested slice [{from_ or ""}:{to or ""}] incompatible with {num_examples} examples.'
         raise AssertionError(msg)
     if from_ < 0:
         from_ = num_examples + from_
@@ -559,7 +557,7 @@ class ReadInstruction:
         spec = str(spec)  # Need to convert to str in case of NamedSplit instance.
         subs = _ADDITION_SEP_RE.split(spec)
         if not subs:
-            raise AssertionError("No instructions could be built out of %s" % spec)
+            raise AssertionError(f"No instructions could be built out of {spec}")
         instruction = _str_to_read_instruction(subs[0])
         return sum([_str_to_read_instruction(sub) for sub in subs[1:]], instruction)
 
@@ -602,7 +600,7 @@ class ReadInstruction:
         return self.to_spec()
 
     def __repr__(self):
-        return "ReadInstruction(%s)" % self._relative_instructions
+        return f"ReadInstruction({self._relative_instructions})"
 
     def to_absolute(self, name2len):
         """Translate instruction into a list of absolute instructions.

@@ -91,7 +91,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
         builders: List[DatasetBuilder] = []
         if self._beam_pipeline_options:
             beam_options = beam.options.pipeline_options.PipelineOptions(
-                flags=["--%s" % opt.strip() for opt in self._beam_pipeline_options.split(",") if opt]
+                flags=[f"--{opt.strip()}" for opt in self._beam_pipeline_options.split(",") if opt]
             )
         else:
             beam_options = None
@@ -147,10 +147,10 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             elif os.path.isfile(combined_path):
                 dataset_dir = path
             else:  # in case of a remote dataset
-                print("Dataset Infos file saved at {}".format(dataset_infos_path))
+                print(f"Dataset Infos file saved at {dataset_infos_path}")
                 exit(1)
 
             # Move datasetinfo back to the user
             user_dataset_infos_path = os.path.join(dataset_dir, config.DATASETDICT_INFOS_FILENAME)
             copyfile(dataset_infos_path, user_dataset_infos_path)
-            print("Dataset Infos file saved at {}".format(user_dataset_infos_path))
+            print(f"Dataset Infos file saved at {user_dataset_infos_path}")

@@ -159,7 +159,7 @@ def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
             github_path = parsed.path[1:]
             repo_info, branch = github_path.split("/tree/") if "/tree/" in github_path else (github_path, "master")
             repo_owner, repo_name = repo_info.split("/")
-            url_path = "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
+            url_path = f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
             sub_directory = f"{repo_name}-{branch}"
     return url_path, sub_directory
 
@@ -197,7 +197,7 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
     with open(file_path, mode="r", encoding="utf-8") as f:
         lines.extend(f.readlines())
 
-    logger.debug("Checking %s for additional imports.", file_path)
+    logger.debug(f"Checking {file_path} for additional imports.")
     imports: List[Tuple[str, str, str, Optional[str]]] = []
     is_in_docstring = False
     for line in lines:
@@ -1712,12 +1712,12 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
         dest_dataset_path = dataset_path
 
     if not fs.exists(dest_dataset_path):
-        raise FileNotFoundError("Directory {} not found".format(dataset_path))
+        raise FileNotFoundError(f"Directory {dataset_path} not found")
     if fs.isfile(Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()):
         return Dataset.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     elif fs.isfile(Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()):
         return DatasetDict.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     else:
         raise FileNotFoundError(
-            "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)
+            f"Directory {dataset_path} is neither a dataset directory nor a dataset dict directory."
         )

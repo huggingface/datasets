@@ -28,9 +28,7 @@ class DatasetDict(dict):
     def _check_values_type(self):
         for dataset in self.values():
             if not isinstance(dataset, Dataset):
-                raise TypeError(
-                    "Values in `DatasetDict` should of type `Dataset` but got type '{}'".format(type(dataset))
-                )
+                raise TypeError(f"Values in `DatasetDict` should of type `Dataset` but got type '{type(dataset)}'")
 
     def __getitem__(self, k) -> Dataset:
         if isinstance(k, (str, NamedSplit)) or len(self) == 0:
@@ -523,8 +521,10 @@ class DatasetDict(dict):
 
         Args:
             function (`callable`): with one of the following signature:
-                - `function(example: Dict) -> bool` if `with_indices=False`
-                - `function(example: Dict, indices: int) -> bool` if `with_indices=True`
+                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.

@@ -116,9 +116,7 @@ class DownloadManager:
                 remote_dir, config.DOWNLOADED_DATASETS_DIR, os.path.basename(local_file_path)
             )
             logger.info(
-                "Uploading {} ({}) to {}.".format(
-                    local_file_path, size_str(os.path.getsize(local_file_path)), remote_file_path
-                )
+                f"Uploading {local_file_path} ({size_str(os.path.getsize(local_file_path))}) to {remote_file_path}."
             )
             upload_local_to_remote(local_file_path, remote_file_path)
             return remote_file_path
@@ -198,7 +196,7 @@ class DownloadManager:
             download_func, url_or_urls, map_tuple=True, num_proc=download_config.num_proc, disable_tqdm=False
         )
         duration = datetime.now() - start_time
-        logger.info("Downloading took {} min".format(duration.total_seconds() // 60))
+        logger.info(f"Downloading took {duration.total_seconds() // 60} min")
         url_or_urls = NestedDataStructure(url_or_urls)
         downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
         self.downloaded_paths.update(dict(zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten())))
@@ -206,7 +204,7 @@ class DownloadManager:
         start_time = datetime.now()
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         duration = datetime.now() - start_time
-        logger.info("Checksum Computation took {} min".format(duration.total_seconds() // 60))
+        logger.info(f"Checksum Computation took {duration.total_seconds() // 60} min")
 
         return downloaded_path_or_paths.data
 
@@ -258,7 +256,6 @@ class DownloadManager:
         """
         download_config = self._download_config.copy()
         download_config.extract_compressed_file = True
-        download_config.force_extract = False
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config), path_or_paths, num_proc=num_proc, disable_tqdm=False
         )

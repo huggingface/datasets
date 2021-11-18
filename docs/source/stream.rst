@@ -114,6 +114,6 @@ Remove columns on-the-fly with :func:`datasets.IterableDataset.remove_columns`. 
 
 .. code-block::
 
-   >>> from datasets load dataset
+   >>> from datasets import load_dataset
    >>> dataset = load_dataset('m4', 'en', streaming=True, split='train')
    >>> dataset = dataset.remove_columns('timestamp')
