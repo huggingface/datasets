@@ -20,6 +20,7 @@ from datasets import concatenate_datasets, interleave_datasets, load_from_disk, 
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
+from datasets.filesystems import extract_path_from_uri
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
@@ -2767,6 +2768,29 @@ def test_dummy_dataset_serialize_s3(s3, dataset):
     assert dataset.features == features
     assert dataset[0]["id"] == 0
     assert dataset["id"][0] == 0
+
+
+@pytest.mark.parametrize(
+    "uri_or_path",
+    [
+        "relative/path",
+        "/absolute/path",
+        "s3://bucket/relative/path",
+        "hdfs://relative/path",
+        "hdfs:///absolute/path",
+    ],
+)
+def test_build_local_temp_path(uri_or_path):
+    extracted_path = extract_path_from_uri(uri_or_path)
+    local_temp_path = Dataset._build_local_temp_path(extracted_path)
+
+    assert (
+        "tmp" in local_temp_path.as_posix()
+        and "hdfs" not in local_temp_path.as_posix()
+        and "s3" not in local_temp_path.as_posix()
+        and not local_temp_path.as_posix().startswith(extracted_path)
+        and local_temp_path.as_posix().endswith(extracted_path)
+    ), f"Local temp path: {local_temp_path.as_posix()}"
 
 
 class TaskTemplatesTest(TestCase):
