@@ -29,9 +29,9 @@ from .features import (
     _ArrayXDExtensionType,
     _ImageExtensionType,
     cast_to_python_objects,
-    objects_to_images,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
+    objects_to_images,
 )
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher

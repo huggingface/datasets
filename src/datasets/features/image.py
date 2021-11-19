@@ -89,7 +89,9 @@ class Image:
         elif isinstance(value, bytes):
             value = {"path": None, "bytes": value}
 
-        path, bytes_ = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
+        path, bytes_ = (
+            (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
+        )
         if bytes_ is None:
             if isinstance(path, str):
                 if is_local_path(path):
