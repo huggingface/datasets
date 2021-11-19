@@ -298,7 +298,7 @@ class Hkcancor(datasets.GeneratorBasedBuilder):
                         # first few transcriptions in the conversation
                         # to create an identifier.
                         id_from_transcriptions = "".join(transcriptions[:5])[:5].upper()
-                        id_ = "{tape_number}-{date_recorded}-{id_from_transcriptions}"
+                        id_ = f"{tape_number}-{date_recorded}-{id_from_transcriptions}"
                         yield id_, {
                             "conversation_id": id_,
                             "speaker": current_speaker,
