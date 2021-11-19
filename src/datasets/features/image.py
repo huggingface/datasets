@@ -1,15 +1,27 @@
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, ClassVar, List, Optional
 
 import numpy as np
 import pyarrow as pa
 
+from ..utils.file_utils import is_local_path
 from ..utils.streaming_download_manager import xopen
 
 
 if TYPE_CHECKING:
     import PIL.Image
+
+
+_IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
+
+
+def list_image_compression_formats():
+    global _IMAGE_COMPRESSION_FORMATS
+    if _IMAGE_COMPRESSION_FORMATS is None:
+        Image.init()
+        _IMAGE_COMPRESSION_FORMATS = list(set(Image.OPEN.keys()) & set(Image.SAVE.keys()))
+    return _IMAGE_COMPRESSION_FORMATS
 
 
 class _ImageExtensionType(pa.PyExtensionType):
@@ -86,22 +98,44 @@ class Image:
             raise ImportError("To support decoding images, please install 'Pillow'.") from err
 
         if isinstance(value, str):
-            with xopen(value, "rb") as f:
-                image = PIL.Image.open(f)
+            if is_local_path(value):
+                image = PIL.Image.open(value)
+            else:
+                with xopen(value, "rb") as f:
+                    data = f.read()
+                image = PIL.Image.open(BytesIO(data))
         elif isinstance(value, bytes):
             image = PIL.Image.open(BytesIO(value))
-        elif isinstance(value, dict):
+        else:
             image = PIL.Image.open(BytesIO(value["bytes"]))
         return image
 
 
 def image_to_bytes(image: "PIL.Image.Image") -> bytes:
-    """Convert a PIL Image object to bytes using lossless PNG compression."""
+    """Convert a PIL Image object to bytes using native compression if possible, otherwise use PNG compression."""
     buffer = BytesIO()
-    image.save(buffer, format="PNG")
+    format = image.format if image.format in list_image_compression_formats() else "PNG"
+    image.save(buffer, format=format)
     return buffer.getvalue()
 
 
-def encode_list_of_images(images: List["PIL.Image.Image"]) -> List[bytes]:
-    """Encode the list of PIL Image objects into a list of bytes."""
-    return [image_to_bytes(image) for image in images]
+def encode_objects_to_image_bytes(objs):
+    """Encode a list of string, bytes, np.ndarray or PIL Image objects into image representation."""
+    try:
+        import PIL.Image
+    except ImportError as err:
+        raise ImportError("To support encoding images, please install 'Pillow'.") from err
+
+    if objs:
+        obj = objs[0]
+        if isinstance(obj, (str, bytes)):
+            return objs
+        elif isinstance(obj, PIL.Image.Image):
+            return [image_to_bytes(image) for image in objs]
+        elif isinstance(np.ndarray):
+            # TODO(mariosasko): implement np.ndarray encoding
+            raise NotImplementedError("Image encoding not implemented for numpy arrays.")
+        else:
+            return objs
+    else:
+        return objs
