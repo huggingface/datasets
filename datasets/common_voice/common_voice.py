@@ -713,8 +713,10 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
         path_idx = data_fields.index("path")
 
         all_field_values = {}
+        metadata_found = False
         for path, f in files:
             if path == filepath:
+                metadata_found = True
                 lines = f.readlines()
                 headline = lines[0].decode("utf-8")
 
@@ -722,13 +724,15 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 assert (
                     column_names == data_fields
                 ), f"The file should have {data_fields} as column names, but has {column_names}"
-                for id_, line in enumerate(lines[1:]):
+                for line in lines[1:]:
                     field_values = line.decode("utf-8").strip().split("\t")
                     # set full path for mp3 audio file
                     audio_path = "/".join([path_to_clips, field_values[path_idx]])
                     all_field_values[audio_path] = field_values
             elif path.startswith(path_to_clips):
-                assert all_field_values, "Found audio clips before the metadata TSV file."
+                assert metadata_found, "Found audio clips before the metadata TSV file."
+                if not all_field_values:
+                    break
                 if path in all_field_values:
                     field_values = all_field_values[path]
 
@@ -741,4 +745,4 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                     # set audio feature
                     result["audio"] = {"path": path, "bytes": f.read()}
 
-                    yield id_, result
+                    yield path, result
