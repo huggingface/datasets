@@ -193,8 +193,8 @@ class SplitBase(metaclass=abc.ABCMeta):
 
         if not (k or percent or weighted):
             raise ValueError(
-                "Invalid split argument {}. Only list, slice and int supported. "
-                "One of k, weighted or percent should be set to a non empty value.".format(arg)
+                f"Invalid split argument {arg}. Only list, slice and int supported. "
+                "One of k, weighted or percent should be set to a non empty value."
             )
 
         def assert_slices_coverage(slices):
@@ -203,7 +203,7 @@ class SplitBase(metaclass=abc.ABCMeta):
 
         if k:
             if not 0 < k <= 100:
-                raise ValueError("Subsplit k should be between 0 and 100, got {}".format(k))
+                raise ValueError(f"Subsplit k should be between 0 and 100, got {k}")
             shift = 100 // k
             slices = [slice(i * shift, (i + 1) * shift) for i in range(k)]
             # Round up last element to ensure all elements are taken
@@ -244,7 +244,7 @@ class SplitBase(metaclass=abc.ABCMeta):
 class PercentSliceMeta(type):
     def __getitem__(cls, slice_value):
         if not isinstance(slice_value, slice):
-            raise ValueError("datasets.percent should only be called with slice, not {}".format(slice_value))
+            raise ValueError(f"datasets.percent should only be called with slice, not {slice_value}")
         return slice_value
 
 
@@ -276,7 +276,7 @@ class _SplitMerged(SplitBase):
         return read_instruction1 + read_instruction2
 
     def __repr__(self):
-        return "({!r} + {!r})".format(self._split1, self._split2)
+        return f"({repr(self._split1)} + {repr(self._split2)})"
 
 
 class _SubSplit(SplitBase):
@@ -298,7 +298,7 @@ class _SubSplit(SplitBase):
             stop="" if self._slice_value.stop is None else self._slice_value.stop,
             step=self._slice_value.step,
         )
-        return "{!r}(datasets.percent[{}])".format(self._split, slice_str)
+        return f"{repr(self._split)}(datasets.percent[{slice_str}])"
 
 
 class NamedSplit(SplitBase):
@@ -361,7 +361,7 @@ class NamedSplit(SplitBase):
         elif isinstance(other, str):  # Other should be string
             return self._name == other
         else:
-            raise ValueError("Equality not supported between split {} and {}".format(self, other))
+            raise ValueError(f"Equality not supported between split {self} and {other}")
 
     def __hash__(self):
         return hash(self._name)
@@ -470,7 +470,7 @@ class SplitReadInstruction:
         split_instruction = SplitReadInstruction()
         for v in self._splits.values():
             if v.slice_value is not None:
-                raise ValueError("Trying to slice Split {} which has already been sliced".format(v.split_info.name))
+                raise ValueError(f"Trying to slice Split {v.split_info.name} which has already been sliced")
             v = v._asdict()
             v["slice_value"] = slice_value
             split_instruction.add(SlicedSplitInfo(**v))
@@ -502,15 +502,15 @@ class SplitDict(dict):
 
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
         if key != value.name:
-            raise ValueError("Cannot add elem. (key mismatch: '{}' != '{}')".format(key, value.name))
+            raise ValueError(f"Cannot add elem. (key mismatch: '{key}' != '{value.name}')")
         if key in self:
-            raise ValueError("Split {} already present".format(key))
+            raise ValueError(f"Split {key} already present")
         super(SplitDict, self).__setitem__(key, value)
 
     def add(self, split_info: SplitInfo):
         """Add the split info."""
         if split_info.name in self:
-            raise ValueError("Split {} already present".format(split_info.name))
+            raise ValueError(f"Split {split_info.name} already present")
         split_info.dataset_name = self.dataset_name
         super(SplitDict, self).__setitem__(split_info.name, split_info)
 

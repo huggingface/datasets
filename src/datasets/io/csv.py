@@ -63,7 +63,10 @@ class CsvDatasetWriter:
         num_proc: Optional[int] = None,
         **to_csv_kwargs,
     ):
-        assert num_proc is None or num_proc > 0, "num_proc must be an integer > 0."
+
+        if num_proc is not None and num_proc <= 0:
+            raise ValueError(f"num_proc {num_proc} must be an integer > 0.")
+
         self.dataset = dataset
         self.path_or_buf = path_or_buf
         self.batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE

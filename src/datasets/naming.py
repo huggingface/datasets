@@ -46,30 +46,30 @@ def snakecase_to_camelcase(name):
 
 def filename_prefix_for_name(name):
     if os.path.basename(name) != name:
-        raise ValueError("Should be a dataset name, not a path: %s" % name)
+        raise ValueError(f"Should be a dataset name, not a path: {name}")
     return camelcase_to_snakecase(name)
 
 
 def filename_prefix_for_split(name, split):
     if os.path.basename(name) != name:
-        raise ValueError("Should be a dataset name, not a path: %s" % name)
+        raise ValueError(f"Should be a dataset name, not a path: {name}")
     if not re.match(_split_re, split):
         raise ValueError(f"Split name should match '{_split_re}'' but got '{split}'.")
-    return "%s-%s" % (filename_prefix_for_name(name), split)
+    return f"{filename_prefix_for_name(name)}-{split}"
 
 
 def filepattern_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=None):
     prefix = filename_prefix_for_split(dataset_name, split)
     if filetype_suffix:
-        prefix += ".%s" % filetype_suffix
+        prefix += f".{filetype_suffix}"
     filepath = os.path.join(data_dir, prefix)
-    return "%s*" % filepath
+    return f"{filepath}*"
 
 
 def filename_for_dataset_split(dataset_name, split, filetype_suffix=None):
     prefix = filename_prefix_for_split(dataset_name, split)
     if filetype_suffix:
-        prefix += ".%s" % filetype_suffix
+        prefix += f".{filetype_suffix}"
     return prefix
 
 

@@ -285,7 +285,13 @@ class DatasetMetadata:
 
     @staticmethod
     def validate_language_codes(languages: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
-        return tagset_validator(languages, known_language_codes.keys(), "languages", known_language_codes_url)
+        return tagset_validator(
+            languages,
+            known_language_codes.keys(),
+            "languages",
+            known_language_codes_url,
+            lambda lang: lang == "unknown",
+        )
 
     @staticmethod
     def validate_licences(licenses: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:

@@ -14,6 +14,7 @@ from datasets.utils.streaming_download_manager import (
     xbasename,
     xglob,
     xjoin,
+    xlistdir,
     xopen,
     xpathglob,
     xpathjoin,
@@ -86,7 +87,7 @@ class DummyTestFS(AbstractFileSystem):
         for item in self._fs_contents:
             if item["name"] == name:
                 return item
-        raise IndexError("{name} not found!".format(name=name))
+        raise IndexError(f"{name} not found!")
 
     def ls(self, path, detail=True, refresh=True, **kwargs):
         if kwargs.pop("strip_proto", True):
@@ -235,6 +236,24 @@ def test_xopen_remote():
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
     with xpathopen(Path(TEST_URL), "r", encoding="utf-8") as f:
         assert list(f) == TEST_URL_CONTENT.splitlines(keepends=True)
+
+
+@pytest.mark.parametrize(
+    "input_path, expected_paths",
+    [
+        ("tmp_path", ["file1.txt", "file2.txt"]),
+        ("mock://", ["glob_test", "misc", "top_level"]),
+        ("mock://top_level", ["second_level"]),
+        ("mock://top_level/second_level/date=2019-10-01", ["a.parquet", "b.parquet"]),
+    ],
+)
+def test_xlistdir(input_path, expected_paths, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        for file in ["file1.txt", "file2.txt"]:
+            (tmp_path / file).touch()
+    output_paths = sorted(xlistdir(input_path))
+    assert output_paths == expected_paths
 
 
 @pytest.mark.parametrize(
