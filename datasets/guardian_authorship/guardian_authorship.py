@@ -91,81 +91,63 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         # cross-topic
         GuardianAuthorshipConfig(
             name=f"cross_topic_{1}",
-            version=datasets.Version(
-                f"{1}.0.0", description=f"The Original DS with the cross-topic scenario no.{1}"
-            ),
+            version=datasets.Version(f"{1}.0.0", description=f"The Original DS with the cross-topic scenario no.{1}"),
             train_folder="Politics",
             valid_folder="Society",
             test_folder="UK,World",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_topic_{2}",
-            version=datasets.Version(
-                f"{2}.0.0", description=f"The Original DS with the cross-topic scenario no.{2}"
-            ),
+            version=datasets.Version(f"{2}.0.0", description=f"The Original DS with the cross-topic scenario no.{2}"),
             train_folder="Politics",
             valid_folder="UK",
             test_folder="Society,World",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_topic_{3}",
-            version=datasets.Version(
-                f"{3}.0.0", description=f"The Original DS with the cross-topic scenario no.{3}"
-            ),
+            version=datasets.Version(f"{3}.0.0", description=f"The Original DS with the cross-topic scenario no.{3}"),
             train_folder="Politics",
             valid_folder="World",
             test_folder="Society,UK",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_topic_{4}",
-            version=datasets.Version(
-                f"{4}.0.0", description=f"The Original DS with the cross-topic scenario no.{4}"
-            ),
+            version=datasets.Version(f"{4}.0.0", description=f"The Original DS with the cross-topic scenario no.{4}"),
             train_folder="Society",
             valid_folder="Politics",
             test_folder="UK,World",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_topic_{5}",
-            version=datasets.Version(
-                f"{5}.0.0", description=f"The Original DS with the cross-topic scenario no.{5}"
-            ),
+            version=datasets.Version(f"{5}.0.0", description=f"The Original DS with the cross-topic scenario no.{5}"),
             train_folder="Society",
             valid_folder="UK",
             test_folder="Politics,World",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_topic_{6}",
-            version=datasets.Version(
-                f"{6}.0.0", description=f"The Original DS with the cross-topic scenario no.{6}"
-            ),
+            version=datasets.Version(f"{6}.0.0", description=f"The Original DS with the cross-topic scenario no.{6}"),
             train_folder="Society",
             valid_folder="World",
             test_folder="Politics,UK",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_topic_{7}",
-            version=datasets.Version(
-                f"{7}.0.0", description=f"The Original DS with the cross-topic scenario no.{7}"
-            ),
+            version=datasets.Version(f"{7}.0.0", description=f"The Original DS with the cross-topic scenario no.{7}"),
             train_folder="UK",
             valid_folder="Politics",
             test_folder="Society,World",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_topic_{8}",
-            version=datasets.Version(
-                f"{8}.0.0", description=f"The Original DS with the cross-topic scenario no.{8}"
-            ),
+            version=datasets.Version(f"{8}.0.0", description=f"The Original DS with the cross-topic scenario no.{8}"),
             train_folder="UK",
             valid_folder="Society",
             test_folder="Politics,World",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_topic_{9}",
-            version=datasets.Version(
-                f"{9}.0.0", description=f"The Original DS with the cross-topic scenario no.{9}"
-            ),
+            version=datasets.Version(f"{9}.0.0", description=f"The Original DS with the cross-topic scenario no.{9}"),
             train_folder="UK",
             valid_folder="World",
             test_folder="Politics,Society",
@@ -200,36 +182,28 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         # # cross-genre
         GuardianAuthorshipConfig(
             name=f"cross_genre_{1}",
-            version=datasets.Version(
-                f"{1}.0.0", description=f"The Original DS with the cross-genre scenario no.{1}"
-            ),
+            version=datasets.Version(f"{1}.0.0", description=f"The Original DS with the cross-genre scenario no.{1}"),
             train_folder="Books",
             valid_folder="Politics",
             test_folder="Society,UK,World",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_genre_{2}",
-            version=datasets.Version(
-                f"{2}.0.0", description=f"The Original DS with the cross-genre scenario no.{2}"
-            ),
+            version=datasets.Version(f"{2}.0.0", description=f"The Original DS with the cross-genre scenario no.{2}"),
             train_folder="Books",
             valid_folder="Society",
             test_folder="Politics,UK,World",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_genre_{3}",
-            version=datasets.Version(
-                f"{3}.0.0", description=f"The Original DS with the cross-genre scenario no.{3}"
-            ),
+            version=datasets.Version(f"{3}.0.0", description=f"The Original DS with the cross-genre scenario no.{3}"),
             train_folder="Books",
             valid_folder="UK",
             test_folder="Politics,Society,World",
         ),
         GuardianAuthorshipConfig(
             name=f"cross_genre_{4}",
-            version=datasets.Version(
-                f"{4}.0.0", description=f"The Original DS with the cross-genre scenario no.{4}"
-            ),
+            version=datasets.Version(f"{4}.0.0", description=f"The Original DS with the cross-genre scenario no.{4}"),
             train_folder="Books",
             valid_folder="World",
             test_folder="Politics,Society,UK",

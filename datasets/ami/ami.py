@@ -520,10 +520,7 @@ class AMI(datasets.GeneratorBasedBuilder):
 
         # segments
         segments_paths = {
-            _id: [
-                os.path.join(annotation_path, f"segments/{_id}.{speaker}.segments.xml")
-                for speaker in _SPEAKERS
-            ]
+            _id: [os.path.join(annotation_path, f"segments/{_id}.{speaker}.segments.xml") for speaker in _SPEAKERS]
             for _id in ids
         }
         segments_paths = {_id: list(filter(lambda path: os.path.isfile(path), segments_paths[_id])) for _id in ids}

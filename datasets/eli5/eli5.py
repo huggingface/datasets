@@ -146,9 +146,7 @@ def _download_and_select_lines(dl_manager, f_url, mode, st_time):
                     else:
                         reddit_res[k] = line[k]
                 processed_items[name] += [reddit_res]
-    logger.info(
-        f"Total found {sum([len(ls) for ls in processed_items.values()])} {mode} {time() - st_time:.2f}"
-    )
+    logger.info(f"Total found {sum([len(ls) for ls in processed_items.values()])} {mode} {time() - st_time:.2f}")
     return processed_items
 
 

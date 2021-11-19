@@ -658,9 +658,7 @@ class WmtConfig(datasets.BuilderConfig):
         # TODO(PVP): remove when manual dir works
         # +++++++++++++++++++++
         if language_pair[1] in ["cs", "hi", "ru"]:
-            assert NotImplementedError(
-                f"The dataset for {language_pair[1]}-en is currently not fully supported."
-            )
+            assert NotImplementedError(f"The dataset for {language_pair[1]}-en is currently not fully supported.")
         # +++++++++++++++++++++
 
 
