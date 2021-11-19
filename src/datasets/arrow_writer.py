@@ -207,7 +207,7 @@ class ArrowWriter:
             raise ValueError("At least one of path and stream must be provided.")
         if features is not None:
             self._features = features
-            self._schema = pa.schema(features.type)
+            self._schema = None
         elif schema is not None:
             self._schema: pa.Schema = schema
             self._features = Features.from_arrow_schema(self._schema)
@@ -222,9 +222,7 @@ class ArrowWriter:
             self._hasher = KeyHasher("")
 
         self._check_duplicates = check_duplicates
-
-        if disable_nullable and self._schema is not None:
-            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
+        self._disable_nullable = disable_nullable
 
         self._path = path
         if stream is None:
@@ -269,6 +267,7 @@ class ArrowWriter:
             self.stream.close()  # This also closes self.pa_writer if it is opened
 
     def _build_writer(self, inferred_schema: pa.Schema):
+        schema = self.schema
         inferred_features = Features.from_arrow_schema(inferred_schema)
         if self._features is not None:
             if self.update_features:  # keep original features it they match, or update them
@@ -279,21 +278,27 @@ class ArrowWriter:
                         if inferred_field == fields[name]:
                             inferred_features[name] = self._features[name]
                 self._features = inferred_features
-                self._schema: pa.Schema = inferred_schema
+                schema: pa.Schema = inferred_schema
         else:
             self._features = inferred_features
-            self._schema: pa.Schema = inferred_schema
+            schema: pa.Schema = inferred_schema
         if self.disable_nullable:
-            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
+            schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in schema)
         if self.with_metadata:
-            self._schema = self._schema.with_metadata(
-                self._build_metadata(DatasetInfo(features=self._features), self.fingerprint)
-            )
-        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
+            schema = schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features), self.fingerprint))
+        self._schema = schema
+        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, schema)
 
     @property
     def schema(self):
-        return self._schema if self._schema is not None else []
+        _schema = (
+            self._schema
+            if self._schema is not None
+            else (pa.schema(self._features.type) if self._features is not None else None)
+        )
+        if self._disable_nullable and _schema is not None:
+            _schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in _schema)
+        return _schema if _schema is not None else []
 
     @staticmethod
     def _build_metadata(info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
@@ -312,18 +317,18 @@ class ArrowWriter:
 
         # Since current_examples contains (example, key) tuples
         cols = (
-            [col for col in self._schema.names if col in self.current_examples[0][0]]
-            + [col for col in self.current_examples[0][0].keys() if col not in self._schema.names]
-            if self._schema
+            [col for col in self.schema.names if col in self.current_examples[0][0]]
+            + [col for col in self.current_examples[0][0].keys() if col not in self.schema.names]
+            if self.schema
             else self.current_examples[0][0].keys()
         )
 
-        schema = None if self.pa_writer is None and self.update_features else self._schema
-        try_schema = self._schema if self.pa_writer is None and self.update_features else None
+        schema = None if self.pa_writer is None and self.update_features else self.schema
+        try_schema = self.schema if self.pa_writer is None and self.update_features else None
         arrays = []
         inferred_types = []
         for col in cols:
-            col_type = schema.field(col).type if schema is not None else None
+            col_type = schema.field(col).type if schema else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = OptimizedTypedSequence(
                 [row[0][col] for row in self.current_examples], type=col_type, try_type=col_try_type, col=col
@@ -339,7 +344,7 @@ class ArrowWriter:
                     )
             arrays.append(pa_array)
             inferred_types.append(inferred_type)
-        schema = pa.schema(zip(cols, inferred_types)) if self.pa_writer is None else self._schema
+        schema = pa.schema(zip(cols, inferred_types)) if self.pa_writer is None else self.schema
         table = pa.Table.from_arrays(arrays, schema=schema)
         self.write_table(table)
         self.current_examples = []
@@ -420,11 +425,11 @@ class ArrowWriter:
         """
         if batch_examples and len(next(iter(batch_examples.values()))) == 0:
             return
-        schema = None if self.pa_writer is None and self.update_features else self._schema
-        try_schema = self._schema if self.pa_writer is None and self.update_features else None
+        schema = None if self.pa_writer is None and self.update_features else self.schema
+        try_schema = self.schema if self.pa_writer is None and self.update_features else None
         typed_sequence_examples = {}
         for col in sorted(batch_examples.keys()):
-            col_type = schema.field(col).type if schema is not None else None
+            col_type = schema.field(col).type if schema else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = OptimizedTypedSequence(batch_examples[col], type=col_type, try_type=col_try_type, col=col)
             typed_sequence_examples[col] = typed_sequence
@@ -459,8 +464,8 @@ class ArrowWriter:
             self.hkey_record = []
         self.write_examples_on_file()
         if self.pa_writer is None:
-            if self._schema is not None:
-                self._build_writer(self._schema)
+            if self.schema:
+                self._build_writer(self.schema)
             else:
                 raise ValueError("Please pass `features` or at least one example when writing data")
         self.pa_writer.close()
