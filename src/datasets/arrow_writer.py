@@ -29,7 +29,7 @@ from .features import (
     _ArrayXDExtensionType,
     _ImageExtensionType,
     cast_to_python_objects,
-    encode_objects_to_image_bytes,
+    objects_to_images,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
 )
@@ -113,7 +113,7 @@ class TypedSequence:
                     storage = pa.array(self.data, type.storage_dtype)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(type, _ImageExtensionType):
-                storage = pa.array(encode_objects_to_image_bytes(self.data), type.storage_type)
+                storage = pa.array(objects_to_images(self.data), type.storage_type)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
@@ -340,9 +340,6 @@ class ArrowWriter:
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
-            if isinstance(inferred_type, _ImageExtensionType):
-                print(inferred_type.storage_dtype)
-            # print(print(inferred_type.)if isinstance(inferred_type, _ImageExtensionType))
             first_example = pa.array(OptimizedTypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
                 # This check fails with FloatArrays with nans, which is not what we want, so account for that:

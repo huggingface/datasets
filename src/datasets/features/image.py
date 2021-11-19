@@ -16,27 +16,12 @@ if TYPE_CHECKING:
 _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
 
 
-def list_image_compression_formats():
-    global _IMAGE_COMPRESSION_FORMATS
-    if _IMAGE_COMPRESSION_FORMATS is None:
-        Image.init()
-        _IMAGE_COMPRESSION_FORMATS = list(set(Image.OPEN.keys()) & set(Image.SAVE.keys()))
-    return _IMAGE_COMPRESSION_FORMATS
-
-
 class _ImageExtensionType(pa.PyExtensionType):
-    def __init__(self, storage_dtype: str):
-        self.storage_dtype = storage_dtype
-        if storage_dtype == "string":
-            pa_storage_dtype = pa.string()
-        elif storage_dtype == "bytes":
-            pa_storage_dtype = pa.binary()
-        else:
-            pa_storage_dtype = pa.struct({"path": pa.string(), "bytes": pa.binary()})
-        pa.PyExtensionType.__init__(self, pa_storage_dtype)
+    def __init__(self):
+        pa.PyExtensionType.__init__(self, pa.struct({"path": pa.string(), "bytes": pa.binary()}))
 
     def __reduce__(self):
-        return self.__class__, (self.storage_dtype,)
+        return self.__class__, ()
 
 
 @dataclass(unsafe_hash=True)
@@ -54,7 +39,6 @@ class Image:
       This is useful for archived files with sequential access.
     """
 
-    _storage_dtype: str = "string"
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -62,23 +46,26 @@ class Image:
     _type: str = field(default="Image", init=False, repr=False)
 
     def __call__(self):
-        return _ImageExtensionType(self._storage_dtype)
+        return _ImageExtensionType()
 
     def encode_example(self, value):
         """Encode example into a format for Arrow.
 
         Args:
-            value (:obj:`str`, :obj:`bytes` or :obj:`dict`): Data passed as input to Image feature.
+            value (:obj:`str`, :obj:`bytes`, :obj:`np.ndarray` or :obj:`dict`): Data passed as input to Image feature.
 
         Returns:
-            :obj:`str` or :obj:`dict`
+            :obj:`dict`
         """
         # TODO(mariosasko): implement np.ndarray encoding
-        if isinstance(value, (bytes, np.ndarray)):
-            self._storage_dtype = "bytes"
-        elif isinstance(value, dict):
-            self._storage_dtype = "struct"
-        return value
+        if isinstance(value, str):
+            return {"path": value, "bytes": None}
+        elif isinstance(value, bytes):
+            return {"path": None, "bytes": value}
+        elif isinstance(value, np.ndarray):
+            raise NotImplementedError("Image encoding not implemented for numpy arrays.")
+        else:
+            return value
 
     def decode_example(self, value):
         """Decode example image file into image data.
@@ -98,28 +85,47 @@ class Image:
             raise ImportError("To support decoding images, please install 'Pillow'.") from err
 
         if isinstance(value, str):
-            if is_local_path(value):
-                image = PIL.Image.open(value)
-            else:
-                with xopen(value, "rb") as f:
-                    data = f.read()
-                image = PIL.Image.open(BytesIO(data))
+            value = {"path": value, "bytes": None}
         elif isinstance(value, bytes):
-            image = PIL.Image.open(BytesIO(value))
+            value = {"path": None, "bytes": value}
+
+        path, bytes_ = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
+        if bytes_ is None:
+            if isinstance(path, str):
+                if is_local_path(path):
+                    image = PIL.Image.open(path)
+                else:
+                    with xopen(path, "rb") as f:
+                        bytes_ = BytesIO(f.read())
+                    image = PIL.Image.open(bytes_)
         else:
-            image = PIL.Image.open(BytesIO(value["bytes"]))
+            image = PIL.Image.open(bytes_)
         return image
+
+
+def list_image_compression_formats():
+    try:
+        import PIL.Image
+    except ImportError as err:
+        raise ImportError("To support encoding images, please install 'Pillow'.") from err
+
+    global _IMAGE_COMPRESSION_FORMATS
+    if _IMAGE_COMPRESSION_FORMATS is None:
+        PIL.Image.init()
+        _IMAGE_COMPRESSION_FORMATS = list(set(PIL.Image.OPEN.keys()) & set(PIL.Image.SAVE.keys()))
+    return _IMAGE_COMPRESSION_FORMATS
 
 
 def image_to_bytes(image: "PIL.Image.Image") -> bytes:
     """Convert a PIL Image object to bytes using native compression if possible, otherwise use PNG compression."""
+    # TODO: add option for the user to control compression format (e.g. Image(compression="PNG")?)
     buffer = BytesIO()
     format = image.format if image.format in list_image_compression_formats() else "PNG"
     image.save(buffer, format=format)
     return buffer.getvalue()
 
 
-def encode_objects_to_image_bytes(objs):
+def objects_to_images(objs):
     """Encode a list of string, bytes, np.ndarray or PIL Image objects into image representation."""
     try:
         import PIL.Image
@@ -128,11 +134,13 @@ def encode_objects_to_image_bytes(objs):
 
     if objs:
         obj = objs[0]
-        if isinstance(obj, (str, bytes)):
-            return objs
+        if isinstance(obj, str):
+            return [{"path": obj, "bytes": None} for obj in objs]
+        elif isinstance(obj, bytes):
+            return [{"path": None, "bytes": obj} for obj in objs]
         elif isinstance(obj, PIL.Image.Image):
-            return [image_to_bytes(image) for image in objs]
-        elif isinstance(np.ndarray):
+            return [{"path": None, "bytes": image_to_bytes(obj)} for obj in objs]
+        elif isinstance(obj, np.ndarray):
             # TODO(mariosasko): implement np.ndarray encoding
             raise NotImplementedError("Image encoding not implemented for numpy arrays.")
         else:
