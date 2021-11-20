@@ -384,7 +384,7 @@ class TestMetric(TestCase):
             del results
 
             # With keep_in_memory is not allowed
-            with pytest.raises(ValueError):
+            with self.assertRaises(ValueError):
                 DummyMetric(
                     experiment_id="test_distributed_metrics_4",
                     keep_in_memory=True,
