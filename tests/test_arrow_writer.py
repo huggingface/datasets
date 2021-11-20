@@ -19,11 +19,11 @@ class TypedSequenceTest(TestCase):
         self.assertEqual(arr.type, pa.int64())
 
     def test_array_type_forbidden(self):
-        with self.assertRaises(AssertionError):
+        with pytest.raises(ValueError):
             _ = pa.array(TypedSequence([1, 2, 3]), type=pa.int64())
 
     def test_try_type_and_type_forbidden(self):
-        with self.assertRaises(AssertionError):
+        with pytest.raises(ValueError):
             _ = pa.array(TypedSequence([1, 2, 3], try_type=pa.bool_(), type=pa.int64()))
 
     def test_compatible_type(self):
