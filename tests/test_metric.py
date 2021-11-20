@@ -522,7 +522,7 @@ def test_metric_with_multilabel(config_name, predictions, references, expected, 
 
 def test_safety_checks_process_vars():
     with pytest.raises(ValueError):
-        metric = DummyMetric(process_id=-2)
+        _ = DummyMetric(process_id=-2)
 
     with pytest.raises(ValueError):
-        metric = DummyMetric(num_process=2, process_id=3)
+        _ = DummyMetric(num_process=2, process_id=3)
