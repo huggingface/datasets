@@ -1,4 +1,5 @@
 ---
+pretty_name: IndoNLI
 annotations_creators:
 - expert-generated
 - crowdsourced
@@ -68,7 +69,7 @@ Indonesian
 
 ## Dataset Structure
 
-### Dataset Instances
+### Data Instances
 
 An example of `train` looks as follows.
 
@@ -77,7 +78,6 @@ An example of `train` looks as follows.
   "premise": "Keindahan alam yang terdapat di Gunung Batu Jonggol ini dapat Anda manfaatkan sebagai objek fotografi yang cantik.", 
   "hypothesis": "Keindahan alam tidak dapat difoto.", 
   "label": "c"
-
 }
 ```
 ### Data Fields
