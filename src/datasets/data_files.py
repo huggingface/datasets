@@ -33,9 +33,9 @@ DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
 }
 
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
-    str(Split.TRAIN): ["*train*/*", "*train*/**/*"],
-    str(Split.TEST): ["*test*/*", "*test*/**/*", "*eval*/*", "*eval*/**/*"],
-    str(Split.VALIDATION): ["*dev*/*", "*dev*/**/*", "*valid*/*", "*valid*/**/*"],
+    str(Split.TRAIN): ["*train*/**/*"],
+    str(Split.TEST): ["*test*/**/*", "*eval*/**/*"],
+    str(Split.VALIDATION): ["*dev*/**/*", "*valid*/**/*"],
 }
 
 DEFAULT_PATTERNS_ALL = {
