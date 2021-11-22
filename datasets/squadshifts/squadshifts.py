@@ -140,7 +140,7 @@ class SquadShifts(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["amazon"]}),
             ]
         else:
-            raise ValueError("SQuADShifts dataset name {} not found!".format(self.config.name))
+            raise ValueError(f"SQuADShifts dataset name {self.config.name} not found!")
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""

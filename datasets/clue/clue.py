@@ -458,7 +458,7 @@ class Clue(datasets.GeneratorBasedBuilder):
         label_classes = self.config.label_classes
 
         if self.config.name == "chid" and split != "test":
-            answer_file = os.path.join(os.path.dirname(data_file), "{}_answer.json".format(split))
+            answer_file = os.path.join(os.path.dirname(data_file), f"{split}_answer.json")
             answer_dict = json.load(open(answer_file, encoding="utf8"))
 
         if self.config.name == "c3":
@@ -466,7 +466,7 @@ class Clue(datasets.GeneratorBasedBuilder):
                 files = [data_file]
             else:
                 data_dir = os.path.dirname(data_file)
-                files = [os.path.join(data_dir, "{}-{}.json".format(typ, split)) for typ in ["d", "m"]]
+                files = [os.path.join(data_dir, f"{typ}-{split}.json") for typ in ["d", "m"]]
             data = []
             for f in files:
                 data_subset = json.load(open(f, encoding="utf8"))
