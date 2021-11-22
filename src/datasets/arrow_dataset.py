@@ -41,7 +41,6 @@ from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from datasets.tasks.text_classification import TextClassification
-from datasets.utils.py_utils import unique_values
 
 from . import config, utils
 from .arrow_reader import ArrowReader
