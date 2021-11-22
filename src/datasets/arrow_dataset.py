@@ -3319,7 +3319,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
-        # Testing parameter only, should remove after investigation and before merging the PR.
         threading: Optional[bool] = False,
     ):
         """Pushes the dataset to the hub.
@@ -3345,6 +3344,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_size (Optional :obj:`int`):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
+            threading (Optional :obj:`bool`, defaults to :obj:`False`):
+                Whether to use multithreading where applicable. Experimental parameter as this will burst the
+                server with calls, some of which may fail.
 
         Example:
             .. code-block:: python
