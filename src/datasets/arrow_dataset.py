@@ -3355,7 +3355,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
 
         if split is None:
-            split = self.split
+            split = self.split or "train"
 
         identifier = repo_id.split("/")
 
