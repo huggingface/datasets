@@ -106,7 +106,7 @@ class ElasticSearchIndex(BaseIndex):
             raise ImportError(
                 "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
             )
-        if es_client is not None and (host is not None and port is not None):
+        if es_client is not None and (host is not None or port is not None):
             raise ValueError("Please specify either `es_client` or `(host, port)`, but not both.")
         host = host or "localhost"
         port = port or 9200
@@ -306,7 +306,7 @@ class FaissIndex(BaseIndex):
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
         if len(query.shape) != 1 or (len(query.shape) == 2 and query.shape[0] != 1):
-            raise ValueError("Shape of query is incorrect, it has to be either a 1D array or 2D (1,N)")
+            raise ValueError("Shape of query is incorrect, it has to be either a 1D array or 2D (1, N)")
 
         queries = query.reshape(1, -1)
         if not queries.flags.c_contiguous:
