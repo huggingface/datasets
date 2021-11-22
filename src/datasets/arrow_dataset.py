@@ -570,17 +570,34 @@ def _check_column_names(column_names: List[str]):
         raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
 
 
-def align_list_of_features(list_of_feautures: List[Features]) -> List[Features]:
-    """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
-    null_feature = Value("null")
+def _check_if_features_can_be_aligned(features_list: List[Features]):
+    """Check if the dictionaries of features can be aligned.
+
+    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
+    """
     name2feature = {}
-    for features in list_of_feautures:
+    for features in features_list:
         for k, v in features.items():
-            if k not in name2feature or name2feature[k] == null_feature:
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
                 name2feature[k] = v
 
-    list_of_aligned_features = [Features({k: name2feature[k] for k in features}) for features in list_of_feautures]
-    return list_of_aligned_features
+    for features in features_list:
+        for k, v in features.items():
+            if not (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null") and name2feature[k] != v:
+                raise ValueError(
+                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type (expected either {name2feature[k]} or Value("null").'
+                )
+
+
+def _align_features(features_list: List[Features]) -> List[Features]:
+    """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
+    name2feature = {}
+    for features in features_list:
+        for k, v in features.items():
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+                name2feature[k] = v
+
+    return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
 
 
 class NonExistentDatasetError(Exception):
@@ -3576,9 +3593,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset`
         """
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
-        dset_features, item_features = align_list_of_features(
-            [self.features, Features.from_arrow_schema(item_table.schema)]
-        )
+        dset_features = self.features
+        item_features = Features.from_arrow_schema(item_table.schema)
+        _check_if_features_can_be_aligned([dset_features, item_features])
+        dset_features, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
         # Cast and concatenate tables
         table = concat_tables(
             [
@@ -3681,11 +3699,13 @@ def concatenate_datasets(
         # Return first dataset if all datasets are empty
         return dsets[0]
 
+    # Perform checks (and a potentional cast if axis=0)
     if axis == 0:
-        aligned_dsets_features = align_list_of_features([dset.features for dset in dsets])
+        _check_if_features_can_be_aligned([dset.features for dset in dsets])
+        aligned_features = _align_features([dset.features for dset in dsets])
         dsets = [
             dset.cast(features) if dset.features != features else dset
-            for dset, features in zip(dsets, aligned_dsets_features)
+            for dset, features in zip(dsets, aligned_features)
         ]
     elif axis == 1:
         if not all([dset.num_rows == dsets[0].num_rows for dset in dsets]):
