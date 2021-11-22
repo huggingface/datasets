@@ -582,9 +582,9 @@ def _check_if_features_can_be_aligned(features_list: List[Features]):
 
     for features in features_list:
         for k, v in features.items():
-            if not (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null") and name2feature[k] != v:
+            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
                 raise ValueError(
-                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type (expected either {name2feature[k]} or Value("null").'
+                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
                 )
 
 
@@ -3592,9 +3592,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset`
         """
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
-        dset_features = self.features
-        item_features = Features.from_arrow_schema(item_table.schema)
-        _check_if_features_can_be_aligned([dset_features, item_features])
+        # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
         dset_features, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
         # Cast and concatenate tables
         table = concat_tables(
