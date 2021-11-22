@@ -2198,6 +2198,28 @@ def test_cast_with_sliced_list():
     assert casted_dataset.features == new_features
 
 
+@pytest.mark.parametrize("include_nulls", [False, True])
+def test_class_encode_column_with_none(include_nulls):
+    dataset = Dataset.from_dict({"col_1": ["a", "b", "c", None, "d", None]})
+    dataset = dataset.class_encode_column("col_1", include_nulls=include_nulls)
+    class_names = ["a", "b", "c", "d"]
+    if include_nulls:
+        class_names += ["None"]
+    assert isinstance(dataset.features["col_1"], ClassLabel)
+    assert set(dataset.features["col_1"].names) == set(class_names)
+    assert (None in dataset.unique("col_1")) == (not include_nulls)
+
+
+@pytest.mark.parametrize("null_placement", ["first", "last"])
+def test_sort_with_none(null_placement):
+    dataset = Dataset.from_dict({"col_1": ["item_2", "item_3", "item_1", None, "item_4", None]})
+    dataset = dataset.sort("col_1", null_placement=null_placement)
+    if null_placement == "first":
+        assert dataset["col_1"] == [None, None, "item_1", "item_2", "item_3", "item_4"]
+    else:
+        assert dataset["col_1"] == ["item_1", "item_2", "item_3", "item_4", None, None]
+
+
 def test_update_metadata_with_features(dataset_dict):
     table1 = pa.Table.from_pydict(dataset_dict)
     features1 = Features.from_arrow_schema(table1.schema)
@@ -2231,6 +2253,24 @@ def test_concatenate_datasets(dataset_type, axis, expected_shape, dataset_dict, 
     dataset = concatenate_datasets(datasets, axis=axis)
     assert dataset.shape == expected_shape
     assert_arrow_metadata_are_synced_with_dataset_features(dataset)
+
+
+def test_concatenate_datasets_new_columns():
+    dataset1 = Dataset.from_dict({"col_1": ["a", "b", "c"]})
+    dataset2 = Dataset.from_dict({"col_1": ["d", "e", "f"], "col_2": [True, False, True]})
+    dataset = concatenate_datasets([dataset1, dataset2])
+    assert dataset.data.shape == (6, 2)
+    assert dataset.features == Features({"col_1": Value("string"), "col_2": Value("bool")})
+    assert dataset[:] == {"col_1": ["a", "b", "c", "d", "e", "f"], "col_2": [None, None, None, True, False, True]}
+    dataset3 = Dataset.from_dict({"col_3": ["a_1"]})
+    dataset = concatenate_datasets([dataset, dataset3])
+    assert dataset.data.shape == (7, 3)
+    assert dataset.features == Features({"col_1": Value("string"), "col_2": Value("bool"), "col_3": Value("string")})
+    assert dataset[:] == {
+        "col_1": ["a", "b", "c", "d", "e", "f", None],
+        "col_2": [None, None, None, True, False, True, None],
+        "col_3": [None, None, None, None, None, None, "a_1"],
+    }
 
 
 @pytest.mark.parametrize("axis", [0, 1])
@@ -2414,6 +2454,30 @@ def test_dataset_add_item(item, in_memory, dataset_dict, arrow_path, transform):
         dataset_indices = dataset._indices["indices"].to_pylist()
         dataset_to_test_indices = dataset_to_test._indices["indices"].to_pylist()
         assert dataset_indices == dataset_to_test_indices + [len(dataset_to_test._data)]
+
+
+def test_dataset_add_item_new_columns():
+    dataset = Dataset.from_dict({"col_1": [0, 1, 2]}, features=Features({"col_1": Value("uint8")}))
+    dataset = dataset.add_item({"col_1": 3, "col_2": "a"})
+    assert dataset.data.shape == (4, 2)
+    assert dataset.features == Features({"col_1": Value("uint8"), "col_2": Value("string")})
+    assert dataset[:] == {"col_1": [0, 1, 2, 3], "col_2": [None, None, None, "a"]}
+    dataset = dataset.add_item({"col_3": True})
+    assert dataset.data.shape == (5, 3)
+    assert dataset.features == Features({"col_1": Value("uint8"), "col_2": Value("string"), "col_3": Value("bool")})
+    assert dataset[:] == {
+        "col_1": [0, 1, 2, 3, None],
+        "col_2": [None, None, None, "a", None],
+        "col_3": [None, None, None, None, True],
+    }
+
+
+def test_dataset_add_item_introduce_feature_type():
+    dataset = Dataset.from_dict({"col_1": [None, None, None]})
+    dataset = dataset.add_item({"col_1": "a"})
+    assert dataset.data.shape == (4, 1)
+    assert dataset.features == Features({"col_1": Value("string")})
+    assert dataset[:] == {"col_1": [None, None, None, "a"]}
 
 
 @pytest.mark.parametrize("in_memory", [False, True])

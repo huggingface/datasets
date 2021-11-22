@@ -319,11 +319,35 @@ def test_array_xd_numpy_arrow_extractor(dtype, dummy_value):
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
 
 
-def test_dataset_map():
+def test_array_xd_with_none():
+    # Fixed shape
+    features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(2, 2))})
+    dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
+    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array]}, features=features)
+    arr = NumpyArrowExtractor().extract_column(dataset._data)
+    assert (
+        isinstance(arr, np.ndarray) and arr.dtype == np.float64 and arr.shape == (3, 2, 2)
+    )  # cast to float to allow nan values
+    assert np.allclose(arr[0], dummy_array) and np.allclose(arr[2], dummy_array)
+    assert np.all(np.isnan(arr[1]))  # broadcasted np.nan - use np.all
+
+    # Dynamic shape
+    features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(None, 2))})
+    dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
+    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array]}, features=features)
+    arr = NumpyArrowExtractor().extract_column(dataset._data)
+    assert isinstance(arr, np.ndarray) and arr.dtype == np.object and arr.shape == (3,)
+    np.testing.assert_equal(arr[0], dummy_array)
+    np.testing.assert_equal(arr[2], dummy_array)
+    assert np.isnan(arr[1])  # a single np.nan value - np.all not needed
+
+
+@pytest.mark.parametrize("with_none", [False, True])
+def test_dataset_map(with_none):
     ds = datasets.Dataset.from_dict({"path": ["path1", "path2"]})
 
     def process_data(batch):
-        return {
+        batch = {
             "image": [
                 np.array(
                     [
@@ -335,11 +359,17 @@ def test_dataset_map():
                 for _ in batch["path"]
             ]
         }
+        if with_none:
+            batch["image"][0] = None
+        return batch
 
     features = datasets.Features({"image": Array3D(dtype="int32", shape=(3, 3, 3))})
     processed_ds = ds.map(process_data, batched=True, remove_columns=ds.column_names, features=features)
     assert processed_ds.shape == (2, 1)
     with processed_ds.with_format("numpy") as pds:
-        for example in pds:
+        for i, example in enumerate(pds):
             assert "image" in example
             assert isinstance(example["image"], np.ndarray)
+            assert example["image"].shape == (3, 3, 3)
+            if with_none and i == 0:
+                assert np.all(np.isnan(example["image"]))
