@@ -57,13 +57,18 @@ class Image:
         Returns:
             :obj:`dict`
         """
-        # TODO(mariosasko): implement np.ndarray encoding
+        try:
+            import PIL.Image
+        except ImportError as err:
+            raise ImportError("To support encoding images, please install 'Pillow'.") from err
+
         if isinstance(value, str):
             return {"path": value, "bytes": None}
         elif isinstance(value, bytes):
             return {"path": None, "bytes": value}
         elif isinstance(value, np.ndarray):
-            raise NotImplementedError("Image encoding not implemented for numpy arrays.")
+            image = PIL.Image.fromarray(value.astype(np.uint8))
+            return {"path": None, "bytes": image_to_bytes(image)}
         else:
             return value
 
@@ -143,8 +148,7 @@ def objects_to_images(objs):
         elif isinstance(obj, PIL.Image.Image):
             return [{"path": None, "bytes": image_to_bytes(obj)} for obj in objs]
         elif isinstance(obj, np.ndarray):
-            # TODO(mariosasko): implement np.ndarray encoding
-            raise NotImplementedError("Image encoding not implemented for numpy arrays.")
+            return [{"path": None, "bytes": image_to_bytes(Image.fromarray(obj.astype(np.uint8)))} for obj in objs]
         else:
             return objs
     else:
