@@ -41,6 +41,7 @@ from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from datasets.tasks.text_classification import TextClassification
+from datasets.utils.py_utils import unique_values
 
 from . import config, utils
 from .arrow_reader import ArrowReader
@@ -580,26 +581,6 @@ def align_list_of_features(list_of_feautures: List[Features]) -> List[Features]:
 
     list_of_aligned_features = [Features({k: name2feature[k] for k in features}) for features in list_of_feautures]
     return list_of_aligned_features
-
-
-def pad_table_to_length(table: pa.Table, length: int) -> pa.Table:
-    """Pad the columns of the table to the given length. Uses `None` as a pad value."""
-    # No-op if the table is already long enough
-    if table.num_rows >= length:
-        return table
-    rows_to_add = [None] * (length - table.num_rows)
-    table = concat_tables(
-        [table, InMemoryTable.from_pydict({col_name: rows_to_add for col_name in table.column_names})]
-    )
-    return table
-
-
-def add_indices_to_indices_table(indices_table: pa.Table, indices: Iterable) -> pa.Table:
-    """Append indices to the indices table."""
-    indices_array = pa.array(indices, type=pa.uint64())
-    indices_table_to_add = InMemoryTable.from_arrays([indices_array], names=["indices"])
-    indices_table = concat_tables([indices_table, indices_table_to_add])
-    return indices_table
 
 
 class NonExistentDatasetError(Exception):
@@ -1168,8 +1149,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             column (`str`): The name of the column to cast (list all the column names with :func:`datasets.Dataset.column_names`)
             include_nulls (`bool`, default `False`):
+                Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
+
                 .. versionadded:: 1.14.2
-                    Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
         """
         # Sanity checks
         if column not in self._data.column_names:
@@ -1180,7 +1162,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"Class encoding is only supported for {Value.__name__} column, and column {column} is {type(src_feat).__name__}."
             )
 
-        if src_feat.dtype != "string":
+        if src_feat.dtype != "string" or (include_nulls and None in self.unique(column)):
 
             def stringify_column(batch):
                 batch[column] = [
@@ -2746,8 +2728,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
             null_placement (:obj:`str`, default `last`):
+                Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
+
                 .. versionadded:: 1.14.2
-                    Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
             keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
@@ -3376,22 +3359,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset`
         """
         column_table = InMemoryTable.from_pydict({name: column})
-        _check_column_names(self.column_names + column_table.column_names)
-        # Pad tables if needed to match the maximum length
-        max_num_rows = max(self.num_rows, column_table.num_rows)
-        dset_table = pad_table_to_length(self._data, max_num_rows)
-        column_table = pad_table_to_length(column_table, max_num_rows)
-        indices_table = self._indices
-        if indices_table is not None and max_num_rows > self.num_rows:
-            indices_to_add = range(self._data.num_rows, self._data.num_rows + (max_num_rows - self.num_rows))
-            indices_table = add_indices_to_indices_table(self._indices, indices_to_add)
+        _check_column_names(self._data.column_names + column_table.column_names)
         # Concatenate tables horizontally
-        table = concat_tables([dset_table, column_table], axis=1)
+        table = concat_tables([self._data, column_table], axis=1)
         # Update features
         info = self.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
-        return Dataset(table, info=info, split=self.split, indices_table=indices_table, fingerprint=new_fingerprint)
+        return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
 
     def add_faiss_index(
         self,
@@ -3604,15 +3579,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dset_features, item_features = align_list_of_features(
             [self.features, Features.from_arrow_schema(item_table.schema)]
         )
-        # Cast tables
-        dset_table = self._data.cast(pa.schema(dset_features.type))
-        item_table = item_table.cast(pa.schema(item_features.type))
-        # Concatenate tables
-        table = concat_tables([dset_table, item_table])
+        # Cast and concatenate tables
+        table = concat_tables(
+            [
+                self._data.cast(pa.schema(dset_features.type)) if self.features != dset_features else self._data,
+                item_table.cast(pa.schema(item_features.type)),
+            ]
+        )
         if self._indices is None:
             indices_table = None
         else:
-            indices_table = add_indices_to_indices_table(self._indices, [len(dset_table)])
+            item_indices_array = pa.array([len(self._data)], type=pa.uint64())
+            item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
+            indices_table = concat_tables([self._indices, item_indices_table])
         info = self.info.copy()
         info.features.update(item_features)
         table = update_metadata_with_features(table, info.features)
@@ -3695,24 +3674,23 @@ def concatenate_datasets(
 
             .. versionadded:: 1.6.0
     """
-    tables = [dset._data for dset in dsets]
-    indices_tables = [dset._indices for dset in dsets]
-    list_of_feautures = [dset.features for dset in dsets]
+    # Ignore datasets with no rows
+    if any(dset.num_rows > 0 for dset in dsets):
+        dsets = [dset for dset in dsets if dset.num_rows > 0]
+    else:
+        # Return first dataset if all datasets are empty
+        return dsets[0]
 
     if axis == 0:
-        list_of_features = align_list_of_features(list_of_feautures)
-        tables = [table.cast(pa.schema(features.type)) for table, features in zip(tables, list_of_features)]
+        aligned_dsets_features = align_list_of_features([dset.features for dset in dsets])
+        dsets = [
+            dset.cast(features) if dset.features != features else dset
+            for dset, features in zip(dsets, aligned_dsets_features)
+        ]
     elif axis == 1:
-        _check_column_names([col_name for table in tables for col_name in table.column_names])
-
-        max_num_rows = max(dset.num_rows for dset in dsets)
-        tables = [pad_table_to_length(table, max_num_rows) for table in tables]
-        for i in range(len(indices_tables)):
-            indices_table, dset = indices_tables[i], dsets[i]
-            if indices_table is not None and max_num_rows > dset.num_rows:
-                indices_to_add = range(dset._data.num_rows, dset._data.num_rows + (max_num_rows - dset.num_rows))
-                indices_table = add_indices_to_indices_table(dset._indices, indices_to_add)
-            indices_tables[i] = indices_table
+        if not all([dset.num_rows == dsets[0].num_rows for dset in dsets]):
+            raise ValueError("Number of rows must match for all datasets")
+        _check_column_names([col_name for dset in dsets for col_name in dset._data.column_names])
 
     # Find common format or reset format
     format = dsets[0].format
@@ -3751,25 +3729,18 @@ def concatenate_datasets(
                 indices_table = concat_tables(indices_tables)
             else:
                 indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
-        elif axis == 1 and len(dsets) == 1:
-            indices_table = dsets[0]._indices
-        elif axis == 1 and len(dsets) > 1:
-            for i in range(len(dsets)):
-                dsets[i] = dsets[i].flatten_indices()
-            indices_table = None
+        else:
+            if len(dsets) == 1:
+                indices_table = dsets[0]._indices
+            else:
+                for i in range(len(dsets)):
+                    dsets[i] = dsets[i].flatten_indices()
+                indices_table = None
     else:
         indices_table = None
 
-    table_features = {}
-    for features in list_of_feautures:
-        table_features.update(features)
-    table_features = Features(table_features)
-    tables_to_concat = [dset._data for dset in dsets if len(dset._data) > 0]
-    # There might be no table with data left hence return first empty table
-    if not tables_to_concat:
-        return dsets[0]
-    table = concat_tables(tables_to_concat, axis=axis)
-    table = update_metadata_with_features(table, table_features)
+    table = concat_tables([dset._data for dset in dsets], axis=axis)
+    table = update_metadata_with_features(table, {k: v for dset in dsets for k, v in dset.features.items()})
 
     # Concatenate infos
     if info is None:

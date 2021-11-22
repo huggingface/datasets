@@ -450,12 +450,10 @@ class ArrayExtensionArray(pa.ExtensionArray):
         for dim in range(1, ndims):
             assert shape[dim] is not None, f"Support only dynamic size on first dimension. Got: {shape}"
 
-        null_indices = np.arange(len(storage))[storage.is_null().to_numpy(zero_copy_only=False)]
-
         arrays = []
         first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
-        for i in range(len(storage)):
-            if i in null_indices:
+        for i, is_null in enumerate(storage.is_null().to_numpy(zero_copy_only=False)):
+            if is_null:
                 arrays.append(np.nan)
             else:
                 storage_el = storage[i : i + 1]
@@ -935,8 +933,14 @@ def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.
     return values
 
 
-def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[pa.Array]) -> pa.ListArray:
-    offsets = pa.array(np.cumsum([0] + [len(arr) for arr in l_arr]), type=pa.int32())
+def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> pa.ListArray:
+    null_indices = [i for i, arr in enumerate(l_arr) if arr is None]
+    l_arr = [arr for arr in l_arr if arr is not None]
+    offsets = np.cumsum(
+        [0] + [len(arr) for arr in l_arr], dtype=np.object
+    )  # convert to dtype object to allow None insertion
+    offsets = np.insert(offsets, null_indices, None)
+    offsets = pa.array(offsets, type=pa.int32())
     values = pa.concat_arrays(l_arr)
     return pa.ListArray.from_arrays(offsets, values)
 
@@ -944,7 +948,9 @@ def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[pa.Array]) -> pa.ListArra
 def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a possibly nested list of NumPy arrays"""
     if len(l_arr) > 0:
-        return list_of_pa_arrays_to_pyarrow_listarray([numpy_to_pyarrow_listarray(arr, type=type) for arr in l_arr])
+        return list_of_pa_arrays_to_pyarrow_listarray(
+            [numpy_to_pyarrow_listarray(arr, type=type) if arr is not None else None for arr in l_arr]
+        )
     else:
         return pa.array([], type=type)
 

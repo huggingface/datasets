@@ -42,6 +42,13 @@ logger = logging.get_logger(__name__)
 type_ = type  # keep python's type function
 
 
+def first_non_null_value(iterable):
+    for i, value in enumerate(iterable):
+        if value is not None:
+            return i, value
+    return -1, None
+
+
 class TypedSequence:
     """
     This data container generalizes the typing when instantiating pyarrow arrays, tables or batches.
@@ -102,10 +109,11 @@ class TypedSequence:
             type = self.type
         trying_int_optimization = False
         try:
+            non_null_idx, non_null_value = first_non_null_value(self.data)
             if isinstance(type, _ArrayXDExtensionType):
                 if isinstance(self.data, np.ndarray):
                     storage = numpy_to_pyarrow_listarray(self.data, type=type.value_type)
-                elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                elif isinstance(self.data, list) and self.data and isinstance(non_null_value, np.ndarray):
                     storage = list_of_np_array_to_pyarrow_listarray(self.data, type=type.value_type)
                 else:
                     storage = pa.array(self.data, type.storage_dtype)
@@ -114,17 +122,17 @@ class TypedSequence:
                 out = numpy_to_pyarrow_listarray(self.data)
                 if type is not None:
                     out = out.cast(type)
-            elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+            elif isinstance(self.data, list) and self.data and isinstance(non_null_value, np.ndarray):
                 out = list_of_np_array_to_pyarrow_listarray(self.data)
                 if type is not None:
                     out = out.cast(type)
             else:
                 out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
-            if trying_type:
+            if trying_type and non_null_idx != -1:
                 is_equal = (
-                    np.array_equal(np.array(out[0].as_py()), self.data[0])
-                    if isinstance(self.data[0], np.ndarray)
-                    else out[0].as_py() == self.data[0]
+                    np.array_equal(np.array(out[non_null_idx].as_py()), self.data[non_null_idx])
+                    if isinstance(self.data[non_null_idx], np.ndarray)
+                    else out[non_null_idx].as_py() == self.data[non_null_idx]
                 )
                 if not is_equal:
                     raise TypeError(
@@ -145,7 +153,11 @@ class TypedSequence:
                 try:  # second chance
                     if isinstance(self.data, np.ndarray):
                         return numpy_to_pyarrow_listarray(self.data)
-                    elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                    elif (
+                        isinstance(self.data, list)
+                        and self.data
+                        and any(isinstance(value, np.ndarray) for value in self.data)
+                    ):
                         return list_of_np_array_to_pyarrow_listarray(self.data)
                     else:
                         return pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True))
