@@ -30,13 +30,13 @@ class Image:
 
     Input: The Image feature accepts as input:
     - A :obj:`str`: Absolute path to the image file (i.e. random access is allowed).
-    - A :obj:`bytes`: Encoded image bytes (used for transforms).
     - A :obj:`dict` with the keys:
 
         - path: String with relative path of the image file to the archive file.
         - bytes: Bytes of the image file.
 
       This is useful for archived files with sequential access.
+    - An :obj:`np.ndarray`: NumPy array representing an image.
     """
 
     id: Optional[str] = None
@@ -52,7 +52,7 @@ class Image:
         """Encode example into a format for Arrow.
 
         Args:
-            value (:obj:`str`, :obj:`bytes`, :obj:`np.ndarray` or :obj:`dict`): Data passed as input to Image feature.
+            value (:obj:`str`, :obj:`np.ndarray` or :obj:`dict`): Data passed as input to Image feature.
 
         Returns:
             :obj:`dict`
@@ -64,8 +64,6 @@ class Image:
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
-        elif isinstance(value, bytes):
-            return {"path": None, "bytes": value}
         elif isinstance(value, np.ndarray):
             image = PIL.Image.fromarray(value.astype(np.uint8))
             return {"path": None, "bytes": image_to_bytes(image)}
@@ -76,7 +74,7 @@ class Image:
         """Decode example image file into image data.
 
         Args:
-            value (obj:`str` or :obj:`dict`): a string with the absolute image file path, image bytes or a dictionary with
+            value (obj:`str` or :obj:`dict`): a string with the absolute image file path, an np.ndarray object or a dictionary with
                 keys:
                 - path: String with absolute or relative audio file path.
                 - bytes: Optionally, the bytes of the audio file.
@@ -89,24 +87,25 @@ class Image:
         except ImportError as err:
             raise ImportError("To support decoding images, please install 'Pillow'.") from err
 
-        if isinstance(value, str):
-            value = {"path": value, "bytes": None}
-        elif isinstance(value, bytes):
-            value = {"path": None, "bytes": value}
-
-        path, bytes_ = (
-            (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
-        )
-        if bytes_ is None:
-            if isinstance(path, str):
-                if is_local_path(path):
-                    image = PIL.Image.open(path)
-                else:
-                    with xopen(path, "rb") as f:
-                        bytes_ = BytesIO(f.read())
-                    image = PIL.Image.open(bytes_)
+        if isinstance(value, np.ndarray):  # Allow casting np.ndarray objects to PIL.Image.Image objects
+            image = PIL.Image.fromarray(value.astype(np.uint8))
         else:
-            image = PIL.Image.open(bytes_)
+            if isinstance(value, str):
+                value = {"path": value, "bytes": None}
+
+            path, bytes_ = (
+                (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
+            )
+            if bytes_ is None:
+                if isinstance(path, str):
+                    if is_local_path(path):
+                        image = PIL.Image.open(path)
+                    else:
+                        with xopen(path, "rb") as f:
+                            bytes_ = BytesIO(f.read())
+                        image = PIL.Image.open(bytes_)
+            else:
+                image = PIL.Image.open(bytes_)
         return image
 
 
@@ -133,7 +132,7 @@ def image_to_bytes(image: "PIL.Image.Image") -> bytes:
 
 
 def objects_to_images(objs):
-    """Encode a list of string, bytes, np.ndarray or PIL Image objects into image representation."""
+    """Encode a list of string, np.ndarray or PIL Image objects into image representation."""
     try:
         import PIL.Image
     except ImportError as err:
@@ -143,12 +142,10 @@ def objects_to_images(objs):
         obj = objs[0]
         if isinstance(obj, str):
             return [{"path": obj, "bytes": None} for obj in objs]
-        elif isinstance(obj, bytes):
-            return [{"path": None, "bytes": obj} for obj in objs]
         elif isinstance(obj, PIL.Image.Image):
             return [{"path": None, "bytes": image_to_bytes(obj)} for obj in objs]
         elif isinstance(obj, np.ndarray):
-            return [{"path": None, "bytes": image_to_bytes(Image.fromarray(obj.astype(np.uint8)))} for obj in objs]
+            return [{"path": None, "bytes": image_to_bytes(PIL.Image.fromarray(obj.astype(np.uint8)))} for obj in objs]
         else:
             return objs
     else:

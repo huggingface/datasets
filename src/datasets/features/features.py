@@ -967,6 +967,8 @@ class Features(dict):
         - a :class:`Array2D`, :class:`Array3D`, :class:`Array4D` or :class:`Array5D` feature for multidimensional arrays
         - an :class:`Audio` feature to store the absolute path to an audio file or a dictionary with the relative path
           to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
+        - an :class:`Image` feature to store the absolute path to an image file, an :obj:`np.ndarray` object or a dictionary with the relative path
+          to an image file ("path" key) and its bytes content ("bytes" key). This feature extracts the image data.
         - :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`, the two features specific to Machine Translation
     """
 
