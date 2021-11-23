@@ -44,10 +44,10 @@ def complex_data_dir(tmp_path):
 
 @pytest.fixture
 def pattern_results(complex_data_dir):
-    # We use fsspec glob as a reference for data files resolution from patterns
+    # We use fsspec glob as a reference for data files resolution from patterns.
     # This is the same as dask for example.
     #
-    # /!\ Here are some behaviors specific to that are different from glob.glob, Path.glob, Path.match or fnmatch:
+    # /!\ Here are some behaviors specific to fsspec glob that are different from glob.glob, Path.glob, Path.match or fnmatch:
     # - '*' matches only first level items
     # - '**' matches all items
     # - '**/*' matches all at least second level items
