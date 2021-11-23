@@ -8,5 +8,5 @@ from .features import (
     _cast_to_python_objects,
     _is_zero_copy_only,
 )
-from .image import Image, _ImageExtensionType, objects_to_images
+from .image import Image, ImageExtensionType, objects_to_images
 from .translation import Translation, TranslationVariableLanguages

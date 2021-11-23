@@ -37,7 +37,7 @@ from pyarrow.types import is_boolean, is_primitive
 
 from datasets import config, utils
 from datasets.features.audio import Audio
-from datasets.features.image import Image, _ImageExtensionType
+from datasets.features.image import Image, ImageExtensionType
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.utils.logging import get_logger
 
@@ -913,7 +913,7 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
-    elif isinstance(pa_type, _ImageExtensionType):
+    elif isinstance(pa_type, ImageExtensionType):
         return Image()
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table

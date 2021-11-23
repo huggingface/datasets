@@ -27,7 +27,7 @@ from . import config, utils
 from .features import (
     Features,
     _ArrayXDExtensionType,
-    _ImageExtensionType,
+    ImageExtensionType,
     cast_to_python_objects,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
@@ -112,7 +112,7 @@ class TypedSequence:
                 else:
                     storage = pa.array(self.data, type.storage_dtype)
                 out = pa.ExtensionArray.from_storage(type, storage)
-            elif isinstance(type, _ImageExtensionType):
+            elif isinstance(type, ImageExtensionType):
                 storage = pa.array(objects_to_images(self.data), type.storage_type)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
@@ -125,7 +125,7 @@ class TypedSequence:
                     out = out.cast(type)
             else:
                 out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
-            if trying_type and not isinstance(type, _ImageExtensionType):
+            if trying_type and not isinstance(type, ImageExtensionType):
                 is_equal = (
                     np.array_equal(np.array(out[0].as_py()), self.data[0])
                     if isinstance(self.data[0], np.ndarray)

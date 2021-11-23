@@ -17,12 +17,26 @@ if TYPE_CHECKING:
 _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
 
 
-class _ImageExtensionType(pa.PyExtensionType):
+class ImageExtensionType(pa.PyExtensionType):
     def __init__(self):
-        pa.PyExtensionType.__init__(self, pa.struct({"path": pa.string(), "bytes": pa.binary()}))
+        pa.PyExtensionType.__init__(self, pa.struct({"bytes": pa.binary(), "path": pa.string()}))
+
+    def __arrow_ext_class__(self):
+        return ImageExtensionArray
 
     def __reduce__(self):
         return self.__class__, ()
+
+
+class ImageExtensionArray(pa.ExtensionArray):
+    def __array__(self):
+        return self.to_numpy(zero_copy_only=False)
+
+    def __getitem__(self, i):
+        return self.storage[i]
+    
+    def to_pylist(self):
+        return self.to_numpy(zero_copy_only=False).tolist()
 
 
 @dataclass(unsafe_hash=True)
@@ -48,7 +62,7 @@ class Image:
     _type: str = field(default="Image", init=False, repr=False)
 
     def __call__(self):
-        return _ImageExtensionType()
+        return ImageExtensionType()
 
     def encode_example(self, value):
         """Encode example into a format for Arrow.
