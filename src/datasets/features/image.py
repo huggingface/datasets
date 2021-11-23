@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, List, Optional
 import numpy as np
 import pyarrow as pa
 
+from .. import config
 from ..utils.file_utils import is_local_path
 from ..utils.streaming_download_manager import xopen
 
@@ -57,10 +58,10 @@ class Image:
         Returns:
             :obj:`dict`
         """
-        try:
+        if config.PIL_AVAILABLE:
             import PIL.Image
-        except ImportError as err:
-            raise ImportError("To support encoding images, please install 'Pillow'.") from err
+        else:
+            raise ImportError("To support encoding images, please install 'Pillow'.") 
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
@@ -82,10 +83,10 @@ class Image:
         Returns:
             :obj:`PIL.Image.Image`
         """
-        try:
+        if config.PIL_AVAILABLE:
             import PIL.Image
-        except ImportError as err:
-            raise ImportError("To support decoding images, please install 'Pillow'.") from err
+        else:
+            raise ImportError("To support decoding images, please install 'Pillow'.")
 
         if isinstance(value, np.ndarray):  # Allow casting np.ndarray objects to PIL.Image.Image objects
             image = PIL.Image.fromarray(value.astype(np.uint8))
@@ -110,10 +111,10 @@ class Image:
 
 
 def list_image_compression_formats():
-    try:
+    if config.PIL_AVAILABLE:
         import PIL.Image
-    except ImportError as err:
-        raise ImportError("To support encoding images, please install 'Pillow'.") from err
+    else:
+        raise ImportError("To support encoding images, please install 'Pillow'.")
 
     global _IMAGE_COMPRESSION_FORMATS
     if _IMAGE_COMPRESSION_FORMATS is None:
@@ -124,7 +125,6 @@ def list_image_compression_formats():
 
 def image_to_bytes(image: "PIL.Image.Image") -> bytes:
     """Convert a PIL Image object to bytes using native compression if possible, otherwise use PNG compression."""
-    # TODO: add option for the user to control compression format (e.g. Image(compression="PNG")?)
     buffer = BytesIO()
     format = image.format if image.format in list_image_compression_formats() else "PNG"
     image.save(buffer, format=format)
@@ -133,10 +133,10 @@ def image_to_bytes(image: "PIL.Image.Image") -> bytes:
 
 def objects_to_images(objs):
     """Encode a list of string, np.ndarray or PIL Image objects into image representation."""
-    try:
+    if config.PIL_AVAILABLE:
         import PIL.Image
-    except ImportError as err:
-        raise ImportError("To support encoding images, please install 'Pillow'.") from err
+    else:
+        raise ImportError("To support encoding images, please install 'Pillow'.")
 
     if objs:
         obj = objs[0]

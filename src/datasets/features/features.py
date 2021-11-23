@@ -176,6 +176,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
     if config.JAX_AVAILABLE and "jax" in sys.modules:
         import jax.numpy as jnp
 
+    if config.PIL_AVAILABLE and "PIL" in sys.modules:
+        import PIL.Image
+
     if isinstance(obj, np.ndarray):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
@@ -198,6 +201,11 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
             return np.asarray(obj), True
         else:
             return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in np.asarray(obj)], True
+    elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
+        if not only_1d_for_numpy:
+            return np.array(obj), True
+        else:
+            return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in np.array(obj)], True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
