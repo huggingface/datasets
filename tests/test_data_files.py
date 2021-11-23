@@ -53,8 +53,8 @@ def pattern_results(complex_data_dir):
     # - '**/*' matches all at least second level items
     #
     # More generally:
-    # - `*`` matches any character except a forward-slash (to match just the file or directory name)
-    # - `**`` matches any character including a forward-slash /
+    # - '*' matches any character except a forward-slash (to match just the file or directory name)
+    # - '**' matches any character including a forward-slash /
 
     return {
         pattern: sorted(
