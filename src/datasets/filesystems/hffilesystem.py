@@ -2,7 +2,7 @@ from typing import Optional
 
 import fsspec
 from fsspec.archive import AbstractArchiveFileSystem
-from huggingface_hub.hf_api import DatasetInfo, HfApi
+from huggingface_hub.hf_api import DatasetInfo
 
 from ..utils.file_utils import get_authentication_headers_for_url, hf_hub_url
 

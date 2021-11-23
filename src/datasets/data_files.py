@@ -1,4 +1,3 @@
-import glob
 import os
 from functools import partial
 from pathlib import Path, PurePath
@@ -30,9 +29,9 @@ class Url(str):
 SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"
 
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
-    str(Split.TRAIN): ["*train*"],
-    str(Split.TEST): ["*test*", "*eval*"],
-    str(Split.VALIDATION): ["*dev*", "*valid*"],
+    str(Split.TRAIN): ["*train*", "**/*train*"],
+    str(Split.TEST): ["*test*", "*eval*", "**/*test*", "**/*eval*"],
+    str(Split.VALIDATION): ["*dev*", "*valid*", "**/*dev*", "**/*valid*"],
 }
 
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
@@ -41,12 +40,23 @@ DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
     str(Split.VALIDATION): ["*dev*/*", "*dev*/**/*", "*valid*/*", "*valid*/**/*"],
 }
 
+DEFAULT_PATTERNS_SPLIT_IN_SUBDIR_NAME = {
+    str(Split.TRAIN): ["**/*train*/*", "**/*train*/**/*"],
+    str(Split.TEST): ["**/*test*/*", "**/*test*/**/*", "**/*eval*/*", "**/*eval*/**/*"],
+    str(Split.VALIDATION): ["**/*dev*/*", "**/dev**/**/*", "**/*valid*/*", "**/*valid*/**/*"],
+}
+
 DEFAULT_PATTERNS_ALL = {
     str(Split.TRAIN): ["*"],
 }
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
-ALL_DEFAULT_PATTERNS = [DEFAULT_PATTERNS_SPLIT_IN_FILENAME, DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME, DEFAULT_PATTERNS_ALL]
+ALL_DEFAULT_PATTERNS = [
+    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
+    DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
+    DEFAULT_PATTERNS_SPLIT_IN_SUBDIR_NAME,
+    DEFAULT_PATTERNS_ALL,
+]
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
 
@@ -141,6 +151,10 @@ def _resolve_single_pattern_locally(
         if allowed_extensions is not None:
             error_msg += f" with any supported extension {list(allowed_extensions)}"
         raise FileNotFoundError(error_msg)
+
+    import warnings
+
+    warnings.warn(f"[{pattern}]={len(out)}")
     return sorted(out)
 
 
