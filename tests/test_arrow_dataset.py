@@ -922,7 +922,9 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:  # with_indices AND with_rank
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 fingerprint = dset._fingerprint
-                with dset.map(picklable_map_function_with_indices_and_rank, num_proc=3, with_indices=True, with_rank=True) as dset_test:
+                with dset.map(
+                    picklable_map_function_with_indices_and_rank, num_proc=3, with_indices=True, with_rank=True
+                ) as dset_test:
                     self.assertEqual(len(dset_test), 30)
                     self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
                     self.assertDictEqual(
