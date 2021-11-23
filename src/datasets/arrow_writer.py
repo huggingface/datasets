@@ -26,8 +26,8 @@ import pyarrow as pa
 from . import config, utils
 from .features import (
     Features,
-    _ArrayXDExtensionType,
     ImageExtensionType,
+    _ArrayXDExtensionType,
     cast_to_python_objects,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,

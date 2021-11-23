@@ -34,7 +34,7 @@ class ImageExtensionArray(pa.ExtensionArray):
 
     def __getitem__(self, i):
         return self.storage[i]
-    
+
     def to_pylist(self):
         return self.to_numpy(zero_copy_only=False).tolist()
 
