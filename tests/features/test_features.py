@@ -226,6 +226,8 @@ def test_classlabel_str2int():
         assert classlabel.str2int(label) == names.index(label)
     with pytest.raises(KeyError):
         classlabel.str2int("__bad_label_name__")
+    with pytest.raises(ValueError):
+        classlabel.str2int(1)
 
 
 def test_classlabel_int2str():

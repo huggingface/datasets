@@ -104,7 +104,8 @@ class IndexedTableMixin:
         than pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in indices) since NumPy can compute
         the binary searches in parallel, highly optimized C
         """
-        assert len(indices), "Indices must be non-empty"
+        if not len(indices):
+            raise ValueError("Indices must be non-empty")
         batch_indices = np.searchsorted(self._offsets, indices, side="right") - 1
         return pa.Table.from_batches(
             [

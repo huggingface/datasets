@@ -614,17 +614,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Sanity checks
 
-        assert self.features is not None, "Features can't be None in a Dataset object"
-        assert self._fingerprint is not None, "Fingerprint can't be None in a Dataset object"
+        if self.features is None:
+            raise ValueError("Features can't be None in a Dataset object")
+        if self._fingerprint is None:
+            raise ValueError("Fingerprint can't be None in a Dataset object")
         if self.info.features.type != inferred_features.type:
             raise ValueError(
                 f"External features info don't match the dataset:\nGot\n{self.info.features}\nwith type\n{self.info.features.type}\n\nbut expected something like\n{inferred_features}\nwith type\n{inferred_features.type}"
             )
 
         if self._indices is not None:
-            assert pa.types.is_unsigned_integer(
+            if not pa.types.is_unsigned_integer(
                 self._indices.column(0)[0].type
-            ), f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}"
+            ):
+                raise ValueError(f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}")
         counter = Counter(self._data.column_names)
         if not all(count == 1 for count in counter.values()):
             duplicated_columns = [col for col in counter if counter[col] > 1]
@@ -934,9 +937,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             fs (:class:`~filesystems.S3FileSystem`, ``fsspec.spec.AbstractFileSystem``, optional, defaults ``None``):
                 Instance of the remote filesystem used to download the files from.
         """
-        assert (
-            not self.list_indexes()
-        ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
+        if self.list_indexes():
+            raise ValueError("please remove all the indexes using `dataset.drop_index` before saving a dataset")
 
         dataset = self.flatten_indices() if self._indices is not None else self
 
@@ -1950,10 +1952,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
-        assert (
-            not keep_in_memory or cache_file_name is None
-        ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
-        assert num_proc is None or num_proc > 0, "num_proc must be an integer > 0."
+        if keep_in_memory and cache_file_name is not None:
+            raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
+
+        if num_proc is not None and num_proc <= 0:
+            raise ValueError("num_proc must be an integer > 0.")
 
         # If the array is empty we do nothing
         if len(self) == 0:
@@ -2117,16 +2120,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         for i, (kwds, cached_shard) in enumerate(zip(kwds_per_shard, transformed_shards))
                         if cached_shard is None
                     }
-                    assert (
-                        len(results) == nb_of_missing_shards
-                    ), "The number of missing cached shards needs to correspond to the number of `_map_single` we're running"
+                    if len(results) != nb_of_missing_shards:
+                        raise ValueError("The number of missing cached shards needs to correspond to the number of `_map_single` we're running")
 
                     for index, async_result in results.items():
                         transformed_shards[index] = async_result.get()
 
-            assert (
-                transformed_shards.count(None) == 0
-            ), "All shards have to be defined Datasets, none should still be missing."
+            if transformed_shards.count(None) != 0:
+                raise ValueError("All shards have to be defined Datasets, none should still be missing.")
 
             logger.info(f"Concatenating {num_proc} shards")
             result = concatenate_datasets(transformed_shards)
@@ -2575,11 +2576,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         current Dataset.
         """
 
-        assert (
-            indices_cache_file_name is not None or indices_buffer is not None
-        ), "At least one of indices_cache_file_name or indices_buffer must be provided."
+        if indices_cache_file_name is None and indices_buffer is None:
+            raise ValueError("At least one of indices_cache_file_name or indices_buffer must be provided.")
 
-        assert fingerprint is not None, "please specify a fingerprint for the dataset with indices"
+        if fingerprint is None:
+            raise ValueError("please specify a fingerprint for the dataset with indices")
+
         if indices_cache_file_name is not None:
             indices_table = MemoryMappedTable.from_file(indices_cache_file_name)
         else:
@@ -2618,9 +2620,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             new_fingerprint (`Optional[str]`, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
-        assert (
-            not keep_in_memory or indices_cache_file_name is None
-        ), "Please use either `keep_in_memory` or `indices_cache_file_name` but not both."
+        if keep_in_memory and indices_cache_file_name is not None:
+            raise ValueError("Please use either `keep_in_memory` or `indices_cache_file_name` but not both.")
+
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
                 "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
@@ -2800,9 +2802,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if seed is not None and generator is not None:
             raise ValueError("Both `seed` and `generator` were provided. Please specify just one of them.")
 
-        assert generator is None or isinstance(
+        if generator is not None and not isinstance(
             generator, np.random.Generator
-        ), "The provided generator must be an instance of numpy.random.Generator"
+        ):
+            raise ValueError("The provided generator must be an instance of numpy.random.Generator")
 
         if generator is None:
             if seed is None:
@@ -3067,7 +3070,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
         """
-        assert 0 <= index < num_shards, "index should be in [0, num_shards-1]"
+        if not 0 <= index < num_shards:
+            raise ValueError("index should be in [0, num_shards-1]")
         if contiguous:
             div = len(self) // num_shards
             mod = len(self) % num_shards
@@ -3157,8 +3161,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for ex in self:
                 yield serialize_example(ex)
 
-        assert self._format_type == "numpy", "Dataset format must be numpy before exporting"
-        assert filename.endswith(".tfrecord")
+        if self._format_type != "numpy":
+            raise ValueError("Dataset format must be numpy before exporting")
+        if not filename.endswith(".tfrecord"):
+            raise ValueError("filename {filename} must end with .tfrecord")
         tf_dataset = tf.data.Dataset.from_generator(generator, output_types=tf.string, output_shapes=())
         writer = tf.data.experimental.TFRecordWriter(filename)
         logger.info(f"Writing TFRecord to {filename}")
