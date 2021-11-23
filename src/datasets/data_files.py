@@ -41,7 +41,7 @@ DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
 }
 
 DEFAULT_PATTERNS_ALL = {
-    str(Split.TRAIN): ["*"],
+    str(Split.TRAIN): ["**"],
 }
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
