@@ -37,6 +37,7 @@ class Image:
         - bytes: Bytes of the image file.
 
       This is useful for archived files with sequential access.
+
     - An :obj:`np.ndarray`: NumPy array representing an image.
     """
 
