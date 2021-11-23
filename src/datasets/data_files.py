@@ -154,13 +154,29 @@ def resolve_patterns_locally_or_by_urls(
     Resolve the paths and URLs of the data files from the patterns passed by the user.
     URLs are just returned as is.
 
+    You can use patterns to resolve multiple local files. Here are a few examples:
+    - *.csv to match all the CSV files at the first level
+    - **.csv to match all the CSV files at any level
+    - data/* to match all the files inside "data"
+    - data/** to match all the files inside "data" and its subdirectories
+
+    The patterns are resolved using the fsspec glob.
+    Here are some behaviors specific to fsspec glob that are different from glob.glob, Path.glob, Path.match or fnmatch:
+    - '*' matches only first level items
+    - '**' matches all items
+    - '**/*' matches all at least second level items
+
+    More generally:
+    - '*' matches any character except a forward-slash (to match just the file or directory name)
+    - '**' matches any character including a forward-slash /
+
     Examples:
 
         >>> import huggingface_hub
-        >>> from datasets.data_files import resolve_patterns_in_dataset_repository
-        >>> base_path = /Users/username/Desktop/hf/datasets
+        >>> from datasets.data_files import resolve_patterns_locally_or_by_urls
+        >>> base_path = "."
         >>> resolve_patterns_locally_or_by_urls(base_path, ["src/**/*.yaml"])
-        [PosixPath('/Users/quentinlhoest/Desktop/hf/shirte/datasets/src/datasets/utils/resources/readme_structure.yaml')]
+        [PosixPath('/Users/quentinlhoest/Desktop/hf/datasets/src/datasets/utils/resources/readme_structure.yaml')]
 
     Args:
         base_path (str): Base path to use when resolving relative paths.
@@ -321,12 +337,28 @@ def resolve_patterns_in_dataset_repository(
     """
     Resolve the URLs of the data files from the patterns passed by the user.
 
+    You can use patterns to resolve multiple files. Here are a few examples:
+    - *.csv to match all the CSV files at the first level
+    - **.csv to match all the CSV files at any level
+    - data/* to match all the files inside "data"
+    - data/** to match all the files inside "data" and its subdirectories
+
+    The patterns are resolved using the fsspec glob.
+    Here are some behaviors specific to fsspec glob that are different from glob.glob, Path.glob, Path.match or fnmatch:
+    - '*' matches only first level items
+    - '**' matches all items
+    - '**/*' matches all at least second level items
+
+    More generally:
+    - '*' matches any character except a forward-slash (to match just the file or directory name)
+    - '**' matches any character including a forward-slash /
+
     Examples:
 
         >>> import huggingface_hub
         >>> from datasets.data_files import resolve_patterns_in_dataset_repository
         >>> dataset_info = huggingface_hub.HfApi().dataset_info("lhoestq/demo1")
-        >>> resolve_patterns_in_dataset_repository(dataset_info, ["*.csv"])
+        >>> resolve_patterns_in_dataset_repository(dataset_info, ["data/*.csv"])
         ['https://huggingface.co/datasets/lhoestq/demo1/resolve/0ca0d9f35b390ad11516095aeb27fd30cfe72578/data/test.csv',
         'https://huggingface.co/datasets/lhoestq/demo1/resolve/0ca0d9f35b390ad11516095aeb27fd30cfe72578/data/train.csv']
 
@@ -367,7 +399,7 @@ def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.Data
 
     Output:
 
-        {"train": ["*"]}
+        {"train": ["**"]}
 
     Input:
 
@@ -393,7 +425,7 @@ def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.Data
 
     Output:
 
-        {"train": ["*train*"], "test": ["*test*"]}
+        {"train": ["**train*"], "test": ["**test*"]}
 
     Input:
 
@@ -411,7 +443,7 @@ def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.Data
 
     Output:
 
-        {"train": ["*train*/*", "*train*/**/*"], "test": ["*test*/*", "*test*/**/*"]}
+        {"train": ["**train*/**"], "test": ["**test*/**"]}
 
     Input:
 
