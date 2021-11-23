@@ -42,7 +42,6 @@ from huggingface_hub import HfApi
 from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
-from tqdm.contrib.concurrent import thread_map
 
 from datasets.tasks.text_classification import TextClassification
 
@@ -3319,7 +3318,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
-        threading: Optional[bool] = False,
     ):
         """Pushes the dataset to the hub.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -3344,9 +3342,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_size (Optional :obj:`int`):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
-            threading (Optional :obj:`bool`, defaults to :obj:`False`):
-                Whether to use multithreading where applicable. Experimental parameter as this will burst the
-                server with calls, some of which may fail.
 
         Example:
             .. code-block:: python
@@ -3415,25 +3410,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
 
         if len(file_shards_to_delete):
-            # Making this available just for testing purposes: the moon-staging endpoint is having a super hard time
-            # digesting concurrent requests. Locally, I get error 500 returned 90% of the time when threading.
-            # would like to confirm this is only related to moon-staging before removing the ability to toggle threading
-            # on/off.
-            if threading:
-                thread_map(
-                    delete_file,
-                    file_shards_to_delete,
-                    desc="Deleting unused files from dataset repository",
-                    total=len(file_shards_to_delete),
-                )
-            else:
-                for file in utils.tqdm(
-                    file_shards_to_delete,
-                    desc="Deleting unused files from dataset repository",
-                    total=len(file_shards_to_delete),
-                    disable=bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled(),
-                ):
-                    delete_file(file)
+            for file in utils.tqdm(
+                file_shards_to_delete,
+                desc="Deleting unused files from dataset repository",
+                total=len(file_shards_to_delete),
+                disable=bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled(),
+            ):
+                delete_file(file)
 
         for index, shard in utils.tqdm(
             enumerate(shards),
