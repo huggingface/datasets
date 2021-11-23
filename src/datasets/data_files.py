@@ -219,7 +219,7 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
 
     Output:
 
-        {"train": ["*"]}
+        {"train": ["**"]}
 
     Input:
 
@@ -245,7 +245,7 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
 
     Output:
 
-        {"train": [*train*], "test": ["*test*"]}
+        {"train": [**train*], "test": ["**test*"]}
 
     Input:
 
@@ -263,7 +263,7 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
 
     Output:
 
-        {"train": [*train*/*, "*train*/**/*"], "test": ["*test*/*", "*test*/**/*"]}
+        {"train": ["**train*/**"], "test": ["**test*/**"]}
 
     Input:
 
@@ -281,9 +281,9 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
     Output:
 
         {
-            "train": [data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*],
-            "test": [data/test-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*],
-            "random": [data/random-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*],
+            "train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
+            "test": ["data/test-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
+            "random": ["data/random-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
         }
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
