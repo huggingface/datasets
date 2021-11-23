@@ -21,7 +21,9 @@ from datasets.utils.file_utils import hf_hub_url
 
 _TEST_PATTERNS = ["*", "**", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]
 _FILES_TO_IGNORE = {".dummy", "README.md", "dummy_data.zip", "dataset_infos.json"}
-_TEST_PATTERNS_SIZES = dict([("*", 0), ("**", 2), ("**/*", 2), ("*.txt", 0), ("data/*", 2), ("**/*.txt", 2), ("**/train.txt", 1)])
+_TEST_PATTERNS_SIZES = dict(
+    [("*", 0), ("**", 2), ("**/*", 2), ("*.txt", 0), ("data/*", 2), ("**/*.txt", 2), ("**/train.txt", 1)]
+)
 
 _TEST_URL = "https://raw.githubusercontent.com/huggingface/datasets/9675a5a1e7b99a86f9c250f6ea5fa5d1e6d5cc7d/setup.py"
 
@@ -116,9 +118,7 @@ def test_resolve_patterns_locally_or_by_urls_with_absolute_path(tmp_path, comple
     assert len(resolved_data_files) == 1
 
 
-@pytest.mark.parametrize(
-    "pattern,size,extensions", [("**", 2, ["txt"]), ("**", 2, None), ("**", 0, ["blablabla"])]
-)
+@pytest.mark.parametrize("pattern,size,extensions", [("**", 2, ["txt"]), ("**", 2, None), ("**", 0, ["blablabla"])])
 def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, pattern, size, extensions):
     if size > 0:
         resolved_data_files = resolve_patterns_locally_or_by_urls(
@@ -156,9 +156,7 @@ def test_resolve_patterns_in_dataset_repository(hub_dataset_info, pattern, hub_d
         assert len(hub_dataset_info_patterns_results[pattern]) == 0
 
 
-@pytest.mark.parametrize(
-    "pattern,size,extensions", [("**", 2, ["txt"]), ("**", 2, None), ("**", 0, ["blablabla"])]
-)
+@pytest.mark.parametrize("pattern,size,extensions", [("**", 2, ["txt"]), ("**", 2, None), ("**", 0, ["blablabla"])])
 def test_resolve_patterns_in_dataset_repository_with_extensions(hub_dataset_info, pattern, size, extensions):
     if size > 0:
         resolved_data_files = resolve_patterns_in_dataset_repository(
