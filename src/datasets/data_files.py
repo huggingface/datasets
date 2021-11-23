@@ -5,11 +5,14 @@ from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 import huggingface_hub
+from fsspec.implementations.local import LocalFileSystem
 from tqdm.contrib.concurrent import thread_map
+
+from datasets.filesystems.hffilesystem import HfFileSystem
 
 from .splits import Split
 from .utils import logging
-from .utils.file_utils import hf_hub_url, is_relative_path, is_remote_url, request_etag
+from .utils.file_utils import hf_hub_url, is_remote_url, request_etag
 from .utils.py_utils import string_to_dict
 from .utils.tqdm_utils import tqdm
 
@@ -33,9 +36,9 @@ DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
 }
 
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
-    str(Split.TRAIN): ["*train*/**/*"],
-    str(Split.TEST): ["*test*/**/*", "*eval*/**/*"],
-    str(Split.VALIDATION): ["*dev*/**/*", "*valid*/**/*"],
+    str(Split.TRAIN): ["*train*/*", "*train*/**/*"],
+    str(Split.TEST): ["*test*/*", "*test*/**/*", "*eval*/*", "*eval*/**/*"],
+    str(Split.VALIDATION): ["*dev*/*", "*dev*/**/*", "*valid*/*", "*valid*/**/*"],
 }
 
 DEFAULT_PATTERNS_ALL = {
@@ -111,16 +114,14 @@ def _resolve_single_pattern_locally(
     It also supports absolute paths in patterns.
     If an URL is passed, it is returned as is.
     """
+    pattern = os.path.join(base_path, pattern)
     data_files_ignore = FILES_TO_IGNORE
-    if is_relative_path(pattern):
-        glob_iter = list(Path(base_path).rglob(pattern))
-    else:
-        glob_iter = [Path(filepath) for filepath in glob.glob(pattern)]
-
+    fs = LocalFileSystem()
+    glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
     matched_paths = [
-        filepath.resolve()
+        Path(filepath).resolve()
         for filepath in glob_iter
-        if filepath.name not in data_files_ignore and not filepath.name.startswith(".") and filepath.is_file()
+        if filepath.name not in data_files_ignore and not filepath.name.startswith(".")
     ]
     if allowed_extensions is not None:
         out = [
@@ -280,14 +281,13 @@ def _resolve_single_pattern_in_dataset_repository(
     pattern: str,
     allowed_extensions: Optional[list] = None,
 ) -> List[PurePath]:
-    all_data_files = [
-        PurePath("/" + dataset_file.rfilename) for dataset_file in dataset_info.siblings
-    ]  # add a / at the beginning to make the pattern **/* match files at the root
     data_files_ignore = FILES_TO_IGNORE
+    fs = HfFileSystem(repo_info=dataset_info)
+    glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
     matched_paths = [
-        filepath.relative_to("/")
-        for filepath in all_data_files
-        if filepath.name not in data_files_ignore and not filepath.name.startswith(".") and filepath.match(pattern)
+        filepath
+        for filepath in glob_iter
+        if filepath.name not in data_files_ignore and not filepath.name.startswith(".")
     ]
     if allowed_extensions is not None:
         out = [
