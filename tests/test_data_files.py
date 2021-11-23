@@ -1,9 +1,9 @@
-import glob
 import os
 from itertools import chain
 from pathlib import Path, PurePath
 from unittest.mock import patch
 
+import fsspec
 import pytest
 from huggingface_hub.hf_api import DatasetInfo
 
@@ -19,9 +19,9 @@ from datasets.fingerprint import Hasher
 from datasets.utils.file_utils import hf_hub_url
 
 
-_TEST_PATTERNS = ["*", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]
+_TEST_PATTERNS = ["*", "**", "**/*", "*.txt", "data/*", "**/*.txt", "**/train.txt"]
 _FILES_TO_IGNORE = {".dummy", "README.md", "dummy_data.zip", "dataset_infos.json"}
-_TEST_PATTERNS_SIZES = dict([("*", 0), ("**/*", 2), ("*.txt", 0), ("data/*", 2), ("**/*.txt", 2), ("**/train.txt", 1)])
+_TEST_PATTERNS_SIZES = dict([("*", 0), ("**", 2), ("**/*", 2), ("*.txt", 0), ("data/*", 2), ("**/*.txt", 2), ("**/train.txt", 1)])
 
 _TEST_URL = "https://raw.githubusercontent.com/huggingface/datasets/9675a5a1e7b99a86f9c250f6ea5fa5d1e6d5cc7d/setup.py"
 
@@ -44,17 +44,23 @@ def complex_data_dir(tmp_path):
 
 @pytest.fixture
 def pattern_results(complex_data_dir):
-    # We use glob.glob as a reference for data files resolution from patterns
+    # We use fsspec glob as a reference for data files resolution from patterns
     # This is the same as dask for example.
     #
-    # /!\ Here are some behaviors specific to glob.glob that are different from Path.glob, Path.match or fnmatch:
-    # - '*' matches only first level files
-    # - '**/*' matches only at least second level files
+    # /!\ Here are some behaviors specific to that are different from glob.glob, Path.glob, Path.match or fnmatch:
+    # - '*' matches only first level items
+    # - '**' matches all items
+    # - '**/*' matches all at least second level items
+    #
+    # More generally:
+    # - `*`` matches any character except a forward-slash (to match just the file or directory name)
+    # - `**`` matches any character including a forward-slash /
+
     return {
         pattern: sorted(
             [
                 path
-                for path in glob.glob(os.path.join(complex_data_dir, pattern))
+                for path in fsspec.filesystem("file").glob(os.path.join(complex_data_dir, pattern))
                 if Path(path).name not in _FILES_TO_IGNORE and Path(path).is_file()
             ]
         )
@@ -111,7 +117,7 @@ def test_resolve_patterns_locally_or_by_urls_with_absolute_path(tmp_path, comple
 
 
 @pytest.mark.parametrize(
-    "pattern,size,extensions", [("**/*", 2, ["txt"]), ("**/*", 2, None), ("**/*", 0, ["blablabla"])]
+    "pattern,size,extensions", [("**", 2, ["txt"]), ("**", 2, None), ("**", 0, ["blablabla"])]
 )
 def test_resolve_patterns_locally_or_by_urls_with_extensions(complex_data_dir, pattern, size, extensions):
     if size > 0:
@@ -151,7 +157,7 @@ def test_resolve_patterns_in_dataset_repository(hub_dataset_info, pattern, hub_d
 
 
 @pytest.mark.parametrize(
-    "pattern,size,extensions", [("**/*", 2, ["txt"]), ("**/*", 2, None), ("**/*", 0, ["blablabla"])]
+    "pattern,size,extensions", [("**", 2, ["txt"]), ("**", 2, None), ("**", 0, ["blablabla"])]
 )
 def test_resolve_patterns_in_dataset_repository_with_extensions(hub_dataset_info, pattern, size, extensions):
     if size > 0:

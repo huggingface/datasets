@@ -1,13 +1,14 @@
+from pathlib import PurePath
 from typing import Optional
 
 import fsspec
-from fsspec.archive import AbstractArchiveFileSystem
+from fsspec import AbstractFileSystem
 from huggingface_hub.hf_api import DatasetInfo
 
 from ..utils.file_utils import get_authentication_headers_for_url, hf_hub_url
 
 
-class HfFileSystem(AbstractArchiveFileSystem):
+class HfFileSystem(AbstractFileSystem):
     """Interface to files in a Hugging face repository"""
 
     root_marker = ""
@@ -58,3 +59,31 @@ class HfFileSystem(AbstractArchiveFileSystem):
             mode=mode,
             headers=get_authentication_headers_for_url(url, use_auth_token=self.token),
         ).open()
+
+    def info(self, path, **kwargs):
+        self._get_dirs()
+        path = self._strip_protocol(path)
+        if path in self.dir_cache:
+            return self.dir_cache[path]
+        else:
+            raise FileNotFoundError(path)
+
+    def ls(self, path, detail=False, **kwargs):
+        self._get_dirs()
+        path = PurePath(path.strip("/"))
+        paths = {}
+        for p, f in self.dir_cache.items():
+            p = PurePath(p.strip("/"))
+            root = p.parent
+            if root == path:
+                # file is in directory -> return file
+                paths[str(p)] = f
+            elif path in p.parents:
+                # file is in subdirectory -> return first intermediate directory
+                ppath = str(path / p.relative_to(path).parts[0])
+                paths[ppath] = {"name": ppath + "/", "size": 0, "type": "directory"}
+        out = list(paths.values())
+        if detail:
+            return out
+        else:
+            return list(sorted(f["name"] for f in out))
