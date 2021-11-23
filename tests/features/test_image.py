@@ -5,21 +5,7 @@ from datasets.features import Features, Image
 from datasets.features.features import Value
 from datasets.features.image import image_to_bytes
 
-
-try:
-    import PIL.Image
-
-    PIL_AVAILABLE = True
-except ImportError:
-    PIL = None
-    PIL.Image = None
-    PIL_AVAILABLE = False
-
-
-require_pil = pytest.mark.skipif(
-    not PIL_AVAILABLE,
-    reason="Test requires 'Pillow': `pip install Pillow",
-)
+from ..utils import require_pil
 
 
 def test_image_instantiation():
@@ -32,6 +18,8 @@ def test_image_instantiation():
 
 @require_pil
 def test_image_decode_example(shared_datadir):
+    import PIL.Image
+
     image_path = str(shared_datadir / f"test_image_rgb.jpg")
     image = Image()
     decoded_example = image.decode_example(image_path)
@@ -43,6 +31,8 @@ def test_image_decode_example(shared_datadir):
 
 @require_pil
 def test_dataset_with_image_feature(shared_datadir):
+    import PIL.Image
+
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     data = {"image": [image_path]}
     features = Features({"image": Image()})

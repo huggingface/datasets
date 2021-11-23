@@ -61,7 +61,7 @@ class Image:
         if config.PIL_AVAILABLE:
             import PIL.Image
         else:
-            raise ImportError("To support encoding images, please install 'Pillow'.") 
+            raise ImportError("To support encoding images, please install 'Pillow'.")
 
         if isinstance(value, str):
             return {"path": value, "bytes": None}
