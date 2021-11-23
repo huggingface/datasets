@@ -171,7 +171,7 @@ class DownloadManager:
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths.data
 
-    def download(self, url_or_urls):
+    def download(self, url_or_urls, **caching_params):
         """Download given url(s).
 
         Args:
@@ -189,7 +189,7 @@ class DownloadManager:
         if download_config.num_proc is None:
             download_config.num_proc = 16
 
-        download_func = partial(self._download, download_config=download_config)
+        download_func = partial(self._download, download_config=download_config, **caching_params)
 
         start_time = datetime.now()
         downloaded_path_or_paths = map_nested(
@@ -208,12 +208,12 @@ class DownloadManager:
 
         return downloaded_path_or_paths.data
 
-    def _download(self, url_or_filename: str, download_config: DownloadConfig) -> str:
+    def _download(self, url_or_filename: str, download_config: DownloadConfig, **caching_params) -> str:
         url_or_filename = str(url_or_filename)
         if is_relative_path(url_or_filename):
             # append the relative path to the base_path
             url_or_filename = url_or_path_join(self._base_path, url_or_filename)
-        return cached_path(url_or_filename, download_config=download_config)
+        return cached_path(url_or_filename, download_config=download_config, **caching_params)
 
     def iter_archive(self, path):
         """Returns iterator over files within archive.
@@ -264,7 +264,7 @@ class DownloadManager:
         self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
         return extracted_paths.data
 
-    def download_and_extract(self, url_or_urls):
+    def download_and_extract(self, url_or_urls, **caching_params):
         """Download and extract given url_or_urls.
 
         Is roughly equivalent to:
@@ -276,11 +276,12 @@ class DownloadManager:
         Args:
             url_or_urls: url or `list`/`dict` of urls to download and extract. Each
                 url is a `str`.
+            **caching_params: params to pass to :func:`datasets.utils.file_utils.get_from_cache`.
 
         Returns:
             extracted_path(s): `str`, extracted paths of given URL(s).
         """
-        return self.extract(self.download(url_or_urls))
+        return self.extract(self.download(url_or_urls, **caching_params))
 
     def get_recorded_sizes_checksums(self):
         return self._recorded_sizes_checksums.copy()

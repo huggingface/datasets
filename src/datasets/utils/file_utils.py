@@ -22,7 +22,7 @@ from functools import partial
 from hashlib import sha256
 from pathlib import Path
 from typing import Dict, Optional, TypeVar, Union
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import numpy as np
 import requests
@@ -191,7 +191,7 @@ def url_or_path_parent(url_or_path: str) -> str:
         return os.path.dirname(url_or_path)
 
 
-def hash_url_to_filename(url, etag=None):
+def hash_url_to_filename(url, etag=None, ignore_url_params=False):
     """
     Convert `url` into a hashed filename in a repeatable way.
     If `etag` is specified, append its hash to the url's, delimited
@@ -281,6 +281,7 @@ def cached_path(
         ValueError: if it couldn't parse the url or filename correctly
         requests.exceptions.ConnectionError: in case of internet connection issue
     """
+    ignore_url_params = kwargs.pop("ignore_url_params", False)
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
@@ -303,6 +304,7 @@ def cached_path(
             use_etag=download_config.use_etag,
             max_retries=download_config.max_retries,
             use_auth_token=download_config.use_auth_token,
+            ignore_url_params=ignore_url_params
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
@@ -502,6 +504,7 @@ def get_from_cache(
     use_etag=True,
     max_retries=0,
     use_auth_token=None,
+    ignore_url_params=False,
 ) -> str:
     """
     Given a URL, look for the corresponding file in the local cache.
@@ -523,7 +526,12 @@ def get_from_cache(
 
     os.makedirs(cache_dir, exist_ok=True)
 
-    original_url = url  # Some parameters may be added
+    if ignore_url_params:
+        # strip all query parameters and #fragments from the URL
+        cached_url = urljoin(url, urlparse(url).path)
+    else:
+        cached_url = url  # additional parameters may be added to the given URL
+
     connected = False
     response = None
     cookies = None
@@ -531,7 +539,7 @@ def get_from_cache(
 
     # Try a first time to file the file on the local file system without eTag (None)
     # if we don't ask for 'force_download' then we spare a request
-    filename = hash_url_to_filename(original_url, etag=None)
+    filename = hash_url_to_filename(cached_url, etag=None)
     cache_path = os.path.join(cache_dir, filename)
 
     if os.path.exists(cache_path) and not force_download and not use_etag:
@@ -598,7 +606,7 @@ def get_from_cache(
         raise ConnectionError(f"Couldn't reach {url}")
 
     # Try a second time
-    filename = hash_url_to_filename(original_url, etag)
+    filename = hash_url_to_filename(cached_url, etag)
     cache_path = os.path.join(cache_dir, filename)
 
     if os.path.exists(cache_path) and not force_download:
