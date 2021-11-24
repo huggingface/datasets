@@ -7,7 +7,6 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
-from datasets import config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
 from datasets.features import Array2DExtensionType
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError

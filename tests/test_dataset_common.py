@@ -24,7 +24,6 @@ from unittest import TestCase
 
 from absl.testing import parameterized
 
-import datasets
 from datasets.builder import BuilderConfig, DatasetBuilder
 from datasets.features import ClassLabel, Features, Value
 from datasets.load import dataset_module_factory, import_main_class, load_dataset
