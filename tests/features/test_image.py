@@ -1,4 +1,4 @@
-import pytest
+import pandas as pd
 
 from datasets import Dataset
 from datasets.features import Features, Image
@@ -39,12 +39,14 @@ def test_dataset_with_image_feature(shared_datadir):
     dset = Dataset.from_dict(data, features=features)
 
     item = dset[0]
+    assert item.keys() == {"image"}
     assert isinstance(item["image"], PIL.Image.Image)
     assert item["image"].size == (640, 480)
     assert item["image"].mode == "RGB"
 
     batch = dset[:1]
     assert len(batch) == 1
+    assert batch.keys() == {"image"}
     assert isinstance(batch["image"], list) and all(isinstance(item, PIL.Image.Image) for item in batch["image"])
     assert batch["image"][0].size == (640, 480)
     assert batch["image"][0].mode == "RGB"
@@ -159,9 +161,10 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
         assert item["image"]["bytes"] == image_to_bytes(pil_image.resize((100, 100)))
 
 
-@pytest.mark.skip(reason="TODO: Support formatting with Pandas")
 @require_pil
 def test_formatted_dataset_with_image_feature(shared_datadir):
+    import PIL.Image
+
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     data = {"image": [image_path, image_path]}
     features = Features({"image": Image()})
@@ -169,42 +172,38 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
     with dset.formatted_as("numpy"):
         item = dset[0]
         assert item.keys() == {"image"}
-        assert item["image"].keys() == {"path", "array", "mode"}
-        assert item["image"]["path"] == image_path
-        assert item["image"]["array"].shape == (3, 480, 640)
-        assert item["image"]["mode"] == "RGB"
+        assert isinstance(item["image"], PIL.Image.Image)
+        assert item["image"].size == (640, 480)
+        assert item["image"].mode == "RGB"
         batch = dset[:1]
         assert batch.keys() == {"image"}
-        assert len(batch["image"]) == 1
-        assert batch["image"][0].keys() == {"path", "array", "mode"}
-        assert batch["image"][0]["path"] == image_path
-        assert batch["image"][0]["array"].shape == (3, 480, 640)
-        assert batch["image"][0]["mode"] == "RGB"
+        assert len(batch) == 1
+        assert isinstance(batch["image"], list) and all(isinstance(item, PIL.Image.Image) for item in batch["image"])
+        assert batch["image"][0].size == (640, 480)
+        assert batch["image"][0].mode == "RGB"
         column = dset["image"]
         assert len(column) == 2
-        assert column[0].keys() == {"path", "array", "mode"}
-        assert column[0]["path"] == image_path
-        assert column[0]["array"].shape == (3, 480, 640)
-        assert column[0]["mode"] == "RGB"
+        assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+        assert column[0].size == (640, 480)
+        assert column[0].mode == "RGB"
 
     with dset.formatted_as("pandas"):
         item = dset[0]
         assert item.shape == (1, 1)
         assert item.columns == ["image"]
-        assert item["image"][0].keys() == {"path", "array", "mode"}
-        assert item["image"][0]["path"] == image_path
-        assert item["image"][0]["array"].shape == (3, 480, 640)
-        assert item["image"][0]["mode"] == "RGB"
-        item = dset[:1]
-        assert item.shape == (1, 1)
-        assert item.columns == ["image"]
-        assert item["image"][0].keys() == {"path", "array", "mode"}
-        assert item["image"][0]["path"] == image_path
-        assert item["image"][0]["array"].shape == (3, 480, 640)
-        assert item["image"][0]["mode"] == "RGB"
+        assert isinstance(item["image"][0], PIL.Image.Image)
+        assert item["image"][0].size == (640, 480)
+        assert item["image"][0].mode == "RGB"
+        batch = dset[:1]
+        assert batch.shape == (1, 1)
+        assert batch.columns == ["image"]
+        assert isinstance(batch["image"], pd.Series) and all(
+            isinstance(item, PIL.Image.Image) for item in batch["image"]
+        )
+        assert batch["image"][0].size == (640, 480)
+        assert batch["image"][0].mode == "RGB"
         column = dset["image"]
         assert len(column) == 2
-        assert column[0].keys() == {"path", "array", "mode"}
-        assert column[0]["path"] == image_path
-        assert column[0]["array"].shape == (3, 480, 640)
-        assert column[0]["mode"] == "RGB"
+        assert isinstance(column, pd.Series) and all(isinstance(item, PIL.Image.Image) for item in column)
+        assert column[0].size == (640, 480)
+        assert column[0].mode == "RGB"
