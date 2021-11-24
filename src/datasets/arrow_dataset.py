@@ -38,12 +38,10 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from huggingface_hub import HfApi
+from huggingface_hub import HfApi, HfFolder
 from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
-
-from datasets.tasks.text_classification import TextClassification
 
 from . import config, utils
 from .arrow_reader import ArrowReader
@@ -73,6 +71,7 @@ from .table import (
     list_table_cache_files,
 )
 from .tasks import TaskTemplate
+from .tasks.text_classification import TextClassification
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
@@ -3348,6 +3347,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         """
+        api = HfApi()
+        token = token if token is not None else HfFolder.get_token()
+
+        if token is None:
+            raise EnvironmentError(
+                "You need to provide a `token` or be logged in to Hugging Face with " "`huggingface-cli login`."
+            )
 
         if split is None:
             split = self.split or "train"
@@ -3363,9 +3369,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             organization, dataset_name = identifier
         else:
             dataset_name = identifier[0]
-            organization = None
-
-        api = HfApi()
+            organization = api.whoami(token)["name"]
+            repo_id = f"{organization}/{dataset_name}"
 
         try:
             api.create_repo(

@@ -1,11 +1,13 @@
 import tempfile
 import time
 import unittest
+from os.path import expanduser
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
 from huggingface_hub import HfApi
+from huggingface_hub.hf_api import HfFolder
 
 from datasets import Dataset, DatasetDict, load_dataset
 
@@ -16,6 +18,7 @@ ENDPOINT_STAGING = "https://moon-staging.huggingface.co"
 # Should create a __DUMMY_DATASETS_USER__ :)
 USER = "__DUMMY_TRANSFORMERS_USER__"
 PASS = "__DUMMY_TRANSFORMERS_PASS__"
+TOKEN_PATH_STAGING = expanduser("~/.huggingface/staging_token")
 
 
 def with_staging_testing(func):
@@ -52,7 +55,59 @@ class TestPushToHub(TestCase):
         """
         Share this valid token in all tests below.
         """
+        cls._hf_folder_patch = patch(
+            "huggingface_hub.hf_api.HfFolder.path_token",
+            TOKEN_PATH_STAGING,
+        )
+        cls._hf_folder_patch.start()
+
         cls._token = cls._api.login(username=USER, password=PASS)
+        HfFolder.save_token(cls._token)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        HfFolder.delete_token()
+        cls._hf_folder_patch.stop()
+
+    def test_push_dataset_dict_to_hub_no_token(self):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        local_ds = DatasetDict({"train": ds})
+
+        ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+        try:
+            local_ds.push_to_hub(ds_name)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            self.assertDictEqual(local_ds.column_names, hub_ds.column_names)
+            self.assertListEqual(list(local_ds["train"].features.keys()), list(hub_ds["train"].features.keys()))
+            self.assertDictEqual(local_ds["train"].features, hub_ds["train"].features)
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = self._api.list_repo_files(ds_name, repo_type="dataset")
+            self.assertListEqual(files, [".gitattributes", "data/train-00000-of-00001.parquet"])
+        finally:
+            self._api.delete_repo(ds_name.split("/")[1], organization=ds_name.split("/")[0], repo_type="dataset")
+
+    def test_push_dataset_dict_to_hub_name_without_namespace(self):
+        ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
+
+        local_ds = DatasetDict({"train": ds})
+
+        ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+        try:
+            local_ds.push_to_hub(ds_name.split("/")[-1], token=self._token)
+            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+
+            self.assertDictEqual(local_ds.column_names, hub_ds.column_names)
+            self.assertListEqual(list(local_ds["train"].features.keys()), list(hub_ds["train"].features.keys()))
+            self.assertDictEqual(local_ds["train"].features, hub_ds["train"].features)
+
+            # Ensure that there is a single file on the repository that has the correct name
+            files = self._api.list_repo_files(ds_name, repo_type="dataset")
+            self.assertListEqual(files, [".gitattributes", "data/train-00000-of-00001.parquet"])
+        finally:
+            self._api.delete_repo(ds_name.split("/")[1], organization=ds_name.split("/")[0], repo_type="dataset")
 
     def test_push_dataset_dict_to_hub_private(self):
         ds = Dataset.from_dict({"x": [1, 2, 3], "y": [4, 5, 6]})
