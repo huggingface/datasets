@@ -312,7 +312,7 @@ You can also use :func:`datasets.Dataset.map` with indices if you set ``with_ind
     '4: PG & E Corp. shares jumped $ 1.63 or 8 percent to $ 21.03 on the New York Stock Exchange on Friday .'
    ]
 
-You can also use :func:`datasets.Dataset.map` with the rank of the process if you set ``with_rank=True``. This is analogous to `with_indices`. The `rank` argument in the mapped function goes after the `index` one if it is already present. The main use-case for it is to parallelize your computation across several GPUs. This requires setting `multiprocess.set_start_method("spawn")`, without which you will receive a CUDA error: `RuntimeError: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method`.
+You can also use :func:`datasets.Dataset.map` with the rank of the process if you set ``with_rank=True``. This is analogous to ``with_indices``. The ``rank`` argument in the mapped function goes after the ``index`` one if it is already present. The main use-case for it is to parallelize your computation across several GPUs. This requires setting `multiprocess.set_start_method("spawn")`, without which you will receive a CUDA error: `RuntimeError: Cannot re-initialize CUDA in forked subprocess. To use CUDA with multiprocessing, you must use the 'spawn' start method`.
 
 
 .. code-block::
