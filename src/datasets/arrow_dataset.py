@@ -84,11 +84,6 @@ if TYPE_CHECKING:
 
 logger = logging.get_logger(__name__)
 
-if config.PYARROW_VERSION.major == 0:
-    PYARROW_V0 = True
-else:
-    PYARROW_V0 = False
-
 
 class LazyDict(UserDict):
     def __init__(self, data, features=None, decoding=True):
