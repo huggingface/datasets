@@ -31,7 +31,6 @@ from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
     require_jax,
-    require_pyarrow_at_least_3,
     require_s3,
     require_tf,
     require_torch,
@@ -1733,7 +1732,6 @@ class BaseDatasetTest(TestCase):
                     for col_name in dset.column_names:
                         self.assertEqual(len(dset_to_pandas[col_name]), dset.num_rows)
 
-    @require_pyarrow_at_least_3
     def test_to_parquet(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             # File path argument
@@ -2606,7 +2604,6 @@ def _check_parquet_dataset(dataset, expected_features):
         assert dataset.features[feature].dtype == expected_dtype
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_dataset_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
@@ -2616,7 +2613,6 @@ def test_dataset_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_p
     _check_parquet_dataset(dataset, expected_features)
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize(
     "features",
     [
@@ -2638,7 +2634,6 @@ def test_dataset_from_parquet_features(features, parquet_path, tmp_path):
     _check_parquet_dataset(dataset, expected_features)
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 def test_dataset_from_parquet_split(split, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
@@ -2648,7 +2643,6 @@ def test_dataset_from_parquet_split(split, parquet_path, tmp_path):
     assert dataset.split == str(split) if split else "train"
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize("path_type", [str, list])
 def test_dataset_from_parquet_path_type(path_type, parquet_path, tmp_path):
     if issubclass(path_type, str):
