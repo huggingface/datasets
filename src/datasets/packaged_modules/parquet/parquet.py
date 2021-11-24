@@ -25,10 +25,6 @@ class Parquet(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = ParquetConfig
 
     def _info(self):
-        if datasets.config.PYARROW_VERSION.major < 3:
-            raise ImportError(
-                "PyArrow >= 3.0.0 is required to used the Parquet dataset builder: pip install --upgrade pyarrow"
-            )
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
