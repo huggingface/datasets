@@ -70,10 +70,6 @@ class ParquetDatasetWriter:
         batch_size: Optional[int] = None,
         **parquet_writer_kwargs,
     ):
-        if config.PYARROW_VERSION.major < 3:
-            raise ImportError(
-                "PyArrow >= 3.0.0 is required to used the ParquetDatasetWriter: pip install --upgrade pyarrow"
-            )
         self.dataset = dataset
         self.path_or_buf = path_or_buf
         self.batch_size = batch_size
