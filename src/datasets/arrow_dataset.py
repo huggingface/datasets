@@ -2172,9 +2172,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             function (:obj:`Callable`): with one of the following signature:
                 - `function(example: Union[Dict, Any]) -> Union[Dict, Any]` if `batched=False` and `with_indices=False` and `with_rank=False`
-                - `function(example: Union[Dict, Any], *extra_args: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(example: Union[Dict, Any], *extra_args) -> Union[Dict, Any]` if `batched=False` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
                 - `function(batch: Union[Dict[List], List[Any]]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False` and `with_rank=False`
-                - `function(batch: Union[Dict[List], List[Any]], *extra_args: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
+                - `function(batch: Union[Dict[List], List[Any]], *extra_args) -> Union[Dict, Any]` if `batched=True` and `with_indices=True` and/or `with_rank=True` (one extra arg for each)
                 If no function is provided, default to identity function: lambda x: x
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
             with_rank (:obj:`bool`, default `False`): Provide process rank to `function`. Note that in this case the signature of `function` should be `def function(example[, idx], rank): ...`.
