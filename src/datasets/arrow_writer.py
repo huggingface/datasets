@@ -85,7 +85,9 @@ class TypedSequence:
     """
 
     def __init__(self, data, type=None, try_type=None, optimized_int_type=None):
-        assert type is None or try_type is None, "You cannot specify both type and try_type"
+        # assert type is None or try_type is None,
+        if type is not None and try_type is not None:
+            raise ValueError("You cannot specify both type and try_type")
         self.data = data
         self.type = type
         self.try_type = try_type  # is ignored if it doesn't match the data
@@ -93,7 +95,8 @@ class TypedSequence:
 
     def __arrow_array__(self, type=None):
         """This function is called when calling pa.array(typed_sequence)"""
-        assert type is None, "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
+        if type is not None:
+            raise ValueError("TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)")
         trying_type = False
         if type is not None:  # user explicitly passed the feature
             pass

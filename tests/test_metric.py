@@ -384,7 +384,7 @@ class TestMetric(TestCase):
             del results
 
             # With keep_in_memory is not allowed
-            with self.assertRaises(AssertionError):
+            with self.assertRaises(ValueError):
                 DummyMetric(
                     experiment_id="test_distributed_metrics_4",
                     keep_in_memory=True,
@@ -518,3 +518,11 @@ def test_metric_with_multilabel(config_name, predictions, references, expected, 
     metric = MetricWithMultiLabel(config_name, cache_dir=cache_dir)
     results = metric.compute(predictions=predictions, references=references)
     assert results["accuracy"] == expected
+
+
+def test_safety_checks_process_vars():
+    with pytest.raises(ValueError):
+        _ = DummyMetric(process_id=-2)
+
+    with pytest.raises(ValueError):
+        _ = DummyMetric(num_process=2, process_id=3)
