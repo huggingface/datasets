@@ -1,9 +1,12 @@
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, ClassVar, List, Optional
+from typing import TYPE_CHECKING, Any, ClassVar, List, Optional, Sequence, Union
 
 import numpy as np
+import pandas as pd
 import pyarrow as pa
+from pandas.api.extensions import ExtensionArray as PandasExtensionArray
+from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
 from ..utils.file_utils import is_local_path
@@ -37,6 +40,115 @@ class ImageExtensionArray(pa.ExtensionArray):
 
     def to_pylist(self):
         return self.to_numpy(zero_copy_only=False).tolist()
+
+    def to_pandas_dtype(self):
+        return PandasImageExtensionDtype()
+
+
+class PandasImageExtensionDtype(PandasExtensionDtype):
+    def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]):
+        if isinstance(array, pa.ChunkedArray):
+            numpy_arr = np.hstack([chunk.to_numpy(zero_copy_only=False) for chunk in array.chunks])
+        else:
+            numpy_arr = array.to_numpy(zero_copy_only=False)
+        return PandasImageExtensionArray(numpy_arr)
+
+    @classmethod
+    def construct_array_type(cls):
+        return PandasImageExtensionArray
+
+    @property
+    def type(self) -> type:
+        return dict
+
+    @property
+    def kind(self) -> str:
+        return "O"
+
+    @property
+    def name(self) -> str:
+        # TODO(mariosasko): update (and add property for storage type) if we decide to support
+        # precise storage types (bytes, string, struct(bytes, string)) - image[{storage_type}]
+        return "image"
+
+
+class PandasImageExtensionArray(PandasExtensionArray):
+    na_value = None
+
+    def __init__(self, data: np.ndarray, copy: bool = False):
+        self._data = data if not copy else np.array(data)
+        self._dtype = PandasImageExtensionDtype()
+
+    def __array__(self):
+        return self._data
+
+    def copy(self, deep: bool = False) -> "PandasImageExtensionArray":
+        return PandasImageExtensionArray(self._data, copy=True)
+
+    @classmethod
+    def _from_sequence(
+        cls, scalars, dtype: Optional[PandasImageExtensionDtype] = None, copy: bool = False
+    ) -> "PandasImageExtensionArray":
+        data = np.array(scalars, dtype=np.object, copy=copy)
+        return cls(data, copy=copy)
+
+    @classmethod
+    def _concat_same_type(cls, to_concat: Sequence["PandasImageExtensionArray"]) -> "PandasImageExtensionArray":
+        data = np.hstack([va._data for va in to_concat])
+        return cls(data, copy=False)
+
+    @property
+    def dtype(self) -> PandasImageExtensionDtype:
+        return self._dtype
+
+    @property
+    def nbytes(self) -> int:
+        return self._data.nbytes
+
+    def isna(self) -> np.ndarray:
+        return np.array([pd.isna(arr).any() for arr in self._data])
+
+    def __setitem__(self, key: Union[int, slice, np.ndarray], value: Any) -> None:
+        raise NotImplementedError
+
+    def __getitem__(self, item: Union[int, slice, np.ndarray]) -> Union[np.ndarray, "PandasImageExtensionArray"]:
+        if isinstance(item, int):
+            return self._data[item]
+        return PandasImageExtensionArray(self._data[item], copy=False)
+
+    def take(
+        self, indices: Sequence[int], allow_fill: bool = False, fill_value: bool = None
+    ) -> "PandasImageExtensionArray":
+        indices: np.ndarray = np.asarray(indices, dtype=np.int)
+        if allow_fill:
+            fill_value = self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=np.object)
+            mask = indices == -1
+            if (indices < -1).any():
+                raise ValueError("Invalid value in `indices`, must be all >= -1 for `allow_fill` is True")
+            elif len(self) > 0:
+                pass
+            elif not np.all(mask):
+                raise IndexError("Invalid take for empty PandasImageExtensionArray, must be all -1.")
+            else:
+                data = np.array([fill_value] * len(indices), dtype=np.object)
+                return PandasImageExtensionArray(data, copy=False)
+        took = self._data.take(indices)
+        if allow_fill and mask.any():
+            took[mask] = [fill_value] * np.sum(mask)
+        return PandasImageExtensionArray(took, copy=False)
+
+    def map(self, mapper):
+        # More info about this (undocumented) function can be found here:
+        # https://github.com/pandas-dev/pandas/issues/23179
+        return PandasImageExtensionArray(pd.Series(self._data).map(mapper).to_numpy())
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __eq__(self, other) -> np.ndarray:
+        if not isinstance(other, PandasImageExtensionArray):
+            raise NotImplementedError(f"Invalid type to compare to: {type(other)}")
+        return (self._data == other._data).all()
 
 
 @dataclass(unsafe_hash=True)

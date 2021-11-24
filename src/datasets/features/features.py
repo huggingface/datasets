@@ -37,7 +37,7 @@ from pyarrow.types import is_boolean, is_primitive
 
 from datasets import config, utils
 from datasets.features.audio import Audio
-from datasets.features.image import Image, ImageExtensionType
+from datasets.features.image import Image, ImageExtensionType, PandasImageExtensionDtype
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.utils.logging import get_logger
 
@@ -480,7 +480,7 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
     def __init__(self, value_type: Union["PandasArrayExtensionDtype", np.dtype]):
         self._value_type = value_type
 
-    def __from_arrow__(self, array):
+    def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]):
         if array.type.shape[0] is None:
             raise NotImplementedError(
                 "Dynamic first dimension is not supported for "
@@ -576,7 +576,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     def take(
         self, indices: Sequence_[int], allow_fill: bool = False, fill_value: bool = None
     ) -> "PandasArrayExtensionArray":
-        indices: np.ndarray = np.asarray(indices, dtype="int")
+        indices: np.ndarray = np.asarray(indices, dtype=np.int)
         if allow_fill:
             fill_value = (
                 self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.value_type)
@@ -608,6 +608,8 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 def pandas_types_mapper(dtype):
     if isinstance(dtype, _ArrayXDExtensionType):
         return PandasArrayExtensionDtype(dtype.value_type)
+    elif isinstance(dtype, ImageExtensionType):
+        return PandasImageExtensionDtype()
 
 
 @dataclass
