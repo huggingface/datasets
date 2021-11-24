@@ -285,8 +285,6 @@ class LocalDatasetTest(parameterized.TestCase):
 
 def get_packaged_dataset_names():
     packaged_datasets = [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
-    if datasets.config.PYARROW_VERSION.major < 3:  # parquet is not supported for pyarrow<3.0.0
-        packaged_datasets = [pd for pd in packaged_datasets if pd["dataset_name"] != "parquet"]
     return packaged_datasets
 
 

@@ -58,11 +58,6 @@ class TypedSequenceTest(TestCase):
         arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2DExtensionType((1, 3), "int64")))
         self.assertEqual(arr.type, pa.string())
 
-    def test_catch_overflow(self):
-        if config.PYARROW_VERSION.major < 2:
-            with self.assertRaises(OverflowError):
-                _ = pa.array(TypedSequence([["x" * 1024]] * ((2 << 20) + 1)))  # ListArray with a bit more than 2GB
-
 
 def _check_output(output, expected_num_chunks: int):
     stream = pa.BufferReader(output) if isinstance(output, pa.Buffer) else pa.memory_map(output)
