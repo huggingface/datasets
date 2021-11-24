@@ -77,6 +77,19 @@ Your dataset can now be loaded by anyone in a single line of code!
    })
 
 
+Upload from Python
+------------------
+
+To upload a :class:`datasets.DatasetDict` on the Hugging face Hub in python, you can use the :func:`datasets.DatasetDict.push_to_hub` method:
+
+.. code-block::
+
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset("stevhliu/demo")
+   >>> # dataset = dataset.map(...)  # do all your processing here
+   >>> dataset.push_to_hub("stevhliu/processed_demo")
+
+
 Privacy
 -------
 
