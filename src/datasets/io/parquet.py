@@ -22,10 +22,6 @@ class ParquetDatasetReader(AbstractDatasetReader):
         keep_in_memory: bool = False,
         **kwargs,
     ):
-        if config.PYARROW_VERSION.major < 3:
-            raise ImportError(
-                "PyArrow >= 3.0.0 is required to used the ParquetDatasetReader: pip install --upgrade pyarrow"
-            )
         super().__init__(
             path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         )
