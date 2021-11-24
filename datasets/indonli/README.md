@@ -77,7 +77,7 @@ An example of `train` looks as follows.
 {
   "premise": "Keindahan alam yang terdapat di Gunung Batu Jonggol ini dapat Anda manfaatkan sebagai objek fotografi yang cantik.", 
   "hypothesis": "Keindahan alam tidak dapat difoto.", 
-  "label": "c"
+  "label": 2
 }
 ```
 ### Data Fields
@@ -85,7 +85,7 @@ An example of `train` looks as follows.
 The data fields are:
 - `premise`: a `string` feature
 - `hypothesis`: a `string` feature
-- `label`: a classification label, with possible values including entailment "e", neutral "n", or contradiction "c".
+- `label`: a classification label, with possible values including `entailment` (0), `neutral` (1), `contradiction` (2).
 
 ### Data Splits
 
@@ -108,7 +108,7 @@ A small subset of `test_expert` is used as a diasnostic tool. For more info, ple
 
 ### Curation Rationale
 
-Indonesian NLP is considered under-resourced. Up until now, there is no publicly available NLI dataset for Indonesian.
+Indonesian NLP is considered under-resourced. Up until now, there is no publicly available human-annotated NLI dataset for Indonesian.
 
 ### Source Data
 
@@ -130,7 +130,7 @@ We start by writing the hypothesis, given the premise and the target label. Then
 
 #### Who are the annotators?
 
-Lay annotators were computer science undergrad students, and expert annotators were NLP scientists with 7+ years research experience in NLP.
+Lay annotators were computer science students, and expert annotators were NLP scientists with 7+ years research experience in NLP. All annotators are native speakers.
 Additionally, expert annotators were explicitly instructed to provide challenging examples by incorporating various linguistic phenomena such as numerical reasoning, structural changes, idioms, or temporal and spatial reasoning. Annotators were compensated based on hourly rate.
 
 ### Personal and Sensitive Information

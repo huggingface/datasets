@@ -98,7 +98,7 @@ class IndoNLI(datasets.GeneratorBasedBuilder):
                 {
                     "premise": datasets.Value("string"),
                     "hypothesis": datasets.Value("string"),
-                    "label": datasets.ClassLabel(names=["c", "n", "e"]),
+                    "label": datasets.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                 }
             ),
             supervised_keys=None,
@@ -130,5 +130,5 @@ class IndoNLI(datasets.GeneratorBasedBuilder):
                 yield id_, {
                     "premise": row_jsonl["premise"],
                     "hypothesis": row_jsonl["hypothesis"],
-                    "label": row_jsonl["label"],
+                    "label": {"e": "entailment", "n": "neutral", "c": "contradiction"}[row_jsonl["label"]],
                 }
