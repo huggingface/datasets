@@ -53,6 +53,14 @@ def picklable_map_function_with_indices(x, i):
     return {"id": i}
 
 
+def picklable_map_function_with_rank(x, r):
+    return {"rank": r}
+
+
+def picklable_map_function_with_indices_and_rank(x, i, r):
+    return {"id": i, "rank": r}
+
+
 def picklable_filter_function(x):
     return int(x["filename"].split("_")[-1]) < 10
 
@@ -893,6 +901,39 @@ class BaseDatasetTest(TestCase):
                     )
                     self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 3)
                     self.assertListEqual(dset_test["id"], list(range(30)))
+                    self.assertNotEqual(dset_test._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:  # with_rank
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                fingerprint = dset._fingerprint
+                with dset.map(picklable_map_function_with_rank, num_proc=3, with_rank=True) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"filename": Value("string"), "rank": Value("int64")}),
+                    )
+                    self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 3)
+                    self.assertListEqual(dset_test["rank"], [0] * 10 + [1] * 10 + [2] * 10)
+                    self.assertNotEqual(dset_test._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:  # with_indices AND with_rank
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                fingerprint = dset._fingerprint
+                with dset.map(
+                    picklable_map_function_with_indices_and_rank, num_proc=3, with_indices=True, with_rank=True
+                ) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"filename": Value("string"), "id": Value("int64"), "rank": Value("int64")}),
+                    )
+                    self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 3)
+                    self.assertListEqual(dset_test["id"], list(range(30)))
+                    self.assertListEqual(dset_test["rank"], [0] * 10 + [1] * 10 + [2] * 10)
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
 
