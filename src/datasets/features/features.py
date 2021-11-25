@@ -413,15 +413,15 @@ def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
     # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
     # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
     """
+
+    def _unnest_pa_type(pa_type: pa.DataType) -> pa.DataType:
+        if pa.types.is_list(pa_type):
+            return _unnest_pa_type(pa_type.value_type)
+        return pa_type
+
     if unnest:
         pa_type = _unnest_pa_type(pa_type)
     return pa.types.is_primitive(pa_type) and not pa.types.is_boolean(pa_type)
-
-
-def _unnest_pa_type(pa_type: pa.DataType) -> pa.DataType:
-    if pa.types.is_list(pa_type):
-        return _unnest_pa_type(pa_type.value_type)
-    return pa_type
 
 
 class ArrayExtensionArray(pa.ExtensionArray):
@@ -445,13 +445,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
         numpy_arr = numpy_arr.reshape(len(self) - len(null_indices), *self.type.shape)
 
         if len(null_indices):
-            if pa.types.is_floating(_unnest_pa_type(self.storage.type)):
-                numpy_arr = np.insert(numpy_arr, null_indices, np.nan, axis=0)
-            else:
-                logger.warning(
-                    f"Null-value subarrays along axis=0 have been removed from the resulting array. "
-                    f"Cast the feature to the floating point type to preserve them."
-                )
+            numpy_arr = np.insert(numpy_arr.astype(np.float64), null_indices, np.nan, axis=0)
 
         return numpy_arr
 

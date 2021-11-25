@@ -319,27 +319,15 @@ def test_array_xd_numpy_arrow_extractor(dtype, dummy_value):
     np.testing.assert_equal(arr, np.array([[[dummy_value] * 2] * 2], dtype=np.dtype(dtype)))
 
 
-def test_array_xd_with_none(caplog):
-    # Fixed shape - preserve None values with the floating dype
-    features = datasets.Features({"foo": datasets.Array2D(dtype="float32", shape=(2, 2))})
-    dummy_array = np.array([[1, 2], [3, 4]], dtype="float32")
-    dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array]}, features=features)
-    arr = NumpyArrowExtractor().extract_column(dataset._data)
-    assert isinstance(arr, np.ndarray) and arr.dtype == np.float32 and arr.shape == (3, 2, 2)
-    assert np.allclose(arr[0], dummy_array) and np.allclose(arr[2], dummy_array)
-    assert np.all(np.isnan(arr[1]))  # broadcasted np.nan - use np.all
-
-    # Fixed shape - remove None values with the integer dtype
+def test_array_xd_with_none():
+    # Fixed shape
     features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(2, 2))})
     dummy_array = np.array([[1, 2], [3, 4]], dtype="int32")
     dataset = datasets.Dataset.from_dict({"foo": [dummy_array, None, dummy_array]}, features=features)
     arr = NumpyArrowExtractor().extract_column(dataset._data)
-    assert isinstance(arr, np.ndarray) and arr.dtype == np.int32 and arr.shape == (2, 2, 2)
-    assert np.allclose(arr[0], dummy_array) and np.allclose(arr[1], dummy_array)
-    assert any(
-        record.levelname == "WARNING" and "Null-value subarrays along axis=0 have been removed" in record.message
-        for record in caplog.records
-    )
+    assert isinstance(arr, np.ndarray) and arr.dtype == np.float64 and arr.shape == (3, 2, 2)
+    assert np.allclose(arr[0], dummy_array) and np.allclose(arr[2], dummy_array)
+    assert np.all(np.isnan(arr[1]))  # broadcasted np.nan - use np.all
 
     # Dynamic shape
     features = datasets.Features({"foo": datasets.Array2D(dtype="int32", shape=(None, 2))})
