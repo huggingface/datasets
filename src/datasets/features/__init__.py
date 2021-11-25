@@ -7,5 +7,6 @@ from .features import (
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
     _is_zero_copy_only,
+    _unnest_pa_type,
 )
 from .translation import Translation, TranslationVariableLanguages

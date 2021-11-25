@@ -33,7 +33,6 @@ import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 from pyarrow.lib import TimestampType
-from pyarrow.types import is_boolean, is_primitive
 
 from datasets import config, utils
 from datasets.features.audio import Audio
@@ -360,7 +359,7 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
         assert (
             self.ndims is not None and self.ndims > 1
         ), "You must instantiate an array type with a value for dim that is > 1"
-        assert len(shape) == self.ndims, f"shape={shape} and ndims={self.ndims} dom't match"
+        assert len(shape) == self.ndims, f"shape={shape} and ndims={self.ndims} don't match"
         self.shape = tuple(shape)
         self.value_type = dtype
         self.storage_dtype = self._generate_dtype(self.value_type)
@@ -403,7 +402,7 @@ class Array5DExtensionType(_ArrayXDExtensionType):
     ndims = 5
 
 
-def _is_zero_copy_only(pa_type: pa.DataType) -> bool:
+def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
     """
     When converting a pyarrow array to a numpy array, we must know whether this could be done in zero-copy or not.
     This function returns the value of the ``zero_copy_only`` parameter to pass to ``.to_numpy()``, given the type of the pyarrow array.
@@ -414,12 +413,20 @@ def _is_zero_copy_only(pa_type: pa.DataType) -> bool:
     # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
     # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
     """
-    return is_primitive(pa_type) and not is_boolean(pa_type)
+    if unnest:
+        pa_type = _unnest_pa_type(pa_type)
+    return pa.types.is_primitive(pa_type) and not pa.types.is_boolean(pa_type)
+
+
+def _unnest_pa_type(pa_type: pa.DataType) -> pa.DataType:
+    if pa.types.is_list(pa_type):
+        return _unnest_pa_type(pa_type.value_type)
+    return pa_type
 
 
 class ArrayExtensionArray(pa.ExtensionArray):
     def __array__(self):
-        zero_copy_only = _is_zero_copy_only(self.storage.type)
+        zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         return self.to_numpy(zero_copy_only=zero_copy_only)
 
     def __getitem__(self, i):
@@ -438,7 +445,13 @@ class ArrayExtensionArray(pa.ExtensionArray):
         numpy_arr = numpy_arr.reshape(len(self) - len(null_indices), *self.type.shape)
 
         if len(null_indices):
-            numpy_arr = np.insert(numpy_arr.astype(np.float64, copy=False), null_indices, np.nan, axis=0)
+            if pa.types.is_floating(_unnest_pa_type(self.storage.type)):
+                numpy_arr = np.insert(numpy_arr, null_indices, np.nan, axis=0)
+            else:
+                logger.warning(
+                    f"Null-value subarrays along axis=0 have been removed from the resulting array. "
+                    f"Cast the feature to the floating point type to preserve them."
+                )
 
         return numpy_arr
 
@@ -468,7 +481,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
         return arrays
 
     def to_pylist(self):
-        zero_copy_only = _is_zero_copy_only(self.storage.type)
+        zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         if self.type.shape[0] is None:
             return self.to_list_of_numpy(zero_copy_only=zero_copy_only)
         else:
@@ -487,7 +500,7 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
                 "Dynamic first dimension is not supported for "
                 f"PandasArrayExtensionDtype, dimension: {array.type.shape}"
             )
-        zero_copy_only = _is_zero_copy_only(array.type)
+        zero_copy_only = _is_zero_copy_only(array.type, unnest=True)
         if isinstance(array, pa.ChunkedArray):
             numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
         else:
