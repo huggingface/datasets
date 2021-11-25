@@ -77,6 +77,32 @@ Your dataset can now be loaded by anyone in a single line of code!
    })
 
 
+Upload from Python
+------------------
+
+To upload a :class:`datasets.DatasetDict` on the Hugging Face Hub in Python, you can login and use the :func:`datasets.DatasetDict.push_to_hub` method:
+
+1. Login from the command line:
+
+.. code-block::
+
+   huggingface-cli login
+
+2. Upload the dataset:
+
+.. code-block::
+
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset("stevhliu/demo")
+   >>> # dataset = dataset.map(...)  # do all your processing here
+   >>> dataset.push_to_hub("stevhliu/processed_demo")
+
+With the ``private`` parameter you can choose whether your dataset is public or private:
+
+.. code-block::
+
+   >>> dataset.push_to_hub("stevhliu/private_processed_demo", private=True)
+
 Privacy
 -------
 
