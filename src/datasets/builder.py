@@ -583,7 +583,7 @@ class DatasetBuilder:
                     downloaded_from_gcs = False
                     if try_from_hf_gcs:
                         try:
-                            self._download_prepared_from_hf_gcs(dl_manager._download_config)
+                            self._download_prepared_from_hf_gcs(dl_manager.download_config)
                             downloaded_from_gcs = True
                         except (DatasetNotOnHfGcsError, MissingFilesOnHfGcsError):
                             logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")

@@ -191,7 +191,7 @@ def url_or_path_parent(url_or_path: str) -> str:
         return os.path.dirname(url_or_path)
 
 
-def hash_url_to_filename(url, etag=None, ignore_url_params=False):
+def hash_url_to_filename(url, etag=None):
     """
     Convert `url` into a hashed filename in a repeatable way.
     If `etag` is specified, append its hash to the url's, delimited
@@ -239,6 +239,8 @@ class DownloadConfig:
         max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
         use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
             for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
+        ignore_url_params (:obj:`bool`, default ``False``): Whether to strip all query parameters and #fragments from
+            the download URL before using it for caching the file.
     """
 
     cache_dir: Optional[Union[str, Path]] = None
@@ -254,6 +256,7 @@ class DownloadConfig:
     num_proc: Optional[int] = None
     max_retries: int = 1
     use_auth_token: Optional[Union[str, bool]] = None
+    ignore_url_params: bool = False
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -281,7 +284,6 @@ def cached_path(
         ValueError: if it couldn't parse the url or filename correctly
         requests.exceptions.ConnectionError: in case of internet connection issue
     """
-    ignore_url_params = kwargs.pop("ignore_url_params", False)
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
@@ -304,7 +306,7 @@ def cached_path(
             use_etag=download_config.use_etag,
             max_retries=download_config.max_retries,
             use_auth_token=download_config.use_auth_token,
-            ignore_url_params=ignore_url_params
+            ignore_url_params=download_config.ignore_url_params,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.

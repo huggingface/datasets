@@ -85,10 +85,10 @@ class DownloadManager:
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
-        self._download_config = download_config or DownloadConfig()
         self._base_path = base_path or os.path.abspath(".")
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums: Dict[str, Dict[str, Union[int, str]]] = {}
+        self.download_config = download_config or DownloadConfig()
         self.downloaded_paths = {}
         self.extracted_paths = {}
 
@@ -146,8 +146,8 @@ class DownloadManager:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        cache_dir = self._download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
-        max_retries = self._download_config.max_retries
+        cache_dir = self.download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
+        max_retries = self.download_config.max_retries
 
         def url_to_downloaded_path(url):
             return os.path.join(cache_dir, hash_url_to_filename(url))
@@ -163,7 +163,7 @@ class DownloadManager:
                 cached = True
             except FileNotFoundError:
                 cached = False
-            if not cached or self._download_config.force_download:
+            if not cached or self.download_config.force_download:
                 custom_download(url, path)
                 get_from_cache(
                     url, cache_dir=cache_dir, local_files_only=True, use_etag=False, max_retries=max_retries
@@ -171,7 +171,7 @@ class DownloadManager:
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths.data
 
-    def download(self, url_or_urls, **caching_params):
+    def download(self, url_or_urls):
         """Download given url(s).
 
         Args:
@@ -182,14 +182,14 @@ class DownloadManager:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        download_config = self._download_config.copy()
+        download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
         # Default to using 16 parallel thread for downloading
         # Note that if we have less than 16 files, multi-processing is not activated
         if download_config.num_proc is None:
             download_config.num_proc = 16
 
-        download_func = partial(self._download, download_config=download_config, **caching_params)
+        download_func = partial(self._download, download_config=download_config)
 
         start_time = datetime.now()
         downloaded_path_or_paths = map_nested(
@@ -208,12 +208,12 @@ class DownloadManager:
 
         return downloaded_path_or_paths.data
 
-    def _download(self, url_or_filename: str, download_config: DownloadConfig, **caching_params) -> str:
+    def _download(self, url_or_filename: str, download_config: DownloadConfig) -> str:
         url_or_filename = str(url_or_filename)
         if is_relative_path(url_or_filename):
             # append the relative path to the base_path
             url_or_filename = url_or_path_join(self._base_path, url_or_filename)
-        return cached_path(url_or_filename, download_config=download_config, **caching_params)
+        return cached_path(url_or_filename, download_config=download_config)
 
     def iter_archive(self, path):
         """Returns iterator over files within archive.
@@ -254,7 +254,7 @@ class DownloadManager:
             extracted_path(s): `str`, The extracted paths matching the given input
                 path_or_paths.
         """
-        download_config = self._download_config.copy()
+        download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config), path_or_paths, num_proc=num_proc, disable_tqdm=False
@@ -264,7 +264,7 @@ class DownloadManager:
         self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
         return extracted_paths.data
 
-    def download_and_extract(self, url_or_urls, **caching_params):
+    def download_and_extract(self, url_or_urls):
         """Download and extract given url_or_urls.
 
         Is roughly equivalent to:
@@ -276,12 +276,11 @@ class DownloadManager:
         Args:
             url_or_urls: url or `list`/`dict` of urls to download and extract. Each
                 url is a `str`.
-            **caching_params: params to pass to :func:`datasets.utils.file_utils.get_from_cache`.
 
         Returns:
             extracted_path(s): `str`, extracted paths of given URL(s).
         """
-        return self.extract(self.download(url_or_urls, **caching_params))
+        return self.extract(self.download(url_or_urls))
 
     def get_recorded_sizes_checksums(self):
         return self._recorded_sizes_checksums.copy()
@@ -294,5 +293,5 @@ class DownloadManager:
                 del self.extracted_paths[key]
 
     def manage_extracted_files(self):
-        if self._download_config.delete_extracted:
+        if self.download_config.delete_extracted:
             self.delete_extracted_files()
