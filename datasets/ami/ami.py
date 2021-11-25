@@ -361,12 +361,12 @@ class AMI(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
 
         # multi-processing doesn't work for AMI
-        if hasattr(dl_manager, "_download_config") and dl_manager._download_config.num_proc != 1:
+        if hasattr(dl_manager, "download_config") and dl_manager.download_config.num_proc != 1:
             logger.warning(
                 "AMI corpus cannot be downloaded using multi-processing. "
                 "Setting number of downloaded processes `num_proc` to 1. "
             )
-            dl_manager._download_config.num_proc = 1
+            dl_manager.download_config.num_proc = 1
 
         annotation_path = dl_manager.download_and_extract(_DL_URL_ANNOTATIONS)
 
