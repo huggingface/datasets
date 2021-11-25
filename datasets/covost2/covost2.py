@@ -113,9 +113,9 @@ class Covost2(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(data_root):
             raise FileNotFoundError(
-                f"You are trying to load the {self.config.name} speech translation dataset."
-                f"It is required that you manually download the input speech data {source_lang}."
-                "Manual download instructions: {}".format(data_root, self.manual_download_instructions)
+                f"You are trying to load the {self.config.name} speech translation dataset. "
+                f"It is required that you manually download the input speech data {source_lang}. "
+                f"Manual download instructions: {self.manual_download_instructions}"
             )
 
         covost_url = COVOST_URL_TEMPLATE.format(src_lang=source_lang, tgt_lang=target_lang)

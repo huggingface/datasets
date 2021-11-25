@@ -108,12 +108,10 @@ class WikiSQL(datasets.GeneratorBasedBuilder):
     def _convert_to_human_readable(self, sel, agg, columns, conditions):
         """Make SQL query string. Based on https://github.com/salesforce/WikiSQL/blob/c2ed4f9b22db1cc2721805d53e6e76e07e2ccbdc/lib/query.py#L10"""
 
-        rep = "SELECT {agg} {sel} FROM table".format(
-            agg=_AGG_OPS[agg], sel=columns[sel] if columns is not None else "col{}".format(sel)
-        )
+        rep = f"SELECT {_AGG_OPS[agg]} {columns[sel] if columns is not None else f'col{sel}'} FROM table"
 
         if conditions:
-            rep += " WHERE " + " AND ".join(["{} {} {}".format(columns[i], _COND_OPS[o], v) for i, o, v in conditions])
+            rep += " WHERE " + " AND ".join([f"{columns[i]} {_COND_OPS[o]} {v}" for i, o, v in conditions])
         return " ".join(rep.split())
 
     def _generate_examples(self, main_filepath, tables_filepath):

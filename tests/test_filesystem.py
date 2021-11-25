@@ -5,7 +5,13 @@ import fsspec
 import pytest
 from moto import mock_s3
 
-from datasets.filesystems import COMPRESSION_FILESYSTEMS, S3FileSystem, extract_path_from_uri, is_remote_filesystem
+from datasets.filesystems import (
+    COMPRESSION_FILESYSTEMS,
+    HfFileSystem,
+    S3FileSystem,
+    extract_path_from_uri,
+    is_remote_filesystem,
+)
 
 from .utils import require_lz4, require_zstandard
 
@@ -67,3 +73,11 @@ def test_compression_filesystems(compression_fs_class, gz_file, bz2_file, lz4_fi
     assert fs.ls("/") == [expected_filename]
     with fs.open(expected_filename, "r", encoding="utf-8") as f, open(text_file, encoding="utf-8") as expected_file:
         assert f.read() == expected_file.read()
+
+
+def test_hf_filesystem(hf_token, hf_api, hf_private_dataset_repo_txt_data, text_file):
+    repo_info = hf_api.dataset_info(hf_private_dataset_repo_txt_data, token=hf_token)
+    hffs = HfFileSystem(repo_info=repo_info, token=hf_token)
+    assert sorted(hffs.glob("*")) == [".gitattributes", "data.txt"]
+    with open(text_file) as f:
+        assert hffs.open("data.txt", "r").read() == f.read()

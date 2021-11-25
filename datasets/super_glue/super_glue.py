@@ -474,7 +474,7 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "data_file": os.path.join(dl_dir, "{}.jsonl".format(task_name)),
+                        "data_file": os.path.join(dl_dir, f"{task_name}.jsonl"),
                         "split": datasets.Split.TEST,
                     },
                 ),

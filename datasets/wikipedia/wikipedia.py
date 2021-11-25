@@ -374,8 +374,8 @@ class WikipediaConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(WikipediaConfig, self).__init__(
-            name="{0}.{1}".format(date, language),
-            description="Wikipedia dataset for {0}, parsed from {1} dump.".format(language, date),
+            name=f"{date}.{language}",
+            description=f"Wikipedia dataset for {language}, parsed from {date} dump.",
             **kwargs,
         )
         self.date = date
@@ -465,16 +465,16 @@ class Wikipedia(datasets.BeamBasedBuilder):
                     if not elem.tag.endswith("page"):
                         continue
                     namespace = elem.tag[:-4]
-                    title = elem.find("./{0}title".format(namespace)).text
-                    ns = elem.find("./{0}ns".format(namespace)).text
-                    id_ = elem.find("./{0}id".format(namespace)).text
+                    title = elem.find(f"./{namespace}title").text
+                    ns = elem.find(f"./{namespace}ns").text
+                    id_ = elem.find(f"./{namespace}id").text
 
                     # Filter pages that are not in the "main" namespace.
                     if ns != "0":
                         elem.clear()
                         continue
 
-                    raw_content = elem.find("./{0}revision/{0}text".format(namespace)).text
+                    raw_content = elem.find(f"./{namespace}revision/{namespace}text").text
                     elem.clear()
 
                     # Filter redirects.

@@ -56,7 +56,7 @@ class PEC(datasets.GeneratorBasedBuilder):
     # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
     BUILDER_CONFIG_CLASS = PECConfig
     BUILDER_CONFIGS = [
-        PECConfig(name=domain, description="A subset of PEC dataset: {}".format(domain), domain=domain)
+        PECConfig(name=domain, description=f"A subset of PEC dataset: {domain}", domain=domain)
         for domain in ["happy", "offmychest", "all"]
     ]
 

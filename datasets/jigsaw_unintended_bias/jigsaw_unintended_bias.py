@@ -117,9 +117,7 @@ class JigsawUnintendedBias(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('jigsaw_unintended_bias', data_dir=...)`. Manual download instructions: {}".format(
-                    data_dir, self.manual_download_instructions
-                )
+                f"{data_dir} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('jigsaw_unintended_bias', data_dir=...)`. Manual download instructions: {self.manual_download_instructions}"
             )
 
         return [
