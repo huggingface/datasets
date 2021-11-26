@@ -353,23 +353,22 @@ class InMemoryTable(TableBlock):
         table = _in_memory_arrow_table_from_buffer(buffer)
         return cls(table)
 
-    @inject_arrow_table_documentation(pa.Table.from_pandas)
     @classmethod
+    @inject_arrow_table_documentation(pa.Table.from_pandas)
     def from_pandas(cls, *args, **kwargs):
         return cls(pa.Table.from_pandas(*args, **kwargs))
 
     @inject_arrow_table_documentation(pa.Table.from_arrays)
-    @classmethod
     def from_arrays(cls, *args, **kwargs):
         return cls(pa.Table.from_arrays(*args, **kwargs))
 
-    @inject_arrow_table_documentation(pa.Table.from_pydict)
     @classmethod
+    @inject_arrow_table_documentation(pa.Table.from_pydict)
     def from_pydict(cls, *args, **kwargs):
         return cls(pa.Table.from_pydict(*args, **kwargs))
 
-    @inject_arrow_table_documentation(pa.Table.from_batches)
     @classmethod
+    @inject_arrow_table_documentation(pa.Table.from_batches)
     def from_batches(cls, *args, **kwargs):
         return cls(pa.Table.from_batches(*args, **kwargs))
 
