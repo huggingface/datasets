@@ -1,6 +1,9 @@
-import pandas as pd
+import os
 
-from datasets import Dataset
+import pandas as pd
+import pytest
+
+from datasets import Dataset, load_dataset
 from datasets.features import Features, Image
 from datasets.features.features import Value
 from datasets.features.image import image_to_bytes
@@ -25,6 +28,7 @@ def test_image_decode_example(shared_datadir):
     decoded_example = image.decode_example(image_path)
 
     assert isinstance(decoded_example, PIL.Image.Image)
+    assert os.path.samefile(decoded_example.filename, image_path)
     assert decoded_example.size == (640, 480)
     assert decoded_example.mode == "RGB"
 
@@ -41,6 +45,7 @@ def test_dataset_with_image_feature(shared_datadir):
     item = dset[0]
     assert item.keys() == {"image"}
     assert isinstance(item["image"], PIL.Image.Image)
+    assert os.path.samefile(item["image"].filename, image_path)
     assert item["image"].size == (640, 480)
     assert item["image"].mode == "RGB"
 
@@ -48,12 +53,14 @@ def test_dataset_with_image_feature(shared_datadir):
     assert len(batch) == 1
     assert batch.keys() == {"image"}
     assert isinstance(batch["image"], list) and all(isinstance(item, PIL.Image.Image) for item in batch["image"])
+    assert os.path.samefile(batch["image"][0].filename, image_path)
     assert batch["image"][0].size == (640, 480)
     assert batch["image"][0].mode == "RGB"
 
     column = dset["image"]
     assert len(column) == 1
     assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+    assert os.path.samefile(column[0].filename, image_path)
     assert column[0].size == (640, 480)
     assert column[0].mode == "RGB"
 
@@ -173,17 +180,20 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
         item = dset[0]
         assert item.keys() == {"image"}
         assert isinstance(item["image"], PIL.Image.Image)
+        assert os.path.samefile(item["image"].filename, image_path)
         assert item["image"].size == (640, 480)
         assert item["image"].mode == "RGB"
         batch = dset[:1]
         assert batch.keys() == {"image"}
         assert len(batch) == 1
         assert isinstance(batch["image"], list) and all(isinstance(item, PIL.Image.Image) for item in batch["image"])
+        assert os.path.samefile(batch["image"][0].filename, image_path)
         assert batch["image"][0].size == (640, 480)
         assert batch["image"][0].mode == "RGB"
         column = dset["image"]
         assert len(column) == 2
         assert isinstance(column, list) and all(isinstance(item, PIL.Image.Image) for item in column)
+        assert os.path.samefile(column[0].filename, image_path)
         assert column[0].size == (640, 480)
         assert column[0].mode == "RGB"
 
@@ -192,6 +202,7 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
         assert item.shape == (1, 1)
         assert item.columns == ["image"]
         assert isinstance(item["image"][0], PIL.Image.Image)
+        assert os.path.samefile(item["image"][0].filename, image_path)
         assert item["image"][0].size == (640, 480)
         assert item["image"][0].mode == "RGB"
         batch = dset[:1]
@@ -200,10 +211,43 @@ def test_formatted_dataset_with_image_feature(shared_datadir):
         assert isinstance(batch["image"], pd.Series) and all(
             isinstance(item, PIL.Image.Image) for item in batch["image"]
         )
+        assert os.path.samefile(batch["image"][0].filename, image_path)
         assert batch["image"][0].size == (640, 480)
         assert batch["image"][0].mode == "RGB"
         column = dset["image"]
         assert len(column) == 2
         assert isinstance(column, pd.Series) and all(isinstance(item, PIL.Image.Image) for item in column)
+        assert os.path.samefile(column[0].filename, image_path)
         assert column[0].size == (640, 480)
         assert column[0].mode == "RGB"
+
+
+@pytest.fixture
+def jsonl_image_dataset_path(shared_datadir, tmp_path_factory):
+    import json
+
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    data = [{"image": image_path, "caption": "Two cats sleeping"}]
+    path = str(tmp_path_factory.mktemp("data") / "image_dataset.jsonl")
+    with open(path, "w") as f:
+        for item in data:
+            f.write(json.dumps(item) + "\n")
+    return path
+
+
+@pytest.mark.skip(reason="TODO: fix issues with ExtensionType cast in json module")
+@require_pil
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_with_audio_feature(streaming, jsonl_image_dataset_path, shared_datadir):
+    import PIL.Image
+
+    image_path = str(shared_datadir / "test_image_rgb.jpg")
+    data_files = jsonl_image_dataset_path
+    features = Features({"image": Image(), "caption": Value("string")})
+    dset = load_dataset("json", split="train", data_files=data_files, features=features, streaming=streaming)
+    item = dset[0] if not streaming else next(iter(dset))
+    assert item.keys() == {"image", "caption"}
+    assert isinstance(item["image"], PIL.Image.Image)
+    assert os.path.samefile(item["image"].filename, image_path)
+    assert item["image"].size == (640, 480)
+    assert item["image"].mode == "RGB"
