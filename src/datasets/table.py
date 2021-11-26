@@ -358,6 +358,7 @@ class InMemoryTable(TableBlock):
     def from_pandas(cls, *args, **kwargs):
         return cls(pa.Table.from_pandas(*args, **kwargs))
 
+    @classmethod
     @inject_arrow_table_documentation(pa.Table.from_arrays)
     def from_arrays(cls, *args, **kwargs):
         return cls(pa.Table.from_arrays(*args, **kwargs))
