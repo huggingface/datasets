@@ -17,6 +17,7 @@ import errno
 import json
 import os
 import socket
+import sys
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -95,6 +96,10 @@ class TypedSequence:
 
     def __arrow_array__(self, type=None):
         """This function is called when calling pa.array(typed_sequence)"""
+
+        if config.PIL_AVAILABLE and "PIL" in sys.modules:
+            import PIL.Image
+
         if type is not None:
             raise ValueError("TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)")
         trying_type = False
@@ -106,6 +111,9 @@ class TypedSequence:
         else:
             type = self.type
         trying_int_optimization = False
+        if type is None:  # automatic type inference for custom objects
+            if config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(self.data[0], PIL.Image.Image):
+                type = ImageExtensionType()
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 if isinstance(self.data, np.ndarray):
