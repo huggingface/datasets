@@ -21,7 +21,7 @@ from datasets.features import (
 )
 from datasets.info import DatasetInfo
 
-from ..utils import require_jax, require_pil, require_tf, require_torch
+from ..utils import require_jax, require_tf, require_torch
 
 
 class FeaturesTest(TestCase):
@@ -347,21 +347,6 @@ class CastToPythonObjectsTest(TestCase):
         expected_obj = {
             "col_1": [{"vec": np.array([1, 2, 3], dtype=np.int32), "txt": "foo"}] * 3,
             "col_2": np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32),
-        }
-        casted_obj = cast_to_python_objects(obj)
-        dict_diff(casted_obj, expected_obj)
-
-    @require_pil
-    def test_cast_to_python_objects_pil(self):
-        import PIL.Image
-
-        obj = {
-            "col_1": [{"img": PIL.Image.fromarray(np.arange(4, dtype=np.uint8).reshape(2, 2)), "txt": "foo"}] * 3,
-            "col_2": PIL.Image.fromarray(np.arange(12, dtype=np.uint8).reshape(2, 2, 3)),
-        }
-        expected_obj = {
-            "col_1": [{"img": np.arange(4, dtype=np.uint8).reshape(2, 2), "txt": "foo"}] * 3,
-            "col_2": np.arange(12, dtype=np.uint8).reshape(2, 2, 3),
         }
         casted_obj = cast_to_python_objects(obj)
         dict_diff(casted_obj, expected_obj)
