@@ -8,7 +8,6 @@ import os
 import textwrap
 
 import datasets
-from datasets.utils.streaming_download_manager import xjoin
 
 
 # TODO(xtreme): BibTeX citation
@@ -554,8 +553,8 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             train_url = "v1.1/tydiqa-goldp-v1.1-train.json"
             dev_url = "v1.1/tydiqa-goldp-v1.1-dev.json"
             urls_to_download = {
-                "train": xjoin(self.config.data_url, train_url),
-                "dev": xjoin(self.config.data_url, dev_url),
+                "train": os.path.join(self.config.data_url, train_url),
+                "dev": os.path.join(self.config.data_url, dev_url),
             }
             dl_dir = dl_manager.download_and_extract(urls_to_download)
             return [
@@ -613,7 +612,9 @@ class Xtreme(datasets.GeneratorBasedBuilder):
 
         if self.config.name.startswith("XQuAD"):
             lang = self.config.name.split(".")[1]
-            xquad_downloaded_file = dl_manager.download_and_extract(xjoin(self.config.data_url, f"xquad.{lang}.json"))
+            xquad_downloaded_file = dl_manager.download_and_extract(
+                os.path.join(self.config.data_url, f"xquad.{lang}.json")
+            )
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
@@ -650,9 +651,11 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             lang = self.config.name.split(".")[1]
 
             tatoeba_source_data = dl_manager.download_and_extract(
-                xjoin(self.config.data_url, f"tatoeba.{lang}-eng.{lang}")
+                os.path.join(self.config.data_url, f"tatoeba.{lang}-eng.{lang}")
             )
-            tatoeba_eng_data = dl_manager.download_and_extract(xjoin(self.config.data_url, f"tatoeba.{lang}-eng.eng"))
+            tatoeba_eng_data = dl_manager.download_and_extract(
+                os.path.join(self.config.data_url, f"tatoeba.{lang}-eng.eng")
+            )
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
@@ -663,13 +666,13 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("bucc18"):
             lang = self.config.name.split(".")[1]
             bucc18_dl_test_dir = dl_manager.download_and_extract(
-                xjoin(
+                os.path.join(
                     self.config.data_url,
                     f"bucc2018-{lang}-en.training-gold.tar.bz2",
                 )
             )
             bucc18_dl_dev_dir = dl_manager.download_and_extract(
-                xjoin(
+                os.path.join(
                     self.config.data_url,
                     f"bucc2018-{lang}-en.sample-gold.tar.bz2",
                 )
@@ -780,8 +783,8 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name == "SQuAD":
 
             urls_to_download = {
-                "train": xjoin(self.config.data_url, "train-v1.1.json"),
-                "dev": xjoin(self.config.data_url, "dev-v1.1.json"),
+                "train": os.path.join(self.config.data_url, "train-v1.1.json"),
+                "dev": os.path.join(self.config.data_url, "dev-v1.1.json"),
             }
             downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
