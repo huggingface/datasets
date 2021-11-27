@@ -38,13 +38,13 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-OneStopQA is a multiple choice reading comprehension dataset annotated according to the STARC
-(Structured Annotations for Reading Comprehension) scheme.
-The reading materials are Guardian articles taken from the
-[OneStopEnglish corpus](https://github.com/nishkalavallabhi/OneStopEnglishCorpus).
- Each article comes in three difficulty levels, Elementary, Intermediate and Advanced.
- Each paragraph is annotated with three multiple choice reading comprehension questions.
- The reading comprehension questions can be answered based on any of the three paragraph levels.
+OneStopQA is a multiple choice reading comprehension dataset annotated according to the STARC \
+(Structured Annotations for Reading Comprehension) scheme. \
+The reading materials are Guardian articles taken from the \
+[OneStopEnglish corpus](https://github.com/nishkalavallabhi/OneStopEnglishCorpus). \
+Each article comes in three difficulty levels, Elementary, Intermediate and Advanced. \
+Each paragraph is annotated with three multiple choice reading comprehension questions. \
+The reading comprehension questions can be answered based on any of the three paragraph levels.
 """
 
 _HOMEPAGE = "https://github.com/berzak/onestop-qa"
@@ -54,10 +54,7 @@ _LICENSE = "Creative Commons Attribution-ShareAlike 4.0 International License"
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLs = {
-    "first_domain": "https://github.com/scaperex/test_onestop_qa/raw/main/train.zip",
-    # 'second_domain': "https://huggingface.co/great-new-dataset-second_domain.zip",
-}
+_URL = "https://github.com/scaperex/test_onestop_qa/raw/main/train.zip"
 
 
 class OneStopQA(datasets.GeneratorBasedBuilder):
@@ -81,7 +78,6 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(
             name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"
         ),
-        # datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
     ]
 
     DEFAULT_CONFIG_NAME = (
@@ -93,8 +89,9 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
             {
                 "title": datasets.Value("string"),
                 "context": datasets.Value("string"),
+                "level": datasets.ClassLabel(names=["Adv", "Int", "Ele"]),
                 "question": datasets.Value("string"),
-                "references": datasets.Value("int32"),
+                "references": datasets.Value("int32"),  # TODO ClassLabel?
                 "answers": datasets.features.Sequence(datasets.Value("string")),
                 "a_span": datasets.features.Sequence(datasets.Value("int32")),
                 "d_span": datasets.features.Sequence(datasets.Value("int32")),
@@ -131,8 +128,7 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -142,22 +138,6 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
                     "split": "train",
                 },
             ),
-            # datasets.SplitGenerator(
-            #     name=datasets.Split.TEST,
-            #     # These kwargs will be passed to _generate_examples
-            #     gen_kwargs={
-            #         "filepath": os.path.join(data_dir, "test.jsonl"),
-            #         "split": "test"
-            #     },
-            # ),
-            # datasets.SplitGenerator(
-            #     name=datasets.Split.VALIDATION,
-            #     # These kwargs will be passed to _generate_examples
-            #     gen_kwargs={
-            #         "filepath": os.path.join(data_dir, "dev.jsonl"),
-            #         "split": "dev",
-            #     },
-            # ),
         ]
 
     def _generate_examples(
@@ -166,6 +146,7 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
         """Yields examples as (key, example) tuples."""
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
+        # Based on the squad dataset
         logger.info("generating examples from = %s", filepath)
         key = 0
         with open(filepath, encoding="utf-8") as f:
@@ -173,20 +154,22 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
             for article in onestop_qa["data"]:
                 title = article.get("title", "")
                 for paragraph in article["paragraphs"]:
-                    paragraph_context_and_spans = paragraph["Adv"]
-                    context = paragraph_context_and_spans["context"]
-                    a_spans = paragraph_context_and_spans["a_spans"]
-                    d_spans = paragraph_context_and_spans["d_spans"]
-                    qas = paragraph["qas"]
-                    for qa, a_span, d_span in zip(qas, a_spans, d_spans):
-                        yield key, {
-                            "title": title,
-                            "context": context,
-                            "question": qa["question"],
-                            "answers": qa["answers"],
-                            "references": qa["references"],
-                            "a_span": a_span,
-                            "d_span": d_span,
-                        },
+                    for level in ["Adv", "Int", "Ele"]:
+                        paragraph_context_and_spans = paragraph[level]
+                        context = paragraph_context_and_spans["context"]
+                        a_spans = paragraph_context_and_spans["a_spans"]
+                        d_spans = paragraph_context_and_spans["d_spans"]
+                        qas = paragraph["qas"]
+                        for qa, a_span, d_span in zip(qas, a_spans, d_spans):
+                            yield key, {
+                                "title": title,
+                                "context": context,
+                                "question": qa["question"],
+                                "answers": qa["answers"],
+                                "level": level,
+                                "references": qa["references"],
+                                "a_span": a_span,
+                                "d_span": d_span,
+                            },
 
-                        key += 1
+                            key += 1
