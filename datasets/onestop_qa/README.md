@@ -17,6 +17,10 @@ size_categories:
 source_datasets:
 - original
 - extended|onestop_english
+task_categories:
+- question-answering
+task_ids:
+- multiple-choice-qa
 
 # Dataset Card for OneStopQA
 
