@@ -16,34 +16,34 @@
 according to the STARC (Structured Annotations for Reading Comprehension) scheme"""
 
 
-import csv
 import json
 import os
 
 import datasets
 from datasets.tasks import QuestionAnsweringExtractive
 
+
 logger = datasets.logging.get_logger(__name__)
 
 
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
-@inproceedings{starc2020,  
-      author    = {Berzak, Yevgeni and Malmaud, Jonathan and Levy, Roger},  
-      title     = {STARC: Structured Annotations for Reading Comprehension},  
-      booktitle = {ACL},  
-      year      = {2020},  
-      publisher = {Association for Computational Linguistics} 
+@inproceedings{starc2020,
+      author    = {Berzak, Yevgeni and Malmaud, Jonathan and Levy, Roger},
+      title     = {STARC: Structured Annotations for Reading Comprehension},
+      booktitle = {ACL},
+      year      = {2020},
+      publisher = {Association for Computational Linguistics}
       }
 """
 
 _DESCRIPTION = """\
-OneStopQA is a multiple choice reading comprehension dataset annotated according to the STARC 
-(Structured Annotations for Reading Comprehension) scheme. 
-The reading materials are Guardian articles taken from the 
+OneStopQA is a multiple choice reading comprehension dataset annotated according to the STARC
+(Structured Annotations for Reading Comprehension) scheme.
+The reading materials are Guardian articles taken from the
 [OneStopEnglish corpus](https://github.com/nishkalavallabhi/OneStopEnglishCorpus).
- Each article comes in three difficulty levels, Elementary, Intermediate and Advanced. 
- Each paragraph is annotated with three multiple choice reading comprehension questions. 
+ Each article comes in three difficulty levels, Elementary, Intermediate and Advanced.
+ Each paragraph is annotated with three multiple choice reading comprehension questions.
  The reading comprehension questions can be answered based on any of the three paragraph levels.
 """
 
@@ -55,8 +55,8 @@ _LICENSE = "Creative Commons Attribution-ShareAlike 4.0 International License"
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    'first_domain': "https://huggingface.co/great-new-dataset-first_domain.zip",
-    'second_domain': "https://huggingface.co/great-new-dataset-second_domain.zip",
+    "first_domain": "https://github.com/scaperex/test_onestop_qa/raw/main/train.zip",
+    # 'second_domain': "https://huggingface.co/great-new-dataset-second_domain.zip",
 }
 
 
@@ -78,11 +78,15 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"),
-        datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
+        datasets.BuilderConfig(
+            name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"
+        ),
+        # datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
     ]
 
-    DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = (
+        "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    )
 
     def _info(self):
         features = datasets.Features(
@@ -92,10 +96,8 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
                 "question": datasets.Value("string"),
                 "references": datasets.Value("int32"),
                 "answers": datasets.features.Sequence(datasets.Value("string")),
-                "a_span": datasets.features.Sequence(
-                    datasets.features.Sequence(datasets.Value("int32"))),
-                "d_span": datasets.features.Sequence(
-                    datasets.features.Sequence(datasets.Value("int32"))),
+                "a_span": datasets.features.Sequence(datasets.Value("int32")),
+                "d_span": datasets.features.Sequence(datasets.Value("int32")),
             }
         )
 
@@ -136,42 +138,42 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.jsonl"),
+                    "filepath": os.path.join(data_dir, "train.json"),
                     "split": "train",
                 },
             ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.jsonl"),
-                    "split": "test"
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "dev.jsonl"),
-                    "split": "dev",
-                },
-            ),
+            # datasets.SplitGenerator(
+            #     name=datasets.Split.TEST,
+            #     # These kwargs will be passed to _generate_examples
+            #     gen_kwargs={
+            #         "filepath": os.path.join(data_dir, "test.jsonl"),
+            #         "split": "test"
+            #     },
+            # ),
+            # datasets.SplitGenerator(
+            #     name=datasets.Split.VALIDATION,
+            #     # These kwargs will be passed to _generate_examples
+            #     gen_kwargs={
+            #         "filepath": os.path.join(data_dir, "dev.jsonl"),
+            #         "split": "dev",
+            #     },
+            # ),
         ]
 
     def _generate_examples(
         self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
         logger.info("generating examples from = %s", filepath)
         key = 0
         with open(filepath, encoding="utf-8") as f:
-            squad = json.load(f)
-            for article in squad["data"]:
+            onestop_qa = json.load(f)
+            for article in onestop_qa["data"]:
                 title = article.get("title", "")
                 for paragraph in article["paragraphs"]:
-                    paragraph_context_and_spans = paragraph['Adv']
+                    paragraph_context_and_spans = paragraph["Adv"]
                     context = paragraph_context_and_spans["context"]
                     a_spans = paragraph_context_and_spans["a_spans"]
                     d_spans = paragraph_context_and_spans["d_spans"]
@@ -180,11 +182,11 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
                         yield key, {
                             "title": title,
                             "context": context,
-                            "question": qa['question'],
-                            "answers": qa['answers'],
-                            "references": qa['references'],
+                            "question": qa["question"],
+                            "answers": qa["answers"],
+                            "references": qa["references"],
                             "a_span": a_span,
                             "d_span": d_span,
-                            },
+                        },
 
                         key += 1
