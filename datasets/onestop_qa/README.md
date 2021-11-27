@@ -10,15 +10,15 @@ licenses:
 - cc-by-sa-4.0
 multilinguality:
 - monolingual
-paperswithcode_id: squad
-pretty_name: onestop_qa
+paperswithcode_id: onestopqa
+pretty_name: OneStopQA
 size_categories:
-- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 - extended|onestop_english
 
-# Dataset Card for onestop_qa
+# Dataset Card for OneStopQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -67,27 +67,53 @@ English
 
 ### Data Instances
 
-{'text':'Leading water scientists have issued one of the sternest warnings yet about global food supplies, saying that the worlds population may have to switch almost completely to a vegetarian diet by 2050 to avoid catastrophic shortages. <D>Humans derive about 20% of their protein from animal-based products now, but this may need to drop to just 5% to feed the extra two billion people expected to be alive by 2050,</D> according to research by some of the worlds leading water scientists. <A>There will not be enough water available on current croplands to produce food for the expected nine-billion population in 2050 if we follow current trends and changes towards diets common in western nations, the report by Malik Falkenmark and colleagues at the Stockholm International Water Institute (SIWI) said.</A>'
+An example of instance looks as follows.
 
-'question':'According to Malik Falkenmarks report, what will happen if the world adopts the current diet trends of western nations?'
-
-'answers':{'a':'There will not be sufficient water to grow enough food for everyone',
-'b': 'By 2050, nine billion people will not have enough drinking wate'r,
-'c': 'By 2050, animal-based protein consumption will reduce from 20% to 5%',
-'d': 'Obesity rates around the world will rise',}
+```json
+{
+  "title": "101-Year-Old Bottle Message",
+  "context": "Angela Erdmann never knew her grandfather. He died in 1946, six years before she was born. But, on Tuesday 8th April, 2014, she described the extraordinary moment when she received a message in a bottle, 101 years after he had lobbed it into the Baltic Sea. Thought to be the world\u2019s oldest message in a bottle, it was presented to Erdmann by the museum that is now exhibiting it in Germany.",
+  "level": "Adv",
+  "question": "How did Angela Erdmann find out about the bottle?", 
+  "references": 1, 
+  "answers": ["A museum told her that they had it", 
+              "She coincidentally saw it at the museum where it was held", 
+              "She found it in her basement on April 28th, 2014", 
+              "A friend told her about it"],
+  "a_span": [56, 70], 
+  "d_span": [16, 34]
 }
+```
+Where, 
+
+| Answer | Description | Textual Span
+| --- | --- | --- |
+| a | Correct answer. | Critical Span|
+| b | Incorrect answer. A miscomprehension of the critical span. | Critical Span|
+| c | Incorrect answer. Refers to an additional span. | Distractor Span |
+| d | Incorrect answer. Has no textual support. | - |
 
 ### Data Fields
 
--text: text data
--question: the question
--answers: the possible answers
-
+- `title`: a `string` feature. The article title.
+- `context`: a `string` feature. The paragraph from the article. 
+- `question`: a `string` feature. The given question.
+- `answers`: a list of `string` feature containing the four possible answers.
+- `a_span`: start and end indices (inclusive, word level) of the critical span.
+- `d_span`: start and end indices (inclusive, word level) of the distractor span.
+- `references`: whether the answer span of this question refers to the same answer span of a different question,
+and which question it is.
 
 
 ### Data Splits
 
-[Needs More Information]
+Articles: 30  
+Paragraphs: 162  
+Questions: 486  
+Question-Paragraph Level pairs: 1,458  
+
+No preconfigured split is currently provided.
+
 
 ## Dataset Creation
 
@@ -141,8 +167,17 @@ English
 
 ### Licensing Information
 
-[Needs More Information]
+<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
 
 ### Citation Information
 
-[Needs More Information]
+[STARC: Structured Annotations for Reading Comprehension](http://people.csail.mit.edu/berzak/papers/acl2020.pdf)  
+```
+@inproceedings{starc2020,  
+      author    = {Berzak, Yevgeni and Malmaud, Jonathan and Levy, Roger},  
+      title     = {STARC: Structured Annotations for Reading Comprehension},  
+      booktitle = {ACL},  
+      year      = {2020},  
+      publisher = {Association for Computational Linguistics} 
+      }
+```
