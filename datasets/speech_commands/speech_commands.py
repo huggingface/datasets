@@ -82,7 +82,6 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                     "label": datasets.ClassLabel(names=LABELS),
                     "speaker_id": datasets.Value("string"),
                     "utterance_id": datasets.Value("int8"),
-                    "id": datasets.Value("string"),
                 }
             ),
             supervised_keys=("file", "label"),  # TODO: understand what that means
@@ -123,7 +122,6 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                     "label": "_background_noise_",
                     "speaker_id": None,
                     "utterance_id": 0,
-                    "id": filename.split(".wav")[0]
             }
                 continue
 
@@ -134,8 +132,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 # TODO: or maybe I should preserve words outside the WORDS list too and
                 # TODO: for example add another feature indicating if a word is unrecognized
 
-            id_ = filename.split(".wav")[0]
-            speaker_id, _, utterance_id = id_.split("_")
+            speaker_id, _, utterance_id = filename.split(".wav")[0].split("_")
 
             yield key, {
                 "file": audio_file,
@@ -143,7 +140,6 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 "label": label,
                 "speaker_id": speaker_id,
                 "utterance_id": utterance_id,
-                "id": id_
             }
 
 
