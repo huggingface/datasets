@@ -20,7 +20,9 @@ import json
 import os
 
 import datasets
-from datasets.tasks import QuestionAnsweringExtractive
+
+
+# from datasets.tasks import QuestionAnsweringExtractive
 
 
 logger = datasets.logging.get_logger(__name__)
@@ -74,22 +76,13 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
     # You will be able to load one or the other configurations in the following list with
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
-    BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"
-        ),
-    ]
-
-    DEFAULT_CONFIG_NAME = (
-        "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-    )
 
     def _info(self):
         features = datasets.Features(
             {
                 "title": datasets.Value("string"),
                 "context": datasets.Value("string"),
-                "level": datasets.ClassLabel(names=["Adv", "Int", "Ele"]),
+                "level": datasets.Value("string"),  # TODO ClassLabel?
                 "question": datasets.Value("string"),
                 "references": datasets.Value("int32"),  # TODO ClassLabel?
                 "answers": datasets.features.Sequence(datasets.Value("string")),
@@ -113,11 +106,11 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
             license=_LICENSE,
             # Citation for the dataset
             citation=_CITATION,
-            task_templates=[
-                QuestionAnsweringExtractive(
-                    question_column="question", context_column="context", answers_column="answers"
-                )
-            ],
+            task_templates=[]
+            #     QuestionAnsweringExtractive(
+            #         question_column="question", context_column="context", answers_column="answers"
+            #     )
+            # ], # TODO After issue #2434 is resolved uncomment task_templates and the QuestionAnsweringExtractive (or similar)
         )
 
     def _split_generators(self, dl_manager):
