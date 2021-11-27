@@ -56,8 +56,9 @@ WORDS = [
     "learn"
 
 ]
-
-LABELS = WORDS + ["_unrecognized_", "_background_noise_"]
+UNKNOWN = "_unknown_"
+BACKGROUND = "_background_noise_"
+LABELS = WORDS + [UNKNOWN, BACKGROUND]
 
 
 # class SpeechCommandsConfig(datasets.BuilderConfig):
@@ -115,11 +116,11 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
         for key, audio_file in enumerate(sorted(filenames)):
             base_dir, filename = os.path.split(audio_file)
             _, word = os.path.split(base_dir)
-            if word == "_background_noise_":
+            if word == BACKGROUND:
                 yield key, {
                     "file": audio_file,
                     "audio": audio_file,
-                    "label": "_background_noise_",
+                    "label": BACKGROUND,
                     "speaker_id": None,
                     "utterance_id": 0,
             }
@@ -128,9 +129,10 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             elif word in WORDS:
                 label = word
             else:
-                label = "_unrecognized_"
+                label = UNKNOWN
                 # TODO: or maybe I should preserve words outside the WORDS list too and
-                # TODO: for example add another feature indicating if a word is unrecognized
+                # for example add another feature indicating if a word is unrecognized
+                # otherwise speaker_id and utterance_id don't make any sense
 
             speaker_id, _, utterance_id = filename.split(".wav")[0].split("_")
 
