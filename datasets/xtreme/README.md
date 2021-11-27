@@ -426,6 +426,11 @@ languages:
   - en
 licenses:
 - apache-2.0
+- cc-by-4.0
+- cc-by-2.0
+- cc-by-sa-4.0
+- other-Licence Universal Dependencies v2.5
+- other-Attribution-NonCommercial 4.0 International
 multilinguality:
 - multilingual
 - translation
