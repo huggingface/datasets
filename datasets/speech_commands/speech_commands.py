@@ -103,7 +103,7 @@ WORDS_V2 = WORDS_V1 + [
 ]
 UNKNOWN = "_unknown_"
 BACKGROUND = "_background_noise_"
-SILENCE = "_silence_"  # that's how background noise is called in test set
+SILENCE = "_silence_"  # that's how background noise is called in test set archive
 LABELS_V1 = WORDS_V1 + [UNKNOWN, BACKGROUND]
 LABELS_V2 = WORDS_V2 + [UNKNOWN, BACKGROUND]
 
@@ -123,16 +123,12 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             name="v0.01",
             description="",  # TODO
             labels=LABELS_V1,
-            # data_url=_DL_URL.format(name="v0.01"),
-            # test_data_url=_DL_URL.format(name="test_set_v0.01"),
             version=datasets.Version("0.0.1")
         ),
         SpeechCommandsConfig(
             name="v0.02",
             description="",  # TODO
             labels=LABELS_V2,
-            # data_url=_DL_URL.format("v0.02"),
-            # test_data_url=_DL_URL.format("test_set_v0.02"),
             version=datasets.Version("0.0.2")
         ),
     ]
@@ -162,7 +158,6 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             "train_val_test": _DL_URL.format(name=self.config.name),
             "test": _DL_URL.format(name=f"test_set_{self.config.name}")
         })
-        # splits_to_paths = _split_files(archive_path)
 
         return [
             datasets.SplitGenerator(
@@ -203,7 +198,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 # otherwise utterance_id don't make any sense
 
             speaker_id, _, utterance_id = filename.split(".wav")[0].split("_")[-3:]
-            # take last 3 elements since while standard filename looks like `0bac8a71_nohash_0.wav`
+            # take last 3 elements since while a standard filename looks like `0bac8a71_nohash_0.wav`
             # in test archives in _unknown_ folder filenames look like `backward_0c540988_nohash_0.wav`
 
             yield key, {
@@ -226,8 +221,8 @@ def _split_files(archive_path, split):
 
     with open(val_list_file, encoding="utf-8") as val_f, \
             open(test_list_file, encoding="utf-8") as test_f:
-        val_paths = [os.path.join(archive_path, path.strip()) for path in val_f.readlines()]
-        test_paths = [os.path.join(archive_path, path.strip()) for path in test_f.readlines()]
+        val_paths = [os.path.join(archive_path, path.strip()) for path in val_f.readlines() if path.strip()]
+        test_paths = [os.path.join(archive_path, path.strip()) for path in test_f.readlines() if path.strip()]
 
     if split == "val":
         return val_paths
