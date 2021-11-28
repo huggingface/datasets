@@ -1,10 +1,8 @@
 ---
 annotations_creators:
-- crowdsourced
 - expert-generated
 language_creators:
-- crowdsourced
-- found
+- expert-generated
 languages:
 - en-US
 licenses:
@@ -81,7 +79,6 @@ An example of instance looks as follows.
   "context": "Angela Erdmann never knew her grandfather. He died in 1946, six years before she was born. But, on Tuesday 8th April, 2014, she described the extraordinary moment when she received a message in a bottle, 101 years after he had lobbed it into the Baltic Sea. Thought to be the world\u2019s oldest message in a bottle, it was presented to Erdmann by the museum that is now exhibiting it in Germany.",
   "level": "Adv",
   "question": "How did Angela Erdmann find out about the bottle?", 
-  "references": 1, 
   "answers": ["A museum told her that they had it", 
               "She coincidentally saw it at the museum where it was held", 
               "She found it in her basement on April 28th, 2014", 
@@ -99,6 +96,8 @@ Where,
 | c | Incorrect answer. Refers to an additional span. | Distractor Span |
 | d | Incorrect answer. Has no textual support. | - |
 
+The order of the answers in the `answers` list corresponds to the order of the answers in the table.
+
 ### Data Fields
 
 - `title`: a `string` feature. The article title.
@@ -107,8 +106,6 @@ Where,
 - `answers`: a list of `string` feature containing the four possible answers.
 - `a_span`: start and end indices (inclusive, word level) of the critical span.
 - `d_span`: start and end indices (inclusive, word level) of the distractor span.
-- `references`: whether the answer span of this question refers to the same answer span of a different question,
-and which question it is.
 
 
 ### Data Splits
