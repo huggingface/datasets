@@ -288,8 +288,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-The TriviaQA dataset is released under the [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0). The University of Washington does not own the copyright of the questions and documents included in TriviaQA. For more information see [this](http://nlp.cs.washington.edu/triviaqa/).
-
+The University of Washington does not own the copyright of the questions and documents included in TriviaQA.
 
 ### Citation Information
 
