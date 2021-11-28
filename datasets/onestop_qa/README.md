@@ -77,6 +77,7 @@ An example of instance looks as follows.
 {
   "title": "101-Year-Old Bottle Message",
   "context": "Angela Erdmann never knew her grandfather. He died in 1946, six years before she was born. But, on Tuesday 8th April, 2014, she described the extraordinary moment when she received a message in a bottle, 101 years after he had lobbed it into the Baltic Sea. Thought to be the world\u2019s oldest message in a bottle, it was presented to Erdmann by the museum that is now exhibiting it in Germany.",
+  "paragraph_index": 1
   "level": "Adv",
   "question": "How did Angela Erdmann find out about the bottle?", 
   "answers": ["A museum told her that they had it", 
@@ -102,6 +103,7 @@ The order of the answers in the `answers` list corresponds to the order of the a
 
 - `title`: a `string` feature. The article title.
 - `context`: a `string` feature. The paragraph from the article. 
+- `paragraph_index`: an `int` feature. Corresponds to the paragraph index in the article.
 - `question`: a `string` feature. The given question.
 - `answers`: a list of `string` feature containing the four possible answers.
 - `a_span`: start and end indices (inclusive, word level) of the critical span.
