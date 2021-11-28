@@ -65,7 +65,7 @@ _LICENSE = "Creative Commons BY 4.0 License"
 
 _URL = "https://www.tensorflow.org/datasets/catalog/speech_commands"  # TODO: check
 
-_DL_URL = "http://download.tensorflow.org/data/speech_commands_{}.tar.gz"
+_DL_URL = "http://download.tensorflow.org/data/speech_commands_{name}.tar.gz"
 
 # _DL_TEST_URL = {
 #     "v0.01": "http://download.tensorflow.org/data/speech_commands_test_set_v0.01.tar.gz",
@@ -102,7 +102,8 @@ WORDS_V2 = WORDS_V1 + [
     "learn",
 ]
 UNKNOWN = "_unknown_"
-BACKGROUND = "_background_noise_"  # TODO: _silence_?
+BACKGROUND = "_background_noise_"
+SILENCE = "_silence_"  # that's how background noise is called in test set
 LABELS_V1 = WORDS_V1 + [UNKNOWN, BACKGROUND]
 LABELS_V2 = WORDS_V2 + [UNKNOWN, BACKGROUND]
 
@@ -110,10 +111,8 @@ LABELS_V2 = WORDS_V2 + [UNKNOWN, BACKGROUND]
 class SpeechCommandsConfig(datasets.BuilderConfig):
     """BuilderConfig for SpeechCommands. """
 
-    def __init__(self, data_url, labels, **kwargs):  # TODO: url?
+    def __init__(self, labels, **kwargs):  # TODO: url?
         super(SpeechCommandsConfig, self).__init__(**kwargs)
-        # self.url = url
-        self.data_url = data_url
         self.labels = labels
 
 
@@ -122,16 +121,18 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         SpeechCommandsConfig(
             name="v0.01",
-            description="",  #TODO
+            description="",  # TODO
             labels=LABELS_V1,
-            data_url=_DL_URL.format("v0.01"),
+            # data_url=_DL_URL.format(name="v0.01"),
+            # test_data_url=_DL_URL.format(name="test_set_v0.01"),
             version=datasets.Version("0.0.1")
         ),
         SpeechCommandsConfig(
             name="v0.02",
             description="",  # TODO
             labels=LABELS_V2,
-            data_url=_DL_URL.format("v0.02"),
+            # data_url=_DL_URL.format("v0.02"),
+            # test_data_url=_DL_URL.format("test_set_v0.02"),
             version=datasets.Version("0.0.2")
         ),
     ]
@@ -156,30 +157,34 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        archive_path = dl_manager.download_and_extract(self.config.data_url)
-        splits_to_paths = _split_files(archive_path)
 
-        # TODO: make `archive_path` a class attribute / self.config attr since it's the same for each split?
+        archive_paths = dl_manager.download_and_extract({
+            "train_val_test": _DL_URL.format(name=self.config.name),
+            "test": _DL_URL.format(name=f"test_set_{self.config.name}")
+        })
+        # splits_to_paths = _split_files(archive_path)
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"archive_path": archive_path, "filenames": splits_to_paths["train"]}
+                gen_kwargs={"archive_path": archive_paths["train_val_test"], "split": "train"}
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"archive_path": archive_path, "filenames": splits_to_paths["val"]}
+                gen_kwargs={"archive_path": archive_paths["train_val_test"], "split": "val"}
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"archive_path": archive_path, "filenames": splits_to_paths["test"]}
+                gen_kwargs={"archive_path": archive_paths["test"], "split": "test"}
             ),
         ]
 
-    def _generate_examples(self, archive_path, filenames):
+    def _generate_examples(self, archive_path, split):
+        filenames = _split_files(archive_path, split)
         for key, audio_file in enumerate(sorted(filenames)):
             base_dir, filename = os.path.split(audio_file)
             _, word = os.path.split(base_dir)
-            if word == BACKGROUND:
+            if word in [BACKGROUND, SILENCE]:
                 yield key, {
                     "file": audio_file,
                     "audio": audio_file,
@@ -189,15 +194,17 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             }
                 continue
 
-            elif word in self.config.labels[:-2]:  # the last two are _unknown_ and _background_
+            elif word in self.config.labels[:-2]:  # the last two labels are _unknown_ and _background_
                 label = word
             else:
                 label = UNKNOWN
                 # TODO: or maybe I should preserve words outside the WORDS list too and
-                # for example add another feature indicating if a word is unrecognized
-                # otherwise speaker_id and utterance_id don't make any sense
+                # for example add another feature indicating if a word is unrecognized (_unknown_)
+                # otherwise utterance_id don't make any sense
 
-            speaker_id, _, utterance_id = filename.split(".wav")[0].split("_")
+            speaker_id, _, utterance_id = filename.split(".wav")[0].split("_")[-3:]
+            # take last 3 elements since while standard filename looks like `0bac8a71_nohash_0.wav`
+            # in test archives in _unknown_ folder filenames look like `backward_0c540988_nohash_0.wav`
 
             yield key, {
                 "file": audio_file,
@@ -208,7 +215,12 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             }
 
 
-def _split_files(archive_path):
+def _split_files(archive_path, split):
+    all_paths = glob.glob(os.path.join(archive_path, "**", "*.wav"))
+    if split == "test":
+        # there is a separate archive with test files, use all of its available files
+        return all_paths
+
     val_list_file = os.path.join(archive_path, "validation_list.txt")
     test_list_file = os.path.join(archive_path, "testing_list.txt")
 
@@ -217,11 +229,8 @@ def _split_files(archive_path):
         val_paths = [os.path.join(archive_path, path.strip()) for path in val_f.readlines()]
         test_paths = [os.path.join(archive_path, path.strip()) for path in test_f.readlines()]
 
-    all_paths = glob.glob(os.path.join(archive_path, "**", "*.wav"))
-    train_paths = list(set(all_paths) - set(val_paths) - set(test_paths))
+    if split == "val":
+        return val_paths
 
-    return {
-        "train": train_paths,
-        "val": val_paths,
-        "test": test_paths,
-    }
+    # all files that are not listed in either test or validation sets belong to train set
+    return list(set(all_paths) - set(val_paths) - set(test_paths))
