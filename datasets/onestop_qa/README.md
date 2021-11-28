@@ -1,3 +1,4 @@
+---
 annotations_creators:
 - crowdsourced
 - expert-generated
@@ -21,6 +22,7 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+---
 
 # Dataset Card for OneStopQA
 
