@@ -9,9 +9,9 @@ You can see what metrics are available with :func:`datasets.list_metrics`:
 
    >>> from datasets import list_metrics
    >>> metrics_list = list_metrics()
-   >>> len(metrics_list)
+   >>> len(metrics_list) #doctest: +SKIP
    28
-   >>> print(metrics_list)
+   >>> print(metrics_list) #doctest: +SKIP
    ['accuracy', 'bertscore', 'bleu', 'bleurt', 'cer', 'comet', 'coval', 'cuad', 'f1', 'gleu', 'glue', 'indic_glue', 'matthews_correlation', 'meteor', 'pearsonr', 'precision', 'recall', 'rouge', 'sacrebleu', 'sari', 'seqeval', 'spearmanr', 'squad', 'squad_v2', 'super_glue', 'wer', 'wiki_split', 'xnli']
 
 Load metric

@@ -114,6 +114,48 @@ class DatasetInfo:
         size_in_bytes (int, optional): The combined size in bytes of all files associated with the dataset (downloaded files + Arrow files).
         task_templates (List[TaskTemplate], optional): The task templates to prepare the dataset for during training and evaluation. Each template casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
         **config_kwargs: Keyword arguments to be passed to the :class:`BuilderConfig` and used in the :class:`DatasetBuilder`.
+
+    Examples:
+
+    dataset.info.description
+    >>> dataset.info.description
+    'GLUE, the General Language Understanding Evaluation benchmark\n(https://gluebenchmark.com/) is a collection of resources for training,\nevaluating, and analyzing natural language understanding systems.\n\n'
+
+    print(dataset.info.citation)
+    >>> dataset.info.citation #doctest: +NORMALIZE_WHITESPACE +DONT_ACCEPT_BLANKLINE
+    @inproceedings{dolan2005automatically,
+      title={Automatically constructing a corpus of sentential paraphrases},
+      author={Dolan, William B and Brockett, Chris},
+      booktitle={Proceedings of the Third International Workshop on Paraphrasing (IWP2005)},
+      year={2005}
+    }
+    @inproceedings{wang2019glue,
+      title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},
+      author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},
+     note={In the Proceedings of ICLR.},
+      year={2019}
+    }
+
+    dataset.info.homepage
+    >>> dataset.info.homepage
+    'https://www.microsoft.com/en-us/download/details.aspx?id=52398'
+
+    dataset.info.features
+    >>> dataset.features
+    {'idx': Value(dtype='int32', id=None),
+    'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
+    'sentence1': Value(dtype='string', id=None),
+    'sentence2': Value(dtype='string', id=None)}
+
+    dataset.info.splits
+    >>> dataset.info.splits
+    {'test': SplitInfo(name='test', num_bytes=442418, num_examples=1725, dataset_name='glue'),
+     'train': SplitInfo(name='train', num_bytes=943851, num_examples=3668, dataset_name='glue'),
+     'validation': SplitInfo(name='validation', num_bytes=105887, num_examples=408, dataset_name='glue')}
+
+    dataset.info
+    >>> dataset.info #doctest: +NORMALIZE_WHITESPACE
+    DatasetInfo(description='GLUE, the General Language Understanding Evaluation benchmark\n(https://gluebenchmark.com/) is a collection of resources for training,\nevaluating, and analyzing natural language understanding systems.\n\n', citation='@inproceedings{dolan2005automatically,\n  title={Automatically constructing a corpus of sentential paraphrases},\n  author={Dolan, William B and Brockett, Chris},\n  booktitle={Proceedings of the Third International Workshop on Paraphrasing (IWP2005)},\n  year={2005}\n}\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n', homepage='https://www.microsoft.com/en-us/download/details.aspx?id=52398', license='', features={'sentence1': Value(dtype='string', id=None), 'sentence2': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None), 'idx': Value(dtype='int32', id=None)}, post_processed=None, supervised_keys=None, task_templates=None, builder_name='glue', config_name='mrpc', version=1.0.0, splits={'train': SplitInfo(name='train', num_bytes=943851, num_examples=3668, dataset_name='glue'), 'validation': SplitInfo(name='validation', num_bytes=105887, num_examples=408, dataset_name='glue'), 'test': SplitInfo(name='test', num_bytes=442418, num_examples=1725, dataset_name='glue')}, download_checksums={'https://dl.fbaipublicfiles.com/glue/data/mrpc_dev_ids.tsv': {'num_bytes': 6222, 'checksum': '971d7767d81b997fd9060ade0ec23c4fc31cbb226a55d1bd4a1bac474eb81dc7'}, 'https://dl.fbaipublicfiles.com/senteval/senteval_data/msr_paraphrase_train.txt': {'num_bytes': 1047044, 'checksum': '60a9b09084528f0673eedee2b69cb941920f0b8cd0eeccefc464a98768457f89'}, 'https://dl.fbaipublicfiles.com/senteval/senteval_data/msr_paraphrase_test.txt': {'num_bytes': 441275, 'checksum': 'a04e271090879aaba6423d65b94950c089298587d9c084bf9cd7439bd785f784'}}, download_size=1494541, post_processing_size=None, dataset_size=1492156, size_in_bytes=2986697)
     """
 
     # Set in the dataset scripts

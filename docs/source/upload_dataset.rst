@@ -66,14 +66,14 @@ Your dataset can now be loaded by anyone in a single line of code!
    >>> dataset = load_dataset("stevhliu/demo")
    >>> dataset
    DatasetDict({
-    train: Dataset({
-        features: ['id', 'package_name', 'review', 'date', 'star', 'version_id'],
-        num_rows: 5
-    })
-    test: Dataset({
-        features: ['id', 'package_name', 'review', 'date', 'star', 'version_id'],
-        num_rows: 5
-    })
+       train: Dataset({
+           features: ['id', 'package_name', 'review', 'date', 'star', 'version_id'],
+           num_rows: 5
+       })
+       test: Dataset({
+           features: ['id', 'package_name', 'review', 'date', 'star', 'version_id'],
+           num_rows: 5
+       })
    })
 
 
@@ -95,13 +95,13 @@ To upload a :class:`datasets.DatasetDict` on the Hugging Face Hub in Python, you
    >>> from datasets import load_dataset
    >>> dataset = load_dataset("stevhliu/demo")
    >>> # dataset = dataset.map(...)  # do all your processing here
-   >>> dataset.push_to_hub("stevhliu/processed_demo")
+   >>> dataset.push_to_hub("stevhliu/processed_demo") #doctest: +SKIP
 
 With the ``private`` parameter you can choose whether your dataset is public or private:
 
 .. code-block::
 
-   >>> dataset.push_to_hub("stevhliu/private_processed_demo", private=True)
+   >>> dataset.push_to_hub("stevhliu/private_processed_demo", private=True) #doctest: +SKIP
 
 Privacy
 -------
@@ -134,7 +134,7 @@ Similarly, share a private dataset within your organization by uploading a datas
 .. code-block::
 
    >>> from datasets import load_dataset
-   >>> dataset = load_dataset("organization/dataset_name", use_auth_token=True)
+   >>> dataset = load_dataset("organization/dataset_name", use_auth_token=True) #doctest: +SKIP
 
 
 What's next?

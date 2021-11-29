@@ -201,6 +201,13 @@ def get_dataset_config_names(
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
             for example ``use_auth_token``
+
+    Example:
+
+    >>> configs = get_dataset_config_names("glue")
+    >>> print(configs)
+    ['cola', 'sst2', 'mrpc', 'qqp', 'stsb', 'mnli', 'mnli_mismatched', 'mnli_matched', 'qnli', 'rte', 'wnli', 'ax']
+
     """
     dataset_module = dataset_module_factory(
         path,
@@ -254,6 +261,13 @@ def get_dataset_split_names(
         use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
         config_kwargs: optional attributes for builder class which will override the attributes if supplied.
+
+    Example:
+
+    >>> get_dataset_split_names('sent_comp')
+    ['validation', 'train']
+    >>> get_dataset_split_names('glue', 'cola')
+    ['test', 'train', 'validation']
 
     """
     builder = load_dataset_builder(
