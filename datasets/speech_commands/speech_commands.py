@@ -106,7 +106,7 @@ LABELS_V2 = WORDS_V2 + [UNKNOWN, BACKGROUND]
 
 
 class SpeechCommandsConfig(datasets.BuilderConfig):
-    """BuilderConfig for SpeechCommands. """
+    """BuilderConfig for SpeechCommands."""
 
     def __init__(self, labels, **kwargs):
         super(SpeechCommandsConfig, self).__init__(**kwargs)
@@ -126,7 +126,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 """
             ),
             labels=LABELS_V1,
-            version=datasets.Version("0.0.1")  # TODO: maybe drop it?
+            version=datasets.Version("0.0.1"),  # TODO: maybe drop it?
         ),
         SpeechCommandsConfig(
             name="v0.02",
@@ -137,7 +137,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 """
             ),
             labels=LABELS_V2,
-            version=datasets.Version("0.0.2")  # TODO: maybe drop it?
+            version=datasets.Version("0.0.2"),  # TODO: maybe drop it?
         ),
     ]
 
@@ -161,23 +161,24 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
 
-        archive_paths = dl_manager.download_and_extract({
-            "train_val_test": _DL_URL.format(name=self.config.name),
-            "test": _DL_URL.format(name=f"test_set_{self.config.name}")
-        })
+        archive_paths = dl_manager.download_and_extract(
+            {
+                "train_val_test": _DL_URL.format(name=self.config.name),
+                "test": _DL_URL.format(name=f"test_set_{self.config.name}"),
+            }
+        )
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"archive_path": archive_paths["train_val_test"], "split": "train"}
+                gen_kwargs={"archive_path": archive_paths["train_val_test"], "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"archive_path": archive_paths["train_val_test"], "split": "val"}
+                gen_kwargs={"archive_path": archive_paths["train_val_test"], "split": "val"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"archive_path": archive_paths["test"], "split": "test"}
+                name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_paths["test"], "split": "test"}
             ),
         ]
 
@@ -193,7 +194,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                     "label": BACKGROUND,
                     "speaker_id": None,
                     "utterance_id": 0,
-            }
+                }
                 continue
 
             elif word in self.config.labels[:-2]:  # the last two labels are _unknown_ and _background_
@@ -226,8 +227,7 @@ def _split_files(archive_path, split):
     val_list_file = os.path.join(archive_path, "validation_list.txt")
     test_list_file = os.path.join(archive_path, "testing_list.txt")
 
-    with open(val_list_file, encoding="utf-8") as val_f, \
-            open(test_list_file, encoding="utf-8") as test_f:
+    with open(val_list_file, encoding="utf-8") as val_f, open(test_list_file, encoding="utf-8") as test_f:
         val_paths = [os.path.join(archive_path, path.strip()) for path in val_f.readlines() if path.strip()]
         test_paths = [os.path.join(archive_path, path.strip()) for path in test_f.readlines() if path.strip()]
 
