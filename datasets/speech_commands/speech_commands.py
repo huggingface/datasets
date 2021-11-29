@@ -80,6 +80,9 @@ WORDS_V1 = [
     "off",
     "stop",
     "go",
+]
+
+WORDS_V2 = WORDS_V1 + [
     "zero",
     "one",
     "two",
@@ -90,9 +93,6 @@ WORDS_V1 = [
     "seven",
     "eight",
     "nine",
-]
-
-WORDS_V2 = WORDS_V1 + [
     "backward",
     "forward",
     "follow",
