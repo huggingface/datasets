@@ -430,7 +430,7 @@ licenses:
 - cc-by-2.0
 - cc-by-sa-4.0
 - other-Licence Universal Dependencies v2.5
-- other-Attribution-NonCommercial 4.0 International
+- cc-by-nc-4.0
 multilinguality:
 - multilingual
 - translation
