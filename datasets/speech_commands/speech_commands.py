@@ -80,9 +80,6 @@ WORDS_V1 = [
     "off",
     "stop",
     "go",
-]
-
-WORDS_V2 = WORDS_V1 + [
     "zero",
     "one",
     "two",
@@ -93,6 +90,9 @@ WORDS_V2 = WORDS_V1 + [
     "seven",
     "eight",
     "nine",
+]
+
+WORDS_V2 = WORDS_V1 + [
     "backward",
     "forward",
     "follow",
@@ -120,9 +120,9 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             name="v0.01",
             description=textwrap.dedent(
                 """\
-                Version 0.01 of SpeechCommands dataset. Contains ten command words:
-                "Yes", "No", "Up", "Down", "Left", "Right", "On", "Off", "Stop", "Go", several 
-                auxiliary words (label `_unknown_`) and background noise (label `_background_noise_`)
+                Version 0.01 of SpeechCommands dataset. Contains twenty command words:
+                digits from zero to nine, "Yes", "No", "Up", "Down", "Left", "Right", "On", "Off", "Stop", and "Go"; 
+                several auxiliary words (label `_unknown_`), and background noise (label `_background_noise_`)
                 """
             ),
             labels=LABELS_V1,
@@ -230,6 +230,10 @@ def _split_files(archive_path, split):
     with open(val_list_file, encoding="utf-8") as val_f, open(test_list_file, encoding="utf-8") as test_f:
         val_paths = [os.path.join(archive_path, path.strip()) for path in val_f.readlines() if path.strip()]
         test_paths = [os.path.join(archive_path, path.strip()) for path in test_f.readlines() if path.strip()]
+
+    # original validation files did not include silence - we add them manually here
+    # see https://github.com/tensorflow/datasets/blob/master/tensorflow_datasets/audio/speech_commands.py#L182
+    val_paths.append(os.path.join(archive_path, BACKGROUND, 'running_tap.wav'))
 
     if split == "val":
         return val_paths
