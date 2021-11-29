@@ -41,25 +41,25 @@ _DESCRIPTION = """
 This is a set of one-second .wav audio files, each containing a single spoken
 English word or background noise. These words are from a small set of commands, and are spoken by a
 variety of different speakers. This data set is designed to help train simple
-machine learning models. This dataset is covered in more detail at 
+machine learning models. This dataset is covered in more detail at
 [https://arxiv.org/abs/1804.03209](https://arxiv.org/abs/1804.03209).
 
 Version 0.01 of the data set (configuration `"v0.01"`) was released on August 3rd 2017 and contains
-64,727 audio files. 
+64,727 audio files.
 
-Version 0.02 of the data set (configuration `"v0.02"`) was released on April 11th 2018 and 
+Version 0.02 of the data set (configuration `"v0.02"`) was released on April 11th 2018 and
 contains 105,829 audio files.
 
 In version 0.01 ten command words were recoded, with most speakers saying each
-of them five times.: "Yes", "No", "Up", "Down", "Left", "Right", "On", "Off", "Stop", "Go". 
-More command words were added in the version 0.02:  "Zero", "One", "Two", "Three", "Four", "Five", "Six", 
+of them five times.: "Yes", "No", "Up", "Down", "Left", "Right", "On", "Off", "Stop", "Go".
+More command words were added in the version 0.02:  "Zero", "One", "Two", "Three", "Four", "Five", "Six",
 "Seven", "Eight", "Nine", "Backward",  "Forward", "Follow", "Learn".
 
-To help distinguish unrecognized words, there are also ten auxiliary words ( label `_unknown_`), 
+To help distinguish unrecognized words, there are also ten auxiliary words ( label `_unknown_`),
 which most speakers only said once. These include "Bed", "Bird", "Cat", "Dog", "Happy", "House", "Marvin", "Sheila",
 "Tree", and "Wow".
 
-There is also a `_background_noise_` class containin a set of  longer audio clips that are either recordings or 
+There is also a `_background_noise_` class containin a set of  longer audio clips that are either recordings or
 a mathematical simulations of noise.
 """
 
@@ -121,7 +121,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             description=textwrap.dedent(
                 """\
                 Version 0.01 of SpeechCommands dataset. Contains twenty command words:
-                digits from zero to nine, "Yes", "No", "Up", "Down", "Left", "Right", "On", "Off", "Stop", and "Go"; 
+                digits from zero to nine, "Yes", "No", "Up", "Down", "Left", "Right", "On", "Off", "Stop", and "Go";
                 several auxiliary words (label `_unknown_`), and background noise (label `_background_noise_`)
                 """
             ),
@@ -132,7 +132,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             name="v0.02",
             description=textwrap.dedent(
                 """\
-                Version 0.02 of SpeechCommands dataset. 
+                Version 0.02 of SpeechCommands dataset.
                 Contains more command and auxiliary words than version 0.01.
                 """
             ),
@@ -233,7 +233,7 @@ def _split_files(archive_path, split):
 
     # original validation files did not include silence - we add them manually here
     # see https://github.com/tensorflow/datasets/blob/master/tensorflow_datasets/audio/speech_commands.py#L182
-    val_paths.append(os.path.join(archive_path, BACKGROUND, 'running_tap.wav'))
+    val_paths.append(os.path.join(archive_path, BACKGROUND, "running_tap.wav"))
 
     if split == "val":
         return val_paths
