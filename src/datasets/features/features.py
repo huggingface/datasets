@@ -360,7 +360,7 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
         assert (
             self.ndims is not None and self.ndims > 1
         ), "You must instantiate an array type with a value for dim that is > 1"
-        assert len(shape) == self.ndims, f"shape={shape} and ndims={self.ndims} dom't match"
+        assert len(shape) == self.ndims, f"shape={shape} and ndims={self.ndims} don't match"
         self.shape = tuple(shape)
         self.value_type = dtype
         self.storage_dtype = self._generate_dtype(self.value_type)
@@ -377,8 +377,8 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
 
     def _generate_dtype(self, dtype):
         dtype = string_to_arrow(dtype)
-        for d in reversed(self.shape):
-            dtype = pa.list_(dtype, list_size=d if d is not None else -1)
+        for _ in reversed(self.shape):
+            dtype = pa.list_(dtype)
         return dtype
 
     def to_pandas_dtype(self):
@@ -424,7 +424,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
         return self.storage[i]
 
     def to_numpy(self, zero_copy_only=True):
-        storage: pa.Array = self.storage
+        storage: pa.ListArray = self.storage
         for _ in range(self.type.ndims):
             storage = storage.flatten()
         numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
@@ -434,7 +434,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
     def to_list_of_numpy(self, zero_copy_only=True):
         shape = self.type.shape
         ndims = self.type.ndims
-        storage: pa.Array = self.storage
+        storage: pa.ListArray = self.storage
 
         nelems = len(storage)
         elem_shapes = np.diff(storage.offsets) if shape[0] is None else np.array([shape[0]] * nelems)
