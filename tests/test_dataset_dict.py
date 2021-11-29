@@ -16,7 +16,6 @@ from .conftest import s3_test_bucket_name
 from .utils import (
     assert_arrow_memory_doesnt_increase,
     assert_arrow_memory_increases,
-    require_pyarrow_at_least_3,
     require_s3,
     require_tf,
     require_torch,
@@ -30,7 +29,7 @@ class DatasetDictTest(TestCase):
             dset = Dataset.from_dict(data)
         else:
             dset = Dataset.from_dict(
-                {"filename": ["my_name-train" + "_" + "{:03d}".format(x) for x in np.arange(30).tolist()]}
+                {"filename": ["my_name-train" + "_" + f"{x:03d}" for x in np.arange(30).tolist()]}
             )
         return dset
 
@@ -320,7 +319,7 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_1.keys()))
             self.assertListEqual(
                 [f.split("_")[-1] for f in sorted_dsets_1["train"]["filename"]],
-                sorted("{:03d}".format(x) for x in range(30)),
+                sorted(f"{x:03d}" for x in range(30)),
             )
 
             indices_cache_file_names = {
@@ -333,7 +332,7 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_2.keys()))
             self.assertListEqual(
                 [f.split("_")[-1] for f in sorted_dsets_2["train"]["filename"]],
-                sorted(("{:03d}".format(x) for x in range(30)), reverse=True),
+                sorted((f"{x:03d}" for x in range(30)), reverse=True),
             )
             del dsets, sorted_dsets_1, sorted_dsets_2
 
@@ -598,7 +597,6 @@ def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",
             assert dataset.features[feature].dtype == expected_dtype
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_datasetdict_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
@@ -608,7 +606,6 @@ def test_datasetdict_from_parquet_keep_in_memory(keep_in_memory, parquet_path, t
     _check_parquet_datasetdict(dataset, expected_features)
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize(
     "features",
     [
@@ -630,7 +627,6 @@ def test_datasetdict_from_parquet_features(features, parquet_path, tmp_path):
     _check_parquet_datasetdict(dataset, expected_features)
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 def test_datasetdict_from_parquet_split(split, parquet_path, tmp_path):
     if split:

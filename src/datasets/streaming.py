@@ -6,9 +6,11 @@ from unittest.mock import patch
 from .utils.logging import get_logger
 from .utils.patching import patch_submodule
 from .utils.streaming_download_manager import (
+    xbasename,
     xdirname,
     xglob,
     xjoin,
+    xlistdir,
     xopen,
     xpandas_read_csv,
     xpathglob,
@@ -57,10 +59,12 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
 
     # open files in a streaming fashion
     patch_submodule(module, "open", wrap_auth(xopen)).start()
+    patch_submodule(module, "os.listdir", wrap_auth(xlistdir)).start()
     patch_submodule(module, "glob.glob", wrap_auth(xglob)).start()
     # allow to navigate in remote zip files
     patch_submodule(module, "os.path.join", xjoin).start()
     patch_submodule(module, "os.path.dirname", xdirname).start()
+    patch_submodule(module, "os.path.basename", xbasename).start()
     if hasattr(module, "Path"):
         patch.object(module.Path, "joinpath", xpathjoin).start()
         patch.object(module.Path, "__truediv__", xpathjoin).start()

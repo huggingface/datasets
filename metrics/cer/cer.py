@@ -18,30 +18,50 @@ from typing import List
 
 import jiwer
 import jiwer.transforms as tr
+from packaging import version
 
 import datasets
+from datasets.config import PY_VERSION
 
 
-class SentencesToListOfCharacters(tr.AbstractTransform):
-    def process_string(self, s: str):
-        return list(s)
-
-    def process_list(self, inp: List[str]):
-        chars = []
-
-        for sentence in inp:
-            chars.extend(self.process_string(sentence))
-
-        return chars
+if PY_VERSION < version.parse("3.8"):
+    import importlib_metadata
+else:
+    import importlib.metadata as importlib_metadata
 
 
-cer_transform = tr.Compose(
-    [
-        tr.RemoveMultipleSpaces(),
-        tr.Strip(),
-        SentencesToListOfCharacters(),
-    ]
-)
+SENTENCE_DELIMITER = ""
+
+
+if version.parse(importlib_metadata.version("jiwer")) < version.parse("2.3.0"):
+
+    class SentencesToListOfCharacters(tr.AbstractTransform):
+        def __init__(self, sentence_delimiter: str = " "):
+            self.sentence_delimiter = sentence_delimiter
+
+        def process_string(self, s: str):
+            return list(s)
+
+        def process_list(self, inp: List[str]):
+            chars = []
+            for sent_idx, sentence in enumerate(inp):
+                chars.extend(self.process_string(sentence))
+                if self.sentence_delimiter is not None and self.sentence_delimiter != "" and sent_idx < len(inp) - 1:
+                    chars.append(self.sentence_delimiter)
+            return chars
+
+    cer_transform = tr.Compose(
+        [tr.RemoveMultipleSpaces(), tr.Strip(), SentencesToListOfCharacters(SENTENCE_DELIMITER)]
+    )
+else:
+    cer_transform = tr.Compose(
+        [
+            tr.RemoveMultipleSpaces(),
+            tr.Strip(),
+            tr.ReduceToSingleSentence(SENTENCE_DELIMITER),
+            tr.ReduceToListOfListOfChars(),
+        ]
+    )
 
 
 _CITATION = """\
@@ -117,12 +137,12 @@ class CER(datasets.Metric):
 
     def _compute(self, predictions, references, concatenate_texts=False):
         if concatenate_texts:
-            return jiwer.wer(
+            return jiwer.compute_measures(
                 references,
                 predictions,
                 truth_transform=cer_transform,
                 hypothesis_transform=cer_transform,
-            )
+            )["wer"]
 
         incorrect = 0
         total = 0

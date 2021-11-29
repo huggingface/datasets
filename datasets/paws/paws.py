@@ -16,7 +16,6 @@
 
 
 import csv
-import os
 
 import datasets
 
@@ -112,19 +111,19 @@ class PAWS(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         _DATA_URL = f"https://storage.googleapis.com/paws/english/paws_wiki_{self.config.name}.tar.gz"
-        data_dir = dl_manager.download_and_extract(_DATA_URL)
+        archive = dl_manager.download(_DATA_URL)
 
         if self.config.name == "labeled_final":
-            _TRAIN_FILE_NAME = os.path.join(data_dir, "final", "train.tsv")
-            _VAL_FILE_NAME = os.path.join(data_dir, "final", "dev.tsv")
-            _TEST_FILE_NAME = os.path.join(data_dir, "final", "test.tsv")
+            _TRAIN_FILE_NAME = "/".join(["final", "train.tsv"])
+            _VAL_FILE_NAME = "/".join(["final", "dev.tsv"])
+            _TEST_FILE_NAME = "/".join(["final", "test.tsv"])
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": _TRAIN_FILE_NAME,
-                        "split": datasets.Split.TRAIN,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
@@ -132,7 +131,7 @@ class PAWS(datasets.GeneratorBasedBuilder):
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": _TEST_FILE_NAME,
-                        "split": datasets.Split.TEST,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
@@ -140,34 +139,34 @@ class PAWS(datasets.GeneratorBasedBuilder):
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": _VAL_FILE_NAME,
-                        "split": datasets.Split.VALIDATION,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
 
         elif self.config.name == "labeled_swap":
-            _TRAIN_FILE_NAME = os.path.join(data_dir, "swap", "train.tsv")
+            _TRAIN_FILE_NAME = "/".join(["swap", "train.tsv"])
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": _TRAIN_FILE_NAME,
-                        "split": datasets.Split.TRAIN,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
 
         elif self.config.name == "unlabeled_final":
-            _TRAIN_FILE_NAME = os.path.join(data_dir, "unlabeled", "final", "train.tsv")
-            _VAL_FILE_NAME = os.path.join(data_dir, "unlabeled", "final", "dev.tsv")
+            _TRAIN_FILE_NAME = "/".join(["unlabeled", "final", "train.tsv"])
+            _VAL_FILE_NAME = "/".join(["unlabeled", "final", "dev.tsv"])
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": _TRAIN_FILE_NAME,
-                        "split": datasets.Split.TRAIN,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
                 datasets.SplitGenerator(
@@ -175,34 +174,36 @@ class PAWS(datasets.GeneratorBasedBuilder):
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": _VAL_FILE_NAME,
-                        "split": datasets.Split.VALIDATION,
+                        "files": dl_manager.iter_archive(archive),
                     },
                 ),
             ]
         else:
-            raise NotImplementedError("{} does not exist".format(self.config.name))
+            raise NotImplementedError(f"{self.config.name} does not exist")
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, files):
         """Yields examples."""
-
-        with open(filepath, encoding="utf-8") as f:
-            data = csv.DictReader(f, delimiter="\t")
-            for id_, row in enumerate(data):
-                if self.config.name != "unlabeled_final":
-                    if row["label"] not in ["0", "1"]:
-                        row["label"] = -1
-                    yield id_, {
-                        "id": row["id"],
-                        "sentence1": row["sentence1"],
-                        "sentence2": row["sentence2"],
-                        "label": row["label"],
-                    }
-                else:
-                    if row["noisy_label"] not in ["0", "1"]:
-                        row["noisy_label"] = -1
-                    yield id_, {
-                        "id": row["id"],
-                        "sentence1": row["sentence1"],
-                        "sentence2": row["sentence2"],
-                        "label": row["noisy_label"],
-                    }
+        for path, f in files:
+            if path == filepath:
+                lines = (line.decode("utf-8") for line in f)
+                data = csv.DictReader(lines, delimiter="\t")
+                for id_, row in enumerate(data):
+                    if self.config.name != "unlabeled_final":
+                        if row["label"] not in ["0", "1"]:
+                            row["label"] = -1
+                        yield id_, {
+                            "id": row["id"],
+                            "sentence1": row["sentence1"],
+                            "sentence2": row["sentence2"],
+                            "label": row["label"],
+                        }
+                    else:
+                        if row["noisy_label"] not in ["0", "1"]:
+                            row["noisy_label"] = -1
+                        yield id_, {
+                            "id": row["id"],
+                            "sentence1": row["sentence1"],
+                            "sentence2": row["sentence2"],
+                            "label": row["noisy_label"],
+                        }
+                break

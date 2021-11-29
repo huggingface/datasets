@@ -286,14 +286,10 @@ class Hkcancor(datasets.GeneratorBasedBuilder):
 
                         assert len(tokens) == len(
                             pos_prf
-                        ), "Sizes do not match: {nw} vs {np} for tokens vs pos-tags in {fp}".format(
-                            nw=num_tokens, np=num_pos_tags, fp=filepath
-                        )
+                        ), f"Sizes do not match: {num_tokens} vs {num_pos_tags} for tokens vs pos-tags in {filepath}"
                         assert len(pos_prf) == len(
                             transcriptions
-                        ), "Sizes do not match: {np} vs {nt} for tokens vs pos-tags in {fp}".format(
-                            np=num_pos_tags, nt=num_transcriptions, fp=filepath
-                        )
+                        ), f"Sizes do not match: {num_pos_tags} vs {num_transcriptions} for tokens vs pos-tags in {filepath}"
 
                         # Corpus doesn't come with conversation-level ids, and
                         # multiple texts can correspond to the same tape number,
@@ -302,7 +298,7 @@ class Hkcancor(datasets.GeneratorBasedBuilder):
                         # first few transcriptions in the conversation
                         # to create an identifier.
                         id_from_transcriptions = "".join(transcriptions[:5])[:5].upper()
-                        id_ = "{tn}-{rd}-{it}".format(tn=tape_number, rd=date_recorded, it=id_from_transcriptions)
+                        id_ = f"{tape_number}-{date_recorded}-{id_from_transcriptions}"
                         yield id_, {
                             "conversation_id": id_,
                             "speaker": current_speaker,

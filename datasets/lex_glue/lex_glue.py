@@ -16,7 +16,6 @@
 
 import csv
 import json
-import os
 import textwrap
 
 import datasets
@@ -593,8 +592,7 @@ class LexGLUE(datasets.GeneratorBasedBuilder):
     def _info(self):
         if self.config.name == "case_hold":
             features = {
-                "question": datasets.Value("string"),
-                "contexts": datasets.features.Sequence(datasets.Value("string")),
+                "context": datasets.Value("string"),
                 "endings": datasets.features.Sequence(datasets.Value("string")),
             }
         elif "ecthr" in self.config.name:
@@ -613,60 +611,76 @@ class LexGLUE(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        data_dir = dl_manager.download_and_extract(self.config.data_url)
+        archive = dl_manager.download(self.config.data_url)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, self.config.data_file), "split": "train"},
+                gen_kwargs={
+                    "filepath": self.config.data_file,
+                    "split": "train",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, self.config.data_file), "split": "test"},
+                gen_kwargs={
+                    "filepath": self.config.data_file,
+                    "split": "test",
+                    "files": dl_manager.iter_archive(archive),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, self.config.data_file),
+                    "filepath": self.config.data_file,
                     "split": self.config.dev_column,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, split, files):
         """This function returns the examples in the raw (text) form."""
         if self.config.name == "case_hold":
             if "dummy" in filepath:
                 SPLIT_RANGES = {"train": (1, 3), "dev": (3, 5), "test": (5, 7)}
             else:
                 SPLIT_RANGES = {"train": (1, 45001), "dev": (45001, 48901), "test": (48901, 52501)}
-            with open(filepath, "r", encoding="utf-8") as f:
-                for id_, row in enumerate(list(csv.reader(f))[SPLIT_RANGES[split][0] : SPLIT_RANGES[split][1]]):
-                    yield id_, {
-                        "context": row[1],
-                        "holdings": [row[2], row[3], row[4], row[5], row[6]],
-                        "label": str(row[12]),
-                    }
+            for path, f in files:
+                if path == filepath:
+                    f = (line.decode("utf-8") for line in f)
+                    for id_, row in enumerate(list(csv.reader(f))[SPLIT_RANGES[split][0] : SPLIT_RANGES[split][1]]):
+                        yield id_, {
+                            "context": row[1],
+                            "endings": [row[2], row[3], row[4], row[5], row[6]],
+                            "label": str(row[12]),
+                        }
+                    break
         elif self.config.multi_label:
-            with open(filepath, "r", encoding="utf-8") as f:
-                for id_, row in enumerate(f):
-                    data = json.loads(row)
-                    labels = sorted(
-                        list(set(data[self.config.label_column]).intersection(set(self.config.label_classes)))
-                    )
-                    if data["data_type"] == split:
-                        yield id_, {
-                            "text": data[self.config.text_column],
-                            "labels": labels,
-                        }
+            for path, f in files:
+                if path == filepath:
+                    for id_, row in enumerate(f):
+                        data = json.loads(row.decode("utf-8"))
+                        labels = sorted(
+                            list(set(data[self.config.label_column]).intersection(set(self.config.label_classes)))
+                        )
+                        if data["data_type"] == split:
+                            yield id_, {
+                                "text": data[self.config.text_column],
+                                "labels": labels,
+                            }
+                    break
         else:
-            with open(filepath, "r", encoding="utf-8") as f:
-                for id_, row in enumerate(f):
-                    data = json.loads(row)
-                    if data["data_type"] == split:
-                        yield id_, {
-                            "text": data[self.config.text_column],
-                            "label": data[self.config.label_column],
-                        }
+            for path, f in files:
+                if path == filepath:
+                    for id_, row in enumerate(f):
+                        data = json.loads(row.decode("utf-8"))
+                        if data["data_type"] == split:
+                            yield id_, {
+                                "text": data[self.config.text_column],
+                                "label": data[self.config.label_column],
+                            }
+                    break

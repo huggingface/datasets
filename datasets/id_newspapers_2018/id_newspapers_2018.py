@@ -15,9 +15,7 @@
 """Indonesian Newspapers 2018"""
 
 
-import glob
 import json
-import os
 
 import datasets
 
@@ -47,7 +45,7 @@ _HOMEPAGE = "https://github.com/feryandi/Dataset-Artikel"
 
 _LICENSE = "Creative Commons Attribution-ShareAlike 4.0 International Public License"
 
-_URLs = ["http://cloud.uncool.ai/index.php/s/kF83dQHfGeS2LX2/download"]
+_URL = "http://cloud.uncool.ai/index.php/s/kF83dQHfGeS2LX2/download"
 
 
 class IdNewspapers2018Config(datasets.BuilderConfig):
@@ -92,24 +90,21 @@ class IdNewspapers2018(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        my_urls = _URLs[0]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "article_dir": os.path.join(data_dir, "newspapers"),
-                    "split": "train",
+                    "files": dl_manager.iter_archive(archive),
                 },
             )
         ]
 
-    def _generate_examples(self, article_dir, split):
-        logger.info("⏳ Generating %s examples from = %s", split, article_dir)
+    def _generate_examples(self, files):
         id = 0
-        for path in sorted(glob.glob(os.path.join(article_dir, "**/*.json"), recursive=True)):
-            with open(path, encoding="utf-8") as f:
-                data = json.load(f)
+        for path, f in files:
+            if path.startswith("newspapers") and path.endswith(".json"):
+                data = json.loads(f.read().decode("utf-8"))
                 yield id, {
                     "id": str(id),
                     "url": data["url"],
@@ -117,4 +112,4 @@ class IdNewspapers2018(datasets.GeneratorBasedBuilder):
                     "title": data["title"],
                     "content": data["content"],
                 }
-            id += 1
+                id += 1

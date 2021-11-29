@@ -196,9 +196,7 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, wikipedia):
-        logger.info(
-            "generating examples from = {} {}".format(self.config.wikipedia_name, self.config.wikipedia_version_name)
-        )
+        logger.info(f"generating examples from = {self.config.wikipedia_name} {self.config.wikipedia_version_name}")
         for split in wikipedia:
             dset = wikipedia[split]
             split_function = _SPLIT_FUCNTION_MAP[self.config.wikipedia_name]

@@ -19,10 +19,11 @@ task_categories:
 task_ids:
 - conditional-text-generation-other-stuctured-to-text
 paperswithcode_id: spider-1
+pretty_name: Spider
 ---
 
 
-# Dataset Card for [spider]
+# Dataset Card for Spider
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

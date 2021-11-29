@@ -37,7 +37,13 @@ from huggingface_hub import HfApi, HfFolder
 from . import config
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
-from .data_files import DataFilesDict, DataFilesList, _sanitize_patterns
+from .data_files import (
+    DataFilesDict,
+    DataFilesList,
+    get_patterns_in_dataset_repository,
+    get_patterns_locally,
+    sanitize_patterns,
+)
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
@@ -47,6 +53,7 @@ from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, 
 from .splits import Split
 from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
+from .utils.deprecation_utils import deprecated
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import (
     DownloadConfig,
@@ -152,7 +159,7 @@ def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
             github_path = parsed.path[1:]
             repo_info, branch = github_path.split("/tree/") if "/tree/" in github_path else (github_path, "master")
             repo_owner, repo_name = repo_info.split("/")
-            url_path = "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
+            url_path = f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
             sub_directory = f"{repo_name}-{branch}"
     return url_path, sub_directory
 
@@ -190,7 +197,7 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
     with open(file_path, mode="r", encoding="utf-8") as f:
         lines.extend(f.readlines())
 
-    logger.debug("Checking %s for additional imports.", file_path)
+    logger.debug(f"Checking {file_path} for additional imports.")
     imports: List[Tuple[str, str, str, Optional[str]]] = []
     is_in_docstring = False
     for line in lines:
@@ -417,11 +424,11 @@ def infer_module_for_data_files(
 ) -> Optional[str]:
     extensions_counter = Counter(suffix[1:] for filepath in data_files_list for suffix in Path(filepath).suffixes)
     if extensions_counter:
-        most_common = extensions_counter.most_common(1)[0][0]
-        if most_common in _EXTENSION_TO_MODULE:
-            return _EXTENSION_TO_MODULE[most_common]
-        elif most_common == "zip":
-            return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+        for ext, _ in extensions_counter.most_common():
+            if ext in _EXTENSION_TO_MODULE:
+                return _EXTENSION_TO_MODULE[ext]
+            elif ext == "zip":
+                return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
 
 
 def infer_module_for_data_files_in_archives(
@@ -703,8 +710,11 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self.download_mode = download_mode
 
     def get_module(self) -> DatasetModule:
+        patterns = (
+            sanitize_patterns(self.data_files) if self.data_files is not None else get_patterns_locally(self.path)
+        )
         data_files = DataFilesDict.from_local_or_remote(
-            _sanitize_patterns(self.data_files), base_path=self.path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
+            patterns, base_path=self.path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
         )
         infered_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
@@ -741,9 +751,12 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         increase_load_count(name, resource_type="dataset")
 
     def get_module(self) -> DatasetModule:
-        data_files = DataFilesDict.from_local_or_remote(
-            _sanitize_patterns(self.data_files), use_auth_token=self.downnload_config.use_auth_token
+        patterns = (
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_patterns_locally(str(Path().resolve()))
         )
+        data_files = DataFilesDict.from_local_or_remote(patterns, use_auth_token=self.downnload_config.use_auth_token)
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -782,8 +795,13 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             token=token,
             timeout=100.0,
         )
+        patterns = (
+            sanitize_patterns(self.data_files)
+            if self.data_files is not None
+            else get_patterns_in_dataset_repository(dataset_info)
+        )
         data_files = DataFilesDict.from_hf_repo(
-            _sanitize_patterns(self.data_files),
+            patterns,
             dataset_info=dataset_info,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
@@ -795,7 +813,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
         infered_module_name = next(iter(infered_module_names.values()))
         if not infered_module_name:
-            raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
+            raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
         module_path, hash = _PACKAGED_DATASETS_MODULES[infered_module_name]
         builder_kwargs = {
             "hash": hash,
@@ -1250,6 +1268,7 @@ def metric_module_factory(
         raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
 
 
+@deprecated("Use dataset_module_factory or metric_module_factory instead.")
 def prepare_module(
     path: str,
     revision: Optional[Union[str, Version]] = None,
@@ -1262,14 +1281,18 @@ def prepare_module(
     script_version="deprecated",
     **download_kwargs,
 ) -> Union[Tuple[str, str], Tuple[str, str, Optional[str]]]:
-    """For backward compatibility. Please use dataset_module_factory or metric_module_factory instead."""
+    """
+    .. deprecated:: 1.13
+        `prepare_module` was deprecated in version 1.13 and will be removed in the next major version.
+        For backward compatibility, please use :func:`dataset_module_factory` or :func:`metric_module_factory` instead.
+    """
     if script_version != "deprecated":
         warnings.warn(
             "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
         )
         revision = script_version
-    if dataset:
-        results = dataset_module_factory(
+    module = (
+        dataset_module_factory(
             path,
             revision=revision,
             download_config=download_config,
@@ -1279,9 +1302,8 @@ def prepare_module(
             data_files=data_files,
             **download_kwargs,
         )
-        return results.module_path, results.hash
-    else:
-        results = metric_module_factory(
+        if dataset
+        else metric_module_factory(
             path,
             revision=revision,
             download_config=download_config,
@@ -1290,7 +1312,8 @@ def prepare_module(
             dynamic_modules_path=dynamic_modules_path,
             **download_kwargs,
         )
-        return results.module_path, results.hash
+    )
+    return module.module_path, module.hash
 
 
 def load_metric(
@@ -1619,6 +1642,15 @@ def load_dataset(
     if streaming:
         # this extends the open and os.path.join functions for data streaming
         extend_module_for_streaming(builder_instance.__module__, use_auth_token=use_auth_token)
+        # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
+        if not builder_instance.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
+            for imports in get_imports(inspect.getfile(builder_instance.__class__)):
+                if imports[0] == "internal":
+                    internal_import_name = imports[1]
+                    internal_module_name = ".".join(
+                        builder_instance.__module__.split(".")[:-1] + [internal_import_name]
+                    )
+                    extend_module_for_streaming(internal_module_name, use_auth_token=use_auth_token)
         return builder_instance.as_streaming_dataset(
             split=split,
             use_auth_token=use_auth_token,
@@ -1680,12 +1712,12 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
         dest_dataset_path = dataset_path
 
     if not fs.exists(dest_dataset_path):
-        raise FileNotFoundError("Directory {} not found".format(dataset_path))
+        raise FileNotFoundError(f"Directory {dataset_path} not found")
     if fs.isfile(Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()):
         return Dataset.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     elif fs.isfile(Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()):
         return DatasetDict.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     else:
         raise FileNotFoundError(
-            "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)
+            f"Directory {dataset_path} is neither a dataset directory nor a dataset dict directory."
         )

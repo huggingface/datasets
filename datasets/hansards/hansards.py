@@ -114,16 +114,14 @@ class Hansards(datasets.GeneratorBasedBuilder):
                 "test": _DATA_URL + _SENATE_DEBATES_TEST_SET_FILE,
             }
         else:
-            raise ValueError("Wrong builder config name '{}', it has to be either 'house' or 'senate'.".format(name))
+            raise ValueError(f"Wrong builder config name '{name}', it has to be either 'house' or 'senate'.")
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
         if type(downloaded_files) == str:
             downloaded_files = {k: downloaded_files for k in urls_to_download.keys()}
         fr_files = {}
         en_files = {}
         for split_name in downloaded_files.keys():
-            archive_dir = "hansard.36/Release-2001.1a/sentence-pairs/{}/debates/development/{}".format(
-                name, split_name + "ing"
-            )
+            archive_dir = f"hansard.36/Release-2001.1a/sentence-pairs/{name}/debates/development/{split_name + 'ing'}"
             data_dir = os.path.join(downloaded_files[split_name], archive_dir)
             split_compress_files = list(sorted(glob.glob(os.path.join(data_dir, "*.gz"))))
             split_compress_files += list(sorted(glob.glob(os.path.join(data_dir, "**/*.gz"))))
@@ -151,6 +149,6 @@ class Hansards(datasets.GeneratorBasedBuilder):
             with open(fr_file, "rb") as fr:
                 with open(en_file, "rb") as en:
                     for j, (fr_line, en_line) in enumerate(zip(fr, en)):
-                        line_id = "{}:{}".format(fr_file, j)
+                        line_id = f"{fr_file}:{j}"
                         rec = {"fr": fr_line.decode("ISO-8859-1").strip(), "en": en_line.decode("ISO-8859-1").strip()}
                         yield line_id, rec

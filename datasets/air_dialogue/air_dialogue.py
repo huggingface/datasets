@@ -16,7 +16,6 @@
 
 
 import json
-import os
 
 import datasets
 
@@ -185,7 +184,7 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        archive = dl_manager.download(my_urls)
         if self.config.name == "air_dialogue_data":
             train = "airdialogue_data/airdialogue/train_data.json"
             dev = "airdialogue_data/airdialogue/dev_data.json"
@@ -198,90 +197,93 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, train),
-                    "split": "train",
+                    "filepath": train,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, dev),
-                    "split": "dev",
+                    "filepath": dev,
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath, files):
         """Yields examples."""
         # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                data = json.loads(row)
-                if self.config.name == "air_dialogue_data":
+        for path, f in files:
+            if path == filepath:
+                for id_, row in enumerate(f):
+                    row = row.decode("utf-8")
+                    data = json.loads(row)
+                    if self.config.name == "air_dialogue_data":
 
-                    intent = {
-                        "return_month": data["intent"]["return_month"],
-                        "return_day": data["intent"]["return_day"],
-                        "max_price": data["intent"]["max_price"],
-                        "departure_airport": data["intent"]["departure_airport"],
-                        "max_connections": data["intent"].get("max_connections", -1),
-                        "departure_day": data["intent"]["departure_day"],
-                        "goal": data["intent"]["goal"],
-                        "departure_month": data["intent"]["departure_month"],
-                        "name": data["intent"]["name"],
-                        "return_airport": data["intent"]["return_airport"],
-                    }
-
-                    search_info = (
-                        []
-                        if "search_info" not in data
-                        else [
-                            {
-                                "button_name": search_info.get("button_name", ""),
-                                "field_name": search_info.get("field_name", ""),
-                                "field_value": search_info.get("field_value", ""),
-                                "timestmamp": search_info["timestmamp"],
-                            }
-                            for search_info in data["search_info"]
-                        ]
-                    )
-
-                    yield id_, {
-                        "action": {key: data["action"][key] for key in data["action"]},
-                        "intent": intent,
-                        "timestamps": data["timestamps"],
-                        "dialogue": data["dialogue"],
-                        "expected_action": {key: data["expected_action"][key] for key in data["expected_action"]},
-                        "search_info": search_info,
-                        "correct_sample": data["correct_sample"],
-                    }
-
-                else:
-
-                    kb = [
-                        {
-                            "airline": kb["airline"],
-                            "class": kb["class"],
-                            "departure_airport": kb["departure_airport"],
-                            "departure_day": kb["departure_day"],
-                            "departure_month": kb["departure_month"],
-                            "departure_time_num": kb["departure_time_num"],
-                            "flight_number": kb["flight_number"],
-                            "num_connections": kb["num_connections"],
-                            "price": kb["price"],
-                            "return_airport": kb["return_airport"],
-                            "return_day": kb["return_day"],
-                            "return_month": kb["return_month"],
-                            "return_time_num": kb["return_time_num"],
+                        intent = {
+                            "return_month": data["intent"]["return_month"],
+                            "return_day": data["intent"]["return_day"],
+                            "max_price": data["intent"]["max_price"],
+                            "departure_airport": data["intent"]["departure_airport"],
+                            "max_connections": data["intent"].get("max_connections", -1),
+                            "departure_day": data["intent"]["departure_day"],
+                            "goal": data["intent"]["goal"],
+                            "departure_month": data["intent"]["departure_month"],
+                            "name": data["intent"]["name"],
+                            "return_airport": data["intent"]["return_airport"],
                         }
-                        for kb in data["kb"]
-                    ]
 
-                    yield id_, {
-                        "kb": kb,
-                        "reservation": data["reservation"],
-                    }
+                        search_info = (
+                            []
+                            if "search_info" not in data
+                            else [
+                                {
+                                    "button_name": search_info.get("button_name", ""),
+                                    "field_name": search_info.get("field_name", ""),
+                                    "field_value": search_info.get("field_value", ""),
+                                    "timestmamp": search_info["timestmamp"],
+                                }
+                                for search_info in data["search_info"]
+                            ]
+                        )
+
+                        yield id_, {
+                            "action": {key: data["action"][key] for key in data["action"]},
+                            "intent": intent,
+                            "timestamps": data["timestamps"],
+                            "dialogue": data["dialogue"],
+                            "expected_action": {key: data["expected_action"][key] for key in data["expected_action"]},
+                            "search_info": search_info,
+                            "correct_sample": data["correct_sample"],
+                        }
+
+                    else:
+
+                        kb = [
+                            {
+                                "airline": kb["airline"],
+                                "class": kb["class"],
+                                "departure_airport": kb["departure_airport"],
+                                "departure_day": kb["departure_day"],
+                                "departure_month": kb["departure_month"],
+                                "departure_time_num": kb["departure_time_num"],
+                                "flight_number": kb["flight_number"],
+                                "num_connections": kb["num_connections"],
+                                "price": kb["price"],
+                                "return_airport": kb["return_airport"],
+                                "return_day": kb["return_day"],
+                                "return_month": kb["return_month"],
+                                "return_time_num": kb["return_time_num"],
+                            }
+                            for kb in data["kb"]
+                        ]
+
+                        yield id_, {
+                            "kb": kb,
+                            "reservation": data["reservation"],
+                        }
+                break

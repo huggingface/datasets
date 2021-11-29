@@ -17,8 +17,6 @@
 """TED talk high/low-resource paired language data set from Qi, et al. 2018."""
 
 
-import os
-
 import datasets
 
 
@@ -116,41 +114,48 @@ class TedHrlr(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_dir = dl_manager.download_and_extract(_DATA_URL)
+        archive = dl_manager.download(_DATA_URL)
         source, target = self.config.language_pair
 
-        data_dir = os.path.join(dl_dir, "datasets", "%s_to_%s" % (source, target))
+        data_dir = "datasets/%s_to_%s" % (source, target)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "source_file": os.path.join(data_dir, "{}.train".format(source.replace("_", "-"))),
-                    "target_file": os.path.join(data_dir, "{}.train".format(target)),
+                    "source_file": data_dir + "/" + f"{source.replace('_', '-')}.train",
+                    "target_file": data_dir + "/" + f"{target}.train",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "source_file": os.path.join(data_dir, "{}.dev".format(source.split("_")[0])),
-                    "target_file": os.path.join(data_dir, "{}.dev".format(target)),
+                    "source_file": data_dir + "/" + f"{source.split('_')[0]}.dev",
+                    "target_file": data_dir + "/" + f"{target}.dev",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "source_file": os.path.join(data_dir, "{}.test".format(source.split("_")[0])),
-                    "target_file": os.path.join(data_dir, "{}.test".format(target)),
+                    "source_file": data_dir + "/" + f"{source.split('_')[0]}.test",
+                    "target_file": data_dir + "/" + f"{target}.test",
+                    "files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, source_file, target_file):
+    def _generate_examples(self, source_file, target_file, files):
         """This function returns the examples in the raw (text) form."""
-        with open(source_file, encoding="utf-8") as f:
-            source_sentences = f.read().split("\n")
-        with open(target_file, encoding="utf-8") as f:
-            target_sentences = f.read().split("\n")
+        source_sentences, target_sentences = None, None
+        for path, f in files:
+            if path == source_file:
+                source_sentences = f.read().decode("utf-8").split("\n")
+            elif path == target_file:
+                target_sentences = f.read().decode("utf-8").split("\n")
+            if source_sentences is not None and target_sentences is not None:
+                break
 
         assert len(target_sentences) == len(source_sentences), "Sizes do not match: %d vs %d for %s vs %s." % (
             len(source_sentences),

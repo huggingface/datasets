@@ -326,24 +326,24 @@ class Wikiann(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         wikiann_dl_dir = dl_manager.download_and_extract(_DATA_URL)
         lang = self.config.name
-        lang_folder = dl_manager.extract(os.path.join(wikiann_dl_dir, lang + ".tar.gz"))
+        lang_archive = os.path.join(wikiann_dl_dir, lang + ".tar.gz")
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(lang_folder, "dev")},
+                gen_kwargs={"filepath": "dev", "files": dl_manager.iter_archive(lang_archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(lang_folder, "test")},
+                gen_kwargs={"filepath": "test", "files": dl_manager.iter_archive(lang_archive)},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(lang_folder, "train")},
+                gen_kwargs={"filepath": "train", "files": dl_manager.iter_archive(lang_archive)},
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, files):
         """Reads line by line format of the NER dataset and generates examples.
         Input Format:
         en:rick  B-PER
@@ -365,27 +365,30 @@ class Wikiann(datasets.GeneratorBasedBuilder):
             Examples with the format listed above.
         """
         guid_index = 1
-        with open(filepath, encoding="utf-8") as f:
-            tokens = []
-            ner_tags = []
-            langs = []
-            for line in f:
-                if line == "" or line == "\n":
-                    if tokens:
-                        spans = self._get_spans(tokens, ner_tags)
-                        yield guid_index, {"tokens": tokens, "ner_tags": ner_tags, "langs": langs, "spans": spans}
-                        guid_index += 1
-                        tokens = []
-                        ner_tags = []
-                        langs = []
-                else:
-                    # wikiann data is tab separated
-                    splits = line.split("\t")
-                    # strip out en: prefix
-                    langs.append(splits[0].split(":")[0])
-                    tokens.append(":".join(splits[0].split(":")[1:]))
-                    if len(splits) > 1:
-                        ner_tags.append(splits[-1].replace("\n", ""))
+        for path, f in files:
+            if path == filepath:
+                tokens = []
+                ner_tags = []
+                langs = []
+                for line in f:
+                    line = line.decode("utf-8")
+                    if line == "" or line == "\n":
+                        if tokens:
+                            spans = self._get_spans(tokens, ner_tags)
+                            yield guid_index, {"tokens": tokens, "ner_tags": ner_tags, "langs": langs, "spans": spans}
+                            guid_index += 1
+                            tokens = []
+                            ner_tags = []
+                            langs = []
                     else:
-                        # examples have no label in test set
-                        ner_tags.append("O")
+                        # wikiann data is tab separated
+                        splits = line.split("\t")
+                        # strip out en: prefix
+                        langs.append(splits[0].split(":")[0])
+                        tokens.append(":".join(splits[0].split(":")[1:]))
+                        if len(splits) > 1:
+                            ner_tags.append(splits[-1].replace("\n", ""))
+                        else:
+                            # examples have no label in test set
+                            ner_tags.append("O")
+                break

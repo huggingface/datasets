@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - table-to-text
 paperswithcode_id: null
+pretty_name: GREAT
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for GREAT
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

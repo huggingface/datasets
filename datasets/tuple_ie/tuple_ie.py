@@ -40,7 +40,7 @@ Each sentence is followed by the Open IE v4 tuples using their simple format.
 
 _HOMEPAGE = "https://allenai.org/data/tuple-ie"
 
-_URL = "https://ai2-datasets.s3-us-west-2.amazonaws.com/tuple-ie/TupleInfKB.zip"
+_URL = "https://ai2-public-datasets.s3.amazonaws.com/tuple-ie/TupleInfKB.zip"
 
 _DOMAIN_FILES = {"4th_grade": "4thGradeOpenIE.txt", "8th_grade": "8thGradeOpenIE.txt"}
 

@@ -24,7 +24,7 @@ def parse_flag_from_env(key, default=False):
             _value = strtobool(value)
         except ValueError:
             # More values are supported, but let's keep the message simple.
-            raise ValueError("If set, {} must be yes or no.".format(key))
+            raise ValueError(f"If set, {key} must be yes or no.")
     return _value
 
 
@@ -32,19 +32,6 @@ _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
 _run_remote_tests = parse_flag_from_env("RUN_REMOTE", default=False)
 _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 _run_packaged_tests = parse_flag_from_env("RUN_PACKAGED", default=True)
-
-
-def require_pyarrow_at_least_3(test_case):
-    """
-    Decorator marking a test that requires PyArrow 3.0.0
-    to allow nested types in parquet, as well as batch iterators of parquet files.
-
-    These tests are skipped when the PyArrow version is outdated.
-
-    """
-    if config.PYARROW_VERSION.major < 3:
-        test_case = unittest.skip("test requires PyArrow>=3.0.0")(test_case)
-    return test_case
 
 
 def require_beam(test_case):
@@ -231,7 +218,7 @@ def packaged(test_case):
 
 def remote(test_case):
     """
-    Decorator marking a test as one that relies on github or aws.
+    Decorator marking a test as one that relies on GitHub or the Hugging Face Hub.
 
     Remote tests are skipped by default. Set the RUN_REMOTE environment variable
     to a falsy value to not run them.

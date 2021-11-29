@@ -1,4 +1,5 @@
 ---
+pretty_name: Sogou News
 paperswithcode_id: null
 ---
 

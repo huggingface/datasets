@@ -1,7 +1,25 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- crowdsourced
 languages:
 - en
+licenses:
+- cc-by-sa-3.0
+- gfdl-1.3-or-later
+multilinguality:
+- monolingual
 paperswithcode_id: wikitext-2
+pretty_name: WikiText
+size_categories:
+- 1M<n<10M
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- language-modeling
 ---
 
 # Dataset Card for "wikitext"
@@ -34,8 +52,8 @@ paperswithcode_id: wikitext-2
 
 - **Homepage:** [https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/](https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
-- **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+- **Paper:** [Pointer Sentinel Mixture Models](https://arxiv.org/abs/1609.07843)
+- **Point of Contact:** [Stephen Merity](mailto:smerity@salesforce.com)
 - **Size of downloaded dataset files:** 373.28 MB
 - **Size of the generated dataset:** 1072.25 MB
 - **Total amount of disk used:** 1445.53 MB
@@ -44,6 +62,11 @@ paperswithcode_id: wikitext-2
 
  The WikiText language modeling dataset is a collection of over 100 million tokens extracted from the set of verified
  Good and Featured articles on Wikipedia. The dataset is available under the Creative Commons Attribution-ShareAlike License.
+
+Compared to the preprocessed version of Penn Treebank (PTB), WikiText-2 is over 2 times larger and WikiText-103 is over
+110 times larger. The WikiText dataset also features a far larger vocabulary and retains the original case, punctuation
+and numbers - all of which are removed in PTB. As it is composed of full articles, the dataset is well suited for models
+that can take advantage of long term dependencies.
 
 ### Supported Tasks and Leaderboards
 
@@ -196,16 +219,19 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset is available under the [Creative Commons Attribution-ShareAlike License (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
 
 ### Citation Information
 
 ```
-@InProceedings{wikitext,
-    author={Stephen, Merity and Caiming ,Xiong and James, Bradbury and Richard Socher}
-    year=2016
+@misc{merity2016pointer,
+      title={Pointer Sentinel Mixture Models},
+      author={Stephen Merity and Caiming Xiong and James Bradbury and Richard Socher},
+      year={2016},
+      eprint={1609.07843},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
 }
-
 ```
 
 

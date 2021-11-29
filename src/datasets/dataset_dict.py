@@ -18,8 +18,12 @@ from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .table import Table
 from .tasks import TaskTemplate
+from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.typing import PathLike
+
+
+logger = logging.get_logger(__name__)
 
 
 class DatasetDict(dict):
@@ -28,9 +32,7 @@ class DatasetDict(dict):
     def _check_values_type(self):
         for dataset in self.values():
             if not isinstance(dataset, Dataset):
-                raise TypeError(
-                    "Values in `DatasetDict` should of type `Dataset` but got type '{}'".format(type(dataset))
-                )
+                raise TypeError(f"Values in `DatasetDict` should of type `Dataset` but got type '{type(dataset)}'")
 
     def __getitem__(self, k) -> Dataset:
         if isinstance(k, (str, NamedSplit)) or len(self) == 0:
@@ -523,8 +525,10 @@ class DatasetDict(dict):
 
         Args:
             function (`callable`): with one of the following signature:
-                - `function(example: Dict) -> bool` if `with_indices=False`
-                - `function(example: Dict, indices: int) -> bool` if `with_indices=True`
+                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
@@ -879,6 +883,49 @@ class DatasetDict(dict):
                 for k, dataset in self.items()
             }
         )
+
+    def push_to_hub(
+        self,
+        repo_id,
+        private: Optional[bool] = False,
+        token: Optional[str] = None,
+        branch: Optional[None] = None,
+        shard_size: Optional[int] = 500 << 20,
+    ):
+        """Pushes the ``DatasetDict`` to the hub.
+        The ``DatasetDict`` is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+
+        Each dataset split will be pushed independently. The pushed dataset will keep the original split names.
+
+        Args:
+            repo_id (:obj:`str`):
+                The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+                `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
+                of the logged-in user.
+            private (Optional :obj:`bool`):
+                Whether the dataset repository should be set to private or not. Only affects repository creation:
+                a repository that already exists will not be affected by that parameter.
+            token (Optional :obj:`str`):
+                An optional authentication token for the Hugging Face Hub. If no token is passed, will default
+                to the token saved locally when logging in with ``huggingface-cli login``. Will raise an error
+                if no token is passed and the user is not logged-in.
+            branch (Optional :obj:`str`):
+                The git branch on which to push the dataset.
+            shard_size (Optional :obj:`int`):
+                The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
+                of the size specified here, in bytes.
+
+        Example:
+            .. code-block:: python
+
+                >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
+        """
+        for key in self.keys():
+            logger.warning(f"Pushing split {key} to the Hub.")
+            # The split=key needs to be removed before merging
+            self[key].push_to_hub(
+                repo_id, split=key, private=private, token=token, branch=branch, shard_size=shard_size
+            )
 
 
 class IterableDatasetDict(dict):

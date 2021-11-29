@@ -168,6 +168,12 @@ class TestMetric(TestCase):
 
         metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
         self.assertDictEqual({}, metric.compute(predictions=[], references=[]))
+        del metric
+
+        metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
+        with self.assertRaisesRegex(ValueError, "Mismatch in the number"):
+            metric.add_batch(predictions=[1, 2, 3], references=[1, 2, 3, 4])
+        del metric
 
     def test_metric_with_cache_dir(self):
         preds, refs = DummyMetric.predictions_and_references()
@@ -378,7 +384,7 @@ class TestMetric(TestCase):
             del results
 
             # With keep_in_memory is not allowed
-            with self.assertRaises(AssertionError):
+            with self.assertRaises(ValueError):
                 DummyMetric(
                     experiment_id="test_distributed_metrics_4",
                     keep_in_memory=True,
@@ -512,3 +518,11 @@ def test_metric_with_multilabel(config_name, predictions, references, expected, 
     metric = MetricWithMultiLabel(config_name, cache_dir=cache_dir)
     results = metric.compute(predictions=predictions, references=references)
     assert results["accuracy"] == expected
+
+
+def test_safety_checks_process_vars():
+    with pytest.raises(ValueError):
+        _ = DummyMetric(process_id=-2)
+
+    with pytest.raises(ValueError):
+        _ = DummyMetric(num_process=2, process_id=3)

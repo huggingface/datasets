@@ -46,7 +46,7 @@ The last step is to create a Dataset card. The Dataset card is essential for hel
 
 2. Get a quick start with our Dataset card `template <https://raw.githubusercontent.com/huggingface/datasets/master/templates/README.md>`_ to help you fill out all the relevant fields. 
 
-3. The Dataset card uses structured tags to help users discover your dataset on the Hub. Use the `online card creator <https://huggingface.co/datasets/tagging/>`_ to help you generate the appropriate tags.
+3. The Dataset card uses structured tags to help users discover your dataset on the Hub. Use the `online Datasets Tagging application <https://huggingface.co/spaces/huggingface/datasets-tagging>`_ to help you generate the appropriate tags.
 
 4. Copy the generated tags and paste them at the top of your Dataset card, then commit your changes.
 
@@ -64,14 +64,44 @@ Your dataset can now be loaded by anyone in a single line of code!
 
    >>> from datasets import load_dataset
    >>> dataset = load_dataset("stevhliu/demo")
+   >>> dataset
+   DatasetDict({
+    train: Dataset({
+        features: ['id', 'package_name', 'review', 'date', 'star', 'version_id'],
+        num_rows: 5
+    })
+    test: Dataset({
+        features: ['id', 'package_name', 'review', 'date', 'star', 'version_id'],
+        num_rows: 5
+    })
+   })
 
-You can even map your data files to a specific split with the ``data_files`` parameter:
+
+Upload from Python
+------------------
+
+To upload a :class:`datasets.DatasetDict` on the Hugging Face Hub in Python, you can login and use the :func:`datasets.DatasetDict.push_to_hub` method:
+
+1. Login from the command line:
 
 .. code-block::
 
-   >>> data_files = {"train": "train.csv", "test": "test.csv"}
-   >>> dataset = load_dataset("stevhliu/demo", data_files=data_files)
-   >>> print(dataset["train"][0])
+   huggingface-cli login
+
+2. Upload the dataset:
+
+.. code-block::
+
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset("stevhliu/demo")
+   >>> # dataset = dataset.map(...)  # do all your processing here
+   >>> dataset.push_to_hub("stevhliu/processed_demo")
+
+With the ``private`` parameter you can choose whether your dataset is public or private:
+
+.. code-block::
+
+   >>> dataset.push_to_hub("stevhliu/private_processed_demo", private=True)
 
 Privacy
 -------

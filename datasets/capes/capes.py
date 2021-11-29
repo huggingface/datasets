@@ -15,8 +15,6 @@
 """Capes: Parallel corpus of theses and dissertation abstracts in Portuguese and English from CAPES"""
 
 
-import os
-
 import datasets
 
 
@@ -71,31 +69,30 @@ class Capes(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URL)
+        archive = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "source_file": os.path.join(data_dir, "en_pt.en"),
-                    "target_file": os.path.join(data_dir, "en_pt.pt"),
+                    "source_file": "en_pt.en",
+                    "target_file": "en_pt.pt",
+                    "src_files": dl_manager.iter_archive(archive),
+                    "tgt_files": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, source_file, target_file):
-        with open(source_file, encoding="utf-8") as f:
-            source_sentences = f.read().split("\n")
-        with open(target_file, encoding="utf-8") as f:
-            target_sentences = f.read().split("\n")
-
-        assert len(target_sentences) == len(source_sentences), "Sizes do not match: %d vs %d for %s vs %s." % (
-            len(source_sentences),
-            len(target_sentences),
-            source_file,
-            target_file,
-        )
-
+    def _generate_examples(self, source_file, target_file, src_files, tgt_files):
         source, target = tuple(self.config.name.split("-"))
-        for idx, (l1, l2) in enumerate(zip(source_sentences, target_sentences)):
-            result = {"translation": {source: l1, target: l2}}
-            yield idx, result
+        for src_path, src_f in src_files:
+            if src_path == source_file:
+                for tgt_path, tgt_f in tgt_files:
+                    if tgt_path == target_file:
+                        for idx, (l1, l2) in enumerate(zip(src_f, tgt_f)):
+                            l1 = l1.decode("utf-8").strip()
+                            l2 = l2.decode("utf-8").strip()
+                            if l1 and l2:
+                                result = {"translation": {source: l1, target: l2}}
+                                yield idx, result
+                        break
+                break

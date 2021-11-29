@@ -76,7 +76,7 @@ REQUIRED_PKGS = [
     # Backend and serialization.
     # Minimum 3.0.0 to support mix of struct and list types in parquet, and batch iterators of parquet data
     # pyarrow 4.0.0 introduced segfault bug, see: https://github.com/huggingface/datasets/pull/2268
-    "pyarrow>=1.0.0,!=4.0.0",
+    "pyarrow>=3.0.0,!=4.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -129,11 +129,10 @@ TESTS_REQUIRE = [
     "botocore",
     "faiss-cpu>=1.6.4",
     "fsspec[s3]",
-    "keras<2.7.0", # Temporary fix https://github.com/keras-team/keras/issues/15579
     "moto[s3,server]==2.0.4",
     "rarfile>=4.0",
     "s3fs==2021.08.1",
-    "tensorflow>=2.3",
+    "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
     "torchaudio",
     "transformers",
@@ -181,14 +180,14 @@ if os.name != "nt":
         ]
     )
 
-QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
     "apache-beam": ["apache-beam>=2.26.0"],
-    "tensorflow": ["tensorflow>=2.2.0", "keras<2.7.0"],  # tmp
-    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0", "keras<2.7.0"],  # tmp
+    "tensorflow": ["tensorflow>=2.2.0,!=2.6.0,!=2.6.1"],
+    "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
     "torch": ["torch"],
     "s3": [
         "fsspec",
@@ -214,12 +213,13 @@ EXTRAS_REQUIRE = {
         "sphinx-panels",
         "sphinx-inline-tabs",
         "myst-parser",
+        "Markdown!=3.3.5",
     ],
 }
 
 setup(
     name="datasets",
-    version="1.15.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.16.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

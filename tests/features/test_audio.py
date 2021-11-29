@@ -1,4 +1,6 @@
+import os
 import sys
+import tarfile
 from ctypes.util import find_library
 from importlib.util import find_spec
 
@@ -26,12 +28,41 @@ require_sox = pytest.mark.skipif(
 require_torchaudio = pytest.mark.skipif(find_spec("torchaudio") is None, reason="Test requires 'torchaudio'")
 
 
+@pytest.fixture()
+def tar_wav_path(shared_datadir, tmp_path_factory):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    path = tmp_path_factory.mktemp("data") / "audio_data.wav.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(audio_path, arcname=os.path.basename(audio_path))
+    return path
+
+
+@pytest.fixture()
+def tar_mp3_path(shared_datadir, tmp_path_factory):
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    path = tmp_path_factory.mktemp("data") / "audio_data.mp3.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(audio_path, arcname=os.path.basename(audio_path))
+    return path
+
+
+def iter_archive(archive_path):
+    with tarfile.open(archive_path) as tar:
+        for tarinfo in tar:
+            file_path = tarinfo.name
+            file_obj = tar.extractfile(tarinfo)
+            yield file_path, file_obj
+
+
 def test_audio_instantiation():
     audio = Audio()
+    assert audio.sampling_rate is None
+    assert audio.mono is True
     assert audio.id is None
     assert audio.dtype == "dict"
     assert audio.pa_type is None
     assert audio._type == "Audio"
+    assert audio._storage_dtype == "string"
 
 
 @require_sndfile
@@ -92,6 +123,67 @@ def test_dataset_with_audio_feature(shared_datadir):
     assert column[0].keys() == {"path", "array", "sampling_rate"}
     assert column[0]["path"] == audio_path
     assert column[0]["array"].shape == (202311,)
+    assert column[0]["sampling_rate"] == 44100
+
+
+@require_sndfile
+def test_dataset_with_audio_feature_tar_wav(tar_wav_path):
+    audio_filename = "test_audio_44100.wav"
+    data = {"audio": []}
+    for file_path, file_obj in iter_archive(tar_wav_path):
+        data["audio"].append({"path": file_path, "bytes": file_obj.read()})
+        break
+    features = Features({"audio": Audio()})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+    assert item["audio"]["path"] == audio_filename
+    assert item["audio"]["array"].shape == (202311,)
+    assert item["audio"]["sampling_rate"] == 44100
+    batch = dset[:1]
+    assert batch.keys() == {"audio"}
+    assert len(batch["audio"]) == 1
+    assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
+    assert batch["audio"][0]["path"] == audio_filename
+    assert batch["audio"][0]["array"].shape == (202311,)
+    assert batch["audio"][0]["sampling_rate"] == 44100
+    column = dset["audio"]
+    assert len(column) == 1
+    assert column[0].keys() == {"path", "array", "sampling_rate"}
+    assert column[0]["path"] == audio_filename
+    assert column[0]["array"].shape == (202311,)
+    assert column[0]["sampling_rate"] == 44100
+
+
+@require_sox
+@require_torchaudio
+def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
+    audio_filename = "test_audio_44100.mp3"
+    data = {"audio": []}
+    for file_path, file_obj in iter_archive(tar_mp3_path):
+        data["audio"].append({"path": file_path, "bytes": file_obj.read()})
+        break
+    features = Features({"audio": Audio()})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+    assert item["audio"]["path"] == audio_filename
+    assert item["audio"]["array"].shape == (109440,)
+    assert item["audio"]["sampling_rate"] == 44100
+    batch = dset[:1]
+    assert batch.keys() == {"audio"}
+    assert len(batch["audio"]) == 1
+    assert batch["audio"][0].keys() == {"path", "array", "sampling_rate"}
+    assert batch["audio"][0]["path"] == audio_filename
+    assert batch["audio"][0]["array"].shape == (109440,)
+    assert batch["audio"][0]["sampling_rate"] == 44100
+    column = dset["audio"]
+    assert len(column) == 1
+    assert column[0].keys() == {"path", "array", "sampling_rate"}
+    assert column[0]["path"] == audio_filename
+    assert column[0]["array"].shape == (109440,)
     assert column[0]["sampling_rate"] == 44100
 
 
@@ -309,6 +401,34 @@ def test_formatted_dataset_with_audio_feature(shared_datadir):
         assert column[0]["path"] == audio_path
         assert column[0]["array"].shape == (202311,)
         assert column[0]["sampling_rate"] == 44100
+
+
+@pytest.fixture
+def jsonl_audio_dataset_path(shared_datadir, tmp_path_factory):
+    import json
+
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data = [{"audio": audio_path, "text": "Hello world!"}]
+    path = str(tmp_path_factory.mktemp("data") / "audio_dataset.jsonl")
+    with open(path, "w") as f:
+        for item in data:
+            f.write(json.dumps(item) + "\n")
+    return path
+
+
+@require_sndfile
+@pytest.mark.parametrize("streaming", [False, True])
+def test_load_dataset_with_audio_feature(streaming, jsonl_audio_dataset_path, shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data_files = jsonl_audio_dataset_path
+    features = Features({"audio": Audio(), "text": Value("string")})
+    dset = load_dataset("json", split="train", data_files=data_files, features=features, streaming=streaming)
+    item = dset[0] if not streaming else next(iter(dset))
+    assert item.keys() == {"audio", "text"}
+    assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+    assert item["audio"]["path"] == audio_path
+    assert item["audio"]["array"].shape == (202311,)
+    assert item["audio"]["sampling_rate"] == 44100
 
 
 @require_sndfile

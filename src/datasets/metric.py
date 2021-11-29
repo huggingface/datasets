@@ -16,6 +16,7 @@
 # Lint as: python3
 """ Metrics base class."""
 import os
+import re
 import types
 import uuid
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -166,13 +167,13 @@ class Metric(MetricInfoMixin):
         MetricInfoMixin.__init__(self, info)  # For easy access on low level
 
         # Safety checks on num_process and process_id
-        assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
-        assert (
-            isinstance(num_process, int) and num_process > process_id
-        ), "'num_process' should be a number greater than process_id"
-        assert (
-            num_process == 1 or not keep_in_memory
-        ), "Using 'keep_in_memory' is not possible in distributed setting (num_process > 1)."
+        if not isinstance(process_id, int) or process_id < 0:
+            raise ValueError("'process_id' should be a number greater than 0")
+        if not isinstance(num_process, int) or num_process <= process_id:
+            raise ValueError("'num_process' should be a number greater than process_id")
+        if keep_in_memory and num_process != 1:
+            raise ValueError("Using 'keep_in_memory' is not possible in distributed setting (num_process > 1).")
+
         self.num_process = num_process
         self.process_id = process_id
         self.max_concurrent_cache_files = max_concurrent_cache_files
@@ -435,13 +436,31 @@ class Metric(MetricInfoMixin):
             self._init_writer()
         try:
             self.writer.write_batch(batch)
-        except pa.ArrowInvalid:
-            raise ValueError(
-                f"Predictions and/or references don't match the expected format.\n"
-                f"Expected format: {self.features},\n"
-                f"Input predictions: {predictions},\n"
-                f"Input references: {references}"
-            ) from None
+        except pa.ArrowInvalid as e:
+            match = re.match(r"Column 1 named references expected length (\d+) but got length (\d+)", str(e))
+            if match is not None:
+                error_msg = (
+                    f"Mismatch in the number of predictions ({match.group(1)}) and references ({match.group(2)})"
+                )
+            else:
+                # lists - summarize long lists similarly to NumPy
+                # arrays/tensors - let the frameworks control formatting
+                def summarize_if_long_list(obj):
+                    if not type(obj) == list or len(obj) <= 6:
+                        return f"{obj}"
+
+                    def format_chunk(chunk):
+                        return ", ".join(repr(x) for x in chunk)
+
+                    return f"[{format_chunk(obj[:3])}, ..., {format_chunk(obj[-3:])}]"
+
+                error_msg = (
+                    f"Predictions and/or references don't match the expected format.\n"
+                    f"Expected format: {self.features},\n"
+                    f"Input predictions: {summarize_if_long_list(predictions)},\n"
+                    f"Input references: {summarize_if_long_list(references)}"
+                )
+            raise ValueError(error_msg) from None
 
     def add(self, *, prediction=None, reference=None):
         """Add one prediction and reference for the metric's stack.

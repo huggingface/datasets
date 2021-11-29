@@ -137,9 +137,10 @@ size_categories:
 licenses:
 - cc-by-4.0
 paperswithcode_id: null
+pretty_name: CVIT PIB
 ---
 
-# Dataset Card for PIB
+# Dataset Card for CVIT PIB
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -169,7 +170,7 @@ paperswithcode_id: null
 
 - **Homepage:** http://preon.iiit.ac.in/~jerin/bhasha/
 - **Paper:** https://arxiv.org/abs/2008.04860
-- **Point of Contact:** cvit-bhasha@googlegroups.com
+- **Point of Contact:** [Mailing List](cvit-bhasha@googlegroups.com)
 
 ### Dataset Summary
 
