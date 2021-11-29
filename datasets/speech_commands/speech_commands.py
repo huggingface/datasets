@@ -153,7 +153,6 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                     "utterance_id": datasets.Value("int8"),
                 }
             ),
-            supervised_keys=("file", "label"),
             homepage=_URL,
             citation=_CITATION,
             license=_LICENSE,
@@ -201,7 +200,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 label = word
             else:
                 label = UNKNOWN
-                # TODO: or maybe I should preserve words outside the WORDS list too and
+                # TODO: or maybe should I preserve words outside the WORDS list too and
                 # for example add another feature indicating if a word is unrecognized (_unknown_)
                 # otherwise utterance_id don't make any sense
 
