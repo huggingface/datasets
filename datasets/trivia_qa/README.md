@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- apache-2.0
+- unknown
 multilinguality:
 - monolingual
 paperswithcode_id: triviaqa
