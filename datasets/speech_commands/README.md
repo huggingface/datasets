@@ -178,11 +178,11 @@ The audio files were collected using crowdsourcing, see
 for some of the open source audio collection code that was used. The goal was to gather examples of
 people speaking single-word commands, rather than conversational sentences, so
 they were prompted for individual words over the course of a five minute
-session. In version 0.01 ten command words were recoded, with most speakers saying each
-of them five times.: "Yes", "No", "Up", "Down", "Left",
-"Right", "On", "Off", "Stop", "Go". More command words were added in the version 0.02: 
-"Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Backward", 
-"Forward", "Follow", "Learn".
+session. In version 0.01 twenty command words were recoded, with most speakers saying each
+of them five times: "Yes", "No", "Up", "Down", "Left",
+"Right", "On", "Off", "Stop", "Go", and digits from zero to nine. 
+More command words were added in the version 0.02: 
+"Backward", "Forward", "Follow", "Learn".
 To help distinguish unrecognized words, there are also ten auxiliary words, which most speakers only said once.
 These include "Bed", "Bird", "Cat", "Dog", "Happy", "House", "Marvin", "Sheila",
 "Tree", and "Wow".
