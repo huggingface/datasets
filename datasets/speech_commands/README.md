@@ -183,9 +183,8 @@ of them five times: "Yes", "No", "Up", "Down", "Left",
 "Right", "On", "Off", "Stop", "Go", and digits from zero to nine. 
 More command words were added in the version 0.02: 
 "Backward", "Forward", "Follow", "Learn".
-To help distinguish unrecognized words, there are also ten auxiliary words, which most speakers only said once.
-These include "Bed", "Bird", "Cat", "Dog", "Happy", "House", "Marvin", "Sheila",
-"Tree", and "Wow".
+To help distinguish unrecognized words, there are also several auxiliary (`_unknown_`) words, 
+which most speakers only said once.
 
 The `_background_noise_` class contains a set of  longer audio clips that are either recordings or 
 a mathematical simulations of noise.
