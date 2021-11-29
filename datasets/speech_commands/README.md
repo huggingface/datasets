@@ -1,22 +1,21 @@
 ---
 annotations_creators:
-- no-annotation  
+- other
 language_creators:
-- crowdsourced  
+- crowdsourced
 languages:
-- en  
+- en
 licenses:
-- cc-by-4.0  
+- cc-by-4.0
 multilinguality:
-- monolingual    
-pretty_name: 
-- SpeechCommands  
+- monolingual
+pretty_name: SpeechCommands
 size_categories:
-- unknown  
+- unknown
 source_datasets:
-- original  
+- original
 task_categories:
-- automatic-speech-recognition  
+- automatic-speech-recognition
 task_ids:
 - automatic-speech-recognition-other-keyword-spotting
 ---
