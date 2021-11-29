@@ -32,7 +32,7 @@ from .features import (
     cast_to_python_objects,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
-    objects_to_images,
+    objects_to_image_storage,
 )
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
@@ -113,7 +113,7 @@ class TypedSequence:
         trying_int_optimization = False
         if type is None:  # automatic type inference for custom objects
             if config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(self.data[0], PIL.Image.Image):
-                type = ImageExtensionType()
+                type = ImageExtensionType("binary")  # storage_dtype may change after inspection
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 if isinstance(self.data, np.ndarray):
@@ -124,8 +124,9 @@ class TypedSequence:
                     storage = pa.array(self.data, type.storage_dtype)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(type, ImageExtensionType):
-                storage = pa.array(objects_to_images(self.data), type.storage_type)
-                out = pa.ExtensionArray.from_storage(type, storage)
+                # deduce the final storage type after inspecting data
+                storage, storage_type = objects_to_image_storage(self.data)
+                out = pa.ExtensionArray.from_storage(storage_type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
                 if type is not None:
