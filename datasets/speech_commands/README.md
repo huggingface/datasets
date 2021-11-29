@@ -146,7 +146,7 @@ amount of time. Thus it is important to first query the sample index before
 the `"audio"` column, i.e. `dataset[0]["audio"]` should always be preferred 
 over `dataset["audio"][0]`.
 * `label`: label of an audio sample. Can be one of a set of target words, `_unknown_` or `_background_noise_`.
-* `speaker_id`: unique id of a speaker. Equals to `"None""` if label is `_background_noise_`.
+* `speaker_id`: unique id of a speaker. Equals to `"None"` if label is `_background_noise_`.
 * `utterance_id`: incremental id of a word utterance. Doesn't make sense if label is `_unknown_` or `_background_noise_`.
 
 ### Data Splits
