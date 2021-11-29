@@ -17,6 +17,7 @@
 
 import glob
 import os
+import textwrap
 
 import datasets
 
@@ -37,28 +38,29 @@ _CITATION = """
 """
 
 _DESCRIPTION = """
-An audio dataset of spoken words designed to help train and evaluate keyword spotting systems. 
-This is version 0.02 of the data set containing 105,829 audio files, released on
-April 11th 2018.
-The audio files were collected using crowdsourcing, see
-[aiyprojects.withgoogle.com/open_speech_recording](https://github.com/petewarden/extract_loudest_section)
-for some of the open source audio collection code we used (and please consider
-contributing to enlarge this data set). The goal was to gather examples of
-people speaking single-word commands, rather than conversational sentences, so
-they were prompted for individual words over the course of a five minute
-session. Twenty four core command words were recorded, with most speakers saying each
-of them five times. The core words in version 0.02 are "Yes", "No", "Up", "Down", "Left",
-"Right", "On", "Off", "Stop", "Go", "Zero", "One", "Two", "Three", "Four",
-"Five", "Six", "Seven", "Eight", "Nine", "Backward", "Forward", "Follow", "Learn". 
-To help distinguish unrecognized words, there are also several auxiliary ("_unknown_") words, which most speakers only said once.
-These include "Bed", "Bird", "Cat", "Dog", "Happy", "House", "Marvin", "Sheila", "Tree", and "Wow".
-Its primary goal is to provide a way to build and test small models that detect when a single word is spoken, 
-from a set of target words, with as few false positives as possible from background noise or unrelated speech. 
-Note that in the train and validation set, the label "unknown" is much more prevalent than the labels 
-of the target words or background noise. One difference from the release version is the handling of silent segments. 
-While in the test set the silence segments are regular 1 second files, in the training they are provided 
-as long segments under "_background_noise_" folder. Here we split these background noise into 1 second clips, 
-and also keep one of the files for the validation set.
+This is a set of one-second .wav audio files, each containing a single spoken
+English word or background noise. These words are from a small set of commands, and are spoken by a
+variety of different speakers. This data set is designed to help train simple
+machine learning models. This dataset is covered in more detail at 
+[https://arxiv.org/abs/1804.03209](https://arxiv.org/abs/1804.03209).
+
+Version 0.01 of the data set (configuration `"v0.01"`) was released on August 3rd 2017 and contains
+64,727 audio files. 
+
+Version 0.02 of the data set (configuration `"v0.02"`) was released on April 11th 2018 and 
+contains 105,829 audio files.
+
+In version 0.01 ten command words were recoded, with most speakers saying each
+of them five times.: "Yes", "No", "Up", "Down", "Left", "Right", "On", "Off", "Stop", "Go". 
+More command words were added in the version 0.02:  "Zero", "One", "Two", "Three", "Four", "Five", "Six", 
+"Seven", "Eight", "Nine", "Backward",  "Forward", "Follow", "Learn".
+
+To help distinguish unrecognized words, there are also ten auxiliary words ( label `_unknown_`), 
+which most speakers only said once. These include "Bed", "Bird", "Cat", "Dog", "Happy", "House", "Marvin", "Sheila",
+"Tree", and "Wow".
+
+There is also a `_background_noise_` class containin a set of  longer audio clips that are either recordings or 
+a mathematical simulations of noise.
 """
 
 _LICENSE = "Creative Commons BY 4.0 License"
@@ -106,7 +108,7 @@ LABELS_V2 = WORDS_V2 + [UNKNOWN, BACKGROUND]
 class SpeechCommandsConfig(datasets.BuilderConfig):
     """BuilderConfig for SpeechCommands. """
 
-    def __init__(self, labels, **kwargs):  # TODO: url?
+    def __init__(self, labels, **kwargs):
         super(SpeechCommandsConfig, self).__init__(**kwargs)
         self.labels = labels
 
@@ -116,13 +118,24 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         SpeechCommandsConfig(
             name="v0.01",
-            description="",  # TODO
+            description=textwrap.dedent(
+                """\
+                Version 0.01 of SpeechCommands dataset. Contains ten command words:
+                "Yes", "No", "Up", "Down", "Left", "Right", "On", "Off", "Stop", "Go", several 
+                auxiliary words (label `_unknown_`) and background noise (label `_background_noise_`)
+                """
+            ),
             labels=LABELS_V1,
-            version=datasets.Version("0.0.1")
+            version=datasets.Version("0.0.1")  # TODO: maybe drop it?
         ),
         SpeechCommandsConfig(
             name="v0.02",
-            description="",  # TODO
+            description=textwrap.dedent(
+                """\
+                Version 0.02 of SpeechCommands dataset. 
+                Contains more command and auxiliary words than version 0.01.
+                """
+            ),
             labels=LABELS_V2,
             version=datasets.Version("0.0.2")  # TODO: maybe drop it?
         ),
@@ -130,7 +143,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,  # TODO: or self.config.description?
+            description=_DESCRIPTION,
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
@@ -140,7 +153,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                     "utterance_id": datasets.Value("int8"),
                 }
             ),
-            supervised_keys=("file", "label"),  # TODO: understand what that means
+            supervised_keys=("file", "label"),
             homepage=_URL,
             citation=_CITATION,
             license=_LICENSE,
