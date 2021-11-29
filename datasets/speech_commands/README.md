@@ -86,7 +86,7 @@ The language data in SpeechCommands is in English (BCP-47 `en`).
 ### Data Instances
 
 Example of target class:
-```json
+```python
 {
   "file": "path_to_data/down/a929f9b9_nohash_0.wav", 
   "audio": {
@@ -101,8 +101,8 @@ Example of target class:
 }
 ```
 
-Example of `_unknown_`:
-```json
+Example of `_unknown_` class:
+```python
 {
   "file": "path_to_data/bird/0b40aa8e_nohash_1.wav", 
   "audio": {
@@ -117,8 +117,8 @@ Example of `_unknown_`:
 }
 ```
 
-Example of `_background_noise_`:
-```json
+Example of `_background_noise_` class:
+```python
 {
   "file": "path_to_data/_background_noise_/doing_the_dishes.wav", 
   "audio": {
