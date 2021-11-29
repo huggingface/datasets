@@ -12,8 +12,8 @@ Before you take the time to download a dataset, it is often helpful to quickly g
 
    >>> from datasets import load_dataset_builder
    >>> dataset_builder = load_dataset_builder('imdb')
-   >>> print(dataset_builder.cache_dir)
-   /Users/thomwolf/.cache/huggingface/datasets/imdb/plain_text/1.0.0/fdc76b18d5506f14b0646729b8d371880ef1bc48a26d00835a7f3da44004b676
+   >>> print(dataset_builder.cache_dir) #doctest: +ELLIPSIS
+   /Users/.../.cache/huggingface/datasets/imdb/plain_text/1.0.0/...
    >>> print(dataset_builder.info.features)
    {'text': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None)}
    >>> print(dataset_builder.info.splits)
@@ -39,11 +39,11 @@ Use ``get_dataset_config_names`` to retrieve a list of all the possible configur
 
 .. code-block::
 
-   from datasets import get_dataset_config_names
+   >>> from datasets import get_dataset_config_names
 
-   configs = get_dataset_config_names("glue")
-   print(configs)
-   # ['cola', 'sst2', 'mrpc', 'qqp', 'stsb', 'mnli', 'mnli_mismatched', 'mnli_matched', 'qnli', 'rte', 'wnli', 'ax']
+   >>> configs = get_dataset_config_names("glue")
+   >>> print(configs)
+   ['cola', 'sst2', 'mrpc', 'qqp', 'stsb', 'mnli', 'mnli_mismatched', 'mnli_matched', 'qnli', 'rte', 'wnli', 'ax']
 
 
 ❌ Incorrect way to load a configuration:
@@ -51,7 +51,8 @@ Use ``get_dataset_config_names`` to retrieve a list of all the possible configur
 .. code-block::
 
    >>> from datasets import load_dataset
-   >>> dataset = load_dataset('glue')
+   >>> dataset = load_dataset('glue') #doctest: +NORMALIZE_WHITESPACE
+   Traceback (most recent call last):
    ValueError: Config name is missing.
    Please pick one among the available configs: ['cola', 'sst2', 'mrpc', 'qqp', 'stsb', 'mnli', 'mnli_mismatched', 'mnli_matched', 'qnli', 'rte', 'wnli', 'ax']
    Example of usage:
@@ -62,14 +63,21 @@ Use ``get_dataset_config_names`` to retrieve a list of all the possible configur
 .. code-block::
 
    >>> dataset = load_dataset('glue', 'sst2')
-   Downloading and preparing dataset glue/sst2 (download: 7.09 MiB, generated: 4.81 MiB, total: 11.90 MiB) to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0...
-   Downloading: 100%|██████████████████████████████████████████████████████████████| 7.44M/7.44M [00:01<00:00, 7.03MB/s]
-   Dataset glue downloaded and prepared to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0. Subsequent calls will reuse this data.
    >>> print(dataset)
-   {'train': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 67349),
-       'validation': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 872),
-       'test': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 1821)
-   }
+   DatasetDict({
+       train: Dataset({
+           features: ['sentence', 'label', 'idx'],
+           num_rows: 67349
+       })
+       validation: Dataset({
+           features: ['sentence', 'label', 'idx'],
+           num_rows: 872
+       })
+       test: Dataset({
+           features: ['sentence', 'label', 'idx'],
+           num_rows: 1821
+       })
+   })
 
 Select a split
 --------------
@@ -79,21 +87,22 @@ A split is a specific subset of the dataset like ``train`` and ``test``. Make su
 .. code-block::
 
    >>> from datasets import load_dataset
-   >>> datasets = load_dataset('glue', 'mrpc')
-   >>> print(datasets)
-   {train: Dataset({
-       features: ['idx', 'label', 'sentence1', 'sentence2'],
-       num_rows: 3668
+   >>> dataset = load_dataset('glue', 'mrpc')
+   >>> print(dataset)
+   DatasetDict({
+       train: Dataset({
+           features: ['sentence1', 'sentence2', 'label', 'idx'],
+           num_rows: 3668
+       })
+       validation: Dataset({
+           features: ['sentence1', 'sentence2', 'label', 'idx'],
+           num_rows: 408
+       })
+       test: Dataset({
+           features: ['sentence1', 'sentence2', 'label', 'idx'],
+           num_rows: 1725
+       })
    })
-   validation: Dataset({
-       features: ['idx', 'label', 'sentence1', 'sentence2'],
-       num_rows: 408
-   })
-   test: Dataset({
-       features: ['idx', 'label', 'sentence1', 'sentence2'],
-       num_rows: 1725
-   })
-   }
 
 You can list the split names for a dataset, or a specific configuration, with the :func:`datasets.get_dataset_split_names` method:
 

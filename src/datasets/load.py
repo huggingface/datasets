@@ -1452,6 +1452,15 @@ def load_dataset_builder(
     Returns:
         :class:`DatasetBuilder`
 
+    Examples:
+
+    >>> from datasets import load_dataset_builder
+    >>> dataset = load_dataset_builder("imdb")
+
+    dataset_builder.cache_dir:
+    >>> dataset_builder.cache_dir #doctest: +ELLIPSIS
+    /Users/.../.cache/huggingface/datasets/imdb/plain_text/1.0.0/...
+
     """
     if script_version != "deprecated":
         warnings.warn(
@@ -1614,6 +1623,34 @@ def load_dataset(
 
         - if `split` is not None: the dataset requested,
         - if `split` is None, a ``datasets.streaming.IterableDatasetDict`` with each split.
+
+    Examples:
+
+    if `name` is not None: the dataset requested:
+    >>> dataset = load_dataset("glue", "mrpc")
+    >>> print(dataset)
+    DatasetDict({
+        train: Dataset({
+            features: ['sentence1', 'sentence2', 'label', 'idx'],
+            num_rows: 3668
+        })
+        validation: Dataset({
+            features: ['sentence1', 'sentence2', 'label', 'idx'],
+            num_rows: 408
+        })
+        test: Dataset({
+            features: ['sentence1', 'sentence2', 'label', 'idx'],
+            num_rows: 1725
+        })
+    })
+
+    if `name` is None return a ValueError:
+    >>> dataset = load_dataset("glue")
+    Traceback (most recent call last):
+    ValueError: Config name is missing.
+    Please pick one among the available configs: ['cola', 'sst2', 'mrpc', 'qqp', 'stsb', 'mnli', 'mnli_mismatched', 'mnli_matched', 'qnli', 'rte', 'wnli', 'ax']
+    Example of usage:
+            `load_dataset('glue', 'cola')`
 
     """
     if script_version != "deprecated":
