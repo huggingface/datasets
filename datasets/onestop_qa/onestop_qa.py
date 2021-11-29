@@ -53,10 +53,9 @@ _HOMEPAGE = "https://github.com/berzak/onestop-qa"
 
 _LICENSE = "Creative Commons Attribution-ShareAlike 4.0 International License"
 
-# TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://github.com/scaperex/test_onestop_qa/raw/main/train.zip"
+_URL = "https://github.com/berzak/onestop-qa/raw/master/annotations/onestop_qa.zip"
 
 
 class OneStopQA(datasets.GeneratorBasedBuilder):
@@ -82,9 +81,9 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
             {
                 "title": datasets.Value("string"),
                 "context": datasets.Value("string"),
-                "level": datasets.Value("string"),  # TODO ClassLabel?
+                "level": datasets.ClassLabel(names=["Adv", "Int", "Ele"]),
                 "question": datasets.Value("string"),
-                "references": datasets.Value("int32"),  # TODO ClassLabel?
+                "question_index": datasets.Value("int32"),
                 "answers": datasets.features.Sequence(datasets.Value("string")),
                 "a_span": datasets.features.Sequence(datasets.Value("int32")),
                 "d_span": datasets.features.Sequence(datasets.Value("int32")),
@@ -110,12 +109,11 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
             #     QuestionAnsweringExtractive(
             #         question_column="question", context_column="context", answers_column="answers"
             #     )
-            # ], # TODO After issue #2434 is resolved uncomment task_templates and the QuestionAnsweringExtractive (or similar)
+            # ], # When issue #2434 is resolved uncomment task_templates and the QuestionAnsweringExtractive (or similar)
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
         # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
@@ -127,7 +125,7 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.json"),
+                    "filepath": os.path.join(data_dir, "onestop_qa.json"),
                     "split": "train",
                 },
             ),
@@ -146,7 +144,7 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
             onestop_qa = json.load(f)
             for article in onestop_qa["data"]:
                 title = article.get("title", "")
-                for paragraph in article["paragraphs"]:
+                for paragraph_index, paragraph in enumerate(article["paragraphs"]):
                     for level in ["Adv", "Int", "Ele"]:
                         paragraph_context_and_spans = paragraph[level]
                         context = paragraph_context_and_spans["context"]
@@ -158,9 +156,9 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
                                 "title": title,
                                 "context": context,
                                 "question": qa["question"],
+                                "question_index": paragraph_index,
                                 "answers": qa["answers"],
                                 "level": level,
-                                "references": qa["references"],
                                 "a_span": a_span,
                                 "d_span": d_span,
                             },
