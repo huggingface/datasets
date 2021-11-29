@@ -24,7 +24,7 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         __len__, __iter__, formatted_as, set_format, set_transform, reset_format, with_format, with_transform,
         __getitem__, cleanup_cache_files,
         map, filter, select, sort, shuffle, train_test_split, shard, export,
-        save_to_disk, load_from_disk, flatten_indices,
+        push_to_hub, save_to_disk, load_from_disk, flatten_indices,
         to_csv, to_pandas, to_dict, to_json, to_parquet,
         add_faiss_index, add_faiss_index_from_external_arrays, save_faiss_index, load_faiss_index,
         add_elasticsearch_index, load_elasticsearch_index,
@@ -60,7 +60,7 @@ It also has dataset transform methods like map or filter, to process all the spl
         map, filter, sort, shuffle, set_format, reset_format, formatted_as, with_format, with_transform,
         flatten_, cast_, remove_columns_, rename_column_,
         flatten, cast, cast_column, remove_columns, rename_column, class_encode_column,
-        save_to_disk, load_from_disk,
+        push_to_hub, save_to_disk, load_from_disk,
         from_csv, from_json, from_parquet, from_text,
         prepare_for_task, align_labels_with_mapping
 

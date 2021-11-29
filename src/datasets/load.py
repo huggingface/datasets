@@ -424,11 +424,11 @@ def infer_module_for_data_files(
 ) -> Optional[str]:
     extensions_counter = Counter(suffix[1:] for filepath in data_files_list for suffix in Path(filepath).suffixes)
     if extensions_counter:
-        most_common = extensions_counter.most_common(1)[0][0]
-        if most_common in _EXTENSION_TO_MODULE:
-            return _EXTENSION_TO_MODULE[most_common]
-        elif most_common == "zip":
-            return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+        for ext, _ in extensions_counter.most_common():
+            if ext in _EXTENSION_TO_MODULE:
+                return _EXTENSION_TO_MODULE[ext]
+            elif ext == "zip":
+                return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
 
 
 def infer_module_for_data_files_in_archives(
@@ -813,7 +813,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
         infered_module_name = next(iter(infered_module_names.values()))
         if not infered_module_name:
-            raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
+            raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
         module_path, hash = _PACKAGED_DATASETS_MODULES[infered_module_name]
         builder_kwargs = {
             "hash": hash,

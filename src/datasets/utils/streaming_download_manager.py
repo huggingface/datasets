@@ -456,8 +456,8 @@ class StreamingDownloadManager(object):
     ):
         self._dataset_name = dataset_name
         self._data_dir = data_dir
-        self._download_config = download_config or DownloadConfig()
         self._base_path = base_path or os.path.abspath(".")
+        self.download_config = download_config or DownloadConfig()
 
     @property
     def manual_dir(self):
@@ -480,7 +480,7 @@ class StreamingDownloadManager(object):
 
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
-        protocol = _get_extraction_protocol(urlpath, use_auth_token=self._download_config.use_auth_token)
+        protocol = _get_extraction_protocol(urlpath, use_auth_token=self.download_config.use_auth_token)
         if protocol is None:
             # no extraction
             return urlpath
@@ -509,7 +509,7 @@ class StreamingDownloadManager(object):
             Generator yielding tuple (path_within_archive, file_obj).
             File-Obj are opened in byte mode (io.BufferedReader)
         """
-        with xopen(urlpath, "rb", use_auth_token=self._download_config.use_auth_token) as f:
+        with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
             stream = tarfile.open(fileobj=f, mode="r|*")
             for tarinfo in stream:
                 file_path = tarinfo.name
