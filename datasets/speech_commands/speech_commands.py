@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+
+"""Speech Commands, an audio dataset of spoken words designed to help train and evaluate keyword spotting systems. """
 
 
 import glob
@@ -114,7 +115,6 @@ class SpeechCommandsConfig(datasets.BuilderConfig):
 
 
 class SpeechCommands(datasets.GeneratorBasedBuilder):
-    # DEFAULT_WRITER_BATCH_SIZE = 256  # TODO: do we need it?
     BUILDER_CONFIGS = [
         SpeechCommandsConfig(
             name="v0.01",
