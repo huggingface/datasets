@@ -378,9 +378,7 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
     def _generate_dtype(self, dtype):
         dtype = string_to_arrow(dtype)
         for d in reversed(self.shape):
-            dtype = pa.list_(dtype)
-            # Don't specify the size of the list, since fixed length list arrays have issues
-            # being validated after slicing in pyarrow 0.17.1
+            dtype = pa.list_(dtype, list_size=d if d is not None else -1)
         return dtype
 
     def to_pandas_dtype(self):
@@ -426,40 +424,44 @@ class ArrayExtensionArray(pa.ExtensionArray):
         return self.storage[i]
 
     def to_numpy(self, zero_copy_only=True):
-        storage: pa.ListArray = self.storage
-        size = 1
-        for i in range(self.type.ndims):
-            size *= self.type.shape[i]
+        storage: pa.Array = self.storage
+        for _ in range(self.type.ndims):
             storage = storage.flatten()
         numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
         numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr
 
     def to_list_of_numpy(self, zero_copy_only=True):
-        storage: pa.ListArray = self.storage
         shape = self.type.shape
         ndims = self.type.ndims
+        storage: pa.Array = self.storage
 
-        for dim in range(1, ndims):
-            assert shape[dim] is not None, f"Support only dynamic size on first dimension. Got: {shape}"
+        nelems = len(storage)
+        elem_shapes = np.diff(storage.offsets) if shape[0] is None else np.array([shape[0]] * nelems)
+        elem_shapes_prod = elem_shapes
+        elem_shapes = elem_shapes.reshape(1, nelems)
+        storage = storage.flatten()
+        for d in range(1, ndims):
+            if shape[d] is not None:
+                d_shapes = [shape[d]] * nelems
+            else:
+                split_segments = np.cumsum(elem_shapes_prod[:-1])
+                d_shapes = [off[0] for off in np.split(np.diff(storage.offsets), split_segments)]
 
+            elem_shapes = np.vstack((elem_shapes, d_shapes))
+            elem_shapes_prod *= d_shapes
+            storage = storage.flatten()
+
+        elem_split_segments = np.cumsum(elem_shapes_prod[:-1])
+        elem_arrays = np.split(storage.to_numpy(zero_copy_only=zero_copy_only), elem_split_segments)
         arrays = []
-        first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
-        for i in range(len(storage)):
-            storage_el = storage[i : i + 1]
-            first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
-            # flatten storage
-            for _ in range(ndims):
-                storage_el = storage_el.flatten()
-
-            numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
-            arrays.append(numpy_arr.reshape(first_dim, *shape[1:]))
-
+        for i, elem_array in enumerate(elem_arrays):
+            arrays.append(elem_array.reshape(elem_shapes[:, i]))
         return arrays
 
     def to_pylist(self):
         zero_copy_only = _is_zero_copy_only(self.storage.type)
-        if self.type.shape[0] is None:
+        if any(d is None for d in self.type.shape):
             return self.to_list_of_numpy(zero_copy_only=zero_copy_only)
         else:
             return self.to_numpy(zero_copy_only=zero_copy_only).tolist()
@@ -472,16 +474,27 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         self._value_type = value_type
 
     def __from_arrow__(self, array):
-        if array.type.shape[0] is None:
-            raise NotImplementedError(
-                "Dynamic first dimension is not supported for "
-                f"PandasArrayExtensionDtype, dimension: {array.type.shape}"
-            )
         zero_copy_only = _is_zero_copy_only(array.type)
-        if isinstance(array, pa.ChunkedArray):
-            numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
+        if any(d is None for d in array.type.shape):
+            if isinstance(array, pa.ChunkedArray):
+                arr = [
+                    numpy_arr_elem
+                    for chunk in array.chunks
+                    for numpy_arr_elem in chunk.to_list_of_numpy(zero_copy_only=zero_copy_only)
+                ]
+            else:
+                arr = array.to_list_of_numpy(zero_copy_only=zero_copy_only)
+            if len(arr) > 0 and any(
+                isinstance(x, np.ndarray) and (x.dtype == np.object or x.shape != arr[0].shape) for x in arr
+            ):
+                numpy_arr = np.array(arr, copy=False, dtype=np.object)
+            else:
+                numpy_arr = np.array(arr, copy=False)
         else:
-            numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
+            if isinstance(array, pa.ChunkedArray):
+                numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
+            else:
+                numpy_arr = array.to_numpy(zero_copy_only=zero_copy_only)
         return PandasArrayExtensionArray(numpy_arr)
 
     @classmethod
@@ -542,7 +555,10 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 
     @classmethod
     def _concat_same_type(cls, to_concat: Sequence_["PandasArrayExtensionArray"]) -> "PandasArrayExtensionArray":
-        data = np.vstack([va._data for va in to_concat])
+        if any(va._data.dtype == np.object for va in to_concat):
+            data = np.array([va._data for va in to_concat], dtype=np.object)
+        else:
+            data = np.vstack([va._data for va in to_concat])
         return cls(data, copy=False)
 
     @property
