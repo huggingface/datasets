@@ -279,12 +279,6 @@ class ArrayXDDynamicTest(unittest.TestCase):
             self.assertIsInstance(single_arr, np.ndarray)
             self.assertEqual(single_arr.shape, (first_dim, *fixed_shape))
 
-    def test_to_pandas_fail(self):
-        fixed_shape = (2, 2)
-        first_dim_list = [1, 3, 10]
-        dataset = self.get_one_col_dataset(first_dim_list, fixed_shape)
-        with self.assertRaises(NotImplementedError):
-            dataset.to_pandas()
 
     def test_map_dataset(self):
         fixed_shape = (2, 2)
