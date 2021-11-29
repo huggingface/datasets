@@ -63,14 +63,9 @@ and also keep one of the files for the validation set.
 
 _LICENSE = "Creative Commons BY 4.0 License"
 
-_URL = "https://www.tensorflow.org/datasets/catalog/speech_commands"  # TODO: check
+_URL = "https://www.tensorflow.org/datasets/catalog/speech_commands"
 
 _DL_URL = "http://download.tensorflow.org/data/speech_commands_{name}.tar.gz"
-
-# _DL_TEST_URL = {
-#     "v0.01": "http://download.tensorflow.org/data/speech_commands_test_set_v0.01.tar.gz",
-#     "v0.02": "http://download.tensorflow.org/data/speech_commands_test_set_v0.02.tar.gz"
-# }
 
 WORDS_V1 = [
     "yes",
@@ -117,7 +112,7 @@ class SpeechCommandsConfig(datasets.BuilderConfig):
 
 
 class SpeechCommands(datasets.GeneratorBasedBuilder):
-    # DEFAULT_WRITER_BATCH_SIZE = 256  # TODO: do I need it?
+    # DEFAULT_WRITER_BATCH_SIZE = 256  # TODO: do we need it?
     BUILDER_CONFIGS = [
         SpeechCommandsConfig(
             name="v0.01",
@@ -129,7 +124,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             name="v0.02",
             description="",  # TODO
             labels=LABELS_V2,
-            version=datasets.Version("0.0.2")
+            version=datasets.Version("0.0.2")  # TODO: maybe drop it?
         ),
     ]
 
