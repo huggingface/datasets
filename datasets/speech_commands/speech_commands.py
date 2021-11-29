@@ -126,7 +126,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 """
             ),
             labels=LABELS_V1,
-            version=datasets.Version("0.0.1"),  # TODO: maybe drop it?
+            version=datasets.Version("0.0.1"),
         ),
         SpeechCommandsConfig(
             name="v0.02",
@@ -137,7 +137,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 """
             ),
             labels=LABELS_V2,
-            version=datasets.Version("0.0.2"),  # TODO: maybe drop it?
+            version=datasets.Version("0.0.2"),
         ),
     ]
 
