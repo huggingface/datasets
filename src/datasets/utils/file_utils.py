@@ -538,6 +538,7 @@ def get_from_cache(
     response = None
     cookies = None
     etag = None
+    head_error = None
 
     # Try a first time to file the file on the local file system without eTag (None)
     # if we don't ask for 'force_download' then we spare a request
@@ -588,14 +589,19 @@ def get_from_cache(
             ):
                 connected = True
                 logger.info(f"Couldn't get ETag version for url {url}")
-        except (EnvironmentError, requests.exceptions.Timeout):
+            elif response.status_code == 401 and config.HF_ENDPOINT in url and use_auth_token is None:
+                raise ConnectionError(
+                    f"Unauthorized for URL {url}. Please use the parameter ``use_auth_token=True`` after logging in with ``huggingface-cli login``"
+                )
+        except (EnvironmentError, requests.exceptions.Timeout) as e:
             # not connected
+            head_error = e
             pass
 
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
     if not connected:
-        if os.path.exists(cache_path):
+        if os.path.exists(cache_path) and not force_download:
             return cache_path
         if local_files_only:
             raise FileNotFoundError(
@@ -605,7 +611,12 @@ def get_from_cache(
         elif response is not None and response.status_code == 404:
             raise FileNotFoundError(f"Couldn't find file at {url}")
         _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-        raise ConnectionError(f"Couldn't reach {url}")
+        if head_error is not None:
+            raise ConnectionError(f"Couldn't reach {url} ({repr(head_error)})")
+        elif response is not None:
+            raise ConnectionError(f"Couldn't reach {url} (error {response.status_code})")
+        else:
+            raise ConnectionError(f"Couldn't reach {url}")
 
     # Try a second time
     filename = hash_url_to_filename(cached_url, etag)
