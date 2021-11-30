@@ -67,9 +67,14 @@ class Json(datasets.ArrowBasedBuilder):
             # Encode column if ClassLabel
             for i, col in enumerate(self.config.features.keys()):
                 if isinstance(self.config.features[col], datasets.ClassLabel):
-                    pa_table = pa_table.set_column(
-                        i, self.config.schema.field(col), [self.config.features[col].str2int(pa_table[col])]
-                    )
+                    if pa_table[col].type == pa.string():
+                        pa_table = pa_table.set_column(
+                            i, self.config.schema.field(col), [self.config.features[col].str2int(pa_table[col])]
+                        )
+                    elif pa_table[col].type != self.config.schema.field(col).type:
+                        raise ValueError(
+                            f"Field '{col}' from the JSON data of type {pa_table[col].type} is not compatible with ClassLabel. Compatible types are int64 and string."
+                        )
             # Cast allows str <-> int/float
             # Before casting, rearrange JSON field names to match passed features schema field names order
             pa_table = pa.Table.from_arrays(
