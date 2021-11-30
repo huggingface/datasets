@@ -1,6 +1,23 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+languages:
+- en
+licenses:
+- other-
+multilinguality:
+- monolingual
+pretty_name: The Pile
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+task_ids:
+- language-modeling
 ---
 
 # Dataset Card for The Pile
@@ -74,11 +91,15 @@ datasets combined together.
 
 ### Data Fields
 
-[More Information Needed]
+#### all
+
+- `meta` (dict): Metadata of the data instance, with keys:
+   - pile_set_name: Name of the subset.
+- `text` (str): Text.
 
 ### Data Splits
 
-[More Information Needed]
+The "all" configuration is composed of 3 splits: train, validation and test.
 
 ## Dataset Creation
 
@@ -137,7 +158,16 @@ Please refer to the specific license depending on the subset you use:
 
 ### Citation Information
 
-[More Information Needed]
+```
+@misc{gao2020pile,
+      title={The Pile: An 800GB Dataset of Diverse Text for Language Modeling},
+      author={Leo Gao and Stella Biderman and Sid Black and Laurence Golding and Travis Hoppe and Charles Foster and Jason Phang and Horace He and Anish Thite and Noa Nabeshima and Shawn Presser and Connor Leahy},
+      year={2020},
+      eprint={2101.00027},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```
 
 ### Contributions
 
