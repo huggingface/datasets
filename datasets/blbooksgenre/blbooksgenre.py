@@ -160,9 +160,7 @@ class BlBooksGenre(datasets.GeneratorBasedBuilder):
                 {
                     "BL record ID": datasets.Value("string"),
                     "title": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(
-                        names=["Fiction", "Non-fiction"]
-                    ),
+                    "label": datasets.features.ClassLabel(names=["Fiction", "Non-fiction"]),
                 }
             )
         if self.config.name == "annotated_raw":
@@ -201,18 +199,10 @@ class BlBooksGenre(datasets.GeneratorBasedBuilder):
         return languages.split(";")
 
     def _parse_country(self, row: Dict) -> List[str]:
-        return (
-            row["Country of publication"].split(";")
-            if row["Country of publication"]
-            else []
-        )
+        return row["Country of publication"].split(";") if row["Country of publication"] else []
 
     def _parse_place_of_publication(self, row: Dict) -> List[str]:
-        return (
-            row["Place of publication"].split(";")
-            if row["Place of publication"]
-            else []
-        )
+        return row["Place of publication"].split(";") if row["Place of publication"] else []
 
     def _parse_all_names(self, row: Dict) -> List[str]:
         return row["All names"].split(";") if row["All names"] else []
@@ -247,9 +237,7 @@ class BlBooksGenre(datasets.GeneratorBasedBuilder):
                     annotated = ast.literal_eval(row["annotated"])
                     if not annotated:
                         continue
-                    created_at = datetime.strptime(
-                        row["created_at"], "%Y-%m-%d %H:%M:%S %Z"
-                    )
+                    created_at = datetime.strptime(row["created_at"], "%Y-%m-%d %H:%M:%S %Z")
                     id_ += 1
                     yield id_, {
                         "BL record ID": row["BL record ID"],
@@ -275,37 +263,23 @@ class BlBooksGenre(datasets.GeneratorBasedBuilder):
                         "Genre": row["Genre"],
                         "Languages": self._parse_language(row),
                         "Notes": row["Notes"],
-                        "BL record ID for physical resource": row[
-                            "BL record ID for physical resource"
-                        ],
+                        "BL record ID for physical resource": row["BL record ID for physical resource"],
                         "classification_id": row["classification_id"],
                         "user_id": row["user_id"],
                         "created_at": created_at,
                         "subject_ids": row["subject_ids"],
                         "annotator_date_pub": row["annotator_date_pub"],
-                        "annotator_normalised_date_pub": row[
-                            "annotator_normalised_date_pub"
-                        ],
-                        "annotator_edition_statement": row[
-                            "annotator_edition_statement"
-                        ],
+                        "annotator_normalised_date_pub": row["annotator_normalised_date_pub"],
+                        "annotator_edition_statement": row["annotator_edition_statement"],
                         "annotator_genre": row["annotator_genre"],
                         "annotator_FAST_genre_terms": row["annotator_FAST_genre_terms"],
-                        "annotator_FAST_subject_terms": row[
-                            "annotator_FAST_subject_terms"
-                        ],
+                        "annotator_FAST_subject_terms": row["annotator_FAST_subject_terms"],
                         "annotator_comments": row["annotator_comments"],
                         "annotator_main_language": row["annotator_main_language"],
-                        "annotator_other_languages_summaries": row[
-                            "annotator_other_languages_summaries"
-                        ],
-                        "annotator_summaries_language": row[
-                            "annotator_summaries_language"
-                        ],
+                        "annotator_other_languages_summaries": row["annotator_other_languages_summaries"],
+                        "annotator_summaries_language": row["annotator_summaries_language"],
                         "annotator_translation": row["annotator_translation"],
-                        "annotator_original_language": row[
-                            "annotator_original_language"
-                        ],
+                        "annotator_original_language": row["annotator_original_language"],
                         "annotator_publisher": row["annotator_publisher"],
                         "annotator_place_pub": row["annotator_place_pub"],
                         "annotator_country": row["annotator_country"],
@@ -340,37 +314,23 @@ class BlBooksGenre(datasets.GeneratorBasedBuilder):
                         "Genre": row["Genre"],
                         "Languages": self._parse_language(row),
                         "Notes": row["Notes"],
-                        "BL record ID for physical resource": row[
-                            "BL record ID for physical resource"
-                        ],
+                        "BL record ID for physical resource": row["BL record ID for physical resource"],
                         "classification_id": row["classification_id"],
                         "user_id": row["user_id"],
                         "created_at": row["created_at"],
                         "subject_ids": row["subject_ids"],
                         "annotator_date_pub": row["annotator_date_pub"],
-                        "annotator_normalised_date_pub": row[
-                            "annotator_normalised_date_pub"
-                        ],
-                        "annotator_edition_statement": row[
-                            "annotator_edition_statement"
-                        ],
+                        "annotator_normalised_date_pub": row["annotator_normalised_date_pub"],
+                        "annotator_edition_statement": row["annotator_edition_statement"],
                         "annotator_genre": row["annotator_genre"],
                         "annotator_FAST_genre_terms": row["annotator_FAST_genre_terms"],
-                        "annotator_FAST_subject_terms": row[
-                            "annotator_FAST_subject_terms"
-                        ],
+                        "annotator_FAST_subject_terms": row["annotator_FAST_subject_terms"],
                         "annotator_comments": row["annotator_comments"],
                         "annotator_main_language": row["annotator_main_language"],
-                        "annotator_other_languages_summaries": row[
-                            "annotator_other_languages_summaries"
-                        ],
-                        "annotator_summaries_language": row[
-                            "annotator_summaries_language"
-                        ],
+                        "annotator_other_languages_summaries": row["annotator_other_languages_summaries"],
+                        "annotator_summaries_language": row["annotator_summaries_language"],
                         "annotator_translation": row["annotator_translation"],
-                        "annotator_original_language": row[
-                            "annotator_original_language"
-                        ],
+                        "annotator_original_language": row["annotator_original_language"],
                         "annotator_publisher": row["annotator_publisher"],
                         "annotator_place_pub": row["annotator_place_pub"],
                         "annotator_country": row["annotator_country"],
