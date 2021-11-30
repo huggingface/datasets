@@ -234,6 +234,8 @@ The following fields are all generated via the crowdsourcing task (discussed in 
 - `created_at`: when the annotation was created
 - `annotator_genre`: the updated annotation for the `genre` of the book.
 
+Finally the `label` field of the `title_genre_classifiction` configuration  is a class label with values 0 (Fiction) or 1 (Non-fiction).
+
 [More Information Needed]
 
 ### Data Splits
