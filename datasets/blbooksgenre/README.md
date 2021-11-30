@@ -5,11 +5,10 @@ language_creators:
 - crowdsourced
 - expert-generated
 languages:
-- en-GB
-- en-US
-- de-DE
-- fr-FR
-- nl-NL
+- en
+- de
+- fr
+- nl
 licenses:
 - cc0-1.0
 multilinguality:
