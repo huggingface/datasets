@@ -305,7 +305,7 @@ class FaissIndex(BaseIndex):
             scores (`List[List[float]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
-        if len(query.shape) != 1 or (len(query.shape) == 2 and query.shape[0] != 1):
+        if len(query.shape) != 1 and (len(query.shape) != 2 or query.shape[0] != 1):
             raise ValueError("Shape of query is incorrect, it has to be either a 1D array or 2D (1, N)")
 
         queries = query.reshape(1, -1)

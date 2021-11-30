@@ -7,7 +7,6 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
-from datasets import config
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
 from datasets.features import Array2DExtensionType
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
@@ -57,11 +56,6 @@ class TypedSequenceTest(TestCase):
     def test_try_incompatible_extension_type(self):
         arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2DExtensionType((1, 3), "int64")))
         self.assertEqual(arr.type, pa.string())
-
-    def test_catch_overflow(self):
-        if config.PYARROW_VERSION.major < 2:
-            with self.assertRaises(OverflowError):
-                _ = pa.array(TypedSequence([["x" * 1024]] * ((2 << 20) + 1)))  # ListArray with a bit more than 2GB
 
 
 def _check_output(output, expected_num_chunks: int):

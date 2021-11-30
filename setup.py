@@ -76,7 +76,7 @@ REQUIRED_PKGS = [
     # Backend and serialization.
     # Minimum 3.0.0 to support mix of struct and list types in parquet, and batch iterators of parquet data
     # pyarrow 4.0.0 introduced segfault bug, see: https://github.com/huggingface/datasets/pull/2268
-    "pyarrow>=1.0.0,!=4.0.0",
+    "pyarrow>=3.0.0,!=4.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -219,7 +219,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.15.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.16.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

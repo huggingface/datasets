@@ -71,6 +71,7 @@ Find your dataset today on the `Hugging Face Hub <https://huggingface.co/dataset
     how_to
     loading
     process
+    audio_process
     stream
     share
     dataset_script
