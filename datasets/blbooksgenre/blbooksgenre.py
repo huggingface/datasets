@@ -14,7 +14,7 @@
 # limitations under the License.
 """British Library Books Genre Dataset"""
 
-
+import ast
 import csv
 from datetime import datetime
 from typing import Dict, List
@@ -225,7 +225,7 @@ class BlBooksGenre(datasets.GeneratorBasedBuilder):
                 unique = set()
                 id_ = 0
                 for row in reader:
-                    annotated = eval(row["annotated"])
+                    annotated = ast.literal_eval(row["annotated"])
                     if not annotated:
                         continue
                     label = row["annotator_genre"]
@@ -244,7 +244,7 @@ class BlBooksGenre(datasets.GeneratorBasedBuilder):
             if self.config.name == "annotated_raw":
                 id_ = 0
                 for row in reader:
-                    annotated = eval(row["annotated"])
+                    annotated = ast.literal_eval(row["annotated"])
                     if not annotated:
                         continue
                     created_at = datetime.strptime(
@@ -376,5 +376,5 @@ class BlBooksGenre(datasets.GeneratorBasedBuilder):
                         "annotator_country": row["annotator_country"],
                         "annotator_title": row["annotator_title"],
                         "Link to digitised book": row["Link to digitised book"],
-                        "annotated": eval(row["annotated"]),
+                        "annotated": ast.literal_eval(row["annotated"]),
                     }
