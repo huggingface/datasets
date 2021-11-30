@@ -233,6 +233,8 @@ def test_dataset_with_image_feature_map(shared_datadir):
 
 @require_pil
 def test_dataset_with_image_feature_map_change_image(shared_datadir):
+    import PIL.Image
+
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     pil_image = Image().decode_example(image_path)
     data = {"image": [image_path]}
@@ -242,6 +244,8 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
     for item in dset:
         assert item.keys() == {"image"}
         assert item == {"image": image_path}
+
+    # return pil image
 
     def process_image_resize_by_example(example):
         example["image"] = example["image"].resize((100, 100))
@@ -260,6 +264,26 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
     for item in decoded_dset:
         assert item.keys() == {"image"}
         assert item == {"image": image_to_bytes(pil_image.resize((100, 100)))}
+
+    # return np.array (e.g. when using albumentations)
+
+    def process_image_resize_by_example_return_np_array(example):
+        example["image"] = np.array(example["image"].resize((100, 100)))
+        return example
+
+    decoded_dset = dset.map(process_image_resize_by_example_return_np_array)
+    for item in decoded_dset:
+        assert item.keys() == {"image"}
+        assert item == {"image": image_to_bytes(PIL.Image.fromarray(np.array(pil_image.resize((100, 100)))))}
+
+    def process_image_resize_by_batch_return_np_array(batch):
+        batch["image"] = [np.array(image.resize((100, 100))) for image in batch["image"]]
+        return batch
+
+    decoded_dset = dset.map(process_image_resize_by_batch_return_np_array, batched=True)
+    for item in decoded_dset:
+        assert item.keys() == {"image"}
+        assert item == {"image": image_to_bytes(PIL.Image.fromarray(np.array(pil_image.resize((100, 100)))))}
 
 
 @require_pil
