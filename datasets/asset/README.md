@@ -13,7 +13,7 @@ size_categories:
 - 1K<n<10K
 source_datasets:
 - original
-- extented|other-turkcorpus
+- extended|other-turkcorpus
 task_categories:
   ratings:
   - text-scoring
