@@ -116,7 +116,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Return SplitGenerators."""
         if self.config.name == "all":
-            data_dir = dl_manager.download_and_extract(_DATA_URLS[self.config.name])
+            data_dir = dl_manager.download(_DATA_URLS[self.config.name])
             return [
                 datasets.SplitGenerator(
                     name=split,
@@ -142,8 +142,10 @@ class ThePile(datasets.GeneratorBasedBuilder):
         """Yield examples as (key, example) tuples."""
         key = 0
         if isinstance(files, list):
+            import zstandard as zstd
+
             for path in files:
-                with open(path, encoding="utf-8") as f:
+                with zstd.open(open(path, "rb"), "rt", encoding="utf-8") as f:
                     for row in f:
                         data = json.loads(row)
                         yield key, data
