@@ -17,10 +17,13 @@
 """Download manager interface."""
 
 import enum
+import io
 import os
 import tarfile
+import zipfile
 from datetime import datetime
 from functools import partial
+from pathlib import Path
 from typing import Dict, Optional, Union
 
 from .. import config
@@ -216,7 +219,7 @@ class DownloadManager:
         return cached_path(url_or_filename, download_config=download_config)
 
     def iter_archive(self, path):
-        """Returns iterator over files within archive.
+        """Returns iterator over files within archive (zip and tar).
 
         Args:
             path: path to archive.
@@ -225,21 +228,36 @@ class DownloadManager:
             Generator yielding tuple (path_within_archive, file_obj).
             File-Obj are opened in byte mode (io.BufferedReader)
         """
-        with open(path, "rb") as f:
-            stream = tarfile.open(fileobj=f, mode="r|*")
-            for tarinfo in stream:
-                file_path = tarinfo.name
-                if not tarinfo.isreg():
+        extension = Path(path).suffix
+        if extension == ".tar":
+            with open(path, "rb") as f:
+                stream = tarfile.open(fileobj=f, mode="r|*")
+                for tarinfo in stream:
+                    file_path = tarinfo.name
+                    if not tarinfo.isreg():
+                        continue
+                    if file_path is None:
+                        continue
+                    if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                        # skipping hidden files
+                        continue
+                    file_obj = stream.extractfile(tarinfo)
+                    yield (file_path, file_obj)
+                    stream.members = []
+                del stream
+
+        elif extension == ".zip":
+            zipf = zipfile.ZipFile(path)
+            for member in zipf.infolist():
+                file_path = member.filename
+                if member.is_dir():
                     continue
                 if file_path is None:
                     continue
                 if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
-                    # skipping hidden files
                     continue
-                file_obj = stream.extractfile(tarinfo)
+                file_obj = io.BufferedReader(zipf.open(member, "r"))
                 yield (file_path, file_obj)
-                stream.members = []
-            del stream
 
     def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).
