@@ -377,11 +377,13 @@ The books are licensed under the [CC Public Domain Mark 1.0](https://creativecom
 
 ### Citation Information
 
+```bibtex
 @misc{british library_genre, 
 title={ 19th Century Books - metadata with additional crowdsourced annotations}, 
 url={https://doi.org/10.23636/BKHQ-0312},
 author={{British Library} and  Morris, Victoria and van Strien, Daniel and Tolfo, Giorgia and Afric, Lora and Robertson, Stewart and Tiney, Patricia and Dogterom, Annelies and Wollner, Ildi},
-year={2021}} 
+year={2021}}
+```
 
 ### Contributions
 
