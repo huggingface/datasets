@@ -117,7 +117,7 @@ def test_dataset_with_image_feature_from_pil_image(infer_feature, shared_datadir
 
 
 @require_pil
-def test_dataset_with_image_feature_from_np_ndarray():
+def test_dataset_with_image_feature_from_np_array():
     import PIL.Image
 
     image_array = np.arange(640 * 480, dtype=np.uint8).reshape(480, 640)
@@ -265,7 +265,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
         assert item.keys() == {"image"}
         assert item == {"image": image_to_bytes(pil_image.resize((100, 100)))}
 
-    # return np.array (e.g. when using albumentations)
+    # return np.ndarray (e.g. when using albumentations)
 
     def process_image_resize_by_example_return_np_array(example):
         example["image"] = np.array(example["image"].resize((100, 100)))
