@@ -58,7 +58,7 @@ class Cifar100(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "img": datasets.Array3D(shape=(32, 32, 3), dtype="uint8"),
+                    "img": datasets.Image(),
                     "fine_label": datasets.features.ClassLabel(
                         names=[
                             "apple",
