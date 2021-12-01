@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: labr
+pretty_name: LABR
 ---
 
-# Dataset Card for MetRec
+# Dataset Card for LABR
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
