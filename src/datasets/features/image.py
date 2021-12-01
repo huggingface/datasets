@@ -180,7 +180,7 @@ class Image:
     def __call__(self):
         return ImageExtensionType()
 
-    def encode_example(self, value):
+    def encode_example(self, value: Union[str, dict, np.ndarray, "PIL.Image.Image"]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
