@@ -117,38 +117,24 @@ class DatasetInfo:
 
     Examples:
 
-    dataset.info.description
-    >>> dataset.info.description
+    dataset.description
+    >>> dataset.description
     'GLUE, the General Language Understanding Evaluation benchmark\n(https://gluebenchmark.com/) is a collection of resources for training,\nevaluating, and analyzing natural language understanding systems.\n\n'
 
-    print(dataset.info.citation)
-    >>> dataset.info.citation #doctest: +NORMALIZE_WHITESPACE +DONT_ACCEPT_BLANKLINE
-    @inproceedings{dolan2005automatically,
-      title={Automatically constructing a corpus of sentential paraphrases},
-      author={Dolan, William B and Brockett, Chris},
-      booktitle={Proceedings of the Third International Workshop on Paraphrasing (IWP2005)},
-      year={2005}
-    }
-    @inproceedings{wang2019glue,
-      title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},
-      author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},
-     note={In the Proceedings of ICLR.},
-      year={2019}
-    }
+    dataset.citation
+    >>> print(dataset.citation)
+    '@inproceedings{dolan2005automatically,\n  title={Automatically constructing a corpus of sentential paraphrases},\n  author={Dolan, William B and Brockett, Chris},\n  booktitle={Proceedings of the Third International Workshop on Paraphrasing (IWP2005)},\n  year={2005}\n}\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n'
 
-    dataset.info.homepage
-    >>> dataset.info.homepage
+    dataset.homepage
+    >>> dataset.homepage
     'https://www.microsoft.com/en-us/download/details.aspx?id=52398'
 
-    dataset.info.features
-    >>> dataset.features
-    {'idx': Value(dtype='int32', id=None),
-    'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
-    'sentence1': Value(dtype='string', id=None),
-    'sentence2': Value(dtype='string', id=None)}
+    dataset.features
+    >>> print(dataset.features)
+    {'sentence1': Value(dtype='string', id=None), 'sentence2': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None), 'idx': Value(dtype='int32', id=None)}
 
-    dataset.info.splits
-    >>> dataset.info.splits
+    dataset.splits
+    >>> dataset.splits
     {'test': SplitInfo(name='test', num_bytes=442418, num_examples=1725, dataset_name='glue'),
      'train': SplitInfo(name='train', num_bytes=943851, num_examples=3668, dataset_name='glue'),
      'validation': SplitInfo(name='validation', num_bytes=105887, num_examples=408, dataset_name='glue')}

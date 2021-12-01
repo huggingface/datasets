@@ -29,19 +29,8 @@ You can request specific attributes of the dataset, like ``description``, ``cita
    NamedSplit('train')
    >>> dataset.description
    'GLUE, the General Language Understanding Evaluation benchmark\n(https://gluebenchmark.com/) is a collection of resources for training,\nevaluating, and analyzing natural language understanding systems.\n\n'
-   >>> print(dataset.citation)
-   @inproceedings{dolan2005automatically,
-     title={Automatically constructing a corpus of sentential paraphrases},
-     author={Dolan, William B and Brockett, Chris},
-     booktitle={Proceedings of the Third International Workshop on Paraphrasing (IWP2005)},
-     year={2005}
-   }
-   @inproceedings{wang2019glue,
-     title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},
-     author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},
-     note={In the Proceedings of ICLR.},
-     year={2019}
-   }
+   >>> dataset.citation
+   '@inproceedings{dolan2005automatically,\n  title={Automatically constructing a corpus of sentential paraphrases},\n  author={Dolan, William B and Brockett, Chris},\n  booktitle={Proceedings of the Third International Workshop on Paraphrasing (IWP2005)},\n  year={2005}\n}\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n'
    >>> dataset.homepage
    'https://www.microsoft.com/en-us/download/details.aspx?id=52398'
 
@@ -52,11 +41,8 @@ A dataset is a table of rows and typed columns. Querying a dataset returns a Pyt
 
 .. code-block::
 
-   >>> dataset[0]
-   {'idx': 0,
-   'label': 1,
-   'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
-   'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .'}
+   >>> print(dataset[0])
+   {'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .', 'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .', 'label': 1, 'idx': 0}
 
 Return the number of rows and columns with the following standard attributes:
 
@@ -82,11 +68,8 @@ Get detailed information about the columns with :attr:`datasets.Dataset.features
 
 .. code-block::
 
-   >>> dataset.features
-   {'idx': Value(dtype='int32', id=None),
-    'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
-    'sentence1': Value(dtype='string', id=None),
-    'sentence2': Value(dtype='string', id=None)}
+   >>> print(dataset.features)
+   {'sentence1': Value(dtype='string', id=None), 'sentence2': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None), 'idx': Value(dtype='int32', id=None)}
 
 Return even more specific information about a feature like :class:`datasets.ClassLabel`, by calling its parameters ``num_classes`` and ``names``:
 
@@ -104,18 +87,10 @@ Get several rows of your dataset at a time with slice notation or a list of indi
 
 .. code-block::
 
-   >>> dataset[:3]
-   {'idx': [0, 1, 2],
-    'label': [1, 0, 1],
-    'sentence1': ['Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .', "Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .", 'They had published an advertisement on the Internet on June 10 , offering the cargo for sale , he added .'],
-    'sentence2': ['Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .', "Yucaipa bought Dominick 's in 1995 for $ 693 million and sold it to Safeway for $ 1.8 billion in 1998 .", "On June 10 , the ship 's owners had published an advertisement on the Internet , offering the explosives for sale ."]
-   }
-   >>> dataset[[1, 3, 5]]
-   {'idx': [1, 3, 5],
-    'label': [0, 0, 1], 
-    'sentence1': ["Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .", 'Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .', 'Revenue in the first quarter of the year dropped 15 percent from the same period a year earlier .'],
-    'sentence2': ["Yucaipa bought Dominick 's in 1995 for $ 693 million and sold it to Safeway for $ 1.8 billion in 1998 .", 'Tab shares jumped 20 cents , or 4.6 % , to set a record closing high at A $ 4.57 .', "With the scandal hanging over Stewart 's company , revenue the first quarter of the year dropped 15 percent from the same period a year earlier ."]
-   }
+   >>> print(dataset[:3])
+   {'sentence1': ['Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .', "Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .", 'They had published an advertisement on the Internet on June 10 , offering the cargo for sale , he added .'], 'sentence2': ['Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .', "Yucaipa bought Dominick 's in 1995 for $ 693 million and sold it to Safeway for $ 1.8 billion in 1998 .", "On June 10 , the ship 's owners had published an advertisement on the Internet , offering the explosives for sale ."], 'label': [1, 0, 1], 'idx': [0, 1, 2]}
+   >>> print(dataset[[1, 3, 5]])
+   {'sentence1': ["Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .", 'Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .', 'Revenue in the first quarter of the year dropped 15 percent from the same period a year earlier .'], 'sentence2': ["Yucaipa bought Dominick 's in 1995 for $ 693 million and sold it to Safeway for $ 1.8 billion in 1998 .", 'Tab shares jumped 20 cents , or 4.6 % , to set a record closing high at A $ 4.57 .', "With the scandal hanging over Stewart 's company , revenue the first quarter of the year dropped 15 percent from the same period a year earlier ."], 'label': [0, 0, 1], 'idx': [1, 3, 5]}
 
 Querying by the column name will return its values. For example, if you want to only return the first three examples:
 

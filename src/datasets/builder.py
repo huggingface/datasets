@@ -401,6 +401,15 @@ class DatasetBuilder:
 
     @property
     def cache_dir(self):
+        """Cache directory of dataset
+        
+        Example:
+
+        >>> from datasets import load_dataset_builder
+        >>> dataset = load_dataset_builder("imdb")
+        >>> print(dataset_builder.cache_dir) #doctest: +ELLIPSIS
+        /Users/.../.cache/huggingface/datasets/imdb/plain_text/1.0.0/...
+        """
         return self._cache_dir
 
     def _relative_data_dir(self, with_version=True, with_hash=True) -> str:

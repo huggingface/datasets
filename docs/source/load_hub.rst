@@ -108,8 +108,8 @@ You can list the split names for a dataset, or a specific configuration, with th
 
 .. code-block::
 
-  >>> from datasets import get_dataset_split_names
-  >>> get_dataset_split_names('sent_comp')
-  ['validation', 'train']
-  >>> get_dataset_split_names('glue', 'cola')
-  ['test', 'train', 'validation']
+   >>> from datasets import get_dataset_split_names
+   >>> get_dataset_split_names('sent_comp')
+   ['validation', 'train']
+   >>> get_dataset_split_names('glue', 'cola')
+   ['test', 'train', 'validation']
