@@ -151,7 +151,16 @@ The dataset does not contain any additional annotations.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{alomari2017arabic,
+  title={Arabic tweets sentimental analysis using machine learning},
+  author={Alomari, Khaled Mohammad and ElSherif, Hatem M and Shaalan, Khaled},
+  booktitle={International Conference on Industrial, Engineering and Other Applications of Applied Intelligent Systems},
+  pages={602--610},
+  year={2017},
+  organization={Springer}
+}
+```
 
 ### Contributions
 

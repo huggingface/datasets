@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- emotion-classification
+- sentiment-classification
 paperswithcode_id: null
 pretty_name: Emotional Tone in Arabic
 ---
@@ -168,6 +168,7 @@ The dataset is not split.
 
 ### Citation Information
 
+```
 @inbook{inbook,
 author = {Al-Khatib, Amr and El-Beltagy, Samhaa},
 year = {2018},
@@ -177,6 +178,8 @@ title = {Emotional Tone Detection in Arabic Tweets: 18th International Conferenc
 isbn = {978-3-319-77115-1},
 doi = {10.1007/978-3-319-77116-8_8}
 }
+```
+
 ### Contributions
 
 Thanks to [@abdulelahsm](https://github.com/abdulelahsm) for adding this dataset.
