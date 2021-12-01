@@ -85,6 +85,7 @@ A sample from the training set is provided below:
 The data instances have the following fields:
 
 - `image_file_path`: a `string` filepath to an image.
+- `image`: A `PIL.Image.Image` containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
 - `labels`: an `int` classification label.
 
 Class Label Mappings:
