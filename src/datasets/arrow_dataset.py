@@ -330,8 +330,8 @@ class TensorflowDatasetMixin:
             cols_to_retain = columns + label_cols
         else:
             cols_to_retain = columns
-        if 'label' in cols_to_retain or 'labels' in cols_to_retain or 'label_ids' in cols_to_retain:
-            cols_to_retain += ['labels', 'label', 'label_ids']  # Don't accidentally drop any labels with other names!
+        if "label" in cols_to_retain or "labels" in cols_to_retain or "label_ids" in cols_to_retain:
+            cols_to_retain += ["labels", "label", "label_ids"]  # Don't accidentally drop any labels with other names!
         cols_to_retain = list(set(cols_to_retain))  # Remove any duplicates
 
         if drop_remainder is None:
@@ -342,7 +342,8 @@ class TensorflowDatasetMixin:
         dataset = self.with_format("numpy", columns=retained_columns)
 
         columns_to_dtypes, output_signature = self._get_output_signature(
-            dataset, collate_fn, collate_fn_args, batch_size=batch_size if drop_remainder else None)
+            dataset, collate_fn, collate_fn_args, batch_size=batch_size if drop_remainder else None
+        )
 
         columns, dtypes = zip(*columns_to_dtypes.items())
 
@@ -374,32 +375,38 @@ class TensorflowDatasetMixin:
 
         def ensure_shapes(input_dict):
             return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+
         tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function).map(ensure_shapes)
 
         if label_cols:
+
             def split_features_and_labels(input_batch):
-                if 'labels' in columns or 'label_ids' in columns or 'label' in columns:
-                    columns.append('labels')
-                if 'labels' in label_cols or 'label_ids' in label_cols or 'label' in label_cols:
-                    label_cols.append('labels')
+                if "labels" in columns or "label_ids" in columns or "label" in columns:
+                    columns.append("labels")
+                if "labels" in label_cols or "label_ids" in label_cols or "label" in label_cols:
+                    label_cols.append("labels")
                 # Some data collators add columns, so our logic is that newly added columns should go
                 # into the input dict unless the user asked for them in labels instead
-                features = {key: tensor for key, tensor in input_batch.items()
-                            if key in columns or key not in label_cols}
+                features = {
+                    key: tensor for key, tensor in input_batch.items() if key in columns or key not in label_cols
+                }
                 labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
                 if len(features) == 1:
                     features = list(features.values())[0]
                 if len(labels) == 1:
                     labels = list(labels.values())[0]
                 return features, labels
+
             tf_dataset = tf_dataset.map(split_features_and_labels)
 
         elif len(columns) == 1:
             tf_dataset = tf_dataset.map(lambda x: list(x.values())[0])
 
         if dummy_labels and not label_cols:
+
             def add_dummy_labels(input_batch):
                 return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
+
             tf_dataset = tf_dataset.map(add_dummy_labels)
 
         if prefetch:
