@@ -75,7 +75,8 @@ A sample from the training set is provided below:
 
 ```
 {
-  'image': '/root/.cache/huggingface/datasets/downloads/extracted/6e1e8c9052e9f3f7ecbcb4b90860668f81c1d36d86cc9606d49066f8da8bfb4f/PetImages/Cat/1.jpg',
+  'image_file_path': '/root/.cache/huggingface/datasets/downloads/extracted/6e1e8c9052e9f3f7ecbcb4b90860668f81c1d36d86cc9606d49066f8da8bfb4f/PetImages/Cat/1.jpg',
+  'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=500x375 at 0x29CEAD71780>,
   'label': 0
 }
 ```

@@ -58,15 +58,14 @@ class Beans(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "image_file_path": datasets.Value("string"),
+                    "image": datasets.Image(),
                     "labels": datasets.features.ClassLabel(names=_NAMES),
                 }
             ),
-            supervised_keys=("image_file_path", "labels"),
+            supervised_keys=("image", "labels"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
-            task_templates=[
-                ImageClassification(image_file_path_column="image_file_path", label_column="labels", labels=_NAMES)
-            ],
+            task_templates=[ImageClassification(image_column="image", label_column="labels", labels=_NAMES)],
         )
 
     def _split_generators(self, dl_manager):
@@ -95,4 +94,4 @@ class Beans(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, archive):
         for i, path in enumerate(Path(archive).glob("**/*")):
             if path.suffix == ".jpg":
-                yield i, dict(image_file_path=str(path), labels=path.parent.name.lower())
+                yield i, {"image_file_path": str(path), "image": str(path), "labels": path.parent.name.lower()}
