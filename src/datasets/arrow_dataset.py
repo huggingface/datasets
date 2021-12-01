@@ -624,10 +624,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
         if self._indices is not None:
-            if not pa.types.is_unsigned_integer(
-                self._indices.column(0)[0].type
-            ):
-                raise ValueError(f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}")
+            if not pa.types.is_unsigned_integer(self._indices.column(0)[0].type):
+                raise ValueError(
+                    f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}"
+                )
         counter = Counter(self._data.column_names)
         if not all(count == 1 for count in counter.values()):
             duplicated_columns = [col for col in counter if counter[col] > 1]
@@ -2121,7 +2121,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         if cached_shard is None
                     }
                     if len(results) != nb_of_missing_shards:
-                        raise ValueError("The number of missing cached shards needs to correspond to the number of `_map_single` we're running")
+                        raise ValueError(
+                            "The number of missing cached shards needs to correspond to the number of `_map_single` we're running"
+                        )
 
                     for index, async_result in results.items():
                         transformed_shards[index] = async_result.get()
@@ -2802,9 +2804,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if seed is not None and generator is not None:
             raise ValueError("Both `seed` and `generator` were provided. Please specify just one of them.")
 
-        if generator is not None and not isinstance(
-            generator, np.random.Generator
-        ):
+        if generator is not None and not isinstance(generator, np.random.Generator):
             raise ValueError("The provided generator must be an instance of numpy.random.Generator")
 
         if generator is None:

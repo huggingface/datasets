@@ -662,10 +662,10 @@ class ClassLabel:
 
     def str2int(self, values: Union[str, Iterable]):
         """Conversion class name string => integer."""
-        if not isinstance(values, str) and not isinstance(
-            values, Iterable
-        ):
-            raise ValueError(f"Values {values} should be a string or an Iterable (list, numpy array, pytorch, tensorflow tensors)")
+        if not isinstance(values, str) and not isinstance(values, Iterable):
+            raise ValueError(
+                f"Values {values} should be a string or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+            )
         return_list = True
         if isinstance(values, str):
             values = [values]
@@ -691,10 +691,10 @@ class ClassLabel:
 
     def int2str(self, values: Union[int, Iterable]):
         """Conversion integer => class name string."""
-        if not isinstance(values, int) and not isinstance(
-            values, Iterable
-        ):
-            raise ValueError("Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)")
+        if not isinstance(values, int) and not isinstance(values, Iterable):
+            raise ValueError(
+                "Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+            )
         return_list = True
         if isinstance(values, int):
             values = [values]
