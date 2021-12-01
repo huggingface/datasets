@@ -35,13 +35,13 @@ _CITATION = """\
 _VERSION = "4.0.0"
 
 _URL = {
-    "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/v6-dataset.zip",
+    "supervised": "https://sunbird-translate.s3.us-east-2.amazonaws.com/v7-dataset.zip",
 }
 
 # update inter-language pairs
 language_pairs = [
-    "en-lug", "en-run", "en-ach", "en-teo", "en-lgg", "lug-ach", "lug-run", "lug-lgg", 
-    "lug-teo", "ach-run", "ach-lgg", "ach-teo", "teo-lgg", "teo-run", "run-lgg","src-tgt"
+    "en-lug", "en-nyn", "en-ach", "en-teo", "en-lgg", "lug-ach", "lug-nyn", "lug-lgg", 
+    "lug-teo", "ach-nyn", "ach-lgg", "ach-teo", "teo-lgg", "teo-nyn", "nyn-lgg", "en-mul", "mul-en"
 ]
 
 class SunbirdConfig(datasets.BuilderConfig):
