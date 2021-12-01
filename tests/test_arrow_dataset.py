@@ -19,7 +19,7 @@ import datasets.arrow_dataset
 from datasets import concatenate_datasets, interleave_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
-from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
+from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value, Audio
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
@@ -2952,9 +2952,9 @@ class TaskTemplatesTest(TestCase):
                 "dummy": Value("string"),
             }
         )
-        features_after_cast = Features({"audio_file_path": Value("string"), "transcription": Value("string")})
+        features_after_cast = Features({"audio": Audio(), "transcription": Value("string")})
         task = AutomaticSpeechRecognition(
-            audio_file_path_column="input_audio_file_path", transcription_column="input_transcription"
+            audio_column="input_audio_file_path", transcription_column="input_transcription"
         )
         info = DatasetInfo(features=features_before_cast, task_templates=task)
         data = {
@@ -2966,16 +2966,16 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="automatic-speech-recognition") as dset:
                 self.assertSetEqual(
-                    set(["audio_file_path", "transcription"]),
+                    set(["audio", "transcription"]),
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
-        # Test we can load from Summarization template
+        # Test we can load from Audio template
         info.task_templates = None
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    set(["audio_file_path", "transcription"]),
+                    set(["audio", "transcription"]),
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)

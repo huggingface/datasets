@@ -651,7 +651,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             license=_LICENSE,
             citation=_CITATION,
             task_templates=[
-                AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="sentence")
+                AutomaticSpeechRecognition(audio_column="audio", transcription_column="sentence", streaming=True)
             ],
         )
 
