@@ -70,7 +70,7 @@ _URL = "https://www.tensorflow.org/datasets/catalog/speech_commands"
 
 _DL_URL = "http://download.tensorflow.org/data/speech_commands_{name}.tar.gz"
 
-WORDS_V1 = [
+WORDS = [
     "yes",
     "no",
     "up",
@@ -81,6 +81,9 @@ WORDS_V1 = [
     "off",
     "stop",
     "go",
+]
+
+UNKNOWN_WORDS_V1 = [
     "zero",
     "one",
     "two",
@@ -91,19 +94,31 @@ WORDS_V1 = [
     "seven",
     "eight",
     "nine",
+    "bed",
+    "bird",
+    "cat",
+    "dog",
+    "happy",
+    "house",
+    "marvin",
+    "sheila",
+    "tree",
+    "wow",
 ]
 
-WORDS_V2 = WORDS_V1 + [
+UNKNOWN_WORDS_V2 = UNKNOWN_WORDS_V1 + [
     "backward",
     "forward",
     "follow",
     "learn",
+    "visual",
 ]
+
 UNKNOWN = "_unknown_"
 BACKGROUND = "_background_noise_"
-SILENCE = "_silence_"  # that's how background noise is called in test set archive
-LABELS_V1 = WORDS_V1 + [UNKNOWN, BACKGROUND]
-LABELS_V2 = WORDS_V2 + [UNKNOWN, BACKGROUND]
+SILENCE = "_silence_"  # that's how background noise is called in test set archives
+LABELS_V1 = WORDS + UNKNOWN_WORDS_V1 + [UNKNOWN, SILENCE]
+LABELS_V2 = WORDS + UNKNOWN_WORDS_V2 + [UNKNOWN, SILENCE]
 
 
 class SpeechCommandsConfig(datasets.BuilderConfig):
@@ -149,6 +164,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                     "file": datasets.Value("string"),
                     "audio": datasets.features.Audio(sampling_rate=16_000),
                     "label": datasets.ClassLabel(names=self.config.labels),
+                    "is_unknown": datasets.Value("bool"),
                     "speaker_id": datasets.Value("string"),
                     "utterance_id": datasets.Value("int8"),
                 }
@@ -187,32 +203,36 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
         for key, audio_file in enumerate(sorted(filenames)):
             base_dir, filename = os.path.split(audio_file)
             _, word = os.path.split(base_dir)
+            is_unknown = False
             if word in [BACKGROUND, SILENCE]:
                 yield key, {
                     "file": audio_file,
                     "audio": audio_file,
-                    "label": BACKGROUND,
+                    "label": SILENCE,
+                    "is_unknown": is_unknown,
                     "speaker_id": None,
                     "utterance_id": 0,
                 }
                 continue
 
-            elif word in self.config.labels[:-2]:  # the last two labels are _unknown_ and _background_
+            else:  # word is either in WORDS or unknown
                 label = word
-            else:
-                label = UNKNOWN
-                # TODO: or maybe should I preserve words outside the WORDS list too and
-                # for example add another feature indicating if a word is unrecognized (_unknown_)
-                # otherwise utterance_id don't make any sense
+                if word not in WORDS:
+                    is_unknown = True
 
-            speaker_id, _, utterance_id = filename.split(".wav")[0].split("_")[-3:]
-            # take last 3 elements since while a standard filename looks like `0bac8a71_nohash_0.wav`
-            # in test archives in _unknown_ folder filenames look like `backward_0c540988_nohash_0.wav`
+            if split == "test" and label == "_unknown_":
+                # test archives have a bit different structure where unknown samples are stored in `_unknown_` folder
+                # their filenames look like `backward_0c540988_nohash_0.wav`
+                label, speaker_id, _, utterance_id = filename.split(".wav")[0].split("_")
+            else:
+                # a standard filename looks like `0bac8a71_nohash_0.wav`
+                speaker_id, _, utterance_id = filename.split(".wav")[0].split("_")
 
             yield key, {
                 "file": audio_file,
                 "audio": audio_file,
                 "label": label,
+                "is_unknown": is_unknown,
                 "speaker_id": speaker_id,
                 "utterance_id": utterance_id,
             }
