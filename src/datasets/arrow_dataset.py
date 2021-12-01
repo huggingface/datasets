@@ -345,8 +345,6 @@ class TensorflowDatasetMixin:
             dataset, collate_fn, collate_fn_args, batch_size=batch_size if drop_remainder else None
         )
 
-        columns, dtypes = zip(*columns_to_dtypes.items())
-
         def np_get_batch(indices):
             batch = dataset[indices]
             actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
@@ -364,7 +362,10 @@ class TensorflowDatasetMixin:
         @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
         def fetch_function(indices):
             output = tf.numpy_function(
-                np_get_batch, inp=[indices], Tout=[tf.dtypes.as_dtype(dtype) for dtype in dtypes]
+                # This works because dictionaries always output in insertion order
+                np_get_batch,
+                inp=[indices],
+                Tout=[tf.dtypes.as_dtype(dtype) for dtype in columns_to_dtypes.values()],
             )
             return {key: output[i] for i, key in enumerate(columns)}
 
