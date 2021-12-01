@@ -39,6 +39,7 @@ _HOMEPAGE = "https://pile.eleuther.ai/"
 
 _LICENSES = {
     "all": "MIT License",
+    "free_law": "Unknown",
     "pubmed_central": "MIT License",
 }
 
@@ -48,6 +49,7 @@ _DATA_URLS = {
         "validation": ["https://the-eye.eu/public/AI/pile/val.jsonl.zst"],
         "test": ["https://the-eye.eu/public/AI/pile/test.jsonl.zst"],
     },
+    "free_law": "https://the-eye.eu/public/AI/pile_preliminary_components/FreeLaw_Opinions.jsonl.zst",
     "pubmed_central": "https://the-eye.eu/public/AI/pile_preliminary_components/PMC_extracts.tar.gz",
 }
 
@@ -58,10 +60,20 @@ _FEATURES = {
             "meta": {"pile_set_name": datasets.Value("string")},
         }
     ),
+    "free_law": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": {
+                "case_ID": datasets.Value("string"),
+                "case_jurisdiction": datasets.Value("string"),
+                "date_created": datasets.Value("string"),
+            },
+        }
+    ),
     "pubmed_central": datasets.Features(
         {
-            "id": datasets.Value("string"),
             "text": datasets.Value("string"),
+            "id": datasets.Value("string"),
         }
     ),
 }
@@ -100,7 +112,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-            features=_FEATURES[self.config.name],
+            features=_FEATURES.get(self.config.name),
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
@@ -108,7 +120,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
             # License for the dataset if available
-            license=_LICENSES[self.config.name],
+            license=_LICENSES.get(self.config.name, "Multiple: see each subset license"),
             # Citation for the dataset
             citation=_CITATION,
         )
@@ -133,7 +145,12 @@ class ThePile(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "files": {subset: dl_manager.iter_archive(archive[subset]) for subset in self.config.subsets},
+                        "files": {
+                            subset: dl_manager.iter_archive(archive[subset])
+                            if ".tar" in data_urls[subset]
+                            else archive[subset]
+                            for subset in self.config.subsets
+                        },
                     },
                 ),
             ]
@@ -152,7 +169,15 @@ class ThePile(datasets.GeneratorBasedBuilder):
                         key += 1
         else:
             for subset in files:
-                if subset == "pubmed_central":
+                if subset == "free_law":
+                    import zstandard as zstd
+
+                    with zstd.open(open(files[subset], "rb"), "rt", encoding="utf-8") as f:
+                        for row in f:
+                            data = json.loads(row)
+                            yield key, data
+                            key += 1
+                elif subset == "pubmed_central":
                     for path, file in files[subset]:
                         id_ = path.split("/")[-1].split(".")[0]
                         text = file.read().decode("utf-8")
