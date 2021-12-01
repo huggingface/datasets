@@ -67,7 +67,7 @@ datasets combined together.
 
 ### Languages
 
-[More Information Needed]
+This dataset is in English (`EN`).
 
 ## Dataset Structure
 
@@ -78,6 +78,18 @@ datasets combined together.
 {
   'meta': {'pile_set_name': 'Pile-CC'},
   'text': 'It is done, and submitted. You can play “Survival of the Tastiest” on Android, and on the web. Playing on...'
+}
+```
+
+#### free_law
+```
+{
+  'meta':  {
+    'case_jurisdiction': 'scotus.tar.gz',
+    'case_ID': '110921.json',
+    'date_created': '2010-04-28T17:12:49Z'
+  },
+  'text': '\n461 U.S. 238 (1983)\nOLIM ET AL.\nv.\nWAKINEKONA\nNo. 81-1581.\nSupreme Court of United States.\nArgued...'
 }
 ```
 
@@ -93,9 +105,22 @@ datasets combined together.
 
 #### all
 
-- `meta` (dict): Metadata of the data instance, with keys:
-   - pile_set_name: Name of the subset.
 - `text` (str): Text.
+- `meta` (dict): Metadata of the data instance, with keys:
+  - pile_set_name: Name of the subset.
+
+#### free_law
+
+- `text` (str): Text.
+- `meta` (dict): Metadata of the data instance, with keys:
+   - case_ID
+   - case_jurisdiction
+   - date_created
+
+#### pubmed_central
+
+- `text` (str): Text.
+- `id` (str): ID of the data instance.
 
 ### Data Splits
 
