@@ -344,6 +344,8 @@ class TensorflowDatasetMixin:
         columns_to_dtypes, output_signature = self._get_output_signature(
             dataset, collate_fn, collate_fn_args, batch_size=batch_size if drop_remainder else None
         )
+        all_columns = list(columns_to_dtypes.keys())
+        all_dtypes = list(columns_to_dtypes.values())
 
         def np_get_batch(indices):
             batch = dataset[indices]
@@ -365,9 +367,9 @@ class TensorflowDatasetMixin:
                 # This works because dictionaries always output in insertion order
                 np_get_batch,
                 inp=[indices],
-                Tout=[tf.dtypes.as_dtype(dtype) for dtype in columns_to_dtypes.values()],
+                Tout=[tf.dtypes.as_dtype(dtype) for dtype in all_dtypes],
             )
-            return {key: output[i] for i, key in enumerate(columns)}
+            return {key: output[i] for i, key in enumerate(all_columns)}
 
         tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(dataset), dtype=np.int64))
 
