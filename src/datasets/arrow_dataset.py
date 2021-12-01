@@ -2127,8 +2127,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     for index, async_result in results.items():
                         transformed_shards[index] = async_result.get()
 
-            if transformed_shards.count(None) != 0:
-                raise ValueError("All shards have to be defined Datasets, none should still be missing.")
+            assert (
+                transformed_shards.count(None) == 0
+            ), "All shards have to be defined Datasets, none should still be missing."
 
             logger.info(f"Concatenating {num_proc} shards")
             result = concatenate_datasets(transformed_shards)
