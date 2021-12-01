@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - emotion-classification
 paperswithcode_id: null
+pretty_name: Emotional Tone in Arabic
 ---
 
-# Dataset Card for MetRec
+# Dataset Card for Emotional Tone in Arabic
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -48,7 +49,6 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage:** [Homepage](https://github.com/AmrMehasseb/Emotional-Tone)
 - **Repository:** [Repository](https://github.com/AmrMehasseb/Emotional-Tone)
 - **Paper:** [Emotional Tone Detection in Arabic Tweets](https://www.researchgate.net/publication/328164296_Emotional_Tone_Detection_in_Arabic_Tweets_18th_International_Conference_CICLing_2017_Budapest_Hungary_April_17-23_2017_Revised_Selected_Papers_Part_II)
 - **Point of Contact:** [Amr Al-Khatib](https://github.com/AmrMehasseb)

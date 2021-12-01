@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: Arabic Jordanian General Tweets
 ---
 
-# Dataset Card for MetRec
+# Dataset Card for Arabic Jordanian General Tweets
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -48,8 +49,7 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage:** [AJGT](https://github.com/komari6/Arabic-twitter-corpus-AJGT)
-- **Repository:** [AJGT](https://github.com/komari6/Arabic-twitter-corpus-AJGT)
+- **Repository:** [Arabic Jordanian General Tweets](https://github.com/komari6/Arabic-twitter-corpus-AJGT)
 - **Paper:** [Arabic Tweets Sentimental Analysis Using Machine Learning](https://link.springer.com/chapter/10.1007/978-3-319-60042-0_66)
 - **Point of Contact:** [Khaled Alomari](khaled.alomari@adu.ac.ae)
 
@@ -73,7 +73,8 @@ A binary datset with with negative and positive sentiments.
 
 ### Data Fields
 
-[More Information Needed]
+- `text` (str): Tweet text.
+- `label` (int): Sentiment.
 
 ### Data Splits
 
