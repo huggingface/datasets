@@ -2,7 +2,7 @@ from copy import deepcopy
 from unittest.case import TestCase
 
 from datasets.arrow_dataset import Dataset
-from datasets.features import ClassLabel, Features, Sequence, Value, Audio
+from datasets.features import Audio, ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
 from datasets.tasks import (
     AutomaticSpeechRecognition,
