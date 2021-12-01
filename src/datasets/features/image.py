@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, ClassVar, List, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, ClassVar, List, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -21,21 +21,14 @@ _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
 
 
 class ImageExtensionType(pa.PyExtensionType):
-    def __init__(self, storage_dtype):
-        self.storage_dtype = storage_dtype
-        if storage_dtype == "string":
-            pa_type = pa.string()
-        elif storage_dtype == "binary":
-            pa_type = pa.binary()
-        else:
-            pa_type = pa.struct({"bytes": pa.binary(), "path": pa.string()})
-        pa.PyExtensionType.__init__(self, pa_type)
+    def __init__(self):
+        pa.PyExtensionType.__init__(self, pa.struct({"bytes": pa.binary(), "path": pa.string()}))
 
     def __arrow_ext_class__(self):
         return ImageExtensionArray
 
     def __reduce__(self):
-        return self.__class__, (self.storage_dtype,)
+        return self.__class__, ()
 
     def to_pandas_dtype(self):
         return PandasImageExtensionDtype()
@@ -175,9 +168,9 @@ class Image:
       This is useful for archived files with sequential access.
 
     - An :obj:`np.ndarray`: NumPy array representing an image.
+    - A :obj:`PIL.Image.Image`: PIL image object.
     """
 
-    _storage_dtype: str = "string"
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -185,7 +178,7 @@ class Image:
     _type: str = field(default="Image", init=False, repr=False)
 
     def __call__(self):
-        return ImageExtensionType(self._storage_dtype)
+        return ImageExtensionType()
 
     def encode_example(self, value):
         """Encode example into a format for Arrow.
@@ -202,31 +195,26 @@ class Image:
             raise ImportError("To support encoding images, please install 'Pillow'.")
 
         if isinstance(value, str):
-            self._storage_dtype = "string"
-            return value
+            return {"path": value, "bytes": None}
         elif isinstance(value, np.ndarray):
-            self._storage_dtype = "binary"
             image = PIL.Image.fromarray(value.astype(np.uint8))
-            return image_to_bytes(image)
+            return {"path": None, "bytes": image_to_bytes(image)}
         elif isinstance(value, PIL.Image.Image):
             if hasattr(value, "filename") and value.filename != "":
-                self._storage_dtype = "string"
-                return value.filename
+                return {"path": value.filename, "bytes": None}
             else:
-                self._storage_dtype = "binary"
-                return image_to_bytes(value)
+                return {"path": None, "bytes": image_to_bytes(value)}
         else:
-            self._storage_dtype = "struct"
             return value
 
     def decode_example(self, value):
         """Decode example image file into image data.
 
         Args:
-            value (obj:`str` or :obj:`dict`): a string with the absolute image file path, an np.ndarray object or a dictionary with
+            value (obj:`str` or :obj:`dict`): a string with the absolute image file path, a dictionary with
                 keys:
-                - path: String with absolute or relative audio file path.
-                - bytes: Optionally, the bytes of the audio file.
+                - path: String with absolute or relative image file path.
+                - bytes: The bytes of the image file.
 
         Returns:
             :obj:`PIL.Image.Image`
@@ -238,10 +226,8 @@ class Image:
 
         if isinstance(value, str):
             path, bytes_ = value, None
-        elif isinstance(value, bytes):
-            path, bytes_ = None, BytesIO(value)
         else:
-            path, bytes_ = value["path"], BytesIO(value["bytes"])
+            path, bytes_ = value["path"], value["bytes"]
 
         if bytes_ is None:
             if isinstance(path, str):
@@ -252,7 +238,7 @@ class Image:
                         bytes_ = BytesIO(f.read())
                     image = PIL.Image.open(bytes_)
         else:
-            image = PIL.Image.open(bytes_)
+            image = PIL.Image.open(BytesIO(bytes_))
         return image
 
 
@@ -277,11 +263,8 @@ def image_to_bytes(image: "PIL.Image.Image") -> bytes:
     return buffer.getvalue()
 
 
-def objects_to_image_storage(objs) -> Tuple[pa.Array, ImageExtensionType]:
-    """Encode a list of string, np.ndarray or PIL Image objects into image storage representation and deduce the image storage type.
-
-    It checks only the first element to deduce the storage type.
-    """
+def objects_to_list_of_image_dicts(objs):
+    """Encode a list of objects into a format suitable for creating an extension array of type :obj:`ImageExtensionType`."""
     if config.PIL_AVAILABLE:
         import PIL.Image
     else:
@@ -289,27 +272,16 @@ def objects_to_image_storage(objs) -> Tuple[pa.Array, ImageExtensionType]:
 
     if objs:
         obj = objs[0]
-        if isinstance(obj, str):
-            return pa.array(objs, type=pa.string()), ImageExtensionType("string")
-        elif isinstance(obj, bytes):
-            return pa.array(objs, type=pa.binary()), ImageExtensionType("binary")
+        if isinstance(obj, np.ndarray):
+            return [{"path": None, "bytes": image_to_bytes(PIL.Image.fromarray(obj.astype(np.uint8)))} for obj in objs]
         elif isinstance(obj, PIL.Image.Image):
-            # expensive, but can avoid unnecessary conversion to bytes
-            if all(hasattr(obj, "filename") and obj.filename != "" for obj in objs):
-                return pa.array([obj.filename for obj in objs], type=pa.string()), ImageExtensionType("string")
-            return pa.array([image_to_bytes(obj) for obj in objs], type=pa.binary()), ImageExtensionType("binary")
-        elif isinstance(obj, np.ndarray):
-            return (
-                pa.array(
-                    [image_to_bytes(PIL.Image.fromarray(obj.astype(np.uint8))) for obj in objs],
-                    type=pa.binary(),
-                ),
-                ImageExtensionType("binary"),
-            )
+            return [
+                {"path": obj.filename, "bytes": None}
+                if hasattr(obj, "filename") and obj.filename != ""
+                else {"path": None, "bytes": image_to_bytes(obj)}
+                for obj in objs
+            ]
         else:
-            return (
-                pa.array(objs, type=pa.struct({"bytes": pa.binary(), "path": pa.string()})),
-                ImageExtensionType("struct"),
-            )
+            return objs
     else:
-        return pa.array(objs), ImageExtensionType("string")
+        return objs

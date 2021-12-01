@@ -34,7 +34,6 @@ def test_image_instantiation():
     assert image.dtype == "dict"
     assert image.pa_type is None
     assert image._type == "Image"
-    assert image._storage_dtype == "string"
 
 
 @require_pil
@@ -191,7 +190,7 @@ def test_dataset_with_image_feature_map(shared_datadir):
 
     for item in dset:
         assert item.keys() == {"image", "caption"}
-        assert item == {"image": image_path, "caption": "cats sleeping"}
+        assert item == {"image": {"path": image_path, "bytes": None}, "caption": "cats sleeping"}
 
     # no decoding
 
@@ -202,7 +201,7 @@ def test_dataset_with_image_feature_map(shared_datadir):
     processed_dset = dset.map(process_caption)
     for item in processed_dset:
         assert item.keys() == {"image", "caption"}
-        assert item == {"image": image_path, "caption": "Two cats sleeping"}
+        assert item == {"image": {"path": image_path, "bytes": None}, "caption": "Two cats sleeping"}
 
     # decoding example
 
@@ -213,7 +212,7 @@ def test_dataset_with_image_feature_map(shared_datadir):
     decoded_dset = dset.map(process_image_by_example)
     for item in decoded_dset:
         assert item.keys() == {"image", "caption", "mode"}
-        assert os.path.samefile(item["image"], image_path)
+        assert os.path.samefile(item["image"]["path"], image_path)
         assert item["caption"] == "cats sleeping"
         assert item["mode"] == "RGB"
 
@@ -226,7 +225,7 @@ def test_dataset_with_image_feature_map(shared_datadir):
     decoded_dset = dset.map(process_image_by_batch, batched=True)
     for item in decoded_dset:
         assert item.keys() == {"image", "caption", "mode"}
-        assert os.path.samefile(item["image"], image_path)
+        assert os.path.samefile(item["image"]["path"], image_path)
         assert item["caption"] == "cats sleeping"
         assert item["mode"] == "RGB"
 
@@ -243,7 +242,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
 
     for item in dset:
         assert item.keys() == {"image"}
-        assert item == {"image": image_path}
+        assert item == {"image": {"path": image_path, "bytes": None}}
 
     # return pil image
 
@@ -254,7 +253,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
     decoded_dset = dset.map(process_image_resize_by_example)
     for item in decoded_dset:
         assert item.keys() == {"image"}
-        assert item == {"image": image_to_bytes(pil_image.resize((100, 100)))}
+        assert item == {"image": {"path": None, "bytes": image_to_bytes(pil_image.resize((100, 100)))}}
 
     def process_image_resize_by_batch(batch):
         batch["image"] = [image.resize((100, 100)) for image in batch["image"]]
@@ -263,7 +262,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
     decoded_dset = dset.map(process_image_resize_by_batch, batched=True)
     for item in decoded_dset:
         assert item.keys() == {"image"}
-        assert item == {"image": image_to_bytes(pil_image.resize((100, 100)))}
+        assert item == {"image": {"path": None, "bytes": image_to_bytes(pil_image.resize((100, 100)))}}
 
     # return np.ndarray (e.g. when using albumentations)
 
@@ -274,7 +273,12 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
     decoded_dset = dset.map(process_image_resize_by_example_return_np_array)
     for item in decoded_dset:
         assert item.keys() == {"image"}
-        assert item == {"image": image_to_bytes(PIL.Image.fromarray(np.array(pil_image.resize((100, 100)))))}
+        assert item == {
+            "image": {
+                "path": None,
+                "bytes": image_to_bytes(PIL.Image.fromarray(np.array(pil_image.resize((100, 100))))),
+            }
+        }
 
     def process_image_resize_by_batch_return_np_array(batch):
         batch["image"] = [np.array(image.resize((100, 100))) for image in batch["image"]]
@@ -283,7 +287,12 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
     decoded_dset = dset.map(process_image_resize_by_batch_return_np_array, batched=True)
     for item in decoded_dset:
         assert item.keys() == {"image"}
-        assert item == {"image": image_to_bytes(PIL.Image.fromarray(np.array(pil_image.resize((100, 100)))))}
+        assert item == {
+            "image": {
+                "path": None,
+                "bytes": image_to_bytes(PIL.Image.fromarray(np.array(pil_image.resize((100, 100))))),
+            }
+        }
 
 
 @require_pil

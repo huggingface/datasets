@@ -916,7 +916,7 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
     elif isinstance(pa_type, ImageExtensionType):
-        return Image(_storage_dtype=pa_type.storage_dtype)
+        return Image()
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
@@ -977,8 +977,8 @@ class Features(dict):
         - a :class:`Array2D`, :class:`Array3D`, :class:`Array4D` or :class:`Array5D` feature for multidimensional arrays
         - an :class:`Audio` feature to store the absolute path to an audio file or a dictionary with the relative path
           to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
-        - an :class:`Image` feature to store the absolute path to an image file, an :obj:`np.ndarray` object or a dictionary with the relative path
-          to an image file ("path" key) and its bytes content ("bytes" key). This feature extracts the image data.
+        - an :class:`Image` feature to store the absolute path to an image file, an :obj:`np.ndarray` object, a :obj:`PIL.Image.Image` object
+          or a dictionary with the relative path to an image file ("path" key) and its bytes content ("bytes" key). This feature extracts the image data.
         - :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`, the two features specific to Machine Translation
     """
 

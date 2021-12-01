@@ -32,7 +32,7 @@ from .features import (
     cast_to_python_objects,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
-    objects_to_image_storage,
+    objects_to_list_of_image_dicts,
 )
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
@@ -52,7 +52,7 @@ class TypedSequence:
     More specifically it adds several features:
     - Support extension types like ``datasets.features.Array2DExtensionType``:
         By default pyarrow arrays don't return extension arrays. One has to call
-        ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type_name))``
+        ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type))``
         in order to get an extension array.
     - Support for ``try_type`` parameter that can be used instead of ``type``:
         When an array is transformed, we like to keep the same type as before if possible.
@@ -113,7 +113,7 @@ class TypedSequence:
         trying_int_optimization = False
         if type is None:  # automatic type inference for custom objects
             if config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(self.data[0], PIL.Image.Image):
-                type = ImageExtensionType("binary")  # storage_dtype may change after inspection
+                type = ImageExtensionType()
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 if isinstance(self.data, np.ndarray):
@@ -124,9 +124,8 @@ class TypedSequence:
                     storage = pa.array(self.data, type.storage_dtype)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(type, ImageExtensionType):
-                # deduce the final storage type after inspecting data
-                storage, storage_type = objects_to_image_storage(self.data)
-                out = pa.ExtensionArray.from_storage(storage_type, storage)
+                storage = pa.array(objects_to_list_of_image_dicts(self.data), type=type.storage_type)
+                out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
                 if type is not None:
