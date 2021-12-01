@@ -2120,10 +2120,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         for i, (kwds, cached_shard) in enumerate(zip(kwds_per_shard, transformed_shards))
                         if cached_shard is None
                     }
-                    if len(results) != nb_of_missing_shards:
-                        raise ValueError(
-                            "The number of missing cached shards needs to correspond to the number of `_map_single` we're running"
-                        )
+                    assert (
+                        len(results) == nb_of_missing_shards
+                    ), "The number of missing cached shards needs to correspond to the number of `_map_single` we're running"
 
                     for index, async_result in results.items():
                         transformed_shards[index] = async_result.get()
