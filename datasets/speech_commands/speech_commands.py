@@ -60,8 +60,8 @@ To help distinguish unrecognized words, there are also ten auxiliary words ( lab
 which most speakers only said once. These include "Bed", "Bird", "Cat", "Dog", "Happy", "House", "Marvin", "Sheila",
 "Tree", and "Wow".
 
-There is also a `_background_noise_` class containin a set of  longer audio clips that are either recordings or
-a mathematical simulations of noise.
+There is also a `_background_noise_` class containing a set of  longer audio clips that are either recordings or
+a mathematical simulation of noise.
 """
 
 _LICENSE = "Creative Commons BY 4.0 License"
@@ -126,18 +126,18 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 """
             ),
             labels=LABELS_V1,
-            version=datasets.Version("0.0.1"),
+            version=datasets.Version("0.1.0"),
         ),
         SpeechCommandsConfig(
             name="v0.02",
             description=textwrap.dedent(
                 """\
-                Version 0.02 of SpeechCommands dataset.
-                Contains more command and auxiliary words than version 0.01.
+                Version 0.02 of the SpeechCommands dataset.
+                Contains more commands and auxiliary words than version 0.01.
                 """
             ),
             labels=LABELS_V2,
-            version=datasets.Version("0.0.2"),
+            version=datasets.Version("0.2.0"),
         ),
     ]
 
