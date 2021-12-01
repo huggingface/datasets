@@ -53,7 +53,7 @@ class VCTK(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "speaker_id": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=48000),
+                    "audio": datasets.features.Audio(sampling_rate=48_000),
                     "file": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "text_id": datasets.Value("string"),
