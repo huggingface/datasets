@@ -180,7 +180,7 @@ class Image:
     def __call__(self):
         return ImageExtensionType()
 
-    def encode_example(self, value):
+    def encode_example(self, value: Union[str, dict, np.ndarray, "PIL.Image.Image"]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -242,7 +242,7 @@ class Image:
         return image
 
 
-def list_image_compression_formats():
+def list_image_compression_formats() -> List[str]:
     if config.PIL_AVAILABLE:
         import PIL.Image
     else:
