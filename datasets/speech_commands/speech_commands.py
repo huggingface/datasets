@@ -16,7 +16,6 @@
 """Speech Commands, an audio dataset of spoken words designed to help train and evaluate keyword spotting systems. """
 
 
-import glob
 import os
 import textwrap
 
@@ -203,10 +202,11 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={
+                name=datasets.Split.TEST,
+                gen_kwargs={
                     "archive": dl_manager.iter_archive(archive_paths["test"]),
                     "split_files": None,
-                }
+                },
             ),
         ]
 
@@ -226,10 +226,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             if word in [BACKGROUND, SILENCE]:
                 yield key, {
                     "file": path,
-                    "audio": {
-                        "path": path,
-                        "bytes": file.read()
-                    },
+                    "audio": {"path": path, "bytes": file.read()},
                     "label": SILENCE,  # not BACKGROUND for the convention purposes
                     "is_unknown": is_unknown,
                     "speaker_id": None,
@@ -252,10 +249,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
 
             yield key, {
                 "file": path,
-                "audio":  {
-                        "path": path,
-                        "bytes": file.read()
-                    },
+                "audio": {"path": path, "bytes": file.read()},
                 "label": label,
                 "is_unknown": is_unknown,
                 "speaker_id": speaker_id,
