@@ -37,6 +37,7 @@ task_ids:
     - [Dataset Summary](#dataset-summary)
     - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
       - [Supervised tasks](#supervised-tasks)
+  - [Languages](#languages)
   - [Dataset Structure](#dataset-structure)
     - [Data Instances](#data-instances)
     - [Data Fields](#data-fields)
