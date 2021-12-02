@@ -143,7 +143,7 @@ An example from the HEAD-QA dataset looks as follows:
     - `aid`: answer identifier (int)
     - `atext`: answer text
 - `ra`: `aid` of the right answer (int)
-- `image`: optional, some of the questions refer to an image
+- `image`: (optional) a `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `name`: name of the exam from which the question was extracted
 - `year`: year in which the exam took place
 
