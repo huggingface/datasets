@@ -280,9 +280,10 @@ task_ids:
   xsum:
   - summarization
 paperswithcode_id: gem
+pretty_name: GEM
 ---
 
-# Dataset Card for "gem"
+# Dataset Card for GEM
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

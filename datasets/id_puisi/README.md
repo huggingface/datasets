@@ -20,6 +20,7 @@ task_ids:
 - language-modeling
 - other-structured-to-text
 paperswithcode_id: null
+pretty_name: Indonesian Puisi
 ---
 
 # Dataset Card for id_puisi

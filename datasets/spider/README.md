@@ -17,7 +17,6 @@ source_datasets:
 task_categories:
 - conditional-text-generation
 task_ids:
-- conditional-text-generation
 - other-structured-to-text
 paperswithcode_id: spider-1
 pretty_name: Spider
@@ -143,6 +142,8 @@ The listed authors in the homepage are maintaining/supporting the dataset.
 ### Dataset Curators
 
 [More Information Needed]
+
+### Licensing Information
 
 The spider dataset is licensed under 
 the [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode)

@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - other-structured-to-text
 paperswithcode_id: null
+pretty_name: Enriched WebNLG
 ---
 
 # Dataset Card for WebNLG

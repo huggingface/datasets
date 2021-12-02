@@ -76,6 +76,10 @@ you have any concerns.
 
 For more information, see: https://homes.cs.washington.edu/~msap/atomic/
 
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
+
 ### Languages
 en
 

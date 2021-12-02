@@ -22,9 +22,10 @@ task_ids:
 - language-modeling
 - other-structured-to-text
 paperswithcode_id: czech-restaurant-information
+pretty_name: Czech Restaurant
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Czech Restaurant
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

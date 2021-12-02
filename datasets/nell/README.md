@@ -28,6 +28,7 @@ task_ids:
 - fact-checking-retrieval
 - other-structured-to-text
 paperswithcode_id: nell
+pretty_name: Never Ending Language Learning (NELL)
 ---
 
 # Dataset Card for Never Ending Language Learning (NELL)
