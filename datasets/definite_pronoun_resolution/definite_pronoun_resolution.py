@@ -43,7 +43,7 @@ more than once in the sentence, its first occurrence is the one to be resolved.
 """
 
 
-_DATA_FILES = {"train": "train.c.txt", "test": "test.c.txt"}
+_DATA_URL_PATTERN = "https://s3.amazonaws.com/datasets.huggingface.co/definite_pronoun_resolution/{}.c.txt"
 
 
 class DefinitePronounResolution(datasets.GeneratorBasedBuilder):
@@ -54,7 +54,6 @@ class DefinitePronounResolution(datasets.GeneratorBasedBuilder):
             name="plain_text",
             version=datasets.Version("1.0.0", ""),
             description="Plain text import of the Definite Pronoun Resolution Dataset.",  # pylint: disable=line-too-long
-            data_files=_DATA_FILES,
         )
     ]
 
@@ -75,7 +74,12 @@ class DefinitePronounResolution(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        files = dl_manager.download_and_extract(self.config.data_files)
+        files = dl_manager.download_and_extract(
+            {
+                "train": _DATA_URL_PATTERN.format("train"),
+                "test": _DATA_URL_PATTERN.format("test"),
+            }
+        )
         return [
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": files["test"]}),
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": files["train"]}),
