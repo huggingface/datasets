@@ -80,10 +80,10 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "title": datasets.Value("string"),
-                "context": datasets.Value("string"),
+                "paragraph": datasets.Value("string"),
                 "level": datasets.ClassLabel(names=["Adv", "Int", "Ele"]),
                 "question": datasets.Value("string"),
-                "question_index": datasets.Value("int32"),
+                "paragraph_index": datasets.Value("int32"),
                 "answers": datasets.features.Sequence(datasets.Value("string")),
                 "a_span": datasets.features.Sequence(datasets.Value("int32")),
                 "d_span": datasets.features.Sequence(datasets.Value("int32")),
@@ -147,16 +147,16 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
                 for paragraph_index, paragraph in enumerate(article["paragraphs"]):
                     for level in ["Adv", "Int", "Ele"]:
                         paragraph_context_and_spans = paragraph[level]
-                        context = paragraph_context_and_spans["context"]
+                        paragraph_context = paragraph_context_and_spans["context"]
                         a_spans = paragraph_context_and_spans["a_spans"]
                         d_spans = paragraph_context_and_spans["d_spans"]
                         qas = paragraph["qas"]
                         for qa, a_span, d_span in zip(qas, a_spans, d_spans):
                             yield key, {
                                 "title": title,
-                                "context": context,
+                                "paragraph": paragraph_context,
                                 "question": qa["question"],
-                                "question_index": paragraph_index,
+                                "paragraph_index": paragraph_index,
                                 "answers": qa["answers"],
                                 "level": level,
                                 "a_span": a_span,

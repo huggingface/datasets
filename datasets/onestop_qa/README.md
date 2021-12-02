@@ -46,6 +46,7 @@ task_ids:
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -65,7 +66,9 @@ OneStopQA is a multiple choice reading comprehension dataset annotated according
 
 ### Languages
 
-English
+English (`en-US`).
+
+The original Guardian articles were manually converted from British to American English.
 
 ## Dataset Structure
 
@@ -76,8 +79,8 @@ An example of instance looks as follows.
 ```json
 {
   "title": "101-Year-Old Bottle Message",
-  "context": "Angela Erdmann never knew her grandfather. He died in 1946, six years before she was born. But, on Tuesday 8th April, 2014, she described the extraordinary moment when she received a message in a bottle, 101 years after he had lobbed it into the Baltic Sea. Thought to be the world\u2019s oldest message in a bottle, it was presented to Erdmann by the museum that is now exhibiting it in Germany.",
-  "paragraph_index": 1
+  "paragraph": "Angela Erdmann never knew her grandfather. He died in 1946, six years before she was born. But, on Tuesday 8th April, 2014, she described the extraordinary moment when she received a message in a bottle, 101 years after he had lobbed it into the Baltic Sea. Thought to be the world’s oldest message in a bottle, it was presented to Erdmann by the museum that is now exhibiting it in Germany.",
+  "paragraph_index": 1,
   "level": "Adv",
   "question": "How did Angela Erdmann find out about the bottle?", 
   "answers": ["A museum told her that they had it", 
@@ -102,12 +105,14 @@ The order of the answers in the `answers` list corresponds to the order of the a
 ### Data Fields
 
 - `title`: a `string` feature. The article title.
-- `context`: a `string` feature. The paragraph from the article. 
+- `paragraph`: a `string` feature. The paragraph from the article. 
 - `paragraph_index`: an `int` feature. Corresponds to the paragraph index in the article.
 - `question`: a `string` feature. The given question.
 - `answers`: a list of `string` feature containing the four possible answers.
-- `a_span`: start and end indices (inclusive, word level) of the critical span.
-- `d_span`: start and end indices (inclusive, word level) of the distractor span.
+- `a_span`: start and end indices (inclusive) of the critical span.
+- `d_span`: start and end indices (inclusive) of the distractor span.
+
+*Span indices are according to word positions after whitespace tokenization.
 
 
 ### Data Splits
@@ -140,7 +145,8 @@ No preconfigured split is currently provided.
 
 #### Annotation process
 
-[Needs More Information]
+The annotation and piloting process of the dataset is described in Appendix A in 
+[STARC: Structured Annotations for Reading Comprehension](https://aclanthology.org/2020.acl-main.507.pdf).
 
 #### Who are the annotators?
 
@@ -186,3 +192,6 @@ No preconfigured split is currently provided.
       publisher = {Association for Computational Linguistics} 
       }
 ```
+### Contributions
+
+Thanks to [@scaperex](https://github.com/scaperex) for adding this dataset.
