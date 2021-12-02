@@ -15,7 +15,12 @@ multilinguality:
 - multilingual
 pretty_name: British Library Books Genre
 size_categories:
-- n<1K
+  title_genre_classifiction:
+  - 1K<n<10K
+  annotated_raw:
+  - 1K<n<10K
+  raw:
+  - 10K<n<100K
 source_datasets:
 - original
 task_categories:
