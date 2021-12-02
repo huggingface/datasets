@@ -121,11 +121,12 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
         if self.config.name == "manual":  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
-                    "alignment_label": datasets.ClassLabel(names=["notAligned", "aligned"]),
+                    "alignment_label": datasets.ClassLabel(names=["notAligned", "aligned", "partialAligned"]),
                     "normal_sentence_id": datasets.Value("string"),
                     "simple_sentence_id": datasets.Value("string"),
                     "normal_sentence": datasets.Value("string"),
                     "simple_sentence": datasets.Value("string"),
+                    "gleu_score": datasets.Value("float32"),
                 }
             )
         elif (
@@ -218,12 +219,15 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
                 "normal_sentence_id",
                 "simple_sentence",
                 "normal_sentence",
+                "gleu_score",
             ]
             with open(filepaths[split], encoding="utf-8") as f:
                 for id_, line in enumerate(f):
                     values = line.strip().split("\t")
-                    assert len(values) == 5, f"Not enough fields in ---- {line} --- {values}"
-                    yield id_, dict([(k, val) for k, val in zip(keys, values)])
+                    assert len(values) == 6, f"Not enough fields in ---- {line} --- {values}"
+                    yield id_, dict(
+                        [(k, val) if k != "gleu_score" else (k, float(val)) for k, val in zip(keys, values)]
+                    )
         elif (
             self.config.name == "auto_acl"
             or self.config.name == "auto_full_no_split"
