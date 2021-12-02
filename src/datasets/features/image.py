@@ -263,7 +263,7 @@ def image_to_bytes(image: "PIL.Image.Image") -> bytes:
     return buffer.getvalue()
 
 
-def objects_to_list_of_image_dicts(objs):
+def objects_to_list_of_image_dicts(objs: Union[List[str], List[dict], List[np.ndarray], List["PIL.Image.Image"]]) -> List[dict]:
     """Encode a list of objects into a format suitable for creating an extension array of type :obj:`ImageExtensionType`."""
     if config.PIL_AVAILABLE:
         import PIL.Image
