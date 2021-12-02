@@ -113,6 +113,10 @@ This dataset is suitable for a variety of unsupervised tasks and for a 'genre cl
 
 The main possible use case for this dataset is to develop and evaluate 'genre classification' models. The dataset includes human generated labels for whether a book is 'fiction' or 'non-fiction'. This has been used to train models for genre classifcation which predict whether a book is 'fiction' or 'non-fiction' based on its title. 
 
+### Languages
+
+[More Information Needed]
+
 ## Dataset Structure
 
 The dataset currently has three configurations intended to support a range of tasks for which this dataset could be used for:
