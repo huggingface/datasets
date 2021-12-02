@@ -128,7 +128,7 @@ An example from the HEAD-QA dataset looks as follows:
 		'atext': 'Presentan un periodo refractario.'
 	}],
 'ra': '3',
-'image': '',
+'image': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=675x538 at 0x1B42B6A1668>,
 'name': 'Cuaderno_2013_1_B',
 'year': '2013'
 }
