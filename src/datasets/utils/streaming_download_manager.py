@@ -263,6 +263,9 @@ def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]
                 url += "&confirm=" + v
                 cookies = response.cookies
                 kwargs["cookies"] = cookies
+    if url.startswith("https://raw.githubusercontent.com/"):
+        # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
+        kwargs["block_size"] = 0
     return url, kwargs
 
 
