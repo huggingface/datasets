@@ -130,6 +130,7 @@ class SpeechCommandsConfig(datasets.BuilderConfig):
 
 
 class SpeechCommands(datasets.GeneratorBasedBuilder):
+    DEFAULT_WRITER_BATCH_SIZE = 256  # TODO: set up another size?
     BUILDER_CONFIGS = [
         SpeechCommandsConfig(
             name="v0.01",
@@ -177,86 +178,114 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
 
-        archive_paths = dl_manager.download_and_extract(
+        archive_paths = dl_manager.download(
             {
                 "train_val_test": _DL_URL.format(name=self.config.name),
                 "test": _DL_URL.format(name=f"test_set_{self.config.name}"),
             }
         )
 
+        train_paths, val_paths = _get_train_val_filenames(dl_manager.iter_archive(archive_paths["train_val_test"]))
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"archive_path": archive_paths["train_val_test"], "split": "train"},
+                gen_kwargs={
+                    "archive": dl_manager.iter_archive(archive_paths["train_val_test"]),
+                    "split_files": train_paths,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"archive_path": archive_paths["train_val_test"], "split": "val"},
+                gen_kwargs={
+                    "archive": dl_manager.iter_archive(archive_paths["train_val_test"]),
+                    "split_files": val_paths,
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"archive_path": archive_paths["test"], "split": "test"}
+                name=datasets.Split.TEST, gen_kwargs={
+                    "archive": dl_manager.iter_archive(archive_paths["test"]),
+                    "split_files": None,
+                }
             ),
         ]
 
-    def _generate_examples(self, archive_path, split):
-        filenames = _split_files(archive_path, split)
-        for key, audio_file in enumerate(sorted(filenames)):
-            base_dir, filename = os.path.split(audio_file)
-            _, word = os.path.split(base_dir)
+    def _generate_examples(self, archive, split_files):
+        key = 0
+        for path, file in archive:
+            path = path.lstrip("./")
+            # file is either from train or val iterators but its not in corresponding split's filenames list
+            if split_files is not None and path not in split_files:
+                continue
+            if not path.endswith(".wav"):
+                continue
+
+            relpath, audio_filename = os.path.split(path)
+            word = os.path.split(relpath)[-1]
             is_unknown = False
             if word in [BACKGROUND, SILENCE]:
                 yield key, {
-                    "file": audio_file,
-                    "audio": audio_file,
-                    "label": SILENCE,
+                    "file": path,
+                    "audio": {
+                        "path": path,
+                        "bytes": file.read()
+                    },
+                    "label": SILENCE,  # not BACKGROUND for the convention purposes
                     "is_unknown": is_unknown,
                     "speaker_id": None,
                     "utterance_id": 0,
                 }
+                key += 1
                 continue
-
             else:  # word is either in WORDS or unknown
                 label = word
                 if word not in WORDS:
                     is_unknown = True
 
-            if split == "test" and label == "_unknown_":
+            if not split_files and label == "_unknown_":
                 # test archives have a bit different structure where unknown samples are stored in `_unknown_` folder
                 # their filenames look like `backward_0c540988_nohash_0.wav`
-                label, speaker_id, _, utterance_id = filename.split(".wav")[0].split("_")
+                label, speaker_id, _, utterance_id = audio_filename.split(".wav")[0].split("_")
             else:
                 # a standard filename looks like `0bac8a71_nohash_0.wav`
-                speaker_id, _, utterance_id = filename.split(".wav")[0].split("_")
+                speaker_id, _, utterance_id = audio_filename.split(".wav")[0].split("_")
 
             yield key, {
-                "file": audio_file,
-                "audio": audio_file,
+                "file": path,
+                "audio":  {
+                        "path": path,
+                        "bytes": file.read()
+                    },
                 "label": label,
                 "is_unknown": is_unknown,
                 "speaker_id": speaker_id,
                 "utterance_id": utterance_id,
             }
+            key += 1
 
 
-def _split_files(archive_path, split):
-    all_paths = glob.glob(os.path.join(archive_path, "**", "*.wav"))
-    if split == "test":
-        # there is a separate archive with test files, use all of its available files
-        return all_paths
+def _get_train_val_filenames(archive):
+    train_paths, test_paths, val_paths = [], [], []
 
-    val_list_file = os.path.join(archive_path, "validation_list.txt")
-    test_list_file = os.path.join(archive_path, "testing_list.txt")
+    for path, file in archive:
+        if os.path.split(path)[-1] == "testing_list.txt":
+            test_paths = [path.decode("utf-8").strip() for path in file.readlines() if path.strip()]
 
-    with open(val_list_file, encoding="utf-8") as val_f, open(test_list_file, encoding="utf-8") as test_f:
-        val_paths = [os.path.join(archive_path, path.strip()) for path in val_f.readlines() if path.strip()]
-        test_paths = [os.path.join(archive_path, path.strip()) for path in test_f.readlines() if path.strip()]
+        elif os.path.split(path)[-1] == "validation_list.txt":
+            val_paths = [path.decode("utf-8").strip() for path in file.readlines() if path.strip()]
+
+        elif path.endswith(".wav"):
+            train_paths.append(path.lstrip("./"))
+
+    # TODO: add verification for that val and test are not empty
+    # if not test_paths or train_paths:
+    #     raise # what?
 
     # original validation files did not include silence - we add them manually here
     # see https://github.com/tensorflow/datasets/blob/master/tensorflow_datasets/audio/speech_commands.py#L182
-    val_paths.append(os.path.join(archive_path, BACKGROUND, "running_tap.wav"))
-
-    if split == "val":
-        return val_paths
+    val_paths.append(os.path.join(BACKGROUND, "running_tap.wav"))
 
     # all files that are not listed in either test or validation sets belong to train set
-    return list(set(all_paths) - set(val_paths) - set(test_paths))
+    train_paths = list(set(train_paths) - set(val_paths) - set(test_paths))
+
+    return train_paths, val_paths
