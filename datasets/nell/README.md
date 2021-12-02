@@ -103,6 +103,10 @@ Learn to read better than yesterday. NELL uses a variety of methods to extract b
 
 For more information, see: http://rtw.ml.cmu.edu/rtw/resources
 
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
+
 ### Languages
 en, and perhaps some others
 

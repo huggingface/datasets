@@ -114,7 +114,13 @@ The original data was produced in interactions between Amazon Mechanical Turk wo
 
 ### Annotations
 
-No annotations.
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
