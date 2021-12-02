@@ -18,7 +18,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
-- other-stuctured-to-text
+- other-structured-to-text
 paperswithcode_id: null
 ---
 

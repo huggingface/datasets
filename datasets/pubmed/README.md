@@ -20,7 +20,7 @@ task_categories:
 - text-scoring
 task_ids:
 - language-modeling
-- other-stuctured-to-text
+- other-structured-to-text
 - text-scoring-other-citation-estimation
 - topic-classification
 paperswithcode_id: pubmed

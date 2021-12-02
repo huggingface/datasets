@@ -17,7 +17,8 @@ source_datasets:
 task_categories:
 - conditional-text-generation
 task_ids:
-- conditional-text-generation-other-stuctured-to-text
+- conditional-text-generation
+- other-structured-to-text
 paperswithcode_id: spider-1
 pretty_name: Spider
 ---

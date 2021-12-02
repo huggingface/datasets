@@ -20,7 +20,7 @@ task_ids:
 - document-retrieval
 - explanation-generation
 - fact-checking-retrieval
-- other-stuctured-to-text
+- other-structured-to-text
 - text-simplification
 paperswithcode_id: null
 ---

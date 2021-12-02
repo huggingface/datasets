@@ -26,7 +26,7 @@ task_categories:
 task_ids:
 - entity-linking-retrieval
 - fact-checking-retrieval
-- other-stuctured-to-text
+- other-structured-to-text
 paperswithcode_id: nell
 ---
 

@@ -20,7 +20,7 @@ task_categories:
 task_ids:
 - dialogue-modeling
 - language-modeling
-- other-stuctured-to-text
+- other-structured-to-text
 paperswithcode_id: czech-restaurant-information
 ---
 
@@ -61,7 +61,7 @@ This is a dataset for NLG in task-oriented spoken dialogue systems with Czech as
 
 ### Supported Tasks and Leaderboards
 
-- `other-stuctured-to-text`: The dataset can be used to train a model for data-to-text generation: from a desired dialogue act, the model must produce textual output that conveys this intention.
+- `other-structured-to-text`: The dataset can be used to train a model for data-to-text generation: from a desired dialogue act, the model must produce textual output that conveys this intention.
 
 ### Languages
 

@@ -19,7 +19,7 @@ source_datasets:
 task_categories:
 - other
 task_ids:
-- other-stuctured-to-text
+- other-structured-to-text
 - other-other-relation-extraction
 paperswithcode_id: null
 ---
