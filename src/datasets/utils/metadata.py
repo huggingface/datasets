@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from collections import Counter
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
@@ -84,24 +85,25 @@ def tagset_validator(
     url: str,
     escape_validation_predicate_fn: Optional[Callable[[Any], bool]] = None,
 ) -> ValidatorOutput:
+    reference_values = re.compile("^(?:" + "|".join(reference_values) + ")$")
     if isinstance(items, list):
         if escape_validation_predicate_fn is not None:
             invalid_values = [
-                v for v in items if v not in reference_values and escape_validation_predicate_fn(v) is False
+                v for v in items if not reference_values.match(v) and escape_validation_predicate_fn(v) is False
             ]
         else:
-            invalid_values = [v for v in items if v not in reference_values]
+            invalid_values = [v for v in items if not reference_values.match(v)]
 
     else:
         invalid_values = []
         if escape_validation_predicate_fn is not None:
             for config_name, values in items.items():
                 invalid_values += [
-                    v for v in values if v not in reference_values and escape_validation_predicate_fn(v) is False
+                    v for v in values if not reference_values.match(v) and escape_validation_predicate_fn(v) is False
                 ]
         else:
             for config_name, values in items.items():
-                invalid_values += [v for v in values if v not in reference_values]
+                invalid_values += [v for v in values if not reference_values.match(v)]
 
     if len(invalid_values) > 0:
         return [], f"{invalid_values} are not registered tags for '{name}', reference at {url}"
