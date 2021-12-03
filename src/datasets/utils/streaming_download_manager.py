@@ -273,6 +273,9 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     It also has a retry mechanism in case connection fails.
     The args and kwargs are passed to fsspec.open, except `use_auth_token` which is used for queries to private repos on huggingface.co
     """
+    # required for Windows compatibility
+    if "\\" in file:
+        file = _as_posix(Path(file))
     main_hop, *rest_hops = file.split("::")
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
@@ -404,6 +407,30 @@ def xpathrglob(path, pattern, **kwargs):
         :obj:`~pathlib.Path`
     """
     return xpathglob(path, "**/" + pattern, **kwargs)
+
+
+def xpathparent(path: Path):
+    """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        :obj:`~pathlib.Path`
+    """
+    return type(path)(xdirname(_as_posix(path)))
+
+
+def xpathname(path: Path):
+    """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        :obj:`str`
+    """
+    return PurePosixPath(_as_posix(path).split("::")[0]).name
 
 
 def xpathstem(path: Path):
