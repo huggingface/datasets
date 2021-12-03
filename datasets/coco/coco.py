@@ -170,15 +170,20 @@ class COCO(datasets.GeneratorBasedBuilder):
                   annotations='image_info_test2014',
                   annotation_type=AnnotationType.NONE,
               ),
-              # Coco2014 contains an extra test split
+          ],
+        ),
+        CocoConfig(
+          name='2015',
+          description=_CONFIG_DESCRIPTION.format(year=2017),
+          has_panoptic=True,
+          split=[
               Split(
-                  name='test2015',
+                  name=datasets.Split.TEST,
                   images='test2015',
                   annotations='image_info_test2015',
                   annotation_type=AnnotationType.NONE,
-              ),
-          ],
-        ),
+              )
+            ),
         CocoConfig(
           name='2017',
           has_panoptic = False,
@@ -202,6 +207,7 @@ class COCO(datasets.GeneratorBasedBuilder):
                   annotations='image_info_test2017',
                   annotation_type=AnnotationType.NONE,
               ),
+              )
           ],
         ),
         CocoConfig(
@@ -220,6 +226,18 @@ class COCO(datasets.GeneratorBasedBuilder):
                   images='val2017',
                   annotations='panoptic_annotations_trainval2017',
                   annotation_type=AnnotationType.PANOPTIC,
+              ),
+        CocoConfig(
+          name='2017_unlabeled',
+          description=_CONFIG_DESCRIPTION.format(year=2017),
+          has_panoptic=True,
+          split=[
+              Split(
+                  name=datasets.Split.TRAIN,
+                  images='unlabeled2017',
+                  annotations='',
+                  annotation_type=AnnotationType.NONE,
+              )
               ),
           ],
       ),
