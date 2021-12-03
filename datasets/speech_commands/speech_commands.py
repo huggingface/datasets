@@ -130,7 +130,6 @@ class SpeechCommandsConfig(datasets.BuilderConfig):
 
 
 class SpeechCommands(datasets.GeneratorBasedBuilder):
-    DEFAULT_WRITER_BATCH_SIZE = 256  # TODO: set up another size?
     BUILDER_CONFIGS = [
         SpeechCommandsConfig(
             name="v0.01",
@@ -267,10 +266,6 @@ def _get_train_val_filenames(archive):
 
         elif path.endswith(".wav"):
             train_paths.append(path.lstrip("./"))
-
-    # TODO: add verification for that val and test are not empty
-    # if not test_paths or train_paths:
-    #     raise # what?
 
     # original validation files do not include silence - add it manually here
     # see https://github.com/tensorflow/datasets/blob/master/tensorflow_datasets/audio/speech_commands.py#L182
