@@ -50,7 +50,7 @@ _HOMEPAGE = "https://aghie.github.io/head-qa/"
 
 _LICENSE = "MIT License"
 
-_URL = "https://drive.google.com/u/0/uc?id=1a_95N5zQQoUCq8IBNVZgziHbeM-QxG2t&export=download"
+_URL = "https://drive.google.com/u/0/uc?export=download&id=1a_95N5zQQoUCq8IBNVZgziHbeM-QxG2t"
 
 _DIRS = {"es": "HEAD", "en": "HEAD_EN"}
 
