@@ -146,7 +146,7 @@ The following example demonstrates how to tokenize a :class:`datasets.IterableDa
 Stream in a training loop
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:class:`datasets.IterableDataset`s can be integrated into a training loop. First, shuffle the dataset:
+:class:`datasets.IterableDataset` can be integrated into a training loop. First, shuffle the dataset:
 
 .. code-block::
 
