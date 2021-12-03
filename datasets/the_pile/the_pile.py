@@ -38,9 +38,10 @@ datasets combined together.
 _HOMEPAGE = "https://pile.eleuther.ai/"
 
 _LICENSES = {
-    "all": "MIT License",
+    "all": "Multiple: see each subset license",
     "free_law": "Unknown",
-    "pubmed_central": "MIT License",
+    "pubmed": "Unknown",
+    "pubmed_central": "Unknown",
     "uspto": "Unknown",
 }
 
@@ -51,6 +52,7 @@ _DATA_URLS = {
         "test": ["https://the-eye.eu/public/AI/pile/test.jsonl.zst"],
     },
     "free_law": "https://the-eye.eu/public/AI/pile_preliminary_components/FreeLaw_Opinions.jsonl.zst",
+    "pubmed": "https://the-eye.eu/public/AI/pile_preliminary_components/PUBMED_title_abstracts_2019_baseline.jsonl.zst",
     "pubmed_central": "https://the-eye.eu/public/AI/pile_preliminary_components/PMC_extracts.tar.gz",
     "uspto": "https://the-eye.eu/public/AI/pile_preliminary_components/pile_uspto.tar",
 }
@@ -63,6 +65,12 @@ _FEATURES = {
         }
     ),
     "free_law": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "pubmed": datasets.Features(
         {
             "text": datasets.Value("string"),
             "meta": datasets.Value("string"),
@@ -173,7 +181,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
                         key += 1
         else:
             for subset in files:
-                if subset == "free_law":
+                if subset in ["free_law", "pubmed"]:
                     import zstandard as zstd
 
                     with zstd.open(open(files[subset], "rb"), "rt", encoding="utf-8") as f:
