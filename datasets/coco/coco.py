@@ -255,7 +255,7 @@ class COCO(datasets.GeneratorBasedBuilder):
           'panoptic_image':
               datasets.Image(),
           'panoptic_image/filename':
-              atasets.Value("string"),
+              datasets.Value("string"),
           'panoptic_objects':
               datasets.Sequence({
                   'id': datasets.Value("int64"),
