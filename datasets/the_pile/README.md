@@ -98,6 +98,14 @@ This dataset is in English (`EN`).
 }
 ```
 
+#### hacker_news
+```
+{
+  'text': ""\nChina Deserves Donald Trump - rm2889\nhttps://www.nytimes.com/2019/05/21/opinion/china-trump-trade.html\n======\nNotPaidToPost\n> so he’d be wise to curb his nationalistic “no-one-tells-China-what-to-do”\n> bluster\n\nThis comment highlights both ignorance of Chinese history and continuing\nAmerican arrogance.\n\nChina has been painfully dictated what to do during the last 200 years. This\nhas had a profound effect on the country and has led to the collapse of\nimperial rule and the drive to 'rejuvenate'...",
+  'meta':  "{'id': '19979654'}}",
+}
+```
+
 #### pubmed
 ```
 {
@@ -147,6 +155,11 @@ This dataset is in English (`EN`).
 
 - `text` (str): Text.
 - `meta` (str): Metadata of the data instance, with: case_ID, case_jurisdiction, date_created.
+
+#### hacker_news
+
+- `text` (str): Text.
+- `meta` (str): Metadata of the data instance, with: id.
 
 #### pubmed
 

@@ -41,6 +41,7 @@ _LICENSES = {
     "all": "Multiple: see each subset license",
     "europarl": "Unknown",
     "free_law": "Unknown",
+    "hacker_news": "Unknown",
     "pubmed": "Unknown",
     "pubmed_central": "Unknown",
     "ubuntu_irc": "Unknown",
@@ -55,6 +56,7 @@ _DATA_URLS = {
     },
     "europarl": "https://the-eye.eu/public/AI/pile_preliminary_components/EuroParliamentProceedings_1996_2011.jsonl.zst",
     "free_law": "https://the-eye.eu/public/AI/pile_preliminary_components/FreeLaw_Opinions.jsonl.zst",
+    "hacker_news": "https://the-eye.eu/public/AI/pile_preliminary_components/hn.tar.gz",
     "pubmed": "https://the-eye.eu/public/AI/pile_preliminary_components/PUBMED_title_abstracts_2019_baseline.jsonl.zst",
     "pubmed_central": "https://the-eye.eu/public/AI/pile_preliminary_components/PMC_extracts.tar.gz",
     "ubuntu_irc": "https://the-eye.eu/public/AI/pile_preliminary_components/ubuntu_irc_until_2020_9_1.jsonl.zst",
@@ -75,6 +77,12 @@ _FEATURES = {
         }
     ),
     "free_law": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "hacker_news": datasets.Features(
         {
             "text": datasets.Value("string"),
             "meta": datasets.Value("string"),
@@ -197,7 +205,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
                         key += 1
         else:
             for subset in files:
-                if subset in ["europarl", "free_law", "pubmed", "ubuntu_irc"]:
+                if subset in {"europarl", "free_law", "pubmed", "ubuntu_irc"}:
                     import zstandard as zstd
 
                     with zstd.open(open(files[subset], "rb"), "rt", encoding="utf-8") as f:
@@ -205,7 +213,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
                             data = json.loads(row)
                             yield key, data
                             key += 1
-                elif subset == "pubmed_central":
+                elif subset in {"hacker_news", "pubmed_central"}:
                     for path, file in files[subset]:
                         id_ = path.split("/")[-1].split(".")[0]
                         meta = {"id": id_}
