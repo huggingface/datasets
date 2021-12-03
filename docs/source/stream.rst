@@ -121,12 +121,12 @@ Remove columns on-the-fly with :func:`datasets.IterableDataset.remove_columns`. 
 ``Map``
 ^^^^^^^
 
-As for regular map-style :class:`datasets.Dataset`, 🤗 Datasets features :func:`datasets.IterableDataset.map` to process your dataset.
-Unlike a map-style dataset though, the processing is applied on-the-fly when the examples are streamed.
+Similar to the :func:`datasets.Dataset.map` function for a regular :class:`datasets.Dataset`, 🤗  Datasets features :func:`datasets.IterableDataset.map` for processing :class:`datasets.IterableDataset`s.
+:func:`datasets.IterableDataset.map` applies processing on-the-fly when examples are streamed.
 
 It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.
 
-In the following example, you will apply tokenization to the dataset. The function needs to accept and output a ``dict``:
+The following example demonstrates how to tokenize a :class:`datasets.IterableDataset`. The function needs to accept and output a ``dict``:
 
 
 .. code-block::
@@ -146,7 +146,7 @@ In the following example, you will apply tokenization to the dataset. The functi
 In a training loop
 ^^^^^^^^^^^^^^^^^^
 
-First let's shuffle the dataset:
+:class:`datasets.IterableDataset`s can be integrated into a training loop. First, shuffle the dataset:
 
 .. code-block::
 
