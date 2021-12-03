@@ -42,6 +42,7 @@ _LICENSES = {
     "free_law": "Unknown",
     "pubmed": "Unknown",
     "pubmed_central": "Unknown",
+    "ubuntu_irc": "Unknown",
     "uspto": "Unknown",
 }
 
@@ -54,6 +55,7 @@ _DATA_URLS = {
     "free_law": "https://the-eye.eu/public/AI/pile_preliminary_components/FreeLaw_Opinions.jsonl.zst",
     "pubmed": "https://the-eye.eu/public/AI/pile_preliminary_components/PUBMED_title_abstracts_2019_baseline.jsonl.zst",
     "pubmed_central": "https://the-eye.eu/public/AI/pile_preliminary_components/PMC_extracts.tar.gz",
+    "ubuntu_irc": "https://the-eye.eu/public/AI/pile_preliminary_components/ubuntu_irc_until_2020_9_1.jsonl.zst",
     "uspto": "https://the-eye.eu/public/AI/pile_preliminary_components/pile_uspto.tar",
 }
 
@@ -77,6 +79,12 @@ _FEATURES = {
         }
     ),
     "pubmed_central": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "ubuntu_irc": datasets.Features(
         {
             "text": datasets.Value("string"),
             "meta": datasets.Value("string"),
@@ -181,7 +189,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
                         key += 1
         else:
             for subset in files:
-                if subset in ["free_law", "pubmed"]:
+                if subset in ["free_law", "pubmed", "ubuntu_irc"]:
                     import zstandard as zstd
 
                     with zstd.open(open(files[subset], "rb"), "rt", encoding="utf-8") as f:

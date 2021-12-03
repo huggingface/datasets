@@ -103,6 +103,14 @@ This dataset is in English (`EN`).
 }
 ```
 
+#### ubuntu_irc
+```
+{
+  'text': "#ubuntu 2004-07-05\n* Window 3\n* \tServer: [0]  <None>\n* \tScreen: 0x817e90c\n* \tGeometry Info: [0 11 0 11 11 11] \n* \tCO, LI are [94 49] \n* \tCurrent channel: #ubuntu\n* \tQuery User: <None> \n*\tPrompt: <None>\n* \tSecond status line is OFF\n* \tSplit line is ON triple is OFF\n* \tLogging is ON\n* \tLogfile is irclogs/ubuntu.log\n* \tNotification is OFF\n* \tHold mode is OFF\n* \tWindow level is NONE\n* \tLastlog level is ALL\n* \tNotify level is ALL\n<mdz> lifeless: using tla effectively for all packages in Warty requ...",
+  'meta': "{'channel': 'ubuntu', 'month': 7}"
+}
+```
+
 #### uspto
 ```
 {
@@ -133,6 +141,11 @@ This dataset is in English (`EN`).
 
 - `text` (str): Text.
 - `meta` (str): Metadata of the data instance, with: ID of the data instance.
+
+#### ubuntu_irc
+
+- `text` (str): Text.
+- `meta` (str): Metadata of the data instance, with: channel, month.
 
 #### uspto
 
