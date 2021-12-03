@@ -73,9 +73,7 @@ class MsTerms(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('ms_terms', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
-                    path_to_manual_file, _FILENAME, self.manual_download_instructions
-                )
+                f"{path_to_manual_file} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('ms_terms', data_dir=...)` that includes a file name {_FILENAME}. Manual download instructions: {self.manual_download_instructions})"
             )
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": path_to_manual_file})]
 

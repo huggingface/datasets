@@ -130,13 +130,13 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                     "source_files": [
                         os.path.join(
                             data_dir,
-                            "train.tags.{}.{}".format(self.config.pair, source),
+                            f"train.tags.{self.config.pair}.{source}",
                         )
                     ],
                     "target_files": [
                         os.path.join(
                             data_dir,
-                            "train.tags.{}.{}".format(self.config.pair, target),
+                            f"train.tags.{self.config.pair}.{target}",
                         )
                     ],
                     "split": "train",
@@ -149,14 +149,14 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                     "source_files": [
                         os.path.join(
                             data_dir,
-                            "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, source),
+                            f"IWSLT17.TED.tst{year}.{self.config.pair}.{source}.xml",
                         )
                         for year in years
                     ],
                     "target_files": [
                         os.path.join(
                             data_dir,
-                            "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, target),
+                            f"IWSLT17.TED.tst{year}.{self.config.pair}.{target}.xml",
                         )
                         for year in years
                     ],
@@ -170,13 +170,13 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
                     "source_files": [
                         os.path.join(
                             data_dir,
-                            "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, source),
+                            f"IWSLT17.TED.dev2010.{self.config.pair}.{source}.xml",
                         )
                     ],
                     "target_files": [
                         os.path.join(
                             data_dir,
-                            "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, target),
+                            f"IWSLT17.TED.dev2010.{self.config.pair}.{target}.xml",
                         )
                     ],
                     "split": "dev",

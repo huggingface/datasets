@@ -159,7 +159,7 @@ def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
             github_path = parsed.path[1:]
             repo_info, branch = github_path.split("/tree/") if "/tree/" in github_path else (github_path, "master")
             repo_owner, repo_name = repo_info.split("/")
-            url_path = "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
+            url_path = f"https://github.com/{repo_owner}/{repo_name}/archive/{branch}.zip"
             sub_directory = f"{repo_name}-{branch}"
     return url_path, sub_directory
 
@@ -197,7 +197,7 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
     with open(file_path, mode="r", encoding="utf-8") as f:
         lines.extend(f.readlines())
 
-    logger.debug("Checking %s for additional imports.", file_path)
+    logger.debug(f"Checking {file_path} for additional imports.")
     imports: List[Tuple[str, str, str, Optional[str]]] = []
     is_in_docstring = False
     for line in lines:
@@ -424,11 +424,11 @@ def infer_module_for_data_files(
 ) -> Optional[str]:
     extensions_counter = Counter(suffix[1:] for filepath in data_files_list for suffix in Path(filepath).suffixes)
     if extensions_counter:
-        most_common = extensions_counter.most_common(1)[0][0]
-        if most_common in _EXTENSION_TO_MODULE:
-            return _EXTENSION_TO_MODULE[most_common]
-        elif most_common == "zip":
-            return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+        for ext, _ in extensions_counter.most_common():
+            if ext in _EXTENSION_TO_MODULE:
+                return _EXTENSION_TO_MODULE[ext]
+            elif ext == "zip":
+                return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
 
 
 def infer_module_for_data_files_in_archives(
@@ -813,7 +813,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
         infered_module_name = next(iter(infered_module_names.values()))
         if not infered_module_name:
-            raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
+            raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
         module_path, hash = _PACKAGED_DATASETS_MODULES[infered_module_name]
         builder_kwargs = {
             "hash": hash,
@@ -1060,6 +1060,9 @@ def dataset_module_factory(
         download_config = DownloadConfig(**download_kwargs)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
+    download_config.force_download = download_mode = (
+        GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS) == GenerateMode.FORCE_REDOWNLOAD
+    )
 
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
     if not filename.endswith(".py"):
@@ -1712,12 +1715,12 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
         dest_dataset_path = dataset_path
 
     if not fs.exists(dest_dataset_path):
-        raise FileNotFoundError("Directory {} not found".format(dataset_path))
+        raise FileNotFoundError(f"Directory {dataset_path} not found")
     if fs.isfile(Path(dest_dataset_path, config.DATASET_INFO_FILENAME).as_posix()):
         return Dataset.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     elif fs.isfile(Path(dest_dataset_path, config.DATASETDICT_JSON_FILENAME).as_posix()):
         return DatasetDict.load_from_disk(dataset_path, fs, keep_in_memory=keep_in_memory)
     else:
         raise FileNotFoundError(
-            "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)
+            f"Directory {dataset_path} is neither a dataset directory nor a dataset dict directory."
         )

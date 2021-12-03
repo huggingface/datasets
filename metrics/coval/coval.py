@@ -210,17 +210,17 @@ def get_coref_infos(
     if remove_nested:
         logger.info(
             "Number of removed nested coreferring mentions in the key "
-            "annotation: %s; and system annotation: %s" % (key_nested_coref_num, sys_nested_coref_num)
+            f"annotation: {key_nested_coref_num}; and system annotation: {sys_nested_coref_num}"
         )
         logger.info(
             "Number of resulting singleton clusters in the key "
-            "annotation: %s; and system annotation: %s" % (key_removed_nested_clusters, sys_removed_nested_clusters)
+            f"annotation: {key_removed_nested_clusters}; and system annotation: {sys_removed_nested_clusters}"
         )
 
     if not keep_singletons:
         logger.info(
-            "%d and %d singletons are removed from the key and system "
-            "files, respectively" % (key_singletons_num, sys_singletons_num)
+            f"{key_singletons_num:d} and {sys_singletons_num:d} singletons are removed from the key and system "
+            "files, respectively"
         )
 
     return doc_coref_infos
@@ -242,14 +242,14 @@ def evaluate(key_lines, sys_lines, metrics, NP_only, remove_nested, keep_singlet
 
         logger.info(
             name.ljust(10),
-            "Recall: %.2f" % (recall * 100),
-            " Precision: %.2f" % (precision * 100),
-            " F1: %.2f" % (f1 * 100),
+            f"Recall: {recall * 100:.2f}",
+            f" Precision: {precision * 100:.2f}",
+            f" F1: {f1 * 100:.2f}",
         )
 
     if conll_subparts_num == 3:
         conll = (conll / 3) * 100
-        logger.info("CoNLL score: %.2f" % conll)
+        logger.info(f"CoNLL score: {conll:.2f}")
         output_scores.update({"conll_score": conll})
 
     return output_scores

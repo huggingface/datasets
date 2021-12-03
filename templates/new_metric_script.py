@@ -97,7 +97,7 @@ class NewMetric(datasets.Metric):
             second_score = sum(abs(len(i) - len(j)) for i, j in zip(predictions, references) if i not in self.bad_words)
             second_score /= sum(i not in self.bad_words for i in predictions)
         else:
-            raise ValueError("Invalid config name for NewMetric: {}. Please use 'max' or 'mean'.".format(self.config_name))
+            raise ValueError(f"Invalid config name for NewMetric: {self.config_name}. Please use 'max' or 'mean'.")
 
         return {
             "accuracy": accuracy,

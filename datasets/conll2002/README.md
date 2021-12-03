@@ -22,9 +22,10 @@ task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
 paperswithcode_id: conll-2002
+pretty_name: CoNLL-2002
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CoNLL-2002
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -55,7 +56,7 @@ paperswithcode_id: conll-2002
 - **Homepage:** [homepage](https://www.clips.uantwerpen.be/conll2002/ner/)
 - **Repository:** [github](https://github.com/teropa/nlp/tree/master/resources/corpora/conll2002)
 - **Paper:** [paper](https://www.aclweb.org/anthology/W02-2024/)
-- **Point of Contact:** erikt@uia.ua.ac.be
+- **Point of Contact:** [Erik Tjong Kim Sang](erikt@uia.ua.ac.be)
 
 ### Dataset Summary
 

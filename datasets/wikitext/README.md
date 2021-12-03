@@ -6,7 +6,8 @@ language_creators:
 languages:
 - en
 licenses:
-- cc-by-sa-4.0
+- cc-by-sa-3.0
+- gfdl-1.3-or-later
 multilinguality:
 - monolingual
 paperswithcode_id: wikitext-2

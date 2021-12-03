@@ -7,7 +7,7 @@ import time
 from asyncio import TimeoutError
 from itertools import chain
 from pathlib import Path, PurePosixPath
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
@@ -263,6 +263,9 @@ def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]
                 url += "&confirm=" + v
                 cookies = response.cookies
                 kwargs["cookies"] = cookies
+    if url.startswith("https://raw.githubusercontent.com/"):
+        # Workaround for served data with gzip content-encoding: https://github.com/fsspec/filesystem_spec/issues/389
+        kwargs["block_size"] = 0
     return url, kwargs
 
 
@@ -288,6 +291,31 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
+
+
+def xlistdir(path: str, use_auth_token: Optional[Union[str, bool]] = None) -> List[str]:
+    """Extend `os.listdir` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`list` of :obj:`str`
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.listdir(path)
+    else:
+        # globbing inside a zip in a private repo requires authentication
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        objects = fs.listdir(main_hop.split("://")[1])
+        return [os.path.basename(obj["name"]) for obj in objects]
 
 
 def xpathopen(path: Path, *args, **kwargs):
@@ -431,8 +459,8 @@ class StreamingDownloadManager(object):
     ):
         self._dataset_name = dataset_name
         self._data_dir = data_dir
-        self._download_config = download_config or DownloadConfig()
         self._base_path = base_path or os.path.abspath(".")
+        self.download_config = download_config or DownloadConfig()
 
     @property
     def manual_dir(self):
@@ -455,7 +483,7 @@ class StreamingDownloadManager(object):
 
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
-        protocol = _get_extraction_protocol(urlpath, use_auth_token=self._download_config.use_auth_token)
+        protocol = _get_extraction_protocol(urlpath, use_auth_token=self.download_config.use_auth_token)
         if protocol is None:
             # no extraction
             return urlpath
@@ -484,7 +512,7 @@ class StreamingDownloadManager(object):
             Generator yielding tuple (path_within_archive, file_obj).
             File-Obj are opened in byte mode (io.BufferedReader)
         """
-        with xopen(urlpath, "rb", use_auth_token=self._download_config.use_auth_token) as f:
+        with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
             stream = tarfile.open(fileobj=f, mode="r|*")
             for tarinfo in stream:
                 file_path = tarinfo.name

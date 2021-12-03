@@ -105,14 +105,14 @@ class HeadQA(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "train_{}.json".format(dir))}
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, f"train_{dir}.json")}
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "test_{}.json".format(dir))}
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, f"test_{dir}.json")}
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir, "dev_{}.json".format(dir))},
+                gen_kwargs={"filepath": os.path.join(data_dir, f"dev_{dir}.json")},
             ),
         ]
 

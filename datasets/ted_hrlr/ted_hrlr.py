@@ -123,24 +123,24 @@ class TedHrlr(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "source_file": data_dir + "/" + "{}.train".format(source.replace("_", "-")),
-                    "target_file": data_dir + "/" + "{}.train".format(target),
+                    "source_file": data_dir + "/" + f"{source.replace('_', '-')}.train",
+                    "target_file": data_dir + "/" + f"{target}.train",
                     "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "source_file": data_dir + "/" + "{}.dev".format(source.split("_")[0]),
-                    "target_file": data_dir + "/" + "{}.dev".format(target),
+                    "source_file": data_dir + "/" + f"{source.split('_')[0]}.dev",
+                    "target_file": data_dir + "/" + f"{target}.dev",
                     "files": dl_manager.iter_archive(archive),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "source_file": data_dir + "/" + "{}.test".format(source.split("_")[0]),
-                    "target_file": data_dir + "/" + "{}.test".format(target),
+                    "source_file": data_dir + "/" + f"{source.split('_')[0]}.test",
+                    "target_file": data_dir + "/" + f"{target}.test",
                     "files": dl_manager.iter_archive(archive),
                 },
             ),

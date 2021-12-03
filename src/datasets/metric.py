@@ -167,13 +167,13 @@ class Metric(MetricInfoMixin):
         MetricInfoMixin.__init__(self, info)  # For easy access on low level
 
         # Safety checks on num_process and process_id
-        assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
-        assert (
-            isinstance(num_process, int) and num_process > process_id
-        ), "'num_process' should be a number greater than process_id"
-        assert (
-            num_process == 1 or not keep_in_memory
-        ), "Using 'keep_in_memory' is not possible in distributed setting (num_process > 1)."
+        if not isinstance(process_id, int) or process_id < 0:
+            raise ValueError("'process_id' should be a number greater than 0")
+        if not isinstance(num_process, int) or num_process <= process_id:
+            raise ValueError("'num_process' should be a number greater than process_id")
+        if keep_in_memory and num_process != 1:
+            raise ValueError("Using 'keep_in_memory' is not possible in distributed setting (num_process > 1).")
+
         self.num_process = num_process
         self.process_id = process_id
         self.max_concurrent_cache_files = max_concurrent_cache_files

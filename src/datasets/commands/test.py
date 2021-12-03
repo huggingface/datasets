@@ -169,13 +169,13 @@ class TestCommand(BaseDatasetsCLICommand):
                     dataset_dir = path
                 else:  # in case of a remote dataset
                     dataset_dir = None
-                    print("Dataset Infos file saved at {}".format(dataset_infos_path))
+                    print(f"Dataset Infos file saved at {dataset_infos_path}")
 
                 # Move dataset_info back to the user
                 if dataset_dir is not None:
                     user_dataset_infos_path = os.path.join(dataset_dir, datasets.config.DATASETDICT_INFOS_FILENAME)
                     copyfile(dataset_infos_path, user_dataset_infos_path)
-                    print("Dataset Infos file saved at {}".format(user_dataset_infos_path))
+                    print(f"Dataset Infos file saved at {user_dataset_infos_path}")
 
             # If clear_cache=True, the download folder and the dataset builder cache directory are deleted
             if self._clear_cache:

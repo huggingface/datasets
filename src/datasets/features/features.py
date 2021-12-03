@@ -360,7 +360,7 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
         assert (
             self.ndims is not None and self.ndims > 1
         ), "You must instantiate an array type with a value for dim that is > 1"
-        assert len(shape) == self.ndims, "shape={} and ndims={} dom't match".format(shape, self.ndims)
+        assert len(shape) == self.ndims, f"shape={shape} and ndims={self.ndims} dom't match"
         self.shape = tuple(shape)
         self.value_type = dtype
         self.storage_dtype = self._generate_dtype(self.value_type)
@@ -475,7 +475,7 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
         if array.type.shape[0] is None:
             raise NotImplementedError(
                 "Dynamic first dimension is not supported for "
-                "PandasArrayExtensionDtype, dimension: {}".format(array.type.shape)
+                f"PandasArrayExtensionDtype, dimension: {array.type.shape}"
             )
         zero_copy_only = _is_zero_copy_only(array.type)
         if isinstance(array, pa.ChunkedArray):
@@ -592,7 +592,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 
     def __eq__(self, other) -> np.ndarray:
         if not isinstance(other, PandasArrayExtensionArray):
-            raise NotImplementedError("Invalid type to compare to: {}".format(type(other)))
+            raise NotImplementedError(f"Invalid type to compare to: {type(other)}")
         return (self._data == other._data).all()
 
 
@@ -648,7 +648,7 @@ class ClassLabel:
         elif self.num_classes != len(self.names):
             raise ValueError(
                 "ClassLabel number of names do not match the defined num_classes. "
-                "Got {} names VS {} num_classes".format(len(self.names), self.num_classes)
+                f"Got {len(self.names)} names VS {self.num_classes} num_classes"
             )
         # Prepare mappings
         self._int2str = [str(name) for name in self.names]
@@ -684,7 +684,7 @@ class ClassLabel:
                 except ValueError:
                     failed_parse = True
                 if failed_parse or not 0 <= value < self.num_classes:
-                    raise ValueError("Invalid string class label %s" % value)
+                    raise ValueError(f"Invalid string class label {value}")
         return output if return_list else output[0]
 
     def int2str(self, values: Union[int, Iterable]):
@@ -699,7 +699,7 @@ class ClassLabel:
 
         for v in values:
             if not 0 <= v < self.num_classes:
-                raise ValueError("Invalid integer class label %d" % v)
+                raise ValueError(f"Invalid integer class label {v:d}")
 
         if self._int2str:
             output = [self._int2str[int(v)] for v in values]
@@ -721,9 +721,7 @@ class ClassLabel:
 
         # Allowing -1 to mean no label.
         if not -1 <= example_data < self.num_classes:
-            raise ValueError(
-                "Class label %d greater than configured num_classes %d" % (example_data, self.num_classes)
-            )
+            raise ValueError(f"Class label {example_data:d} greater than configured num_classes {self.num_classes}")
         return example_data
 
     @staticmethod
@@ -837,7 +835,7 @@ def encode_nested_example(schema, obj):
                 return list_dict
         # schema.feature is not a dict
         if isinstance(obj, str):  # don't interpret a string as a list
-            raise ValueError("Got a string but expected a list instead: '{}'".format(obj))
+            raise ValueError(f"Got a string but expected a list instead: '{obj}'")
         if obj is None:
             return None
         else:
@@ -851,7 +849,7 @@ def encode_nested_example(schema, obj):
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+    elif isinstance(schema, (Audio, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
         return schema.encode_example(obj)
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
@@ -963,7 +961,8 @@ class Features(dict):
            :class:`datasets.Sequence`.
 
         - a :class:`Array2D`, :class:`Array3D`, :class:`Array4D` or :class:`Array5D` feature for multidimensional arrays
-        - a :class:`datasets.Audio` stores the path to an audio file and can extract audio data from it
+        - an :class:`Audio` feature to store the absolute path to an audio file or a dictionary with the relative path
+          to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
         - :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`, the two features specific to Machine Translation
     """
 
@@ -1044,7 +1043,7 @@ class Features(dict):
         """
         encoded_batch = {}
         if set(batch) != set(self):
-            raise ValueError("Column mismatch between batch {} and features {}".format(set(batch), set(self)))
+            raise ValueError(f"Column mismatch between batch {set(batch)} and features {set(self)}")
         for key, column in batch.items():
             column = cast_to_python_objects(column)
             encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]

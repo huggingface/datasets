@@ -4,7 +4,7 @@ import pytest
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
 from datasets.io.parquet import ParquetDatasetReader, ParquetDatasetWriter
 
-from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases, require_pyarrow_at_least_3
+from ..utils import assert_arrow_memory_doesnt_increase, assert_arrow_memory_increases
 
 
 def _check_parquet_dataset(dataset, expected_features):
@@ -16,7 +16,6 @@ def _check_parquet_dataset(dataset, expected_features):
         assert dataset.features[feature].dtype == expected_dtype
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_dataset_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
@@ -26,7 +25,6 @@ def test_dataset_from_parquet_keep_in_memory(keep_in_memory, parquet_path, tmp_p
     _check_parquet_dataset(dataset, expected_features)
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize(
     "features",
     [
@@ -48,7 +46,6 @@ def test_dataset_from_parquet_features(features, parquet_path, tmp_path):
     _check_parquet_dataset(dataset, expected_features)
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 def test_dataset_from_parquet_split(split, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
@@ -58,7 +55,6 @@ def test_dataset_from_parquet_split(split, parquet_path, tmp_path):
     assert dataset.split == str(split) if split else "train"
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize("path_type", [str, list])
 def test_dataset_from_parquet_path_type(path_type, parquet_path, tmp_path):
     if issubclass(path_type, str):
@@ -82,7 +78,6 @@ def _check_parquet_datasetdict(dataset_dict, expected_features, splits=("train",
             assert dataset.features[feature].dtype == expected_dtype
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize("keep_in_memory", [False, True])
 def test_parquet_datasetdict_reader_keep_in_memory(keep_in_memory, parquet_path, tmp_path):
     cache_dir = tmp_path / "cache"
@@ -94,7 +89,6 @@ def test_parquet_datasetdict_reader_keep_in_memory(keep_in_memory, parquet_path,
     _check_parquet_datasetdict(dataset, expected_features)
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize(
     "features",
     [
@@ -116,7 +110,6 @@ def test_parquet_datasetdict_reader_features(features, parquet_path, tmp_path):
     _check_parquet_datasetdict(dataset, expected_features)
 
 
-@require_pyarrow_at_least_3
 @pytest.mark.parametrize("split", [None, NamedSplit("train"), "train", "test"])
 def test_parquet_datasetdict_reader_split(split, parquet_path, tmp_path):
     if split:
@@ -131,7 +124,6 @@ def test_parquet_datasetdict_reader_split(split, parquet_path, tmp_path):
     assert all(dataset[split].split == split for split in path.keys())
 
 
-@require_pyarrow_at_least_3
 def test_parquer_write(dataset, tmp_path):
     writer = ParquetDatasetWriter(dataset, tmp_path / "foo.parquet")
     assert writer.write() > 0
