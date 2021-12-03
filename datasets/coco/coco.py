@@ -251,15 +251,14 @@ class COCO(datasets.GeneratorBasedBuilder):
         if not instances:
           annotation_skipped += 1
 
-        #this needs to be changed
         def build_bbox(x, y, width, height):
 
-          return tfds.features.BBox(
+          return [
               ymin=y / image_info['height'],
               xmin=x / image_info['width'],
               ymax=(y + height) / image_info['height'],
               xmax=(x + width) / image_info['width'],
-          )
+          ]
 
 
         example = {
