@@ -154,13 +154,13 @@ over `dataset["audio"][0]`.
 an integer value corresponding to the class name.
 * `is_unknown`: if a word is auxiliary. Equals to `False` if a word is a core word or `"_silence_"`, 
 `True` if a word is an auxiliary word. 
-* `speaker_id`: unique id of a speaker. Equals to `None` if label is `_background_noise_`.
+* `speaker_id`: unique id of a speaker. Equals to `None` if label is `_silence_`.
 * `utterance_id`: incremental id of a word utterance. 
 
 ### Data Splits
 
 The dataset has two versions (= configurations): `"v0.01"` and `"v0.02"`. `"v0.02"` 
-contains more labels (see section [Source Data](#source-data) for more details).
+contains more words (see section [Source Data](#source-data) for more details).
 
 |       | train | validation | test |
 |-----  |------:|-----------:|-----:|
@@ -202,12 +202,12 @@ people speaking single-word commands, rather than conversational sentences, so
 they were prompted for individual words over the course of a five minute
 session. 
 
-In the version 0.01 thirty different words were recoded: "Yes", "No", "Up", "Down", "Left",
+In version 0.01 thirty different words were recoded: "Yes", "No", "Up", "Down", "Left",
 "Right", "On", "Off", "Stop", "Go", "Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", 
 "Bed", "Bird", "Cat", "Dog", "Happy", "House", "Marvin", "Sheila", "Tree", "Wow". 
 
 
-In the version 0.02 more words were added: "Backward", "Forward", "Follow", "Learn", "Visual".
+In version 0.02 more words were added: "Backward", "Forward", "Follow", "Learn", "Visual".
 
 In both versions, ten of them are used as commands by convention: "Yes", "No", "Up", "Down", "Left",
 "Right", "On", "Off", "Stop", "Go". Other words are considered to be auxiliary (in current implementation 
