@@ -87,7 +87,7 @@ The language data in SpeechCommands is in English (BCP-47 `en`).
 
 ### Data Instances
 
-Example of a core word (`"label"` is a word, `"is_unknown"` is False):
+Example of a core word (`"label"` is a word, `"is_unknown"` is `False`):
 ```python
 {
   "file": "no/7846fd85_nohash_0.wav", 
@@ -98,28 +98,30 @@ Example of a core word (`"label"` is a word, `"is_unknown"` is False):
     "sampling_rate": 16000
     },
   "label": 1,  # "no"
+  "is_unknown": False,
   "speaker_id": "7846fd85",
   "utterance_id": 0
 }
 ```
 
-Example of an auxiliary word (`"label"` is a word, `"is_unknown"` is True)
+Example of an auxiliary word (`"label"` is a word, `"is_unknown"` is `True`)
 ```python
 {
-  "file": "eight/1b88bf70_nohash_0.wav", 
+  "file": "tree/8b775397_nohash_0.wav", 
   "audio": {
-    "path": "eight/1b88bf70_nohash_0.wav", 
-    "array": array([ 0.00436401,  0.00482178,  0.00561523, ..., -0.00683594,
-         -0.00585938, -0.00598145]), 
+    "path": "tree/8b775397_nohash_0.wav", 
+    "array": array([ -0.00854492, -0.01339722, -0.02026367, ...,  0.00274658,
+          0.00335693,  0.0005188]), 
     "sampling_rate": 16000
     },
-  "label": 18,  # "eight"
+  "label": 28,  # "tree"
+  "is_unknown": True,
   "speaker_id": "1b88bf70",
   "utterance_id": 0
 }
 ```
 
-Example of `"_silence_"` (aka `"_background_noise_"`):
+Example of `"_silence_"`:
 
 ```python
 {
@@ -131,6 +133,7 @@ Example of `"_silence_"` (aka `"_background_noise_"`):
     "sampling_rate": 16000
     }, 
   "label": 25,  # "_silence_"
+  "is_unknown": False,
   "speaker_id": "None",
   "utterance_id": 0  # doesn't make sense here
 }
@@ -147,23 +150,38 @@ Decoding and resampling of a large number of audio files might take a significan
 amount of time. Thus, it is important to first query the sample index before 
 the `"audio"` column, i.e. `dataset[0]["audio"]` should always be preferred 
 over `dataset["audio"][0]`.
-* `label`: label of a word or `_silence_` class pronounced in an audio sample. Note that it's
-an integer value.
+* `label`: either word pronounced in an audio sample or `_silence_`. Note that it's
+an integer value corresponding to the class name.
 * `is_unknown`: if a word is auxiliary. Equals to `False` if a word is a core word or `"_silence_"`, 
-`True` if a word is 
-an auxiliary word. 
+`True` if a word is an auxiliary word. 
 * `speaker_id`: unique id of a speaker. Equals to `None` if label is `_background_noise_`.
 * `utterance_id`: incremental id of a word utterance. 
 
 ### Data Splits
 
 The dataset has two versions (= configurations): `"v0.01"` and `"v0.02"`. `"v0.02"` 
-contains more target and auxiliary words (see section [Source Data](#source-data) for more details).
+contains more labels (see section [Source Data](#source-data) for more details).
 
 |       | train | validation | test |
 |-----  |------:|-----------:|-----:|
 | v0.01 | 51093 |       6799 | 3081 |
 | v0.02 | 84848 |       9982 | 4890 |
+
+Note that in train and validation sets examples of `_silence_` class are longer than 1 second.
+You can use the following code to sample 1-second examples from the longer ones:
+
+```python
+def sample_noise(example):
+    # Use this function to extract random 1 sec slices of each _silence_ utterance,
+    # e.g. inside `torch.utils.data.Dataset.__getitem__()`
+    from random import randint
+
+    if example["label"] == "_silence_":
+        random_offset = randint(0, len(example["speech"]) - example["sample_rate"] - 1)
+        example["speech"] = example["speech"][random_offset : random_offset + example["sample_rate"]]
+
+    return example
+```
 
 ## Dataset Creation
 
@@ -182,16 +200,22 @@ The audio files were collected using crowdsourcing, see
 for some of the open source audio collection code that was used. The goal was to gather examples of
 people speaking single-word commands, rather than conversational sentences, so
 they were prompted for individual words over the course of a five minute
-session. In version 0.01 twenty command words were recoded, with most speakers saying each
-of them five times: "Yes", "No", "Up", "Down", "Left",
-"Right", "On", "Off", "Stop", "Go", and digits from zero to nine. 
-More command words were added in the version 0.02: 
-"Backward", "Forward", "Follow", "Learn".
-To help distinguish unrecognized words, there are also several auxiliary (`_unknown_`) words, 
-which most speakers only said once.
+session. 
 
-The `_background_noise_` class contains a set of  longer audio clips that are either recordings or 
-a mathematical simulations of noise.
+In the version 0.01 thirty different words were recoded: "Yes", "No", "Up", "Down", "Left",
+"Right", "On", "Off", "Stop", "Go", "Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", 
+"Bed", "Bird", "Cat", "Dog", "Happy", "House", "Marvin", "Sheila", "Tree", "Wow". 
+
+
+In the version 0.02 more words were added: "Backward", "Forward", "Follow", "Learn", "Visual".
+
+In both versions, ten of them are used as commands by convention: "Yes", "No", "Up", "Down", "Left",
+"Right", "On", "Off", "Stop", "Go". Other words are considered to be auxiliary (in current implementation 
+it is marked by `True` value of `"is_unknown"` feature). Their function is to teach a model to distinguish core words 
+from unrecognized ones.  
+
+The `_silence_` class contains a set of longer audio clips that are either recordings or 
+a mathematical simulation of noise.
 
 #### Who are the source language producers?
 
@@ -253,4 +277,4 @@ Creative Commons BY 4.0 License.
 ```
 ### Contributions
 
-Thanks to [@polinaeterna](https://github.com/polinaeterna) and ... for adding this dataset.
+Thanks to [@polinaeterna](https://github.com/polinaeterna) and ..?.. for adding this dataset.
