@@ -101,8 +101,16 @@ This dataset is in English (`EN`).
 #### hacker_news
 ```
 {
-  'text': ""\nChina Deserves Donald Trump - rm2889\nhttps://www.nytimes.com/2019/05/21/opinion/china-trump-trade.html\n======\nNotPaidToPost\n> so he’d be wise to curb his nationalistic “no-one-tells-China-what-to-do”\n> bluster\n\nThis comment highlights both ignorance of Chinese history and continuing\nAmerican arrogance.\n\nChina has been painfully dictated what to do during the last 200 years. This\nhas had a profound effect on the country and has led to the collapse of\nimperial rule and the drive to 'rejuvenate'...",
-  'meta':  "{'id': '19979654'}}",
+  'text': "\nChina Deserves Donald Trump - rm2889\nhttps://www.nytimes.com/2019/05/21/opinion/china-trump-trade.html\n======\nNotPaidToPost\n> so he’d be wise to curb his nationalistic “no-one-tells-China-what-to-do”\n> bluster\n\nThis comment highlights both ignorance of Chinese history and continuing\nAmerican arrogance.\n\nChina has been painfully dictated what to do during the last 200 years. This\nhas had a profound effect on the country and has led to the collapse of\nimperial rule and the drive to 'rejuvenate'...",
+  'meta':  "{'id': '19979654'}",
+}
+```
+
+#### nih_exporter
+```
+{
+  'text': "The National Domestic Violence Hotline (NDVH) and the National Dating Abuse Helpline (NDAH), which are supported by the Division of Family Violence Prevention and Services within the Family and Youth Services Bureau, serve as critical partners in the intervention, prevention, and resource assistance efforts of the network of family violence, domestic violence, and dating violence service providers. They provide crisis intervention and support services; information about resources on domestic...",
+  'meta':  " {'APPLICATION_ID': 100065}",
 }
 ```
 
@@ -143,43 +151,48 @@ This dataset is in English (`EN`).
 #### all
 
 - `text` (str): Text.
-- `meta` (dict): Metadata of the data instance, with keys:
+- `meta` (dict): Metadata of the data instance with keys:
   - pile_set_name: Name of the subset.
 
 #### europarl
 
 - `text` (str): Text.
-- `meta` (str): Metadata of the data instance, with: language.
+- `meta` (str): Metadata of the data instance with: language.
 
 #### free_law
 
 - `text` (str): Text.
-- `meta` (str): Metadata of the data instance, with: case_ID, case_jurisdiction, date_created.
+- `meta` (str): Metadata of the data instance with: case_ID, case_jurisdiction, date_created.
 
 #### hacker_news
 
 - `text` (str): Text.
-- `meta` (str): Metadata of the data instance, with: id.
+- `meta` (str): Metadata of the data instance with: id.
+
+#### nih_exporter
+
+- `text` (str): Text.
+- `meta` (str): Metadata of the data instance with: APPLICATION_ID.
 
 #### pubmed
 
 - `text` (str): Text.
-- `meta` (str): Metadata of the data instance, with: pmid, language.
+- `meta` (str): Metadata of the data instance with: pmid, language.
 
 #### pubmed_central
 
 - `text` (str): Text.
-- `meta` (str): Metadata of the data instance, with: ID of the data instance.
+- `meta` (str): Metadata of the data instance with: ID of the data instance.
 
 #### ubuntu_irc
 
 - `text` (str): Text.
-- `meta` (str): Metadata of the data instance, with: channel, month.
+- `meta` (str): Metadata of the data instance with: channel, month.
 
 #### uspto
 
 - `text` (str): Text.
-- `meta` (str): Metadata of the data instance, with: bibliographic_information, source_file, abstract, classifications, 
+- `meta` (str): Metadata of the data instance with: bibliographic_information, source_file, abstract, classifications, 
   inventors.
 
 ### Data Splits
