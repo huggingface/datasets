@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -211,7 +211,6 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, archive, split_files):
-        key = 0
         for path, file in archive:
             path = path.lstrip("./")
             # file is either from train or val iterators but its not in corresponding split's filenames list
@@ -224,7 +223,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             word = os.path.split(relpath)[-1]
             is_unknown = False
             if word in [BACKGROUND, SILENCE]:
-                yield key, {
+                yield path, {
                     "file": path,
                     "audio": {"path": path, "bytes": file.read()},
                     "label": SILENCE,  # not BACKGROUND for the convention purposes
@@ -232,7 +231,6 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                     "speaker_id": None,
                     "utterance_id": 0,
                 }
-                key += 1
                 continue
             else:  # word is either in WORDS or unknown
                 label = word
@@ -247,7 +245,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 # a standard filename looks like `0bac8a71_nohash_0.wav`
                 speaker_id, _, utterance_id = audio_filename.split(".wav")[0].split("_")
 
-            yield key, {
+            yield path, {
                 "file": path,
                 "audio": {"path": path, "bytes": file.read()},
                 "label": label,
@@ -255,7 +253,6 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 "speaker_id": speaker_id,
                 "utterance_id": utterance_id,
             }
-            key += 1
 
 
 def _get_train_val_filenames(archive):
