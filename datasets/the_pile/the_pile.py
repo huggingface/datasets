@@ -39,6 +39,7 @@ _HOMEPAGE = "https://pile.eleuther.ai/"
 
 _LICENSES = {
     "all": "Multiple: see each subset license",
+    "europarl": "Unknown",
     "free_law": "Unknown",
     "pubmed": "Unknown",
     "pubmed_central": "Unknown",
@@ -52,6 +53,7 @@ _DATA_URLS = {
         "validation": ["https://the-eye.eu/public/AI/pile/val.jsonl.zst"],
         "test": ["https://the-eye.eu/public/AI/pile/test.jsonl.zst"],
     },
+    "europarl": "https://the-eye.eu/public/AI/pile_preliminary_components/EuroParliamentProceedings_1996_2011.jsonl.zst",
     "free_law": "https://the-eye.eu/public/AI/pile_preliminary_components/FreeLaw_Opinions.jsonl.zst",
     "pubmed": "https://the-eye.eu/public/AI/pile_preliminary_components/PUBMED_title_abstracts_2019_baseline.jsonl.zst",
     "pubmed_central": "https://the-eye.eu/public/AI/pile_preliminary_components/PMC_extracts.tar.gz",
@@ -64,6 +66,12 @@ _FEATURES = {
         {
             "text": datasets.Value("string"),
             "meta": {"pile_set_name": datasets.Value("string")},
+        }
+    ),
+    "europarl": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
         }
     ),
     "free_law": datasets.Features(
@@ -189,7 +197,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
                         key += 1
         else:
             for subset in files:
-                if subset in ["free_law", "pubmed", "ubuntu_irc"]:
+                if subset in ["europarl", "free_law", "pubmed", "ubuntu_irc"]:
                     import zstandard as zstd
 
                     with zstd.open(open(files[subset], "rb"), "rt", encoding="utf-8") as f:
