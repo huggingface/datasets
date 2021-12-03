@@ -64,8 +64,9 @@ class CocoAnnotation(object):
   """Coco annotation helper class."""
 
   def __init__(self, annotation_path):
-    f = open(annotation_path, "r")
-    data = json.load(f)
+    with open(annotation_path,encoding='utf8') as f:
+        data = json.load(f)
+    
     self._data = data
 
   @property
