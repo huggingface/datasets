@@ -231,7 +231,7 @@ class COCO(datasets.GeneratorBasedBuilder):
                 'image/id': datasets.Value("int64"),
             }
           )
-      if self.builder_configs.has_panoptic:
+      if self.config.has_panoptic:
         features.update({
           'panoptic_image':
               datasets.Image(),
@@ -255,14 +255,16 @@ class COCO(datasets.GeneratorBasedBuilder):
 
 
 
-    def _split_generators(self, dl_manager):
+    def _split_generators(self, dl_manager, BUILDER_CONFIGS = BUILDER_CONFIGS):
         urls = {}
-        for config in BUILDER_CONFIGS:
-            urls['{}_images'.format(config.name)] = 'zips/{}.zip'.format(config.split["images"])
-            urls['{}_annotations'.format(config.name)] = 'annotations/{}.zip'.format(
-                config.split["annotations"])
+        root_url = 'http://images.cocodataset.org/'
+        for split in self.config.split:
+            urls['{}_images'.format(split.name)] = 'zips/{}.zip'.format(split.images)
+            urls['{}_annotations'.format(split.name)] = 'annotations/{}.zip'.format(
+            split.annotations)
             
-        extracted_paths = dl_manager.download_and_extract({key: root_url + url for key, url in urls.items()})
+        extracted_paths = dl_manager.download_and_extract(
+        {key: root_url + url for key, url in urls.items()})
         archive = dl_manager.download(_DATA_URL)
 
         return [
@@ -339,7 +341,7 @@ class COCO(datasets.GeneratorBasedBuilder):
         # }
         images = coco_annotation.images
 
-        if self.builder_configs.has_panoptic:
+        if self.config.has_panoptic:
             objects_key = 'panoptic_objects'
         else:
             objects_key = 'objects'
@@ -402,7 +404,7 @@ class COCO(datasets.GeneratorBasedBuilder):
                     'is_crowd': bool(instance['iscrowd']),
                 } for instance in instances]
             }
-            if self.builder_configs.has_panoptic:
+            if self.config.has_panoptic:
                 panoptic_filename = panoptic_annotation['file_name']
                 panoptic_image_path = os.path.join(panoptic_dir, panoptic_filename)
                 example['panoptic_image'] = panoptic_image_path
