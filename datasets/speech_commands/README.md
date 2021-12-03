@@ -87,81 +87,83 @@ The language data in SpeechCommands is in English (BCP-47 `en`).
 
 ### Data Instances
 
-Example of target class:
+Example of a core word (`"label"` is a word, `"is_unknown"` is False):
 ```python
 {
-  "file": "path_to_data/down/a929f9b9_nohash_0.wav", 
+  "file": "no/7846fd85_nohash_0.wav", 
   "audio": {
-    "path": "path_to_data/down/a929f9b9_nohash_0.wav", 
-    "array": array([ 3.0517578e-05, -3.0517578e-05, -6.1035156e-05, ...,
-          3.0517578e-05,  1.5258789e-04, -3.0517578e-05], dtype=float32), 
+    "path": "no/7846fd85_nohash_0.wav", 
+    "array": array([ -0.00021362, -0.00027466, -0.00036621, ...,  0.00079346,
+          0.00091553,  0.00079346]), 
     "sampling_rate": 16000
     },
-  "label": 3,  # "down"
-  "speaker_id": "a929f9b9",
+  "label": 1,  # "no"
+  "speaker_id": "7846fd85",
   "utterance_id": 0
 }
 ```
 
-Example of `_unknown_` class:
+Example of an auxiliary word (`"label"` is a word, `"is_unknown"` is True)
 ```python
 {
-  "file": "path_to_data/bird/0b40aa8e_nohash_1.wav", 
+  "file": "eight/1b88bf70_nohash_0.wav", 
   "audio": {
-    "path": "path_to_data/bird/0b40aa8e_nohash_1.wav", 
-    "array": array([-0.00018311, -0.00119019, -0.00076294, ...,  0.0007019 ,
-          0.        , -0.00073242], dtype=float32),
+    "path": "eight/1b88bf70_nohash_0.wav", 
+    "array": array([ 0.00436401,  0.00482178,  0.00561523, ..., -0.00683594,
+         -0.00585938, -0.00598145]), 
     "sampling_rate": 16000
     },
-  "label": 24,
-  "speaker_id": "0b40aa8e",
-  "utterance_id": 1
+  "label": 18,  # "eight"
+  "speaker_id": "1b88bf70",
+  "utterance_id": 0
 }
 ```
 
-Example of `_background_noise_` class:
+Example of `"_silence_"` (aka `"_background_noise_"`):
+
 ```python
 {
-  "file": "path_to_data/_background_noise_/doing_the_dishes.wav", 
+  "file": "_background_noise_/doing_the_dishes.wav", 
   "audio": {
-    "path": "path_to_data/_background_noise_/doing_the_dishes.wav", 
+    "path": "_background_noise_/doing_the_dishes.wav", 
     "array": array([ 0.        ,  0.        ,  0.        , ..., -0.00592041,
-         -0.00405884, -0.00253296], dtype=float32), 
+         -0.00405884, -0.00253296]), 
     "sampling_rate": 16000
     }, 
-  "label": 25,  # "_background_noise_"
+  "label": 25,  # "_silence_"
   "speaker_id": "None",
-  "utterance_id": 0
+  "utterance_id": 0  # doesn't make sense here
 }
 ```
-
 
 ### Data Fields
 
-* `file`: path to the downloaded audio file in .wav format.
-* `audio`: dictionary containing the path to the downloaded audio file, 
-the decoded audio array, and the sampling rate. Note that when accessing 
+* `file`: relative audio filename inside an original archive. 
+* `audio`: dictionary containing a relative audio filename, 
+a decoded audio array, and the sampling rate. Note that when accessing 
 the audio column: `dataset[0]["audio"]` the audio file is automatically decoded 
 and resampled to `dataset.features["audio"].sampling_rate`. 
 Decoding and resampling of a large number of audio files might take a significant 
-amount of time. Thus it is important to first query the sample index before 
+amount of time. Thus, it is important to first query the sample index before 
 the `"audio"` column, i.e. `dataset[0]["audio"]` should always be preferred 
 over `dataset["audio"][0]`.
-* `label`: label of an audio sample. Can be one of a set of target words, `_unknown_` or `_background_noise_`.
-* `speaker_id`: unique id of a speaker. Equals to `"None"` if label is `_background_noise_`.
-* `utterance_id`: incremental id of a word utterance. Doesn't make sense if label is `_unknown_` or `_background_noise_`.
+* `label`: label of a word or `_silence_` class pronounced in an audio sample. Note that it's
+an integer value.
+* `is_unknown`: if a word is auxiliary. Equals to `False` if a word is a core word or `"_silence_"`, 
+`True` if a word is 
+an auxiliary word. 
+* `speaker_id`: unique id of a speaker. Equals to `None` if label is `_background_noise_`.
+* `utterance_id`: incremental id of a word utterance. 
 
 ### Data Splits
 
-The dataset has two versions (=configurations): `"v0.01"` and `"v0.02"`. `"v0.02"` contains more target and 
-`_unknown_` words (see section [Source Data](#source-data) for more details).
+The dataset has two versions (= configurations): `"v0.01"` and `"v0.02"`. `"v0.02"` 
+contains more target and auxiliary words (see section [Source Data](#source-data) for more details).
 
 |       | train | validation | test |
 |-----  |------:|-----------:|-----:|
-| v0.01 | 51094 |       6798 | 3081 |
-| v0.02 | 84849 |       9981 | 4890 |
-
-#### #TODO: correct num of samples in sets after review
+| v0.01 | 51093 |       6799 | 3081 |
+| v0.02 | 84848 |       9982 | 4890 |
 
 ## Dataset Creation
 
