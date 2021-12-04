@@ -225,7 +225,9 @@ The audio files were collected using crowdsourcing.
 
 #### Annotation process
 
-[More Information Needed]
+Labels are the list of words prepared in advances.
+Speakers were prompted for individual words over the course of a five minute
+session. 
 
 #### Who are the annotators?
 
