@@ -63,7 +63,7 @@ task_ids:
 This is a set of one-second .wav audio files, each containing a single spoken
 English word or background noise. These words are from a small set of commands, and are spoken by a
 variety of different speakers. This data set is designed to help train simple
-machine learning models. This dataset is covered in more detail at [https://arxiv.org/abs/1804.03209](https://arxiv.org/abs/1804.03209).
+machine learning models. It is covered in more detail at [https://arxiv.org/abs/1804.03209](https://arxiv.org/abs/1804.03209).
 
 Version 0.01 of the data set (configuration `"v0.01"`) was released on August 3rd 2017 and contains
 64,727 audio files. 
@@ -121,7 +121,7 @@ Example of an auxiliary word (`"label"` is a word, `"is_unknown"` is `True`)
 }
 ```
 
-Example of `"_silence_"`:
+Example of background noise (`_silence_`) class:
 
 ```python
 {
@@ -141,21 +141,21 @@ Example of `"_silence_"`:
 
 ### Data Fields
 
-* `file`: relative audio filename inside an original archive. 
+* `file`: relative audio filename inside the original archive. 
 * `audio`: dictionary containing a relative audio filename, 
 a decoded audio array, and the sampling rate. Note that when accessing 
-the audio column: `dataset[0]["audio"]` the audio file is automatically decoded 
+the audio column: `dataset[0]["audio"]` the audio is automatically decoded 
 and resampled to `dataset.features["audio"].sampling_rate`. 
-Decoding and resampling of a large number of audio files might take a significant 
+Decoding and resampling of a large number of audios might take a significant 
 amount of time. Thus, it is important to first query the sample index before 
 the `"audio"` column, i.e. `dataset[0]["audio"]` should always be preferred 
 over `dataset["audio"][0]`.
-* `label`: either word pronounced in an audio sample or `_silence_`. Note that it's
-an integer value corresponding to the class name.
-* `is_unknown`: if a word is auxiliary. Equals to `False` if a word is a core word or `"_silence_"`, 
+* `label`: either word pronounced in an audio sample or background noise (`_silence_`) class.
+Note that it's an integer value corresponding to the class name.
+* `is_unknown`: if a word is auxiliary. Equals to `False` if a word is a core word or `_silence_`, 
 `True` if a word is an auxiliary word. 
 * `speaker_id`: unique id of a speaker. Equals to `None` if label is `_silence_`.
-* `utterance_id`: incremental id of a word utterance. 
+* `utterance_id`: incremental id of a word utterance within the same speaker. 
 
 ### Data Splits
 
@@ -188,8 +188,8 @@ def sample_noise(example):
 ### Curation Rationale
 
 The primary goal of the dataset is to provide a way to build and test small 
-models that detect when a single word is spoken, from a set of target words, 
-with as few false positives as possible from background noise or unrelated speech. 
+models that can detect a single word from a set of target words and differentiate it 
+from background noise or unrelated speech with as few false positives as possible. 
 
 ### Source Data
 
@@ -214,7 +214,7 @@ In both versions, ten of them are used as commands by convention: "Yes", "No", "
 it is marked by `True` value of `"is_unknown"` feature). Their function is to teach a model to distinguish core words 
 from unrecognized ones.  
 
-The `_silence_` class contains a set of longer audio clips that are either recordings or 
+The `_silence_` label contains a set of longer audio clips that are either recordings or 
 a mathematical simulation of noise.
 
 #### Who are the source language producers?
