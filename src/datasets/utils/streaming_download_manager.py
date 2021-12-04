@@ -1,9 +1,11 @@
 import glob
+import io
 import os
 import posixpath
 import re
 import tarfile
 import time
+import zipfile
 from asyncio import TimeoutError
 from itertools import chain
 from pathlib import Path, PurePosixPath
@@ -512,18 +514,36 @@ class StreamingDownloadManager(object):
             Generator yielding tuple (path_within_archive, file_obj).
             File-Obj are opened in byte mode (io.BufferedReader)
         """
-        with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
-            stream = tarfile.open(fileobj=f, mode="r|*")
-            for tarinfo in stream:
-                file_path = tarinfo.name
-                if not tarinfo.isreg():
-                    continue
-                if file_path is None:
-                    continue
-                if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
-                    # skipping hidden files
-                    continue
-                file_obj = stream.extractfile(tarinfo)
-                yield (file_path, file_obj)
-                stream.members = []
-            del stream
+        extension = _get_extraction_protocol(urlpath)
+
+        if extension in ["zip", "gzip"]:
+            with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
+                zipf = zipfile.ZipFile(f)
+                for member in zipf.infolist():
+                    file_path = member.filename
+                    if member.is_dir():
+                        continue
+                    if file_path is None:
+                        continue
+                    if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                        # skipping hidden files
+                        continue
+                    file_obj = io.BufferedReader(zipf.open(member, "r"))
+                    yield (file_path, file_obj)
+
+        elif extension == "tar":
+            with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
+                stream = tarfile.open(fileobj=f, mode="r|*")
+                for tarinfo in stream:
+                    file_path = tarinfo.name
+                    if not tarinfo.isreg():
+                        continue
+                    if file_path is None:
+                        continue
+                    if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                        # skipping hidden files
+                        continue
+                    file_obj = stream.extractfile(tarinfo)
+                    yield (file_path, file_obj)
+                    stream.members = []
+                del stream
