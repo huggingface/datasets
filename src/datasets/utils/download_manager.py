@@ -21,10 +21,12 @@ import io
 import os
 import tarfile
 import zipfile
+import fsspec
 from datetime import datetime
 from functools import partial
-from pathlib import Path
 from typing import Dict, Optional, Union
+
+
 
 from .. import config
 from .file_utils import (
@@ -34,6 +36,13 @@ from .file_utils import (
     hash_url_to_filename,
     is_relative_path,
     url_or_path_join,
+    is_remote_url,
+)
+from .streaming_download_manager import (
+    _get_extraction_protocol_with_magic_number ,
+    _prepare_http_url_kwargs,
+    BASE_KNOWN_EXTENSIONS ,
+    COMPRESSION_EXTENSION_TO_PROTOCOL,
 )
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
@@ -66,7 +75,30 @@ class GenerateMode(enum.Enum):
     REUSE_CACHE_IF_EXISTS = "reuse_cache_if_exists"
     FORCE_REDOWNLOAD = "force_redownload"
 
+def _get_extraction_protocol_local(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
+    # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
+    path = urlpath.split("::")[0]
+    # Get extension: https://foo.bar/train.json.gz -> gz
+    
+    # Make sure tar.gz files are handled with tarfile library
+    extension = 'tar' if path.endswith('.tar.gz') else path.split('.')[-1]
+    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
+    # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
+    for symb in "?-_":
+        extension = extension.split(symb)[0]
+    if extension in BASE_KNOWN_EXTENSIONS:
+        return None
+    elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
+        return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
 
+    if is_remote_url(urlpath):
+        # get headers and cookies for authentication on the HF Hub and for Google Drive
+        urlpath, kwargs = _prepare_http_url_kwargs(urlpath, use_auth_token=use_auth_token)
+    else:
+        urlpath, kwargs = urlpath, {}
+    with fsspec.open(urlpath, **kwargs) as f:
+        return _get_extraction_protocol_with_magic_number(f)
+    
 class DownloadManager:
     def __init__(
         self,
@@ -217,36 +249,39 @@ class DownloadManager:
             # append the relative path to the base_path
             url_or_filename = url_or_path_join(self._base_path, url_or_filename)
         return cached_path(url_or_filename, download_config=download_config)
-
+    
     def iter_archive(self, path):
+           
         """Returns iterator over files within archive (zip and tar).
-
+    
         Args:
             path: path to archive.
-
+    
         Returns:
             Generator yielding tuple (path_within_archive, file_obj).
             File-Obj are opened in byte mode (io.BufferedReader)
         """
-        extension = Path(path).suffix
-        if extension == ".tar":
-            with open(path, "rb") as f:
-                stream = tarfile.open(fileobj=f, mode="r|*")
-                for tarinfo in stream:
-                    file_path = tarinfo.name
-                    if not tarinfo.isreg():
-                        continue
-                    if file_path is None:
-                        continue
-                    if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
-                        # skipping hidden files
-                        continue
-                    file_obj = stream.extractfile(tarinfo)
-                    yield (file_path, file_obj)
-                    stream.members = []
-                del stream
-
-        elif extension == ".zip":
+        
+        extension = _get_extraction_protocol_local(path)
+    
+        if extension == "tar":
+             with open(path, "rb") as f:
+                 stream = tarfile.open(fileobj=f, mode="r|*")
+                 for tarinfo in stream:
+                     file_path = tarinfo.name
+                     if not tarinfo.isreg():
+                         continue
+                     if file_path is None:
+                         continue
+                     if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                         # skipping hidden files
+                         continue
+                     file_obj = stream.extractfile(tarinfo)
+                     yield (file_path, file_obj)
+                     stream.members = []
+                 del stream
+        
+        elif extension in ["zip","gzip"]:
             zipf = zipfile.ZipFile(path)
             for member in zipf.infolist():
                 file_path = member.filename
@@ -258,6 +293,8 @@ class DownloadManager:
                     continue
                 file_obj = io.BufferedReader(zipf.open(member, "r"))
                 yield (file_path, file_obj)
+
+
 
     def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).
