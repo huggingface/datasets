@@ -23,6 +23,7 @@ import tarfile
 import zipfile
 from datetime import datetime
 from functools import partial
+from pathlib import Path
 from typing import Dict, Optional, Union
 
 import fsspec
@@ -252,7 +253,6 @@ class DownloadManager:
         return cached_path(url_or_filename, download_config=download_config)
 
     def iter_archive(self, path):
-
         """Returns iterator over files within archive (zip and tar).
 
         Args:
