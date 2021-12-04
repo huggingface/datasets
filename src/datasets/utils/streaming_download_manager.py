@@ -4,8 +4,8 @@ import os
 import posixpath
 import re
 import tarfile
-import zipfile
 import time
+import zipfile
 from asyncio import TimeoutError
 from itertools import chain
 from pathlib import Path, PurePosixPath
@@ -506,17 +506,17 @@ class StreamingDownloadManager(object):
 
     def iter_archive(self, urlpath: str):
         """Returns iterator over files within archive.
-    
+
         Args:
             path: path to archive.
-    
+
         Returns:
             Generator yielding tuple (path_within_archive, file_obj).
             File-Obj are opened in byte mode (io.BufferedReader)
         """
         extension = _get_extraction_protocol(urlpath)
 
-        if extension in ["zip","gzip"]:
+        if extension in ["zip", "gzip"]:
             with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
                 zipf = zipfile.ZipFile(f)
                 for member in zipf.infolist():
@@ -530,8 +530,8 @@ class StreamingDownloadManager(object):
                         continue
                     file_obj = io.BufferedReader(zipf.open(member, "r"))
                     yield (file_path, file_obj)
-                    
-        elif extension == "tar" :            
+
+        elif extension == "tar":
             with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
                 stream = tarfile.open(fileobj=f, mode="r|*")
                 for tarinfo in stream:
@@ -547,4 +547,3 @@ class StreamingDownloadManager(object):
                     yield (file_path, file_obj)
                     stream.members = []
                 del stream
-
