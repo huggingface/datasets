@@ -104,14 +104,21 @@ class BLEURT(datasets.Metric):
                 "You can use a bigger model for better results with e.g.: datasets.load_metric('bleurt', 'bleurt-large-512')."
             )
             self.config_name = "bleurt-base-128"
-        if self.config_name not in CHECKPOINT_URLS.keys():
+
+        if self.config_name.lower() in CHECKPOINT_URLS:
+            checkpoint_name = self.config_name.lower()
+
+        elif self.config_name.upper() in CHECKPOINT_URLS:
+            checkpoint_name = self.config_name.upper()
+
+        else:
             raise KeyError(
                 f"{self.config_name} model not found. You should supply the name of a model checkpoint for bleurt in {CHECKPOINT_URLS.keys()}"
             )
 
         # download the model checkpoint specified by self.config_name and set up the scorer
-        model_path = dl_manager.download_and_extract(CHECKPOINT_URLS[self.config_name])
-        self.scorer = score.BleurtScorer(os.path.join(model_path, self.config_name))
+        model_path = dl_manager.download_and_extract(CHECKPOINT_URLS[checkpoint_name])
+        self.scorer = score.BleurtScorer(os.path.join(model_path, checkpoint_name))
 
     def _compute(self, predictions, references):
         scores = self.scorer.score(references=references, candidates=predictions)
