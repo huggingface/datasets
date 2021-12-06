@@ -7,6 +7,7 @@ from datasets.info import DatasetInfo
 from datasets.tasks import (
     AutomaticSpeechRecognition,
     ImageClassification,
+    LanguageModeling,
     QuestionAnsweringExtractive,
     Summarization,
     TextClassification,
@@ -20,6 +21,19 @@ SAMPLE_QUESTION_ANSWERING_EXTRACTIVE = {
     "question": "To whom did the Virgin Mary allegedly appear in 1858 in Lourdes France?",
     "answers": {"text": ["Saint Bernadette Soubirous"], "answer_start": [515]},
 }
+
+
+class TestLanguageModeling:
+    def test_column_mapping(self):
+        task = LanguageModeling(text_column="input_text")
+        assert {"input_text": "text"} == task.column_mapping
+
+    def test_from_dict(self):
+        input_schema = Features({"text": Value("string")})
+        template_dict = {"text_column": "input_text"}
+        task = LanguageModeling.from_dict(template_dict)
+        assert "language-modeling" == task.task
+        assert input_schema == task.input_schema
 
 
 class TextClassificationTest(TestCase):
