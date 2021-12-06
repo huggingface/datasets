@@ -75,28 +75,17 @@ class GenerateMode(enum.Enum):
     FORCE_REDOWNLOAD = "force_redownload"
 
 
-def _get_extraction_protocol_local(urlpath: str, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[str]:
-    # get inner file: zip://train-00000.json.gz::https://foo.bar/data.zip -> zip://train-00000.json.gz
-    path = urlpath.split("::")[0]
-    # Get extension: https://foo.bar/train.json.gz -> gz
-
+def _get_extraction_protocol_local(path: str) -> Optional[str]:
     # Make sure tar.gz files are handled with tarfile library
     extension = "tar" if path.endswith(".tar.gz") else path.split(".")[-1]
-    # Remove query params ("dl=1", "raw=true"): gz?dl=1 -> gz
     # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
-    for symb in "?-_":
+    for symb in "-_":
         extension = extension.split(symb)[0]
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
-
-    if is_remote_url(urlpath):
-        # get headers and cookies for authentication on the HF Hub and for Google Drive
-        urlpath, kwargs = _prepare_http_url_kwargs(urlpath, use_auth_token=use_auth_token)
-    else:
-        urlpath, kwargs = urlpath, {}
-    with fsspec.open(urlpath, **kwargs) as f:
+    with open(path, "rb") as f:
         return _get_extraction_protocol_with_magic_number(f)
 
 
