@@ -402,7 +402,7 @@ class DatasetBuilder:
     @property
     def cache_dir(self):
         """Cache directory of dataset
-        
+
         Example:
 
         >>> from datasets import load_dataset_builder

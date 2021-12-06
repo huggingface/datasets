@@ -13,7 +13,7 @@ Before you take the time to download a dataset, it is often helpful to quickly g
    >>> from datasets import load_dataset_builder
    >>> dataset_builder = load_dataset_builder('imdb')
    >>> print(dataset_builder.cache_dir) #doctest: +ELLIPSIS
-   /Users/.../.cache/huggingface/datasets/imdb/plain_text/1.0.0/...
+   /.../.cache/huggingface/datasets/imdb/plain_text/1.0.0/...
    >>> print(dataset_builder.info.features)
    {'text': Value(dtype='string', id=None), 'label': ClassLabel(num_classes=2, names=['neg', 'pos'], names_file=None, id=None)}
    >>> print(dataset_builder.info.splits)

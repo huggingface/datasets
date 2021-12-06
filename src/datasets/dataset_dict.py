@@ -62,9 +62,8 @@ class DatasetDict(dict):
 
     @property
     def num_columns(self) -> Dict[str, int]:
-        """
-        Number of columns in each split of the dataset.
-        
+        """Number of columns in each split of the dataset.
+
         Example:
 
         dataset.num_columns
@@ -78,7 +77,7 @@ class DatasetDict(dict):
     def num_rows(self) -> Dict[str, int]:
         """
         Number of rows in each split of the dataset (same as :func:`datasets.Dataset.__len__`).
-        
+
         Example:
 
         dataset.num_rows
@@ -90,9 +89,8 @@ class DatasetDict(dict):
 
     @property
     def column_names(self) -> Dict[str, List[str]]:
-        """
-        Names of the columns in each split of the dataset.
-        
+        """Names of the columns in each split of the dataset.
+
         Example:
 
         dataset.column_names
@@ -104,10 +102,10 @@ class DatasetDict(dict):
 
     @property
     def shape(self) -> Dict[str, Tuple[int]]:
-        """
-        Shape of each split of the dataset (number of columns, number of rows).
-        
+        """Shape of each split of the dataset (number of columns, number of rows).
+
         Example:
+
         dataset.shape
         >>> dataset.shape
         (3668, 4)
