@@ -1851,7 +1851,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return formatted_output
 
     @overload
-    def __getitem__(self, key: Union[int, slice, Iterable[int], Iterable[bool]]) -> Dict:
+    def __getitem__(self, key: Union[int, slice, Iterable[int], Iterable[bool]]) -> Dict:  # noqa: F811
         ...
 
     @overload
