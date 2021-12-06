@@ -213,7 +213,7 @@ class TensorflowDatasetMixin:
         test_batch = dataset[:test_batch_size]
         test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
         test_batch = collate_fn(test_batch, **collate_fn_args)
-        columns_to_dtypes = dict()
+        columns_to_dtypes = {}
         for key, array in test_batch.items():
             # In case the collate_fn returns something strange
             array = np.array(test_batch[key])
