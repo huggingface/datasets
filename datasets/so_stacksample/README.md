@@ -19,10 +19,10 @@ task_ids:
 - abstractive-qa
 - open-domain-qa
 paperswithcode_id: null
-pretty_name: SOStackSample
+pretty_name: SO StackSample
 ---
 
-# Dataset Card for SOStackSample
+# Dataset Card for SO StackSample
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -182,6 +182,13 @@ For Tags:
 - `Id`: ID of the Question the tag belongs to.
 - `Tag`: The tag name.
 
+### Data Splits
+
+The dataset has 3 splits:
+- `Answers`
+- `Questions`
+- `Tags`
+
 ## Dataset Creation
 
 ### Curation Rationale
@@ -198,6 +205,16 @@ Datasets of all R questions and all Python questions are also available on Kaggl
 
 StackOverflow Users.
 
+### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
+
 ### Personal and Sensitive Information
 
 This data contains information that can identify individual users of StackOverflow. The information is self-reported.
@@ -208,7 +225,7 @@ This data contains information that can identify individual users of StackOverfl
 
 ### Social Impact of Dataset
 
-StackOverflow answers are not guarenteed to be safe, secure, or correct. Some answers may purposefully be insecure as is done in this https://stackoverflow.com/a/35571883/5768407 answer from user [`zys`](https://stackoverflow.com/users/5259310/zys), where they show a solution to purposefully bypass Google Play store security checks. Such answers can lead to biased models that use this data and can further propogate unsafe and insecure programming practices.
+StackOverflow answers are not guaranteed to be safe, secure, or correct. Some answers may purposefully be insecure as is done in this https://stackoverflow.com/a/35571883/5768407 answer from user [`zys`](https://stackoverflow.com/users/5259310/zys), where they show a solution to purposefully bypass Google Play store security checks. Such answers can lead to biased models that use this data and can further propogate unsafe and insecure programming practices.
 
 [Needs More Information]
 
@@ -229,6 +246,10 @@ StackOverflow answers are not guarenteed to be safe, secure, or correct. Some an
 ### Licensing Information
 
 All Stack Overflow user contributions are licensed under CC-BY-SA 3.0 with attribution required.
+
+### Citation Information
+
+The content is from Stack Overflow.
 
 ### Contributions
 
