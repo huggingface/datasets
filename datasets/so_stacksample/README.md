@@ -57,9 +57,9 @@ Dataset with the text of 10% of questions and answers from the Stack Overflow pr
 
 This is organized as three tables:
 
-Questions contains the title, body, creation date, closed date (if applicable), score, and owner ID for all non-deleted Stack Overflow questions whose Id is a multiple of 10.
-Answers contains the body, creation date, score, and owner ID for each of the answers to these questions. The ParentId column links back to the Questions table.
-Tags contains the tags on each of these questions.
+Questions table contains the title, body, creation date, closed date (if applicable), score, and owner ID for all non-deleted Stack Overflow questions whose Id is a multiple of 10.
+Answers table contains the body, creation date, score, and owner ID for each of the answers to these questions. The ParentId column links back to the Questions table.
+Tags table contains the tags on each of these questions.
 
 ### Supported Tasks and Leaderboards
 
@@ -107,8 +107,6 @@ For Answers:
   }
 }
 ```
-
-
 
 For Questions:
 ```

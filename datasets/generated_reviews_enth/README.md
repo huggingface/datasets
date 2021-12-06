@@ -65,7 +65,7 @@ paperswithcode_id: null
 
 ### Supported Tasks and Leaderboards
 
-English-to-Thai translation quality esitmation (binary label) is the intended use. Other uses include machine translation and sentiment analysis.
+English-to-Thai translation quality estimation (binary label) is the intended use. Other uses include machine translation and sentiment analysis.
 
 ### Languages
 
