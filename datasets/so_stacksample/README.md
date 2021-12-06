@@ -19,6 +19,7 @@ task_ids:
 - abstractive-qa
 - open-domain-qa
 paperswithcode_id: null
+pretty_name: SOStackSample
 ---
 
 # Dataset Card for SOStackSample

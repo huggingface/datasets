@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - dialogue-modeling
 paperswithcode_id: mutualfriends
+pretty_name: MutualFriends
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for MutualFriends
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

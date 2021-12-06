@@ -20,9 +20,10 @@ task_categories:
 task_ids:
 - other-other-machine-translation
 paperswithcode_id: bilingual-corpus-of-arabic-english-parallel
+pretty_name: Bilingual Corpus of Arabic-English Parallel Tweets
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Bilingual Corpus of Arabic-English Parallel Tweets
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

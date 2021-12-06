@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: Tweets Hate Speech Detection
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Tweets Hate Speech Detection
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

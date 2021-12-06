@@ -23,9 +23,10 @@ task_ids:
 - multi-class-classification
 - semantic-similarity-classification
 paperswithcode_id: null
+pretty_name: generated_reviews_enth
 ---
 
-# Dataset Card for `generated_reviews_enth`
+# Dataset Card for generated_reviews_enth
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
