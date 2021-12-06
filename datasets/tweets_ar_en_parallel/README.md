@@ -19,10 +19,11 @@ task_categories:
 - other
 task_ids:
 - other-other-machine-translation
-paperswithcode_id: null
+paperswithcode_id: bilingual-corpus-of-arabic-english-parallel
+pretty_name: Bilingual Corpus of Arabic-English Parallel Tweets
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Bilingual Corpus of Arabic-English Parallel Tweets
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -58,7 +59,7 @@ paperswithcode_id: null
 
 ### Dataset Summary
 
-[More Information Needed]
+Twitter users often post parallel tweets—tweets that contain the same content but are written in different languages. Parallel tweets can be an important resource for developing machine translation (MT) systems among other natural language processing (NLP) tasks. This resource is a result of a generic method for collecting parallel tweets. Using the method, we compiled a bilingual corpus of English-Arabic parallel tweets and a list of Twitter accounts who post English-Arabic tweets regularly. Additionally, we annotate a subset of Twitter accounts with their countries of origin and topic of interest, which provides insights about the population who post parallel tweets.
 
 ### Supported Tasks and Leaderboards
 
@@ -72,15 +73,71 @@ paperswithcode_id: null
 
 ### Data Instances
 
-[More Information Needed]
+parallelTweets:
+```
+{
+  "ArabicTweetID": 981111245209243600,
+  "EnglishTweetID": 981111450432401400
+}
+```
+
+accountList:
+```
+{
+  'account': 'HukoomiQatar'
+}
+```
+
+countryTopicAnnotation:
+```
+{
+  'account': 'HukoomiQatar',
+  'country': 'QA',
+  'topic': 'Gov'
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+parallelTweets:
+- `ArabicTweetID` (int)
+- `EnglishTweetID` (int)
+
+accountList:
+- `account` (str)
+
+countryTopicAnnotation:
+- `account` (str)
+- `country` (class label): One of:
+  - "QA",
+  - "BH",
+  - "AE",
+  - "OM",
+  - "SA",
+  - "PL",
+  - "JO",
+  - "IQ",
+  - "Other",
+  - "EG",
+  - "KW",
+  - "SY"
+- `topic` (class label): One of:
+  - "Gov",
+  - "Culture",
+  - "Education",
+  - "Sports",
+  - "Travel",
+  - "Events",
+  - "Business",
+  - "Science",
+  - "Politics",
+  - "Health",
+  - "Governoment",
+  - "Media",
 
 ### Data Splits
 
-[More Information Needed]
+All configuration have only one split: "test".
 
 ## Dataset Creation
 
@@ -134,11 +191,22 @@ paperswithcode_id: null
 
 ### Licensing Information
 
-[More Information Needed]
+It is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
 
 ### Citation Information
 
+```
+@inproceedings{Mubarak2020bilingualtweets,
+  title={Constructing a Bilingual Corpus of Parallel Tweets},
+  author={Mubarak, Hamdy and Hassan, Sabit and Abdelali, Ahmed},
+  booktitle={Proceedings of 13th Workshop on Building and Using Comparable Corpora (BUCC)},
+  address={Marseille, France},
+  year={2020}
+}
+```
+
 [More Information Needed]
+
 ### Contributions
 
 Thanks to [@sumanthd17](https://github.com/sumanthd17) for adding this dataset.
