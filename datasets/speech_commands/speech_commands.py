@@ -259,10 +259,10 @@ def _get_train_val_filenames(archive):
 
     for path, file in archive:
         if os.path.split(path)[-1] == "testing_list.txt":
-            test_paths = [path.decode("utf-8").strip() for path in file.readlines() if path.strip()]
+            test_paths = [filename.decode("utf-8").strip() for filename in file.readlines() if filename.strip()]
 
         elif os.path.split(path)[-1] == "validation_list.txt":
-            val_paths = [path.decode("utf-8").strip() for path in file.readlines() if path.strip()]
+            val_paths = [filename.decode("utf-8").strip() for filename in file.readlines() if filename.strip()]
 
         elif path.endswith(".wav"):
             train_paths.append(path.lstrip("./"))
