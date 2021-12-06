@@ -46,7 +46,7 @@ from tqdm.auto import tqdm
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, Sequence, Value, _ArrayXD
+from .features import ClassLabel, Features, Sequence, Value, _ArrayXD, pandas_types_mapper
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -3296,7 +3296,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 table=self._data,
                 key=slice(0, len(self)),
                 indices=self._indices if self._indices is not None else None,
-            ).to_pandas()
+            ).to_pandas(types_mapper=pandas_types_mapper)
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
@@ -3304,7 +3304,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     table=self._data,
                     key=slice(offset, offset + batch_size),
                     indices=self._indices if self._indices is not None else None,
-                ).to_pandas()
+                ).to_pandas(types_mapper=pandas_types_mapper)
                 for offset in range(0, len(self), batch_size)
             )
 

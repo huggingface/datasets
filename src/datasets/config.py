@@ -123,6 +123,10 @@ else:
     logger.info("Disabling Apache Beam because USE_BEAM is set to False")
 
 
+# Optional tools for feature decoding
+PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
+
+
 # Optional compression tools
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
 ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
