@@ -16,7 +16,6 @@
 """Speech Commands, an audio dataset of spoken words designed to help train and evaluate keyword spotting systems. """
 
 
-import os
 import textwrap
 
 import datasets
@@ -114,10 +113,9 @@ UNKNOWN_WORDS_V2 = UNKNOWN_WORDS_V1 + [
     "visual",
 ]
 
-UNKNOWN = "_unknown_"
 SILENCE = "_silence_"  # background noise
-LABELS_V1 = WORDS + UNKNOWN_WORDS_V1 + [UNKNOWN, SILENCE]
-LABELS_V2 = WORDS + UNKNOWN_WORDS_V2 + [UNKNOWN, SILENCE]
+LABELS_V1 = WORDS + UNKNOWN_WORDS_V1 + [SILENCE]
+LABELS_V2 = WORDS + UNKNOWN_WORDS_V2 + [SILENCE]
 
 
 class SpeechCommandsConfig(datasets.BuilderConfig):
