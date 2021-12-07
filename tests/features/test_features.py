@@ -244,6 +244,23 @@ def test_encode_nested_example_sequence_with_none():
     assert result is None
 
 
+def test_encode_batch_with_example_with_empty_first_elem():
+    features = Features(
+        {
+            "x": Sequence(Sequence(ClassLabel(names=["a", "b"]))),
+        }
+    )
+    encoded_batch = features.encode_batch(
+        {
+            "x": [
+                [["a"], ["b"]],
+                [[], ["b"]],
+            ]
+        }
+    )
+    assert encoded_batch == {"x": [[[0], [1]], [[], [1]]]}
+
+
 def iternumpy(key1, value1, value2):
     if value1.dtype != value2.dtype:  # check only for dtype
         raise AssertionError(
