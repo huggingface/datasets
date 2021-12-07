@@ -68,7 +68,7 @@ _LICENSE = "Creative Commons BY 4.0 License"
 
 _URL = "https://www.tensorflow.org/datasets/catalog/speech_commands"
 
-_DL_URL = "http://download.tensorflow.org/data/speech_commands_{name}.tar.gz"
+_DL_URL = "https://s3.amazonaws.com/datasets.huggingface.co/SpeechCommands/{name}/{name}_{split}.tar.gz"
 
 WORDS = [
     "yes",
@@ -115,8 +115,7 @@ UNKNOWN_WORDS_V2 = UNKNOWN_WORDS_V1 + [
 ]
 
 UNKNOWN = "_unknown_"
-BACKGROUND = "_background_noise_"
-SILENCE = "_silence_"  # that's how background noise is called in test set archives
+SILENCE = "_silence_"  # background noise
 LABELS_V1 = WORDS + UNKNOWN_WORDS_V1 + [UNKNOWN, SILENCE]
 LABELS_V2 = WORDS + UNKNOWN_WORDS_V2 + [UNKNOWN, SILENCE]
 
@@ -178,54 +177,46 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
 
         archive_paths = dl_manager.download(
             {
-                "train_val_test": _DL_URL.format(name=self.config.name),
-                "test": _DL_URL.format(name=f"test_set_{self.config.name}"),
+                "train": _DL_URL.format(name=self.config.name, split="train"),
+                "validation": _DL_URL.format(name=self.config.name, split="validation"),
+                "test": _DL_URL.format(name=self.config.name, split="test"),
             }
         )
-
-        train_paths, val_paths = _get_train_val_filenames(dl_manager.iter_archive(archive_paths["train_val_test"]))
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "archive": dl_manager.iter_archive(archive_paths["train_val_test"]),
-                    "split_files": train_paths,
+                    "archive": dl_manager.iter_archive(archive_paths["train"]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "archive": dl_manager.iter_archive(archive_paths["train_val_test"]),
-                    "split_files": val_paths,
+                    "archive": dl_manager.iter_archive(archive_paths["validation"]),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "archive": dl_manager.iter_archive(archive_paths["test"]),
-                    "split_files": None,
                 },
             ),
         ]
 
-    def _generate_examples(self, archive, split_files):
+    def _generate_examples(self, archive):
         for path, file in archive:
-            path = path.lstrip("./")
-            # file is either from train or val iterators but its not in corresponding split's filenames list
-            if split_files is not None and path not in split_files:
-                continue
             if not path.endswith(".wav"):
                 continue
 
-            relpath, audio_filename = os.path.split(path)
-            word = os.path.split(relpath)[-1]
+            word, audio_filename = path.split("/")
             is_unknown = False
-            if word in [BACKGROUND, SILENCE]:
+
+            if word == SILENCE:
                 yield path, {
                     "file": path,
                     "audio": {"path": path, "bytes": file.read()},
-                    "label": SILENCE,  # not BACKGROUND for the convention purposes
+                    "label": SILENCE,
                     "is_unknown": is_unknown,
                     "speaker_id": None,
                     "utterance_id": 0,
@@ -236,13 +227,8 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 if word not in WORDS:
                     is_unknown = True
 
-            if not split_files and label == "_unknown_":
-                # test archives have a bit different structure where unknown samples are stored in `_unknown_` folder
-                # their filenames look like `backward_0c540988_nohash_0.wav`
-                label, speaker_id, _, utterance_id = audio_filename.split(".wav")[0].split("_")
-            else:
-                # a standard filename looks like `0bac8a71_nohash_0.wav`
-                speaker_id, _, utterance_id = audio_filename.split(".wav")[0].split("_")
+            # an audio filename looks like `0bac8a71_nohash_0.wav`
+            speaker_id, _, utterance_id = audio_filename.split(".wav")[0].split("_")
 
             yield path, {
                 "file": path,
@@ -252,26 +238,3 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 "speaker_id": speaker_id,
                 "utterance_id": utterance_id,
             }
-
-
-def _get_train_val_filenames(archive):
-    train_paths, test_paths, val_paths = [], [], []
-
-    for path, file in archive:
-        if os.path.split(path)[-1] == "testing_list.txt":
-            test_paths = [filename.decode("utf-8").strip() for filename in file.readlines() if filename.strip()]
-
-        elif os.path.split(path)[-1] == "validation_list.txt":
-            val_paths = [filename.decode("utf-8").strip() for filename in file.readlines() if filename.strip()]
-
-        elif path.endswith(".wav"):
-            train_paths.append(path.lstrip("./"))
-
-    # original validation files do not include silence - add it manually here
-    # see https://github.com/tensorflow/datasets/blob/master/tensorflow_datasets/audio/speech_commands.py#L182
-    val_paths.append(os.path.join(BACKGROUND, "running_tap.wav"))
-
-    # all files that are not listed in either test or validation sets belong to train set
-    train_paths = list(set(train_paths) - set(val_paths) - set(test_paths))
-
-    return train_paths, val_paths
