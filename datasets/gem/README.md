@@ -248,13 +248,13 @@ task_categories:
   - conditional-text-generation
 task_ids:
   common_gen:
-  - other-stuctured-to-text
+  - other-structured-to-text
   cs_restaurants:
-  - other-stuctured-to-text
+  - other-structured-to-text
   dart:
-  - other-stuctured-to-text
+  - other-structured-to-text
   e2e_nlg:
-  - other-stuctured-to-text
+  - other-structured-to-text
   mlsum_de:
   - summarization
   mlsum_es:
@@ -264,9 +264,9 @@ task_ids:
   totto:
   - table-to-text
   web_nlg_en:
-  - other-stuctured-to-text
+  - other-structured-to-text
   web_nlg_ru:
-  - other-stuctured-to-text
+  - other-structured-to-text
   wiki_auto_asset_turk:
   - text-simplification
   wiki_lingua_es_en:
@@ -280,9 +280,10 @@ task_ids:
   xsum:
   - summarization
 paperswithcode_id: gem
+pretty_name: GEM
 ---
 
-# Dataset Card for "gem"
+# Dataset Card for GEM
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -50,21 +50,21 @@ task_categories:
   - conditional-text-generation
 task_ids:
   release_v1:
-  - other-stuctured-to-text
+  - other-structured-to-text
   release_v2:
-  - other-stuctured-to-text
+  - other-structured-to-text
   release_v2.1:
-  - other-stuctured-to-text
+  - other-structured-to-text
   release_v2.1_constrained:
-  - other-stuctured-to-text
+  - other-structured-to-text
   release_v2_constrained:
-  - other-stuctured-to-text
+  - other-structured-to-text
   release_v3.0_en:
-  - other-stuctured-to-text
+  - other-structured-to-text
   release_v3.0_ru:
-  - other-stuctured-to-text
+  - other-structured-to-text
   webnlg_challenge_2017:
-  - other-stuctured-to-text
+  - other-structured-to-text
 paperswithcode_id: webnlg
 pretty_name: WebNLG
 ---

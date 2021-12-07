@@ -1002,6 +1002,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         logger.info(f"Dataset saved in {dataset_path}")
 
     @staticmethod
+    def _build_local_temp_path(uri_or_path: str) -> Path:
+        """
+        Builds and returns a Path concatenating a local temporary dir with the dir path (or absolute/relative
+        path extracted from the uri) passed.
+
+        Args:
+            uri_or_path (:obj:`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
+                `"s3://my-bucket/dataset/train"`) to concatenate.
+
+        Returns:
+            :class:`Path`: the concatenated path (temp dir + path)
+        """
+        src_dataset_path = Path(uri_or_path)
+        tmp_dir = get_temporary_cache_files_directory()
+        return Path(tmp_dir, src_dataset_path.relative_to(src_dataset_path.anchor))
+
+    @staticmethod
     def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
@@ -1034,8 +1051,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
-            tmp_dir = get_temporary_cache_files_directory()
-            dataset_path = Path(tmp_dir, src_dataset_path)
+            dataset_path = Dataset._build_local_temp_path(src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
         with open(
