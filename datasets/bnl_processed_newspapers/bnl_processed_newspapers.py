@@ -22,15 +22,11 @@ from pathlib import Path
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
-@InProceedings{huggingface:dataset,
-title = {A great new dataset},
-author={huggingface, Inc.
-},
-year={2020}
-}
+@misc{bnl_newspapers,
+title={Historical Newspapers},
+url={https://data.bnl.lu/data/historical-newspapers/},
+author={ Bibliothèque nationale du Luxembourg},
 """
 
 _DESCRIPTION = """\
