@@ -125,14 +125,15 @@ Example of background noise (`_silence_`) class:
 
 ```python
 {
-  "file": "_background_noise_/doing_the_dishes.wav", 
+  "file": "_silence_/doing_the_dishes.wav", 
   "audio": {
-    "path": "_background_noise_/doing_the_dishes.wav", 
+    "path": "_silence
+    _/doing_the_dishes.wav", 
     "array": array([ 0.        ,  0.        ,  0.        , ..., -0.00592041,
          -0.00405884, -0.00253296]), 
     "sampling_rate": 16000
     }, 
-  "label": 25,  # "_silence_"
+  "label": 30,  # "_silence_"
   "is_unknown": False,
   "speaker_id": "None",
   "utterance_id": 0  # doesn't make sense here
