@@ -198,7 +198,20 @@ class TensorflowDatasetMixin:
     _TF_DATASET_REFS = set()
 
     @staticmethod
-    def _get_output_signature(dataset, collate_fn, collate_fn_args, batch_size):
+    def _get_output_signature(dataset: 'Dataset', collate_fn: Callable, collate_fn_args: dict, batch_size: int):
+        """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
+           after being passed through the collate_fn.
+
+        Args:
+            dataset (:obj:`Dataset`): Dataset to load samples from.
+            collate_fn(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
+                validation/evaluation.
+            collate_fn(:obj:`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+                lists of samples into a batch.
+            collate_fn_args (:obj:`Dict`): A `dict` of keyword arguments to be passed to the
+                `collate_fn`.
+            batch_size (:obj:`int`): The size of batches loaded from the dataset. Used for shape inference.
+        """
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
