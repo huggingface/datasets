@@ -1,5 +1,6 @@
 import os
 import re
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -39,6 +40,9 @@ pokemon_name, type
 Charmander, fire
 Squirtle, water
 Bulbasaur, grass"""
+TEST_GG_DRIVE2_ZIPPED_URL = "https://drive.google.com/uc?export=download&id=1X4jyUBBbShyCRfD-vCO1ZvfqFXP3NEeU"
+TEST_GG_DRIVE2_FILENAME = ["atoz/test1.txt", "atoz/test2.txt", "atoz/test3/test3.txt"]
+TEST_GG_DRIVE2_CONTENT = ["Erwin is the best character", "this is test 2", "foo"]
 
 
 class DummyTestFS(AbstractFileSystem):
@@ -511,7 +515,7 @@ def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol
 )
 @pytest.mark.xfail(raises=NotImplementedError)
 def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
-    _get_extraction_protocol(urlpath)
+    StreamingDownloadManager()._extract(urlpath)
 
 
 def test_streaming_gg_drive():
@@ -538,3 +542,36 @@ def test_streaming_gg_drive_zipped():
     assert xbasename(all_files[0]) == TEST_GG_DRIVE_FILENAME
     with xopen(all_files[0]) as f:
         assert f.read() == TEST_GG_DRIVE_CONTENT
+
+
+@pytest.mark.parametrize(
+    "urlpath, yield_type, file_names, file_contents",
+    [
+        (TEST_GG_DRIVE_ZIPPED_URL, tuple, TEST_GG_DRIVE_FILENAME, TEST_GG_DRIVE_CONTENT),
+        (TEST_GG_DRIVE2_ZIPPED_URL, tuple, TEST_GG_DRIVE2_FILENAME, TEST_GG_DRIVE2_CONTENT),
+    ],
+)
+def test_download_manager_iter_archive(urlpath, yield_type, file_names, file_contents):
+    file_names = file_names if isinstance(file_names, list) else [file_names]
+    file_contents = file_contents if isinstance(file_contents, list) else [file_contents]
+
+    archive_iterator = StreamingDownloadManager().iter_archive(urlpath)
+    files = [elm for elm in archive_iterator]
+    for file in files:
+        assert isinstance(file, yield_type)
+        assert file[0] in file_names
+        assert file[1].read().decode("utf-8") in file_contents
+
+
+@pytest.mark.parametrize(
+    "urlpath, file_names, file_contents",
+    [(TEST_GG_DRIVE_GZIPPED_URL, TEST_GG_DRIVE_FILENAME, TEST_GG_DRIVE_CONTENT)],
+)
+@pytest.mark.xfail()
+def test_download_manager_iter_archive_exception(urlpath, file_names, file_contents):
+    file_names = file_names if isinstance(file_names, list) else [file_names]
+    file_contents = file_contents if isinstance(file_contents, list) else [file_contents]
+
+    archive_iterator = StreamingDownloadManager().iter_archive(urlpath)
+    with pytest.raises(zipfile.BadZipFile):
+        [elm for elm in archive_iterator]

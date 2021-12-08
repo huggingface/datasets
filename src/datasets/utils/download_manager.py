@@ -25,8 +25,6 @@ from datetime import datetime
 from functools import partial
 from typing import Dict, Optional, Union
 
-import fsspec
-
 from .. import config
 from .file_utils import (
     DownloadConfig,
@@ -34,7 +32,6 @@ from .file_utils import (
     get_from_cache,
     hash_url_to_filename,
     is_relative_path,
-    is_remote_url,
     url_or_path_join,
 )
 from .info_utils import get_size_checksum_dict
@@ -44,7 +41,6 @@ from .streaming_download_manager import (
     BASE_KNOWN_EXTENSIONS,
     COMPRESSION_EXTENSION_TO_PROTOCOL,
     _get_extraction_protocol_with_magic_number,
-    _prepare_http_url_kwargs,
 )
 
 

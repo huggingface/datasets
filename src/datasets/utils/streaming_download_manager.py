@@ -234,10 +234,6 @@ def _get_extraction_protocol(urlpath: str, use_auth_token: Optional[Union[str, b
         extension = extension.split(symb)[0]
     if extension in BASE_KNOWN_EXTENSIONS:
         return None
-    elif path.endswith(".tar.gz") or path.endswith(".tgz"):
-        raise NotImplementedError(
-            f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. Please use `dl_manager.iter_archive` instead."
-        )
     elif extension in COMPRESSION_EXTENSION_TO_PROTOCOL:
         return COMPRESSION_EXTENSION_TO_PROTOCOL[extension]
 
@@ -485,7 +481,12 @@ class StreamingDownloadManager(object):
 
     def _extract(self, urlpath: str) -> str:
         urlpath = str(urlpath)
+
         protocol = _get_extraction_protocol(urlpath, use_auth_token=self.download_config.use_auth_token)
+        if urlpath.endswith(".tar.gz") or urlpath.endswith(".tgz"):
+            raise NotImplementedError(
+                f"Extraction protocol for TAR archives like '{urlpath}' is not implemented in streaming mode. Please use `dl_manager.iter_archive` instead."
+            )
         if protocol is None:
             # no extraction
             return urlpath
