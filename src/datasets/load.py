@@ -422,7 +422,11 @@ def _create_importable_file(
 def infer_module_for_data_files(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]] = None
 ) -> Optional[str]:
-    extensions_counter = Counter(suffix[1:] for filepath in data_files_list for suffix in Path(filepath).suffixes)
+    extensions_counter = Counter(
+        suffix[1:]
+        for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER]
+        for suffix in Path(filepath).suffixes
+    )
     if extensions_counter:
         for ext, _ in extensions_counter.most_common():
             if ext in _EXTENSION_TO_MODULE:
@@ -435,11 +439,14 @@ def infer_module_for_data_files_in_archives(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
 ) -> Optional[str]:
     archived_files = []
-    for filepath in data_files_list:
+    for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER]:
         if str(filepath).endswith(".zip"):
             extracted = xjoin(StreamingDownloadManager().extract(filepath), "**")
             archived_files += [
-                f.split("::")[0] for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)
+                f.split("::")[0]
+                for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)[
+                    : config.ARCHIVED_DATA_FILES_MAX_NUMBER
+                ]
             ]
     extensions_counter = Counter(suffix[1:] for filepath in archived_files for suffix in Path(filepath).suffixes)
     if extensions_counter:
