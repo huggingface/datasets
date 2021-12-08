@@ -211,27 +211,18 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             is_unknown = False
 
             if word == SILENCE:
-                yield path, {
-                    "file": path,
-                    "audio": {"path": path, "bytes": file.read()},
-                    "label": SILENCE,
-                    "is_unknown": is_unknown,
-                    "speaker_id": None,
-                    "utterance_id": 0,
-                }
-                continue
+                speaker_id, utterance_id = None, 0
+
             else:  # word is either in WORDS or unknown
-                label = word
                 if word not in WORDS:
                     is_unknown = True
-
-            # an audio filename looks like `0bac8a71_nohash_0.wav`
-            speaker_id, _, utterance_id = audio_filename.split(".wav")[0].split("_")
+                # an audio filename looks like `0bac8a71_nohash_0.wav`
+                speaker_id, _, utterance_id = audio_filename.split(".wav")[0].split("_")
 
             yield path, {
                 "file": path,
                 "audio": {"path": path, "bytes": file.read()},
-                "label": label,
+                "label": word,
                 "is_unknown": is_unknown,
                 "speaker_id": speaker_id,
                 "utterance_id": utterance_id,
