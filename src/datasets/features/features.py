@@ -36,6 +36,7 @@ from pyarrow.lib import TimestampType
 
 from datasets import config, utils
 from datasets.features.audio import Audio
+from datasets.features.image import Image, ImageExtensionType, PandasImageExtensionDtype
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.utils.logging import get_logger
 
@@ -150,7 +151,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
     Cast pytorch/tensorflow/pandas objects to python numpy array/lists.
     It works recursively.
 
-    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be casted.
+    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be casted.
     If the first element needs to be casted, then all the elements of the list will be casted, otherwise they'll stay the same.
     This trick allows to cast objects that contain tokenizers outputs without iterating over every single token for example.
 
@@ -174,6 +175,9 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
     if config.JAX_AVAILABLE and "jax" in sys.modules:
         import jax.numpy as jnp
 
+    if config.PIL_AVAILABLE and "PIL" in sys.modules:
+        import PIL.Image
+
     if isinstance(obj, np.ndarray):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj, False
@@ -196,6 +200,11 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
             return np.asarray(obj), True
         else:
             return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in np.asarray(obj)], True
+    elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
+        if not only_1d_for_numpy:
+            return obj, False
+        else:
+            return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in np.array(obj)], True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
@@ -211,7 +220,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
     elif isinstance(obj, (list, tuple)):
         if len(obj) > 0:
             for first_elmt in obj:
-                if first_elmt is not None:
+                if _check_non_null_non_empty_recursive(first_elmt):
                     break
             casted_first_elmt, has_changed_first_elmt = _cast_to_python_objects(
                 first_elmt, only_1d_for_numpy=only_1d_for_numpy
@@ -234,7 +243,7 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False) -> Any:
     Cast numpy/pytorch/tensorflow/pandas objects to python lists.
     It works recursively.
 
-    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be casted.
+    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be casted.
     If the first element needs to be casted, then all the elements of the list will be casted, otherwise they'll stay the same.
     This trick allows to cast objects that contain tokenizers outputs without iterating over every single token for example.
 
@@ -488,7 +497,7 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
     def __init__(self, value_type: Union["PandasArrayExtensionDtype", np.dtype]):
         self._value_type = value_type
 
-    def __from_arrow__(self, array):
+    def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]):
         if array.type.shape[0] is None:
             raise NotImplementedError(
                 "Dynamic first dimension is not supported for "
@@ -584,7 +593,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     def take(
         self, indices: Sequence_[int], allow_fill: bool = False, fill_value: bool = None
     ) -> "PandasArrayExtensionArray":
-        indices: np.ndarray = np.asarray(indices, dtype="int")
+        indices: np.ndarray = np.asarray(indices, dtype=np.int)
         if allow_fill:
             fill_value = (
                 self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.value_type)
@@ -616,6 +625,8 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 def pandas_types_mapper(dtype):
     if isinstance(dtype, _ArrayXDExtensionType):
         return PandasArrayExtensionDtype(dtype.value_type)
+    elif isinstance(dtype, ImageExtensionType):
+        return PandasImageExtensionDtype()
 
 
 @dataclass
@@ -776,7 +787,30 @@ FeatureType = Union[
     Array4D,
     Array5D,
     Audio,
+    Image,
 ]
+
+
+def _check_non_null_non_empty_recursive(obj, schema: Optional[FeatureType] = None) -> bool:
+    """
+    Check if the object is not None.
+    If the object is a list or a tuple, recursively check the first element of the sequence and stop if at any point the first element is not a sequence or is an empty sequence.
+    """
+    if obj is None:
+        return False
+    elif isinstance(obj, (list, tuple)) and (schema is None or isinstance(schema, (list, tuple, Sequence))):
+        if len(obj) > 0:
+            if schema is None:
+                pass
+            elif isinstance(schema, (list, tuple)):
+                schema = schema[0]
+            else:
+                schema = schema.feature
+            return _check_non_null_non_empty_recursive(obj[0], schema)
+        else:
+            return False
+    else:
+        return True
 
 
 def get_nested_type(schema: FeatureType) -> pa.DataType:
@@ -815,7 +849,7 @@ def encode_nested_example(schema, obj):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
 
-    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be encoded.
+    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be encoded.
     If the first element needs to be encoded, then all the elements of the list will be encoded, otherwise they'll stay the same.
     """
     # Nested structures: we allow dict, list/tuples, sequences
@@ -830,7 +864,7 @@ def encode_nested_example(schema, obj):
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
-                    if first_elmt is not None:
+                    if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
                 if encode_nested_example(sub_schema, first_elmt) != first_elmt:
                     return [encode_nested_example(sub_schema, o) for o in obj]
@@ -858,7 +892,7 @@ def encode_nested_example(schema, obj):
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
-                    if first_elmt is not None:
+                    if _check_non_null_non_empty_recursive(first_elmt, schema.feature):
                         break
                 # be careful when comparing tensors here
                 if not isinstance(first_elmt, list) or encode_nested_example(schema.feature, first_elmt) != first_elmt:
@@ -866,8 +900,8 @@ def encode_nested_example(schema, obj):
             return list(obj)
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (Audio, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
-        return schema.encode_example(obj) if obj is not None else None
+    elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
+        return schema.encode_example(obj)
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
 
@@ -920,6 +954,8 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
+    elif isinstance(pa_type, ImageExtensionType):
+        return Image()
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
@@ -988,6 +1024,8 @@ class Features(dict):
         - a :class:`Array2D`, :class:`Array3D`, :class:`Array4D` or :class:`Array5D` feature for multidimensional arrays
         - an :class:`Audio` feature to store the absolute path to an audio file or a dictionary with the relative path
           to an audio file ("path" key) and its bytes content ("bytes" key). This feature extracts the audio data.
+        - an :class:`Image` feature to store the absolute path to an image file, an :obj:`np.ndarray` object, a :obj:`PIL.Image.Image` object
+          or a dictionary with the relative path to an image file ("path" key) and its bytes content ("bytes" key). This feature extracts the image data.
         - :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`, the two features specific to Machine Translation
     """
 

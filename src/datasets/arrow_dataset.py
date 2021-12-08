@@ -46,7 +46,7 @@ from tqdm.auto import tqdm
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, Sequence, Value, _ArrayXD
+from .features import ClassLabel, Features, Sequence, Value, _ArrayXD, pandas_types_mapper
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -1033,6 +1033,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         logger.info(f"Dataset saved in {dataset_path}")
 
     @staticmethod
+    def _build_local_temp_path(uri_or_path: str) -> Path:
+        """
+        Builds and returns a Path concatenating a local temporary dir with the dir path (or absolute/relative
+        path extracted from the uri) passed.
+
+        Args:
+            uri_or_path (:obj:`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
+                `"s3://my-bucket/dataset/train"`) to concatenate.
+
+        Returns:
+            :class:`Path`: the concatenated path (temp dir + path)
+        """
+        src_dataset_path = Path(uri_or_path)
+        tmp_dir = get_temporary_cache_files_directory()
+        return Path(tmp_dir, src_dataset_path.relative_to(src_dataset_path.anchor))
+
+    @staticmethod
     def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
@@ -1065,8 +1082,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
-            tmp_dir = get_temporary_cache_files_directory()
-            dataset_path = Path(tmp_dir, src_dataset_path)
+            dataset_path = Dataset._build_local_temp_path(src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
         with open(
@@ -2304,7 +2320,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
                 if all_dict_values_are_lists is False:
                     raise TypeError(
-                        "Provided `function` which is applied to all elements of table returns a `dict` of types {[type(x) for x in processed_inputs.values()]}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{allowed_batch_return_types}`."
+                        f"Provided `function` which is applied to all elements of table returns a `dict` of types {[type(x) for x in processed_inputs.values()]}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{allowed_batch_return_types}`."
                     )
 
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
@@ -3333,7 +3349,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 table=self._data,
                 key=slice(0, len(self)),
                 indices=self._indices if self._indices is not None else None,
-            ).to_pandas()
+            ).to_pandas(types_mapper=pandas_types_mapper)
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
@@ -3341,7 +3357,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     table=self._data,
                     key=slice(offset, offset + batch_size),
                     indices=self._indices if self._indices is not None else None,
-                ).to_pandas()
+                ).to_pandas(types_mapper=pandas_types_mapper)
                 for offset in range(0, len(self), batch_size)
             )
 

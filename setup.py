@@ -62,10 +62,7 @@ To create the package for pypi.
    Push the commit to remote: "git push origin master"
 """
 
-import datetime
-import itertools
 import os
-import sys
 
 from setuptools import find_packages, setup
 
@@ -106,6 +103,10 @@ REQUIRED_PKGS = [
 
 AUDIO_REQUIRE = [
     "librosa",
+]
+
+VISION_REQURE = [
+    "Pillow>=6.2.1",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -167,6 +168,8 @@ TESTS_REQUIRE = [
     "importlib_resources;python_version<'3.7'",
 ]
 
+TESTS_REQUIRE.extend(VISION_REQURE)
+
 if os.name != "nt":
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
@@ -185,6 +188,7 @@ QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort>=5.0.0", "pyyaml>=5.
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
+    "vision": VISION_REQURE,
     "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": ["tensorflow>=2.2.0,!=2.6.0,!=2.6.1"],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
@@ -219,7 +223,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.15.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.16.2.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

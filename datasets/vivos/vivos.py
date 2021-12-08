@@ -67,7 +67,7 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
                 {
                     "speaker_id": datasets.Value("string"),
                     "path": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "sentence": datasets.Value("string"),
                 }
             ),
