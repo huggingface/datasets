@@ -514,7 +514,7 @@ def test_streaming_dl_manager_get_extraction_protocol(urlpath, expected_protocol
     ],
 )
 @pytest.mark.xfail(raises=NotImplementedError)
-def test_streaming_dl_manager_get_extraction_protocol_throws(urlpath):
+def test_streaming_dl_manager__extract_throws(urlpath):
     StreamingDownloadManager()._extract(urlpath)
 
 
@@ -551,7 +551,7 @@ def test_streaming_gg_drive_zipped():
         (TEST_GG_DRIVE2_ZIPPED_URL, tuple, TEST_GG_DRIVE2_FILENAME, TEST_GG_DRIVE2_CONTENT),
     ],
 )
-def test_download_manager_iter_archive(urlpath, yield_type, file_names, file_contents):
+def test_streaming_download_manager_iter_archive(urlpath, yield_type, file_names, file_contents):
     file_names = file_names if isinstance(file_names, list) else [file_names]
     file_contents = file_contents if isinstance(file_contents, list) else [file_contents]
 
@@ -564,14 +564,11 @@ def test_download_manager_iter_archive(urlpath, yield_type, file_names, file_con
 
 
 @pytest.mark.parametrize(
-    "urlpath, file_names, file_contents",
-    [(TEST_GG_DRIVE_GZIPPED_URL, TEST_GG_DRIVE_FILENAME, TEST_GG_DRIVE_CONTENT)],
+    "urlpath",
+    [(TEST_GG_DRIVE_GZIPPED_URL)],
 )
 @pytest.mark.xfail()
-def test_download_manager_iter_archive_exception(urlpath, file_names, file_contents):
-    file_names = file_names if isinstance(file_names, list) else [file_names]
-    file_contents = file_contents if isinstance(file_contents, list) else [file_contents]
-
+def test_streaming_download_manager_iter_archive_exception(urlpath, file_names, file_contents):
     archive_iterator = StreamingDownloadManager().iter_archive(urlpath)
     with pytest.raises(zipfile.BadZipFile):
         [elm for elm in archive_iterator]
