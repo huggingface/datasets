@@ -38,18 +38,12 @@ from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
+from .utils.py_utils import first_non_null_value
 
 
 logger = logging.get_logger(__name__)
 
 type_ = type  # keep python's type function
-
-
-def first_non_null_value(iterable):
-    for i, value in enumerate(iterable):
-        if value is not None:
-            return i, value
-    return -1, None
 
 
 class TypedSequence:

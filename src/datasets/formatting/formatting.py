@@ -22,6 +22,7 @@ import pyarrow as pa
 
 from ..features import _ArrayXDExtensionType, _is_zero_copy_only, pandas_types_mapper
 from ..table import Table
+from ..utils import no_op_if_value_is_null
 
 
 T = TypeVar("T")
@@ -94,13 +95,6 @@ def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> 
         return table.fast_gather(key % table.num_rows)
 
     _raise_bad_key_type(key)
-
-
-def _no_op_if_value_is_null(func):
-    def wrapper(value):
-        return func(value) if value is not None else None
-
-    return wrapper
 
 
 def _is_array_with_nulls(pa_array: pa.Array) -> bool:
@@ -239,7 +233,7 @@ class PandasFeaturesDecoder:
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
         decode = (
             {
-                column_name: _no_op_if_value_is_null(feature.decode_example)
+                column_name: no_op_if_value_is_null(feature.decode_example)
                 for column_name, feature in self.features.items()
                 if column_name in row.columns and hasattr(feature, "decode_example")
             }
@@ -252,7 +246,7 @@ class PandasFeaturesDecoder:
 
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
         decode = (
-            _no_op_if_value_is_null(self.features[column_name].decode_example)
+            no_op_if_value_is_null(self.features[column_name].decode_example)
             if self.features and column_name in self.features and hasattr(self.features[column_name], "decode_example")
             else None
         )
