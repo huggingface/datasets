@@ -211,6 +211,10 @@ class TensorflowDatasetMixin:
             collate_fn_args (:obj:`Dict`): A `dict` of keyword arguments to be passed to the
                 `collate_fn`.
             batch_size (:obj:`int`): The size of batches loaded from the dataset. Used for shape inference.
+
+        Returns:
+            :obj:`dict`: Dict mapping column names to tf dtypes
+            :obj:`dict`: Dict mapping column names to tf.TensorSpec objects
         """
         if config.TF_AVAILABLE:
             import tensorflow as tf
@@ -320,6 +324,9 @@ class TensorflowDatasetMixin:
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
+
+        Returns:
+            :class:`tf.data.Dataset`
         """
 
         if config.TF_AVAILABLE:
