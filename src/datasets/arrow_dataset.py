@@ -198,7 +198,7 @@ class TensorflowDatasetMixin:
     _TF_DATASET_REFS = set()
 
     @staticmethod
-    def _get_output_signature(dataset: 'Dataset', collate_fn: Callable, collate_fn_args: dict, batch_size: int):
+    def _get_output_signature(dataset: "Dataset", collate_fn: Callable, collate_fn_args: dict, batch_size: int):
         """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
            after being passed through the collate_fn.
 
