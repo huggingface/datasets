@@ -17,6 +17,7 @@ import errno
 import json
 import os
 import socket
+import sys
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -26,10 +27,12 @@ import pyarrow as pa
 from . import config, utils
 from .features import (
     Features,
+    ImageExtensionType,
     _ArrayXDExtensionType,
     cast_to_python_objects,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
+    objects_to_list_of_image_dicts,
 )
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
@@ -49,7 +52,7 @@ class TypedSequence:
     More specifically it adds several features:
     - Support extension types like ``datasets.features.Array2DExtensionType``:
         By default pyarrow arrays don't return extension arrays. One has to call
-        ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type_name))``
+        ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type))``
         in order to get an extension array.
     - Support for ``try_type`` parameter that can be used instead of ``type``:
         When an array is transformed, we like to keep the same type as before if possible.
@@ -93,6 +96,10 @@ class TypedSequence:
 
     def __arrow_array__(self, type=None):
         """This function is called when calling pa.array(typed_sequence)"""
+
+        if config.PIL_AVAILABLE and "PIL" in sys.modules:
+            import PIL.Image
+
         if type is not None:
             raise ValueError("TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)")
         trying_type = False
@@ -104,6 +111,9 @@ class TypedSequence:
         else:
             type = self.type
         trying_int_optimization = False
+        if type is None:  # automatic type inference for custom objects
+            if config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(self.data[0], PIL.Image.Image):
+                type = ImageExtensionType()
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 if isinstance(self.data, np.ndarray):
@@ -112,6 +122,9 @@ class TypedSequence:
                     storage = list_of_np_array_to_pyarrow_listarray(self.data, type=type.value_type)
                 else:
                     storage = pa.array(self.data, type.storage_dtype)
+                out = pa.ExtensionArray.from_storage(type, storage)
+            elif isinstance(type, ImageExtensionType):
+                storage = pa.array(objects_to_list_of_image_dicts(self.data), type=type.storage_type)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
@@ -123,7 +136,7 @@ class TypedSequence:
                     out = out.cast(type)
             else:
                 out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
-            if trying_type:
+            if trying_type and not isinstance(type, ImageExtensionType):
                 is_equal = (
                     np.array_equal(np.array(out[0].as_py()), self.data[0])
                     if isinstance(self.data[0], np.ndarray)
