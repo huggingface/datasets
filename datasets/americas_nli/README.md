@@ -65,7 +65,7 @@ task_ids:
 
 ### Dataset Summary
 
-AmericasNLI is an extension of XNLI (Conneau et al., 2018)  a natural language inference (NLI) dataset covering 15 high-resource languages  to 10 low-resource indigenous languages spoken in the Americas: Ashaninka, Aymara, Bribri, Guarani, Nahuatl, Otomi, Quechua, Raramuri, Shipibo-Konibo, and Wixarika. As with MNLI, the goal is to predict textual entailment (does sentence A imply/contradict/neither sentence B) and is a classification task (given two sentences, predict one of three labels).
+AmericasNLI is an extension of XNLI (Conneau et al., 2018) a natural language inference (NLI) dataset covering 15 high-resource languages to 10 low-resource indigenous languages spoken in the Americas: Ashaninka, Aymara, Bribri, Guarani, Nahuatl, Otomi, Quechua, Raramuri, Shipibo-Konibo, and Wixarika. As with MNLI, the goal is to predict textual entailment (does sentence A imply/contradict/neither sentence B) and is a classification task (given two sentences, predict one of three labels).
 
 
 ### Supported Tasks and Leaderboards

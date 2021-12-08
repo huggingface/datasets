@@ -129,7 +129,7 @@ class AmericasNLI(datasets.GeneratorBasedBuilder):
             # No default supervised_keys (as we have to pass both premise
             # and hypothesis as input).
             supervised_keys=None,
-            homepage="TODO",
+            homepage="https://github.com/nala-cub/AmericasNLI",
             citation=_CITATION,
         )
 
