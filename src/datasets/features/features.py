@@ -45,28 +45,6 @@ from datasets.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def _check_non_null_non_empty_recursive(obj, schema=None):
-    """
-    If the object is a list or a tuple, recursively check the first element of the sequence as long as the sequence is not empty.
-    Otherwise, check if the object is not None.
-    """
-    if obj is None:
-        return False
-    elif isinstance(obj, (list, tuple)) and (schema is None or isinstance(schema, (list, tuple, Sequence))):
-        if len(obj) > 0:
-            if schema is None:
-                pass
-            elif isinstance(schema, (list, tuple)):
-                schema = schema[0]
-            else:
-                schema = schema.feature
-            return _check_non_null_non_empty_recursive(obj[0], schema)
-        else:
-            return False
-    else:
-        return True
-
-
 def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
     """
     _arrow_to_datasets_dtype takes a pyarrow.DataType and converts it to a datasets string dtype.
@@ -794,6 +772,28 @@ FeatureType = Union[
     Audio,
     Image,
 ]
+
+
+def _check_non_null_non_empty_recursive(obj, schema: Optional[FeatureType] = None) -> bool:
+    """
+    Check if the object is not None.
+    If the object is a list or a tuple, recursively check the first element of the sequence and stop if at any point the first element is not a sequence or is an empty sequence.
+    """
+    if obj is None:
+        return False
+    elif isinstance(obj, (list, tuple)) and (schema is None or isinstance(schema, (list, tuple, Sequence))):
+        if len(obj) > 0:
+            if schema is None:
+                pass
+            elif isinstance(schema, (list, tuple)):
+                schema = schema[0]
+            else:
+                schema = schema.feature
+            return _check_non_null_non_empty_recursive(obj[0], schema)
+        else:
+            return False
+    else:
+        return True
 
 
 def get_nested_type(schema: FeatureType) -> pa.DataType:
