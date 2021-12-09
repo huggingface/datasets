@@ -62,7 +62,6 @@ from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split
 from .table import (
-    ConcatenationTable,
     InMemoryTable,
     MemoryMappedTable,
     Table,
@@ -106,7 +105,7 @@ class Example(LazyDict):
     def __getitem__(self, key):
         value = super().__getitem__(key)
         if self.decoding and self.features and key in self.features:
-            value = self.features[key].decode_example(value)
+            value = self.features[key].decode_example(value) if value is not None else None
             self[key] = value
             del self.features[key]
         return value
@@ -116,7 +115,7 @@ class Batch(LazyDict):
     def __getitem__(self, key):
         values = super().__getitem__(key)
         if self.decoding and self.features and key in self.features:
-            values = [self.features[key].decode_example(value) for value in values]
+            values = [self.features[key].decode_example(value) if value is not None else None for value in values]
             self[key] = values
             del self.features[key]
         return values
@@ -521,6 +520,7 @@ def transmit_tasks(func):
 
 def update_metadata_with_features(table: Table, features: Features):
     """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
+    features = Features({col_name: features[col_name] for col_name in table.column_names})
     if table.schema.metadata is None or "huggingface".encode("utf-8") not in table.schema.metadata:
         pa_metadata = ArrowWriter._build_metadata(DatasetInfo(features=features))
     else:
@@ -544,6 +544,44 @@ def _check_table(table) -> Table:
         return table
     else:
         raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
+
+
+def _check_column_names(column_names: List[str]):
+    """Check the column names to make sure they don't contain duplicates."""
+    counter = Counter(column_names)
+    if not all(count == 1 for count in counter.values()):
+        duplicated_columns = [col for col in counter if counter[col] > 1]
+        raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
+
+
+def _check_if_features_can_be_aligned(features_list: List[Features]):
+    """Check if the dictionaries of features can be aligned.
+
+    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
+    """
+    name2feature = {}
+    for features in features_list:
+        for k, v in features.items():
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+                name2feature[k] = v
+
+    for features in features_list:
+        for k, v in features.items():
+            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
+                raise ValueError(
+                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
+                )
+
+
+def _align_features(features_list: List[Features]) -> List[Features]:
+    """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
+    name2feature = {}
+    for features in features_list:
+        for k, v in features.items():
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+                name2feature[k] = v
+
+    return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
 
 
 class NonExistentDatasetError(Exception):
@@ -613,14 +651,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             assert pa.types.is_unsigned_integer(
                 self._indices.column(0)[0].type
             ), f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}"
-        counter = Counter(self._data.column_names)
-        if not all(count == 1 for count in counter.values()):
-            duplicated_columns = [col for col in counter if counter[col] > 1]
-            raise ValueError(
-                f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated."
-            )
-
-        # Update metadata
+        _check_column_names(self._data.column_names)
 
         self._data = update_metadata_with_features(self._data, self.features)
 
@@ -1129,11 +1160,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return dataset._data.column(column).unique().to_pylist()
 
-    def class_encode_column(self, column: str) -> "Dataset":
+    def class_encode_column(self, column: str, include_nulls: bool = False) -> "Dataset":
         """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the table.
 
         Args:
             column (`str`): The name of the column to cast (list all the column names with :func:`datasets.Dataset.column_names`)
+            include_nulls (`bool`, default `False`):
+                Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
+
+                .. versionadded:: 1.14.2
         """
         # Sanity checks
         if column not in self._data.column_names:
@@ -1141,13 +1176,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         src_feat = self.features[column]
         if not isinstance(src_feat, Value):
             raise ValueError(
-                f"Class encoding is only supported for {type(Value)} column, and column {column} is {type(src_feat)}."
+                f"Class encoding is only supported for {Value.__name__} column, and column {column} is {type(src_feat).__name__}."
             )
 
-        if src_feat.dtype != "string":
+        if src_feat.dtype != "string" or (include_nulls and None in self.unique(column)):
+
+            def stringify_column(batch):
+                batch[column] = [
+                    str(sample) if include_nulls or sample is not None else None for sample in batch[column]
+                ]
+                return batch
+
             dset = self.map(
-                lambda batch: {column: [str(sample) for sample in batch]},
-                input_columns=column,
+                stringify_column,
                 batched=True,
                 desc="Stringifying the column",
             )
@@ -1155,15 +1196,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dset = self
 
         # Create the new feature
-        class_names = sorted(dset.unique(column))
+        class_names = sorted(sample for sample in dset.unique(column) if include_nulls or sample is not None)
         dst_feat = ClassLabel(names=class_names)
+
+        def cast_to_class_labels(batch):
+            batch[column] = [
+                dst_feat.str2int(sample) if include_nulls or sample is not None else None for sample in batch[column]
+            ]
+            return batch
+
         dset = dset.map(
-            lambda batch: {column: dst_feat.str2int(batch)},
-            input_columns=column,
+            cast_to_class_labels,
             batched=True,
             desc="Casting to class labels",
         )
-        dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = dset.features.copy()
         new_features[column] = dst_feat
@@ -1579,7 +1625,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         dataset._data = dataset._data.rename_columns(new_column_names)
-        dataset._data = update_metadata_with_features(dataset._data, self.features)
+        dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset
 
@@ -2689,6 +2735,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         column: str,
         reverse: bool = False,
         kind: str = None,
+        null_placement: str = "last",
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         indices_cache_file_name: Optional[str] = None,
@@ -2697,16 +2744,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> "Dataset":
         """Create a new dataset sorted according to a column.
 
-        Currently sorting according to a column name uses numpy sorting algorithm under the hood.
-        The column should thus be a numpy compatible type (in particular not a nested type).
+        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
+        The column should thus be a pandas compatible type (in particular not a nested type).
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
             column (:obj:`str`): column name to sort by.
             reverse (:obj:`bool`, default `False`): If True, sort by descending order rather then ascending.
-            kind (:obj:`str`, optional): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
+            kind (:obj:`str`, optional): Pandas algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                 The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
+            null_placement (:obj:`str`, default `last`):
+                Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
+
+                .. versionadded:: 1.14.2
             keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
@@ -2743,11 +2794,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
         column_data = self._getitem(
-            column, format_type="numpy", format_columns=None, output_all_columns=False, format_kwargs=None
+            column, format_type="pandas", format_columns=None, output_all_columns=False, format_kwargs=None
         )
-        indices = np.argsort(column_data, kind=kind)
-        if reverse:
-            indices = indices[::-1]
+
+        df_sorted = column_data.to_frame().sort_values(
+            column, ascending=not reverse, kind=kind, na_position=null_placement
+        )
+        indices = df_sorted.index.to_numpy()
 
         return self.select(
             indices=indices,
@@ -3465,8 +3518,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset`
         """
         column_table = InMemoryTable.from_pydict({name: column})
+        _check_column_names(self._data.column_names + column_table.column_names)
         # Concatenate tables horizontally
-        table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
+        table = concat_tables([self._data, column_table], axis=1)
         # Update features
         info = self.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
@@ -3680,21 +3734,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Returns:
             :class:`Dataset`
         """
-        item_table = InMemoryTable.from_pydict({k: [item[k]] for k in self.features.keys() if k in item})
-        # Cast item
-        schema = pa.schema(self.features.type)
-        item_table = item_table.cast(schema)
-        # Concatenate tables
-        table = concat_tables([self._data, item_table])
+        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
+        dset_features, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
+        # Cast to align the schemas of the tables and concatenate the tables
+        table = concat_tables(
+            [
+                self._data.cast(pa.schema(dset_features.type)) if self.features != dset_features else self._data,
+                item_table.cast(pa.schema(item_features.type)),
+            ]
+        )
         if self._indices is None:
             indices_table = None
         else:
             item_indices_array = pa.array([len(self._data)], type=pa.uint64())
             item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
             indices_table = concat_tables([self._indices, item_indices_table])
+        info = self.info.copy()
+        info.features.update(item_features)
+        table = update_metadata_with_features(table, info.features)
         return Dataset(
             table,
-            info=self.info.copy(),
+            info=info,
             split=self.split,
             indices_table=indices_table,
             fingerprint=new_fingerprint,
@@ -3738,8 +3799,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         int2str_function = label_feature.int2str
 
         def process_label_ids(batch):
-            dset_label_names = [int2str_function(label_id).lower() for label_id in batch[label_column]]
-            batch[label_column] = [label2id[label_name] for label_name in dset_label_names]
+            dset_label_names = [
+                int2str_function(label_id).lower() if label_id is not None else None
+                for label_id in batch[label_column]
+            ]
+            batch[label_column] = [
+                label2id[label_name] if label_name is not None else None for label_name in dset_label_names
+            ]
             return batch
 
         features = self.features.copy()
@@ -3766,10 +3832,20 @@ def concatenate_datasets(
 
             .. versionadded:: 1.6.0
     """
-    if axis == 0 and not all([dset.features.type == dsets[0].features.type for dset in dsets]):
-        raise ValueError("Features must match for all datasets")
-    elif axis == 1 and not all([dset.num_rows == dsets[0].num_rows for dset in dsets]):
-        raise ValueError("Number of rows must match for all datasets")
+    # Ignore datasets with no rows
+    if any(dset.num_rows > 0 for dset in dsets):
+        dsets = [dset for dset in dsets if dset.num_rows > 0]
+    else:
+        # Return first dataset if all datasets are empty
+        return dsets[0]
+
+    # Perform checks (and a potentional cast if axis=0)
+    if axis == 0:
+        _check_if_features_can_be_aligned([dset.features for dset in dsets])
+    else:
+        if not all([dset.num_rows == dsets[0].num_rows for dset in dsets]):
+            raise ValueError("Number of rows must match for all datasets")
+        _check_column_names([col_name for dset in dsets for col_name in dset._data.column_names])
 
     # Find common format or reset format
     format = dsets[0].format
@@ -3808,26 +3884,22 @@ def concatenate_datasets(
                 indices_table = concat_tables(indices_tables)
             else:
                 indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
-        elif axis == 1 and len(dsets) == 1:
-            indices_table = dsets[0]._indices
-        elif axis == 1 and len(dsets) > 1:
-            for i in range(len(dsets)):
-                dsets[i] = dsets[i].flatten_indices()
-            indices_table = None
+        else:
+            if len(dsets) == 1:
+                indices_table = dsets[0]._indices
+            else:
+                for i in range(len(dsets)):
+                    dsets[i] = dsets[i].flatten_indices()
+                indices_table = None
     else:
         indices_table = None
 
-    # Concatenate tables
-    tables_to_concat = [dset._data for dset in dsets if len(dset._data) > 0]
-    # There might be no table with data left hence return first empty table
-    if not tables_to_concat:
-        return dsets[0]
-    table = concat_tables(tables_to_concat, axis=axis)
-    if axis == 1:
-        # Merge features (ignore duplicated columns for now and let Dataset.__init__ check for those)
-        table = update_metadata_with_features(
-            table, Features({k: v for dset in dsets for k, v in dset.features.items()})
-        )
+    table = concat_tables([dset._data for dset in dsets], axis=axis)
+    if axis == 0:
+        features_list = _align_features([dset.features for dset in dsets])
+    else:
+        features_list = [dset.features for dset in dsets]
+    table = update_metadata_with_features(table, {k: v for features in features_list for k, v in features.items()})
 
     # Concatenate infos
     if info is None:
