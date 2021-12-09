@@ -3747,15 +3747,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset`
         """
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
-        # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
-        dset_features, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
         # Cast and concatenate tables
-        table = concat_tables(
-            [
-                self._data.cast(pa.schema(dset_features.type)) if self.features != dset_features else self._data,
-                item_table.cast(pa.schema(item_features.type)),
-            ]
-        )
+        table = concat_tables([self._data, item_table])
         if self._indices is None:
             indices_table = None
         else:
@@ -3763,6 +3756,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
             indices_table = concat_tables([self._indices, item_indices_table])
         info = self.info.copy()
+        # We don't call _check_if_features_can_be_aligned because `concat_tables` called earlier will fail if they can't be aligned
+        _, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
         info.features.update(item_features)
         table = update_metadata_with_features(table, info.features)
         return Dataset(
@@ -3854,12 +3849,7 @@ def concatenate_datasets(
     # Perform checks (and a potentional cast if axis=0)
     if axis == 0:
         _check_if_features_can_be_aligned([dset.features for dset in dsets])
-        aligned_features = _align_features([dset.features for dset in dsets])
-        dsets = [
-            dset.cast(features) if dset.features != features else dset
-            for dset, features in zip(dsets, aligned_features)
-        ]
-    elif axis == 1:
+    else:
         if not all([dset.num_rows == dsets[0].num_rows for dset in dsets]):
             raise ValueError("Number of rows must match for all datasets")
         _check_column_names([col_name for dset in dsets for col_name in dset._data.column_names])
@@ -3912,7 +3902,11 @@ def concatenate_datasets(
         indices_table = None
 
     table = concat_tables([dset._data for dset in dsets], axis=axis)
-    table = update_metadata_with_features(table, {k: v for dset in dsets for k, v in dset.features.items()})
+    if axis == 0:
+        features_list = _align_features([dset.features for dset in dsets])
+    else:
+        features_list = [dset.features for dset in dsets]
+    table = update_metadata_with_features(table, {k: v for features in features_list for k, v in features.items()})
 
     # Concatenate infos
     if info is None:
