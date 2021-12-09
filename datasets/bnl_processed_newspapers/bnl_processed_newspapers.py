@@ -42,39 +42,6 @@ _LICENSE = "CC0"
 _URL = "https://data.bnl.lu/open-data/digitization/newspapers/export01-newspapers1841-1878.zip"
 
 
-features = datasets.Features(
-    {
-        "ark_id": datasets.Value("string"),
-        "source": datasets.Value("string"),
-        "title": datasets.Value("string"),
-        "text": datasets.Value("string"),
-        "publisher": datasets.Value("string"),
-        "article_type": datasets.ClassLabel(
-            names=[
-                "ADVERTISEMENT_SECTION",
-                "BIBLIOGRAPHY",
-                "CHAPTER",
-                "INDEX",
-                "CONTRIBUTION",
-                "TABLE_OF_CONTENTS",
-                "WEATHER",
-                "SHIPPING",
-                "SECTION",
-                "ARTICLE",
-                "TITLE_SECTION",
-                "DEATH_NOTICE",
-                "SUPPLEMENT",
-                "TABLE",
-                "ADVERTISEMENT",
-                "CHART_DIAGRAM",
-                "ILLUSTRATION",
-                "ISSUE",
-            ]
-        ),
-    }
-)
-
-
 class BNLProcessedNewspapers(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
