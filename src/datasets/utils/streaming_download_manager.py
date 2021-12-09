@@ -278,7 +278,7 @@ def _add_glob(url: str):
     Returns:
         str
     """
-    url = url.replace("zip://::", "zip://*::")
+    url = url.replace("zip://::", "zip://**::")
     return url
 
 
