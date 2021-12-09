@@ -3749,7 +3749,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
         # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
         dset_features, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
-        # Cast and concatenate tables
+        # Cast to align the schemas of the tables and concatenate the tables
         table = concat_tables(
             [
                 self._data.cast(pa.schema(dset_features.type)) if self.features != dset_features else self._data,
