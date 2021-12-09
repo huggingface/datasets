@@ -42,7 +42,8 @@ jobs:
         steps:
             - checkout
             - run: conda update conda
-            - run: conda install python=3.6 --yes
+            - run: conda create -n py36 python=3.6 anaconda
+            - run: conda activate py36
             - run: Remove-Item c:\tools\miniconda3\lib\site-packages\ruamel* -Recurse -Force -Confirm:$false
             - run: pip install ruamel.yaml
             - run: conda install pytorch --yes
@@ -63,7 +64,8 @@ jobs:
         steps:
             - checkout
             - run: conda update conda
-            - run: conda install python=3.6 --yes
+            - run: conda create -n py36 python=3.6 anaconda
+            - run: conda activate py36
             - run: Remove-Item c:\tools\miniconda3\lib\site-packages\ruamel* -Recurse -Force -Confirm:$false
             - run: pip install ruamel.yaml
             - run: conda install pytorch --yes
