@@ -527,3 +527,11 @@ class StreamingDownloadManager(object):
                 yield (file_path, file_obj)
                 stream.members = []
             del stream
+
+    def glob(self, urlpaths):
+        if isinstance(urlpaths, dict):
+            return {key: self.glob(urlpath) for key, urlpath in urlpaths.items()}
+        elif isinstance(urlpaths, (list, tuple)):
+            return [globbed for urlpath in urlpaths for globbed in self.glob(urlpath)]
+        else:
+            return xglob(urlpaths.replace("zip://::", "zip://**::")) if "zip://::" in urlpaths else [urlpaths]
