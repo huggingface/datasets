@@ -322,6 +322,16 @@ class NestedDataStructure:
         else:
             return [data]
 
+    def map(self, func, data=None, condition=None):
+        data = data if data is not None else self.data
+        if condition is None:
+            if isinstance(data, dict):
+                return {key: self.map(func, value) for key, value in data.items()}
+            elif isinstance(data, (list, tuple)):
+                return [self.map(func, item) for item in data]
+            else:
+                return func(data)
+
 
 def has_sufficient_disk_space(needed_bytes, directory="."):
     try:
