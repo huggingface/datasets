@@ -2094,6 +2094,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 logger.info(f"Process #{rank} will write at {cache_file_name}")
                 return cache_file_name
 
+            def format_new_fingerprint(new_fingerprint, rank):
+                return new_fingerprint + suffix_template.format(rank=rank, num_proc=num_proc)
+
             prev_env = deepcopy(os.environ)
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
@@ -2139,6 +2142,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     rank=rank,
                     offset=sum(len(s) for s in shards[:rank]),
                     disable_tqdm=disable_tqdm,
+                    new_fingerprint=format_new_fingerprint(new_fingerprint, rank)
+                    if new_fingerprint is not None
+                    else None,
                     desc=desc,
                 )
                 for rank in range(num_proc)
