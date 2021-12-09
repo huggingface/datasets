@@ -269,19 +269,6 @@ def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]
     return url, kwargs
 
 
-def _add_glob(url: str):
-    """Add glob to URL without it.
-
-    Args:
-        url (str): URL.
-
-    Returns:
-        str
-    """
-    url = url.replace("zip://::", "zip://**::")
-    return url
-
-
 def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     """
     This function extends the builtin `open` function to support remote files using fsspec.
@@ -301,7 +288,6 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     else:
         new_kwargs = {}
     kwargs = {**kwargs, **new_kwargs}
-    file = _add_glob(file)
     file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
