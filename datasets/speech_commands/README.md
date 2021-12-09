@@ -279,4 +279,4 @@ Creative Commons BY 4.0 License.
 ```
 ### Contributions
 
-Thanks to [@polinaeterna](https://github.com/polinaeterna) and ..?.. for adding this dataset.
+Thanks to [@polinaeterna](https://github.com/polinaeterna) for adding this dataset.
