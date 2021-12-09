@@ -127,8 +127,7 @@ Example of background noise (`_silence_`) class:
 {
   "file": "_silence_/doing_the_dishes.wav", 
   "audio": {
-    "path": "_silence
-    _/doing_the_dishes.wav", 
+    "path": "_silence_/doing_the_dishes.wav", 
     "array": array([ 0.        ,  0.        ,  0.        , ..., -0.00592041,
          -0.00405884, -0.00253296]), 
     "sampling_rate": 16000
