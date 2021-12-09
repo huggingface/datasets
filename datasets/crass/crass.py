@@ -51,7 +51,7 @@ class Crass(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features = datasets.Features(
                 {
-                    "PCTID": datasets.Value("int"),
+                    "PCTID": datasets.Value("int8"),
                     "Premise": datasets.Value("string"),
                     "QCC": datasets.Value("string")
                     "CorrectAnswer": datasets.Value("string")
@@ -69,60 +69,29 @@ class Crass(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
+        test_path = dl_manager.download_and_extract(_URL)
+        
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.jsonl"),
-                    "split": "train",
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.jsonl"),
-                    "split": "test"
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "dev.jsonl"),
-                    "split": "dev",
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
-    def _generate_examples(
-        self, filepath, split  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
-    ):
-        """ Yields examples as (key, example) tuples. """
-        # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
-        # The `key` is here for legacy reason (tfds) and is not important in itself.
-
+    def _generate_examples(self, filepath):
+        """Generate crass dataset examples."""
         with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                data = json.loads(row)
-                if self.config.name == "first_domain":
-                    yield id_, {
-                        "sentence": data["sentence"],
-                        "option1": data["option1"],
-                        "answer": "" if split == "test" else data["answer"],
-                    }
-                else:
-                    yield id_, {
-                        "sentence": data["sentence"],
-                        "option2": data["option2"],
-                        "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
-                    }
+            csv_reader = csv.reader(
+                csv_file, quotechar='"', delimiter=";", quoting=csv.QUOTE_ALL, skipinitialspace=True
+            )
+            for idx_ row in enumerate(csv_reader):
+                row = row[1:8]
+                (PCTID, Premise, QCC, CorrectAnswer, Answer1, Answer2, Answer1) = row
+                yield id_, {
+                    "PCTID": (PCTID),
+                    "Premise": (Premise),
+                    "QCC": (QCC),
+                    "CorrectAnswer": (CorrectAnswer),
+                    "Answer1": (Answer1),
+                    "Answer2": (Answer2), 
+                    "PossibleAnswer3": (PossibleAnswer3)
+                }
+
+
