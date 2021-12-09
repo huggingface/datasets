@@ -141,7 +141,7 @@ class BNLProcessedNewspapers(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "dirpath": os.path.join(data_dir),
+                    "dirpath": data_dir,
                 },
             ),
         ]
