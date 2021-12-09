@@ -109,7 +109,7 @@ class MockDownloadManager:
         return "/".join(self.dummy_file.replace(os.sep, "/").split("/")[:-1])
 
     # this function has to be in the manager under this name so that testing works
-    def download_and_extract(self, data_url, *args):
+    def download_and_extract(self, data_url, *args, **kwargs):
         if self.load_existing_dummy_data:
             # dummy data is downloaded and tested
             dummy_file = self.dummy_file
@@ -126,7 +126,7 @@ class MockDownloadManager:
             return self.create_dummy_data_single(dummy_file, data_url)
 
     # this function has to be in the manager under this name so that testing works
-    def download(self, data_url, *args):
+    def download(self, data_url, *args, **kwargs):
         return self.download_and_extract(data_url)
 
     # this function has to be in the manager under this name so that testing works
