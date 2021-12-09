@@ -2945,7 +2945,7 @@ def test_dummy_dataset_serialize_s3(s3, dataset):
 def test_build_local_temp_path(uri_or_path):
     extracted_path = extract_path_from_uri(uri_or_path)
     local_temp_path = Dataset._build_local_temp_path(extracted_path)
-    path_relative_to_tmp_dir = local_temp_path.as_posix().split("tmp", 1)[1].split("/", 1)[1]
+    path_relative_to_tmp_dir = local_temp_path.as_posix().split("tmp")[-1].split("/", 1)[1]
 
     assert (
         "tmp" in local_temp_path.as_posix()
