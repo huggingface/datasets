@@ -91,6 +91,7 @@ class DownloadManager:
         self.download_config = download_config or DownloadConfig()
         self.downloaded_paths = {}
         self.extracted_paths = {}
+        self.archives = None
 
     @property
     def manual_dir(self):
@@ -171,7 +172,7 @@ class DownloadManager:
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths.data
 
-    def download(self, url_or_urls):
+    def download(self, url_or_urls, glob_archives=False):
         """Download given url(s).
 
         Args:
@@ -182,6 +183,8 @@ class DownloadManager:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
+        if glob_archives:
+            self.archives = NestedDataStructure(url_or_urls).map(lambda x: x.suffix in [".zip"])
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
         # Default to using 16 parallel thread for downloading
@@ -280,7 +283,7 @@ class DownloadManager:
         Returns:
             extracted_path(s): `str`, extracted paths of given URL(s).
         """
-        return self.extract(self.download(url_or_urls))
+        return self.extract(self.download(url_or_urls, glob_archives=glob_archives), glob_archives=glob_archives)
 
     def get_recorded_sizes_checksums(self):
         return self._recorded_sizes_checksums.copy()
