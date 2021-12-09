@@ -31,6 +31,7 @@ from datasets.load import (
     LocalDatasetModuleFactoryWithScript,
     LocalMetricModuleFactory,
     PackagedDatasetModuleFactory,
+    infer_module_for_data_files_in_archives,
 )
 from datasets.utils.file_utils import DownloadConfig, is_remote_url
 
@@ -154,6 +155,25 @@ def metric_loading_script_dir(tmp_path):
     with open(script_path, "w") as f:
         f.write(METRIC_LOADING_SCRIPT_CODE)
     return str(script_dir)
+
+
+@pytest.fixture(scope="session")
+def zip_csv_with_dir_path(csv_path, csv2_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset_with_dir.csv.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(csv_path, arcname=os.path.join("main_dir", os.path.basename(csv_path)))
+        f.write(csv2_path, arcname=os.path.join("main_dir", os.path.basename(csv2_path)))
+    return path
+
+
+@pytest.mark.parametrize("data_file, expected_module", [("zip_csv_path", "csv"), ("zip_csv_with_dir_path", "csv")])
+def test_infer_module_for_data_files_in_archives(data_file, expected_module, zip_csv_path, zip_csv_with_dir_path):
+    data_file_paths = {"zip_csv_path": zip_csv_path, "zip_csv_with_dir_path": zip_csv_with_dir_path}
+    data_files = [str(data_file_paths[data_file])]
+    inferred_module = infer_module_for_data_files_in_archives(data_files, False)
+    assert inferred_module == expected_module
 
 
 class ModuleFactoryTest(TestCase):

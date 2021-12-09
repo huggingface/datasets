@@ -84,11 +84,7 @@ This dataset is in English (`EN`).
 #### free_law
 ```
 {
-  'meta':  {
-    'case_jurisdiction': 'scotus.tar.gz',
-    'case_ID': '110921.json',
-    'date_created': '2010-04-28T17:12:49Z'
-  },
+  'meta':  "{'case_jurisdiction': 'scotus.tar.gz', 'case_ID': '110921.json','date_created': '2010-04-28T17:12:49Z'}",
   'text': '\n461 U.S. 238 (1983)\nOLIM ET AL.\nv.\nWAKINEKONA\nNo. 81-1581.\nSupreme Court of United States.\nArgued...'
 }
 ```
@@ -96,8 +92,16 @@ This dataset is in English (`EN`).
 #### pubmed_central
 ```
 {
-  'id': 'PMC5595690',
+  'meta': "{id': 'PMC5595690'}",
   'text': 'Introduction {#acel12642-sec-0001}\n============\n\nAlzheimer\\\'s disease (AD), the most common cause of...'
+}
+```
+
+#### uspto
+```
+{
+  'text': "1. Field of the Invention\nIn an extensive plant breeding program, Grant Merrill, originator and now deceased, originated a large number of new and distinct varieties of fruit trees, and which included the herein-claimed variety of peach tree. Such plant breeding program was undertaken in originator's experimental orchard located near Exeter, Tulare County, Calif.\n2. Prior Varieties\nAmong the existent varieties of peach trees which were known to originator, particular reference is made to Gemfree (U.S. Plant Pat. No. 1,409) and June Lady (U.S. Plant Pat. No. 3,022) hereinafter mentioned for the purpose of comparison.",
+  'meta': "{'bibliographic_information': {'Patent Number': 'PP0049700', 'Series Code': '6', 'Application Number': '2845415', 'Application Type': '6', 'Art unit': '337', 'Application Filing Date': '19810720', 'Title of Invention': 'Peach tree (A3-10)', 'Issue Date': '19830104', 'Number of Claims': '1', 'Exemplary Claim Number(s)': '1', 'Primary Examiner': 'Bagwill; Robert E.', 'Number of Drawing Sheets': '1', 'Number of figures': '1'}, 'source_file': 'https://bulkdata.uspto.gov/data/patent/grant/redbook/fulltext/1983/pftaps19830104_wk01.zip', 'abstract': 'A peach tree which is large, vigorous, and spreading; foliated with large, lanceolate leaves having a finely serrate margin, a petiole of medium length and thickness, and medium size, reniform glands; blooms from medium size, conic, plump, pubescent buds; the flowers, medium in blooming period compared with other varieties, being of medium size, and pink; and is a regular and very productive bearer of medium but variable size, round truncate, clingstone fruit having yellow skin substantially overspread with red, yellow flesh mottled with red adjacent the skin, and an amber stone.', 'classifications': [{'OCL': ['Plt', '43'], 'EDF': ['3'], 'ICL': ['A01H', '503'], 'FSC': ['Plt'], 'FSS': ['43']}], 'inventors': [{'inventor name': 'Merrill, deceased; Grant', 'Street': '325 Breese Ave.', 'City': 'late of Red Bluff', 'State': 'CA'}, {'inventor name': 'Merrill, executrix; by Lucile B.', 'Street': '325 Breese Ave.', 'City': 'Red Bluff', 'State': 'CA', 'Zip code': '96080'}]}"
 }
 ```
 
@@ -112,15 +116,18 @@ This dataset is in English (`EN`).
 #### free_law
 
 - `text` (str): Text.
-- `meta` (dict): Metadata of the data instance, with keys:
-   - case_ID
-   - case_jurisdiction
-   - date_created
+- `meta` (str): Metadata of the data instance, with: case_ID, case_jurisdiction, date_created.
 
 #### pubmed_central
 
 - `text` (str): Text.
-- `id` (str): ID of the data instance.
+- `meta` (str): Metadata of the data instance, with: ID of the data instance.
+
+#### uspto
+
+- `text` (str): Text.
+- `meta` (str): Metadata of the data instance, with: bibliographic_information, source_file, abstract, classifications, 
+  inventors.
 
 ### Data Splits
 

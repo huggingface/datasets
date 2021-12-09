@@ -130,6 +130,23 @@ def unique_values(values):
             yield value
 
 
+def no_op_if_value_is_null(func):
+    """If the value is None, return None, else call `func`."""
+
+    def wrapper(value):
+        return func(value) if value is not None else None
+
+    return wrapper
+
+
+def first_non_null_value(iterable):
+    """Return the index and the value of the first non-null value in the iterable. If all values are None, return -1 as index."""
+    for i, value in enumerate(iterable):
+        if value is not None:
+            return i, value
+    return -1, None
+
+
 def zip_dict(*dicts):
     """Iterate over items of dictionaries grouped by their keys."""
     for key in unique_values(itertools.chain(*dicts)):  # set merge all keys

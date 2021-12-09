@@ -437,7 +437,7 @@ def infer_module_for_data_files_in_archives(
     archived_files = []
     for filepath in data_files_list:
         if str(filepath).endswith(".zip"):
-            extracted = xjoin(StreamingDownloadManager().extract(filepath), "*")
+            extracted = xjoin(StreamingDownloadManager().extract(filepath), "**")
             archived_files += [
                 f.split("::")[0] for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)
             ]

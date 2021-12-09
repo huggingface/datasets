@@ -41,6 +41,7 @@ _LICENSES = {
     "all": "MIT License",
     "free_law": "Unknown",
     "pubmed_central": "MIT License",
+    "uspto": "Unknown",
 }
 
 _DATA_URLS = {
@@ -51,6 +52,7 @@ _DATA_URLS = {
     },
     "free_law": "https://the-eye.eu/public/AI/pile_preliminary_components/FreeLaw_Opinions.jsonl.zst",
     "pubmed_central": "https://the-eye.eu/public/AI/pile_preliminary_components/PMC_extracts.tar.gz",
+    "uspto": "https://the-eye.eu/public/AI/pile_preliminary_components/pile_uspto.tar",
 }
 
 _FEATURES = {
@@ -63,17 +65,19 @@ _FEATURES = {
     "free_law": datasets.Features(
         {
             "text": datasets.Value("string"),
-            "meta": {
-                "case_ID": datasets.Value("string"),
-                "case_jurisdiction": datasets.Value("string"),
-                "date_created": datasets.Value("string"),
-            },
+            "meta": datasets.Value("string"),
         }
     ),
     "pubmed_central": datasets.Features(
         {
             "text": datasets.Value("string"),
-            "id": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "uspto": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
         }
     ),
 }
@@ -180,9 +184,19 @@ class ThePile(datasets.GeneratorBasedBuilder):
                 elif subset == "pubmed_central":
                     for path, file in files[subset]:
                         id_ = path.split("/")[-1].split(".")[0]
+                        meta = {"id": id_}
                         text = file.read().decode("utf-8")
                         yield key, {
-                            "id": id_,
                             "text": text,
+                            "meta": meta,
                         }
                         key += 1
+                elif subset == "uspto":
+                    import zstandard as zstd
+
+                    for path, file in files[subset]:
+                        with zstd.open(file, "rt", encoding="utf-8") as f:
+                            for row in f:
+                                data = json.loads(row)
+                                yield key, data
+                                key += 1
