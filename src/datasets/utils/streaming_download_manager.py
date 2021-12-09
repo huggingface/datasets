@@ -536,4 +536,8 @@ class StreamingDownloadManager(object):
         elif isinstance(urlpaths, (list, tuple)):
             return [globbed for urlpath in urlpaths for globbed in self.glob(urlpath)]
         else:
-            return xglob(urlpaths.replace("zip://::", "zip://**::")) if "zip://::" in urlpaths else [urlpaths]
+            return (
+                xglob(urlpaths.replace("zip://::", "zip://**::"), use_auth_token=self.download_config.use_auth_token)
+                if "zip://::" in urlpaths
+                else [urlpaths]
+            )
