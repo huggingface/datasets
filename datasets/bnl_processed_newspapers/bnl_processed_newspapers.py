@@ -170,7 +170,9 @@ class BNLProcessedNewspapers(datasets.GeneratorBasedBuilder):
             title = metadata.find(".//{http://purl.org/dc/elements/1.1/}title").text
             article_type = metadata.find(".//{http://purl.org/dc/elements/1.1/}type").text
             extent = metadata.find(".//{http://purl.org/dc/terms/}extent").text
-
+            language = tree.find('.//{http://purl.org/dc/elements/1.1/}language')
+            if language is not None:
+                language = language.text
             yield id_, {
                 "ark_id": ark_id,
                 "source": source,
@@ -182,4 +184,5 @@ class BNLProcessedNewspapers(datasets.GeneratorBasedBuilder):
                 "article_type": article_type,
                 "extent": extent,
                 "ispartof": ispartof,
+                "language": language
             }
