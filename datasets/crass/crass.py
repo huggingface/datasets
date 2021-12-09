@@ -53,10 +53,10 @@ class Crass(datasets.GeneratorBasedBuilder):
                 {
                     "PCTID": datasets.Value("int8"),
                     "Premise": datasets.Value("string"),
-                    "QCC": datasets.Value("string")
-                    "CorrectAnswer": datasets.Value("string")
-                    "Answer1": datasets.Value("string")
-                    "Answer2": datasets.Value("string")            
+                    "QCC": datasets.Value("string"),
+                    "CorrectAnswer": datasets.Value("string"),
+                    "Answer1": datasets.Value("string"),
+                    "Answer2": datasets.Value("string") ,           
                     "PossibleAnswer3": datasets.Value("string")                                                                                
 
                 }
@@ -70,28 +70,27 @@ class Crass(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         test_path = dl_manager.download_and_extract(_URL)
-        
         return [
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
+
     def _generate_examples(self, filepath):
         """Generate crass dataset examples."""
-        with open(filepath, encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=";", quoting=csv.QUOTE_ALL, skipinitialspace=True
             )
-            for idx_ row in enumerate(csv_reader):
-                row = row[1:8]
-                (PCTID, Premise, QCC, CorrectAnswer, Answer1, Answer2, Answer1) = row
+            next(csv_reader)            
+            for id_, row in enumerate(csv_reader):
                 yield id_, {
-                    "PCTID": (PCTID),
-                    "Premise": (Premise),
-                    "QCC": (QCC),
-                    "CorrectAnswer": (CorrectAnswer),
-                    "Answer1": (Answer1),
-                    "Answer2": (Answer2), 
-                    "PossibleAnswer3": (PossibleAnswer3)
+                    "PCTID": row["PCTID"],
+                    "Premise": row["Premise"],
+                    "QCC": row["QCC"],
+                    "CorrectAnswer": row["CorrectAnswer"],
+                    "Answer1": row["Answer1"],
+                    "Answer2": row["Answer2"], 
+                    "PossibleAnswer3": row["PossibleAnswer3"]
                 }
 
 
