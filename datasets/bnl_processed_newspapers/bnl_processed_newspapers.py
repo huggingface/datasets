@@ -14,8 +14,7 @@
 # limitations under the License.
 """Digitised historic newspapers from the BNL"""
 
-import os
-import xml.etree.cElementTree as ET
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 
