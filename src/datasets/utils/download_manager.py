@@ -265,6 +265,8 @@ class DownloadManager:
         path_or_paths = NestedDataStructure(path_or_paths)
         extracted_paths = NestedDataStructure(extracted_paths)
         self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
+        if glob_archives:
+            extracted_paths = NestedDataStructure(extracted_paths.glob(condition=self.archives))
         return extracted_paths.data
 
     def download_and_extract(self, url_or_urls, glob_archives=False):
