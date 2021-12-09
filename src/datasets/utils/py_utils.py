@@ -338,7 +338,11 @@ class NestedDataStructure:
         if isinstance(data, dict):
             return {key: self.glob(value, condition=condition[key]) for key, value in data.items()}
         elif isinstance(data, (list, tuple)):
-            return [globbed for item, item_condition in zip(data, condition) for globbed in self.glob(item, condition=item_condition)]
+            return [
+                globbed
+                for item, item_condition in zip(data, condition)
+                for globbed in self.glob(item, condition=item_condition)
+            ]
         else:
             return glob.glob(os.path.join(data, "**")) if condition else [data]
 
