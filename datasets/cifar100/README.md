@@ -71,9 +71,18 @@ English
 
 ### Data Instances
 
+A sample from the training set is provided below:
+
+```
+{
+  'img': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=32x32 at 0x2767F58E080>, 'fine_label': 19,
+  'coarse_label': 11
+}
+```
+
 ### Data Fields
 
-- `img`:  a 32x32x3 image array
+- `img`: A `PIL.Image.Image` object containing the 32x32 image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `fine_label`: an `int` classification label with the following mapping:
 
   `0`: apple
