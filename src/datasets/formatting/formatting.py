@@ -22,6 +22,7 @@ import pyarrow as pa
 
 from ..features import _ArrayXDExtensionType, _is_zero_copy_only, pandas_types_mapper
 from ..table import Table
+from ..utils import no_op_if_value_is_null
 
 
 T = TypeVar("T")
@@ -96,6 +97,10 @@ def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> 
     _raise_bad_key_type(key)
 
 
+def _is_array_with_nulls(pa_array: pa.Array) -> bool:
+    return pa_array.null_count > 0
+
+
 class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
     """
     Arrow extractor are used to extract data from pyarrow tables.
@@ -154,26 +159,44 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         return {col: self._arrow_array_to_numpy(pa_table[col]) for col in pa_table.column_names}
 
     def _arrow_array_to_numpy(self, pa_array: pa.Array) -> np.ndarray:
-        zero_copy_only = _is_zero_copy_only(pa_array.type)
         if isinstance(pa_array, pa.ChunkedArray):
-            # don't call to_numpy() directly or we end up with a np.array with dtype object
-            # call to_numpy on the chunks instead
-            # for ArrayExtensionArray call py_list directly to support dynamic dimensions
             if isinstance(pa_array.type, _ArrayXDExtensionType):
-                array: List = [row for chunk in pa_array.chunks for row in chunk.to_pylist()]
+                # don't call to_pylist() to preserve dtype of the fixed-size array
+                zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+                if pa_array.type.shape[0] is None:
+                    array: List = [
+                        row
+                        for chunk in pa_array.chunks
+                        for row in chunk.to_list_of_numpy(zero_copy_only=zero_copy_only)
+                    ]
+                else:
+                    array: List = [
+                        row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
+                    ]
             else:
+                zero_copy_only = _is_zero_copy_only(pa_array.type) and all(
+                    not _is_array_with_nulls(chunk) for chunk in pa_array.chunks
+                )
                 array: List = [
                     row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
                 ]
         else:
-            # cast to list of arrays or we end up with a np.array with dtype object
-            # for ArrayExtensionArray call py_list directly to support dynamic dimensions
             if isinstance(pa_array.type, _ArrayXDExtensionType):
-                array: List = pa_array.to_pylist()
+                # don't call to_pylist() to preserve dtype of the fixed-size array
+                zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+                if pa_array.type.shape[0] is None:
+                    array: List = pa_array.to_list_of_numpy(zero_copy_only=zero_copy_only)
+                else:
+                    array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only)
             else:
+                zero_copy_only = _is_zero_copy_only(pa_array.type) and not _is_array_with_nulls(pa_array)
                 array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
         if len(array) > 0:
-            if any(isinstance(x, np.ndarray) and (x.dtype == np.object or x.shape != array[0].shape) for x in array):
+            if any(
+                (isinstance(x, np.ndarray) and (x.dtype == np.object or x.shape != array[0].shape))
+                or (isinstance(x, float) and np.isnan(x))
+                for x in array
+            ):
                 return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": np.object})
         return np.array(array, copy=False, **self.np_array_kwargs)
 
@@ -210,7 +233,7 @@ class PandasFeaturesDecoder:
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
         decode = (
             {
-                column_name: feature.decode_example
+                column_name: no_op_if_value_is_null(feature.decode_example)
                 for column_name, feature in self.features.items()
                 if column_name in row.columns and hasattr(feature, "decode_example")
             }
@@ -223,7 +246,7 @@ class PandasFeaturesDecoder:
 
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
         decode = (
-            self.features[column_name].decode_example
+            no_op_if_value_is_null(self.features[column_name].decode_example)
             if self.features and column_name in self.features and hasattr(self.features[column_name], "decode_example")
             else None
         )

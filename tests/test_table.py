@@ -91,6 +91,10 @@ def assert_index_attributes_equal(table: Table, other: Table):
     assert table._schema == other._schema
 
 
+def add_suffix_to_column_names(table, suffix):
+    return table.rename_columns([f"{name}{suffix}" for name in table.column_names])
+
+
 def test_inject_arrow_table_documentation(in_memory_pa_table):
     method = pa.Table.slice
 
@@ -636,9 +640,11 @@ def test_concatenation_table_from_tables(axis, in_memory_pa_table, arrow_file):
     if axis == 0:
         expected_table = pa.concat_tables([in_memory_pa_table] * len(tables))
     else:
+        # avoids error due to duplicate column names
+        tables[1:] = [add_suffix_to_column_names(table, i) for i, table in enumerate(tables[1:], 1)]
         expected_table = in_memory_pa_table
-        for _ in range(1, len(tables)):
-            for name, col in zip(in_memory_pa_table.column_names, in_memory_pa_table.columns):
+        for table in tables[1:]:
+            for name, col in zip(table.column_names, table.columns):
                 expected_table = expected_table.append_column(name, col)
 
     with assert_arrow_memory_doesnt_increase():
@@ -911,7 +917,10 @@ def test_concat_tables(arrow_file, in_memory_pa_table):
     assert isinstance(concatenated_table.blocks[0][0], InMemoryTable)
     assert isinstance(concatenated_table.blocks[1][0], MemoryMappedTable)
     assert isinstance(concatenated_table.blocks[2][0], InMemoryTable)
-    concatenated_table = concat_tables(tables, axis=1)
+    # add suffix to avoid error due to duplicate column names
+    concatenated_table = concat_tables(
+        [add_suffix_to_column_names(table, i) for i, table in enumerate(tables)], axis=1
+    )
     assert concatenated_table.table.shape == (10, 16)
     assert len(concatenated_table.blocks[0]) == 3  # t0 and t1 are consolidated as a single InMemoryTable
     assert isinstance(concatenated_table.blocks[0][0], InMemoryTable)
