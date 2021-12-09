@@ -241,7 +241,7 @@ class DownloadManager:
                 stream.members = []
             del stream
 
-    def extract(self, path_or_paths, num_proc=None):
+    def extract(self, path_or_paths, num_proc=None, glob_archives=False):
         """Extract given path(s).
 
         Args:
@@ -264,7 +264,7 @@ class DownloadManager:
         self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
         return extracted_paths.data
 
-    def download_and_extract(self, url_or_urls):
+    def download_and_extract(self, url_or_urls, glob_archives=False):
         """Download and extract given url_or_urls.
 
         Is roughly equivalent to:
