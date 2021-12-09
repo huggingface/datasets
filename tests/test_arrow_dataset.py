@@ -6,6 +6,7 @@ import pickle
 import re
 import tempfile
 from functools import partial
+from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -936,6 +937,25 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset_test["rank"], [0] * 10 + [1] * 10 + [2] * 10)
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:  # new_fingerprint
+            new_fingerprint = "foobar"
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                fingerprint = dset._fingerprint
+                with dset.map(picklable_map_function, num_proc=2, new_fingerprint=new_fingerprint) as dset_test:
+                    self.assertEqual(len(dset_test), 30)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(
+                        dset_test.features,
+                        Features({"filename": Value("string"), "id": Value("int64")}),
+                    )
+                    self.assertEqual(len(dset_test.cache_files), 0 if in_memory else 2)
+                    self.assertListEqual(dset_test["id"], list(range(30)))
+                    self.assertNotEqual(dset_test._fingerprint, fingerprint)
+                    assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
+                    file_names = sorted([Path(cache_file["filename"]).name for cache_file in dset_test.cache_files])
+                    for i, file_name in enumerate(file_names):
+                        self.assertIn(new_fingerprint + f"_{i:05d}", file_name)
 
         with tempfile.TemporaryDirectory() as tmp_dir:  # lambda (requires multiprocess from pathos)
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
