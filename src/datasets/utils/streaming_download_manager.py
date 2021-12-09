@@ -477,8 +477,10 @@ class StreamingDownloadManager(object):
             urlpath = url_or_path_join(self._base_path, urlpath)
         return urlpath
 
-    def extract(self, path_or_paths):
+    def extract(self, path_or_paths, glob_archives=False):
         urlpaths = map_nested(self._extract, path_or_paths, map_tuple=True)
+        if glob_archives:
+            urlpaths = self.glob(urlpaths)
         return urlpaths
 
     def _extract(self, urlpath: str) -> str:
@@ -499,8 +501,8 @@ class StreamingDownloadManager(object):
         else:
             return f"{protocol}://::{urlpath}"
 
-    def download_and_extract(self, url_or_urls):
-        return self.extract(self.download(url_or_urls))
+    def download_and_extract(self, url_or_urls, glob_archives=False):
+        return self.extract(self.download(url_or_urls), glob_archives=glob_archives)
 
     def iter_archive(self, urlpath: str):
         """Returns iterator over files within archive.
