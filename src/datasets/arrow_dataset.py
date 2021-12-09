@@ -3747,8 +3747,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset`
         """
         item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
+        dset_features, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
         # Cast and concatenate tables
-        table = concat_tables([self._data, item_table])
+        table = concat_tables(
+            [
+                self._data.cast(pa.schema(dset_features.type)) if self.features != dset_features else self._data,
+                item_table.cast(pa.schema(item_features.type)),
+            ]
+        )
         if self._indices is None:
             indices_table = None
         else:
@@ -3756,8 +3763,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
             indices_table = concat_tables([self._indices, item_indices_table])
         info = self.info.copy()
-        # We don't call _check_if_features_can_be_aligned because `concat_tables` called earlier will fail if they can't be aligned
-        _, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
         info.features.update(item_features)
         table = update_metadata_with_features(table, info.features)
         return Dataset(
