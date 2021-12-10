@@ -58,7 +58,7 @@ class BNLProcessedNewspapers(datasets.GeneratorBasedBuilder):
                 "text": datasets.Value("string"),
                 "pub_date": datasets.Value("timestamp[s]"),
                 "publisher": datasets.Value("string"),
-                "language": datasets.Value('string'),
+                "language": datasets.Value("string"),
                 "article_type": datasets.ClassLabel(
                     names=[
                         "ADVERTISEMENT_SECTION",
