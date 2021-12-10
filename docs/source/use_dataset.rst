@@ -29,18 +29,13 @@ Now you can tokenize ``sentence1`` field of the dataset:
 
 .. code-block::
 
+   >>> from datasets import load_dataset
+   >>> dataset = load_dataset('glue', 'mrpc', split='train')
    >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True)
    >>> encoded_dataset.column_names
-   ['sentence1', 'sentence2', 'label', 'idx', 'input_ids', 'token_type_ids', 'attention_mask']
-   >>> encoded_dataset[0]
-   {'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
-   'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
-   'label': 1,
-   'idx': 0,
-   'input_ids': [  101,  7277,  2180,  5303,  4806,  1117,  1711,   117,  2292, 1119,  1270,   107,  1103,  7737,   107,   117,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102],
-   'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-   'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-   }
+   ['attention_mask', 'idx', 'input_ids', 'label', 'sentence1', 'sentence2', 'token_type_ids']
+   >>> print(encoded_dataset[0])
+   {'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 'idx': 0, 'input_ids': [101, 7277, 2180, 5303, 4806, 1117, 1711, 117, 2292, 1119, 1270, 107, 1103, 7737, 107, 117, 1104, 9938, 4267, 12223, 21811, 1117, 2554, 119, 102], 'label': 1, 'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .', 'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .', 'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
 
 The tokenization process creates three new columns: ``input_ids``, ``token_type_ids``, and ``attention_mask``. These are the inputs to the model.
 
@@ -70,17 +65,30 @@ After you set the format, wrap the dataset with ``torch.utils.data.DataLoader``.
    >>> dataset = dataset.map(lambda e: tokenizer(e['sentence1'], truncation=True, padding='max_length'), batched=True)
    >>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
    >>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
-   >>> next(iter(dataloader))
+   >>> next(iter(dataloader)) #doctest: +NORMALIZE_WHITESPACE
    {'attention_mask': tensor([[1, 1, 1,  ..., 0, 0, 0],
-                            ...,
-                            [1, 1, 1,  ..., 0, 0, 0]]),
-   'input_ids': tensor([[  101,  7277,  2180,  ...,     0,     0,     0],
-                       ...,
-                       [  101,  1109,  4173,  ...,     0,     0,     0]]),
-   'label': tensor([1, 0, 1, 0, 1, 1, 0, 1]),
-   'token_type_ids': tensor([[0, 0, 0,  ..., 0, 0, 0],
-                            ...,
-                            [0, 0, 0,  ..., 0, 0, 0]])}
+            [1, 1, 1,  ..., 0, 0, 0],
+            [1, 1, 1,  ..., 0, 0, 0],
+            ...,
+            [1, 1, 1,  ..., 0, 0, 0],
+            [1, 1, 1,  ..., 0, 0, 0],
+            [1, 1, 1,  ..., 0, 0, 0]]), 
+    'input_ids': tensor([[  101,  7277,  2180,  ...,     0,     0,     0],
+            [  101, 10684,  2599,  ...,     0,     0,     0],
+            [  101,  1220,  1125,  ...,     0,     0,     0],
+            ...,
+            [  101,  1109,  2026,  ...,     0,     0,     0],
+            [  101, 22263,  1107,  ...,     0,     0,     0],
+            [  101,   142,  1813,  ...,     0,     0,     0]]), 
+    'label': tensor([1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1,
+            1, 1, 0, 0, 1, 1, 1, 0]), 
+    'token_type_ids': tensor([[0, 0, 0,  ..., 0, 0, 0],
+            [0, 0, 0,  ..., 0, 0, 0],
+            [0, 0, 0,  ..., 0, 0, 0],
+            ...,
+            [0, 0, 0,  ..., 0, 0, 0],
+            [0, 0, 0,  ..., 0, 0, 0],
+            [0, 0, 0,  ..., 0, 0, 0]])}
 
 TensorFlow
 ^^^^^^^^^^

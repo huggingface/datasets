@@ -49,7 +49,6 @@ Returns: depending on the GLUE subset, one or several of:
     "spearmanr": Spearman Correlation
     "matthews_correlation": Matthew Correlation
 Examples:
-
     >>> glue_metric = datasets.load_metric('glue', 'sst2')  # 'sst2' or any of ["mnli", "mnli_mismatched", "mnli_matched", "qnli", "rte", "wnli", "hans"]
     >>> references = [0, 1]
     >>> predictions = [0, 1]

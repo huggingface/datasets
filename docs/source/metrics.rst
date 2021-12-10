@@ -42,34 +42,8 @@ Before you begin using a :class:`datasets.Metric` object, you should get to know
 
 .. code-block::
 
-   >>> print(metric.inputs_description)
-   Compute GLUE evaluation metric associated to each GLUE dataset.
-   Args:
-       predictions: list of predictions to score.
-           Each translation should be tokenized into a list of tokens.
-       references: list of lists of references for each translation.
-           Each reference should be tokenized into a list of tokens.
-   Returns: depending on the GLUE subset, one or several of:
-       "accuracy": Accuracy
-       "f1": F1 score
-       "pearson": Pearson Correlation
-       "spearmanr": Spearman Correlation
-       "matthews_correlation": Matthew Correlation
-   Examples:
-       >>> glue_metric = datasets.load_metric('glue', 'sst2')  # 'sst2' or any of ["mnli", "mnli_mismatched", "mnli_matched", "qnli", "rte", "wnli", "hans"]
-       >>> references = [0, 1]
-       >>> predictions = [0, 1]
-       >>> results = glue_metric.compute(predictions=predictions, references=references)
-       >>> print(results)
-       {'accuracy': 1.0}
-       ...
-       >>> glue_metric = datasets.load_metric('glue', 'mrpc')  # 'mrpc' or 'qqp'
-       >>> references = [0, 1]
-       >>> predictions = [0, 1]
-       >>> results = glue_metric.compute(predictions=predictions, references=references)
-       >>> print(results)
-       {'accuracy': 1.0, 'f1': 1.0}
-       ...
+   >>> metric.inputs_description
+   '\nCompute GLUE evaluation metric associated to each GLUE dataset.\nArgs:\n    predictions: list of predictions to score.\n        Each translation should be tokenized into a list of tokens.\n    references: list of lists of references for each translation.\n        Each reference should be tokenized into a list of tokens.\nReturns: depending on the GLUE subset, one or several of:\n    "accuracy": Accuracy\n    "f1": F1 score\n    "pearson": Pearson Correlation\n    "spearmanr": Spearman Correlation\n    "matthews_correlation": Matthew Correlation\nExamples:\n\n    >>> glue_metric = datasets.load_metric(\'glue\', \'sst2\')  # \'sst2\' or any of ["mnli", "mnli_mismatched", "mnli_matched", "qnli", "rte", "wnli", "hans"]\n    >>> references = [0, 1]\n    >>> predictions = [0, 1]\n    >>> results = glue_metric.compute(predictions=predictions, references=references)\n    >>> print(results)\n    {\'accuracy\': 1.0}\n\n    >>> glue_metric = datasets.load_metric(\'glue\', \'mrpc\')  # \'mrpc\' or \'qqp\'\n    >>> references = [0, 1]\n    >>> predictions = [0, 1]\n    >>> results = glue_metric.compute(predictions=predictions, references=references)\n    >>> print(results)\n    {\'accuracy\': 1.0, \'f1\': 1.0}\n\n    >>> glue_metric = datasets.load_metric(\'glue\', \'stsb\')\n    >>> references = [0., 1., 2., 3., 4., 5.]\n    >>> predictions = [0., 1., 2., 3., 4., 5.]\n    >>> results = glue_metric.compute(predictions=predictions, references=references)\n    >>> print({"pearson": round(results["pearson"], 2), "spearmanr": round(results["spearmanr"], 2)})\n    {\'pearson\': 1.0, \'spearmanr\': 1.0}\n\n    >>> glue_metric = datasets.load_metric(\'glue\', \'cola\')\n    >>> references = [0, 1]\n    >>> predictions = [0, 1]\n    >>> results = glue_metric.compute(predictions=predictions, references=references)\n    >>> print(results)\n    {\'matthews_correlation\': 1.0}\n'
 
 Notice for the MRPC configuration, the metric expects the input format to be zero or one. For a complete list of attributes you can return with your metric, take a look at :class:`datasets.MetricInfo`.
 
@@ -80,5 +54,5 @@ Once you have loaded a metric, you are ready to use it to evaluate a models pred
 
 .. code-block::
 
-   >>> model_predictions = model(model_inputs)
-   >>> final_score = metric.compute(predictions=model_predictions, references=gold_references)
+   >>> model_predictions = model(model_inputs) #doctest: +SKIP
+   >>> final_score = metric.compute(predictions=model_predictions, references=gold_references) #doctest: +SKIP
