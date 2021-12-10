@@ -119,30 +119,34 @@ class BNLProcessedNewspapers(datasets.GeneratorBasedBuilder):
         dirpath,
     ):
         """Yields examples as (key, example) tuples."""
+        ns = {
+            "": "http://www.openarchives.org/OAI/2.0/",
+            "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+            "oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
+            "dc": "http://purl.org/dc/elements/1.1/",
+            "dcterms": "http://purl.org/dc/terms/",
+        }
         for id_, xml in enumerate(Path(dirpath).rglob("**/*.xml")):
             tree = ET.parse(xml)
-            root = tree.getroot()
-            source = tree.findall(".//{http://purl.org/dc/elements/1.1/}source")[0].text
-            metadata = root.find(".//{http://www.openarchives.org/OAI/2.0/}metadata")
-            ispartof = metadata.find(".//{http://purl.org/dc/terms/}isPartOf").text
-            date = metadata.find(".//{http://purl.org/dc/elements/1.1/}date").text
+            source = tree.find(".//dc:source", ns).text
+            ark_id = tree.find(".//dc:identifier", ns).text
+            ispartof = tree.find(".//dcterms:isPartOf", ns).text
+            date = tree.find(".//dc:date", ns).text
             if date:
                 date = datetime.strptime(date, "%Y-%m-%d")
-            publisher = root.findall(".//{http://purl.org/dc/elements/1.1/}publisher")
-            if publisher:
-                publisher = publisher[0].text
-            hasversion = metadata.find(".//{http://purl.org/dc/terms/}hasVersion").text
-
-            description = tree.findall(".//{http://purl.org/dc/elements/1.1/}description")[0].text
-            ark_id = tree.findall(".//{http://purl.org/dc/elements/1.1/}identifier")[0].text
-            title = metadata.find(".//{http://purl.org/dc/elements/1.1/}title").text
-            article_type = metadata.find(".//{http://purl.org/dc/elements/1.1/}type").text
-            extent = metadata.find(".//{http://purl.org/dc/terms/}extent").text
-            language = tree.find('.//{http://purl.org/dc/elements/1.1/}language')
+            publisher = tree.find(".//dc:publisher", ns)
+            if publisher is not None:
+                publisher = publisher.text
+            hasversion = tree.find(".//dcterms:hasVersion", ns).text
+            description = tree.find(".//dc:description", ns).text
+            title = tree.find(".//dc:title", ns).text
+            article_type = tree.find(".//dc:type", ns).text
+            extent = tree.find(".//dcterms:extent", ns).text
+            language = tree.find(".//dc:language", ns)
             if language is not None:
                 language = language.text
             yield id_, {
-                "ark_id": ark_id,
+                "id": ark_id,
                 "source": source,
                 "url": hasversion,
                 "title": title,
