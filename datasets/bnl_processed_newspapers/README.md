@@ -2,7 +2,15 @@
 annotations_creators: []
 language_creators:
 - other
-languages: []
+languages:
+- ar
+- da
+- de
+- fi
+- fr
+- lb
+- nl
+- pt
 licenses:
 - cc0-1.0
 multilinguality:
@@ -122,6 +130,7 @@ An example instance from the datasets:
 - 'text': The full text of the entire article, section, advertisement etc. It includes any titles and subtitles as well. The content does not contain layout information, such as headings, paragraphs or lines.
 - 'title': The main title of the article, section, advertisement, etc.
 - 'url': The link to the BnLViewer on eluxemburgensia.lu to view the resource online.
+- 'language': The language of the text, possible values ('ar', 'da', 'de', 'fi', 'fr', 'lb', 'nl', 'pt')
 
 ### Data Splits
 
