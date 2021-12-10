@@ -43,14 +43,14 @@ _URL = "https://data.bnl.lu/open-data/digitization/newspapers/export01-newspaper
 
 
 class BNLProcessedNewspapers(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """Historic newspapers from the BNL"""
 
     VERSION = datasets.Version("1.1.0")
 
     def _info(self):
         features = datasets.Features(
             {
-                "ark_id": datasets.Value("string"),
+                "id": datasets.Value("string"),
                 "source": datasets.Value("string"),
                 "url": datasets.Value("string"),
                 "title": datasets.Value("string"),
@@ -156,5 +156,5 @@ class BNLProcessedNewspapers(datasets.GeneratorBasedBuilder):
                 "article_type": article_type,
                 "extent": extent,
                 "ispartof": ispartof,
-                "language": language
+                "language": language,
             }
