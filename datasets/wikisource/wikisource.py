@@ -19,7 +19,7 @@ import bz2
 import codecs
 import json
 import re
-import xml.etree.cElementTree as etree
+import xml.etree.ElementTree as ET
 
 import datasets
 
@@ -147,7 +147,7 @@ class Wikisource(datasets.GeneratorBasedBuilder):
                 f = bz2.BZ2File(filename=f)
                 # Workaround due to: https://github.com/tensorflow/tensorflow/issues/33563
                 utf_f = codecs.getreader("utf-8")(f)
-                context = etree.iterparse(utf_f, events=("end",))
+                context = ET.iterparse(utf_f, events=("end",))
                 for unused_event, elem in context:
                     if not elem.tag.endswith("page"):
                         continue
