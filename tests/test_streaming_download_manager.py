@@ -18,7 +18,9 @@ from datasets.utils.streaming_download_manager import (
     xopen,
     xpathglob,
     xpathjoin,
+    xpathname,
     xpathopen,
+    xpathparent,
     xpathrglob,
     xpathstem,
     xpathsuffix,
@@ -386,6 +388,39 @@ def test_xpathrglob(input_path, pattern, expected_paths, tmp_path, mock_fsspec):
         expected_paths = [Path(file) for file in expected_paths]
     output_paths = sorted(xpathrglob(Path(input_path), pattern))
     assert output_paths == expected_paths
+
+
+@pytest.mark.parametrize(
+    "input_path, expected_path",
+    [
+        (Path(__file__).resolve(), Path(__file__).resolve().parent),
+        (Path("https://host.com/archive.zip"), Path("https://host.com")),
+        (
+            Path("zip://file.txt::https://host.com/archive.zip"),
+            Path("zip://::https://host.com/archive.zip"),
+        ),
+        (
+            Path("zip://folder/file.txt::https://host.com/archive.zip"),
+            Path("zip://folder::https://host.com/archive.zip"),
+        ),
+    ],
+)
+def test_xpathparent(input_path, expected_path):
+    output_path = xpathparent(input_path)
+    output_path = _readd_double_slash_removed_by_path(output_path.as_posix())
+    assert output_path == _readd_double_slash_removed_by_path(expected_path.as_posix())
+
+
+@pytest.mark.parametrize(
+    "input_path, expected",
+    [
+        ("zip://file.txt::https://host.com/archive.zip", "file.txt"),
+        ("datasets/file.txt", "file.txt"),
+        ((Path().resolve() / "file.txt").as_posix(), "file.txt"),
+    ],
+)
+def test_xpathname(input_path, expected):
+    assert xpathname(Path(input_path)) == expected
 
 
 @pytest.mark.parametrize(

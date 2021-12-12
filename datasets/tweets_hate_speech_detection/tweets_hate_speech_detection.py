@@ -44,7 +44,7 @@ _TRAIN_DOWNLOAD_URL = (
 
 
 class TweetsHateSpeechDetection(datasets.GeneratorBasedBuilder):
-    """Detecing which tweets showcase hate or racist remarks."""
+    """Detecting which tweets showcase hate or racist remarks."""
 
     def _info(self):
         return datasets.DatasetInfo(

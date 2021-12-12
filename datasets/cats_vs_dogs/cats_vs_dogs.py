@@ -50,15 +50,12 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "image_file_path": datasets.Value("string"),
+                    "image": datasets.Image(),
                     "labels": datasets.features.ClassLabel(names=["cat", "dog"]),
                 }
             ),
-            supervised_keys=("image_file_path", "labels"),
-            task_templates=[
-                ImageClassification(
-                    image_file_path_column="image_file_path", label_column="labels", labels=["cat", "dog"]
-                )
-            ],
+            supervised_keys=("image", "labels"),
+            task_templates=[ImageClassification(image_column="image", label_column="labels", labels=["cat", "dog"])],
             homepage=_HOMEPAGE,
             citation=_CITATION,
         )
@@ -76,6 +73,7 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
                 if b"JFIF" in f.peek(10):
                     yield str(i), {
                         "image_file_path": str(filepath),
+                        "image": str(filepath),
                         "labels": filepath.parent.name.lower(),
                     }
                     continue
