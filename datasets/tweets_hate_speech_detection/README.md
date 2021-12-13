@@ -17,10 +17,11 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
-paperswithcode_id: bilingual-corpus-of-arabic-english-parallel
+paperswithcode_id: null
+pretty_name: Tweets Hate Speech Detection
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Tweets Hate Speech Detection
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -48,11 +49,11 @@ paperswithcode_id: bilingual-corpus-of-arabic-english-parallel
 
 ## Dataset Description
 
-- **Homepage: [Home](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis)
-- **Repository:[Repo](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis/blob/master/train_tweet.csv)
-- **Paper:
+- **Homepage:** [Home](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis)
+- **Repository:** [Repo](https://github.com/sharmaroshan/Twitter-Sentiment-Analysis/blob/master/train_tweet.csv)
+- **Paper:**
 - **Leaderboard:**
-- **Point of Contact:[Darshan Gandhi](darshangandhi1151@gmail.com)
+- **Point of Contact:** [Darshan Gandhi](darshangandhi1151@gmail.com)
 
 ### Dataset Summary
 
@@ -65,7 +66,7 @@ Formally, given a training sample of tweets and labels, where label ‘1’ deno
 [More Information Needed]
 
 ### Languages
-The tweets are primarily in English Language
+The tweets are primarily in English Language.
 
 ## Dataset Structure
 
@@ -81,8 +82,8 @@ The dataset contains a label denoting is the tweet a hate speech or not
 
 ### Data Fields
 
-* label : 1 - it is a hate specch, 0 - not a hate speech 
-* tweet: content of the tweet as a string
+* label : 1 - it is a hate speech, 0 - not a hate speech.
+* tweet: content of the tweet as a string.
 
 ### Data Splits
  

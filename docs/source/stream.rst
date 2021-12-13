@@ -121,7 +121,7 @@ Remove columns on-the-fly with :func:`datasets.IterableDataset.remove_columns`. 
 ``Map``
 ^^^^^^^
 
-Similar to the :func:`datasets.Dataset.map` function for a regular :class:`datasets.Dataset`, 🤗  Datasets features :func:`datasets.IterableDataset.map` for processing :class:`datasets.IterableDataset`s.
+Similar to the :func:`datasets.Dataset.map` function for a regular :class:`datasets.Dataset`, 🤗  Datasets features :func:`datasets.IterableDataset.map` for processing :class:`datasets.IterableDataset`\s.
 :func:`datasets.IterableDataset.map` applies processing on-the-fly when examples are streamed.
 
 It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.

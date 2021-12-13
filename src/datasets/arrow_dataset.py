@@ -59,7 +59,7 @@ from tqdm.auto import tqdm
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, Sequence, Value, _ArrayXD
+from .features import ClassLabel, Features, Sequence, Value, _ArrayXD, pandas_types_mapper
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -75,7 +75,6 @@ from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split
 from .table import (
-    ConcatenationTable,
     InMemoryTable,
     MemoryMappedTable,
     Table,
@@ -119,7 +118,7 @@ class Example(LazyDict):
     def __getitem__(self, key):
         value = super().__getitem__(key)
         if self.decoding and self.features and key in self.features:
-            value = self.features[key].decode_example(value)
+            value = self.features[key].decode_example(value) if value is not None else None
             self[key] = value
             del self.features[key]
         return value
@@ -129,7 +128,7 @@ class Batch(LazyDict):
     def __getitem__(self, key):
         values = super().__getitem__(key)
         if self.decoding and self.features and key in self.features:
-            values = [self.features[key].decode_example(value) for value in values]
+            values = [self.features[key].decode_example(value) if value is not None else None for value in values]
             self[key] = values
             del self.features[key]
         return values
@@ -211,27 +210,54 @@ class TensorflowDatasetMixin:
     _TF_DATASET_REFS = set()
 
     @staticmethod
-    def _get_output_signature(dataset, cols_to_retain, test_batch, batch_size):
+    def _get_output_signature(dataset: "Dataset", collate_fn: Callable, collate_fn_args: dict, batch_size: int):
+        """Private method used by `to_tf_dataset()` to find the shapes and dtypes of samples from this dataset
+           after being passed through the collate_fn.
+
+        Args:
+            dataset (:obj:`Dataset`): Dataset to load samples from.
+            collate_fn(:obj:`bool`): Shuffle the dataset order when loading. Recommended True for training, False for
+                validation/evaluation.
+            collate_fn(:obj:`Callable`): A function or callable object (such as a `DataCollator`) that will collate
+                lists of samples into a batch.
+            collate_fn_args (:obj:`Dict`): A `dict` of keyword arguments to be passed to the
+                `collate_fn`.
+            batch_size (:obj:`int`): The size of batches loaded from the dataset. Used for shape inference.
+
+        Returns:
+            :obj:`dict`: Dict mapping column names to tf dtypes
+            :obj:`dict`: Dict mapping column names to tf.TensorSpec objects
+        """
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
             raise ImportError("Called a Tensorflow-specific function but Tensorflow is not installed.")
 
+        # Tensorflow needs an exact signature for tf.numpy_function, so
+        # we need to figure out what's coming back in advance. The only way to do this is to run a test batch -
+        # the collator may add columns, so we can't figure it out just by inspecting the dataset.
+        if len(dataset) == 0:
+            raise ValueError("Unable to get the output signature because the dataset is empty.")
+        test_batch_size = min(len(dataset), 4)
+        test_batch = dataset[:test_batch_size]
+        test_batch = [{key: value[i] for key, value in test_batch.items()} for i in range(test_batch_size)]
+        test_batch = collate_fn(test_batch, **collate_fn_args)
+        columns_to_dtypes = {}
+        for key, array in test_batch.items():
+            # In case the collate_fn returns something strange
+            array = np.array(test_batch[key])
+            if np.issubdtype(array.dtype, np.integer) or array.dtype == np.bool:
+                cast_dtype = np.int64
+            elif np.issubdtype(array.dtype, np.number):
+                cast_dtype = np.float32
+            else:
+                continue  # Probably a string, but whatever it is will cause Tensorflow to shit the bed, so drop it
+            columns_to_dtypes[key] = cast_dtype
+
         signatures = {}
         for column, col_feature in dataset.features.items():
-            if column not in cols_to_retain:
+            if column not in columns_to_dtypes:
                 continue
-            dtype_feature = col_feature
-            while hasattr(dtype_feature, "feature"):  # Descend this godforsaken nested rabbit hole as long as it takes
-                dtype_feature = dtype_feature.feature
-            dtype_str = dtype_feature.dtype
-            if dtype_str.startswith("int") or dtype_str.startswith("uint"):
-                dtype = tf.int64
-            elif dtype_str.startswith("float"):
-                dtype = tf.float32
-            else:
-                raise ValueError(f"Could not convert datatype {dtype_str} in column {column}.")
-
             shape = []
             shape_feature = col_feature
             while not isinstance(shape_feature, (Value, ClassLabel)):
@@ -254,7 +280,7 @@ class TensorflowDatasetMixin:
             shape = [batch_size] + shape
             shape = [dim if dim != -1 else None for dim in shape]
 
-            signatures[column] = tf.TensorSpec(shape=shape, dtype=dtype)
+            signatures[column] = tf.TensorSpec(shape=shape, dtype=tf.dtypes.as_dtype(columns_to_dtypes[column]))
 
         # Catching columns added by the collate_fn, such as MLM labels
         for column, tensor in test_batch.items():
@@ -272,15 +298,15 @@ class TensorflowDatasetMixin:
                 # about the dimensions we're unsure of
                 shape = [batch_size] + [None for dim in tensor.shape.as_list()[1:]]
             signatures[column] = tf.TensorSpec(shape=shape, dtype=tensor.dtype)
-        return signatures
+        return columns_to_dtypes, signatures
 
     def to_tf_dataset(
         self,
         columns: Union[str, List[str]],
         batch_size: int,
         shuffle: bool,
+        collate_fn: Callable,
         drop_remainder: bool = None,
-        collate_fn: Callable = None,
         collate_fn_args: Dict[str, Any] = None,
         label_cols: Union[str, List[str]] = None,
         dummy_labels: bool = False,
@@ -310,12 +336,11 @@ class TensorflowDatasetMixin:
             prefetch (:obj:`bool`, default ``True``): Whether to run the dataloader in a separate thread and maintain
                 a small buffer of batches for training. Improves performance by allowing data to be loaded in the
                 background while the model is training.
+
+        Returns:
+            :class:`tf.data.Dataset`
         """
 
-        # TODO There is some hacky hardcoding in this function that needs to be fixed.
-        #      We're planning to rework it so less code is needed at the start to remove columns before
-        #      we know the final list of fields (post-data collator). This should clean up most of the special
-        #      casing while retaining the API.
         if config.TF_AVAILABLE:
             import tensorflow as tf
         else:
@@ -337,98 +362,72 @@ class TensorflowDatasetMixin:
         elif len(set(columns)) < len(columns):
             raise ValueError("List of columns contains duplicates.")
         if label_cols is not None:
-            cols_to_retain = list(set(columns + label_cols))
+            cols_to_retain = columns + label_cols
         else:
             cols_to_retain = columns
-        # Special casing when the dataset has 'label' and the model expects 'labels' and the collator fixes it up for us
-        if "labels" in cols_to_retain and "labels" not in self.features and "label" in self.features:
-            cols_to_retain[cols_to_retain.index("labels")] = "label"
-        # Watch for nonexistent columns, except those that the data collators add for us
-        for col in cols_to_retain:
-            if col not in self.features and not (col in ("attention_mask", "labels") and collate_fn is not None):
-                raise ValueError(f"Couldn't find column {col} in dataset.")
+        if "label" in cols_to_retain or "labels" in cols_to_retain or "label_ids" in cols_to_retain:
+            cols_to_retain += ["labels", "label", "label_ids"]  # Don't accidentally drop any labels with other names!
+        cols_to_retain = list(set(cols_to_retain))  # Remove any duplicates
+
         if drop_remainder is None:
             # We assume that if you're shuffling it's the train set, so we drop the remainder unless told not to
             drop_remainder = shuffle
-        dataset = self.with_format("python", columns=[col for col in cols_to_retain if col in self.features])
 
-        def numpy_pad(data):
-            try:
-                # When this is finally fully removed, remove this line
-                # Alternatively, find a more elegant way to do this whole thing
-                np.warnings.filterwarnings("error", category=np.VisibleDeprecationWarning)
-                data = np.array(data)
-                if data.dtype == np.object:
-                    raise AssertionError  # Do it this way so that the assert doesn't get optimized out
-                return data
-            except (np.VisibleDeprecationWarning, AssertionError):
-                pass
-            # Get lengths of each row of data
-            lens = np.array([len(i) for i in data])
+        retained_columns = [key for key in self.features.keys() if key in cols_to_retain]
+        dataset = self.with_format("numpy", columns=retained_columns)
 
-            # Mask of valid places in each row
-            mask = np.arange(lens.max()) < lens[:, None]
-
-            # Setup output array and put elements from data into masked positions
-            out = np.zeros(mask.shape, dtype=np.array(data[0]).dtype)
-            out[mask] = np.concatenate(data)
-            return out
+        columns_to_dtypes, output_signature = self._get_output_signature(
+            dataset, collate_fn, collate_fn_args, batch_size=batch_size if drop_remainder else None
+        )
+        all_columns = list(columns_to_dtypes.keys())
+        all_dtypes = list(columns_to_dtypes.values())
 
         def np_get_batch(indices):
             batch = dataset[indices]
+            actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
+            # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
+            batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
+            batch = collate_fn(batch, **collate_fn_args)
             out_batch = []
-            if collate_fn is not None:
-                actual_size = len(list(batch.values())[0])  # Get the length of one of the arrays, assume all same
-                # Our collators expect a list of dicts, not a dict of lists/arrays, so we invert
-                batch = [{key: value[i] for key, value in batch.items()} for i in range(actual_size)]
-                batch = collate_fn(batch, **collate_fn_args)
-                # Special casing when the dataset has 'label' and the model
-                # expects 'labels' and the collator fixes it up for us
-                if "label" in cols_to_retain and "label" not in batch and "labels" in batch:
-                    cols_to_retain[cols_to_retain.index("label")] = "labels"
-                for key in cols_to_retain:
-                    # In case the collate_fn returns something strange
-                    array = np.array(batch[key])
-                    cast_dtype = np.int64 if np.issubdtype(array.dtype, np.integer) else np.float32
-                    array = array.astype(cast_dtype)
-                    out_batch.append(array)
-            else:
-                for key in cols_to_retain:
-                    array = batch[key]
-                    array = numpy_pad(array)
-                    cast_dtype = np.int64 if np.issubdtype(array.dtype, np.integer) else np.float32
-                    array = array.astype(cast_dtype)
-                    out_batch.append(array)
-            return [tf.convert_to_tensor(arr) for arr in out_batch]
-
-        test_batch = np_get_batch(np.arange(batch_size))
+            for col, cast_dtype in columns_to_dtypes.items():
+                # In case the collate_fn returns something strange
+                array = np.array(batch[col])
+                array = array.astype(cast_dtype)
+                out_batch.append(array)
+            return out_batch
 
         @tf.function(input_signature=[tf.TensorSpec(None, tf.int64)])
         def fetch_function(indices):
             output = tf.numpy_function(
-                np_get_batch, inp=[indices], Tout=[tf.dtypes.as_dtype(arr.dtype) for arr in test_batch]
+                # This works because dictionaries always output in insertion order
+                np_get_batch,
+                inp=[indices],
+                Tout=[tf.dtypes.as_dtype(dtype) for dtype in all_dtypes],
             )
-            return {key: output[i] for i, key in enumerate(cols_to_retain)}
-
-        test_batch_dict = {key: test_batch[i] for i, key in enumerate(cols_to_retain)}
-        output_signature = TensorflowDatasetMixin._get_output_signature(
-            dataset, cols_to_retain, test_batch_dict, batch_size=batch_size if drop_remainder else None
-        )
-
-        def ensure_shapes(input_dict):
-            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+            return {key: output[i] for i, key in enumerate(all_columns)}
 
         tf_dataset = tf.data.Dataset.from_tensor_slices(np.arange(len(dataset), dtype=np.int64))
 
         if shuffle:
             tf_dataset = tf_dataset.shuffle(len(dataset))
 
+        def ensure_shapes(input_dict):
+            return {key: tf.ensure_shape(val, output_signature[key].shape) for key, val in input_dict.items()}
+
         tf_dataset = tf_dataset.batch(batch_size, drop_remainder=drop_remainder).map(fetch_function).map(ensure_shapes)
 
         if label_cols:
 
             def split_features_and_labels(input_batch):
-                features = {key: tensor for key, tensor in input_batch.items() if key in columns}
+                if "labels" in columns or "label_ids" in columns or "label" in columns:
+                    columns.append("labels")
+                if "labels" in label_cols or "label_ids" in label_cols or "label" in label_cols:
+                    label_cols.append("labels")
+                # Some data collators add columns, so our logic is that newly added columns should go
+                # into the input dict unless the user asked for them in labels instead
+                features = {
+                    key: tensor for key, tensor in input_batch.items() if key in columns or key not in label_cols
+                }
                 labels = {key: tensor for key, tensor in input_batch.items() if key in label_cols}
                 if len(features) == 1:
                     features = list(features.values())[0]
@@ -447,18 +446,6 @@ class TensorflowDatasetMixin:
                 return input_batch, tf.zeros(tf.shape(input_batch[columns[0]])[0])
 
             tf_dataset = tf_dataset.map(add_dummy_labels)
-
-        def rename_label_col(inputs, labels=None):
-            if not isinstance(inputs, tf.Tensor):
-                if "label" in inputs:
-                    inputs["labels"] = inputs["label"]
-                    del inputs["label"]
-            if labels is None:
-                return inputs
-            else:
-                return inputs, labels
-
-        tf_dataset = tf_dataset.map(rename_label_col)
 
         if prefetch:
             tf_dataset = tf_dataset.prefetch(tf.data.experimental.AUTOTUNE)
@@ -546,6 +533,7 @@ def transmit_tasks(func):
 
 def update_metadata_with_features(table: Table, features: Features):
     """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
+    features = Features({col_name: features[col_name] for col_name in table.column_names})
     if table.schema.metadata is None or "huggingface".encode("utf-8") not in table.schema.metadata:
         pa_metadata = ArrowWriter._build_metadata(DatasetInfo(features=features))
     else:
@@ -569,6 +557,44 @@ def _check_table(table) -> Table:
         return table
     else:
         raise TypeError(f"Expected a pyarrow.Table or a datasets.table.Table object, but got {table}.")
+
+
+def _check_column_names(column_names: List[str]):
+    """Check the column names to make sure they don't contain duplicates."""
+    counter = Counter(column_names)
+    if not all(count == 1 for count in counter.values()):
+        duplicated_columns = [col for col in counter if counter[col] > 1]
+        raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
+
+
+def _check_if_features_can_be_aligned(features_list: List[Features]):
+    """Check if the dictionaries of features can be aligned.
+
+    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
+    """
+    name2feature = {}
+    for features in features_list:
+        for k, v in features.items():
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+                name2feature[k] = v
+
+    for features in features_list:
+        for k, v in features.items():
+            if not (isinstance(v, Value) and v.dtype == "null") and name2feature[k] != v:
+                raise ValueError(
+                    f'The features can\'t be aligned because the key {k} of features {features} has unexpected type - {v} (expected either {name2feature[k]} or Value("null").'
+                )
+
+
+def _align_features(features_list: List[Features]) -> List[Features]:
+    """Align dictionaries of features so that the keys that are found in multiple dictionaries share the same feature."""
+    name2feature = {}
+    for features in features_list:
+        for k, v in features.items():
+            if k not in name2feature or (isinstance(name2feature[k], Value) and name2feature[k].dtype == "null"):
+                name2feature[k] = v
+
+    return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
 
 
 class NonExistentDatasetError(Exception):
@@ -638,14 +664,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             assert pa.types.is_unsigned_integer(
                 self._indices.column(0)[0].type
             ), f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}"
-        counter = Counter(self._data.column_names)
-        if not all(count == 1 for count in counter.values()):
-            duplicated_columns = [col for col in counter if counter[col] > 1]
-            raise ValueError(
-                f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated."
-            )
-
-        # Update metadata
+        _check_column_names(self._data.column_names)
 
         self._data = update_metadata_with_features(self._data, self.features)
 
@@ -1015,6 +1034,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         logger.info(f"Dataset saved in {dataset_path}")
 
     @staticmethod
+    def _build_local_temp_path(uri_or_path: str) -> Path:
+        """
+        Builds and returns a Path concatenating a local temporary dir with the dir path (or absolute/relative
+        path extracted from the uri) passed.
+
+        Args:
+            uri_or_path (:obj:`str`): Path (e.g. `"dataset/train"`) or remote URI (e.g.
+                `"s3://my-bucket/dataset/train"`) to concatenate.
+
+        Returns:
+            :class:`Path`: the concatenated path (temp dir + path)
+        """
+        src_dataset_path = Path(uri_or_path)
+        tmp_dir = get_temporary_cache_files_directory()
+        return Path(tmp_dir, src_dataset_path.relative_to(src_dataset_path.anchor))
+
+    @staticmethod
     def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = None) -> "Dataset":
         """
         Loads a dataset that was previously saved using :meth:`save_to_disk` from a dataset directory, or from a
@@ -1047,8 +1083,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if is_remote_filesystem(fs):
             src_dataset_path = extract_path_from_uri(dataset_path)
-            tmp_dir = get_temporary_cache_files_directory()
-            dataset_path = Path(tmp_dir, src_dataset_path)
+            dataset_path = Dataset._build_local_temp_path(src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
         with open(
@@ -1138,11 +1173,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return dataset._data.column(column).unique().to_pylist()
 
-    def class_encode_column(self, column: str) -> "Dataset":
+    def class_encode_column(self, column: str, include_nulls: bool = False) -> "Dataset":
         """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the table.
 
         Args:
             column (`str`): The name of the column to cast (list all the column names with :func:`datasets.Dataset.column_names`)
+            include_nulls (`bool`, default `False`):
+                Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
+
+                .. versionadded:: 1.14.2
         """
         # Sanity checks
         if column not in self._data.column_names:
@@ -1150,13 +1189,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         src_feat = self.features[column]
         if not isinstance(src_feat, Value):
             raise ValueError(
-                f"Class encoding is only supported for {type(Value)} column, and column {column} is {type(src_feat)}."
+                f"Class encoding is only supported for {Value.__name__} column, and column {column} is {type(src_feat).__name__}."
             )
 
-        if src_feat.dtype != "string":
+        if src_feat.dtype != "string" or (include_nulls and None in self.unique(column)):
+
+            def stringify_column(batch):
+                batch[column] = [
+                    str(sample) if include_nulls or sample is not None else None for sample in batch[column]
+                ]
+                return batch
+
             dset = self.map(
-                lambda batch: {column: [str(sample) for sample in batch]},
-                input_columns=column,
+                stringify_column,
                 batched=True,
                 desc="Stringifying the column",
             )
@@ -1164,15 +1209,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dset = self
 
         # Create the new feature
-        class_names = sorted(dset.unique(column))
+        class_names = sorted(sample for sample in dset.unique(column) if include_nulls or sample is not None)
         dst_feat = ClassLabel(names=class_names)
+
+        def cast_to_class_labels(batch):
+            batch[column] = [
+                dst_feat.str2int(sample) if include_nulls or sample is not None else None for sample in batch[column]
+            ]
+            return batch
+
         dset = dset.map(
-            lambda batch: {column: dst_feat.str2int(batch)},
-            input_columns=column,
+            cast_to_class_labels,
             batched=True,
             desc="Casting to class labels",
         )
-        dset = concatenate_datasets([self.remove_columns([column]), dset], axis=1)
 
         new_features = dset.features.copy()
         new_features[column] = dst_feat
@@ -1588,7 +1638,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         dataset._data = dataset._data.rename_columns(new_column_names)
-        dataset._data = update_metadata_with_features(dataset._data, self.features)
+        dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset
 
@@ -2065,6 +2115,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 logger.info(f"Process #{rank} will write at {cache_file_name}")
                 return cache_file_name
 
+            def format_new_fingerprint(new_fingerprint, rank):
+                return new_fingerprint + suffix_template.format(rank=rank, num_proc=num_proc)
+
             prev_env = deepcopy(os.environ)
             # check if parallelism if off
             # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
@@ -2110,6 +2163,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     rank=rank,
                     offset=sum(len(s) for s in shards[:rank]),
                     disable_tqdm=disable_tqdm,
+                    new_fingerprint=format_new_fingerprint(new_fingerprint, rank)
+                    if new_fingerprint is not None
+                    else None,
                     desc=desc,
                 )
                 for rank in range(num_proc)
@@ -2706,6 +2762,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         column: str,
         reverse: bool = False,
         kind: str = None,
+        null_placement: str = "last",
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         indices_cache_file_name: Optional[str] = None,
@@ -2714,16 +2771,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> "Dataset":
         """Create a new dataset sorted according to a column.
 
-        Currently sorting according to a column name uses numpy sorting algorithm under the hood.
-        The column should thus be a numpy compatible type (in particular not a nested type).
+        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
+        The column should thus be a pandas compatible type (in particular not a nested type).
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
             column (:obj:`str`): column name to sort by.
             reverse (:obj:`bool`, default `False`): If True, sort by descending order rather then ascending.
-            kind (:obj:`str`, optional): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
+            kind (:obj:`str`, optional): Pandas algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                 The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
+            null_placement (:obj:`str`, default `last`):
+                Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
+
+                .. versionadded:: 1.14.2
             keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
@@ -2760,11 +2821,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
 
         column_data = self._getitem(
-            column, format_type="numpy", format_columns=None, output_all_columns=False, format_kwargs=None
+            column, format_type="pandas", format_columns=None, output_all_columns=False, format_kwargs=None
         )
-        indices = np.argsort(column_data, kind=kind)
-        if reverse:
-            indices = indices[::-1]
+
+        df_sorted = column_data.to_frame().sort_values(
+            column, ascending=not reverse, kind=kind, na_position=null_placement
+        )
+        indices = df_sorted.index.to_numpy()
 
         return self.select(
             indices=indices,
@@ -3301,7 +3364,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 table=self._data,
                 key=slice(0, len(self)),
                 indices=self._indices if self._indices is not None else None,
-            ).to_pandas()
+            ).to_pandas(types_mapper=pandas_types_mapper)
         else:
             batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
             return (
@@ -3309,7 +3372,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     table=self._data,
                     key=slice(offset, offset + batch_size),
                     indices=self._indices if self._indices is not None else None,
-                ).to_pandas()
+                ).to_pandas(types_mapper=pandas_types_mapper)
                 for offset in range(0, len(self), batch_size)
             )
 
@@ -3482,8 +3545,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             :class:`Dataset`
         """
         column_table = InMemoryTable.from_pydict({name: column})
+        _check_column_names(self._data.column_names + column_table.column_names)
         # Concatenate tables horizontally
-        table = ConcatenationTable.from_tables([self._data, column_table], axis=1)
+        table = concat_tables([self._data, column_table], axis=1)
         # Update features
         info = self.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
@@ -3697,21 +3761,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Returns:
             :class:`Dataset`
         """
-        item_table = InMemoryTable.from_pydict({k: [item[k]] for k in self.features.keys() if k in item})
-        # Cast item
-        schema = pa.schema(self.features.type)
-        item_table = item_table.cast(schema)
-        # Concatenate tables
-        table = concat_tables([self._data, item_table])
+        item_table = InMemoryTable.from_pydict({k: [v] for k, v in item.items()})
+        # We don't call _check_if_features_can_be_aligned here so this cast is "unsafe"
+        dset_features, item_features = _align_features([self.features, Features.from_arrow_schema(item_table.schema)])
+        # Cast to align the schemas of the tables and concatenate the tables
+        table = concat_tables(
+            [
+                self._data.cast(pa.schema(dset_features.type)) if self.features != dset_features else self._data,
+                item_table.cast(pa.schema(item_features.type)),
+            ]
+        )
         if self._indices is None:
             indices_table = None
         else:
             item_indices_array = pa.array([len(self._data)], type=pa.uint64())
             item_indices_table = InMemoryTable.from_arrays([item_indices_array], names=["indices"])
             indices_table = concat_tables([self._indices, item_indices_table])
+        info = self.info.copy()
+        info.features.update(item_features)
+        table = update_metadata_with_features(table, info.features)
         return Dataset(
             table,
-            info=self.info.copy(),
+            info=info,
             split=self.split,
             indices_table=indices_table,
             fingerprint=new_fingerprint,
@@ -3755,8 +3826,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         int2str_function = label_feature.int2str
 
         def process_label_ids(batch):
-            dset_label_names = [int2str_function(label_id).lower() for label_id in batch[label_column]]
-            batch[label_column] = [label2id[label_name] for label_name in dset_label_names]
+            dset_label_names = [
+                int2str_function(label_id).lower() if label_id is not None else None
+                for label_id in batch[label_column]
+            ]
+            batch[label_column] = [
+                label2id[label_name] if label_name is not None else None for label_name in dset_label_names
+            ]
             return batch
 
         features = self.features.copy()
@@ -3783,10 +3859,20 @@ def concatenate_datasets(
 
             .. versionadded:: 1.6.0
     """
-    if axis == 0 and not all([dset.features.type == dsets[0].features.type for dset in dsets]):
-        raise ValueError("Features must match for all datasets")
-    elif axis == 1 and not all([dset.num_rows == dsets[0].num_rows for dset in dsets]):
-        raise ValueError("Number of rows must match for all datasets")
+    # Ignore datasets with no rows
+    if any(dset.num_rows > 0 for dset in dsets):
+        dsets = [dset for dset in dsets if dset.num_rows > 0]
+    else:
+        # Return first dataset if all datasets are empty
+        return dsets[0]
+
+    # Perform checks (and a potentional cast if axis=0)
+    if axis == 0:
+        _check_if_features_can_be_aligned([dset.features for dset in dsets])
+    else:
+        if not all([dset.num_rows == dsets[0].num_rows for dset in dsets]):
+            raise ValueError("Number of rows must match for all datasets")
+        _check_column_names([col_name for dset in dsets for col_name in dset._data.column_names])
 
     # Find common format or reset format
     format = dsets[0].format
@@ -3825,26 +3911,22 @@ def concatenate_datasets(
                 indices_table = concat_tables(indices_tables)
             else:
                 indices_table = InMemoryTable.from_batches([], schema=pa.schema({"indices": pa.int64()}))
-        elif axis == 1 and len(dsets) == 1:
-            indices_table = dsets[0]._indices
-        elif axis == 1 and len(dsets) > 1:
-            for i in range(len(dsets)):
-                dsets[i] = dsets[i].flatten_indices()
-            indices_table = None
+        else:
+            if len(dsets) == 1:
+                indices_table = dsets[0]._indices
+            else:
+                for i in range(len(dsets)):
+                    dsets[i] = dsets[i].flatten_indices()
+                indices_table = None
     else:
         indices_table = None
 
-    # Concatenate tables
-    tables_to_concat = [dset._data for dset in dsets if len(dset._data) > 0]
-    # There might be no table with data left hence return first empty table
-    if not tables_to_concat:
-        return dsets[0]
-    table = concat_tables(tables_to_concat, axis=axis)
-    if axis == 1:
-        # Merge features (ignore duplicated columns for now and let Dataset.__init__ check for those)
-        table = update_metadata_with_features(
-            table, Features({k: v for dset in dsets for k, v in dset.features.items()})
-        )
+    table = concat_tables([dset._data for dset in dsets], axis=axis)
+    if axis == 0:
+        features_list = _align_features([dset.features for dset in dsets])
+    else:
+        features_list = [dset.features for dset in dsets]
+    table = update_metadata_with_features(table, {k: v for features in features_list for k, v in features.items()})
 
     # Concatenate infos
     if info is None:
