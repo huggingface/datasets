@@ -164,7 +164,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-            features=None,#_FEATURES.get(self.config.name),
+            features=_FEATURES.get(self.config.name),
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
