@@ -84,7 +84,7 @@ class OneStopQA(datasets.GeneratorBasedBuilder):
                 "level": datasets.ClassLabel(names=["Adv", "Int", "Ele"]),
                 "question": datasets.Value("string"),
                 "paragraph_index": datasets.Value("int32"),
-                "answers": datasets.features.Sequence(datasets.Value("string")),
+                "answers": datasets.features.Sequence(datasets.Value("string"), length=4),
                 "a_span": datasets.features.Sequence(datasets.Value("int32")),
                 "d_span": datasets.features.Sequence(datasets.Value("int32")),
             }

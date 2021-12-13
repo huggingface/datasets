@@ -93,26 +93,30 @@ An example of instance looks as follows.
 ```
 Where, 
 
-| Answer | Description | Textual Span
-| --- | --- | --- |
-| a | Correct answer. | Critical Span|
-| b | Incorrect answer. A miscomprehension of the critical span. | Critical Span|
-| c | Incorrect answer. Refers to an additional span. | Distractor Span |
-| d | Incorrect answer. Has no textual support. | - |
+| Answer | Description                                                | Textual Span    |
+|--------|------------------------------------------------------------|-----------------|
+| a      | Correct answer.                                            | Critical Span   |
+| b      | Incorrect answer. A miscomprehension of the critical span. | Critical Span   |
+| c      | Incorrect answer. Refers to an additional span.            | Distractor Span |
+| d      | Incorrect answer. Has no textual support.                  | -               |
 
 The order of the answers in the `answers` list corresponds to the order of the answers in the table.
 
 ### Data Fields
 
-- `title`: a `string` feature. The article title.
-- `paragraph`: a `string` feature. The paragraph from the article. 
-- `paragraph_index`: an `int` feature. Corresponds to the paragraph index in the article.
-- `question`: a `string` feature. The given question.
-- `answers`: a list of `string` feature containing the four possible answers.
-- `a_span`: start and end indices (inclusive) of the critical span.
-- `d_span`: start and end indices (inclusive) of the distractor span.
+- `title`: A `string` feature. The article title.
+- `paragraph`: A `string` feature. The paragraph from the article. 
+- `paragraph_index`: An `int` feature. Corresponds to the paragraph index in the article.
+- `question`: A `string` feature. The given question.
+- `answers`: A list of `string` feature containing the four possible answers.
+- `a_span`: A list of start and end indices (inclusive) of the critical span.
+- `d_span`: A list of start and end indices (inclusive) of the distractor span.
 
-*Span indices are according to word positions after whitespace tokenization.
+*Span indices are according to word positions after whitespace tokenization. 
+
+**In the rare case where a span is spread over multiple sections, 
+the span list will contain multiple instances of start and stop indices in the format:
+  [start_1, stop_1, start_2, stop_2,...].
 
 
 ### Data Splits
