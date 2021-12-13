@@ -1228,7 +1228,7 @@ class Features(dict):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
                 if len(source) != len(target):
                     raise ValueError(f"Length mismatch: between {source} and {target}" + stack_position)
-                return [recursive_reorder(source[i], target[i], stack + f".<list>") for i in range(len(target))]
+                return [recursive_reorder(source[i], target[i], stack + ".<list>") for i in range(len(target))]
             else:
                 return source
 

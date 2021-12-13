@@ -24,27 +24,14 @@ import shutil
 import tempfile
 import weakref
 from collections import Counter, UserDict
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import asdict
 from functools import partial, wraps
 from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    BinaryIO,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Union,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union, overload
 
 import fsspec
 import numpy as np

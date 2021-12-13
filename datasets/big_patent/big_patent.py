@@ -101,7 +101,7 @@ class BigPatent(datasets.GeneratorBasedBuilder):
         BigPatentConfig(  # pylint:disable=g-complex-comprehension
             cpc_codes=[k],
             name=k,
-            description=(f"Patents under Cooperative Patent Classification (CPC)" "{k}: {v}"),
+            description=("Patents under Cooperative Patent Classification (CPC)" f"{k}: {v}"),
         )
         for k, v in sorted(_CPC_DESCRIPTION.items())
     ]
