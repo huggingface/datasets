@@ -556,6 +556,23 @@ class StreamingDownloadManager(object):
                 stream.members = []
             del stream
 
+    def iter_files(self, urlpaths):
+        """Iterate over files.
+
+        Args:
+            urlpaths (list): Root URL paths.
+
+        Yields:
+            str: File URL path.
+        """
+        for urlpath in urlpaths:
+            if "://::" not in urlpath:  # workaround for os.path.isfile(urlpath):
+                yield urlpath
+            else:
+                for dirpath, _, filenames in xwalk(urlpath): # dirpath, dirnames, filenames
+                    for filename in filenames:
+                        yield xjoin(dirpath, filename)
+
     def glob(self, urlpaths):
         if isinstance(urlpaths, dict):
             return {key: self.glob(urlpath) for key, urlpath in urlpaths.items()}
