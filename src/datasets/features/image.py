@@ -216,8 +216,9 @@ class Image:
         """Decode example image file into image data.
 
         Args:
-            value (obj:`str` or :obj:`dict`): a string with the absolute image file path, a dictionary with
+            value (obj:`str` or :obj:`dict`): Either a string with the absolute image file path or a dictionary with
                 keys:
+
                 - path: String with absolute or relative image file path.
                 - bytes: The bytes of the image file.
 
