@@ -1336,10 +1336,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         type = features.type
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
+        # capture the PyArrow version here to make the lambda serializable on Windows
+        is_pyarrow_at_least_4 = config.PYARROW_VERSION.major >= 4
         dataset = dataset.map(
-            lambda t: t.cast(schema)
-            if config.PYARROW_VERSION.major >= 4
-            else cast_with_sliced_list_support(t, schema),
+            lambda t: t.cast(schema) if is_pyarrow_at_least_4 else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1398,10 +1398,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         format = self.format
         dataset = self.with_format("arrow")
+        # capture the PyArrow version here to make the lambda serializable on Windows
+        is_pyarrow_at_least_4 = config.PYARROW_VERSION.major >= 4
         dataset = dataset.map(
-            lambda t: t.cast(schema)
-            if config.PYARROW_VERSION.major >= 4
-            else cast_with_sliced_list_support(t, schema),
+            lambda t: t.cast(schema) if is_pyarrow_at_least_4 else cast_with_sliced_list_support(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
