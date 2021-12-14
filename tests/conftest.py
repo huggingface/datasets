@@ -274,6 +274,17 @@ def zip_csv_path(csv_path, csv2_path, tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def zip_csv_with_dir_path(csv_path, csv2_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset_with_dir.csv.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(csv_path, arcname=os.path.join("main_dir", os.path.basename(csv_path)))
+        f.write(csv2_path, arcname=os.path.join("main_dir", os.path.basename(csv2_path)))
+    return path
+
+
+@pytest.fixture(scope="session")
 def parquet_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.parquet")
     schema = pa.schema(
@@ -312,6 +323,15 @@ def json_dict_of_lists_path(tmp_path_factory):
 @pytest.fixture(scope="session")
 def jsonl_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.jsonl")
+    with open(path, "w") as f:
+        for item in DATA:
+            f.write(json.dumps(item) + "\n")
+    return path
+
+
+@pytest.fixture(scope="session")
+def jsonl2_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset2.jsonl")
     with open(path, "w") as f:
         for item in DATA:
             f.write(json.dumps(item) + "\n")
@@ -365,4 +385,26 @@ def jsonl_gz_path(tmp_path_factory, jsonl_path):
     with open(jsonl_path, "rb") as orig_file:
         with gzip.open(path, "wb") as zipped_file:
             zipped_file.writelines(orig_file)
+    return path
+
+
+@pytest.fixture(scope="session")
+def zip_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset.jsonl.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(jsonl_path, arcname=os.path.basename(jsonl_path))
+        f.write(jsonl2_path, arcname=os.path.basename(jsonl2_path))
+    return path
+
+
+@pytest.fixture(scope="session")
+def zip_jsonl_with_dir_path(jsonl_path, jsonl2_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset_with_dir.jsonl.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(jsonl_path, arcname=os.path.join("main_dir", os.path.basename(jsonl_path)))
+        f.write(jsonl2_path, arcname=os.path.join("main_dir", os.path.basename(jsonl2_path)))
     return path
