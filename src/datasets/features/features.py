@@ -1123,7 +1123,7 @@ class Features(dict):
         """
         return {
             column: feature.decode_example(value)
-            if hasattr(feature, "decode_example") and value is not None
+            if hasattr(feature, "decode_example") and feature.decode and value is not None
             else value
             for column, (feature, value) in utils.zip_dict(
                 {key: value for key, value in self.items() if key in example}, example
@@ -1142,7 +1142,7 @@ class Features(dict):
         """
         return (
             [self[column_name].decode_example(value) if value is not None else None for value in column]
-            if hasattr(self[column_name], "decode_example")
+            if hasattr(self[column_name], "decode_example") and self[column_name].decode
             else column
         )
 
@@ -1159,7 +1159,7 @@ class Features(dict):
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
                 [self[column_name].decode_example(value) if value is not None else None for value in column]
-                if hasattr(self[column_name], "decode_example")
+                if hasattr(self[column_name], "decode_example") and self[column_name].decode
                 else column
             )
         return decoded_batch
