@@ -594,6 +594,30 @@ def test_load_dataset_zip_jsonl(data_file, streaming, zip_jsonl_path, zip_jsonl_
         assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("data_file", ["zip_text_path", "zip_text_with_dir_path", "text_path"])
+def test_load_dataset_zip_text(data_file, streaming, zip_text_path, zip_text_with_dir_path, text_path):
+    data_file_paths = {
+        "zip_text_path": zip_text_path,
+        "zip_text_with_dir_path": zip_text_with_dir_path,
+        "text_path": text_path,
+    }
+    data_files = str(data_file_paths[data_file])
+    expected_size = 8 if data_file.startswith("zip") else 4
+    ds = load_dataset("text", split="train", data_files=data_files, streaming=streaming)
+    if streaming:
+        ds_item_counter = 0
+        for ds_item in ds:
+            if ds_item_counter == 0:
+                assert ds_item == {"text": "0"}
+            ds_item_counter += 1
+        assert ds_item_counter == expected_size
+    else:
+        assert ds.shape[0] == expected_size
+        ds_item = next(iter(ds))
+        assert ds_item == {"text": "0"}
+
+
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
         dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)
