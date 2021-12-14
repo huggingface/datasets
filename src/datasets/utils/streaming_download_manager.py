@@ -433,7 +433,7 @@ def xpathsuffix(path: Path):
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
-def xwalk(urlpath):
+def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     """Extend `os.walk` function to support remote files.
 
     Args:
