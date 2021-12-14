@@ -1,23 +1,83 @@
 ---
 annotations_creators:
-- other  # TODO
+- machine-generated
 language_creators:
-- other  # TODO
+- found
 languages:
-- en  # TODO
+- af
+- ' ar'
+- ' ast'
+- ' azb'
+- ' be'
+- ' bg'
+- ' bn'
+- ' br'
+- ' ca'
+- ' cs'
+- ' cy'
+- ' da'
+- ' de'
+- ' el'
+- ' en'
+- ' eo'
+- ' es'
+- ' et'
+- ' eu'
+- ' fa'
+- ' fi'
+- ' fr'
+- ' fy'
+- ' ga'
+- ' gl'
+- ' hr'
+- ' hu'
+- ' hy'
+- ' id'
+- ' it'
+- ' iw'
+- ' ja'
+- ' ka'
+- ' ko'
+- ' la'
+- ' lt'
+- ' lv'
+- ' mk'
+- ' ml'
+- ' ms'
+- ' nl'
+- ' nn'
+- ' no'
+- ' pl'
+- ' pt'
+- ' ro'
+- ' ru'
+- ' sk'
+- ' sl'
+- ' sr'
+- ' sv'
+- ' th'
+- ' tr'
+- ' uk'
+- ' ur'
+- ' vi'
+- ' vo'
+- ' zh'
 licenses:
-- unknown  # TODO
+- cc-by-sa-4.0
 multilinguality:
 - multilingual
-pretty_name: TODO  # TODO
+paperswithcode_id: wit-wikipedia-based-image-text-dataset-for
+pretty_name: wikipedia_image_text
 size_categories:
 - 10M<n<100M
 source_datasets:
 - original
+- extended|wikipedia
 task_categories:
-- other  # TODO
+- text-retrieval
+- other
 task_ids:
-- other  # TODO
+- text-retrieval-other-text-image-retrieval
 ---
 
 # Dataset Card for [Dataset Name]
@@ -49,15 +109,15 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** https://github.com/google-research-datasets/wit
+- **Repository:** https://github.com/google-research-datasets/wit
+- **Paper:** https://arxiv.org/abs/2103.01913
+- **Leaderboard:** https://www.kaggle.com/c/wikipedia-image-caption
+- **Point of Contact:** krishnaps@google.com
 
 ### Dataset Summary
 
-TODO
+Wikipedia-based Image Text (WIT) Dataset is a large multimodal multilingual dataset. WIT is composed of a curated set of 37.6 million entity rich image-text examples with 11.5 million unique images across 108 Wikipedia languages. Its size enables WIT to be used as a pretraining dataset for multimodal machine learning models.
 
 ### Supported Tasks and Leaderboards
 
@@ -65,21 +125,44 @@ TODO
 
 ### Languages
 
-[More Information Needed]
+The dataset contains examples from all Wikipedia languages, with the following stats:
+
+Image-Text   | # Lang | Uniq. Images  | # Lang
+------------ | ------ | ------------- | ------
+total > 1M   | 9      | images > 1M   | 6
+total > 500K | 10     | images > 500K | 12
+total > 100K | 36     | images > 100K | 35
+total > 50K  | 15     | images > 50K  | 17
+total > 14K  | 38     | images > 13K  | 38
 
 ## Dataset Structure
 
 ### Data Instances
 
-TODO
+Each instance is an image, its representation in bytes, a pre-computed embedding, and the set of captions attached to the image in Wikipedia.
 
 ### Data Fields
 
-TODO
+- `b64_bytes`
+- `embedding`
+- `image_url`
+- `metadata_url`
+- `original_height`
+- `original_width`
+- `mime_type`
+- `caption_attribution_description`
+- `wit_features`: sequence of captions with language, page URL, information about the page, caption text, etc.
 
 ### Data Splits
 
-TODO
+Type          | Train  | Val    | Test   | Total / Unique
+------------- | ------ | ------ | ------ | --------------
+Rows / Tuples | 37.13M | 261.8K | 210.7K | 37.6M
+Unique Images | 11.4M  | 58K    | 57K    | 11.5M
+Ref. Text     | 16.9M  | 150K   | 104K   | 17.2M / 16.7M
+Attr. Text    | 34.8M  | 193K   | 200K   | 35.2M / 10.9M
+Alt Text      | 5.3M   | 29K    | 29K    | 5.4M / 5.3M
+Context Texts | -      | -      | -      | 119.8M
 
 ## Dataset Creation
 
@@ -137,7 +220,12 @@ TODO
 
 ### Citation Information
 
-TODO
+`@article{srinivasan2021wit,
+  title={WIT: Wikipedia-based Image Text Dataset for Multimodal Multilingual Machine Learning},
+  author={Srinivasan, Krishna and Raman, Karthik and Chen, Jiecao and Bendersky, Michael and Najork, Marc},
+  journal={arXiv preprint arXiv:2103.01913},
+  year={2021}
+}`
 
 ### Contributions
 
