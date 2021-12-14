@@ -569,7 +569,7 @@ class StreamingDownloadManager(object):
             if "://::" not in urlpath:  # workaround for os.path.isfile(urlpath):
                 yield urlpath
             else:
-                for dirpath, _, filenames in xwalk(urlpath):
+                for dirpath, _, filenames in xwalk(urlpath, use_auth_token=self.download_config.use_auth_token):
                     for filename in filenames:
                         yield xjoin(dirpath, filename)
 
