@@ -361,7 +361,7 @@ class NestedDataStructure:
                 for globbed in self.glob(item, condition=item_condition)
             ]
         else:
-            return glob.glob(os.path.join(data, "**")) if condition else [data]
+            return glob.glob(os.path.join(data, "**"), recursive=True) if condition else [data]
 
 
 def has_sufficient_disk_space(needed_bytes, directory="."):
