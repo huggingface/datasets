@@ -433,6 +433,32 @@ def xpathsuffix(path: Path):
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
+def xwalk(urlpath):
+    """Extend `os.walk` function to support remote files.
+
+    Args:
+        urlpath: URL root path.
+
+    Yields:
+        tuple: 3-tuple (dirpath, dirnames, filenames).
+    """
+    main_hop, *rest_hops = urlpath.split("::")
+    if is_local_path(main_hop):
+        return os.walk(main_hop)
+    else:
+        # walking inside a zip in a private repo requires authentication
+        if rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+            url = rest_hops[0]
+            url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": kwargs}
+            urlpath = "::".join([main_hop, url, *rest_hops[1:]])
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+        for dirpath, dirnames, filenames in fs.walk(main_hop):
+            yield "::".join([f"{fs.protocol}://{dirpath}"] + rest_hops), dirnames, filenames
+
+
 def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
