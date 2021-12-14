@@ -235,7 +235,7 @@ class PandasFeaturesDecoder:
             {
                 column_name: no_op_if_value_is_null(feature.decode_example)
                 for column_name, feature in self.features.items()
-                if column_name in row.columns and hasattr(feature, "decode_example")
+                if column_name in row.columns and hasattr(feature, "decode_example") and feature.decode
             }
             if self.features
             else {}
@@ -247,7 +247,10 @@ class PandasFeaturesDecoder:
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
         decode = (
             no_op_if_value_is_null(self.features[column_name].decode_example)
-            if self.features and column_name in self.features and hasattr(self.features[column_name], "decode_example")
+            if self.features
+            and column_name in self.features
+            and hasattr(self.features[column_name], "decode_example")
+            and self.features[column_name].decode
             else None
         )
         if decode:
