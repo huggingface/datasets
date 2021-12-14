@@ -1,5 +1,4 @@
 # coding=utf-8
-import os
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
