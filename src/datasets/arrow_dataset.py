@@ -85,14 +85,17 @@ logger = logging.get_logger(__name__)
 
 
 class LazyDict(UserDict):
-    def __init__(self, data, features=None, decoding=True):
+    def __init__(self, data, features=None):
         self.data = data
         self.features = (
-            {key: feature for key, feature in features.items() if hasattr(feature, "decode_example")}
+            {
+                key: feature
+                for key, feature in features.items()
+                if hasattr(feature, "decode_example") and feature.decode
+            }
             if features
             else {}
         )
-        self.decoding = decoding
 
     def values(self):
         return self.data.values()
@@ -104,7 +107,7 @@ class LazyDict(UserDict):
 class Example(LazyDict):
     def __getitem__(self, key):
         value = super().__getitem__(key)
-        if self.decoding and self.features and key in self.features:
+        if self.features and key in self.features:
             value = self.features[key].decode_example(value) if value is not None else None
             self[key] = value
             del self.features[key]
@@ -114,7 +117,7 @@ class Example(LazyDict):
 class Batch(LazyDict):
     def __getitem__(self, key):
         values = super().__getitem__(key)
-        if self.decoding and self.features and key in self.features:
+        if self.features and key in self.features:
             values = [self.features[key].decode_example(value) if value is not None else None for value in values]
             self[key] = values
             del self.features[key]
