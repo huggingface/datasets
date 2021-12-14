@@ -170,8 +170,12 @@ class Image:
 
     - An :obj:`np.ndarray`: NumPy array representing an image.
     - A :obj:`PIL.Image.Image`: PIL image object.
+
+    Args:
+        decode: Whether to decode the image data. If `False`, returns the data in the underlying storage format.
     """
 
+    decode: bool = True
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
