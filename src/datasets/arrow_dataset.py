@@ -24,14 +24,27 @@ import shutil
 import tempfile
 import weakref
 from collections import Counter, UserDict
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import asdict
 from functools import partial, wraps
 from io import BytesIO
 from math import ceil, floor
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    BinaryIO,
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    overload,
+)
 
 import fsspec
 import numpy as np
@@ -1887,7 +1900,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
         return formatted_output
 
-    def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
+    @overload
+    def __getitem__(self, key: Union[int, slice, Iterable[int]]) -> Dict:  # noqa: F811
+        ...
+
+    @overload
+    def __getitem__(self, key: str) -> List:  # noqa: F811
+        ...
+
+    def __getitem__(self, key):  # noqa: F811
         """Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)."""
         return self._getitem(
             key,
