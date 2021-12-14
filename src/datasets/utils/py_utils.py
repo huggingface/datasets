@@ -20,7 +20,6 @@
 
 import contextlib
 import functools
-import glob
 import itertools
 import os
 import pickle
@@ -339,29 +338,6 @@ class NestedDataStructure:
             return [flattened for item in data for flattened in self.flatten(item)]
         else:
             return [data]
-
-    def map(self, func, data=None, condition=None):
-        data = data if data is not None else self.data
-        if condition is None:
-            if isinstance(data, dict):
-                return {key: self.map(func, value) for key, value in data.items()}
-            elif isinstance(data, (list, tuple)):
-                return [self.map(func, item) for item in data]
-            else:
-                return func(data)
-
-    def glob(self, data=None, condition=None):
-        data = data if data is not None else self.data
-        if isinstance(data, dict):
-            return {key: self.glob(value, condition=condition[key]) for key, value in data.items()}
-        elif isinstance(data, (list, tuple)):
-            return [
-                globbed
-                for item, item_condition in zip(data, condition)
-                for globbed in self.glob(item, condition=item_condition)
-            ]
-        else:
-            return glob.glob(os.path.join(data, "**"), recursive=True) if condition else [data]
 
 
 def has_sufficient_disk_space(needed_bytes, directory="."):

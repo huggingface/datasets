@@ -91,7 +91,6 @@ class DownloadManager:
         self.download_config = download_config or DownloadConfig()
         self.downloaded_paths = {}
         self.extracted_paths = {}
-        self.archives = None
 
     @property
     def manual_dir(self):
@@ -172,7 +171,7 @@ class DownloadManager:
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths.data
 
-    def download(self, url_or_urls, glob_archives=False):
+    def download(self, url_or_urls):
         """Download given url(s).
 
         Args:
@@ -183,8 +182,6 @@ class DownloadManager:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        if glob_archives:
-            self.archives = NestedDataStructure(url_or_urls).map(lambda x: x.suffix in [".zip"])
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
         # Default to using 16 parallel thread for downloading
@@ -261,7 +258,7 @@ class DownloadManager:
                     for filename in filenames:
                         yield os.path.join(dirpath, filename)
 
-    def extract(self, path_or_paths, num_proc=None, glob_archives=False):
+    def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).
 
         Args:
@@ -282,8 +279,6 @@ class DownloadManager:
         path_or_paths = NestedDataStructure(path_or_paths)
         extracted_paths = NestedDataStructure(extracted_paths)
         self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
-        if glob_archives:
-            extracted_paths = NestedDataStructure(extracted_paths.glob(condition=self.archives))
         return extracted_paths.data
 
     def download_and_extract(self, url_or_urls, glob_archives=False):
@@ -302,7 +297,7 @@ class DownloadManager:
         Returns:
             extracted_path(s): `str`, extracted paths of given URL(s).
         """
-        return self.extract(self.download(url_or_urls, glob_archives=glob_archives), glob_archives=glob_archives)
+        return self.extract(self.download(url_or_urls))
 
     def get_recorded_sizes_checksums(self):
         return self._recorded_sizes_checksums.copy()

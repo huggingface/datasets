@@ -503,10 +503,8 @@ class StreamingDownloadManager(object):
             urlpath = url_or_path_join(self._base_path, urlpath)
         return urlpath
 
-    def extract(self, path_or_paths, glob_archives=False):
+    def extract(self, path_or_paths):
         urlpaths = map_nested(self._extract, path_or_paths, map_tuple=True)
-        if glob_archives:
-            urlpaths = self.glob(urlpaths)
         return urlpaths
 
     def _extract(self, urlpath: str) -> str:
@@ -527,8 +525,8 @@ class StreamingDownloadManager(object):
         else:
             return f"{protocol}://::{urlpath}"
 
-    def download_and_extract(self, url_or_urls, glob_archives=False):
-        return self.extract(self.download(url_or_urls), glob_archives=glob_archives)
+    def download_and_extract(self, url_or_urls):
+        return self.extract(self.download(url_or_urls))
 
     def iter_archive(self, urlpath: str):
         """Returns iterator over files within archive.
@@ -572,15 +570,3 @@ class StreamingDownloadManager(object):
                 for dirpath, _, filenames in xwalk(urlpath, use_auth_token=self.download_config.use_auth_token):
                     for filename in filenames:
                         yield xjoin(dirpath, filename)
-
-    def glob(self, urlpaths):
-        if isinstance(urlpaths, dict):
-            return {key: self.glob(urlpath) for key, urlpath in urlpaths.items()}
-        elif isinstance(urlpaths, (list, tuple)):
-            return [globbed for urlpath in urlpaths for globbed in self.glob(urlpath)]
-        else:
-            return (
-                xglob(urlpaths.replace("zip://::", "zip://**::"), use_auth_token=self.download_config.use_auth_token)
-                if "zip://::" in urlpaths
-                else [urlpaths]
-            )
