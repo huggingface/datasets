@@ -103,7 +103,7 @@ class ELI5Category(datasets.GeneratorBasedBuilder):
                 gen_kwargs={"filepath": downloaded_files["val2"]},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("test"),
+                name=datasets.Split.TEST,
                 gen_kwargs={"filepath": downloaded_files["test"]},
             ),
         ]

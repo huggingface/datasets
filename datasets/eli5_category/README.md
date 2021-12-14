@@ -9,12 +9,12 @@ licenses:
 - unknown
 multilinguality:
 - monolingual
-paperswithcode_id: eli5-category
+paperswithcode_id: null
 pretty_name: ELI5-Category
 size_categories:
 - 100K<n<1M
 source_datasets:
-- original
+- extended|eli5
 task_categories:
 - question-answering
 task_ids:
