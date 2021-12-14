@@ -81,6 +81,15 @@ This dataset is in English (`EN`).
 }
 ```
 
+#### enron_emails
+```
+{
+  'text': 'Name\t\t\tNew Title\t\t\t\tEffective Date\t\t\tMid Year promotion Yes/No\n\nFloyd, Jodie\t\tSr Cust Svc Rep (no change)\t\t7/16/01\t\t\t\tNo\n\nBuehler, Craig\t\tSr Mkt/Sup Analyst (no change)\t\t7/16/01\t\t\t\tNo\n\nWagoner, Mike\t\tTeam Advisor - Gas Control\t\t7/1/01\t\t\t\tNo\n\nClapper, Karen\t\tSr Cust Svc Rep\t\t\t8/1/01\t\t\t\tYes\n\nGreaney, Chris\t\tSr Cust Svc Rep\t\t\t8/1/01\t\t\t\tYes\n\nWilkens, Jerry\t\tSr Cust Svc Rep\t\t\t8/1/01\t\t\t\tYes\n\nMinton, Kevin\t\tPipeline Controller\t\t\t8/1/01\t\t\t\tYes\n\nCox, Don\t\tPipeline Controller\t\t\t8/1/01\t\t\t\tYes\n\nHanagriff, Richard\tSr Accounting Control Spec\t\t8/1/01\t\t\t\tYes\n\n\nThanks,\nMS'
+  'meta': "{}",
+
+}
+```
+
 #### europarl
 ```
 {
@@ -153,6 +162,11 @@ This dataset is in English (`EN`).
 - `text` (str): Text.
 - `meta` (dict): Metadata of the data instance with keys:
   - pile_set_name: Name of the subset.
+
+#### enron_emails
+
+- `text` (str): Text.
+- `meta` (str): Metadata of the data instance.
 
 #### europarl
 
