@@ -281,7 +281,7 @@ class DownloadManager:
         self.extracted_paths.update(dict(zip(path_or_paths.flatten(), extracted_paths.flatten())))
         return extracted_paths.data
 
-    def download_and_extract(self, url_or_urls, glob_archives=False):
+    def download_and_extract(self, url_or_urls):
         """Download and extract given url_or_urls.
 
         Is roughly equivalent to:
