@@ -225,6 +225,11 @@ class Image:
         Returns:
             :obj:`PIL.Image.Image`
         """
+        if not self.decode:
+            raise RuntimeError(
+                "Decoding is disabled for this feature. Set the `decode` attribute to `True` enable it."
+            )
+
         if config.PIL_AVAILABLE:
             import PIL.Image
         else:

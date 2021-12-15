@@ -68,6 +68,11 @@ class Audio:
         Returns:
             dict
         """
+        if not self.decode:
+            raise RuntimeError(
+                "Decoding is disabled for this feature. Set the `decode` attribute to `True` enable it."
+            )
+
         path, file = (value["path"], BytesIO(value["bytes"])) if isinstance(value, dict) else (value, None)
         if path.endswith("mp3"):
             array, sampling_rate = self._decode_mp3(file if file else path)
