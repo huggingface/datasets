@@ -440,7 +440,6 @@ def test_dataset_with_audio_feature_loaded_from_cache():
     assert isinstance(ds, Dataset)
 
 
-@require_sndfile
 def test_dataset_with_audio_feature_undecoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path]}
@@ -458,7 +457,6 @@ def test_dataset_with_audio_feature_undecoded(shared_datadir):
     assert column[0] == audio_path
 
 
-@require_sndfile
 def test_formatted_dataset_with_audio_feature_undecoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path]}
@@ -490,7 +488,6 @@ def test_formatted_dataset_with_audio_feature_undecoded(shared_datadir):
         assert column[0] == audio_path
 
 
-@require_sndfile
 def test_dataset_with_audio_feature_map_undecoded(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path]}
