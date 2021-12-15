@@ -150,6 +150,7 @@ def test_dataset_with_image_feature_from_np_array():
     assert column[0].size == (640, 480)
 
 
+@require_pil
 def test_dataset_with_image_feature_tar_jpg(tar_jpg_path):
     import PIL.Image
 
@@ -425,7 +426,6 @@ def test_load_dataset_with_image_feature(shared_datadir, data_dir, dataset_loadi
     assert item["image"].mode == "RGB"
 
 
-@require_pil
 def test_dataset_with_image_feature_undecoded(shared_datadir):
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     data = {"image": [image_path]}
@@ -443,7 +443,7 @@ def test_dataset_with_image_feature_undecoded(shared_datadir):
     assert column[0] == {"path": image_path, "bytes": None}
 
 
-@require_pil
+@require_pil  # Pandas calls .type on the ExtensionArray object which requires Pillow
 def test_formatted_dataset_with_image_feature_undecoded(shared_datadir):
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     data = {"image": [image_path]}
@@ -475,7 +475,6 @@ def test_formatted_dataset_with_image_feature_undecoded(shared_datadir):
         assert column[0] == {"path": image_path, "bytes": None}
 
 
-@require_pil
 def test_dataset_with_image_feature_map_undecoded(shared_datadir):
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     data = {"image": [image_path]}

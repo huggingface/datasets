@@ -64,7 +64,7 @@ class PandasImageExtensionDtype(PandasExtensionDtype):
         if config.PIL_AVAILABLE:
             import PIL.Image
         else:
-            raise ImportError("Pillow is not available.")
+            raise ImportError("'Pillow' is not available.")
         return PIL.Image.Image
 
     @property
@@ -194,14 +194,20 @@ class Image:
         Returns:
             :obj:`dict`
         """
+        # Pillow is not needed for encoding strings and dictionaries
+        if isinstance(value, str):
+            return {"path": value, "bytes": None}
+        elif isinstance(value, dict):
+            return value
+
         if config.PIL_AVAILABLE:
             import PIL.Image
         else:
-            raise ImportError("To support encoding images, please install 'Pillow'.")
+            raise ImportError(
+                "To support encoding `np.ndarray` and `PIL.Image.Image` objects as images, please install 'Pillow'."
+            )
 
-        if isinstance(value, str):
-            return {"path": value, "bytes": None}
-        elif isinstance(value, np.ndarray):
+        if isinstance(value, np.ndarray):
             image = PIL.Image.fromarray(value.astype(np.uint8))
             return {"path": None, "bytes": image_to_bytes(image)}
         elif isinstance(value, PIL.Image.Image):
@@ -278,15 +284,23 @@ def objects_to_list_of_image_dicts(
     objs: Union[List[str], List[dict], List[np.ndarray], List["PIL.Image.Image"]]
 ) -> List[dict]:
     """Encode a list of objects into a format suitable for creating an extension array of type :obj:`ImageExtensionType`."""
-    if config.PIL_AVAILABLE:
-        import PIL.Image
-    else:
-        raise ImportError("To support encoding images, please install 'Pillow'.")
 
     if objs:
         _, obj = first_non_null_value(objs)
+
+        # Pillow is not needed for encoding strings and dictionaries
         if isinstance(obj, str):
             return [{"path": obj, "bytes": None} if obj is not None else None for obj in objs]
+        elif isinstance(obj, dict):
+            return objs
+
+        if config.PIL_AVAILABLE:
+            import PIL.Image
+        else:
+            raise ImportError(
+                "To support encoding `np.ndarray` and `PIL.Image.Image` objects as images, please install 'Pillow'."
+            )
+
         if isinstance(obj, np.ndarray):
             return [
                 {"path": None, "bytes": image_to_bytes(PIL.Image.fromarray(obj.astype(np.uint8)))}
