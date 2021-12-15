@@ -70,7 +70,7 @@ class Audio:
         """
         if not self.decode:
             raise RuntimeError(
-                "Decoding is disabled for this feature. Set the `decode` attribute to `True` enable it."
+                "Decoding is disabled for this feature. Set the `decode` attribute to `True` to enable it."
             )
 
         path, file = (value["path"], BytesIO(value["bytes"])) if isinstance(value, dict) else (value, None)

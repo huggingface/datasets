@@ -233,7 +233,7 @@ class Image:
         """
         if not self.decode:
             raise RuntimeError(
-                "Decoding is disabled for this feature. Set the `decode` attribute to `True` enable it."
+                "Decoding is disabled for this feature. Set the `decode` attribute to `True` to enable it."
             )
 
         if config.PIL_AVAILABLE:
