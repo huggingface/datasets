@@ -75,6 +75,9 @@ def test_audio_decode_example(shared_datadir):
     assert decoded_example["array"].shape == (202311,)
     assert decoded_example["sampling_rate"] == 44100
 
+    with pytest.raises(RuntimeError):
+        Audio(decode=False).decode_example(audio_path)
+
 
 @require_sndfile
 def test_audio_resampling(shared_datadir):

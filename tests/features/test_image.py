@@ -49,6 +49,9 @@ def test_image_decode_example(shared_datadir):
     assert decoded_example.size == (640, 480)
     assert decoded_example.mode == "RGB"
 
+    with pytest.raises(RuntimeError):
+        Image(decode=False).decode_example(image_path)
+
 
 @require_pil
 def test_dataset_with_image_feature(shared_datadir):
