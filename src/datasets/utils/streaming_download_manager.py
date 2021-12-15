@@ -1,4 +1,5 @@
 import glob
+import io
 import os
 import posixpath
 import re
@@ -529,7 +530,7 @@ class StreamingDownloadManager(object):
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
 
-    def iter_archive(self, urlpath: str):
+    def iter_archive(self, urlpath_or_file: Union[str, io.BufferedReader]):
         """Returns iterator over files within archive.
 
         Args:
@@ -539,7 +540,8 @@ class StreamingDownloadManager(object):
             Generator yielding tuple (path_within_archive, file_obj).
             File-Obj are opened in byte mode (io.BufferedReader)
         """
-        with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
+
+        def _iter_archive(f):
             stream = tarfile.open(fileobj=f, mode="r|*")
             for tarinfo in stream:
                 file_path = tarinfo.name
@@ -554,3 +556,9 @@ class StreamingDownloadManager(object):
                 yield (file_path, file_obj)
                 stream.members = []
             del stream
+
+        if hasattr(urlpath_or_file, "read"):
+            return _iter_archive(urlpath_or_file)
+        else:
+            with xopen(urlpath_or_file, "rb", use_auth_token=self.download_config.use_auth_token) as f:
+                return _iter_archive(f)
