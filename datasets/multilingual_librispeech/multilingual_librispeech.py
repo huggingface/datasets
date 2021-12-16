@@ -81,7 +81,7 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                 }
             ),
-            supervised_keys=("file", "text"),
+            supervised_keys=("audio", "text"),
             homepage=_URL,
             citation=_CITATION,
             task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],

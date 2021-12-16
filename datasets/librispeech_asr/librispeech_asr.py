@@ -147,12 +147,14 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
                                 "id": id_,
                                 "speaker_id": speaker_id,
                                 "chapter_id": chapter_id,
+                                "file": audio_file,
                                 "text": transcript,
                             }
                         )
             if audio_data and len(audio_data) == len(transcripts):
                 for transcript in transcripts:
-                    audio = {"path": transcript["file"], "bytes": audio_data[transcript["id"]]}
+                    path = transcript.pop("file")
+                    audio = {"path": path, "bytes": audio_data[transcript["id"]]}
                     yield key, {"audio": audio, **transcript}
                     key += 1
                 audio_data = {}
