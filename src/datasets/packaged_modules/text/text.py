@@ -84,4 +84,5 @@ class Text(datasets.ArrowBasedBuilder):
                         batch = batch[-1]
                 elif self.config.row == "document":
                     text = f.read()
-                    yield file_idx, pa.Table.from_pydict({"text": [text]})
+                    pa_table = pa.Table.from_arrays([pa.array([text])], schema=schema)
+                    yield file_idx, pa_table
