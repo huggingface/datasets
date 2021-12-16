@@ -57,7 +57,6 @@ class Beans(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "image_file_path": datasets.Value("string"),
                     "image": datasets.Image(),
                     "labels": datasets.features.ClassLabel(names=_NAMES),
                 }
@@ -94,4 +93,4 @@ class Beans(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, archive):
         for i, path in enumerate(Path(archive).glob("**/*")):
             if path.suffix == ".jpg":
-                yield i, {"image_file_path": str(path), "image": str(path), "labels": path.parent.name.lower()}
+                yield i, {"image": str(path), "labels": path.parent.name.lower()}

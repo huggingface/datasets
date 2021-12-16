@@ -49,7 +49,6 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "image_file_path": datasets.Value("string"),
                     "image": datasets.Image(),
                     "labels": datasets.features.ClassLabel(names=["cat", "dog"]),
                 }
@@ -72,7 +71,6 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
             with filepath.open("rb") as f:
                 if b"JFIF" in f.peek(10):
                     yield str(i), {
-                        "image_file_path": str(filepath),
                         "image": str(filepath),
                         "labels": filepath.parent.name.lower(),
                     }
