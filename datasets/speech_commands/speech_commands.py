@@ -157,7 +157,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "label": datasets.ClassLabel(names=self.config.labels),
                     "is_unknown": datasets.Value("bool"),
                     "speaker_id": datasets.Value("string"),
