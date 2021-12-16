@@ -95,13 +95,12 @@ class Covost2(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 client_id=datasets.Value("string"),
-                file=datasets.Value("string"),
                 audio=datasets.Audio(sampling_rate=16_000),
                 sentence=datasets.Value("string"),
                 translation=datasets.Value("string"),
                 id=datasets.Value("string"),
             ),
-            supervised_keys=("file", "translation"),
+            supervised_keys=("audio", "translation"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
         )
@@ -176,7 +175,6 @@ class Covost2(datasets.GeneratorBasedBuilder):
                 "client_id": row["client_id"],
                 "sentence": row["sentence"],
                 "translation": row["translation"],
-                "file": os.path.join(source_path, "clips", row["path"]),
                 "audio": os.path.join(source_path, "clips", row["path"]),
             }
 

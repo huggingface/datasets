@@ -537,7 +537,6 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "path": datasets.Value("string"),
                 "audio": datasets.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
             }
@@ -550,9 +549,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[
-                AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="sentence")
-            ],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="sentence")],
         )
 
     def _split_generators(self, dl_manager):
@@ -600,7 +597,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                     path = str(path_to_data.resolve())
                     sentence = sentence_index[filename]
                     counter += 1
-                    yield counter, {"path": path, "audio": path, "sentence": sentence}
+                    yield counter, {"audio": path, "sentence": sentence}
         elif self.config.name in ["SLR32"]:  # use archives
             for path_to_index, path_to_data, files in zip(path_to_indexs, path_to_datas, archive_files):
                 sentences = {}
@@ -620,7 +617,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                     if path.startswith(path_to_data):
                         counter += 1
                         audio = {"path": path, "bytes": f.read()}
-                        yield counter, {"path": path, "audio": audio, "sentence": sentences[path]}
+                        yield counter, {"audio": audio, "sentence": sentences[path]}
         else:
             for i, path_to_index in enumerate(path_to_indexs):
                 with open(path_to_index, encoding="utf-8") as f:
@@ -636,4 +633,4 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                         # set absolute path for audio file
                         path = os.path.join(path_to_datas[i], f"{filename}.wav")
                         counter += 1
-                        yield counter, {"path": path, "audio": path, "sentence": sentence}
+                        yield counter, {"audio": path, "sentence": sentence}

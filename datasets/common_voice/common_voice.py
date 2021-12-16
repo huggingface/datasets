@@ -630,7 +630,6 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "client_id": datasets.Value("string"),
-                "path": datasets.Value("string"),
                 "audio": datasets.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
                 "up_votes": datasets.Value("int64"),
@@ -650,9 +649,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[
-                AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="sentence")
-            ],
+            task_templates=[AutomaticSpeechRecognition(audio_file="audio", transcription_column="sentence")],
         )
 
     def _split_generators(self, dl_manager):
@@ -740,7 +737,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                     if len(field_values) < len(data_fields):
                         field_values += (len(data_fields) - len(field_values)) * ["''"]
 
-                    result = {key: value for key, value in zip(data_fields, field_values)}
+                    result = {key: value for key, value in zip(data_fields, field_values) if key != "path"}
 
                     # set audio feature
                     result["audio"] = {"path": path, "bytes": f.read()}

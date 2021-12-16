@@ -157,7 +157,6 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "file": datasets.Value("string"),
                     "audio": datasets.features.Audio(sampling_rate=16_000),
                     "label": datasets.ClassLabel(names=self.config.labels),
                     "is_unknown": datasets.Value("bool"),
@@ -220,7 +219,6 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
                 speaker_id, _, utterance_id = audio_filename.split(".wav")[0].split("_")
 
             yield path, {
-                "file": path,
                 "audio": {"path": path, "bytes": file.read()},
                 "label": word,
                 "is_unknown": is_unknown,

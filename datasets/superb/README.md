@@ -204,7 +204,6 @@ An example from each split looks like:
 
 ```python
 {'chapter_id': 1240,
- 'file': 'path/to/file.flac',
  'audio': {'path': 'path/to/file.flac',
 		   'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
 		   'sampling_rate': 16000},
@@ -222,7 +221,6 @@ An example from each split looks like:
 
 ```python
 {
-  'file': '/path/yes/af7a8296_nohash_1.wav', 
   'audio': {'path': '/path/yes/af7a8296_nohash_1.wav',
 		    'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
 		    'sampling_rate': 16000},
@@ -239,7 +237,6 @@ An example from each split looks like:
 
 ```python
 {
-  'file': "/path/wavs/speakers/2BqVo8kVB2Skwgyb/063aa8f0-4479-11e9-a9a5-5dbec3b8816a.wav",
   'audio': {'path': '/path/wavs/speakers/2BqVo8kVB2Skwgyb/063aa8f0-4479-11e9-a9a5-5dbec3b8816a.wav',
 		    'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
 		    'sampling_rate': 16000},
@@ -260,7 +257,6 @@ An example from each split looks like:
 
 ```python
 {
-  'file': '/path/wav/id10003/na8-QEFmj44/00003.wav', 
   'audio': {'path': '/path/wav/id10003/na8-QEFmj44/00003.wav',
 		    'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
 		    'sampling_rate': 16000},
@@ -279,7 +275,6 @@ An example from each split looks like:
 ```python
 {
   'record_id': '1578-6379-0038_6415-111615-0009',
-  'file': 'path/to/file.wav',
   'audio': {'path': 'path/to/file.wav',
 		    'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
 		    'sampling_rate': 16000},
@@ -313,7 +308,6 @@ When accessing the audio column: `dataset[0]["audio"]` the audio file is automat
 
 #### asr
 
-- `file` (`string`): Path to the WAV audio file.
 - `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `text` (`string`): The transcription of the audio file.
 - `speaker_id` (`integer`): A unique ID of the speaker. The same speaker id can be found for multiple data samples.
@@ -322,7 +316,6 @@ When accessing the audio column: `dataset[0]["audio"]` the audio file is automat
 
 #### ks
 
-- `file` (`string`): Path to the WAV audio file.
 - `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `label` (`ClassLabel`): Label of the spoken command. Possible values:
     - `0: "yes", 1: "no", 2: "up", 3: "down", 4: "left", 5: "right", 6: "on", 7: "off", 8: "stop", 9: "go", 10: "_silence_", 11: "_unknown_"`
@@ -333,7 +326,6 @@ When accessing the audio column: `dataset[0]["audio"]` the audio file is automat
 
 #### ic
 
-- `file` (`string`): Path to the WAV audio file.
 - `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `speaker_id` (`string`): ID of the speaker.
 - `text` (`string`): Transcription of the spoken command.
@@ -351,7 +343,6 @@ When accessing the audio column: `dataset[0]["audio"]` the audio file is automat
 
 #### si
 
-- `file` (`string`): Path to the WAV audio file.
 - `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `label` (`ClassLabel`): Label (ID) of the speaker. Possible values: 
     - `0: "id10001", 1: "id10002", 2: "id10003", ..., 1250: "id11251"`
@@ -365,7 +356,6 @@ When accessing the audio column: `dataset[0]["audio"]` the audio file is automat
 
 The data fields in all splits are:
 - `record_id` (`string`): ID of the record.
-- `file` (`string`): Path to the WAV audio file.
 - `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `start` (`integer`): Start frame of the audio.
 - `end` (`integer`): End frame of the audio.
@@ -376,7 +366,6 @@ The data fields in all splits are:
 
 #### er
 
-- `file` (`string`): Path to the WAV audio file.
 - `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate.
 - `label` (`ClassLabel`): Label of the speech emotion. Possible values:
     - `0: "neu", 1: "hap", 2: "ang", 3: "sad"`

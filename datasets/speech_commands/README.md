@@ -90,7 +90,6 @@ The language data in SpeechCommands is in English (BCP-47 `en`).
 Example of a core word (`"label"` is a word, `"is_unknown"` is `False`):
 ```python
 {
-  "file": "no/7846fd85_nohash_0.wav", 
   "audio": {
     "path": "no/7846fd85_nohash_0.wav", 
     "array": array([ -0.00021362, -0.00027466, -0.00036621, ...,  0.00079346,
@@ -107,7 +106,6 @@ Example of a core word (`"label"` is a word, `"is_unknown"` is `False`):
 Example of an auxiliary word (`"label"` is a word, `"is_unknown"` is `True`)
 ```python
 {
-  "file": "tree/8b775397_nohash_0.wav", 
   "audio": {
     "path": "tree/8b775397_nohash_0.wav", 
     "array": array([ -0.00854492, -0.01339722, -0.02026367, ...,  0.00274658,
@@ -125,7 +123,6 @@ Example of background noise (`_silence_`) class:
 
 ```python
 {
-  "file": "_silence_/doing_the_dishes.wav", 
   "audio": {
     "path": "_silence_/doing_the_dishes.wav", 
     "array": array([ 0.        ,  0.        ,  0.        , ..., -0.00592041,

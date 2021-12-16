@@ -76,7 +76,6 @@ class TimitASR(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "file": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "phonetic_detail": datasets.Sequence(
@@ -99,10 +98,10 @@ class TimitASR(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                 }
             ),
-            supervised_keys=("file", "text"),
+            supervised_keys=("audio", "text"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):
@@ -163,7 +162,6 @@ class TimitASR(datasets.GeneratorBasedBuilder):
                 ]
 
             example = {
-                "file": wav_path,
                 "audio": wav_path,
                 "text": transcript,
                 "phonetic_detail": phonemes,

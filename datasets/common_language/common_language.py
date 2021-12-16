@@ -164,7 +164,6 @@ class CommonLanguage(datasets.GeneratorBasedBuilder):
 
                     yield key, {
                         "client_id": client_id,
-                        "path": path,
                         "audio": path,
                         "sentence": sentence,
                         "age": age,

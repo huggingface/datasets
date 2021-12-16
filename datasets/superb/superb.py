@@ -85,7 +85,7 @@ audio is stored in the .wav format and is not converted to a float32 array. To
 convert the audio file to a float32 array, please make use of the `.map()`
 function as follows:
 
-
+TODO: Fix this
 ```python
 import soundfile as sf
 
@@ -136,7 +136,6 @@ class Superb(datasets.GeneratorBasedBuilder):
             ),
             features=datasets.Features(
                 {
-                    "file": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "speaker_id": datasets.Value("int64"),
@@ -144,10 +143,10 @@ class Superb(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                 }
             ),
-            supervised_keys=("file", "text"),
+            supervised_keys=("audio", "text"),
             url="http://www.openslr.org/12",
             data_url="http://www.openslr.org/resources/12/",
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         ),
         SuperbConfig(
             name="ks",
@@ -161,7 +160,6 @@ class Superb(datasets.GeneratorBasedBuilder):
             ),
             features=datasets.Features(
                 {
-                    "file": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
                     "label": datasets.ClassLabel(
                         names=[
@@ -181,7 +179,7 @@ class Superb(datasets.GeneratorBasedBuilder):
                     ),
                 }
             ),
-            supervised_keys=("file", "label"),
+            supervised_keys=("audio", "label"),
             url="https://www.tensorflow.org/datasets/catalog/speech_commands",
             data_url="http://download.tensorflow.org/data/{filename}",
         ),
@@ -195,7 +193,6 @@ class Superb(datasets.GeneratorBasedBuilder):
             ),
             features=datasets.Features(
                 {
-                    "file": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
                     "speaker_id": datasets.Value("string"),
                     "text": datasets.Value("string"),
@@ -237,13 +234,12 @@ class Superb(datasets.GeneratorBasedBuilder):
             ),
             features=datasets.Features(
                 {
-                    "file": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
                     # VoxCeleb1 contains 1251 speaker IDs in range ["id10001",..."id11251"]
                     "label": datasets.ClassLabel(names=[f"id{i + 10001}" for i in range(1251)]),
                 }
             ),
-            supervised_keys=("file", "label"),
+            supervised_keys=("audio", "label"),
             url="https://www.robots.ox.ac.uk/~vgg/data/voxceleb/vox1.html",
         ),
         SuperbConfig(
@@ -260,7 +256,6 @@ class Superb(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "record_id": datasets.Value("string"),
-                    "file": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
                     "start": datasets.Value("int64"),
                     "end": datasets.Value("int64"),
@@ -288,12 +283,11 @@ class Superb(datasets.GeneratorBasedBuilder):
             ),
             features=datasets.Features(
                 {
-                    "file": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
                     "label": datasets.ClassLabel(names=["neu", "hap", "ang", "sad"]),
                 }
             ),
-            supervised_keys=("file", "label"),
+            supervised_keys=("audio", "label"),
             url="https://sail.usc.edu/iemocap/",
         ),
     ]
@@ -451,7 +445,6 @@ class Superb(datasets.GeneratorBasedBuilder):
                             "id": id_,
                             "speaker_id": speaker_id,
                             "chapter_id": chapter_id,
-                            "file": audio_path,
                             "audio": audio_path,
                             "text": transcript,
                         }
@@ -468,7 +461,7 @@ class Superb(datasets.GeneratorBasedBuilder):
                     label = "_silence_"
                 else:
                     label = "_unknown_"
-                yield key, {"file": audio_file, "audio": audio_file, "label": label}
+                yield key, {"audio": audio_file, "label": label}
         elif self.config.name == "ic":
             root_path = os.path.join(archive_path, "fluent_speech_commands_dataset")
             csv_path = os.path.join(root_path, "data", f"{split}_data.csv")
@@ -479,7 +472,6 @@ class Superb(datasets.GeneratorBasedBuilder):
                     key, file_path, speaker_id, text, action, object_, location = row
                     audio_path = os.path.join(root_path, file_path)
                     yield key, {
-                        "file": audio_path,
                         "audio": audio_path,
                         "speaker_id": speaker_id,
                         "text": text,
@@ -498,7 +490,6 @@ class Superb(datasets.GeneratorBasedBuilder):
                     speaker_id = file_path.split("/")[0]
                     audio_path = os.path.join(wav_path, file_path)
                     yield key, {
-                        "file": audio_path,
                         "audio": audio_path,
                         "label": speaker_id,
                     }
@@ -511,7 +502,6 @@ class Superb(datasets.GeneratorBasedBuilder):
                     speakers = _get_speakers(rec, data, args)
                     yield key, {
                         "record_id": rec,
-                        "file": data.wavs[rec],
                         "audio": data.wavs[rec],
                         "start": st,
                         "end": ed,
@@ -524,7 +514,6 @@ class Superb(datasets.GeneratorBasedBuilder):
                         speakers = _get_speakers(rec, data, args)
                         yield key, {
                             "record_id": rec,
-                            "file": data.wavs[rec],
                             "audio": data.wavs[rec],
                             "start": st,
                             "end": ed,
@@ -549,7 +538,6 @@ class Superb(datasets.GeneratorBasedBuilder):
                         filename = f"{filename}.wav"
                         audio_path = os.path.join(wav_path, wav_subdir, filename)
                         yield key, {
-                            "file": audio_path,
                             "audio": audio_path,
                             "label": emo.replace("exc", "hap"),
                         }

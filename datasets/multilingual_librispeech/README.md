@@ -77,11 +77,10 @@ The dataset is derived from read audiobooks from LibriVox and consists of 8 lang
 
 ### Data Instances
 
-A typical data point comprises the path to the audio file, usually called `file` and its transcription, called `text`. Some additional information about the speaker and the passage which contains the transcription is provided.
+A typical data point comprises the audio data, called `audio` and its transcription, called `text`. Some additional information about the speaker and the passage which contains the transcription is provided.
 
 ```
 {'chapter_id': 141231,
- 'file': '/home/patrick/.cache/huggingface/datasets/downloads/extracted/b7ded9969e09942ab65313e691e6fc2e12066192ee8527e21d634aca128afbe2/dev_clean/1272/141231/1272-141231-0000.flac',
   'audio': {'path': '/home/patrick/.cache/huggingface/datasets/downloads/extracted/b7ded9969e09942ab65313e691e6fc2e12066192ee8527e21d634aca128afbe2/dev_clean/1272/141231/1272-141231-0000.flac',
   'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346,
           0.00091553,  0.00085449], dtype=float32),
@@ -93,8 +92,6 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 
 ### Data Fields
-
-- file: A path to the downloaded audio file in .flac format.
 
 - audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
 

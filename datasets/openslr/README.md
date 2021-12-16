@@ -539,12 +539,11 @@ Afrikaans, Sesotho, Setswana and isiXhosa.
 
 ### Data Instances
 
-A typical data point comprises the path to the audio file, called path and its sentence. 
+A typical data point comprises the audio data, called `audio` and its sentence. 
 
 #### SLR32, SLR35, SLR36, SLR41, SLR42, SLR43, SLR44, SLR52, SLR53, SLR54, SLR63, SLR64, SLR65, SLR66, SLR69, SLR70, SLR71, SLR72, SLR73, SLR74, SLR75, SLR76, SLR77, SLR78, SLR79, SLR80, SLR86
 ```
 {
-  'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav'
   'audio': {'path': '/home/cahya/.cache/huggingface/datasets/downloads/extracted/4d9cf915efc21110199074da4d492566dee6097068b07a680f670fcec9176e62/su_id_female/wavs/suf_00297_00037352660.wav',
 	  'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346,
 			  0.00091553,  0.00085449], dtype=float32),
@@ -555,7 +554,6 @@ A typical data point comprises the path to the audio file, called path and its s
 
 ### Data Fields
 
-- `path`: The path to the audio file.
 - `audio`: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling
   rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and
   resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might

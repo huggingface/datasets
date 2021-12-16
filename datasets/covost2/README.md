@@ -94,11 +94,10 @@ The dataset contains the audio, transcriptions, and translations in the followin
 
 ### Data Instances
 
-A typical data point comprises the path to the audio file, usually called `file`, its transcription, called `sentence`, and the translation in target language called `translation`.
+A typical data point comprises the audio data, called `audio`, its transcription, called `sentence`, and the translation in target language called `translation`.
 
 ```
 {'client_id': 'd277a1f3904ae00b09b73122b87674e7c2c78e08120721f37b5577013ead08d1ea0c053ca5b5c2fb948df2c81f27179aef2c741057a17249205d251a8fe0e658',
- 'file': '/home/suraj/projects/fairseq_s2t/covst/dataset/en/clips/common_voice_en_18540003.mp3',
  'audio': {'path': '/home/suraj/projects/fairseq_s2t/covst/dataset/en/clips/common_voice_en_18540003.mp3',
 		   'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
 		   'sampling_rate': 48000},
@@ -108,8 +107,6 @@ A typical data point comprises the path to the audio file, usually called `file`
 ```
 
 ### Data Fields
-
-- file: A path to the downloaded audio file in .mp3 format.
 
 - audio: A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
 

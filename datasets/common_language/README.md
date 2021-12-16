@@ -118,12 +118,11 @@ Arabic, Basque, Breton, Catalan, Chinese_China, Chinese_Hongkong, Chinese_Taiwan
 
 ### Data Instances
 
-A typical data point comprises the `path` to the audio file, and its label `language`. Additional fields include `age`, `client_id`, `gender` and `sentence`.
+A typical data point comprises the `audio` representing the audio data, and its label `language`. Additional fields include `age`, `client_id`, `gender` and `sentence`.
 
 ```python
 {
   'client_id': 'itln_trn_sp_175',
-  'path': '/path/common_voice_kpd/Italian/train/itln_trn_sp_175/common_voice_it_18279446.wav',
   'audio': {'path': '/path/common_voice_kpd/Italian/train/itln_trn_sp_175/common_voice_it_18279446.wav',
 		   'array': array([-0.00048828, -0.00018311, -0.00137329, ...,  0.00079346, 0.00091553,  0.00085449], dtype=float32),
 		   'sampling_rate': 48000},
@@ -137,8 +136,6 @@ A typical data point comprises the `path` to the audio file, and its label `lang
 ### Data Fields
 
 `client_id` (`string`): An id for which client (voice) made the recording
-
-`path` (`string`): The path to the audio file
 
 - `audio` (`dict`): A dictionary containing the path to the downloaded audio file, the decoded audio array, and the sampling rate. Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of a large number of audio files might take a significant amount of time. Thus it is important to first query the sample index before the `"audio"` column, *i.e.* `dataset[0]["audio"]` should **always** be preferred over `dataset["audio"][0]`.
 

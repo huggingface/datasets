@@ -41,16 +41,18 @@ Note that in order to limit the required storage for preparing this dataset, the
 is stored in the .flac format and is not converted to a float32 array. To convert, the audio
 file to a float32 array, please make use of the `.map()` function as follows:
 
-
+TODO: Fix this
 ```python
 import soundfile as sf
 
 def map_to_array(batch):
-    speech_array, _ = sf.read(batch["file"])
+    speech_array, _ = sf.read(batch["audio"])
     batch["speech"] = speech_array
     return batch
 
+dataset.features["audio"].decode = False
 dataset = dataset.map(map_to_array, remove_columns=["file"])
+dataset.features["audio"].decode = True
 ```
 """
 
@@ -101,7 +103,6 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "file": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "speaker_id": datasets.Value("int64"),
@@ -109,10 +110,10 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                 }
             ),
-            supervised_keys=("file", "text"),
+            supervised_keys=("audio", "text"),
             homepage=_URL,
             citation=_CITATION,
-            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):
@@ -164,7 +165,6 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
                                 "id": id_,
                                 "speaker_id": speaker_id,
                                 "chapter_id": chapter_id,
-                                "file": audio_file,
                                 "text": transcript,
                             }
                         )

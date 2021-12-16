@@ -66,7 +66,6 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "speaker_id": datasets.Value("string"),
-                    "path": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
                     "sentence": datasets.Value("string"),
                 }
@@ -122,7 +121,6 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
                 audio_path = "/".join([path_to_clips, speaker_id, data[0] + ".wav"])
                 examples[audio_path] = {
                     "speaker_id": speaker_id,
-                    "path": audio_path,
                     "sentence": data[1],
                 }
         inside_clips_dir = False
