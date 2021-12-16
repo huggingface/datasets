@@ -36,21 +36,6 @@ _DESCRIPTION = """\
 This Speech corpus has been developed as part of PhD work carried out by Nawar Halabi at the University of Southampton.
 The corpus was recorded in south Levantine Arabic
 (Damascian accent) using a professional studio. Synthesized speech as an output using this corpus has produced a high quality, natural voice.
-Note that in order to limit the required storage for preparing this dataset, the audio
-is stored in the .flac format and is not converted to a float32 array. To convert, the audio
-file to a float32 array, please make use of the `.map()` function as follows:
-
-
-```python
-import soundfile as sf
-
-def map_to_array(batch):
-    speech_array, _ = sf.read(batch["file"])
-    batch["speech"] = speech_array
-    return batch
-
-dataset = dataset.map(map_to_array, remove_columns=["file"])
-```
 """
 
 _URL = "http://en.arabicspeechcorpus.com/arabic-speech-corpus.zip"

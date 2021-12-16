@@ -174,8 +174,10 @@ def sample_noise(example):
     from random import randint
 
     if example["label"] == "_silence_":
-        random_offset = randint(0, len(example["speech"]) - example["sample_rate"] - 1)
-        example["speech"] = example["speech"][random_offset : random_offset + example["sample_rate"]]
+        audio_data = example["audio"]
+        array, sampling_rate = audio_data["array"], audio_data["sampling_rate"]
+        random_offset = randint(0, len(array) - sampling_rate - 1)
+        example["speech"] = array[random_offset : random_offset + sampling_rate]
 
     return example
 ```

@@ -79,23 +79,6 @@ as SSL representations show competitive generalizability and accessibility
 across SUPERB tasks. We release SUPERB as a challenge with a leaderboard and a
 benchmark toolkit to fuel the research in representation learning and general
 speech processing.
-
-Note that in order to limit the required storage for preparing this dataset, the
-audio is stored in the .wav format and is not converted to a float32 array. To
-convert the audio file to a float32 array, please make use of the `.map()`
-function as follows:
-
-TODO: Fix this
-```python
-import soundfile as sf
-
-def map_to_array(batch):
-    speech_array, _ = sf.read(batch["file"])
-    batch["speech"] = speech_array
-    return batch
-
-dataset = dataset.map(map_to_array, remove_columns=["file"])
-```
 """
 
 

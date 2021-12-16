@@ -89,34 +89,25 @@ Keyword Spotting (KS) detects preregistered keywords by classifying utterances i
 
 ##### Example of usage:
 
-Use these auxillary functions to:
-- load the audio file into an audio data array
-- sample from long `_silence_` audio clips
-
-For other examples of handling long `_silence_` clips see the [S3PRL](https://github.com/s3prl/s3prl/blob/099ce807a6ffa6bf2482ceecfcaf83dea23da355/s3prl/downstream/speech_commands/dataset.py#L80) 
-or [TFDS](https://github.com/tensorflow/datasets/blob/6b8cfdb7c3c0a04e731caaa8660ce948d0a67b1e/tensorflow_datasets/audio/speech_commands.py#L143) implementations.
+Use the following function to sample from long `_silence_` audio clips:
 
 ```python
-def map_to_array(example):
-    import soundfile as sf
-
-    speech_array, sample_rate = sf.read(example["file"])
-    example["speech"] = speech_array
-    example["sample_rate"] = sample_rate
-    return example
-
-
 def sample_noise(example):
     # Use this function to extract random 1 sec slices of each _silence_ utterance,
     # e.g. inside `torch.utils.data.Dataset.__getitem__()`
     from random import randint
 
     if example["label"] == "_silence_":
-        random_offset = randint(0, len(example["speech"]) - example["sample_rate"] - 1)
-        example["speech"] = example["speech"][random_offset : random_offset + example["sample_rate"]]
+        audio_data = example["audio"]
+        array, sampling_rate = audio_data["array"], audio_data["sampling_rate"]
+        random_offset = randint(0, len(array) - sampling_rate - 1)
+        example["speech"] = array[random_offset : random_offset + sampling_rate]
 
     return example
 ```
+
+For other examples of handling long `_silence_` clips see the [S3PRL](https://github.com/s3prl/s3prl/blob/099ce807a6ffa6bf2482ceecfcaf83dea23da355/s3prl/downstream/speech_commands/dataset.py#L80) 
+or [TFDS](https://github.com/tensorflow/datasets/blob/6b8cfdb7c3c0a04e731caaa8660ce948d0a67b1e/tensorflow_datasets/audio/speech_commands.py#L143) implementations.
 
 #### qbe
 
@@ -143,20 +134,9 @@ Speaker Diarization (SD) predicts *who is speaking when* for each timestamp, and
 
 ##### Example of usage
 
-Use these auxiliary functions to:
-- load the audio file into an audio data array
-- generate the label array
+Use the following function to generate the label array:
 
 ```python
-def load_audio_file(example, frame_shift=160):
-    import soundfile as sf
-
-    example["array"], example["sample_rate"] = sf.read(
-        example["file"], start=example["start"] * frame_shift, stop=example["end"] * frame_shift
-    )
-    return example
-
-
 def generate_label(example, frame_shift=160, num_speakers=2, rate=16000):
     import numpy as np
 
