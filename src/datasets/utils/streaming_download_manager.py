@@ -531,14 +531,14 @@ class StreamingDownloadManager(object):
         return self.extract(self.download(url_or_urls))
 
     def iter_archive(self, urlpath_or_file: Union[str, io.BufferedReader]):
-        """Returns iterator over files within archive.
+        """Iterate over files within an archive.
 
         Args:
-            path: path to archive.
+            urlpath_or_file (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
 
-        Returns:
-            Generator yielding tuple (path_within_archive, file_obj).
-            File-Obj are opened in byte mode (io.BufferedReader)
+        Yields:
+            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+                File object is opened in binary mode.
         """
 
         def _iter_archive(f):
