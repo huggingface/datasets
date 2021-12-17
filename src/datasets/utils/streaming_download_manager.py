@@ -5,6 +5,7 @@ import re
 import tarfile
 import time
 from asyncio import TimeoutError
+from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
 from typing import List, Optional, Tuple, Union
@@ -493,6 +494,12 @@ def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, boo
         return pd.read_csv(filepath_or_buffer, **kwargs)
     else:
         return pd.read_csv(xopen(filepath_or_buffer, use_auth_token=use_auth_token), **kwargs)
+
+
+def xpandas_read_excel(filepath_or_buffer, **kwargs):
+    import pandas as pd
+
+    return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
 
 
 class StreamingDownloadManager(object):
