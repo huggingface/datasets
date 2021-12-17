@@ -184,8 +184,8 @@ if __name__ == "__main__":
     current_commit, prev_commit = list(islice(datasets_lib_repo.iter_commits(), 2))
     author_name, author_email = current_commit.author.name, current_commit.author.email
     author_name, author_email = hf_retrieve_author(author_name, author_email)
-    datasets_lib_repo.git.config(f"--global user.name {author_name}")
-    datasets_lib_repo.git.config(f"--global user.email {author_email}")
+    datasets_lib_repo.git.config(f'--global user.name "{author_name}"')
+    datasets_lib_repo.git.config(f'--global user.email "{author_email}"')
     commit_args = (f"-m {current_commit.message}",)
     commit_args += (f"-m Commit from {DATASETS_LIB_COMMIT_URL.format(hexsha=current_commit.hexsha)}",)
 
