@@ -249,6 +249,23 @@ class DownloadManager:
             with open(path_or_buf, "rb") as f:
                 return _iter_archive(f)
 
+    def iter_files(self, paths):
+        """Iterate over file paths.
+
+        Args:
+            paths (list): Root paths.
+
+        Yields:
+            str: File path.
+        """
+        for path in paths:
+            if os.path.isfile(path):
+                yield path
+            else:
+                for dirpath, _, filenames in os.walk(path):
+                    for filename in filenames:
+                        yield os.path.join(dirpath, filename)
+
     def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).
 
