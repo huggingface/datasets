@@ -1,4 +1,5 @@
 import glob
+import io
 import os
 import posixpath
 import re
@@ -562,17 +563,18 @@ class StreamingDownloadManager(object):
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
 
-    def iter_archive(self, urlpath: str):
-        """Returns iterator over files within archive.
+    def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]):
+        """Iterate over files within an archive.
 
         Args:
-            path: path to archive.
+            urlpath_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
 
-        Returns:
-            Generator yielding tuple (path_within_archive, file_obj).
-            File-Obj are opened in byte mode (io.BufferedReader)
+        Yields:
+            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+                File object is opened in binary mode.
         """
-        with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
+
+        def _iter_archive(f):
             stream = tarfile.open(fileobj=f, mode="r|*")
             for tarinfo in stream:
                 file_path = tarinfo.name
@@ -587,6 +589,12 @@ class StreamingDownloadManager(object):
                 yield (file_path, file_obj)
                 stream.members = []
             del stream
+
+        if hasattr(urlpath_or_buf, "read"):
+            return _iter_archive(urlpath_or_buf)
+        else:
+            with xopen(urlpath_or_buf, "rb", use_auth_token=self.download_config.use_auth_token) as f:
+                return _iter_archive(f)
 
     def iter_files(self, urlpaths):
         """Iterate over files.

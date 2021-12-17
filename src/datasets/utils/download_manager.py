@@ -17,6 +17,7 @@
 """Download manager interface."""
 
 import enum
+import io
 import os
 import tarfile
 from datetime import datetime
@@ -215,17 +216,18 @@ class DownloadManager:
             url_or_filename = url_or_path_join(self._base_path, url_or_filename)
         return cached_path(url_or_filename, download_config=download_config)
 
-    def iter_archive(self, path):
-        """Returns iterator over files within archive.
+    def iter_archive(self, path_or_buf: Union[str, io.BufferedReader]):
+        """Iterate over files within an archive.
 
         Args:
-            path: path to archive.
+            path_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
 
-        Returns:
-            Generator yielding tuple (path_within_archive, file_obj).
-            File-Obj are opened in byte mode (io.BufferedReader)
+        Yields:
+            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+                File object is opened in binary mode.
         """
-        with open(path, "rb") as f:
+
+        def _iter_archive(f):
             stream = tarfile.open(fileobj=f, mode="r|*")
             for tarinfo in stream:
                 file_path = tarinfo.name
@@ -240,6 +242,12 @@ class DownloadManager:
                 yield (file_path, file_obj)
                 stream.members = []
             del stream
+
+        if hasattr(path_or_buf, "read"):
+            return _iter_archive(path_or_buf)
+        else:
+            with open(path_or_buf, "rb") as f:
+                return _iter_archive(f)
 
     def iter_files(self, paths):
         """Iterate over file paths.
