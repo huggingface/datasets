@@ -1,6 +1,9 @@
 name: Update Hub repositories
 
-on: push
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   update-hub-repositories:
@@ -14,7 +17,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.6"
-      - name: Setup git config
+      - name: Set up default Git config
         run: |
           git config --global user.name system
           git config --global user.email system@huggingface.co

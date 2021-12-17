@@ -16,15 +16,16 @@ from tqdm.contrib.concurrent import thread_map
 load_dotenv()
 logger = logging.getLogger(__name__)
 ROOT = Path()
+HUB_ENDPOINT = "https://moon-staging.huggingface.co"
+HUB_CANONICAL_WHOAMI = HUB_ENDPOINT + "/api/whoami-v2"
+HUB_CANONICAL_CREATE_URL = HUB_ENDPOINT + "/api/repos/create"
+HUB_CANONICAL_INFO_URL = HUB_ENDPOINT + "/api/datasets/{dataset_name}"
+HUB_CANONICAL_DATASET_GIT_URL = HUB_ENDPOINT.replace("https://", "https://user:{token}@") + "/datasets/{dataset_name}.git"
+HUB_API_GH_TO_HF = HUB_ENDPOINT + "/api/gh-to-hf/{github_username}"
 DATASETS_LIB_CATALOG_DIR_NAME = "datasets"
 DATASETS_LIB_COMMIT_URL = "https://github.com/huggingface/datasets/commit/{hexsha}"
 CANONICAL_DATASET_REPO_MAIN_BRANCH = "main"
 HUB_DIR_NAME = "hub"
-HUB_CANONICAL_WHOAMI = "https://moon-staging.huggingface.co/api/whoami-v2"
-HUB_CANONICAL_CREATE_URL = "https://moon-staging.huggingface.co/api/repos/create"
-HUB_CANONICAL_INFO_URL = "https://moon-staging.huggingface.co/api/datasets/{dataset_name}"
-HUB_CANONICAL_DATASET_GIT_URL = "https://user:{token}@moon-staging.huggingface.co/datasets/{dataset_name}.git"
-HUB_API_GH_TO_HF = "https://huggingface.co/api/gh-to-hf/{github_username}"
 
 
 def hf_retrieve_author(author_name, author_email) -> Tuple[str, str]:
