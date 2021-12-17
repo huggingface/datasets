@@ -225,23 +225,26 @@ if __name__ == "__main__":
                     "since --auto was used."
                 )
                 dataset_names = sorted(changed_datasets_names_since_last_commit)
-        logger.info(
-            f"Updating the '{CANONICAL_DATASET_REPO_MAIN_BRANCH}' branch of those datasets: {' '.join(dataset_names)}"
-        )
-        successes = thread_map(
-            update_main(
-                commit_args=commit_args,
-                token=token,
-                deleted_files=deleted_files,
-                tag_name=new_tag.name if new_tag else None,
-            ),
-            dataset_names,
-        )
-        datasets_with_errors = [dataset_name for success, dataset_name in zip(successes, dataset_names) if not success]
-        if datasets_with_errors:
-            raise UpdateFailed(
-                f"Those datasets couldn't be updated: {' '.join(datasets_with_errors)}\n"
-                "Please check the logs to see what went wrong.\n"
-                "Once you fixed the errors, you can re-run this script:\n\n"
-                f"\tpython update_main.py {' '.join(datasets_with_errors)}"
+        if dataset_names:
+            logger.info(
+                f"Updating the '{CANONICAL_DATASET_REPO_MAIN_BRANCH}' branch of those datasets: {' '.join(dataset_names)}"
             )
+            successes = thread_map(
+                update_main(
+                    commit_args=commit_args,
+                    token=token,
+                    deleted_files=deleted_files,
+                    tag_name=new_tag.name if new_tag else None,
+                ),
+                dataset_names,
+            )
+            datasets_with_errors = [dataset_name for success, dataset_name in zip(successes, dataset_names) if not success]
+            if datasets_with_errors:
+                raise UpdateFailed(
+                    f"Those datasets couldn't be updated: {' '.join(datasets_with_errors)}\n"
+                    "Please check the logs to see what went wrong.\n"
+                    "Once you fixed the errors, you can re-run this script:\n\n"
+                    f"\tpython update_main.py {' '.join(datasets_with_errors)}"
+                )
+            else:
+                logger.info("No changes detected -- nothing to update !")
