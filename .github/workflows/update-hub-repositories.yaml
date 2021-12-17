@@ -1,0 +1,26 @@
+name: Update Hub repositories
+
+on: push
+
+env:
+  HUB_TRUSTED_COMMITER_TOKEN: ${{ secrets.HUB_TRUSTED_COMMITER_TOKEN }}
+  DATASETS_LIB_PATH: ${{ env.GITHUB_WORKSPACE }}
+
+jobs:
+  update-hub-repositories:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.6"
+      - name: Install dependencies
+        working-directory: ./.github/hub
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Update Hub repositories
+        working-directory: ./.github/hub
+        run: python update_hub_repositories.py --auto
