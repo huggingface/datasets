@@ -171,7 +171,7 @@ The data fields are the same among all splits.
 
 ### Citation Information
 
-```
+```bibtex
 @article{2016arXiv160605250R,
        author = {{Rajpurkar}, Pranav and {Zhang}, Jian and {Lopyrev},
                  Konstantin and {Liang}, Percy},
@@ -185,7 +185,6 @@ archivePrefix = {arXiv},
 }
 
 ```
-
 
 ### Contributions
 
