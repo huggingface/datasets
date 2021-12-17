@@ -246,5 +246,5 @@ if __name__ == "__main__":
                     "Once you fixed the errors, you can re-run this script:\n\n"
                     f"\tpython update_main.py {' '.join(datasets_with_errors)}"
                 )
-            else:
-                logger.info("No changes detected -- nothing to update !")
+        else:
+            logger.info("No changes detected -- nothing to update !")
