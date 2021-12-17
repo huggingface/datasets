@@ -216,11 +216,11 @@ class DownloadManager:
             url_or_filename = url_or_path_join(self._base_path, url_or_filename)
         return cached_path(url_or_filename, download_config=download_config)
 
-    def iter_archive(self, path_or_file: Union[str, io.BufferedReader]):
+    def iter_archive(self, path_or_buf: Union[str, io.BufferedReader]):
         """Iterate over files within an archive.
 
         Args:
-            path_or_file (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
+            path_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
 
         Yields:
             :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
@@ -243,10 +243,10 @@ class DownloadManager:
                 stream.members = []
             del stream
 
-        if hasattr(path_or_file, "read"):
-            return _iter_archive(path_or_file)
+        if hasattr(path_or_buf, "read"):
+            return _iter_archive(path_or_buf)
         else:
-            with open(path_or_file, "rb") as f:
+            with open(path_or_buf, "rb") as f:
                 return _iter_archive(f)
 
     def extract(self, path_or_paths, num_proc=None):
