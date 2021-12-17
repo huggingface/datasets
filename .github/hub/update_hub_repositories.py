@@ -140,7 +140,7 @@ class update_main:
         distutils.dir_util.copy_tree(
             str(src_canonical_dataset_path(datasets_lib_path, dataset_name)), str(canonical_dataset_path(dataset_name))
         )
-        for filepath_to_delete in self.deleted_files[dataset_name]:
+        for filepath_to_delete in self.deleted_files.get(dataset_name, []):
             try:
                 (canonical_dataset_path(dataset_name) / filepath_to_delete).unlink()
             except Exception as e:
