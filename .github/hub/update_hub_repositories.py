@@ -17,7 +17,6 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 ROOT = Path()
 DATASETS_LIB_CATALOG_DIR_NAME = "datasets"
-DATASETS_LIB_REPO_NAME = "datasets"
 DATASETS_LIB_COMMIT_URL = "https://github.com/huggingface/datasets/commit/{hexsha}"
 CANONICAL_DATASET_REPO_MAIN_BRANCH = "main"
 HUB_DIR_NAME = "hub"
@@ -49,8 +48,8 @@ class UpdateFailed(RuntimeError):
     pass
 
 
-def src_canonical_dataset_path(dataset_name: str) -> Path:
-    return ROOT / DATASETS_LIB_REPO_NAME / DATASETS_LIB_CATALOG_DIR_NAME / dataset_name
+def src_canonical_dataset_path(datasets_lib_path: Path, dataset_name: str) -> Path:
+    return datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME / dataset_name
 
 
 def canonical_dataset_path(dataset_name: str) -> Path:
@@ -107,11 +106,13 @@ def apply_hacks_for_moon_landing(dataset_repo_path: Path):
 class update_main:
     def __init__(
         self,
+        datasets_lib_path: str,
         commit_args: Tuple[str],
         token: str,
         deleted_files: Dict[str, Set[str]],
         tag_name: Optional[str] = None,
     ) -> None:
+        self.datasets_lib_path = datasets_lib_path
         self.commit_args = commit_args
         self.token = token
         self.deleted_files = deleted_files  # dict dataset_name -> set of relative paths of the deleted files
@@ -137,10 +138,13 @@ class update_main:
         logs.append(repo.remote().pull())
         # Copy the changes and commit
         distutils.dir_util.copy_tree(
-            str(src_canonical_dataset_path(dataset_name)), str(canonical_dataset_path(dataset_name))
+            str(src_canonical_dataset_path(datasets_lib_path, dataset_name)), str(canonical_dataset_path(dataset_name))
         )
         for filepath_to_delete in self.deleted_files[dataset_name]:
-            (canonical_dataset_path(dataset_name) / filepath_to_delete).unlink()
+            try:
+                (canonical_dataset_path(dataset_name) / filepath_to_delete).unlink()
+            except Exception as e:
+                logger.warning(f"[{dataset_name}] Couldn't delete file at {filepath_to_delete}: {repr(e)}")
         apply_hacks_for_moon_landing(canonical_dataset_path(dataset_name))
         logs.append(repo.git.add("."))
         if "Changes to be committed:" in repo.git.status():
@@ -204,7 +208,7 @@ if __name__ == "__main__":
         _, dataset_name, rel_path = path.split("/", 2)
         if (
             dataset_name in changed_datasets_names_since_last_commit
-            and not (ROOT / DATASETS_LIB_REPO_NAME / path).is_file()
+            and not (datasets_lib_path / path).is_file()
         ):
             deleted_files[dataset_name].add(rel_path)
 
@@ -231,6 +235,7 @@ if __name__ == "__main__":
             )
             successes = thread_map(
                 update_main(
+                    datasets_lib_path=datasets_lib_path,
                     commit_args=commit_args,
                     token=token,
                     deleted_files=deleted_files,
