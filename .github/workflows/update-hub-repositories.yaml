@@ -8,6 +8,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -22,5 +24,4 @@ jobs:
         run: |
           export HF_TOKEN=${{ secrets.HUB_TRUSTED_COMMITER_TOKEN }}
           export DATASETS_LIB_PATH=$GITHUB_WORKSPACE
-          echo "Syncing those repositories to the hub: $(ls ../../datasets)"
           python update_hub_repositories.py --auto
