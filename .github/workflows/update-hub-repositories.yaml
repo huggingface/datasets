@@ -22,4 +22,5 @@ jobs:
         run: |
           export HF_TOKEN=${{ secrets.HUB_TRUSTED_COMMITER_TOKEN }}
           export DATASETS_LIB_PATH=$GITHUB_WORKSPACE
+          echo "Syncing those repositories to the hub: $(ls ../../datasets)"
           python update_hub_repositories.py --auto
