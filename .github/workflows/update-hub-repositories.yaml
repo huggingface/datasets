@@ -2,10 +2,6 @@ name: Update Hub repositories
 
 on: push
 
-env:
-  HUB_TRUSTED_COMMITER_TOKEN: ${{ secrets.HUB_TRUSTED_COMMITER_TOKEN }}
-  DATASETS_LIB_PATH: ${{ env.GITHUB_WORKSPACE }}
-
 jobs:
   update-hub-repositories:
     runs-on: ubuntu-latest
@@ -23,4 +19,7 @@ jobs:
           pip install -r requirements.txt
       - name: Update Hub repositories
         working-directory: ./.github/hub
-        run: python update_hub_repositories.py --auto
+        run: |
+          export HF_TOKEN=${{ secrets.HUB_TRUSTED_COMMITER_TOKEN }}
+          export DATASETS_LIB_PATH=$GITHUB_WORKSPACE
+          python update_hub_repositories.py --auto
