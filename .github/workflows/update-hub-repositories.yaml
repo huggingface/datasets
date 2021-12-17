@@ -24,4 +24,4 @@ jobs:
         run: |
           export HF_TOKEN=${{ secrets.HUB_TRUSTED_COMMITER_TOKEN }}
           export DATASETS_LIB_PATH=$GITHUB_WORKSPACE
-          python update_hub_repositories.py --auto
+          python update_hub_repositories.py squad
