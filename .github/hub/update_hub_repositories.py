@@ -6,7 +6,7 @@ import requests
 import sys
 from itertools import islice
 from pathlib import Path
-from typing import Dict, Set, Tuple
+from typing import Dict, Optional, Set, Tuple
 
 from dotenv import load_dotenv
 from git import Repo
@@ -109,15 +109,13 @@ class update_main:
         self,
         commit_args: Tuple[str],
         token: str,
-        last_release_name: str,
         deleted_files: Dict[str, Set[str]],
-        push_release_tag_if_missing: bool = True,
+        tag_name: Optional[str] = None,
     ) -> None:
         self.commit_args = commit_args
         self.token = token
-        self.last_release_name = last_release_name
         self.deleted_files = deleted_files  # dict dataset_name -> set of relative paths of the deleted files
-        self.push_release_tag_if_missing = push_release_tag_if_missing
+        self.tag_name = tag_name
 
     def __call__(self, dataset_name: str) -> bool:
         try:
@@ -149,11 +147,11 @@ class update_main:
             logs.append(repo.git.commit(*self.commit_args))
         try:
             logs.append(repo.git.push())
-            if self.push_release_tag_if_missing and self.last_release_name not in [t.name for t in repo.tags]:
+            if self.tag_name:
                 # If the dataset repository hasn't been tagged for this release yet,
                 # it means that the new version of the datasets lib just got released.
                 # In this case we have to tag the new commit with this release name
-                logs.append(repo.git.tag(self.last_release_name, f"-m Add tag from datasets {self.last_release_name}"))
+                logs.append(repo.git.tag(self.tag_name, f"-m Add tag from datasets {self.tag_name}"))
                 logs.append(repo.git.push("--tags"))
         except Exception as e:
             logs.append(repr(e))
@@ -186,8 +184,13 @@ if __name__ == "__main__":
     commit_args += (f"-m Commit from {DATASETS_LIB_COMMIT_URL.format(hexsha=current_commit.hexsha)}",)
     commit_args += (f"--author={author_name} <{author_email}>",)
 
-    release_tags = [t for t in datasets_lib_repo.tags if bool(re.match(r"^[0-9]+\.[0-9]+\.[0-9]+$", t.name))]
-    last_release_tag = sorted(release_tags, key=lambda t: tuple(int(i) for i in t.name.split(".")))[-1]
+    for _tag in datasets_lib_repo.tags:
+        # Add a new tag if this is a `datasets` release
+        if _tag.commit == current_commit and re.match(r"^[0-9]+\.[0-9]+\.[0-9]+$", _tag.name):
+            new_tag = _tag
+            break
+    else:
+        new_tag = None
 
     changed_files_since_last_commit = [
         path
@@ -210,10 +213,10 @@ if __name__ == "__main__":
         if dataset_names[0] == "--all":
             dataset_names = sorted([d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir()])
         if dataset_names[0] == "--auto":
-            if last_release_tag.commit == current_commit:
+            if new_tag:
                 logger.info(
                     "All the datasets will be updated since --auto was used and "
-                    f"this is a new release {last_release_tag.name} of the `datasets` library."
+                    f"this is a new release {new_tag.name} of the `datasets` library."
                 )
                 dataset_names = sorted([d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir()])
             else:
@@ -229,8 +232,8 @@ if __name__ == "__main__":
             update_main(
                 commit_args=commit_args,
                 token=token,
-                last_release_name=last_release_tag.name,
                 deleted_files=deleted_files,
+                tag_name=new_tag.name if new_tag else None,
             ),
             dataset_names,
         )
