@@ -52,22 +52,13 @@ def generate_examples_triples(filepath, collection_path, queries_path):
 
     with open(filepath, encoding="utf-8") as f:
         for (idx, line) in enumerate(f):
-            try:
-                query_id, pos_id, neg_id = line.rstrip().split("\t")
-                features = {
-                    "query": queries[query_id],
-                    "positive": collection[pos_id],
-                    "negative": collection[neg_id],
-                }
-                yield idx, features
-            except KeyError:
-                # when generating dummy the script uses only a
-                # subset of the queries, so we need to skip it
-                yield idx, {
-                    "query": "dummy query",
-                    "positive": "dummy positive",
-                    "negative": "dummy negative",
-                }
+            query_id, pos_id, neg_id = line.rstrip().split("\t")
+            features = {
+                "query": queries[query_id],
+                "positive": collection[pos_id],
+                "negative": collection[neg_id],
+            }
+            yield idx, features
 
 
 def generate_examples_tuples(filepath):

@@ -21,7 +21,6 @@ multilinguality:
 pretty_name: mMARCO
 size_categories:
 - unknown
-source_datasets: []
 task_categories:
 - text-retrieval
 task_ids:
