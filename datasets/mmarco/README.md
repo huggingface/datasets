@@ -1,9 +1,34 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
+annotations_creators:
+- crowdsourced
+language_creators:
+- machine-generated
+languages:
+- zh-CN
+- en-US
+- fr-FR
+- de-DE
+- id-ID
+- it-IT
+- pt-BR
+- ru-RU
+- es-ES
+licenses:
+- cc-by-4.0
+multilinguality:
+- multilingual
+- translation
+pretty_name: mMARCO
+size_categories:
+- unknown
+source_datasets: []
+task_categories:
+- text-retrieval
+task_ids:
+- document-retrieval
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for mMARCO
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -32,15 +57,15 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** https://github.com/unicamp-dl/mMARCO/
+- **Repository:** https://github.com/unicamp-dl/mMARCO/
+- **Paper:** https://arxiv.org/abs/2108.13897
 - **Leaderboard:**
 - **Point of Contact:**
 
 ### Dataset Summary
 
-[More Information Needed]
+A multilingual version of MS MARCO Passage Ranking dataset. All passages and queries were machine translated into 8 languages: Chinese, French, German, Indonesian, Italian, Portuguese, Russian, and Spanish.
 
 ### Supported Tasks and Leaderboards
 
@@ -48,13 +73,45 @@ YAML tags:
 
 ### Languages
 
-[More Information Needed]
+| Language name | Language code |
+|---------------|---------------|
+| English		| english		|
+| Chinese		| chinese		|
+| French		| french		|
+| German		| german		|
+| Indonesian	| indonesian	|
+| Italian		| italian		|
+| Portuguese	| portuguese	|
+| Russian		| russian		|
+| Spanish		| spanish		|
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+#### Training triples
+
+```
+>>> dataset = load_dataset('mmarco', 'english')
+>>> dataset['train'][1]
+{'query': 'what fruit is native to australia', 'positive': 'Passiflora herbertiana. A rare passion fruit native to Australia. Fruits are green-skinned, white fleshed, with an unknown edible rating. Some sources list the fruit as edible, sweet and tasty, while others list the fruits as being bitter and inedible.assiflora herbertiana. A rare passion fruit native to Australia. Fruits are green-skinned, white fleshed, with an unknown edible rating. Some sources list the fruit as edible, sweet and tasty, while others list the fruits as being bitter and inedible.', 'negative': 'The kola nut is the fruit of the kola tree, a genus (Cola) of trees that are native to the tropical rainforests of Africa.'}
+```
+
+#### Queries
+
+```
+>>> dataset = load_dataset('mmarco', 'queries-spanish')
+>>> dataset['train'][1]
+{'id': 634306, 'text': '¿Qué significa Chattel en el historial de crédito'}
+```
+
+#### Collection
+
+```
+>>> dataset = load_dataset('mmarco', 'collection-portuguese')
+>>> dataset['collection'][100]
+{'id': 100, 'text': 'Antonín Dvorák (1841-1904) Antonin Dvorak era filho de açougueiro, mas ele não seguiu o negócio de seu pai. Enquanto ajudava seu pai a meio tempo, estudou música e se formou na Escola de Órgãos de Praga em 1859.'}
+```
 
 ### Data Fields
 
@@ -124,4 +181,4 @@ YAML tags:
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+Thanks to [@lhbonifacio](https://github.com/lhbonifacio) and [@hugoabonizio](https://github.com/hugoabonizio) for adding this dataset.
