@@ -115,11 +115,36 @@ A multilingual version of MS MARCO Passage Ranking dataset. All passages and que
 
 ### Data Fields
 
-[More Information Needed]
+#### Training triples
+
+- `query`: query text
+- `positive`: a **positive** passage for the given query
+- `negative`: a **negative** passage for the given query
+
+#### Queries
+
+- `id`: query id
+- `text`: query text
+
+#### Collection
+
+- `id`: passage id
+- `text`: passage text
 
 ### Data Splits
 
-[More Information Needed]
+#### Training triples
+
+- `train`
+
+#### Queries
+
+- `train`
+- `validation`
+
+#### Collection
+
+- `collection`
 
 ## Dataset Creation
 
@@ -177,7 +202,16 @@ A multilingual version of MS MARCO Passage Ranking dataset. All passages and que
 
 ### Citation Information
 
-[More Information Needed]
+```
+@misc{bonifacio2021mmarco,
+      title={mMARCO: A Multilingual Version of the MS MARCO Passage Ranking Dataset},
+      author={Luiz Henrique Bonifacio and Israel Campiotti and Vitor Jeronymo and Hugo Queiroz Abonizio and Roberto Lotufo and Rodrigo Nogueira},
+      year={2021},
+      eprint={2108.13897},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+``'
 
 ### Contributions
 
