@@ -586,15 +586,15 @@ class StreamingDownloadManager(object):
                     # skipping hidden files
                     continue
                 file_obj = stream.extractfile(tarinfo)
-                yield (file_path, file_obj)
+                yield file_path, file_obj
                 stream.members = []
             del stream
 
         if hasattr(urlpath_or_buf, "read"):
-            return _iter_archive(urlpath_or_buf)
+            yield from _iter_archive(urlpath_or_buf)
         else:
             with xopen(urlpath_or_buf, "rb", use_auth_token=self.download_config.use_auth_token) as f:
-                return _iter_archive(f)
+                yield from _iter_archive(f)
 
     def iter_files(self, urlpaths):
         """Iterate over files.
