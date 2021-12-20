@@ -2,6 +2,7 @@ import csv
 import json
 import lzma
 import os
+import tarfile
 import textwrap
 
 import pyarrow as pa
@@ -397,6 +398,23 @@ def zip_jsonl_with_dir_path(jsonl_path, jsonl2_path, tmp_path_factory):
     with zipfile.ZipFile(path, "w") as f:
         f.write(jsonl_path, arcname=os.path.join("main_dir", os.path.basename(jsonl_path)))
         f.write(jsonl2_path, arcname=os.path.join("main_dir", os.path.basename(jsonl2_path)))
+    return path
+
+
+@pytest.fixture(scope="session")
+def tar_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "dataset.jsonl.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(jsonl_path, arcname=os.path.basename(jsonl_path))
+        f.add(jsonl2_path, arcname=os.path.basename(jsonl2_path))
+    return path
+
+
+@pytest.fixture(scope="session")
+def tar_nested_jsonl_path(tar_jsonl_path, jsonl_path, jsonl2_path, tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "dataset_nested.jsonl.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(tar_jsonl_path, arcname=os.path.join("nested", os.path.basename(tar_jsonl_path)))
     return path
 
 
