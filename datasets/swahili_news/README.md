@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: null
+pretty_name: "Swahili : News Classification Dataset"
 ---
 
 # Dataset Card for Swahili : News Classification Dataset
