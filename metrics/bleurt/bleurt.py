@@ -39,7 +39,7 @@ BLEURT a learnt evaluation metric for Natural Language Generation. It is built u
 and then employing another pre-training phrase using synthetic data. Finally it is trained on WMT human annotations. You may run BLEURT out-of-the-box or fine-tune
 it for your specific application (the latter is expected to perform better).
 
-See the project's README at https://github.com/google-research/bleurt for more information.
+See the project's README at https://github.com/google-research/bleurt#readme for more information.
 """
 
 _KWARGS_DESCRIPTION = """
