@@ -25,8 +25,7 @@ _CITATION = """\
   title        = {Swahili : News Classification Dataset},
   month        = dec,
   year         = 2020,
-  note         = {{The news version contains both train and test 
-                   sets.}},
+  note         = {{The news version contains both train and test sets.}},
   publisher    = {Zenodo},
   version      = {0.2},
   doi          = {10.5281/zenodo.5514203},
