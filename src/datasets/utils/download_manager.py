@@ -239,15 +239,15 @@ class DownloadManager:
                     # skipping hidden files
                     continue
                 file_obj = stream.extractfile(tarinfo)
-                yield (file_path, file_obj)
+                yield file_path, file_obj
                 stream.members = []
             del stream
 
         if hasattr(path_or_buf, "read"):
-            return _iter_archive(path_or_buf)
+            yield from _iter_archive(path_or_buf)
         else:
             with open(path_or_buf, "rb") as f:
-                return _iter_archive(f)
+                yield from _iter_archive(f)
 
     def iter_files(self, paths):
         """Iterate over file paths.
