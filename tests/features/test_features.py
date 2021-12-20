@@ -237,6 +237,19 @@ def test_classlabel_int2str():
         classlabel.int2str(len(names))
 
 
+def test_encode_string():
+    class CustomString(str):
+        pass
+
+    schema = Value("string")
+    assert schema.encode_example("hey") == "hey"
+    assert schema.encode_example(CustomString("hey")) == "hey"
+    # string casting using str() is too permissive in python
+    # let's make sure we don't convert lists unintentionally
+    with pytest.raises(TypeError):
+        schema.encode_example(["hey"])
+
+
 def test_encode_nested_example_sequence_with_none():
     schema = Sequence(Value("int32"))
     obj = None

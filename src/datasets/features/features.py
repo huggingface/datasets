@@ -306,7 +306,10 @@ class Value:
         elif pa.types.is_floating(self.pa_type):
             return float(value)
         elif pa.types.is_string(self.pa_type):
-            return str(value)
+            if isinstance(value, str):
+                return str(value)
+            else:
+                raise TypeError(f"Expected a string but got {value} of type {type(value).__name__}.")
         else:
             return value
 
