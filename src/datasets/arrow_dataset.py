@@ -73,7 +73,7 @@ from .fingerprint import (
 from .formatting import format_table, get_format_type_from_alias, get_formatter, query_table
 from .info import DatasetInfo
 from .search import IndexableMixin
-from .splits import NamedSplit, Split
+from .splits import NamedSplit, Split, SplitInfo
 from .table import (
     InMemoryTable,
     MemoryMappedTable,
@@ -3518,6 +3518,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ):
                 delete_file(file)
 
+        upload_size = 0
         for index, shard in utils.tqdm(
             enumerate(shards),
             desc="Pushing dataset shards to the dataset hub",
@@ -3526,6 +3527,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)
+            upload_size += buffer.tell()
             api.upload_file(
                 path_or_fileobj=buffer.getvalue(),
                 path_in_repo=path_in_repo(index),
@@ -3535,6 +3537,29 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 revision=branch,
                 identical_ok=True,
             )
+        info_to_dump = self.info.copy()
+        info_to_dump.download_checksums = None
+        info_to_dump.download_size = upload_size
+        info_to_dump.dataset_size = dataset_nbytes
+        info_to_dump.size_in_bytes = upload_size + dataset_nbytes
+        info_to_dump.splits = {
+            str(split): SplitInfo(
+                str(split), num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
+            )
+        }
+        buffer = BytesIO()
+        buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
+        info_to_dump._dump_info(buffer)
+        buffer.write(b"}")
+        api.upload_file(
+            path_or_fileobj=buffer.getvalue(),
+            path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+            repo_id=repo_id,
+            token=token,
+            repo_type="dataset",
+            revision=branch,
+            identical_ok=True,
+        )
 
     @transmit_format
     @fingerprint_transform(inplace=False)
