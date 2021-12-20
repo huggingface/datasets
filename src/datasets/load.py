@@ -150,9 +150,8 @@ def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
     sub_directory = None
     if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
         if "blob" in url_path:
-            assert url_path.endswith(
-                ".py"
-            ), f"External import from github at {url_path} should point to a file ending with '.py'"
+            if not url_path.endswith(".py"):
+                raise ValueError(f"External import from github at {url_path} should point to a file ending with '.py'")
             url_path = url_path.replace("blob", "raw")  # Point to the raw file
         else:
             # Parse github url to point to zip
