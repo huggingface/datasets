@@ -378,9 +378,9 @@ class _RelativeInstruction:
 
     def __post_init__(self):
         if self.unit is not None and self.unit not in ["%", "abs"]:
-            raise ValueError(f"unit must be either % or abs")
+            raise ValueError("unit must be either % or abs")
         if self.rounding is not None and self.rounding not in ["closest", "pct1_dropremainder"]:
-            raise ValueError(f"rounding must be either closest or pct1_dropremainder")
+            raise ValueError("rounding must be either closest or pct1_dropremainder")
         if self.unit != "%" and self.rounding is not None:
             raise AssertionError("It is forbidden to specify rounding if not using percent slicing.")
         if self.unit == "%" and self.from_ is not None and abs(self.from_) > 100:
