@@ -62,10 +62,7 @@ To create the package for pypi.
    Push the commit to remote: "git push origin master"
 """
 
-import datetime
-import itertools
 import os
-import sys
 
 from setuptools import find_packages, setup
 
@@ -106,6 +103,10 @@ REQUIRED_PKGS = [
 
 AUDIO_REQUIRE = [
     "librosa",
+]
+
+VISION_REQURE = [
+    "Pillow>=6.2.1",
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -167,6 +168,8 @@ TESTS_REQUIRE = [
     "importlib_resources;python_version<'3.7'",
 ]
 
+TESTS_REQUIRE.extend(VISION_REQURE)
+
 if os.name != "nt":
     # dependencies of unbabel-comet
     # only test if not on windows since there're issues installing fairseq on windows
@@ -180,11 +183,12 @@ if os.name != "nt":
         ]
     )
 
-QUALITY_REQUIRE = ["black==21.4b0", "flake8==3.7.9", "isort>=5.0.0", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black==21.4b0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
     "audio": AUDIO_REQUIRE,
+    "vision": VISION_REQURE,
     "apache-beam": ["apache-beam>=2.26.0"],
     "tensorflow": ["tensorflow>=2.2.0,!=2.6.0,!=2.6.1"],
     "tensorflow_gpu": ["tensorflow-gpu>=2.2.0,!=2.6.0,!=2.6.1"],
@@ -244,6 +248,9 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
     keywords="datasets machine learning datasets metrics",

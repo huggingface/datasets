@@ -102,7 +102,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "speaker_id": datasets.Value("int64"),
                     "chapter_id": datasets.Value("int64"),

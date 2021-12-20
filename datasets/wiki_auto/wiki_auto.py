@@ -60,7 +60,7 @@ _LICENSE = "CC-BY-SA 3.0"
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
     "manual": {
-        "train": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/train.tsv",
+        "train": "https://www.dropbox.com/sh/ohqaw41v48c7e5p/AACdl4UPKtu7CMMa-CJhz4G7a/wiki-manual/train.tsv?dl=1",
         "dev": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/dev.tsv",
         "test": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-manual/test.tsv",
     },
@@ -77,8 +77,8 @@ _URLs = {
         "simple": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/GEM2021/full_with_split/train.dst",
     },
     "auto": {
-        "part_1": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/all_data/wiki-auto-part-1-data.json",
-        "part_2": "https://github.com/chaojiang06/wiki-auto/raw/master/wiki-auto/all_data/wiki-auto-part-2-data.json",
+        "part_1": "https://www.dropbox.com/sh/ohqaw41v48c7e5p/AAATBDhU1zpdcT5x5WgO8DMaa/wiki-auto-all-data/wiki-auto-part-1-data.json?dl=1",
+        "part_2": "https://www.dropbox.com/sh/ohqaw41v48c7e5p/AAATgPkjo_tPt9z12vZxJ3MRa/wiki-auto-all-data/wiki-auto-part-2-data.json?dl=1",
     },
 }
 
@@ -121,11 +121,12 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
         if self.config.name == "manual":  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
-                    "alignment_label": datasets.ClassLabel(names=["notAligned", "aligned"]),
+                    "alignment_label": datasets.ClassLabel(names=["notAligned", "aligned", "partialAligned"]),
                     "normal_sentence_id": datasets.Value("string"),
                     "simple_sentence_id": datasets.Value("string"),
                     "normal_sentence": datasets.Value("string"),
                     "simple_sentence": datasets.Value("string"),
+                    "gleu_score": datasets.Value("float32"),
                 }
             )
         elif (
@@ -218,12 +219,15 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
                 "normal_sentence_id",
                 "simple_sentence",
                 "normal_sentence",
+                "gleu_score",
             ]
             with open(filepaths[split], encoding="utf-8") as f:
                 for id_, line in enumerate(f):
                     values = line.strip().split("\t")
-                    assert len(values) == 5, f"Not enough fields in ---- {line} --- {values}"
-                    yield id_, dict([(k, val) for k, val in zip(keys, values)])
+                    assert len(values) == 6, f"Not enough fields in ---- {line} --- {values}"
+                    yield id_, dict(
+                        [(k, val) if k != "gleu_score" else (k, float(val)) for k, val in zip(keys, values)]
+                    )
         elif (
             self.config.name == "auto_acl"
             or self.config.name == "auto_full_no_split"

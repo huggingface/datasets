@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - dialogue-modeling
 paperswithcode_id: mutualfriends
+pretty_name: MutualFriends
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for MutualFriends
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -59,7 +60,7 @@ Our goal is to build systems that collaborate with people by exchanging informat
 
 ### Supported Tasks and Leaderboards
 
-We consider two agents, each with a private knowledge base of items, who must communicate their knowlege to achieve a common goal. Specifically, we designed the MutualFriends task (see the figure below). Each agent has a list of friends with attributes like school, major etc. They must chat with each other to find the unique mutual friend.
+We consider two agents, each with a private knowledge base of items, who must communicate their knowledge to achieve a common goal. Specifically, we designed the MutualFriends task (see the figure below). Each agent has a list of friends with attributes like school, major etc. They must chat with each other to find the unique mutual friend.
 
 ### Languages
 

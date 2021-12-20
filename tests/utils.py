@@ -124,6 +124,18 @@ def require_jax(test_case):
     return test_case
 
 
+def require_pil(test_case):
+    """
+    Decorator marking a test that requires Pillow.
+
+    These tests are skipped when Pillow isn't installed.
+
+    """
+    if not config.PIL_AVAILABLE:
+        test_case = unittest.skip("test requires Pillow")(test_case)
+    return test_case
+
+
 def require_zstandard(test_case):
     """
     Decorator marking a test that requires zstandard.
