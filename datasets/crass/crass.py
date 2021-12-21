@@ -12,15 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""The CRASS (counterfactual reasoning assessment) dataset"""
 
+"""The CRASS (counterfactual reasoning assessment) dataset"""
 
 import csv
 import json
 import os
+
 import datasets
-
-
 
 
 _CITATION = """\
@@ -38,7 +37,7 @@ The data consists of so-called PCTs (Premise-Counterfactual Tuples). They contra
 
 _HOMEPAGE = "https://www.crass.ai"
 _LICENSE = "Apache License 2.0"
-_URL = "https://github.com/apergo-ai/CRASS-data-set/blob/main/CRASS_FTM_main_data_set.csv"
+_URL = "https://raw.githubusercontent.com/apergo-ai/CRASS-data-set/main/CRASS_FTM_main_data_set.csv"
 
 
 class Crass(datasets.GeneratorBasedBuilder):
@@ -49,16 +48,15 @@ class Crass(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features = datasets.Features(
+            features=datasets.Features(
                 {
-                    "PCTID": datasets.Value("int8"),
+                    "PCTID": datasets.Value("int32"),
                     "Premise": datasets.Value("string"),
                     "QCC": datasets.Value("string"),
                     "CorrectAnswer": datasets.Value("string"),
                     "Answer1": datasets.Value("string"),
-                    "Answer2": datasets.Value("string") ,           
-                    "PossibleAnswer3": datasets.Value("string")                                                                                
-
+                    "Answer2": datasets.Value("string"),
+                    "PossibleAnswer3": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -74,23 +72,20 @@ class Crass(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
-
     def _generate_examples(self, filepath):
         """Generate crass dataset examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=";", quoting=csv.QUOTE_ALL, skipinitialspace=True
             )
-            next(csv_reader)            
+            next(csv_reader)
             for id_, row in enumerate(csv_reader):
                 yield id_, {
-                    "PCTID": row["PCTID"],
-                    "Premise": row["Premise"],
-                    "QCC": row["QCC"],
-                    "CorrectAnswer": row["CorrectAnswer"],
-                    "Answer1": row["Answer1"],
-                    "Answer2": row["Answer2"], 
-                    "PossibleAnswer3": row["PossibleAnswer3"]
+                    "PCTID": int(row[0]),
+                    "Premise": str(row[2]),
+                    "QCC": row[3],
+                    "CorrectAnswer": row[4],
+                    "Answer1": row[5],
+                    "Answer2": row[6],
+                    "PossibleAnswer3": row[7],
                 }
-
-
