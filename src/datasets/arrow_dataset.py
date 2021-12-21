@@ -3438,7 +3438,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
 
         Returns:
-            repo_id (:obj:`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format            repo_id (:obj:`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format
+            repo_id (:obj:`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format
             split (:obj:`str`): name of the uploaded split
             uploaded_size (:obj:`int`): number of uploaded bytes
             dataset_nbytes (:obj:`int`): approximate size in bytes of the uploaded dataset afer uncompression
