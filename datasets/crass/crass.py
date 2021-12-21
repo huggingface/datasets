@@ -12,16 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""The CRASS (counterfactual reasoning assessment) dataset"""
 
+"""The CRASS (counterfactual reasoning assessment) dataset"""
 
 import csv
 import json
 import os
 import datasets
-
-
-
 
 _CITATION = """\
 @InProceedings{huggingface:dataset,
@@ -38,7 +35,7 @@ The data consists of so-called PCTs (Premise-Counterfactual Tuples). They contra
 
 _HOMEPAGE = "https://www.crass.ai"
 _LICENSE = "Apache License 2.0"
-_URL = "https://github.com/apergo-ai/CRASS-data-set/blob/main/CRASS_FTM_main_data_set.csv"
+_URL = "https://raw.githubusercontent.com/apergo-ai/CRASS-data-set/main/CRASS_FTM_main_data_set.csv"
 
 
 class Crass(datasets.GeneratorBasedBuilder):
@@ -75,6 +72,7 @@ class Crass(datasets.GeneratorBasedBuilder):
         ]
 
 
+
     def _generate_examples(self, filepath):
         """Generate crass dataset examples."""
         with open(filepath, encoding="utf-8") as csv_file:
@@ -84,13 +82,13 @@ class Crass(datasets.GeneratorBasedBuilder):
             next(csv_reader)            
             for id_, row in enumerate(csv_reader):
                 yield id_, {
-                    "PCTID": row["PCTID"],
-                    "Premise": row["Premise"],
-                    "QCC": row["QCC"],
-                    "CorrectAnswer": row["CorrectAnswer"],
-                    "Answer1": row["Answer1"],
-                    "Answer2": row["Answer2"], 
-                    "PossibleAnswer3": row["PossibleAnswer3"]
+                    "PCTID": int(row[0]),
+                    "Premise": str(row[2]),
+                    "QCC": row[3],
+                    "CorrectAnswer": row[4],
+                    "Answer1": row[5],
+                    "Answer2": row[6], 
+                    "PossibleAnswer3": row[7]                      
                 }
 
-
+              
