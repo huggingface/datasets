@@ -49,8 +49,8 @@ _LICENSE = ""
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    'first_domain': "https://huggingface.co/great-new-dataset-first_domain.zip",
-    'second_domain': "https://huggingface.co/great-new-dataset-second_domain.zip",
+    "first_domain": "https://huggingface.co/great-new-dataset-first_domain.zip",
+    "second_domain": "https://huggingface.co/great-new-dataset-second_domain.zip",
 }
 
 

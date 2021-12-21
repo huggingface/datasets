@@ -632,21 +632,19 @@ def pandas_types_mapper(dtype):
 
 @dataclass
 class ClassLabel:
-    """Handle integer class labels. Here for compatiblity with tfds.
+    """Feature type for integer class labels.
 
-    There are 3 ways to define a ClassLabel, which correspond to the 3
-    arguments:
+    There are 3 ways to define a `ClassLabel`, which correspond to the 3 arguments:
 
-     * `num_classes`: create 0 to (num_classes-1) labels
-     * `names`: a list of label strings
-     * `names_file`: a file containing the list of labels.
+     * `num_classes`: Create 0 to (num_classes-1) labels.
+     * `names`: List of label strings.
+     * `names_file`: File containing the list of labels.
 
     Args:
-        num_classes: `int`, number of classes. All labels must be < num_classes.
-        names: `list<str>`, string names for the integer classes. The
-            order in which the names are provided is kept.
-        names_file: `str`, path to a file with names for the integer
-            classes, one per line.
+        num_classes (:obj:`int`, optional): Number of classes. All labels must be < `num_classes`.
+        names (:obj:`list` of :obj:`str`, optional): String names for the integer classes.
+            The order in which the names are provided is kept.
+        names_file (:obj:`str`, optional): Path to a file with names for the integer classes, one per line.
     """
 
     num_classes: int = None
