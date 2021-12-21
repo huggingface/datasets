@@ -48,7 +48,7 @@ class Crass(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features = datasets.Features(
                 {
-                    "PCTID": datasets.Value("int8"),
+                    "PCTID": datasets.Value("int32"),
                     "Premise": datasets.Value("string"),
                     "QCC": datasets.Value("string"),
                     "CorrectAnswer": datasets.Value("string"),
