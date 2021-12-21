@@ -854,9 +854,11 @@ def encode_nested_example(schema, obj):
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return {
-            k: encode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
-        }
+        return (
+            {k: encode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)}
+            if obj is not None
+            else None
+        )
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         if obj is None:
@@ -870,8 +872,10 @@ def encode_nested_example(schema, obj):
                     return [encode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
     elif isinstance(schema, Sequence):
+        if obj is None:
+            return None
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
-        if isinstance(schema.feature, dict):
+        elif isinstance(schema.feature, dict):
             # dict of list to fill
             list_dict = {}
             if isinstance(obj, (list, tuple)):
@@ -885,10 +889,8 @@ def encode_nested_example(schema, obj):
                     list_dict[k] = [encode_nested_example(sub_schema, o) for o in sub_objs]
                 return list_dict
         # schema.feature is not a dict
-        if isinstance(obj, str):  # don't interpret a string as a list
+        elif isinstance(obj, str):  # don't interpret a string as a list
             raise ValueError(f"Got a string but expected a list instead: '{obj}'")
-        if obj is None:
-            return None
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
