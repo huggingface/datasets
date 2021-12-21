@@ -270,11 +270,14 @@ def map_nested(
             start = div * index + min(index, mod)
             end = start + div + (1 if index < mod else 0)
             split_kwds.append((function, iterable[start:end], types, index, disable_tqdm))
-        assert len(iterable) == sum(len(i[1]) for i in split_kwds), (
-            f"Error dividing inputs iterable among processes. "
-            f"Total number of objects {len(iterable)}, "
-            f"length: {sum(len(i[1]) for i in split_kwds)}"
-        )
+
+        if len(iterable) != sum(len(i[1]) for i in split_kwds):
+            raise ValueError(
+                f"Error dividing inputs iterable among processes. "
+                f"Total number of objects {len(iterable)}, "
+                f"length: {sum(len(i[1]) for i in split_kwds)}"
+            )
+
         logger.info(
             f"Spawning {num_proc} processes for {len(iterable)} objects in slices of {[len(i[1]) for i in split_kwds]}"
         )
