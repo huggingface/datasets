@@ -18,7 +18,9 @@
 import csv
 import json
 import os
+
 import datasets
+
 
 _CITATION = """\
 @InProceedings{huggingface:dataset,
@@ -46,16 +48,15 @@ class Crass(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features = datasets.Features(
+            features=datasets.Features(
                 {
                     "PCTID": datasets.Value("int32"),
                     "Premise": datasets.Value("string"),
                     "QCC": datasets.Value("string"),
                     "CorrectAnswer": datasets.Value("string"),
                     "Answer1": datasets.Value("string"),
-                    "Answer2": datasets.Value("string") ,           
-                    "PossibleAnswer3": datasets.Value("string")                                                                                
-
+                    "Answer2": datasets.Value("string"),
+                    "PossibleAnswer3": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -71,15 +72,13 @@ class Crass(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
-
-
     def _generate_examples(self, filepath):
         """Generate crass dataset examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter=";", quoting=csv.QUOTE_ALL, skipinitialspace=True
             )
-            next(csv_reader)            
+            next(csv_reader)
             for id_, row in enumerate(csv_reader):
                 yield id_, {
                     "PCTID": int(row[0]),
@@ -87,8 +86,6 @@ class Crass(datasets.GeneratorBasedBuilder):
                     "QCC": row[3],
                     "CorrectAnswer": row[4],
                     "Answer1": row[5],
-                    "Answer2": row[6], 
-                    "PossibleAnswer3": row[7]                      
+                    "Answer2": row[6],
+                    "PossibleAnswer3": row[7],
                 }
-
-              
