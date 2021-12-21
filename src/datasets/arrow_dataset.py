@@ -3404,7 +3404,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return ParquetDatasetWriter(self, path_or_buf, batch_size=batch_size, **parquet_writer_kwargs).write()
 
-    def push_to_hub(
+    def _push_parquet_shards_to_hub(
         self,
         repo_id: str,
         split: Optional[str] = None,
@@ -3412,7 +3412,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
-    ):
+    ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
 
@@ -3437,12 +3437,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
 
+        Returns:
+            repo_id (:obj:`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format            repo_id (:obj:`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format
+            split (:obj:`str`): name of the uploaded split
+            uploaded_size (:obj:`int`): number of uploaded bytes
+            dataset_nbytes (:obj:`int`): approximate size in bytes of the uploaded dataset afer uncompression
+
         Example:
             .. code-block:: python
 
                 >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         """
-        api = HfApi()
+        api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
 
         if token is None:
@@ -3518,7 +3524,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             ):
                 delete_file(file)
 
-        upload_size = 0
+        uploaded_size = 0
         for index, shard in utils.tqdm(
             enumerate(shards),
             desc="Pushing dataset shards to the dataset hub",
@@ -3527,7 +3533,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)
-            upload_size += buffer.tell()
+            uploaded_size += buffer.tell()
             api.upload_file(
                 path_or_fileobj=buffer.getvalue(),
                 path_in_repo=path_in_repo(index),
@@ -3537,21 +3543,63 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 revision=branch,
                 identical_ok=True,
             )
+        return repo_id, split, uploaded_size, dataset_nbytes
+
+    def push_to_hub(
+        self,
+        repo_id: str,
+        split: Optional[str] = None,
+        private: Optional[bool] = False,
+        token: Optional[str] = None,
+        branch: Optional[str] = None,
+        shard_size: Optional[int] = 500 << 20,
+    ):
+        """Pushes the dataset to the hub.
+        The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+
+        Args:
+            repo_id (:obj:`str`):
+                The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+                `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
+                of the logged-in user.
+            split (Optional, :obj:`str`):
+                The name of the split that will be given to that dataset. Defaults to `self.split`.
+            private (Optional :obj:`bool`, defaults to :obj:`False`):
+                Whether the dataset repository should be set to private or not. Only affects repository creation:
+                a repository that already exists will not be affected by that parameter.
+            token (Optional :obj:`str`):
+                An optional authentication token for the Hugging Face Hub. If no token is passed, will default
+                to the token saved locally when logging in with ``huggingface-cli login``. Will raise an error
+                if no token is passed and the user is not logged-in.
+            branch (Optional :obj:`str`):
+                The git branch on which to push the dataset. This defaults to the default branch as specified
+                in your repository, which defaults to `"main"`.
+            shard_size (Optional :obj:`int`):
+                The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
+                of the size specified here, in bytes. Defaults to a shard size of 500MB.
+
+        Example:
+            .. code-block:: python
+
+                >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        """
+        repo_id, split, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
+            repo_id=repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
+        )
+        organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
         info_to_dump.download_checksums = None
-        info_to_dump.download_size = upload_size
+        info_to_dump.download_size = uploaded_size
         info_to_dump.dataset_size = dataset_nbytes
-        info_to_dump.size_in_bytes = upload_size + dataset_nbytes
+        info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
         info_to_dump.splits = {
-            str(split): SplitInfo(
-                str(split), num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name
-            )
+            split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)
         }
         buffer = BytesIO()
         buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
         info_to_dump._dump_info(buffer)
         buffer.write(b"}")
-        api.upload_file(
+        HfApi(endpoint=config.HF_ENDPOINT).upload_file(
             path_or_fileobj=buffer.getvalue(),
             path_in_repo=config.DATASETDICT_INFOS_FILENAME,
             repo_id=repo_id,
