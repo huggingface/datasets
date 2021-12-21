@@ -24,9 +24,6 @@ from typing import List, Optional, Union
 import datasets
 
 
-logger = datasets.logging.get_logger(__name__)
-
-
 _CITATION = """\
 @article{DBLP:journals/corr/LinMBHPRDZ14,
   author    = {Tsung{-}Yi Lin and
