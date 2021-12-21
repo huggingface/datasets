@@ -538,7 +538,7 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "path": datasets.Value("string"),
-                "audio": datasets.features.Audio(sampling_rate=48_000),
+                "audio": datasets.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
             }
         )

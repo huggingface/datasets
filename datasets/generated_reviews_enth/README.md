@@ -23,9 +23,10 @@ task_ids:
 - multi-class-classification
 - semantic-similarity-classification
 paperswithcode_id: null
+pretty_name: generated_reviews_enth
 ---
 
-# Dataset Card for `generated_reviews_enth`
+# Dataset Card for generated_reviews_enth
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -65,7 +66,7 @@ paperswithcode_id: null
 
 ### Supported Tasks and Leaderboards
 
-English-to-Thai translation quality esitmation (binary label) is the intended use. Other uses include machine translation and sentiment analysis.
+English-to-Thai translation quality estimation (binary label) is the intended use. Other uses include machine translation and sentiment analysis.
 
 ### Languages
 

@@ -1,10 +1,12 @@
 import glob
+import io
 import os
 import posixpath
 import re
 import tarfile
 import time
 from asyncio import TimeoutError
+from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
 from typing import List, Optional, Tuple, Union
@@ -276,6 +278,9 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     It also has a retry mechanism in case connection fails.
     The args and kwargs are passed to fsspec.open, except `use_auth_token` which is used for queries to private repos on huggingface.co
     """
+    # required for Windows compatibility
+    if "\\" in file:
+        file = _as_posix(Path(file))
     main_hop, *rest_hops = file.split("::")
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
@@ -409,6 +414,30 @@ def xpathrglob(path, pattern, **kwargs):
     return xpathglob(path, "**/" + pattern, **kwargs)
 
 
+def xpathparent(path: Path):
+    """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        :obj:`~pathlib.Path`
+    """
+    return type(path)(xdirname(_as_posix(path)))
+
+
+def xpathname(path: Path):
+    """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        :obj:`str`
+    """
+    return PurePosixPath(_as_posix(path).split("::")[0]).name
+
+
 def xpathstem(path: Path):
     """Stem function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
@@ -433,6 +462,32 @@ def xpathsuffix(path: Path):
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
+def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
+    """Extend `os.walk` function to support remote files.
+
+    Args:
+        urlpath: URL root path.
+
+    Yields:
+        tuple: 3-tuple (dirpath, dirnames, filenames).
+    """
+    main_hop, *rest_hops = urlpath.split("::")
+    if is_local_path(main_hop):
+        return os.walk(main_hop)
+    else:
+        # walking inside a zip in a private repo requires authentication
+        if rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+            url = rest_hops[0]
+            url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": kwargs}
+            urlpath = "::".join([main_hop, url, *rest_hops[1:]])
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+        for dirpath, dirnames, filenames in fs.walk(main_hop):
+            yield "::".join([f"{fs.protocol}://{dirpath}"] + rest_hops), dirnames, filenames
+
+
 def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
@@ -440,6 +495,12 @@ def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, boo
         return pd.read_csv(filepath_or_buffer, **kwargs)
     else:
         return pd.read_csv(xopen(filepath_or_buffer, use_auth_token=use_auth_token), **kwargs)
+
+
+def xpandas_read_excel(filepath_or_buffer, **kwargs):
+    import pandas as pd
+
+    return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
 
 
 class StreamingDownloadManager(object):
@@ -502,17 +563,18 @@ class StreamingDownloadManager(object):
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
 
-    def iter_archive(self, urlpath: str):
-        """Returns iterator over files within archive.
+    def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]):
+        """Iterate over files within an archive.
 
         Args:
-            path: path to archive.
+            urlpath_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
 
-        Returns:
-            Generator yielding tuple (path_within_archive, file_obj).
-            File-Obj are opened in byte mode (io.BufferedReader)
+        Yields:
+            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+                File object is opened in binary mode.
         """
-        with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
+
+        def _iter_archive(f):
             stream = tarfile.open(fileobj=f, mode="r|*")
             for tarinfo in stream:
                 file_path = tarinfo.name
@@ -524,6 +586,29 @@ class StreamingDownloadManager(object):
                     # skipping hidden files
                     continue
                 file_obj = stream.extractfile(tarinfo)
-                yield (file_path, file_obj)
+                yield file_path, file_obj
                 stream.members = []
             del stream
+
+        if hasattr(urlpath_or_buf, "read"):
+            yield from _iter_archive(urlpath_or_buf)
+        else:
+            with xopen(urlpath_or_buf, "rb", use_auth_token=self.download_config.use_auth_token) as f:
+                yield from _iter_archive(f)
+
+    def iter_files(self, urlpaths):
+        """Iterate over files.
+
+        Args:
+            urlpaths (list): Root URL paths.
+
+        Yields:
+            str: File URL path.
+        """
+        for urlpath in urlpaths:
+            if "://::" not in urlpath:  # workaround for os.path.isfile(urlpath):
+                yield urlpath
+            else:
+                for dirpath, _, filenames in xwalk(urlpath, use_auth_token=self.download_config.use_auth_token):
+                    for filename in filenames:
+                        yield xjoin(dirpath, filename)

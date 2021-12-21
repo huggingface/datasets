@@ -342,7 +342,7 @@ def fingerprint_transform(
         raise ValueError(f"ignore_kwargs is supposed to be a list, not {type(use_kwargs)}")
 
     if inplace and fingerprint_names:
-        raise ValueError(f"fingerprint_names are only used when inplace is False")
+        raise ValueError("fingerprint_names are only used when inplace is False")
 
     fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
 

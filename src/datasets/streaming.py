@@ -13,9 +13,12 @@ from .utils.streaming_download_manager import (
     xlistdir,
     xopen,
     xpandas_read_csv,
+    xpandas_read_excel,
     xpathglob,
     xpathjoin,
+    xpathname,
     xpathopen,
+    xpathparent,
     xpathrglob,
     xpathstem,
     xpathsuffix,
@@ -71,7 +74,10 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
         patch.object(module.Path, "open", wrap_auth(xpathopen)).start()
         patch.object(module.Path, "glob", wrap_auth(xpathglob)).start()
         patch.object(module.Path, "rglob", wrap_auth(xpathrglob)).start()
+        patch.object(module.Path, "parent", property(fget=xpathparent)).start()
+        patch.object(module.Path, "name", property(fget=xpathname)).start()
         patch.object(module.Path, "stem", property(fget=xpathstem)).start()
         patch.object(module.Path, "suffix", property(fget=xpathsuffix)).start()
     patch_submodule(module, "pd.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
+    patch_submodule(module, "pd.read_excel", xpandas_read_excel, attrs=["__version__"]).start()
     module._patched_for_streaming = True

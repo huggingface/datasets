@@ -2,11 +2,12 @@ from copy import deepcopy
 from unittest.case import TestCase
 
 from datasets.arrow_dataset import Dataset
-from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.features import ClassLabel, Features, Image, Sequence, Value
 from datasets.info import DatasetInfo
 from datasets.tasks import (
     AutomaticSpeechRecognition,
     ImageClassification,
+    LanguageModeling,
     QuestionAnsweringExtractive,
     Summarization,
     TextClassification,
@@ -20,6 +21,19 @@ SAMPLE_QUESTION_ANSWERING_EXTRACTIVE = {
     "question": "To whom did the Virgin Mary allegedly appear in 1858 in Lourdes France?",
     "answers": {"text": ["Saint Bernadette Soubirous"], "answer_start": [515]},
 }
+
+
+class TestLanguageModeling:
+    def test_column_mapping(self):
+        task = LanguageModeling(text_column="input_text")
+        assert {"input_text": "text"} == task.column_mapping
+
+    def test_from_dict(self):
+        input_schema = Features({"text": Value("string")})
+        template_dict = {"text_column": "input_text"}
+        task = LanguageModeling.from_dict(template_dict)
+        assert "language-modeling" == task.task
+        assert input_schema == task.input_schema
 
 
 class TextClassificationTest(TestCase):
@@ -122,14 +136,14 @@ class ImageClassificationTest(TestCase):
         self.labels = sorted(["pos", "neg"])
 
     def test_column_mapping(self):
-        task = ImageClassification(image_file_path_column="file_paths", label_column="input_label")
-        self.assertDictEqual({"file_paths": "image_file_path", "input_label": "labels"}, task.column_mapping)
+        task = ImageClassification(image_column="input_image", label_column="input_label")
+        self.assertDictEqual({"input_image": "image", "input_label": "labels"}, task.column_mapping)
 
     def test_from_dict(self):
-        input_schema = Features({"image_file_path": Value("string")})
+        input_schema = Features({"image": Image()})
         label_schema = Features({"labels": ClassLabel(names=tuple(self.labels))})
         template_dict = {
-            "image_file_path_column": "input_image_file_path",
+            "image_column": "input_image",
             "label_column": "input_label",
             "labels": self.labels,
         }
@@ -142,7 +156,7 @@ class ImageClassificationTest(TestCase):
         with self.assertRaises(ValueError):
             # Add duplicate labels
             labels = self.labels + self.labels[:1]
-            task = ImageClassification(image_file_path_column="file_paths", label_column="input_label", labels=labels)
+            task = ImageClassification(image_column="input_image", label_column="input_label", labels=labels)
             self.assertEqual("image-classification", task.task)
 
 

@@ -38,9 +38,16 @@ datasets combined together.
 _HOMEPAGE = "https://pile.eleuther.ai/"
 
 _LICENSES = {
-    "all": "MIT License",
+    "all": "Multiple: see each subset license",
+    "enron_emails": "Unknown",
+    "europarl": "Unknown",
     "free_law": "Unknown",
-    "pubmed_central": "MIT License",
+    "hacker_news": "Unknown",
+    "nih_exporter": "Unknown",
+    "pubmed": "Unknown",
+    "pubmed_central": "Unknown",
+    "ubuntu_irc": "Unknown",
+    "uspto": "Unknown",
 }
 
 _DATA_URLS = {
@@ -49,8 +56,15 @@ _DATA_URLS = {
         "validation": ["https://the-eye.eu/public/AI/pile/val.jsonl.zst"],
         "test": ["https://the-eye.eu/public/AI/pile/test.jsonl.zst"],
     },
+    "enron_emails": "http://eaidata.bmk.sh/data/enron_emails.jsonl.zst",
+    "europarl": "https://the-eye.eu/public/AI/pile_preliminary_components/EuroParliamentProceedings_1996_2011.jsonl.zst",
     "free_law": "https://the-eye.eu/public/AI/pile_preliminary_components/FreeLaw_Opinions.jsonl.zst",
+    "hacker_news": "https://the-eye.eu/public/AI/pile_preliminary_components/hn.tar.gz",
+    "nih_exporter": "https://the-eye.eu/public/AI/pile_preliminary_components/NIH_ExPORTER_awarded_grant_text.jsonl.zst",
+    "pubmed": "https://the-eye.eu/public/AI/pile_preliminary_components/PUBMED_title_abstracts_2019_baseline.jsonl.zst",
     "pubmed_central": "https://the-eye.eu/public/AI/pile_preliminary_components/PMC_extracts.tar.gz",
+    "ubuntu_irc": "https://the-eye.eu/public/AI/pile_preliminary_components/ubuntu_irc_until_2020_9_1.jsonl.zst",
+    "uspto": "https://the-eye.eu/public/AI/pile_preliminary_components/pile_uspto.tar",
 }
 
 _FEATURES = {
@@ -60,20 +74,58 @@ _FEATURES = {
             "meta": {"pile_set_name": datasets.Value("string")},
         }
     ),
+    "enron_emails": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "europarl": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
     "free_law": datasets.Features(
         {
             "text": datasets.Value("string"),
-            "meta": {
-                "case_ID": datasets.Value("string"),
-                "case_jurisdiction": datasets.Value("string"),
-                "date_created": datasets.Value("string"),
-            },
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "hacker_news": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "nih_exporter": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "pubmed": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
         }
     ),
     "pubmed_central": datasets.Features(
         {
             "text": datasets.Value("string"),
-            "id": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "ubuntu_irc": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "uspto": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
         }
     ),
 }
@@ -169,7 +221,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
                         key += 1
         else:
             for subset in files:
-                if subset == "free_law":
+                if subset in {"enron_emails", "europarl", "free_law", "nih_exporter", "pubmed", "ubuntu_irc"}:
                     import zstandard as zstd
 
                     with zstd.open(open(files[subset], "rb"), "rt", encoding="utf-8") as f:
@@ -177,12 +229,22 @@ class ThePile(datasets.GeneratorBasedBuilder):
                             data = json.loads(row)
                             yield key, data
                             key += 1
-                elif subset == "pubmed_central":
+                elif subset in {"hacker_news", "pubmed_central"}:
                     for path, file in files[subset]:
                         id_ = path.split("/")[-1].split(".")[0]
+                        meta = {"id": id_}
                         text = file.read().decode("utf-8")
                         yield key, {
-                            "id": id_,
                             "text": text,
+                            "meta": meta,
                         }
                         key += 1
+                elif subset == "uspto":
+                    import zstandard as zstd
+
+                    for path, file in files[subset]:
+                        with zstd.open(file, "rt", encoding="utf-8") as f:
+                            for row in f:
+                                data = json.loads(row)
+                                yield key, data
+                                key += 1

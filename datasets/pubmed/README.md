@@ -20,13 +20,14 @@ task_categories:
 - text-scoring
 task_ids:
 - language-modeling
-- other-stuctured-to-text
+- other-structured-to-text
 - text-scoring-other-citation-estimation
 - topic-classification
 paperswithcode_id: pubmed
+pretty_name: PubMed
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for PubMed
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -197,7 +198,7 @@ There are no splits in this dataset. It is given as is.
 
 ### Citation Information
 
-[More Information Needed]
+[Courtesy of the U.S. National Library of Medicine](https://www.nlm.nih.gov/databases/download/terms_and_conditions.html).
 
 ### Contributions
 

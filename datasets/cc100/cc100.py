@@ -71,7 +71,7 @@ _BASE_URL = "http://data.statmt.org/cc-100/{}.txt.xz"
 
 # Please note: due to the size of the data, only few examples are provided.
 # However, you can pass the lang parameter in config to fetch data of any language in the corpus
-_LANGUAGES = ["am", "sr"]
+_LANGUAGES = ["am", "sr", "ka"]
 
 
 class Cc100Config(datasets.BuilderConfig):

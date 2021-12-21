@@ -51,14 +51,14 @@ _HOMEPAGE = "https://github.com/facebookresearch/asset"
 _LICENSE = "Creative Common Attribution-NonCommercial 4.0 International"
 
 _URL_LIST = [
-    ("human_ratings.csv", "https://github.com/facebookresearch/asset/raw/master/human_ratings/human_ratings.csv"),
-    ("asset.valid.orig", "https://github.com/facebookresearch/asset/raw/master/dataset/asset.valid.orig"),
-    ("asset.test.orig", "https://github.com/facebookresearch/asset/raw/master/dataset/asset.test.orig"),
+    ("human_ratings.csv", "https://github.com/facebookresearch/asset/raw/main/human_ratings/human_ratings.csv"),
+    ("asset.valid.orig", "https://github.com/facebookresearch/asset/raw/main/dataset/asset.valid.orig"),
+    ("asset.test.orig", "https://github.com/facebookresearch/asset/raw/main/dataset/asset.test.orig"),
 ]
 _URL_LIST += [
     (
         f"asset.{spl}.simp.{i}",
-        f"https://github.com/facebookresearch/asset/raw/master/dataset/asset.{spl}.simp.{i}",
+        f"https://github.com/facebookresearch/asset/raw/main/dataset/asset.{spl}.simp.{i}",
     )
     for spl in ["valid", "test"]
     for i in range(10)
