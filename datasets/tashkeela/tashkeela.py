@@ -86,7 +86,7 @@ class Tashkeela(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "directory": os.path.join(arch_path, "Tashkeela-arabic-diacritized-text-utf8-0.3/texts.txt")
+                    "directory": os.path.join(arch_path, "Tashkeela-arabic-diacritized-text-utf8-0.3", "texts.txt")
                 },
             ),
         ]
