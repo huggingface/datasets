@@ -109,34 +109,40 @@ means they can be passed directly to methods like `model.fit()`. `to_tf_dataset(
 
    >>> import tensorflow as tf
    >>> from datasets import load_dataset
-   >>> from transformers import AutoTokenizer
+   >>> from transformers import AutoTokenizer, DataCollatorWithPadding, TFAutoModelForSequenceClassification
    >>> dataset = load_dataset('glue', 'mrpc', split='train')
    >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
-   >>> dataset = dataset.map(lambda e: tokenizer(e['sentence1'], truncation=True, padding='max_length'), batched=True)
+   >>> encoded_dataset = dataset.map(lambda e: tokenizer(e['sentence1'], truncation=True, padding='max_length'), batched=True)
    >>> data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
-   >>> train_dataset = dataset["train"].to_tf_dataset(
+   >>> train_dataset = encoded_dataset.to_tf_dataset(
    ...   columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'],
    ...   shuffle=True,
    ...   batch_size=16,
    ...   collate_fn=data_collator,
    ... )
-   >>> model.fit(train_dataset)  # The output tf.data.Dataset is ready for training immediately
-   >>> next(iter(train_dataset))  # You can also iterate over the dataset manually to get batches
+   >>> next(iter(train_dataset)) #doctest: +SKIP
    {'attention_mask': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
-    array([[1, 1, 1, ..., 0, 0, 0],
-         ...,
-         [1, 1, 1, ..., 0, 0, 0]])>,
-    'input_ids': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
-     array([[  101, 11336, 11154, ...,     0,     0,     0],
-         ..., 
-         [  101,   156, 22705, ...,     0,     0,     0]])>,
-    'labels': <tf.Tensor: shape=(16,), dtype=int64, numpy=
-     array([1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0])>,
-    'token_type_ids': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
-     array([[0, 0, 0, ..., 0, 0, 0],
+   array([[1, 1, 1, ..., 0, 0, 0],
+          [1, 1, 1, ..., 0, 0, 0],
+          [1, 1, 1, ..., 0, 0, 0],
           ...,
-         [0, 0, 0, ..., 0, 0, 0]])>
-   }
+          [1, 1, 1, ..., 0, 0, 0],
+          [1, 1, 1, ..., 0, 0, 0],
+          [1, 1, 1, ..., 0, 0, 0]])>, 'input_ids': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
+   array([[  101,  1130,  1901, ...,     0,     0,     0],
+          [  101,  1109,  1585, ...,     0,     0,     0],
+          [  101, 14159, 15581, ...,     0,     0,     0],
+          ...,
+          [  101,  1252,  1103, ...,     0,     0,     0],
+          [  101,  1135,  1145, ...,     0,     0,     0],
+          [  101,  1646,  3139, ...,     0,     0,     0]])>, 'token_type_ids': <tf.Tensor: shape=(16, 512), dtype=int64, numpy=
+   array([[0, 0, 0, ..., 0, 0, 0],
+          [0, 0, 0, ..., 0, 0, 0],
+          [0, 0, 0, ..., 0, 0, 0],
+          ...,
+          [0, 0, 0, ..., 0, 0, 0],
+          [0, 0, 0, ..., 0, 0, 0],
+          [0, 0, 0, ..., 0, 0, 0]])>, 'labels': <tf.Tensor: shape=(16,), dtype=int64, numpy=array([1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0])>}
 
 .. tip::
 
