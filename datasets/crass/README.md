@@ -1,4 +1,26 @@
-[Needs More Information]
+---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+- expert-generated
+- machine-generated
+languages:
+- en-US
+licenses:
+- apache-2.0
+multilinguality:
+- monolingual
+pretty_name: crass
+size_categories:
+- unknown
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
+---
 
 # Dataset Card for crass
 
@@ -125,7 +147,7 @@ The dataset was designed to contain as minimal biases as possible. For instance,
 
 ### Dataset Curators
 
-The dataset is currated by Jörg Frohberg from apergo UG (http://www.apergo.ai)
+The dataset is currated by JÃ¶rg Frohberg from apergo UG (http://www.apergo.ai)
 
 ### Licensing Information
 
