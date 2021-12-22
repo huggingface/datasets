@@ -41,6 +41,10 @@ _CITATION = """\
 }
 """
 
+_HOMEPAGE = "https://sourceforge.net/projects/tashkeela/"
+
+_LICENSE = "GPLv2"
+
 _DOWNLOAD_URL = "https://sourceforge.net/projects/tashkeela/files/latest/download"
 
 
@@ -76,7 +80,8 @@ class Tashkeela(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=None,
-            homepage="https://sourceforge.net/projects/tashkeela/",
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 
