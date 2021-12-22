@@ -16,8 +16,8 @@
 """The CRASS (counterfactual reasoning assessment) dataset"""
 
 import csv
-import json
-import os
+#import json
+#import os
 
 import datasets
 
