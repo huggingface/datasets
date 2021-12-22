@@ -59,7 +59,6 @@ class WiderFace(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "image_file_path": datasets.Value("string"),
                     "image": datasets.Image(),
                     "faces": datasets.Sequence(
                         {
@@ -160,5 +159,5 @@ class WiderFace(datasets.GeneratorBasedBuilder):
                                     "invalid": invalid,
                                 }
                             )
-                yield idx, {"image_file_path": image_file_path, "image": image_file_path, "faces": faces}
+                yield idx, {"image": image_file_path, "faces": faces}
                 idx += 1
