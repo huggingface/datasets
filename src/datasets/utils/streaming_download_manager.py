@@ -8,7 +8,7 @@ import time
 from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePath, PurePosixPath
 from typing import List, Optional, Tuple, Union
 
 import fsspec
@@ -278,9 +278,8 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     It also has a retry mechanism in case connection fails.
     The args and kwargs are passed to fsspec.open, except `use_auth_token` which is used for queries to private repos on huggingface.co
     """
-    # required for Windows compatibility
-    if "\\" in file:
-        file = _as_posix(Path(file))
+    # required for `xopen(str(Path(...)))` to work
+    file = _as_posix(PurePath(file))
     main_hop, *rest_hops = file.split("::")
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
