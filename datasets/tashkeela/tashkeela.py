@@ -96,4 +96,4 @@ class Tashkeela(datasets.GeneratorBasedBuilder):
 
         for id_, file_name in enumerate(sorted(glob.glob(os.path.join(directory, "**.txt")))):
             with open(file_name, encoding="UTF-8") as f:
-                yield str(id_), {"book": file_name, "text": f.read()}
+                yield str(id_), {"book": file_name, "text": f.read().strip()}
