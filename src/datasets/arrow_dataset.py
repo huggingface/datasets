@@ -1655,10 +1655,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         selected format.
         """
         for index in range(self.num_rows):
-            yield self._getitem(
-                index,
-                decoded=False,
-            )
+            yield self._getitem(index)
 
     def __repr__(self):
         return f"Dataset({{\n    features: {list(self.features.keys())},\n    num_rows: {self.num_rows}\n}})"
