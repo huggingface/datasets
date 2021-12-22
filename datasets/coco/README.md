@@ -32,23 +32,27 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** https://cocodataset.org/#home
 - **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Paper:** Microsoft COCO: Common Objects in Context
+- **Leaderboard:** https://paperswithcode.com/sota/object-detection-on-coco
+- **Point of Contact:** info@cocodataset.org
 
 ### Dataset Summary
 
-[More Information Needed]
+COCO (Common Objects in Context) is a large-scale object detection, segmentation, and captioning dataset.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- Object Detection
+- Keypoint Detection
+- Semantic Segmentation
+- Panoptic Segmentation
+- Dense Pose Estimation
 
 ### Languages
 
-[More Information Needed]
+English
 
 ## Dataset Structure
 
@@ -61,8 +65,10 @@ YAML tags:
 [More Information Needed]
 
 ### Data Splits
-
-[More Information Needed]
+COCO has three configurations, including: 
+- 2014 configuration that contains images for object detection, image captioning, keypoint detection and dense estimation of human pose. It has three splits, train, test and validation.
+- 2015 configuration that consists of one test split only, for object detection, semantic segmentation, panoptic segmentation  and keypoint detection.
+- 2017 configuration that contains images for object detection, image captioning, panoptic segmentation, semantic segmentation and keypoint detection.
 
 ## Dataset Creation
 
@@ -120,7 +126,28 @@ YAML tags:
 
 ### Citation Information
 
-[More Information Needed]
+@article{DBLP:journals/corr/LinMBHPRDZ14,
+  author    = {Tsung{-}Yi Lin and
+               Michael Maire and
+               Serge J. Belongie and
+               Lubomir D. Bourdev and
+               Ross B. Girshick and
+               James Hays and
+               Pietro Perona and
+               Deva Ramanan and
+               Piotr Doll{'{a} }r and
+               C. Lawrence Zitnick},
+  title     = {Microsoft {COCO:} Common Objects in Context},
+  journal   = {CoRR},
+  volume    = {abs/1405.0312},
+  year      = {2014},
+  url       = {http://arxiv.org/abs/1405.0312},
+  archivePrefix = {arXiv},
+  eprint    = {1405.0312},
+  timestamp = {Mon, 13 Aug 2018 16:48:13 +0200},
+  biburl    = {https://dblp.org/rec/bib/journals/corr/LinMBHPRDZ14},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
 
 ### Contributions
 
