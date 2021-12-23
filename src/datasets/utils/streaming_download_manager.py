@@ -609,7 +609,17 @@ class StreamingDownloadManager(object):
             urlpath_or_urlpaths = [urlpath_or_urlpaths]
         urlpaths = urlpath_or_urlpaths
         for urlpath in urlpaths:
-            if "://::" not in urlpath:  # workaround for os.path.isfile(urlpath):
+            main_hop, *rest_hops = urlpath.split("::")
+            # # globbing inside a zip in a private repo requires authentication
+            # if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            #     storage_options = {
+            #         "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            #     }
+            # else:
+            #     storage_options = None
+            # fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+            fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=None)
+            if fs.isfile(main_hop.split("://")[1]):
                 yield urlpath
             else:
                 for dirpath, _, filenames in xwalk(urlpath, use_auth_token=self.download_config.use_auth_token):
