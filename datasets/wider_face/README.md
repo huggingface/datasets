@@ -70,7 +70,7 @@ required to submit final prediction files, which we shall proceed to evaluate.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `face-detection`: The dataset can be used to train a model for Face Detection. More information on evaluating the model's performance can be found [here](http://shuoyang1213.me/WIDERFACE/WiderFace_Results.html).
 
 ### Languages
 
@@ -98,7 +98,7 @@ A data point comprises an image and its face annotations.
 
 ### Data Fields
 
-- `image`: A `PIL.Image.Image` object containing the 28x28 image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `faces`: a list of face attributes for the faces present on the image
   - `bbox`: the face bounding box (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format)
   - `blur`: the blur level, with possible values including `clear` (0), `normal` (1) and `heavy`
