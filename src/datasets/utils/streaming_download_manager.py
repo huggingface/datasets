@@ -9,7 +9,7 @@ from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePath, PurePosixPath
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
@@ -26,7 +26,6 @@ from .file_utils import (
     url_or_path_join,
 )
 from .logging import get_logger
-from .typing import PathLike
 
 
 logger = get_logger(__name__)

@@ -22,7 +22,7 @@ import os
 import tarfile
 from datetime import datetime
 from functools import partial
-from typing import Dict, Iterable, Optional, Union
+from typing import Dict, Optional, Union
 
 from .. import config
 from .file_utils import (
@@ -36,7 +36,6 @@ from .file_utils import (
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
 from .py_utils import NestedDataStructure, map_nested, size_str
-from .typing import PathLike
 
 
 logger = get_logger(__name__)
