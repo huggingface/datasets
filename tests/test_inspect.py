@@ -10,7 +10,7 @@ from datasets import get_dataset_config_names
         ("acronym_identification", "default"),
         ("lhoestq/squad", "plain_text"),
         ("lhoestq/test", "default"),
-        ("lhoestq/demo1", "lhoestq___demo1"),
+        ("lhoestq/demo1", "lhoestq--demo1"),
     ],
 )
 def test_get_dataset_config_names(path, expected):

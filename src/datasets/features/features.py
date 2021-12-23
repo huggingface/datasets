@@ -365,10 +365,10 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
     ndims: Optional[int] = None
 
     def __init__(self, shape: tuple, dtype: str):
-        assert (
-            self.ndims is not None and self.ndims > 1
-        ), "You must instantiate an array type with a value for dim that is > 1"
-        assert len(shape) == self.ndims, f"shape={shape} and ndims={self.ndims} don't match"
+        if self.ndims is None or self.ndims <= 1:
+            raise ValueError("You must instantiate an array type with a value for dim that is > 1")
+        if len(shape) != self.ndims:
+            raise ValueError(f"shape={shape} and ndims={self.ndims} don't match")
         self.shape = tuple(shape)
         self.value_type = dtype
         self.storage_dtype = self._generate_dtype(self.value_type)
@@ -464,7 +464,8 @@ class ArrayExtensionArray(pa.ExtensionArray):
         ndims = self.type.ndims
 
         for dim in range(1, ndims):
-            assert shape[dim] is not None, f"Support only dynamic size on first dimension. Got: {shape}"
+            if shape[dim] is None:
+                raise ValueError(f"Support only dynamic size on first dimension. Got: {shape}")
 
         arrays = []
         first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
@@ -631,21 +632,19 @@ def pandas_types_mapper(dtype):
 
 @dataclass
 class ClassLabel:
-    """Handle integer class labels. Here for compatiblity with tfds.
+    """Feature type for integer class labels.
 
-    There are 3 ways to define a ClassLabel, which correspond to the 3
-    arguments:
+    There are 3 ways to define a `ClassLabel`, which correspond to the 3 arguments:
 
-     * `num_classes`: create 0 to (num_classes-1) labels
-     * `names`: a list of label strings
-     * `names_file`: a file containing the list of labels.
+     * `num_classes`: Create 0 to (num_classes-1) labels.
+     * `names`: List of label strings.
+     * `names_file`: File containing the list of labels.
 
     Args:
-        num_classes: `int`, number of classes. All labels must be < num_classes.
-        names: `list<str>`, string names for the integer classes. The
-            order in which the names are provided is kept.
-        names_file: `str`, path to a file with names for the integer
-            classes, one per line.
+        num_classes (:obj:`int`, optional): Number of classes. All labels must be < `num_classes`.
+        names (:obj:`list` of :obj:`str`, optional): String names for the integer classes.
+            The order in which the names are provided is kept.
+        names_file (:obj:`str`, optional): Path to a file with names for the integer classes, one per line.
     """
 
     num_classes: int = None
@@ -689,9 +688,10 @@ class ClassLabel:
 
     def str2int(self, values: Union[str, Iterable]):
         """Conversion class name string => integer."""
-        assert isinstance(values, str) or isinstance(
-            values, Iterable
-        ), f"Values {values} should be a string or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+        if not isinstance(values, str) and not isinstance(values, Iterable):
+            raise ValueError(
+                f"Values {values} should be a string or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+            )
         return_list = True
         if isinstance(values, str):
             values = [values]
@@ -717,9 +717,10 @@ class ClassLabel:
 
     def int2str(self, values: Union[int, Iterable]):
         """Conversion integer => class name string."""
-        assert isinstance(values, int) or isinstance(
-            values, Iterable
-        ), f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+        if not isinstance(values, int) and not isinstance(values, Iterable):
+            raise ValueError(
+                "Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+            )
         return_list = True
         if isinstance(values, int):
             values = [values]
@@ -831,7 +832,8 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
             {key: get_nested_type(schema[key]) for key in schema}
         )  # however don't sort on struct types since the order matters
     elif isinstance(schema, (list, tuple)):
-        assert len(schema) == 1, "We defining list feature, you should just provide one example of the inner type"
+        if len(schema) != 1:
+            raise ValueError("We defining list feature, you should just provide one example of the inner type")
         value_type = get_nested_type(schema[0])
         return pa.list_(value_type)
     elif isinstance(schema, Sequence):
@@ -1228,7 +1230,7 @@ class Features(dict):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
                 if len(source) != len(target):
                     raise ValueError(f"Length mismatch: between {source} and {target}" + stack_position)
-                return [recursive_reorder(source[i], target[i], stack + f".<list>") for i in range(len(target))]
+                return [recursive_reorder(source[i], target[i], stack + ".<list>") for i in range(len(target))]
             else:
                 return source
 
