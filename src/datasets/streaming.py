@@ -8,6 +8,7 @@ from .utils.patching import patch_submodule
 from .utils.streaming_download_manager import (
     xbasename,
     xdirname,
+    xet_parse,
     xglob,
     xjoin,
     xlistdir,
@@ -80,4 +81,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
         patch.object(module.Path, "suffix", property(fget=xpathsuffix)).start()
     patch_submodule(module, "pd.read_csv", wrap_auth(xpandas_read_csv), attrs=["__version__"]).start()
     patch_submodule(module, "pd.read_excel", xpandas_read_excel, attrs=["__version__"]).start()
+    # xml.etree.ElementTree
+    for submodule in ["ElementTree", "ET"]:
+        patch_submodule(module, f"{submodule}.parse", xet_parse).start()
     module._patched_for_streaming = True
