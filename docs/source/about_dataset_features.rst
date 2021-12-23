@@ -1,7 +1,7 @@
 Dataset features
 ================
 
-:class:`datasets.Features` defines the internal structure of a dataset. The :class:`datasets.Features` is used to specify the underlying serialization format. What's more interesting to you though is that :class:`datasets.Features` contains high-level information about everything from the column names and types, to the :class:`datasets.ClassLabel`. You can think of :class:`datasets.Features` as the backbone of a dataset.
+:class:`datasets.Features` defines the internal structure of a dataset. It is used to specify the underlying serialization format. What's more interesting to you though is that :class:`datasets.Features` contains high-level information about everything from the column names and types, to the :class:`datasets.ClassLabel`. You can think of :class:`datasets.Features` as the backbone of a dataset.
 
 The :class:`datasets.Features` format is simple: ``dict[column_name, column_type]``. It is a dictionary of column name and column type pairs. The column type provides a wide range of options for describing the type of data you have.
 
@@ -49,3 +49,15 @@ The ``answers`` field is constructed using the :class:`datasets.Sequence` featur
 .. tip::
 
    See the :ref:`flatten` section to learn how you can extract the nested subfields as their own independent columns.
+
+The array feature type is useful for creating arrays of various sizes. You can create arrays with two dimensions using :class:`datasets.Array2D`, and even arrays with five dimensions using :class:`datasets.Array5D`. 
+
+.. code::
+
+   >>> features = Features({'a': Array2D(shape=(1, 3), dtype='int32'))
+
+The array type also allows the first dimension of the array to be dynamic. This is useful for handling sequences with variable lengths such as sentences, without having to pad or truncate the input to a uniform shape.
+
+.. code::
+
+   >>> features = Features({'a': Array3D(shape=(None, 5, 2), dtype='int32')})
