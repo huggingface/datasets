@@ -1,17 +1,16 @@
 from dataclasses import dataclass
 from typing import ClassVar, Dict, Optional, Tuple
 
-from ..features import ClassLabel, Features, Value
+from ..features import ClassLabel, Features, Image
 from .base import TaskTemplate
 
 
 @dataclass(frozen=True)
 class ImageClassification(TaskTemplate):
     task: str = "image-classification"
-    input_schema: ClassVar[Features] = Features({"image_file_path": Value("string")})
-    # TODO(lewtun): Find a more elegant approach without descriptors.
+    input_schema: ClassVar[Features] = Features({"image": Image()})
     label_schema: ClassVar[Features] = Features({"labels": ClassLabel})
-    image_file_path_column: str = "image_file_path"
+    image_column: str = "image"
     label_column: str = "labels"
     labels: Optional[Tuple[str]] = None
 
@@ -27,6 +26,6 @@ class ImageClassification(TaskTemplate):
     @property
     def column_mapping(self) -> Dict[str, str]:
         return {
-            self.image_file_path_column: "image_file_path",
+            self.image_column: "image",
             self.label_column: "labels",
         }
