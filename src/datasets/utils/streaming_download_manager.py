@@ -10,6 +10,7 @@ from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePosixPath
 from typing import List, Optional, Tuple, Union
+from xml.etree import ElementTree as ET
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
@@ -501,6 +502,23 @@ def xpandas_read_excel(filepath_or_buffer, **kwargs):
     import pandas as pd
 
     return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
+
+
+def xet_parse(source, parser=None):
+    """Extend `xml.etree.ElementTree.parse` function to support remote files.
+
+    Args:
+        source: File path or file object.
+        parser (optional, default `XMLParser`): Parser instance.
+
+    Returns:
+        :obj:`xml.etree.ElementTree.Element`: Root element of the given source document.
+    """
+    if hasattr(source, "read"):
+        return ET.parse(source, parser=parser)
+    else:
+        with xopen(source, "rb") as f:
+            return ET.parse(f, parser=parser)
 
 
 class StreamingDownloadManager(object):
