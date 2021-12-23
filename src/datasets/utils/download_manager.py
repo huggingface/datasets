@@ -250,18 +250,15 @@ class DownloadManager:
             with open(path_or_buf, "rb") as f:
                 yield from _iter_archive(f)
 
-    def iter_files(self, path_or_paths: Union[PathLike, Iterable[PathLike]]):
+    def iter_files(self, paths):
         """Iterate over file paths.
 
         Args:
-            path_or_paths (Union[PathLike, Iterable[PathLike]])): Root path/paths.
+            paths (list): Root paths.
 
         Yields:
             str: File path.
         """
-        if isinstance(path_or_paths, (str, bytes, os.PathLike)):
-            path_or_paths = [path_or_paths]
-        paths = path_or_paths
         for path in paths:
             if os.path.isfile(path):
                 yield path

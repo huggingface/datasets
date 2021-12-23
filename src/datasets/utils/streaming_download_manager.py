@@ -596,29 +596,25 @@ class StreamingDownloadManager(object):
             with xopen(urlpath_or_buf, "rb", use_auth_token=self.download_config.use_auth_token) as f:
                 yield from _iter_archive(f)
 
-    def iter_files(self, urlpath_or_urlpaths: Union[PathLike, Iterable[PathLike]]):
+    def iter_files(self, urlpaths):
         """Iterate over files.
 
         Args:
-            urlpath_or_urlpaths (Union[PathLike, Iterable[PathLike]]): Root URL path/paths.
+            urlpaths (list): Root paths.
 
         Yields:
             str: File URL path.
         """
-        if isinstance(urlpath_or_urlpaths, (str, bytes, os.PathLike)):
-            urlpath_or_urlpaths = [urlpath_or_urlpaths]
-        urlpaths = urlpath_or_urlpaths
         for urlpath in urlpaths:
             main_hop, *rest_hops = urlpath.split("::")
-            # # globbing inside a zip in a private repo requires authentication
-            # if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
-            #     storage_options = {
-            #         "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
-            #     }
-            # else:
-            #     storage_options = None
-            # fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
-            fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=None)
+            # globbing inside a zip in a private repo requires authentication
+            if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+                storage_options = {
+                    "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=self.download_config.use_auth_token)}
+                }
+            else:
+                storage_options = None
+            fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
             if fs.isfile(main_hop.split("://")[1]):
                 yield urlpath
             else:
