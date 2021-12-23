@@ -64,7 +64,7 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
         images_path = os.path.join(dl_manager.download_and_extract(_URL), "PetImages")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files(images_path)}
+                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files([images_path])}
             ),
         ]
 
