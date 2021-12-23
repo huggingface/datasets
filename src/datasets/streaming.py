@@ -83,5 +83,5 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "pd.read_excel", xpandas_read_excel, attrs=["__version__"]).start()
     # xml.etree.ElementTree
     for submodule in ["ElementTree", "ET"]:
-        patch_submodule(module, f"{submodule}.parse", xet_parse).start()
+        patch_submodule(module, f"{submodule}.parse", wrap_auth(xet_parse)).start()
     module._patched_for_streaming = True

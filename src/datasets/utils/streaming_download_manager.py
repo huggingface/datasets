@@ -504,12 +504,14 @@ def xpandas_read_excel(filepath_or_buffer, **kwargs):
     return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
 
 
-def xet_parse(source, parser=None):
+def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = None):
     """Extend `xml.etree.ElementTree.parse` function to support remote files.
 
     Args:
         source: File path or file object.
         parser (optional, default `XMLParser`): Parser instance.
+        use_auth_token (:obj:`bool` or :obj:`str`, optional): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
 
     Returns:
         :obj:`xml.etree.ElementTree.Element`: Root element of the given source document.
@@ -517,7 +519,7 @@ def xet_parse(source, parser=None):
     if hasattr(source, "read"):
         return ET.parse(source, parser=parser)
     else:
-        with xopen(source, "rb") as f:
+        with xopen(source, "rb", use_auth_token=use_auth_token) as f:
             return ET.parse(f, parser=parser)
 
 
