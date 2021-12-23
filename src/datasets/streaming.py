@@ -23,6 +23,7 @@ from .utils.streaming_download_manager import (
     xpathrglob,
     xpathstem,
     xpathsuffix,
+    xwalk,
 )
 
 
@@ -64,6 +65,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     # open files in a streaming fashion
     patch_submodule(module, "open", wrap_auth(xopen)).start()
     patch_submodule(module, "os.listdir", wrap_auth(xlistdir)).start()
+    patch_submodule(module, "os.walk", wrap_auth(xwalk)).start()
     patch_submodule(module, "glob.glob", wrap_auth(xglob)).start()
     # allow to navigate in remote zip files
     patch_submodule(module, "os.path.join", xjoin).start()
