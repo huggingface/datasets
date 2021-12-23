@@ -89,6 +89,17 @@ jobs:
             - run: isort --check-only tests src benchmarks datasets metrics
             - run: flake8 tests src benchmarks datasets metrics
 
+    run_doctests:
+        working_directory: ~/datasets
+        docker:
+            - image: circleci/python:3.6
+        steps:
+            - checkout
+            - run: python -m doctest docs/source/load_hub.rst
+            - run: python -m doctest docs/source/access.rst
+            - run: python -m doctest docs/source/use_dataset.rst
+            - run: python -m doctest docs/source/metrics.rst
+
     build_doc:
         working_directory: ~/datasets
         docker:
@@ -127,5 +138,6 @@ workflows:
             - run_dataset_script_tests_pyarrow_3
             - run_dataset_script_tests_pyarrow_latest_WIN
             - run_dataset_script_tests_pyarrow_3_WIN
+            - run_doctests
             - build_doc
             - deploy_doc: *workflow_filters
