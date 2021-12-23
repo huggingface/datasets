@@ -45,7 +45,7 @@ _LICENSE = "CC BY 4.0"
 
 _URL = "https://www.dropbox.com/s/cqtdpsl4hewlli1/redcaps_v1.0_annotations.zip?dl=1"
 
-SUBREDDITS_WITH_YEAR = """\
+_SUBREDDITS_WITH_YEAR = """\
 abandonedporn_2017 abandonedporn_2018 abandonedporn_2019 abandonedporn_2020 abandoned_2017 abandoned_2018
 abandoned_2019 abandoned_2020 absoluteunits_2018 absoluteunits_2019 absoluteunits_2020 airplants_2017 airplants_2018
 airplants_2019 airplants_2020 alltheanimals_2019 alltheanimals_2020 amateurphotography_2017 amateurphotography_2018
@@ -243,23 +243,23 @@ workbenches_2018 workbenches_2019 workbenches_2020 workspaces_2017 workspaces_20
 yarnaddicts_2017 yarnaddicts_2018 yarnaddicts_2019 yarnaddicts_2020 zerowaste_2017 zerowaste_2018 zerowaste_2019
 zerowaste_2020
 """
-SUBREDDITS_WITH_YEAR = SUBREDDITS_WITH_YEAR.strip().split()
+_SUBREDDITS_WITH_YEAR = _SUBREDDITS_WITH_YEAR.strip().split()
 
-SUBREDDIT_TO_YEAR = collections.defaultdict(list)
-for subreddit_with_year in SUBREDDITS_WITH_YEAR:
+_SUBREDDIT_TO_YEAR = collections.defaultdict(list)
+for subreddit_with_year in _SUBREDDITS_WITH_YEAR:
     subreddit, year = subreddit_with_year.split("_")
-    SUBREDDIT_TO_YEAR[subreddit].append(year)
+    _SUBREDDIT_TO_YEAR[subreddit].append(year)
 
-SUBREDDITS = list(SUBREDDIT_TO_YEAR.keys())
+_SUBREDDITS = list(_SUBREDDIT_TO_YEAR.keys())
 
 
 def _config_name_to_subreddits_with_year(config_name):
     if config_name == "all":
-        return SUBREDDITS_WITH_YEAR
+        return _SUBREDDITS_WITH_YEAR
     elif re.match(r".*_\d{4}$", config_name):
         return [config_name]
     else:
-        return [f"{config_name}_{year}" for year in SUBREDDIT_TO_YEAR[config_name]]
+        return [f"{config_name}_{year}" for year in _SUBREDDIT_TO_YEAR[config_name]]
 
 
 def _config_name_to_description(config_name):
@@ -272,7 +272,7 @@ def _config_name_to_description(config_name):
         else:
             subreddit = config_name
             year_str = ", ".join(
-                ["2008 - 2017" if year == "2017" else year for year in SUBREDDIT_TO_YEAR[config_name]]
+                ["2008 - 2017" if year == "2017" else year for year in _SUBREDDIT_TO_YEAR[config_name]]
             )
         return f"Contains data from the {subreddit} subreddit posted in {year_str}"
 
@@ -296,8 +296,8 @@ class RedCaps(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         RedCapsConfig(name="all"),
     ]
-    BUILDER_CONFIGS += [RedCapsConfig(name=subreddit) for subreddit in SUBREDDITS]
-    BUILDER_CONFIGS += [RedCapsConfig(name=subreddit_with_year) for subreddit_with_year in SUBREDDITS_WITH_YEAR]
+    BUILDER_CONFIGS += [RedCapsConfig(name=subreddit) for subreddit in _SUBREDDITS]
+    BUILDER_CONFIGS += [RedCapsConfig(name=subreddit_with_year) for subreddit_with_year in _SUBREDDITS_WITH_YEAR]
 
     DEFAULT_CONFIG_NAME = "all"
 
@@ -310,7 +310,7 @@ class RedCaps(datasets.GeneratorBasedBuilder):
                 "image": datasets.Image(),
                 "raw_caption": datasets.Value("string"),
                 "caption": datasets.Value("string"),
-                "subreddit": datasets.ClassLabel(names=SUBREDDITS),
+                "subreddit": datasets.ClassLabel(names=_SUBREDDITS),
                 "score": datasets.Value("int32"),
                 "created_utc": datasets.Value("timestamp[s]"),
                 "permalink": datasets.Value("string"),
@@ -326,7 +326,7 @@ class RedCaps(datasets.GeneratorBasedBuilder):
             license=_LICENSE,
             citation=_CITATION,
             task_templates=[
-                ImageClassification(image_column="image", label_column="subreddit", labels=SUBREDDITS),
+                ImageClassification(image_column="image", label_column="subreddit", labels=_SUBREDDITS),
             ],
         )
 
