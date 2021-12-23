@@ -254,7 +254,7 @@ class DownloadManager:
         """Iterate over file paths.
 
         Args:
-            path_or_paths (Union[PathLike, Iterable[PathLike]])): Root paths.
+            path_or_paths (Union[PathLike, Iterable[PathLike]])): Root path/paths.
 
         Yields:
             str: File path.
