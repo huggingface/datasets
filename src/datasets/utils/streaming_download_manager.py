@@ -9,7 +9,7 @@ from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePath, PurePosixPath
-from typing import List, Optional, Tuple, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
@@ -26,6 +26,7 @@ from .file_utils import (
     url_or_path_join,
 )
 from .logging import get_logger
+from .typing import PathLike
 
 
 logger = get_logger(__name__)
@@ -595,15 +596,18 @@ class StreamingDownloadManager(object):
             with xopen(urlpath_or_buf, "rb", use_auth_token=self.download_config.use_auth_token) as f:
                 yield from _iter_archive(f)
 
-    def iter_files(self, urlpaths):
+    def iter_files(self, urlpath_or_urlpaths: Union[PathLike, Iterable[PathLike]]):
         """Iterate over files.
 
         Args:
-            urlpaths (list): Root URL paths.
+            urlpath_or_urlpaths (Union[PathLike, Iterable[PathLike]]): Root URL path/paths.
 
         Yields:
             str: File URL path.
         """
+        if isinstance(urlpath_or_urlpaths, (str, bytes, os.PathLike)):
+            urlpath_or_urlpaths = [urlpath_or_urlpaths]
+        urlpaths = urlpath_or_urlpaths
         for urlpath in urlpaths:
             if "://::" not in urlpath:  # workaround for os.path.isfile(urlpath):
                 yield urlpath

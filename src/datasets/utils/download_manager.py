@@ -22,7 +22,7 @@ import os
 import tarfile
 from datetime import datetime
 from functools import partial
-from typing import Dict, Optional, Union
+from typing import Dict, Iterable, Optional, Union
 
 from .. import config
 from .file_utils import (
@@ -36,6 +36,7 @@ from .file_utils import (
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
 from .py_utils import NestedDataStructure, map_nested, size_str
+from .typing import PathLike
 
 
 logger = get_logger(__name__)
@@ -249,15 +250,18 @@ class DownloadManager:
             with open(path_or_buf, "rb") as f:
                 yield from _iter_archive(f)
 
-    def iter_files(self, paths):
+    def iter_files(self, path_or_paths: Union[PathLike, Iterable[PathLike]]):
         """Iterate over file paths.
 
         Args:
-            paths (list): Root paths.
+            path_or_paths (Union[PathLike, Iterable[PathLike]])): Root paths.
 
         Yields:
             str: File path.
         """
+        if isinstance(path_or_paths, (str, bytes, os.PathLike)):
+            path_or_paths = [path_or_paths]
+        paths = path_or_paths
         for path in paths:
             if os.path.isfile(path):
                 yield path
