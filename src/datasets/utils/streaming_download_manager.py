@@ -466,10 +466,12 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     """Extend `os.walk` function to support remote files.
 
     Args:
-        urlpath: URL root path.
+        urlpath (:obj:`str`): URL root path.
+        use_auth_token (:obj:`bool` or :obj:`str`, optional): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
 
     Yields:
-        tuple: 3-tuple (dirpath, dirnames, filenames).
+        :obj:`tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
     main_hop, *rest_hops = urlpath.split("::")
     if is_local_path(main_hop):
