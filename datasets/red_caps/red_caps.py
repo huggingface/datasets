@@ -21,7 +21,6 @@ import os
 import re
 
 import datasets
-from datasets.tasks import ImageClassification
 
 
 _CITATION = """\
@@ -36,7 +35,11 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-RedCaps is a large-scale dataset of 12M image-text pairs collected from Reddit
+RedCaps is a large-scale dataset of 12M image-text pairs collected from Reddit.
+Images and captions from Reddit depict and describe a wide variety of objects and scenes.
+The data is collected from a manually curated set of subreddits (350 total),
+which give coarse image labels and allow steering of the dataset composition
+without labeling individual instances.
 """
 
 _HOMEPAGE = "https://redcaps.xyz/"
@@ -280,24 +283,25 @@ def _config_name_to_description(config_name):
 class RedCapsConfig(datasets.BuilderConfig):
     """BuilderConfig for RedCaps."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, name, **kwargs):
         """BuilderConfig for RedCaps.
 
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        kwargs["description"] = _config_name_to_description(kwargs["name"])
-        super(RedCapsConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        assert "description" not in kwargs
+        kwargs["description"] = _config_name_to_description(name)
+        super(RedCapsConfig, self).__init__(version=datasets.Version("1.0.0", ""), name=name, **kwargs)
 
 
 class RedCaps(datasets.GeneratorBasedBuilder):
     """RedCaps dataset."""
 
     BUILDER_CONFIGS = [
-        RedCapsConfig(name="all"),
+        RedCapsConfig("all"),
     ]
-    BUILDER_CONFIGS += [RedCapsConfig(name=subreddit) for subreddit in _SUBREDDITS]
-    BUILDER_CONFIGS += [RedCapsConfig(name=subreddit_with_year) for subreddit_with_year in _SUBREDDITS_WITH_YEAR]
+    BUILDER_CONFIGS += [RedCapsConfig(subreddit) for subreddit in _SUBREDDITS]
+    BUILDER_CONFIGS += [RedCapsConfig(subreddit_with_year) for subreddit_with_year in _SUBREDDITS_WITH_YEAR]
 
     DEFAULT_CONFIG_NAME = "all"
 
@@ -307,7 +311,6 @@ class RedCaps(datasets.GeneratorBasedBuilder):
                 "image_id": datasets.Value("string"),
                 "author": datasets.Value("string"),
                 "image_url": datasets.Value("string"),
-                "image": datasets.Image(),
                 "raw_caption": datasets.Value("string"),
                 "caption": datasets.Value("string"),
                 "subreddit": datasets.ClassLabel(names=_SUBREDDITS),
@@ -325,9 +328,6 @@ class RedCaps(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[
-                ImageClassification(image_column="image", label_column="subreddit", labels=_SUBREDDITS),
-            ],
         )
 
     def _split_generators(self, dl_manager):
@@ -354,7 +354,6 @@ class RedCaps(datasets.GeneratorBasedBuilder):
                         "image_id": annot["image_id"],
                         "author": annot["author"],
                         "image_url": annot["url"],
-                        "image": annot["url"],
                         "raw_caption": annot["raw_caption"],
                         "caption": annot["caption"],
                         "subreddit": annot["subreddit"],
