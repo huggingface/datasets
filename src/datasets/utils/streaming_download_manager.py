@@ -180,7 +180,7 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        return fs.isfile(path)
+        return fs.isfile(main_hop)
 
 
 def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
@@ -203,7 +203,7 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        return fs.isdir(path)
+        return fs.isdir(main_hop)
 
 
 def _as_posix(path: Path):
