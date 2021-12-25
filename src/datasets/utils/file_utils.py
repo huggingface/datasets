@@ -499,7 +499,7 @@ def get_from_cache(
     cache_dir=None,
     force_download=False,
     proxies=None,
-    etag_timeout=10,
+    etag_timeout=100,
     resume_download=False,
     user_agent=None,
     local_files_only=False,

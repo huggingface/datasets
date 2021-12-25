@@ -74,7 +74,6 @@ class VCTK(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         root_path = dl_manager.download_and_extract(_DL_URL)
-        root_path = os.path.join(root_path, "VCTK-Corpus-0.92")
 
         return [
             datasets.SplitGenerator(
@@ -101,11 +100,15 @@ class VCTK(datasets.GeneratorBasedBuilder):
                 speaker_id = data["speaker_id"]
                 speaker_txt_path = os.path.join(txt_root, speaker_id)
                 speaker_wav_path = os.path.join(wav_root, speaker_id)
+                if not os.path.exists(speaker_txt_path):
+                    continue
                 for txt_file in sorted(os.listdir(speaker_txt_path)):
                     filename, _ = os.path.splitext(txt_file)
                     _, text_id = filename.split("_")
                     for i in [1, 2]:
                         wav_file = os.path.join(speaker_wav_path, f"{filename}_mic{i}.flac")
+                        if not os.path.exists(wav_file):
+                            continue
                         with open(os.path.join(speaker_txt_path, txt_file)) as text_file:
                             text = text_file.readline().strip()
                             more_data = {
