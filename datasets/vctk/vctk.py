@@ -57,28 +57,24 @@ class VCTK(datasets.GeneratorBasedBuilder):
                     "file": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "text_id": datasets.Value("string"),
-                    "age": datasets.Value("string"), 
+                    "age": datasets.Value("string"),
                     "gender": datasets.Value("string"),
-                    "accent": datasets.Value("string"), 
-                    "region": datasets.Value("string"), 
+                    "accent": datasets.Value("string"),
+                    "region": datasets.Value("string"),
                     "comment": datasets.Value("string"),
                 }
             ),
             supervised_keys=("file", "text"),
             homepage=_URL,
             citation=_CITATION,
-            task_templates=[
-                AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")
-            ],
+            task_templates=[AutomaticSpeechRecognition(audio_file_path_column="file", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):
         root_path = dl_manager.download_and_extract(_DL_URL)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"root_path": root_path}
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"root_path": root_path}),
         ]
 
     def _generate_examples(self, root_path):
