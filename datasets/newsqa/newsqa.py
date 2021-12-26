@@ -147,11 +147,8 @@ class Newsqa(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> Iterable[datasets.SplitGenerator]:
         path_to_manual_folder = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        combined_file_csv = os.path.join(path_to_manual_folder, "combined-newsqa-data-v1.csv")
-        combined_file_json = os.path.join(path_to_manual_folder, "combined-newsqa-data-v1.json")
-        split_files = os.path.join(path_to_manual_folder, "split_data")
-
         if self.config.name == "combined-csv":
+            combined_file_csv = os.path.join(path_to_manual_folder, "combined-newsqa-data-v1.csv")
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -159,6 +156,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 )
             ]
         elif self.config.name == "combined-json":
+            combined_file_json = os.path.join(path_to_manual_folder, "combined-newsqa-data-v1.json")
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -166,6 +164,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 )
             ]
         else:
+            split_files = os.path.join(path_to_manual_folder, "split_data")
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
