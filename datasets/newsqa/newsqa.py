@@ -252,7 +252,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                     }
         else:
             with open(filepath, encoding="utf-8") as file:
-                csv_reader = csv.reader(file, quoting=csv.QUOTE_ALL, skipinitialspace=True)
+                csv_reader = csv.reader(file, skipinitialspace=True)
                 next(csv_reader)
                 for i, row in enumerate(csv_reader):
                     if row:
