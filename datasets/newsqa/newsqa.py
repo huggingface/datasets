@@ -21,6 +21,7 @@ from typing import Any, Iterable, Mapping, Tuple, Union
 
 import datasets
 
+
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @inproceedings{trischler2017newsqa,
@@ -72,13 +73,13 @@ class Newsqa(datasets.GeneratorBasedBuilder):
             name="combined-csv",
             version=VERSION,
             description="This part of the dataset covers the whole dataset in the combined format of CSV as mentioned "
-                        "at https://github.com/Maluuba/newsqa#csv",
+            "at https://github.com/Maluuba/newsqa#csv",
         ),
         datasets.BuilderConfig(
             name="combined-json",
             version=VERSION,
             description="This part of the dataset covers the whole dataset in the combine format of JSON as mentioned "
-                        "at https://github.com/Maluuba/newsqa#json",
+            "at https://github.com/Maluuba/newsqa#json",
         ),
         datasets.BuilderConfig(
             name="split",
@@ -87,63 +88,90 @@ class Newsqa(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = "split"  # It's not mandatory to have a default configuration. Just use one if it makes sense.
+    DEFAULT_CONFIG_NAME = (
+        "split"  # It's not mandatory to have a default configuration. Just use one if it makes sense.
+    )
 
     @property
     def manual_download_instructions(self) -> str:
-        return textwrap.dedent("""\
+        return textwrap.dedent(
+            """\
         Due to legal restrictions with the CNN data and data extraction. The data has to be downloaded from several
-        sources and compiled as per the instructions by the authors. 
-        Upon obtaining the resulting data folders, it can be loaded easily using the datasets API. 
+        sources and compiled as per the instructions by the authors.
+        Upon obtaining the resulting data folders, it can be loaded easily using the datasets API.
         Please refer to https://github.com/Maluuba/newsqa to download data from the Microsoft Research site (
         https://msropendata.com/datasets/939b1042-6402-4697-9c15-7a28de7e1321), the CNN data source (
         https://cs.nyu.edu/~kcho/DMQA/), and run the scripts present in the repository.
         This will generate a folder named "split-data" and a file named "combined-newsqa-data-v1.csv".
-        Copy the above folder and the file to a directory where you want to store them locally.""")
+        Copy the above folder and the file to a directory where you want to store them locally."""
+        )
 
     def _info(self) -> datasets.DatasetInfo:
         if self.config.name == "combined-json":
-            features = datasets.Features({
-                "storyId": datasets.Value("string"),
-                "text": datasets.Value("string"),
-                "type": datasets.Value("string"),
-                "questions": datasets.features.Sequence({
-                    "q": datasets.Value("string"),
-                    "isAnswerAbsent": datasets.Value("int32"),
-                    "isQuestionBad": datasets.Value("int32"),
-                    "consensus": datasets.Features({
-                        "s": datasets.Value("int32"),
-                        "e": datasets.Value("int32"),
-                        "badQuestion": datasets.Value("bool"),
-                        "noAnswer": datasets.Value("bool"),
-                    }),
-                    "answers": datasets.features.Sequence({
-                        "sourcerAnswers": datasets.features.Sequence({
-                            "s": datasets.Value("int32"),
-                            "e": datasets.Value("int32"),
-                            "noAnswer": datasets.Value("bool"),
-                        }),
-                    }),
-                    "validated_answers": datasets.features.Sequence({
-                        "sourcerAnswers": datasets.features.Sequence({
-                            "s": datasets.Value("int32"),
-                            "e": datasets.Value("int32"),
-                            "noAnswer": datasets.Value("bool"),
-                            "count": datasets.Value("int32"),
-                        }),
-                    }),
-                }),
-            })
+            features = datasets.Features(
+                {
+                    "storyId": datasets.Value("string"),
+                    "text": datasets.Value("string"),
+                    "type": datasets.Value("string"),
+                    "questions": datasets.features.Sequence(
+                        {
+                            "q": datasets.Value("string"),
+                            "isAnswerAbsent": datasets.Value("int32"),
+                            "isQuestionBad": datasets.Value("int32"),
+                            "consensus": datasets.Features(
+                                {
+                                    "s": datasets.Value("int32"),
+                                    "e": datasets.Value("int32"),
+                                    "badQuestion": datasets.Value("bool"),
+                                    "noAnswer": datasets.Value("bool"),
+                                }
+                            ),
+                            "answers": datasets.features.Sequence(
+                                {
+                                    "sourcerAnswers": datasets.features.Sequence(
+                                        {
+                                            "s": datasets.Value("int32"),
+                                            "e": datasets.Value("int32"),
+                                            "noAnswer": datasets.Value("bool"),
+                                        }
+                                    ),
+                                }
+                            ),
+                            "validated_answers": datasets.features.Sequence(
+                                {
+                                    "sourcerAnswers": datasets.features.Sequence(
+                                        {
+                                            "s": datasets.Value("int32"),
+                                            "e": datasets.Value("int32"),
+                                            "noAnswer": datasets.Value("bool"),
+                                            "count": datasets.Value("int32"),
+                                        }
+                                    ),
+                                }
+                            ),
+                        }
+                    ),
+                }
+            )
         else:
-            features = datasets.Features({
-                "story_id": datasets.Value("string"),
-                "story_text": datasets.Value("string"),
-                "question": datasets.Value("string"),
-                "answer_char_ranges" if self.config.name == "combined-csv"
-                else "answer_token_ranges": datasets.Value("string"),
-            })
-        return datasets.DatasetInfo(description=_DESCRIPTION, features=features, supervised_keys=None,
-                                    homepage=_HOMEPAGE, license=_LICENSE, citation=_CITATION)
+            features = datasets.Features(
+                {
+                    "story_id": datasets.Value("string"),
+                    "story_text": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answer_char_ranges"
+                    if self.config.name == "combined-csv"
+                    else "answer_token_ranges": datasets.Value("string"),
+                }
+            )
+        return datasets.DatasetInfo(
+            description=_DESCRIPTION,
+            features=features,
+            supervised_keys=None,
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
+            citation=_CITATION,
+        )
 
     def _split_generators(self, dl_manager: datasets.DownloadManager) -> Iterable[datasets.SplitGenerator]:
         path_to_manual_folder = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
