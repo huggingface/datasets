@@ -7,7 +7,7 @@ from unittest import TestCase
 REGEX = re.compile(r"(?!.*\b(?:encoding|rb|w|wb|w+|wb+|ab|ab+)\b)(?<=\s)(open)\((.*)\)")
 
 
-def _no_encoding_on_file_open(filepath: Union[str, PurePath]) -> re.Match:
+def _no_encoding_on_file_open(filepath: Union[str, PurePath]) -> bool:
     r"""Find all instances where a non-binary file is opened without UTF-8 encoding.
 
     This function uses regular expressions to find instances where Python's `open()` function is used to open
@@ -22,7 +22,7 @@ def _no_encoding_on_file_open(filepath: Union[str, PurePath]) -> re.Match:
     """
 
     with open(filepath, encoding="utf-8") as input_file:
-        return REGEX.search(input_file.read())
+        return REGEX.search(input_file.read()) is not None
 
 
 class TestFileEncoding(TestCase):
