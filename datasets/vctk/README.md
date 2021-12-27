@@ -18,7 +18,6 @@ task_categories:
 - speech-processing
 task_ids:
 - automatic-speech-recognition
-- ```
 paperswithcode_id: vctk
 ---
 
