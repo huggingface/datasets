@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -291,7 +290,7 @@ class HAREM(datasets.GeneratorBasedBuilder):
                     reconstructed_text = reconstruct_text_from_tokens(doc_tokens[start_token : (end_token + 1)])
                     assert (
                         entity_text.strip() == reconstructed_text
-                    ), "Entity text and reconstructed text are not equal: %s != %s" % (
+                    ), "Entity text and reconstructed text are not equal: {} != {}".format(
                         entity_text,
                         reconstructed_text,
                     )

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -621,7 +620,7 @@ def _mnli_split_generator(name, data_dir, split, matched):
     return datasets.SplitGenerator(
         name=name,
         gen_kwargs={
-            "data_file": os.path.join(data_dir, "%s_%s.tsv" % (split, "matched" if matched else "mismatched")),
+            "data_file": os.path.join(data_dir, "{}_{}.tsv".format(split, "matched" if matched else "mismatched")),
             "split": split,
             "mrpc_files": None,
         },

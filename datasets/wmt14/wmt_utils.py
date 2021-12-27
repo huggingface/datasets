@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +23,7 @@ import gzip
 import itertools
 import os
 import re
-import xml.etree.cElementTree as ElementTree
+import xml.etree.ElementTree as ElementTree
 from abc import ABC, abstractmethod
 
 import datasets
@@ -644,7 +643,7 @@ class WmtConfig(datasets.BuilderConfig):
             split. Note that WMT subclasses overwrite this parameter.
           **kwargs: keyword arguments forwarded to super.
         """
-        name = "%s-%s" % (language_pair[0], language_pair[1])
+        name = f"{language_pair[0]}-{language_pair[1]}"
         if "name" in kwargs:  # Add name suffix for custom configs
             name += "." + kwargs.pop("name")
 
@@ -904,7 +903,7 @@ def _parse_parallel_sentences(f1, f2, filename1, filename2):
     f1_files = sorted(glob.glob(f1))
     f2_files = sorted(glob.glob(f2))
 
-    assert f1_files and f2_files, "No matching files found: %s, %s." % (f1, f2)
+    assert f1_files and f2_files, f"No matching files found: {f1}, {f2}."
     assert len(f1_files) == len(f2_files), "Number of files do not match: %d vs %d for %s vs %s." % (
         len(f1_files),
         len(f2_files),

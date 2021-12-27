@@ -1,4 +1,3 @@
-# coding=utf-8
 # Lint as: python3
 """ELI5-Category: A categorized open-domain QA dataset."""
 
@@ -112,5 +111,4 @@ class ELI5Category(datasets.GeneratorBasedBuilder):
         logger.info("generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             example = json.load(f)
-            for id_, row in enumerate(example):
-                yield id_, row
+            yield from enumerate(example)

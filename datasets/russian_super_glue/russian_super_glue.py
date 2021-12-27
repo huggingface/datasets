@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -443,7 +442,7 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
                     for question in paragraph["questions"]:
                         for answer in question["answers"]:
                             label = answer.get("label")
-                            key = "%s_%s_%s" % (row["idx"], question["idx"], answer["idx"])
+                            key = "{}_{}_{}".format(row["idx"], question["idx"], answer["idx"])
                             yield key, {
                                 "paragraph": paragraph["text"],
                                 "question": question["question"],

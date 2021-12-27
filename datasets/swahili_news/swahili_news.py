@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,5 +95,4 @@ class SwahiliNews(datasets.GeneratorBasedBuilder):
             csv_reader = csv.DictReader(
                 csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
             )
-            for id_, row in enumerate(csv_reader):
-                yield id_, row
+            yield from enumerate(csv_reader)

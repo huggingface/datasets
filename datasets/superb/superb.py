@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -445,7 +444,7 @@ class Superb(datasets.GeneratorBasedBuilder):
                         line = line.strip()
                         id_, transcript = line.split(" ", 1)
                         audio_file = f"{id_}.flac"
-                        speaker_id, chapter_id = [int(el) for el in id_.split("-")[:2]]
+                        speaker_id, chapter_id = (int(el) for el in id_.split("-")[:2])
                         audio_path = os.path.join(transcript_dir_path, audio_file)
                         yield key, {
                             "id": id_,

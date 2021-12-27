@@ -1,4 +1,3 @@
-# coding=utf-8
 """SberQUAD: Sber Question Answering Dataset."""
 
 import json

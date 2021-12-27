@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,14 +66,14 @@ class KdConv(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
             name=domain + "_" + type,
-            description="This part of dataset covers {0} domain and {1} data " "of the corpus".format(domain, type),
+            description="This part of dataset covers {} domain and {} data " "of the corpus".format(domain, type),
         )
         for domain in _DOMAINS
         for type in _DATA_TYPES
     ] + [
         datasets.BuilderConfig(
             name="all_" + type,
-            description="This part of dataset covers all domains and {0} data of " "the corpus".format(type),
+            description="This part of dataset covers all domains and {} data of " "the corpus".format(type),
         )
         for type in _DATA_TYPES
     ]

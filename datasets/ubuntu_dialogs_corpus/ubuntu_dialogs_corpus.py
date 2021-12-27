@@ -127,5 +127,4 @@ class UbuntuDialogsCorpus(datasets.GeneratorBasedBuilder):
         # TODO(ubuntu_dialogs_corpus): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             data = csv.DictReader(f)
-            for id_, row in enumerate(data):
-                yield id_, row
+            yield from enumerate(data)

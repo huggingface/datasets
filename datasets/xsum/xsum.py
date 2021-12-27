@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,21 +52,19 @@ _DOCUMENT = "document"
 _SUMMARY = "summary"
 _ID = "id"
 
-_REMOVE_LINES = set(
-    [
-        "Share this with\n",
-        "Email\n",
-        "Facebook\n",
-        "Messenger\n",
-        "Twitter\n",
-        "Pinterest\n",
-        "WhatsApp\n",
-        "Linkedin\n",
-        "LinkedIn\n",
-        "Copy this link\n",
-        "These are external links and will open in a new window\n",
-    ]
-)
+_REMOVE_LINES = {
+    "Share this with\n",
+    "Email\n",
+    "Facebook\n",
+    "Messenger\n",
+    "Twitter\n",
+    "Pinterest\n",
+    "WhatsApp\n",
+    "Linkedin\n",
+    "LinkedIn\n",
+    "Copy this link\n",
+    "These are external links and will open in a new window\n",
+}
 
 
 class Xsum(datasets.GeneratorBasedBuilder):

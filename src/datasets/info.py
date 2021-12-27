@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +81,7 @@ class PostProcessedInfo:
 
     @classmethod
     def from_dict(cls, post_processed_info_dict: dict) -> "PostProcessedInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in post_processed_info_dict.items() if k in field_names})
 
 
@@ -257,7 +256,7 @@ class DatasetInfo:
 
     @classmethod
     def from_dict(cls, dataset_info_dict: dict) -> "DatasetInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in dataset_info_dict.items() if k in field_names})
 
     def update(self, other_dataset_info: "DatasetInfo", ignore_none=True):
@@ -364,5 +363,5 @@ class MetricInfo:
 
     @classmethod
     def from_dict(cls, metric_info_dict: dict) -> "MetricInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in metric_info_dict.items() if k in field_names})

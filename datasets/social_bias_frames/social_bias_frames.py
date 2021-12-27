@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,6 +98,5 @@ class SocialBiasFrames(datasets.GeneratorBasedBuilder):
             if path == filepath:
                 lines = (line.decode("utf-8") for line in f)
                 reader = csv.DictReader(lines)
-                for idx, row in enumerate(reader):
-                    yield idx, row
+                yield from enumerate(reader)
                 break

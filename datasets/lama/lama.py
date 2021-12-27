@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -279,7 +278,7 @@ class Lama(datasets.GeneratorBasedBuilder):
                                     "pred": str(data["pred"]),
                                     "obj_label": str(data["obj_label"]),
                                     "masked_sentence": str(masked_sentence),
-                                    "negated": str(""),
+                                    "negated": "",
                                 }
                     filepaths.remove(path)
         elif self.config.name == "squad":

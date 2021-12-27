@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -158,7 +157,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
                         line = line.decode("utf-8").strip()
                         id_, transcript = line.split(" ", 1)
                         audio_file = f"{id_}.flac"
-                        speaker_id, chapter_id = [int(el) for el in id_.split("-")[:2]]
+                        speaker_id, chapter_id = (int(el) for el in id_.split("-")[:2])
                         transcripts.append(
                             {
                                 "id": id_,

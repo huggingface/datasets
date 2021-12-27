@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -540,7 +539,7 @@ class SplitDict(dict):
     def to_split_dict(self):
         """Returns a list of SplitInfo protos that we have."""
         # Return the SplitInfo, sorted by name
-        return sorted([s for s in self.values()], key=lambda s: s.name)
+        return sorted((s for s in self.values()), key=lambda s: s.name)
 
     def copy(self):
         return SplitDict.from_split_dict(self.to_split_dict(), self.dataset_name)

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,7 +77,7 @@ class TedHrlrConfig(datasets.BuilderConfig):
             first will be used as source and second as target in supervised mode.
           **kwargs: keyword arguments forwarded to super.
         """
-        name = "%s_to_%s" % (language_pair[0].replace("_", ""), language_pair[1])
+        name = "{}_to_{}".format(language_pair[0].replace("_", ""), language_pair[1])
 
         description = ("Translation dataset from %s to %s in plain text.") % (language_pair[0], language_pair[1])
         super().__init__(name=name, description=description, **kwargs)
@@ -117,7 +116,7 @@ class TedHrlr(datasets.GeneratorBasedBuilder):
         archive = dl_manager.download(_DATA_URL)
         source, target = self.config.language_pair
 
-        data_dir = "datasets/%s_to_%s" % (source, target)
+        data_dir = f"datasets/{source}_to_{target}"
 
         return [
             datasets.SplitGenerator(

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -534,10 +533,10 @@ def transmit_tasks(func):
 def update_metadata_with_features(table: Table, features: Features):
     """To be used in dataset transforms that modify the features of the dataset, in order to update the features stored in the metadata of its schema."""
     features = Features({col_name: features[col_name] for col_name in table.column_names})
-    if table.schema.metadata is None or "huggingface".encode("utf-8") not in table.schema.metadata:
+    if table.schema.metadata is None or b"huggingface" not in table.schema.metadata:
         pa_metadata = ArrowWriter._build_metadata(DatasetInfo(features=features))
     else:
-        metadata = json.loads(table.schema.metadata["huggingface".encode("utf-8")].decode())
+        metadata = json.loads(table.schema.metadata[b"huggingface"].decode())
         if "info" not in metadata:
             metadata["info"] = asdict(DatasetInfo(features=features))
         else:
@@ -630,8 +629,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         # Read metadata
 
-        if self._data.schema.metadata is not None and "huggingface".encode("utf-8") in self._data.schema.metadata:
-            metadata = json.loads(self._data.schema.metadata["huggingface".encode("utf-8")].decode())
+        if self._data.schema.metadata is not None and b"huggingface" in self._data.schema.metadata:
+            metadata = json.loads(self._data.schema.metadata[b"huggingface"].decode())
             if "info" in metadata and self.info.features is None:  # try to load features from the arrow file metadata
                 self._info.features = DatasetInfo.from_dict(metadata["info"]).features
             if (
@@ -3448,7 +3447,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token = token if token is not None else HfFolder.get_token()
 
         if token is None:
-            raise EnvironmentError(
+            raise OSError(
                 "You need to provide a `token` or be logged in to Hugging Face with " "`huggingface-cli login`."
             )
 

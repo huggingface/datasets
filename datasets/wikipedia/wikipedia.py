@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +20,7 @@ import bz2
 import codecs
 import json
 import re
-import xml.etree.cElementTree as etree
+import xml.etree.ElementTree as etree
 
 import datasets
 
@@ -426,7 +425,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
         multistream_dump_info = dump_info["jobs"]["articlesmultistreamdump"]
         assert (
             multistream_dump_info["status"] == "done"
-        ), "Specified dump (%s) multistream status is not 'done': %s" % (
+        ), "Specified dump ({}) multistream status is not 'done': {}".format(
             _base_url(lang),
             multistream_dump_info["status"],
         )

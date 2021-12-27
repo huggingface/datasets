@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +81,7 @@ class PolevalMTConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Validate language pair.
-        name = "%s-%s" % (language_pair[0], language_pair[1])
+        name = f"{language_pair[0]}-{language_pair[1]}"
         assert "pl" in language_pair, ("Config language pair must contain `pl` (Polish), got: %s", language_pair)
         source, target = language_pair
         non_pl = source if target == "pl" else target

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -317,21 +316,19 @@ _SGD_ACTS = [
     "THANK_YOU",
 ]
 
-_XSUM_REMOVE_LINES = set(
-    [
-        "Share this with\n",
-        "Email\n",
-        "Facebook\n",
-        "Messenger\n",
-        "Twitter\n",
-        "Pinterest\n",
-        "WhatsApp\n",
-        "Linkedin\n",
-        "LinkedIn\n",
-        "Copy this link\n",
-        "These are external links and will open in a new window\n",
-    ]
-)
+_XSUM_REMOVE_LINES = {
+    "Share this with\n",
+    "Email\n",
+    "Facebook\n",
+    "Messenger\n",
+    "Twitter\n",
+    "Pinterest\n",
+    "WhatsApp\n",
+    "Linkedin\n",
+    "LinkedIn\n",
+    "Copy this link\n",
+    "These are external links and will open in a new window\n",
+}
 
 
 class Gem(datasets.GeneratorBasedBuilder):
@@ -1051,7 +1048,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                     bad_ids = {}
                 else:
                     bad_ids_dct = json.load(open(filepaths, encoding="utf-8"))
-                    bad_ids = dict((bad_url, True) for _, bad_url in bad_ids_dct[f"{lang}-{split}"])
+                    bad_ids = {bad_url: True for _, bad_url in bad_ids_dct[f"{lang}-{split}"]}
                 with open(filepath, encoding="utf-8") as f:
                     id_ = -1
                     for line in f:

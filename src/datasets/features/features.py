@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -930,7 +929,7 @@ def generate_from_dict(obj: Any):
     if class_type == Sequence:
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
 
-    field_names = set(f.name for f in fields(class_type))
+    field_names = {f.name for f in fields(class_type)}
     return class_type(**{k: v for k, v in obj.items() if k in field_names})
 
 

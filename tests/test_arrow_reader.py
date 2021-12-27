@@ -58,7 +58,7 @@ class BaseReaderTest(TestCase):
             instructions2 = [Split.TRAIN, ReadInstruction.from_spec("test[:33%]")]
             for instructions in [instructions1, instructions2]:
                 datasets_kwargs = [reader.read(name, instr, split_infos) for instr in instructions]
-                train_dset, test_dset = [Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs]
+                train_dset, test_dset = (Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs)
                 self.assertEqual(train_dset["filename"][0], f"{name}-train")
                 self.assertEqual(train_dset.num_rows, 100)
                 self.assertEqual(train_dset.num_columns, 1)

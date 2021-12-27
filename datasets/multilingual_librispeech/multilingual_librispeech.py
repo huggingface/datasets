@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -141,7 +140,7 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
                     continue
 
                 audio_file = f"{id_}.flac"
-                speaker_id, chapter_id = [int(el) for el in id_.split("_")[:2]]
+                speaker_id, chapter_id = (int(el) for el in id_.split("_")[:2])
                 yield key, {
                     "id": id_,
                     "speaker_id": speaker_id,

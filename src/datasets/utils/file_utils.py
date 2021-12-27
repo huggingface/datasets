@@ -593,7 +593,7 @@ def get_from_cache(
                 raise ConnectionError(
                     f"Unauthorized for URL {url}. Please use the parameter ``use_auth_token=True`` after logging in with ``huggingface-cli login``"
                 )
-        except (EnvironmentError, requests.exceptions.Timeout) as e:
+        except (OSError, requests.exceptions.Timeout) as e:
             # not connected
             head_error = e
             pass

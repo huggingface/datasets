@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -215,5 +214,4 @@ class MockDownloadManager:
                 yield file_path.relative_to(path).as_posix(), file_path.open("rb")
 
     def iter_files(self, paths):
-        for path in paths:
-            yield path
+        yield from paths

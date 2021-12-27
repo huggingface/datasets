@@ -1,4 +1,3 @@
-# coding=utf-8
 # Lint as: python3
 """OffensEval-TR 2020: A Corpus of Turkish Offensive Language on Social Media"""
 

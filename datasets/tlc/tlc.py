@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Thai Literature Corpora (TLC): Corpora of machine-ingestible Thai classical literature texts."""
 
 
@@ -93,7 +92,7 @@ class Tlc(datasets.GeneratorBasedBuilder):
         else:
             features = datasets.Features(
                 {
-                    "text": datasets.Sequence((datasets.Value("string"))),
+                    "text": datasets.Sequence(datasets.Value("string")),
                 }
             )
 
