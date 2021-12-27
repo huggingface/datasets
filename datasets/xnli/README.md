@@ -1,4 +1,5 @@
 ---
+pretty_name: XNLI: The Cross-Lingual NLI Corpus
 languages:
 - en
 paperswithcode_id: xnli

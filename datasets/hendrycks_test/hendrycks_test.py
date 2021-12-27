@@ -180,7 +180,7 @@ class HendrycksTest(datasets.GeneratorBasedBuilder):
                         yield id_, {"question": data[0], "choices": data[1:5], "answer": data[5]}
                         id_ += 1
         else:
-            with open(os.path.join(datadir, f"{self.config.name}_{split}.csv")) as file:
-                for data in csv.reader(file, encoding="utf-8"):
+            with open(os.path.join(datadir, f"{self.config.name}_{split}.csv"), encoding="utf-8") as file:
+                for data in csv.reader(file):
                     yield id_, {"question": data[0], "choices": data[1:5], "answer": data[5]}
                     id_ += 1
