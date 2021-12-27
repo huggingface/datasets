@@ -335,7 +335,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn
         ),
     ],
 )
-def test_terable_dataset_features(generate_examples_fn, features):
+def test_iterable_dataset_features(generate_examples_fn, features):
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 0})
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
     if features:
@@ -384,6 +384,16 @@ def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, metho
     # shuffling a skip/take dataset should keep the same examples and don't shuffle the shards
     key = lambda x: f"{x['filepath']}_{x['id']}"  # noqa: E731
     assert sorted(dataset, key=key) == sorted(shuffled_dataset, key=key)
+
+
+def test_iterable_dataset_cast_column(generate_examples_fn):
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
+    features = Features({"id": Value("int64"), "label": Value("int64")})
+    dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    casted_dataset = dataset.cast_column("label", Value("bool"))
+    casted_features = features.copy()
+    casted_features["label"] = Value("bool")
+    assert list(casted_dataset) == [casted_features.encode_example(ex) for _, ex in ex_iterable]
 
 
 @pytest.mark.parametrize(

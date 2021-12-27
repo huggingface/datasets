@@ -73,7 +73,7 @@ The base class :class:`datasets.IterableDataset` implements an iterable Dataset 
 
 .. autoclass:: datasets.IterableDataset
     :members:
-        remove_columns,
+        remove_columns, cast_column,
         __iter__,
         map, shuffle, skip, take,
         info, split, builder_name, citation, config_name, dataset_size,
@@ -123,6 +123,9 @@ Dictionary with split names as keys ('train', 'test' for example), and :obj:`dat
     :members:
 
 .. autoclass:: datasets.Audio
+    :members:
+
+.. autoclass:: datasets.Image
     :members:
 
 ``MetricInfo``

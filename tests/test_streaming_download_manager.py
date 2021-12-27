@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from pathlib import Path
@@ -18,7 +19,9 @@ from datasets.utils.streaming_download_manager import (
     xopen,
     xpathglob,
     xpathjoin,
+    xpathname,
     xpathopen,
+    xpathparent,
     xpathrglob,
     xpathstem,
     xpathsuffix,
@@ -389,6 +392,39 @@ def test_xpathrglob(input_path, pattern, expected_paths, tmp_path, mock_fsspec):
 
 
 @pytest.mark.parametrize(
+    "input_path, expected_path",
+    [
+        (Path(__file__).resolve(), Path(__file__).resolve().parent),
+        (Path("https://host.com/archive.zip"), Path("https://host.com")),
+        (
+            Path("zip://file.txt::https://host.com/archive.zip"),
+            Path("zip://::https://host.com/archive.zip"),
+        ),
+        (
+            Path("zip://folder/file.txt::https://host.com/archive.zip"),
+            Path("zip://folder::https://host.com/archive.zip"),
+        ),
+    ],
+)
+def test_xpathparent(input_path, expected_path):
+    output_path = xpathparent(input_path)
+    output_path = _readd_double_slash_removed_by_path(output_path.as_posix())
+    assert output_path == _readd_double_slash_removed_by_path(expected_path.as_posix())
+
+
+@pytest.mark.parametrize(
+    "input_path, expected",
+    [
+        ("zip://file.txt::https://host.com/archive.zip", "file.txt"),
+        ("datasets/file.txt", "file.txt"),
+        ((Path().resolve() / "file.txt").as_posix(), "file.txt"),
+    ],
+)
+def test_xpathname(input_path, expected):
+    assert xpathname(Path(input_path)) == expected
+
+
+@pytest.mark.parametrize(
     "input_path, expected",
     [
         ("zip://file.txt::https://host.com/archive.zip", "file"),
@@ -538,3 +574,27 @@ def test_streaming_gg_drive_zipped():
     assert xbasename(all_files[0]) == TEST_GG_DRIVE_FILENAME
     with xopen(all_files[0]) as f:
         assert f.read() == TEST_GG_DRIVE_CONTENT
+
+
+def _test_jsonl(path, file):
+    assert path.endswith(".jsonl")
+    for num_items, line in enumerate(file, start=1):
+        item = json.loads(line.decode("utf-8"))
+        assert item.keys() == {"col_1", "col_2", "col_3"}
+    assert num_items == 4
+
+
+def test_iter_archive_path(tar_jsonl_path):
+    dl_manager = StreamingDownloadManager()
+    for num_jsonl, (path, file) in enumerate(dl_manager.iter_archive(str(tar_jsonl_path)), start=1):
+        _test_jsonl(path, file)
+    assert num_jsonl == 2
+
+
+def test_iter_archive_file(tar_nested_jsonl_path):
+    dl_manager = StreamingDownloadManager()
+    for num_tar, (path, file) in enumerate(dl_manager.iter_archive(str(tar_nested_jsonl_path)), start=1):
+        for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
+            _test_jsonl(subpath, subfile)
+    assert num_tar == 1
+    assert num_jsonl == 2
