@@ -34,7 +34,7 @@ import dataclasses
 import json
 import os
 from dataclasses import asdict, dataclass, field
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from datasets.tasks.text_classification import TextClassification
 
@@ -274,7 +274,7 @@ class DatasetInfo:
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
 
-class DatasetInfosDict(dict):
+class DatasetInfosDict(Dict[str, DatasetInfo]):
     def write_to_directory(self, dataset_infos_dir, overwrite=False):
         total_dataset_infos = {}
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)

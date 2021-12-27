@@ -3,23 +3,25 @@ import copy
 import json
 import os
 import re
+from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
-
-from datasets.splits import NamedSplit, Split
-from datasets.utils.doc_utils import is_documented_by
+from huggingface_hub import HfApi
 
 from . import config
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .info import DatasetInfo
+from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils.deprecation_utils import deprecated
+from .utils.doc_utils import is_documented_by
 from .utils.typing import PathLike
 
 
@@ -931,12 +933,41 @@ class DatasetDict(dict):
 
                 >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
         """
-        for key in self.keys():
-            logger.warning(f"Pushing split {key} to the Hub.")
+        self._check_values_type()
+        total_uploaded_size = 0
+        total_dataset_nbytes = 0
+        info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
+        dataset_name = repo_id.split("/")[-1]
+        info_to_dump.splits = SplitDict(dataset_name=dataset_name)
+        for split in self.keys():
+            logger.warning(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
-            self[key].push_to_hub(
-                repo_id, split=key, private=private, token=token, branch=branch, shard_size=shard_size
+            repo_id, split, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
+                repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
             )
+            total_uploaded_size += uploaded_size
+            total_dataset_nbytes += dataset_nbytes
+            info_to_dump.splits[split] = SplitInfo(
+                str(split), num_bytes=dataset_nbytes, num_examples=len(self[split]), dataset_name=dataset_name
+            )
+        organization, dataset_name = repo_id.split("/")
+        info_to_dump.download_checksums = None
+        info_to_dump.download_size = total_uploaded_size
+        info_to_dump.dataset_size = total_dataset_nbytes
+        info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
+        buffer = BytesIO()
+        buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
+        info_to_dump._dump_info(buffer)
+        buffer.write(b"}")
+        HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+            path_or_fileobj=buffer.getvalue(),
+            path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+            repo_id=repo_id,
+            token=token,
+            repo_type="dataset",
+            revision=branch,
+            identical_ok=True,
+        )
 
 
 class IterableDatasetDict(dict):

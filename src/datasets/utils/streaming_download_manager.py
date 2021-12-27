@@ -8,8 +8,9 @@ import time
 from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePath, PurePosixPath
 from typing import List, Optional, Tuple, Union
+from xml.etree import ElementTree as ET
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
@@ -278,9 +279,8 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     It also has a retry mechanism in case connection fails.
     The args and kwargs are passed to fsspec.open, except `use_auth_token` which is used for queries to private repos on huggingface.co
     """
-    # required for Windows compatibility
-    if "\\" in file:
-        file = _as_posix(Path(file))
+    # required for `xopen(str(Path(...)))` to work
+    file = _as_posix(PurePath(file))
     main_hop, *rest_hops = file.split("::")
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
@@ -466,10 +466,12 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     """Extend `os.walk` function to support remote files.
 
     Args:
-        urlpath: URL root path.
+        urlpath (:obj:`str`): URL root path.
+        use_auth_token (:obj:`bool` or :obj:`str`, optional): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
 
     Yields:
-        tuple: 3-tuple (dirpath, dirnames, filenames).
+        :obj:`tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
     main_hop, *rest_hops = urlpath.split("::")
     if is_local_path(main_hop):
@@ -501,6 +503,25 @@ def xpandas_read_excel(filepath_or_buffer, **kwargs):
     import pandas as pd
 
     return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
+
+
+def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = None):
+    """Extend `xml.etree.ElementTree.parse` function to support remote files.
+
+    Args:
+        source: File path or file object.
+        parser (optional, default `XMLParser`): Parser instance.
+        use_auth_token (:obj:`bool` or :obj:`str`, optional): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
+
+    Returns:
+        :obj:`xml.etree.ElementTree.Element`: Root element of the given source document.
+    """
+    if hasattr(source, "read"):
+        return ET.parse(source, parser=parser)
+    else:
+        with xopen(source, "rb", use_auth_token=use_auth_token) as f:
+            return ET.parse(f, parser=parser)
 
 
 class StreamingDownloadManager(object):
