@@ -11,7 +11,7 @@ licenses:
 - apache-2.0
 multilinguality:
 - monolingual
-pretty_name: crass
+pretty_name: CRASS
 size_categories:
 - unknown
 source_datasets:
@@ -22,7 +22,7 @@ task_ids:
 - natural-language-inference
 ---
 
-# Dataset Card for crass
+# Dataset Card for CRASS
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -103,7 +103,7 @@ As the dataset is used for zero-shot classification, the whole dataset is one si
 
 ### Curation Rationale
 
-The CRASS benchmarks aims to develope a new test suite for the evaluation of the performance of current large language models (LLMs) by utilizing so called questionized counterfactual conditionals (QCC).
+The CRASS benchmarks aims to develop a new test suite for the evaluation of the performance of current large language models (LLMs) by utilizing so called questionized counterfactual conditionals (QCC).
 
 ### Source Data
 
