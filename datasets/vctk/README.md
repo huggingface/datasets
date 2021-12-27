@@ -86,9 +86,8 @@ A data point comprises the path to the audio file, called `file` and its transcr
   'audio': 
     {
       'path': '/home/lily/jt856/.cache/huggingface/datasets/downloads/extracted/8ed7dad05dfffdb552a3699777442af8e8ed11e656feb277f35bf9aea448f49e/wav48_silence_trimmed/p225/p225_001_mic1.flac', 
-      'array': array([0.00485229, 0.00689697, 0.00619507, ..., 0.00811768, 0.00836182,
-       0.00854492], dtype=float32), 
-       'sampling_rate': 48000
+      'array': array([0.00485229, 0.00689697, 0.00619507, ..., 0.00811768, 0.00836182, 0.00854492], dtype=float32), 
+      'sampling_rate': 48000
     }, 
   'comment': ''
 }
