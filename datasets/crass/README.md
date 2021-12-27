@@ -155,7 +155,16 @@ The CRASS benchmark data set is released under the Apache License 2.0.
 
 ### Citation Information
 
-forthcoming
+```
+@misc{frohberg2021crass,
+      title={CRASS: A Novel Data Set and Benchmark to Test Counterfactual Reasoning of Large Language Models}, 
+      author={Jörg Frohberg and Frank Binder},
+      year={2021},
+      eprint={2112.11941},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```
 
 ### Contributions
 
