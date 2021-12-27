@@ -93,7 +93,7 @@ A data point comprises the path to the audio file, called `file` and its transcr
 }
 ```
 
-Each audio file is a single-channel 16-bit PCM WAV with a sample rate of 48000 Hz.
+Each audio file is a single-channel FLAC with a sample rate of 48000 Hz.
 
 ### Data Fields
 
