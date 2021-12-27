@@ -71,17 +71,40 @@ This CSTR VCTK Corpus includes speech data uttered by 110 English speakers with 
 
 ### Data Instances
 
-[More Information Needed]
+A data point comprises the path to the audio file, called `file` and its transcription, called `text`. 
+
+```
+{
+  'speaker_id': 'p225',
+  'text_id': '001',
+  'text': 'Please call Stella.',
+  'age': '23', 
+  'gender': 'F', 
+  'accent': 'English', 
+  'region': 'Southern England', 
+  'file': '/home/lily/jt856/.cache/huggingface/datasets/downloads/extracted/8ed7dad05dfffdb552a3699777442af8e8ed11e656feb277f35bf9aea448f49e/wav48_silence_trimmed/p225/p225_001_mic1.flac', 
+  'audio': 
+    {
+      'path': '/home/lily/jt856/.cache/huggingface/datasets/downloads/extracted/8ed7dad05dfffdb552a3699777442af8e8ed11e656feb277f35bf9aea448f49e/wav48_silence_trimmed/p225/p225_001_mic1.flac', 
+      'array': array([0.00485229, 0.00689697, 0.00619507, ..., 0.00811768, 0.00836182,
+       0.00854492], dtype=float32), 
+       'sampling_rate': 48000
+    }, 
+  'comment': ''
+}
+```
+
+Each audio file is a single-channel 16-bit PCM WAV with a sample rate of 48000 Hz.
 
 ### Data Fields
 
 Each row consists of the following fields:
 
-- `speaker_id`: Unique speaker ID
-- `audio`: Audio recording in 48K
+- `speaker_id`: Speaker ID
+- `audio`: Audio recording
 - `file`: Path to audio file
-- `text`: Text transcription corresponding to the audio
-- `text_id`: Unique text ID
+- `text`: Text transcription of corresponding audio
+- `text_id`: Text ID
 - `age`: Speaker's age
 - `gender`: Speaker's gender
 - `accent`: Speaker's accent
