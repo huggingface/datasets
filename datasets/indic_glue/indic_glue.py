@@ -430,7 +430,7 @@ class IndicGlueConfig(datasets.BuilderConfig):
         dict for each text field to the name of the column in the csv/json file
           **kwargs: keyword arguments forwarded to super.
         """
-        super(IndicGlueConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.data_url = data_url
         self.citation = citation
         self.url = url

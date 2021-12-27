@@ -108,7 +108,7 @@ def test_read_files(in_memory, dataset, arrow_file):
     reader = ArrowReader("", None)
     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
         dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
-    assert dataset_kwargs.keys() == set(["arrow_table", "info", "split"])
+    assert dataset_kwargs.keys() == {"arrow_table", "info", "split"}
     table = dataset_kwargs["arrow_table"]
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)

@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -143,7 +143,7 @@ class GoEmotions(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths, raw=False):
         """Generate AG News examples."""
         for file_idx, filepath in enumerate(filepaths):
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 if raw:
                     reader = csv.DictReader(f)
                 else:

@@ -13,12 +13,12 @@ class TestFileEncoding(TestCase):
         (?!.*\b(?:encoding|rb|w|wb|w+|wb+|ab|ab+)\b): Lookahead and discard match if `encoding` or `rb` etc are
         arguments of `open()`.
 
-        (?<=\s): Lookbehind and match if `open()` predeceded by one whitespace.
+        (?<=\s): Lookbehind and match if `open()` preceded by one whitespace.
 
         (open)\((.*)\): Capture everything in parentheses of `open()`.
         """
 
-        with open(filepath, "r", encoding="utf-8") as input_file:
+        with open(filepath, encoding="utf-8") as input_file:
             regexp = re.compile(r"(?!.*\b(?:encoding|rb|w|wb|w+|wb+|ab|ab+)\b)(?<=\s)(open)\((.*)\)")
             input_text = input_file.read()
             match = regexp.search(input_text)

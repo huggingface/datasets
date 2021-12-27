@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,7 +68,7 @@ class BprecConfig(datasets.BuilderConfig):
     """BuilderConfig for BprecConfig."""
 
     def __init__(self, categories=None, **kwargs):
-        super(BprecConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs),
+        super().__init__(version=datasets.Version(_VERSION, ""), **kwargs),
         self.categories = categories
 
 
@@ -184,7 +184,7 @@ class Bprec(datasets.GeneratorBasedBuilder):
         # The key is not important, it's more here for legacy reason (legacy from tfds)
         cats = [cat for cat in self.config.categories]
         for cat, filepath in zip(cats, filedirs):
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 for key in data.keys():
                     example = data[key]

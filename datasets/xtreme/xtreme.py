@@ -437,7 +437,7 @@ class XtremeConfig(datasets.BuilderConfig):
             label_classes
             **kwargs: keyword arguments forwarded to super.
         """
-        super(XtremeConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.data_url = data_url
         self.citation = citation

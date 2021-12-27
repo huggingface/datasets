@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -128,22 +128,16 @@ class PerSent(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             reader = csv.reader(f)
 
-            # Header
-            _ = next(reader)
+            next(reader)  # Header
 
             for id_, row in enumerate(reader):
                 doc_idx, title, target, doc, masked_doc, *labels = row
-
-                # Replace missing labels with -1
-                labels = [label if label in self.LABELS else -1 for label in labels]
-
-                example = {
+                yield id_, {
                     "DOCUMENT_INDEX": doc_idx,
                     "TITLE": title,
                     "TARGET_ENTITY": target,
                     "DOCUMENT": doc,
                     "MASKED_DOCUMENT": masked_doc,
+                    # Replace missing labels with -1:
+                    **dict(zip(self.LABEL_COLS, (label if label in self.LABELS else -1 for label in labels))),
                 }
-                example.update(dict(zip(self.LABEL_COLS, labels)))
-
-                yield id_, example

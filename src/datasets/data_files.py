@@ -55,7 +55,7 @@ FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data
 
 
 def contains_wildcards(pattern: str) -> bool:
-    return any(wilcard_character in pattern for wilcard_character in WILDCARD_CHARACTERS)
+    return any(wildcard_character in pattern for wildcard_character in WILDCARD_CHARACTERS)
 
 
 def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[str], "DataFilesList"]]:
@@ -65,7 +65,7 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
     The default split is "train".
 
     Returns:
-        patterns: dictionary of split_name -> list_of _atterns
+        patterns: dictionary of split_name -> list_of_patterns
     """
     if isinstance(patterns, dict):
         return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}

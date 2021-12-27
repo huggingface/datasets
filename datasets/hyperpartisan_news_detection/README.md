@@ -78,7 +78,7 @@ This example was too long and was cropped:
     "published_at": "2020-01-01",
     "text": "\"<p>This is a sample article which will contain lots of text</p>\\n    \\n<p>Lorem ipsum dolor sit amet, consectetur adipiscing el...",
     "title": "Example article 1",
-    "url": "http://www.example.com/example1"
+    "url": "https://www.example.com/example1"
 }
 ```
 

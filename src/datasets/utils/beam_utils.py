@@ -157,7 +157,7 @@ class WriteToParquet(PTransform):
         Returns:
             A WriteToParquet transform usable for writing.
         """
-        super(WriteToParquet, self).__init__()
+        super().__init__()
         self._sink = _create_parquet_sink(
             file_path_prefix,
             schema,
@@ -220,7 +220,7 @@ class _ParquetSink(filebasedsink.FileBasedSink):
         shard_name_template,
         mime_type,
     ):
-        super(_ParquetSink, self).__init__(
+        super().__init__(
             file_path_prefix,
             file_name_suffix=file_name_suffix,
             num_shards=num_shards,
@@ -242,7 +242,7 @@ class _ParquetSink(filebasedsink.FileBasedSink):
         self._file_handle = None
 
     def open(self, temp_path):
-        self._file_handle = super(_ParquetSink, self).open(temp_path)
+        self._file_handle = super().open(temp_path)
         return pq.ParquetWriter(
             self._file_handle,
             self._schema,
@@ -273,7 +273,7 @@ class _ParquetSink(filebasedsink.FileBasedSink):
             self._file_handle = None
 
     def display_data(self):
-        res = super(_ParquetSink, self).display_data()
+        res = super().display_data()
         res["codec"] = str(self._codec)
         res["schema"] = str(self._schema)
         res["row_group_buffer_size"] = str(self._row_group_buffer_size)

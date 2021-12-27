@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,9 +78,9 @@ class UDHN(datasets.GeneratorBasedBuilder):
             txt_path = os.path.join(txt_dir, f"udhr_{lang}.txt")
             assert os.path.exists(txt_path), f"xml file {xml_path} found with no corresponding txt file"
 
-            with open(txt_path, "r", encoding="utf-8") as f:
+            with open(txt_path, encoding="utf-8") as f:
                 lines = f.readlines()[6:]  # ignore first 6 lines (metainfo)
-            text = "\n".join([line.strip() for line in lines if len(line.strip()) > 0])
+            text = "\n".join(line.strip() for line in lines if len(line.strip()) > 0)
 
             yield i, {
                 "text": text,

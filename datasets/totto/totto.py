@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -103,7 +103,7 @@ class Totto(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath, datatype):
-        with open(datapath, "r", encoding="utf-8") as json_file:
+        with open(datapath, encoding="utf-8") as json_file:
             json_list = list(json_file)
 
         for example_counter, json_str in enumerate(json_list):

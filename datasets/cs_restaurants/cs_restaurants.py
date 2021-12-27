@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ _CITATION = """\
   journal   = {CoRR},
   volume    = {abs/1910.05298},
   year      = {2019},
-  url       = {http://arxiv.org/abs/1910.05298},
+  url       = {https://arxiv.org/abs/1910.05298},
   archivePrefix = {arXiv},
   eprint    = {1910.05298},
   timestamp = {Wed, 16 Oct 2019 16:25:53 +0200},

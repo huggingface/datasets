@@ -89,7 +89,7 @@ This dataset is a mirror of the original ArXiv data. Because the full dataset is
  'doi': None,
  'report-no': None,
  'categories': 'math.CO cs.CG',
- 'license': 'http://arxiv.org/licenses/nonexclusive-distrib/1.0/',
+ 'license': 'https://arxiv.org/licenses/nonexclusive-distrib/1.0/',
  'abstract': '  We describe a new algorithm, the $(k,\\ell)$-pebble game with colors, and use\nit obtain a characterization of the family of $(k,\\ell)$-sparse graphs and\nalgorithmic solutions to a family of problems concerning tree decompositions of\ngraphs. Special instances of sparse graphs appear in rigidity theory and have\nreceived increased attention in recent years. In particular, our colored\npebbles generalize and strengthen the previous results of Lee and Streinu and\ngive a new proof of the Tutte-Nash-Williams characterization of arboricity. We\nalso present a new decomposition that certifies sparsity based on the\n$(k,\\ell)$-pebble game with colors. Our work also exposes connections between\npebble game algorithms and previous sparse graph algorithms by Gabow, Gabow and\nWestermann and Hendrickson.\n',
  'update_date': '2008-12-13'}
  ```

@@ -169,7 +169,7 @@ The code for the non-anonymized version is made publicly available by Abigail Se
 
 ### Licensing Information
 
-The CNN / Daily Mail dataset version 1.0.0 is released under the [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0). 
+The CNN / Daily Mail dataset version 1.0.0 is released under the [Apache-2.0 License](https://www.apache.org/licenses/LICENSE-2.0). 
 
 ### Citation Information
 

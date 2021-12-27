@@ -64,7 +64,7 @@ class Section:
                     self.content[current_sub_level] = Section(current_sub_level, self.level + "#", current_lines)
                     current_lines = []
                 else:
-                    if current_lines != []:
+                    if current_lines:
                         self.text += "".join(current_lines).strip()
                         if self.text != "" and self.text not in FILLER_TEXT:
                             self.is_empty_text = False
@@ -125,7 +125,7 @@ class Section:
                 values = [subsection["name"] for subsection in structure["subsections"]]
                 # Mention the expected values in the error_list
                 error_list.append(
-                    f"Section `{self.name}` expected the following subsections: {', '.join(['`'+x+'`' for x in values])}. Found 'None'."
+                    f"Section `{self.name}` expected the following subsections: {', '.join('`'+x+'`' for x in values)}. Found 'None'."
                 )
             else:
                 # If some subsections are present
@@ -241,7 +241,7 @@ class ReadMe(Section):  # Level 0
         if num_first_level_keys > 1:
             # If more than one, add to the error list, continue
             error_list.append(
-                f"The README has several first-level headings: {', '.join(['`'+x+'`' for x in list(self.content.keys())])}. Only one heading is expected. Skipping further validation for this README."
+                f"The README has several first-level headings: {', '.join('`'+x+'`' for x in self.content.keys())}. Only one heading is expected. Skipping further validation for this README."
             )
         elif num_first_level_keys < 1:
             # If less than one, append error.

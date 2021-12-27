@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -99,7 +99,7 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None)
         filetype_suffix: `Optional[str]` suffix of dataset files, e.g. 'arrow' or 'parquet'
 
     Returns:
-        file_intructions: FileInstructions instance
+        file_instructions: FileInstructions instance
     """
     name2len = {info.name: info.num_examples for info in split_infos}
     if not isinstance(instruction, ReadInstruction):
@@ -503,7 +503,7 @@ class ReadInstruction:
     @classmethod
     def _read_instruction_from_relative_instructions(cls, relative_instructions):
         """Returns ReadInstruction obj initialized with relative_instructions."""
-        # Use __new__ to bypass __init__ used by public API and not conveniant here.
+        # Use __new__ to bypass __init__ used by public API and not convenient here.
         result = cls.__new__(cls)
         result._init(relative_instructions)  # pylint: disable=protected-access
         return result
@@ -562,7 +562,7 @@ class ReadInstruction:
         if not subs:
             raise AssertionError(f"No instructions could be built out of {spec}")
         instruction = _str_to_read_instruction(subs[0])
-        return sum([_str_to_read_instruction(sub) for sub in subs[1:]], instruction)
+        return sum((_str_to_read_instruction(sub) for sub in subs[1:]), instruction)
 
     def to_spec(self):
         rel_instr_specs = []

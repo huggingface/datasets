@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -95,7 +95,7 @@ _URLs = dict(_URLS_LIST)
 
 class ExamsConfig(datasets.BuilderConfig):
     def __init__(self, lang, with_para, **kwargs):
-        super(ExamsConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.lang = lang
         self.with_para = "_with_para" if with_para else ""
 

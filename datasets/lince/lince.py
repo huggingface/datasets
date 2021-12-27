@@ -253,7 +253,7 @@ class LinceConfig(datasets.BuilderConfig):
     """BuilderConfig for LinCE"""
 
     def __init__(self, colnames, classes, label_column, **kwargs):
-        super(LinceConfig, self).__init__(
+        super().__init__(
             version=datasets.Version(
                 "1.0.0", description="The Linguistic Code-switching Evaluation (LinCE) benchmark"
             ),

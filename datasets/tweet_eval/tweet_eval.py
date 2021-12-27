@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-TweetEval consists of seven heterogenous tasks in Twitter, all framed as multi-class tweet classification. All tasks have been unified into the same benchmark, with each dataset presented in the same format and with fixed training, validation and test splits.
+TweetEval consists of seven heterogeneous tasks in Twitter, all framed as multi-class tweet classification. All tasks have been unified into the same benchmark, with each dataset presented in the same format and with fixed training, validation and test splits.
 """
 
 _HOMEPAGE = "https://github.com/cardiffnlp/tweeteval"
@@ -152,7 +152,7 @@ class TweetEval(datasets.GeneratorBasedBuilder):
             version=datasets.Version("1.1.0"),
             description=f"This part of my dataset covers {key} part of TweetEval Dataset.",
         )
-        for key in list(_URLs.keys())
+        for key in _URLs.keys()
         if key != "stance"
     ] + [
         TweetEvalConfig(
@@ -161,7 +161,7 @@ class TweetEval(datasets.GeneratorBasedBuilder):
             version=datasets.Version("1.1.0"),
             description=f"This part of my dataset covers stance_{key} part of TweetEval Dataset.",
         )
-        for key in list(_URLs["stance"].keys())
+        for key in _URLs["stance"].keys()
     ]
 
     def _info(self):

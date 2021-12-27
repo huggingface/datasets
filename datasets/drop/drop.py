@@ -41,7 +41,7 @@ class DropDateObject:
         'year': '2021'
     }
 
-    This dict is parsed and flattend to '{day} {month} {year}', not including
+    This dict is parsed and flattened to '{day} {month} {year}', not including
     blank values.
 
     Example: str(DropDateObject(date)) == '9 March 2021'
@@ -118,12 +118,11 @@ class Drop(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """Yields examples."""
         # TODO(drop): Yields (key, example) tuples from the dataset
-        with open(filepath, mode="r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             id_ = 0
-            for i, (section_id, section) in enumerate(data.items()):
-                for j, qa in enumerate(section["qa_pairs"]):
-
+            for section_id, section in data.items():
+                for qa in section["qa_pairs"]:
                     example = {
                         "section_id": section_id,
                         "query_id": qa["query_id"],
@@ -149,7 +148,7 @@ class Drop(datasets.GeneratorBasedBuilder):
     def _raise(message):
         """
         Raise a custom AnswerParsingError, to be sure to only catch our own
-        errors. Messages are irrelavant for this script, but are written to
+        errors. Messages are irrelevant for this script, but are written to
         ease understanding the code.
         """
         raise AnswerParsingError(message)
@@ -181,7 +180,7 @@ class Drop(datasets.GeneratorBasedBuilder):
                 returned_answers["spans"].append(str(date))
                 returned_answers["types"].append("date")
 
-            # won't triger if len(answer['spans']) == 0
+            # won't trigger if len(answer['spans']) == 0
             for span in answer["spans"]:
                 # sanity checks
                 if answer["number"] != "":
@@ -196,7 +195,7 @@ class Drop(datasets.GeneratorBasedBuilder):
         _len = len(returned_answers["spans"])
         if not _len:
             self._raise("Empty answer.")
-        if any(len(l) != _len for _, l in returned_answers.items()):
+        if any(len(answer_len) != _len for answer_len in returned_answers.values()):
             self._raise("Something went wrong while parsing answer values/types")
 
         return returned_answers

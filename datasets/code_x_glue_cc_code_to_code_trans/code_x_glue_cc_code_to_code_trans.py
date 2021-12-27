@@ -6,7 +6,7 @@ from .common import TrainValidTestChild
 from .generated_definitions import DEFINITIONS
 
 
-_DESCRIPTION = """The dataset is collected from several public repos, including Lucene(http://lucene.apache.org/), POI(http://poi.apache.org/), JGit(https://github.com/eclipse/jgit/) and Antlr(https://github.com/antlr/).
+_DESCRIPTION = """The dataset is collected from several public repos, including Lucene(https://lucene.apache.org/), POI(https://poi.apache.org/), JGit(https://github.com/eclipse/jgit/) and Antlr(https://github.com/antlr/).
         We collect both the Java and C# versions of the codes and find the parallel functions. After removing duplicates and functions with the empty body, we split the whole dataset into training, validation and test sets."""
 _CITATION = """@article{DBLP:journals/corr/abs-2102-04664,
   author    = {Shuai Lu and

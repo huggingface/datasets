@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,7 +54,7 @@ Examples:
 """
 
 # TODO: Define external resources urls if needed
-BAD_WORDS_URL = "http://url/to/external/resource/bad_words.txt"
+BAD_WORDS_URL = "https://url/to/external/resource/bad_words.txt"
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
@@ -74,17 +74,18 @@ class NewMetric(datasets.Metric):
                 'references': datasets.Value('string'),
             }),
             # Homepage of the metric for documentation
-            homepage="http://metric.homepage",
+            homepage="https://metric.homepage",
             # Additional links to the codebase or references
-            codebase_urls=["http://github.com/path/to/codebase/of/new_metric"],
-            reference_urls=["http://path.to.reference.url/new_metric"]
+            codebase_urls=["https://github.com/path/to/codebase/of/new_metric"],
+            reference_urls=["https://path.to.reference.url/new_metric"]
         )
 
     def _download_and_prepare(self, dl_manager):
         """Optional: download external resources useful to compute the scores"""
         # TODO: Download external resources if needed
         bad_words_path = dl_manager.download_and_extract(BAD_WORDS_URL)
-        self.bad_words = set([w.strip() for w in open(bad_words_path, "r", encoding="utf-8")])
+        with open(bad_words_path, encoding="utf-8") as file:
+            self.bad_words = {w.strip() for w in file}
 
     def _compute(self, predictions, references):
         """Returns the scores"""

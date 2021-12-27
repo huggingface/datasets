@@ -222,9 +222,9 @@ class DownloadConfig:
     Attributes:
         cache_dir (:obj:`str` or :obj:`Path`, optional): Specify a cache directory to save the file to (overwrite the
             default cache dir).
-        force_download (:obj:`bool`, default ``False``): If True, re-dowload the file even if it's already cached in
+        force_download (:obj:`bool`, default ``False``): If True, re-download the file even if it's already cached in
             the cache dir.
-        resume_download (:obj:`bool`, default ``False``): If True, resume the download if incompletly recieved file is
+        resume_download (:obj:`bool`, default ``False``): If True, resume the download if incompletely received file is
             found.
         proxies (:obj:`dict`, optional):
         user_agent (:obj:`str`, optional): Optional string or dict that will be appended to the user-agent on remote

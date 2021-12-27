@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -98,7 +98,7 @@ class ParaPatConfig(datasets.BuilderConfig):
         description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
 
         source, target = language_pair
-        super(ParaPatConfig, self).__init__(
+        super().__init__(
             name=name,
             description=description,
             version=datasets.Version("1.1.0", ""),

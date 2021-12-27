@@ -39,7 +39,7 @@ class SEDEConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(SEDEConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class SEDE(datasets.GeneratorBasedBuilder):

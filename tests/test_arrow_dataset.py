@@ -2988,23 +2988,23 @@ class TaskTemplatesTest(TestCase):
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
         # Test we can load from task name when label names not included in template (default behaviour)
         with Dataset.from_dict(data, info=info1) as dset:
-            self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
+            self.assertSetEqual({"input_text", "input_labels"}, set(dset.column_names))
             self.assertDictEqual(features_before_cast, dset.features)
             with dset.prepare_for_task(task="text-classification") as dset:
-                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                self.assertSetEqual({"labels", "text"}, set(dset.column_names))
                 self.assertDictEqual(features_after_cast, dset.features)
         # Test we can load from task name when label names included in template
         with Dataset.from_dict(data, info=info2) as dset:
-            self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
+            self.assertSetEqual({"input_text", "input_labels"}, set(dset.column_names))
             self.assertDictEqual(features_before_cast, dset.features)
             with dset.prepare_for_task(task="text-classification") as dset:
-                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                self.assertSetEqual({"labels", "text"}, set(dset.column_names))
                 self.assertDictEqual(features_after_cast, dset.features)
         # Test we can load from TextClassification template
         info1.task_templates = None
         with Dataset.from_dict(data, info=info1) as dset:
             with dset.prepare_for_task(task=task_with_labels) as dset:
-                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                self.assertSetEqual({"labels", "text"}, set(dset.column_names))
                 self.assertDictEqual(features_after_cast, dset.features)
 
     def test_task_question_answering(self):
@@ -3044,13 +3044,13 @@ class TaskTemplatesTest(TestCase):
         # Test we can load from task name
         with Dataset.from_dict(data, info=info) as dset:
             self.assertSetEqual(
-                set(["input_context", "input_question", "input_answers.text", "input_answers.answer_start"]),
+                {"input_context", "input_question", "input_answers.text", "input_answers.answer_start"},
                 set(dset.flatten().column_names),
             )
             self.assertDictEqual(features_before_cast, dset.features)
             with dset.prepare_for_task(task="question-answering-extractive") as dset:
                 self.assertSetEqual(
-                    set(["context", "question", "answers.text", "answers.answer_start"]),
+                    {"context", "question", "answers.text", "answers.answer_start"},
                     set(dset.flatten().column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3059,7 +3059,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    set(["context", "question", "answers.text", "answers.answer_start"]),
+                    {"context", "question", "answers.text", "answers.answer_start"},
                     set(dset.flatten().column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3081,7 +3081,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="summarization") as dset:
                 self.assertSetEqual(
-                    set(["text", "summary"]),
+                    {"text", "summary"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3090,7 +3090,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    set(["text", "summary"]),
+                    {"text", "summary"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3118,7 +3118,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="automatic-speech-recognition") as dset:
                 self.assertSetEqual(
-                    set(["audio_file_path", "transcription"]),
+                    {"audio_file_path", "transcription"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3127,7 +3127,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    set(["audio_file_path", "transcription"]),
+                    {"audio_file_path", "transcription"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)

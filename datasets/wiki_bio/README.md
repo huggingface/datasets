@@ -191,7 +191,7 @@ For refering the original paper in BibTex format:
   journal   = {CoRR},
   volume    = {abs/1603.07771},
   year      = {2016},
-  url       = {http://arxiv.org/abs/1603.07771},
+  url       = {https://arxiv.org/abs/1603.07771},
   archivePrefix = {arXiv},
   eprint    = {1603.07771},
   timestamp = {Mon, 13 Aug 2018 16:48:30 +0200},

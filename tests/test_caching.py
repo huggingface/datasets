@@ -27,11 +27,11 @@ class Foo:
 
 class DatasetChild(datasets.Dataset):
     @fingerprint_transform(inplace=False)
-    def func1(self, new_fingerprint, *args, **kwargs):
+    def func1(self, new_fingerprint, *_args, **_kwargs):
         return DatasetChild(self.data, fingerprint=new_fingerprint)
 
     @fingerprint_transform(inplace=False)
-    def func2(self, new_fingerprint, *args, **kwargs):
+    def func2(self, new_fingerprint, *_args, **_kwargs):
         return DatasetChild(self.data, fingerprint=new_fingerprint)
 
 
@@ -211,10 +211,10 @@ class RecurseDumpTest(TestCase):
 
         func.__module__ = "__main__"
 
-        def globalvars_mock1_side_effect(func, *args, **kwargs):
+        def globalvars_mock1_side_effect(func, *_args, **_kwargs):
             return {"foo": foo, "bar": bar}
 
-        def globalvars_mock2_side_effect(func, *args, **kwargs):
+        def globalvars_mock2_side_effect(func, *_args, **_kwargs):
             return {"bar": bar, "foo": foo}
 
         with patch("dill.detect.globalvars", side_effect=globalvars_mock1_side_effect) as globalvars_mock1:
@@ -339,20 +339,20 @@ def test_fingerprint_when_transform_version_changes():
         def func(self, new_fingerprint):
             return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
 
-    fingeprint_no_version = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+    fingerprint_no_version = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
 
     class DummyDatasetChild(datasets.Dataset):
         @fingerprint_transform(inplace=False, version="1.0.0")
         def func(self, new_fingerprint):
             return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
 
-    fingeprint_1 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+    fingerprint_1 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
 
     class DummyDatasetChild(datasets.Dataset):
         @fingerprint_transform(inplace=False, version="2.0.0")
         def func(self, new_fingerprint):
             return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
 
-    fingeprint_2 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+    fingerprint_2 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
 
-    assert len(set([fingeprint_no_version, fingeprint_1, fingeprint_2])) == 3
+    assert len({fingerprint_no_version, fingerprint_1, fingerprint_2}) == 3

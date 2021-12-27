@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -135,7 +135,7 @@ class FewRel(datasets.GeneratorBasedBuilder):
         pid2name_dict = {}
         with open(pid2name, encoding="utf-8") as f:
             data = json.load(f)
-        for key in list(data.keys()):
+        for key in data.keys():
             name_1 = data[key][0]
             name_2 = data[key][1]
             pid2name_dict[key] = [name_1, name_2]
@@ -144,7 +144,7 @@ class FewRel(datasets.GeneratorBasedBuilder):
             data = json.load(f)
         if isinstance(data, dict):
             id = 0
-            for key in list(data.keys()):
+            for key in data.keys():
                 for items in data[key]:
                     tokens = items["tokens"]
                     h_0 = items["h"][0]

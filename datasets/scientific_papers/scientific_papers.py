@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -69,7 +69,7 @@ class ScientificPapersConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # 1.1.0 remove sentence breaker <S> and </S> in summary.
-        super(ScientificPapersConfig, self).__init__(version=datasets.Version("1.1.1"), **kwargs)
+        super().__init__(version=datasets.Version("1.1.1"), **kwargs)
         self.filename = filename
 
 

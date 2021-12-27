@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -476,7 +476,7 @@ class Swda(datasets.GeneratorBasedBuilder):
         """
 
         # Read in the split file.
-        split_file = io.open(file=split_file, mode="r", encoding="utf-8").read().splitlines()
+        split_file = io.open(file=split_file, encoding="utf-8").read().splitlines()
         # Read in corpus data using split files.
         corpus = CorpusReader(src_dirname=data_dir, split_file=split_file)
         # Generate examples.

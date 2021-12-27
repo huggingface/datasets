@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -100,9 +100,7 @@ class Wiki40bConfig(datasets.BuilderConfig):
           language: string, the language code for the Wiki40B dataset to use.
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Wiki40bConfig, self).__init__(
-            name=str(language), description=f"Wiki40B dataset for {language}.", **kwargs
-        )
+        super().__init__(name=str(language), description=f"Wiki40B dataset for {language}.", **kwargs)
         self.language = language
 
 

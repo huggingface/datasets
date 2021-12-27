@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -227,7 +227,7 @@ _LANGS = [
 
 class WikiannConfig(datasets.BuilderConfig):
     def __init__(self, **kwargs):
-        super(WikiannConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs)
+        super().__init__(version=datasets.Version(_VERSION, ""), **kwargs)
 
 
 class Wikiann(datasets.GeneratorBasedBuilder):
@@ -287,9 +287,9 @@ class Wikiann(datasets.GeneratorBasedBuilder):
         return sorted(list(spans), key=lambda x: x[1][0])
 
     def _get_spans(self, tokens, tags):
-        """Convert tags to textspans."""
+        """Convert tags to text spans."""
         spans = self._tags_to_spans(tags)
-        text_spans = [x[0] + ": " + " ".join([tokens[i] for i in range(x[1][0], x[1][1] + 1)]) for x in spans]
+        text_spans = [x[0] + ": " + " ".join(tokens[i] for i in range(x[1][0], x[1][1] + 1)) for x in spans]
         if not text_spans:
             text_spans = ["None"]
         return text_spans

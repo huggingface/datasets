@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,7 @@ _CITATION = """\
   journal   = {CoRR},
   volume    = {abs/1603.07771},
   year      = {2016},
-  url       = {http://arxiv.org/abs/1603.07771},
+  url       = {https://arxiv.org/abs/1603.07771},
   archivePrefix = {arXiv},
   eprint    = {1603.07771},
   timestamp = {Mon, 13 Aug 2018 16:48:30 +0200},
@@ -47,7 +47,7 @@ This dataset gathers 728,321 biographies from wikipedia. It aims at evaluating t
 algorithms. For each article, we provide the first paragraph and the infobox (both tokenized).
 For each article, we extracted the first paragraph (text), the infobox (structured data). Each
 infobox is encoded as a list of (field name, field value) pairs. We used Stanford CoreNLP
-(http://stanfordnlp.github.io/CoreNLP/) to preprocess the data, i.e. we broke the text into
+(https://stanfordnlp.github.io/CoreNLP/) to preprocess the data, i.e. we broke the text into
 sentences and tokenized both the text and the field values. The dataset was randomly split in
 three subsets train (80%), valid (10%), test (10%).
 """
@@ -66,7 +66,7 @@ def _get_table(infobox_line):
     cells = infobox_line.split("\t")
     # remove empty cells
     cells = list(filter(lambda x: x.find("<none>") == -1, cells))
-    columns = set([cell[0 : cell.split(":")[0].rfind("_")] for cell in cells])
+    columns = {cell[0 : cell.split(":")[0].rfind("_")] for cell in cells}
     table = {col: dict() for col in columns}
     for cell in cells:
         delimiter_position_value = cell.find(":")
@@ -78,7 +78,7 @@ def _get_table(infobox_line):
         table[column][index] = value
     infobox_line_as_table = []
     for column in table.keys():
-        row_value = " ".join([table[column][index] for index in sorted(table[column].keys())])
+        row_value = " ".join(table[column][index] for index in sorted(table[column].keys()))
         infobox_line_as_table.append(
             {
                 "column_header": column,
@@ -159,12 +159,10 @@ class WikiBio(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, id_file, infobox_file, nb_lines_file, sentences_file, article_title_file):
         """Yields examples."""
-        with open(id_file, "r", encoding="utf-8") as id_src, open(
-            infobox_file, "r", encoding="utf-8"
-        ) as infobox_src, open(nb_lines_file, "r", encoding="utf-8") as nb_lines_src, open(
-            sentences_file, "r", encoding="utf-8"
-        ) as sentences_src, open(
-            article_title_file, "r", encoding="utf-8"
+        with open(id_file, encoding="utf-8") as id_src, open(infobox_file, encoding="utf-8") as infobox_src, open(
+            nb_lines_file, encoding="utf-8"
+        ) as nb_lines_src, open(sentences_file, encoding="utf-8") as sentences_src, open(
+            article_title_file, encoding="utf-8"
         ) as article_title_src:
             for id_, infobox, nb_lines, article_title in zip(id_src, infobox_src, nb_lines_src, article_title_src):
                 target_text = []

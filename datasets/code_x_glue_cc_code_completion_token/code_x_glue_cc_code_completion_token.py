@@ -82,7 +82,7 @@ class CodeXGlueCcCodeCompletionTokenPythonImpl(CodeXGlueCcCodeCompletionTokenImp
         if language != "python":
             raise RuntimeError(f"Unknown language {language}")
 
-        yield "data", "http://files.srl.inf.ethz.ch/data/py150_files.tar.gz"
+        yield "data", "https://files.srl.inf.ethz.ch/data/py150_files.tar.gz"
 
     def process_string(self, token):
         # Copyright (c) Microsoft Corporation.

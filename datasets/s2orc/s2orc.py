@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -106,8 +106,8 @@ class S2orc(datasets.GeneratorBasedBuilder):
         _MANIFEST_URL = _ROOT_URL + "manifest.txt"
         manifest_file = dl_manager.download_and_extract(_MANIFEST_URL)
 
-        file = open(manifest_file, "r", encoding="utf-8")
-        train_names = file.read().splitlines()
+        with open(manifest_file, encoding="utf-8") as file:
+            train_names = file.read().splitlines()
 
         r = re.compile("(?s:s2\\-corpus\\-.*\\.gz)\\Z")  # files are of the form 's2-corpus-*.gz'
         train_names = list(filter(r.match, train_names))

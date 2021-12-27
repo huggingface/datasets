@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ _CITATION = """
   journal   = {CoRR},
   volume    = {abs/1611.09268},
   year      = {2016},
-  url       = {http://arxiv.org/abs/1611.09268},
+  url       = {https://arxiv.org/abs/1611.09268},
   archivePrefix = {arXiv},
   eprint    = {1611.09268},
   timestamp = {Mon, 13 Aug 2018 16:49:03 +0200},
@@ -86,7 +86,7 @@ class MsMarcoConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MsMarcoConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class MsMarco(datasets.GeneratorBasedBuilder):

@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -168,17 +168,17 @@ class NonMutableDict(dict):
         )
         if kwargs:
             raise ValueError("NonMutableDict cannot be initialized with kwargs.")
-        super(NonMutableDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __setitem__(self, key, value):
         if key in self:
             raise ValueError(self._error_msg.format(key=key))
-        return super(NonMutableDict, self).__setitem__(key, value)
+        return super().__setitem__(key, value)
 
     def update(self, other):
         if any(k in self for k in other):
             raise ValueError(self._error_msg.format(key=set(self) & set(other)))
-        return super(NonMutableDict, self).update(other)
+        return super().update(other)
 
 
 class classproperty(property):  # pylint: disable=invalid-name
@@ -263,7 +263,7 @@ def map_nested(
             for obj in utils.tqdm(iterable, disable=disable_tqdm)
         ]
     else:
-        split_kwds = []  # We organize the splits ourselve (contiguous splits)
+        split_kwds = []  # We organize the splits ourselves (contiguous splits)
         for index in range(num_proc):
             div = len(iterable) // num_proc
             mod = len(iterable) % num_proc
@@ -433,7 +433,7 @@ class _CloudPickleTypeHintFix:
         return origin[args]
 
     def _save_parametrized_type_hint(pickler, obj):
-        # The distorted type check sematic for typing construct becomes:
+        # The distorted type check semantic for typing construct becomes:
         # ``type(obj) is type(TypeHint)``, which means "obj is a
         # parametrized TypeHint"
         if type(obj) is type(Literal):  # pragma: no branch

@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -251,7 +251,7 @@ class DatasetInfo:
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 
@@ -290,7 +290,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
     @classmethod
     def from_directory(cls, dataset_infos_dir):
         logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
-        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
             dataset_infos_dict = {
                 config_name: DatasetInfo.from_dict(dataset_info_dict)
                 for config_name, dataset_info_dict in json.load(f).items()
@@ -358,7 +358,7 @@ class MetricInfo:
         if not metric_info_dir:
             raise ValueError("Calling MetricInfo.from_directory() with undefined metric_info_dir.")
 
-        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), encoding="utf-8") as f:
             metric_info_dict = json.load(f)
         return cls.from_dict(metric_info_dict)
 

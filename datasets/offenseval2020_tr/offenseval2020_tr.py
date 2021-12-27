@@ -43,7 +43,7 @@ class OffensEval2020TRConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(OffensEval2020TRConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Offenseval2020TR(datasets.GeneratorBasedBuilder):

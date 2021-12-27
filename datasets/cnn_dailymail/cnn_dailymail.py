@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,7 +45,7 @@ _CITATION = """\
   journal   = {CoRR},
   volume    = {abs/1704.04368},
   year      = {2017},
-  url       = {http://arxiv.org/abs/1704.04368},
+  url       = {https://arxiv.org/abs/1704.04368},
   archivePrefix = {arXiv},
   eprint    = {1704.04368},
   timestamp = {Mon, 13 Aug 2018 16:46:08 +0200},
@@ -99,7 +99,7 @@ class CnnDailymailConfig(datasets.BuilderConfig):
 
           **kwargs: keyword arguments forwarded to super.
         """
-        super(CnnDailymailConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 def _get_url_hashes(path):
@@ -165,11 +165,8 @@ END_TOKENS = [".", "!", "?", "...", "'", "`", '"', DM_SINGLE_CLOSE_QUOTE, DM_DOU
 
 
 def _read_text_file(text_file):
-    lines = []
-    with open(text_file, "r", encoding="utf-8") as f:
-        for line in f:
-            lines.append(line.strip())
-    return lines
+    with open(text_file, encoding="utf-8") as f:
+        return [line.strip() for line in f]
 
 
 def _get_art_abs(story_file, tfds_version):
@@ -179,7 +176,7 @@ def _get_art_abs(story_file, tfds_version):
 
     lines = _read_text_file(story_file)
 
-    # The github code lowercase the text and we removed it in 3.0.0.
+    # The GitHub code lowercase the text and we removed it in 3.0.0.
 
     # Put periods on the ends of lines that are missing them
     # (this is a problem in the dataset because many image captions don't end in

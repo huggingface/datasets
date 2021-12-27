@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -175,18 +175,12 @@ class HendrycksTest(datasets.GeneratorBasedBuilder):
         id_ = 0
         if split == "auxiliary_train":
             for f in sorted(os.listdir(datadir)):
-                reader = csv.reader(
-                    open(os.path.join(datadir, f), "r", encoding="utf-8"), quotechar='"', delimiter=","
-                )
-                for data in reader:
+                with open(os.path.join(datadir, f), encoding="utf-8") as file:
+                    for data in csv.reader(file):
+                        yield id_, {"question": data[0], "choices": data[1:5], "answer": data[5]}
+                        id_ += 1
+        else:
+            with open(os.path.join(datadir, f"{self.config.name}_{split}.csv")) as file:
+                for data in csv.reader(file, encoding="utf-8"):
                     yield id_, {"question": data[0], "choices": data[1:5], "answer": data[5]}
                     id_ += 1
-        else:
-            reader = csv.reader(
-                open(os.path.join(datadir, f"{self.config.name}_{split}.csv"), "r", encoding="utf-8"),
-                quotechar='"',
-                delimiter=",",
-            )
-            for data in reader:
-                yield id_, {"question": data[0], "choices": data[1:5], "answer": data[5]}
-                id_ += 1

@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -232,7 +232,7 @@ class RussianSuperGlueConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # 0.0.1: Initial version.
-        super(RussianSuperGlueConfig, self).__init__(version=self.VERSION, **kwargs)
+        super().__init__(version=self.VERSION, **kwargs)
         self.features = features
         self.label_classes = label_classes
         self.data_url = data_url

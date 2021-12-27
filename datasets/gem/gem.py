@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -1118,7 +1118,8 @@ class Gem(datasets.GeneratorBasedBuilder):
                     }
         elif self.config.name == "totto":
             if "challenge" in split:
-                exples = json.load(open(filepath, encoding="utf-8"))
+                with open(filepath, encoding="utf-8") as file:
+                    exples = json.load(file)
                 if isinstance(exples, dict):
                     assert len(exples) == 1, "multiple entries found"
                     exples = list(exples.values())[0]
@@ -1129,7 +1130,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                     exple["gem_id"] = f"{self.config.name}-{split}-{id_}"
                     yield id_, exple
             else:
-                with open(filepath, "r", encoding="utf-8") as json_file:
+                with open(filepath, encoding="utf-8") as json_file:
                     json_list = list(json_file)
                 id_ = -1
                 i = -1
@@ -1227,19 +1228,20 @@ class Gem(datasets.GeneratorBasedBuilder):
                     for id_, line in enumerate(f):
                         values = line.strip().split("\t")
                         assert len(values) == 2, f"Not enough fields in ---- {line} --- {values}"
-                        example = dict([(k, val) for k, val in zip(keys, values)])
+                        example = dict(zip(keys, values))
                         example["gem_id"] = f"{self.config.name}-{split}-{id_}"
                         example["gem_parent_id"] = example["gem_id"]
                         example["references"] = [] if split == "train" else [example["target"]]
                         yield id_, example
             elif split == "test_turk":
-                examples = json.load(open(filepath, encoding="utf-8"))
-                for id_, example in enumerate(examples):
-                    example["gem_parent_id"] = example["gem_id"]
-                    for k in ["source_id", "target_id"]:
-                        if k in example:
-                            del example[k]
-                    yield id_, example
+                with open(filepath, encoding="utf-8") as f:
+                    examples = json.load(f)
+                    for id_, example in enumerate(examples):
+                        example["gem_parent_id"] = example["gem_id"]
+                        for k in ["source_id", "target_id"]:
+                            if k in example:
+                                del example[k]
+                        yield id_, example
             elif split == "test_asset":
                 files = [open(f_name, encoding="utf-8") for f_name in filepaths]
                 for id_, lines in enumerate(zip(*files)):
@@ -1251,17 +1253,18 @@ class Gem(datasets.GeneratorBasedBuilder):
                         "references": [line.strip() for line in lines[1:]],
                     }
             else:
-                exples = json.load(open(filepath, encoding="utf-8"))
-                if isinstance(exples, dict):
-                    assert len(exples) == 1, "multiple entries found"
-                    exples = list(exples.values())[0]
-                for id_, exple in enumerate(exples):
-                    exple["gem_parent_id"] = exple["gem_id"]
-                    exple["gem_id"] = f"{self.config.name}-{split}-{id_}"
-                    for k in ["source_id", "target_id"]:
-                        if k in exple:
-                            del exple[k]
-                    yield id_, exple
+                with open(filepath, encoding="utf-8") as f:
+                    exples = json.load(f)
+                    if isinstance(exples, dict):
+                        assert len(exples) == 1, "multiple entries found"
+                        exples = list(exples.values())[0]
+                    for id_, exple in enumerate(exples):
+                        exple["gem_parent_id"] = exple["gem_id"]
+                        exple["gem_id"] = f"{self.config.name}-{split}-{id_}"
+                        for k in ["source_id", "target_id"]:
+                            if k in exple:
+                                del exple[k]
+                        yield id_, exple
         elif self.config.name.startswith("wiki_lingua"):
             if "v0" in self.config.name:
                 with open(os.path.join(filepath, f"{split}.src"), encoding="utf-8") as f_in:
@@ -1308,21 +1311,22 @@ class Gem(datasets.GeneratorBasedBuilder):
                                 "references": [] if split == "train" else [data["summary"]],
                             }
                 else:
-                    exples = json.load(open(filepath, encoding="utf-8"))
-                    if isinstance(exples, dict):
-                        assert len(exples) == 1, "multiple entries found"
-                        exples = list(exples.values())[0]
-                    for id_, exple in enumerate(exples):
-                        exple["gem_parent_id"] = exple["gem_id"]
-                        exple["gem_id"] = f"{self.config.name}-{split}-{id_}"
-                        yield id_, exple
+                    with open(filepath, encoding="utf-8") as f:
+                        exples = json.load(f)
+                        if isinstance(exples, dict):
+                            assert len(exples) == 1, "multiple entries found"
+                            exples = list(exples.values())[0]
+                        for id_, exple in enumerate(exples):
+                            exple["gem_parent_id"] = exple["gem_id"]
+                            exple["gem_id"] = f"{self.config.name}-{split}-{id_}"
+                            yield id_, exple
             else:
-                with open(filepath, "r", encoding="utf-8") as f:
+                with open(filepath, encoding="utf-8") as f:
                     split_ids = json.load(f)
                 for id_, i in enumerate(split_ids[split]):
-                    with open(os.path.join(filepaths, i + ".summary"), "r", encoding="utf-8") as f:
+                    with open(os.path.join(filepaths, i + ".summary"), encoding="utf-8") as f:
                         text = "".join(
-                            [line for line in f.readlines() if line not in _XSUM_REMOVE_LINES and line.strip()]
+                            line for line in f.readlines() if line not in _XSUM_REMOVE_LINES and line.strip()
                         )
                         segs = text.split("[SN]")
                         yield id_, {

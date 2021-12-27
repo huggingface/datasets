@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,7 +72,7 @@ _COMBINED = "combined"
 
 class LargeSpanishCorpusConfig(datasets.BuilderConfig):
     def __init__(self, corpora=None, **kwargs):
-        super(LargeSpanishCorpusConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs)
+        super().__init__(version=datasets.Version(_VERSION, ""), **kwargs)
         self.corpora = corpora
 
     @property
@@ -114,9 +114,6 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_dir):
         for filepath in self.config.filepaths:
-            filepath = os.path.join(data_dir, filepath)
-            _id = 0
-            with open(filepath, mode="r", encoding="utf-8") as f:
-                for line in f:
+            with open(os.path.join(data_dir, filepath), encoding="utf-8") as f:
+                for _id, line in enumerate(f):
                     yield _id, {"text": line.strip()},
-                    _id += 1

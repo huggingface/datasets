@@ -59,7 +59,7 @@ class TlcConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(TlcConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Tlc(datasets.GeneratorBasedBuilder):

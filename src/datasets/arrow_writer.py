@@ -269,7 +269,7 @@ class ArrowWriter:
         self.hkey_record = []
 
     def __len__(self):
-        """Return the number of writed and staged examples"""
+        """Return the number of written and staged examples"""
         return self._num_examples + len(self.current_examples) + len(self.current_rows)
 
     def __enter__(self):
@@ -407,7 +407,7 @@ class ArrowWriter:
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
             if self._check_duplicates:
                 self.check_duplicate_keys()
-                # Re-intializing to empty list for next batch
+                # Re-initializing to empty list for next batch
                 self.hkey_record = []
 
             self.write_examples_on_file()
@@ -482,7 +482,7 @@ class ArrowWriter:
         # In case current_examples < writer_batch_size, but user uses finalize()
         if self._check_duplicates:
             self.check_duplicate_keys()
-            # Re-intializing to empty list for next batch
+            # Re-initializing to empty list for next batch
             self.hkey_record = []
         self.write_examples_on_file()
         if self.pa_writer is None:

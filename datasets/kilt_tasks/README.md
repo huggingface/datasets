@@ -278,7 +278,7 @@ def add_missing_data(x, trivia_qa_subset, triviaqa_map):
     return x
     
 for k in ['train', 'validation', 'test']:
-    triviaqa_map = dict([(q_id, i) for i, q_id in enumerate(trivia_qa[k]['question_id'])])
+    triviaqa_map = {q_id: i for i, q_id in enumerate(trivia_qa[k]['question_id'])}
     kilt_triviaqa[k] = kilt_triviaqa[k].filter(lambda x: x['id'] in triviaqa_map)
     kilt_triviaqa[k] = kilt_triviaqa[k].map(add_missing_data, fn_kwargs=dict(trivia_qa_subset=trivia_qa[k], triviaqa_map=triviaqa_map))
 ```

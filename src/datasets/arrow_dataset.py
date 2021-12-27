@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -570,7 +570,7 @@ def _check_column_names(column_names: List[str]):
 def _check_if_features_can_be_aligned(features_list: List[Features]):
     """Check if the dictionaries of features can be aligned.
 
-    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
+    Two dictionaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
     """
     name2feature = {}
     for features in features_list:
@@ -979,7 +979,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             fs = fsspec.filesystem("file")
             cache_files_paths = [Path(cache_filename["filename"]) for cache_filename in self.cache_files]
-            # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
+            # Check that the dataset doesn't overwrite itself. It can cause a permission error on Windows and a segfault on linux.
             if Path(dataset_path, config.DATASET_ARROW_FILENAME) in cache_files_paths:
                 raise PermissionError(
                     f"Tried to overwrite {Path(dataset_path, config.DATASET_ARROW_FILENAME)} but a dataset can't overwrite itself."
@@ -1088,13 +1088,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_path = Dataset._build_local_temp_path(src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
-        with open(
-            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), "r", encoding="utf-8"
-        ) as state_file:
+        with open(Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(
-            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), "r", encoding="utf-8"
-        ) as dataset_info_file:
+        with open(Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), encoding="utf-8") as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
         dataset_size = estimate_dataset_size(
@@ -3288,7 +3284,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
-                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole dataset at once)
             batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -3358,7 +3354,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
-                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole dataset at once)
             batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -3945,11 +3941,11 @@ def concatenate_datasets(
         # Return first dataset if all datasets are empty
         return dsets[0]
 
-    # Perform checks (and a potentional cast if axis=0)
+    # Perform checks (and a potential cast if axis=0)
     if axis == 0:
         _check_if_features_can_be_aligned([dset.features for dset in dsets])
     else:
-        if not all([dset.num_rows == dsets[0].num_rows for dset in dsets]):
+        if not all(dset.num_rows == dsets[0].num_rows for dset in dsets):
             raise ValueError("Number of rows must match for all datasets")
         _check_column_names([col_name for dset in dsets for col_name in dset._data.column_names])
 

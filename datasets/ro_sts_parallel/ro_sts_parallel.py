@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,7 +50,7 @@ class ROSTSParallelConfig(datasets.BuilderConfig):
     def __init__(self, language_pair=(None, None), **kwargs):
 
         # description = ("RO-STS Parallel dataset, translation from %s to %s") % (language_pair[0], language_pair[1])
-        super(ROSTSParallelConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.language_pair = language_pair
 
 

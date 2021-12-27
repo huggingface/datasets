@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -440,7 +440,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             key = 0
             for transcript_path in sorted(glob.glob(transcripts_glob)):
                 transcript_dir_path = os.path.dirname(transcript_path)
-                with open(transcript_path, "r", encoding="utf-8") as f:
+                with open(transcript_path, encoding="utf-8") as f:
                     for line in f:
                         line = line.strip()
                         id_, transcript = line.split(" ", 1)
@@ -490,7 +490,7 @@ class Superb(datasets.GeneratorBasedBuilder):
         elif self.config.name == "si":
             wav_path = os.path.join(archive_path, "wav")
             splits_path = os.path.join(archive_path, "veri_test_class.txt")
-            with open(splits_path, "r", encoding="utf-8") as f:
+            with open(splits_path, encoding="utf-8") as f:
                 for key, line in enumerate(f):
                     split_id, file_path = line.strip().split(" ")
                     if int(split_id) != split:
@@ -538,7 +538,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             emotions = ["neu", "hap", "ang", "sad", "exc"]
             key = 0
             for labels_file in sorted(glob.glob(labels_path)):
-                with open(labels_file, "r", encoding="utf-8") as f:
+                with open(labels_file, encoding="utf-8") as f:
                     for line in f:
                         if line[0] != "[":
                             continue

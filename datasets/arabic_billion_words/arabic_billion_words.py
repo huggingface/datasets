@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -144,8 +144,8 @@ class ArabicBillionWords(datasets.GeneratorBasedBuilder):
         pattern = re.compile(rf".*?<{data_tag}(.*?)</{data_tag}.*?", re.MULTILINE | re.DOTALL)
         key = 0
         lines = ""
-        with open(filepath, mode="r", encoding="utf-8") as f:
-            for i, line in enumerate(f):
+        with open(filepath, encoding="utf-8") as f:
+            for line in f:
                 lines += line
                 if f"</{data_tag}" in line:
                     match = pattern.match(lines)

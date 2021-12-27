@@ -41,7 +41,7 @@ class Best2009Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Best2009Config, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Best2009(datasets.GeneratorBasedBuilder):

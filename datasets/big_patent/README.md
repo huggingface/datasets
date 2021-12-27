@@ -188,7 +188,7 @@ Each instance contains a pair of `description` and `abstract`. `description` is 
   journal   = {CoRR},
   volume    = {abs/1906.03741},
   year      = {2019},
-  url       = {http://arxiv.org/abs/1906.03741},
+  url       = {https://arxiv.org/abs/1906.03741},
   eprinttype = {arXiv},
   eprint    = {1906.03741},
   timestamp = {Wed, 26 Jun 2019 07:14:58 +0200},

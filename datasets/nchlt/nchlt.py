@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,7 @@ class NCHLTConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         self.zip_file = zip_file
-        super(NCHLTConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class NCHLT(datasets.GeneratorBasedBuilder):
@@ -161,7 +161,7 @@ class NCHLT(datasets.GeneratorBasedBuilder):
             id_ = 0
             tokens = []
             ner_tags = []
-            with open(filename, "r", encoding="utf-8") as f:
+            with open(filename, encoding="utf-8") as f:
                 for line in f:
                     if not line.strip():
                         yield id_, {"tokens": tokens, "ner_tags": ner_tags}

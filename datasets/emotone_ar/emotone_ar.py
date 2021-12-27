@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -69,11 +69,10 @@ class EmotoneAr(datasets.GeneratorBasedBuilder):
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir})]
 
     def _generate_examples(self, filepath):
-        """Generate labeled arabic tweets examples for emoptions detection."""
-        with open(filepath, encoding="utf-8", mode="r") as csv_file:
+        """Generate labeled arabic tweets examples for emotions detection."""
+        with open(filepath, encoding="utf-8") as csv_file:
             next(csv_file)  # skip header
-            csv_reader = csv.reader(csv_file, quotechar='"', delimiter=",")
+            csv_reader = csv.reader(csv_file)
 
-            for id_, row in enumerate(csv_reader):
-                _, tweet, label = row
+            for id_, (_, tweet, label) in enumerate(csv_reader):
                 yield id_, {"tweet": tweet, "label": label}

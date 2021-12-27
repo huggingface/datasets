@@ -63,7 +63,7 @@ class BaseIndex:
             queries (`Union[List[str], np.ndarray]`): The queries as a list of strings if `column` is a text index or as a numpy array if `column` is a vector index.
             k (`int`): The number of examples to retrieve per query.
 
-        Ouput:
+        Output:
             total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
             total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
@@ -177,7 +177,7 @@ class ElasticSearchIndex(BaseIndex):
             query (`str`): The query as a string.
             k (`int`): The number of examples to retrieve.
 
-        Ouput:
+        Output:
             scores (`List[List[float]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
@@ -301,7 +301,7 @@ class FaissIndex(BaseIndex):
             query (`np.array`): The query as a numpy array.
             k (`int`): The number of examples to retrieve.
 
-        Ouput:
+        Output:
             scores (`List[List[float]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
@@ -321,7 +321,7 @@ class FaissIndex(BaseIndex):
             queries (`np.array`): The queries as a numpy array.
             k (`int`): The number of examples to retrieve.
 
-        Ouput:
+        Output:
             total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
             total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
@@ -418,7 +418,7 @@ class IndexableMixin:
         Args:
             column (:obj:`str`): The column of the vectors to add to the index.
             index_name (Optional :obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                By defaul it corresponds to `column`.
+                By default it corresponds to `column`.
             device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
             string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
             metric_type (Optional :obj:`int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
@@ -520,7 +520,7 @@ class IndexableMixin:
         Args:
             column (:obj:`str`): The column of the documents to add to the index.
             index_name (Optional :obj:`str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
-                By defaul it corresponds to `column`.
+                By default it corresponds to `column`.
             host (Optional :obj:`str`, defaults to localhost):
                 host of where ElasticSearch is running
             port (Optional :obj:`str`, defaults to 9200):

@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -89,7 +89,7 @@ class YoutubeCaptionCorrections(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths):
         """Yields examples."""
         for file_idx, fp in enumerate(filepaths):
-            with open(fp, "r", encoding="utf-8") as json_file:
+            with open(fp, encoding="utf-8") as json_file:
                 json_lists = list(json_file)
             for line_idx, json_list_str in enumerate(json_lists):
                 json_list = json.loads(json_list_str)

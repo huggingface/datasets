@@ -42,7 +42,7 @@ class ScitailConfig(datasets.BuilderConfig):
         Args:
             **kwargs: keyword arguments forwarded to super.
         """
-        super(ScitailConfig, self).__init__(version=datasets.Version("1.1.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.1.0", ""), **kwargs)
 
 
 class Scitail(datasets.GeneratorBasedBuilder):

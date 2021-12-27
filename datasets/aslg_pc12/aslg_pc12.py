@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,12 +71,6 @@ class ASLGPC12(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, gloss_path, text_path):
         """Yields examples."""
-
-        gloss_f = open(gloss_path, "r", encoding="utf-8")
-        text_f = open(text_path, "r", encoding="utf-8")
-
-        for i, (gloss, text) in enumerate(zip(gloss_f, text_f)):
-            yield i, {"gloss": gloss, "text": text}
-
-        gloss_f.close()
-        text_f.close()
+        with open(gloss_path, encoding="utf-8") as gloss_f, open(text_path, encoding="utf-8") as text_f:
+            for i, (gloss, text) in enumerate(zip(gloss_f, text_f)):
+                yield i, {"gloss": gloss, "text": text}

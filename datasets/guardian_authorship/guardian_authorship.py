@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -76,7 +76,7 @@ class GuardianAuthorshipConfig(datasets.BuilderConfig):
 
             **kwargs: keyword arguments forwarded to super.
         """
-        super(GuardianAuthorshipConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.train_folder = train_folder
         self.valid_folder = valid_folder
         self.test_folder = test_folder
@@ -313,7 +313,7 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
                     path_2_author = os.path.join(full_path, author)
                     path_2_article = os.path.join(path_2_author, article)
 
-                    with open(path_2_article, "r", encoding="utf8", errors="ignore") as f:
+                    with open(path_2_article, encoding="utf8", errors="ignore") as f:
                         art = f.readlines()
 
                     # The whole article is stored as one line. We access the 1st element of the list

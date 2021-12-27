@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,7 +49,7 @@ is the ratio between the number of edits (insertions/deletions/replacements)
 needed and the reference translation length.
 """
 
-_HOMEPAGE = "http://www.statmt.org/wmt20/quality-estimation-task.html"
+_HOMEPAGE = "https://www.statmt.org/wmt20/quality-estimation-task.html"
 
 _LICENSE = "Unknown"
 
@@ -73,7 +73,7 @@ _URLs = {f"{src_lg}-{tgt_lg}": inject_to_link(src_lg, tgt_lg) for (src_lg, tgt_l
 
 class WmtMlqeConfig(datasets.BuilderConfig):
     def __init__(self, src_lg, tgt_lg, **kwargs):
-        super(WmtMlqeConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.src_lg = src_lg
         self.tgt_lg = tgt_lg
 

@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -273,7 +273,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """Yields examples."""
         if self.config.name == "eze_goes_to_school":
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 json_data = json.load(f)
                 for id_, data in enumerate(json_data):
                     yield id_, {
@@ -282,7 +282,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
                         "chapters": data["chapters"],
                     }
         elif self.config.name == "bbc-igbo":
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 json_data = json.load(f)
                 for id_, data in enumerate(json_data):
                     yield id_, {
@@ -295,7 +295,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
                         "tags": data["tags"] if "tags" in data.keys() else [],
                     }
         elif self.config.name == "igbo-radio":
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 json_data = json.load(f)
                 for id_, data in enumerate(json_data):
                     yield id_, {
@@ -307,7 +307,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
                         "content": data["content"] if "content" in data.keys() else "",
                     }
         elif self.config.name == "jw-ot-igbo":
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 json_data = json.load(f)
                 for id_, data in enumerate(json_data):
                     yield id_, {
@@ -316,7 +316,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
                         "chapters": data["chapters"],
                     }
         elif self.config.name == "jw-nt-igbo":
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 json_data = json.load(f)
                 for id_, data in enumerate(json_data):
                     yield id_, {
@@ -325,7 +325,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
                         "chapters": data["chapters"],
                     }
         elif self.config.name == "jw-books":
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 json_data = json.load(f)
                 for id_, data in enumerate(json_data):
                     yield id_, {
@@ -335,7 +335,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
                         "date": data["date"] if "date" in data.keys() else "",
                     }
         elif self.config.name == "jw-teta":
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 json_data = json.load(f)
                 for id_, data in enumerate(json_data):
                     yield id_, {
@@ -345,7 +345,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
                         "date": data["date"] if "date" in data.keys() else "",
                     }
         elif self.config.name == "jw-ulo_nche":
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 json_data = json.load(f)
                 for id_, data in enumerate(json_data):
                     yield id_, {
@@ -355,7 +355,7 @@ class IgboMonolingual(datasets.GeneratorBasedBuilder):
                         "date": data["date"] if "date" in data.keys() else "",
                     }
         elif self.config.name == "jw-ulo_nche_naamu":
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 json_data = json.load(f)
                 for id_, data in enumerate(json_data):
                     yield id_, {

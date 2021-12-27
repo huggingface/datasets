@@ -181,7 +181,7 @@ pretty_name: CCAligned
 
 ## Dataset Description
 
-- **Homepage:** http://www.statmt.org/cc-aligned/
+- **Homepage:** https://www.statmt.org/cc-aligned/
 - **Repository:** [Needs More Information]
 - **Paper:** https://www.aclweb.org/anthology/2020.emnlp-main.480.pdf
 - **Leaderboard:** [Needs More Information]
@@ -192,7 +192,7 @@ pretty_name: CCAligned
 CCAligned consists of parallel or comparable web-document pairs in 137 languages aligned with English. These web-document pairs were constructed by performing language identification on raw web-documents, and ensuring corresponding language codes were corresponding in the URLs of web documents. This pattern matching approach yielded more than 100 million aligned documents paired with English. Recognizing that each English document was often aligned to mulitple documents in different target language, we can join on English documents to obtain aligned documents that directly pair two non-English documents (e.g., Arabic-French). This corpus was created from 68 Commoncrawl Snapshots.
 
 
-To load a language which isn't part of the config, all you need to do is specify the language code. You can find the valid languages in http://www.statmt.org/cc-aligned/ E.g.
+To load a language which isn't part of the config, all you need to do is specify the language code. You can find the valid languages in https://www.statmt.org/cc-aligned/ E.g.
 ```
 dataset = load_dataset("ccaligned_multilingual", language_code="fr_XX", type="documents")
 ```

@@ -60,7 +60,7 @@ class PandasImageExtensionDtype(PandasExtensionDtype):
 
     @property
     def type(self) -> type:
-        # Expensive calls under the propery decorator are not a good practice, but it is what it is.
+        # Expensive calls under the property decorator are not a good practice, but it is what it is.
         if config.PIL_AVAILABLE:
             import PIL.Image
         else:

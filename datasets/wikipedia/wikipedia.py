@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -373,7 +373,7 @@ class WikipediaConfig(datasets.BuilderConfig):
             available dates can be found at https://dumps.wikimedia.org/enwiki/.
           **kwargs: keyword arguments forwarded to super.
         """
-        super(WikipediaConfig, self).__init__(
+        super().__init__(
             name=f"{date}.{language}",
             description=f"Wikipedia dataset for {language}, parsed from {date} dump.",
             **kwargs,

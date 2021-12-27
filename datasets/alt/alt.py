@@ -60,7 +60,7 @@ class AltParallelConfig(datasets.BuilderConfig):
         name = "alt-parallel"
 
         description = "ALT Parallel Corpus"
-        super(AltParallelConfig, self).__init__(
+        super().__init__(
             name=name,
             description=description,
             version=datasets.Version("1.0.0", ""),

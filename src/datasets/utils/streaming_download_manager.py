@@ -255,7 +255,7 @@ def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]
     """
     Prepare the URL and the kwargs that must be passed to the HttpFileSystem or to requests.get/head
 
-    In particular it resolves google drive URLs and it adds the authentication headers for the Hugging Face Hub.
+    In particular it resolves Google Drive URLs and it adds the authentication headers for the Hugging Face Hub.
     """
     kwargs = {"headers": get_authentication_headers_for_url(url, use_auth_token=use_auth_token)}
     if "drive.google.com" in url:
@@ -524,7 +524,7 @@ def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = 
             return ET.parse(f, parser=parser)
 
 
-class StreamingDownloadManager(object):
+class StreamingDownloadManager:
     """
     Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
     Contrary to the regular DownloadManager, the `download` and `extract` methods don't actually download nor extract

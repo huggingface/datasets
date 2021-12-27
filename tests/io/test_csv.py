@@ -127,7 +127,7 @@ def test_csv_datasetdict_reader_split(split, csv_path, tmp_path):
 
 
 def iter_csv_file(csv_path):
-    with open(csv_path, "r", encoding="utf-8") as csvfile:
+    with open(csv_path, encoding="utf-8") as csvfile:
         yield from csv.reader(csvfile)
 
 

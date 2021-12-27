@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -292,7 +292,7 @@ class OscarConfig(datasets.BuilderConfig):
         # Initialize the base class.
         name = f"{shuffled_str}_{deduplicated_str}_{language}"
         description = f"{shuffled_str.capitalize()} and {deduplicated_str}, {_languages()[language]} OSCAR dataset"
-        super(OscarConfig, self).__init__(name=name, description=description, **kwargs)
+        super().__init__(name=name, description=description, **kwargs)
 
         # Additional attributes
         self.language = language

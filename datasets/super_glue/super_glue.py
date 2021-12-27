@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -249,7 +249,7 @@ _WIC_CITATION = """\
   journal={CoRR},
   volume={abs/1808.09121},
   year={2018},
-  url={http://arxiv.org/abs/1808.09121},
+  url={https://arxiv.org/abs/1808.09121},
   archivePrefix={arXiv},
   eprint={1808.09121},
   timestamp={Mon, 03 Sep 2018 13:36:40 +0200},
@@ -301,7 +301,7 @@ class SuperGlueConfig(datasets.BuilderConfig):
         #        the full release (v2.0).
         # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
         # 0.0.2: Initial version.
-        super(SuperGlueConfig, self).__init__(version=datasets.Version("1.0.2"), **kwargs)
+        super().__init__(version=datasets.Version("1.0.2"), **kwargs)
         self.features = features
         self.label_classes = label_classes
         self.data_url = data_url

@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +30,7 @@ _CITATION = """\
   journal   = {CoRR},
   volume    = {abs/1902.01007},
   year      = {2019},
-  url       = {http://arxiv.org/abs/1902.01007},
+  url       = {https://arxiv.org/abs/1902.01007},
   archivePrefix = {arXiv},
   eprint    = {1902.01007},
   timestamp = {Tue, 21 May 2019 18:03:36 +0200},
@@ -54,7 +54,7 @@ class HansConfig(datasets.BuilderConfig):
         .
               **kwargs: keyword arguments forwarded to super.
         """
-        super(HansConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Hans(datasets.GeneratorBasedBuilder):

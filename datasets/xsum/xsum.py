@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -130,7 +130,7 @@ class Xsum(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, split_path, split_name, data_dir, files):
         """Yields examples."""
 
-        with open(split_path, "r", encoding="utf-8") as f:
+        with open(split_path, encoding="utf-8") as f:
             split_ids = json.load(f)
         split_ids = {k: set(v) for k, v in split_ids.items()}
 

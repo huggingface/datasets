@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -648,9 +648,9 @@ class WmtConfig(datasets.BuilderConfig):
         if "name" in kwargs:  # Add name suffix for custom configs
             name += "." + kwargs.pop("name")
 
-        super(WmtConfig, self).__init__(name=name, description=description, **kwargs)
+        super().__init__(name=name, description=description, **kwargs)
 
-        self.url = url or "http://www.statmt.org"
+        self.url = url or "https://www.statmt.org"
         self.citation = citation
         self.language_pair = language_pair
         self.subsets = subsets
@@ -672,7 +672,7 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
                 "kwargs. You may want to use one of the `wmtYY_translate` "
                 "implementation instead to get the WMT dataset for a specific year."
             )
-        super(Wmt, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     @abstractmethod

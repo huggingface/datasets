@@ -37,7 +37,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [http://www.statmt.org/wmt19/translation-task.html](http://www.statmt.org/wmt19/translation-task.html)
+- **Homepage:** [https://www.statmt.org/wmt19/translation-task.html](https://www.statmt.org/wmt19/translation-task.html)
 - **Repository:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Paper:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
 - **Point of Contact:** [More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
@@ -164,7 +164,7 @@ The data fields are the same among all splits.
 @ONLINE {wmt19translate,
     author = "Wikimedia Foundation",
     title  = "ACL 2019 Fourth Conference on Machine Translation (WMT19), Shared Task: Machine Translation of News",
-    url    = "http://www.statmt.org/wmt19/translation-task.html"
+    url    = "https://www.statmt.org/wmt19/translation-task.html"
 }
 
 ```

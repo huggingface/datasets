@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -374,7 +374,7 @@ class NamedSplitAll(NamedSplit):
     """Split corresponding to the union of all defined dataset splits."""
 
     def __init__(self):
-        super(NamedSplitAll, self).__init__("all")
+        super().__init__("all")
 
     def __repr__(self):
         return "NamedSplitAll()"
@@ -484,13 +484,13 @@ class SplitDict(dict):
     """Split info object."""
 
     def __init__(self, *args, dataset_name=None, **kwargs):
-        super(SplitDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.dataset_name = dataset_name
 
     def __getitem__(self, key: Union[SplitBase, str]):
         # 1st case: The key exists: `info.splits['train']`
         if str(key) in self:
-            return super(SplitDict, self).__getitem__(str(key))
+            return super().__getitem__(str(key))
         # 2nd case: Uses instructions: `info.splits['train[50%]']`
         else:
             instructions = make_file_instructions(
@@ -505,14 +505,14 @@ class SplitDict(dict):
             raise ValueError(f"Cannot add elem. (key mismatch: '{key}' != '{value.name}')")
         if key in self:
             raise ValueError(f"Split {key} already present")
-        super(SplitDict, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
     def add(self, split_info: SplitInfo):
         """Add the split info."""
         if split_info.name in self:
             raise ValueError(f"Split {split_info.name} already present")
         split_info.dataset_name = self.dataset_name
-        super(SplitDict, self).__setitem__(split_info.name, split_info)
+        super().__setitem__(split_info.name, split_info)
 
     @property
     def total_num_examples(self):

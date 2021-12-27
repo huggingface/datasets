@@ -33,7 +33,7 @@ def interleave_datasets(
 
     Args:
         datasets (:obj:`List[Dataset]` or :obj:`List[IterableDataset]`): list of datasets to interleave
-        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructued by sampling
+        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructed by sampling
             examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
         **kwargs: For map-style datasets:
@@ -109,7 +109,7 @@ def _interleave_map_style_datasets(
 
     Args:
         datasets (:obj:`List[Dataset]`): list of datasets to interleave
-        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructued by sampling
+        probabilities (:obj:`List[float]`, optional, default None): If specified, the new dataset is constructed by sampling
             examples from one source at a time according to these probabilities.
         seed (:obj:`int`, optional, default None): The random seed used to choose a source for each example.
         **kwargs: Keyword arguments to be passed to :meth:`datasets.Datasets.select` when selecting the indices used to interleave the datasets.
@@ -193,5 +193,5 @@ def _interleave_iterable_datasets(
     if info is None:
         info = DatasetInfo.from_merge([d.info for d in datasets])
         info.features = None
-    # Return new daset
+    # Return new dataset
     return iterable_dataset(ex_iterable=ex_iterable, info=info, split=split)

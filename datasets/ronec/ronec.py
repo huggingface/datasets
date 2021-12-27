@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,7 +51,7 @@ class RONECConfig(datasets.BuilderConfig):
     """BuilderConfig for RONEC dataset"""
 
     def __init__(self, **kwargs):
-        super(RONECConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class RONEC(datasets.GeneratorBasedBuilder):
@@ -155,7 +155,7 @@ class RONEC(datasets.GeneratorBasedBuilder):
         """Yields examples."""
 
         logger.info("⏳ Generating examples from = %s", filepath)
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for instance in data:
                 yield instance["id"], instance

@@ -15,7 +15,7 @@ from datasets.utils.metadata import (
 
 def _dedent(string: str) -> str:
     indent_level = min(re.search("^ +", t).end() if t.startswith(" ") else 0 for t in string.splitlines())
-    return "\n".join([line[indent_level:] for line in string.splitlines() if indent_level < len(line)])
+    return "\n".join(line[indent_level:] for line in string.splitlines() if indent_level < len(line))
 
 
 README_YAML = """\

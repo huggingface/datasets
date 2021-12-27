@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -136,9 +136,9 @@ def evaluate_multirc(ids_preds, labels):
         question_preds, question_labels = zip(*preds_labels)
         f1 = f1_score(y_true=question_labels, y_pred=question_preds, average="macro")
         f1s.append(f1)
-        em = int(sum([p == l for p, l in preds_labels]) == len(preds_labels))
+        em = int(sum(p == l for p, l in preds_labels) == len(preds_labels))
         ems.append(em)
-    f1_m = float((sum(f1s) / len(f1s)))
+    f1_m = sum(f1s) / len(f1s)
     em = sum(ems) / len(ems)
     f1_a = float(f1_score(y_true=labels, y_pred=[id_pred["prediction"] for id_pred in ids_preds]))
     return {"exact_match": em, "f1_m": f1_m, "f1_a": f1_a}

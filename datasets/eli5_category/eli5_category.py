@@ -37,7 +37,7 @@ class ELI5CategoryConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(ELI5CategoryConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class ELI5Category(datasets.GeneratorBasedBuilder):

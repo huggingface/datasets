@@ -174,7 +174,7 @@ The data fields are the same among all splits.
   journal   = {CoRR},
   volume    = {abs/1810.05201},
   year      = {2018},
-  url       = {http://arxiv.org/abs/1810.05201},
+  url       = {https://arxiv.org/abs/1810.05201},
   archivePrefix = {arXiv},
   eprint    = {1810.05201},
   timestamp = {Tue, 30 Oct 2018 20:39:56 +0100},

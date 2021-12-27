@@ -157,7 +157,7 @@ The data fields are the same among all splits.
   journal   = {CoRR},
   volume    = {abs/1506.08909},
   year      = {2015},
-  url       = {http://arxiv.org/abs/1506.08909},
+  url       = {https://arxiv.org/abs/1506.08909},
   archivePrefix = {arXiv},
   eprint    = {1506.08909},
   timestamp = {Mon, 13 Aug 2018 16:48:23 +0200},

@@ -83,7 +83,7 @@ class ExamplesIterable(_BaseExamplesIterable):
 
     @property
     def n_shards(self) -> int:
-        max_length = max([len(value) for value in self.kwargs.values() if isinstance(value, list)], default=0)
+        max_length = max((len(value) for value in self.kwargs.values() if isinstance(value, list)), default=0)
         return max(1, max_length)
 
 
@@ -256,7 +256,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         yield from ex_iterator
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "SkipExamplesIterable":
-        """Doesn't shuffle the wrapped examples iterable since it would skip exampels from other shards instead."""
+        """Doesn't shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
         return self
 
     @property

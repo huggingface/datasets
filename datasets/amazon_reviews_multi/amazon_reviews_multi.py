@@ -5,7 +5,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,7 +62,7 @@ class AmazonReviewsMultiConfig(datasets.BuilderConfig):
     """BuilderConfig for AmazonReviewsMultiConfig."""
 
     def __init__(self, languages=None, **kwargs):
-        super(AmazonReviewsMultiConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs),
+        super().__init__(version=datasets.Version(_VERSION, ""), **kwargs),
         self.languages = languages
 
 
@@ -125,7 +125,7 @@ class AmazonReviewsMulti(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, file_paths):
         row_count = 0
         for file_path in file_paths:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 for line in f:
                     yield row_count, json.loads(line)
                     row_count += 1

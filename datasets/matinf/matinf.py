@@ -55,7 +55,7 @@ class MatinfConfig(datasets.BuilderConfig):
             `datasets.Value('float32')`.
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MatinfConfig, self).__init__(version=datasets.Version("1.0.0"), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0"), **kwargs)
         self.text_features = text_features
         self.label_column = label_column
         self.label_classes = label_classes

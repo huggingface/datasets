@@ -184,7 +184,7 @@ MIT Licence
   journal   = {CoRR},
   volume    = {abs/1708.07747},
   year      = {2017},
-  url       = {http://arxiv.org/abs/1708.07747},
+  url       = {https://arxiv.org/abs/1708.07747},
   archivePrefix = {arXiv},
   eprint    = {1708.07747},
   timestamp = {Mon, 13 Aug 2018 16:47:27 +0200},

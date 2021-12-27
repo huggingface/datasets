@@ -58,7 +58,7 @@ class GzipExtractor:
     @staticmethod
     def is_extractable(path: str) -> bool:
         """from https://stackoverflow.com/a/60634210"""
-        with gzip.open(path, "r") as fh:
+        with gzip.open(path) as fh:
             try:
                 fh.read(1)
                 return True
@@ -80,9 +80,8 @@ class ZipExtractor:
     @staticmethod
     def extract(input_path, output_path):
         os.makedirs(output_path, exist_ok=True)
-        with ZipFile(input_path, "r") as zip_file:
+        with ZipFile(input_path) as zip_file:
             zip_file.extractall(output_path)
-            zip_file.close()
 
 
 class XzExtractor:

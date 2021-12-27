@@ -29,8 +29,8 @@ _LICENSE = (
 
 def wiki40b_article_snippets(article, passage_len=100, overlap=0):
     paragraphs = article["text"].split("\n")
-    aticle_idx = paragraphs.index("_START_ARTICLE_") + 1
-    article_title = paragraphs[aticle_idx] if aticle_idx < len(paragraphs) else ""
+    article_idx = paragraphs.index("_START_ARTICLE_") + 1
+    article_title = paragraphs[article_idx] if article_idx < len(paragraphs) else ""
     section_indices = [i + 1 for i, par in enumerate(paragraphs[:-1]) if par == "_START_SECTION_"]
     par_tabs = [par.split(" ") for par in paragraphs]
     word_map = [
@@ -44,14 +44,14 @@ def wiki40b_article_snippets(article, passage_len=100, overlap=0):
     passages = []
     for i in range(math.ceil(len(word_map) / step_size)):
         pre_toks = word_map[i * step_size : i * step_size + passage_len]
-        start_section_id = max([0] + [j for j in section_indices if j <= pre_toks[0][0]])
+        start_section_id = max((j for j in section_indices if j <= pre_toks[0][0]), default=0)
         section_ids = [j for j in section_indices if j >= start_section_id and j <= pre_toks[-1][0]]
         section_ids = section_ids if len(section_ids) > 0 else [0]
-        passage_text = " ".join([w for p_id, s_id, w in pre_toks])
+        passage_text = " ".join(w for p_id, s_id, w in pre_toks)
         passages += [
             {
                 "article_title": article_title,
-                "section_title": " & ".join([paragraphs[j] for j in section_ids]),
+                "section_title": " & ".join(paragraphs[j] for j in section_ids),
                 "wiki_id": article["wikidata_id"],
                 "start_paragraph": pre_toks[0][0],
                 "start_character": pre_toks[0][1],
@@ -79,14 +79,14 @@ def wikipedia_article_snippets(article, passage_len=100, overlap=0):
     passages = []
     for i in range(math.ceil(len(word_map) / step_size)):
         pre_toks = word_map[i * step_size : i * step_size + passage_len]
-        start_section_id = max([0] + [j for j in section_indices if j <= pre_toks[0][0]])
+        start_section_id = max((j for j in section_indices if j <= pre_toks[0][0]), default=0)
         section_ids = [j for j in section_indices if j >= start_section_id and j <= pre_toks[-1][0]]
         section_ids = section_ids if len(section_ids) > 0 else [-1]
-        passage_text = " ".join([w for p_id, s_id, w in pre_toks])
+        passage_text = " ".join(w for p_id, s_id, w in pre_toks)
         passages += [
             {
                 "article_title": article_title,
-                "section_title": " & ".join(["Start" if j == -1 else paragraphs[j].strip() for j in section_ids]),
+                "section_title": " & ".join("Start" if j == -1 else paragraphs[j].strip() for j in section_ids),
                 "wiki_id": article_title.replace(" ", "_"),
                 "start_paragraph": pre_toks[0][0],
                 "start_character": pre_toks[0][1],
@@ -98,15 +98,15 @@ def wikipedia_article_snippets(article, passage_len=100, overlap=0):
     return passages
 
 
-_SPLIT_FUCNTION_MAP = {
+_SPLIT_FUNCTION_MAP = {
     "wikipedia": wikipedia_article_snippets,
     "wiki40b": wiki40b_article_snippets,
 }
 
 
-def generate_snippets(wikipedia, split_funtion, passage_len=100, overlap=0):
+def generate_snippets(wikipedia, split_function, passage_len=100, overlap=0):
     for i, article in enumerate(wikipedia):
-        for doc in split_funtion(article, passage_len, overlap):
+        for doc in split_function(article, passage_len, overlap):
             part_id = json.dumps(
                 {
                     "datasets_id": i,
@@ -132,7 +132,7 @@ class WikiSnippetsConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(WikiSnippetsConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.wikipedia_name = wikipedia_name
         self.wikipedia_version_name = wikipedia_version_name
         self.snippets_length = snippets_length
@@ -199,7 +199,7 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
         logger.info(f"generating examples from = {self.config.wikipedia_name} {self.config.wikipedia_version_name}")
         for split in wikipedia:
             dset = wikipedia[split]
-            split_function = _SPLIT_FUCNTION_MAP[self.config.wikipedia_name]
+            split_function = _SPLIT_FUNCTION_MAP[self.config.wikipedia_name]
             for doc in generate_snippets(
                 dset, split_function, passage_len=self.config.snippets_length, overlap=self.config.snippets_overlap
             ):

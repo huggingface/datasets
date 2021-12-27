@@ -36,7 +36,7 @@ class GeneratedReviewsEnthConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(GeneratedReviewsEnthConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.language_pair = ("en", "th")
 
 
