@@ -4,20 +4,21 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- en-US, en-GB
+- en
 licenses:
 - cc-by-4.0
 multilinguality:
 - monolingual
 pretty_name: VCTK
 size_categories:
-- unknown
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
 - automatic-speech-recognition
 task_ids:
 - speech-recognition
+paperswithcode_id: vctk
 ---
 
 # Dataset Card for VCTK
@@ -89,7 +90,7 @@ Each row consists of the following fields:
 
 ### Data Splits
 
-[More Information Needed]
+The dataset has no predefined splits.
 
 ## Dataset Creation
 
@@ -147,7 +148,13 @@ Each row consists of the following fields:
 
 ### Citation Information
 
-[More Information Needed]
+```bibtex
+@inproceedings{Veaux2017CSTRVC,
+    title        = {CSTR VCTK Corpus: English Multi-speaker Corpus for CSTR Voice Cloning Toolkit},
+    author       = {Christophe Veaux and Junichi Yamagishi and Kirsten MacDonald},
+    year         = 2017
+}
+```
 
 ### Contributions
 
