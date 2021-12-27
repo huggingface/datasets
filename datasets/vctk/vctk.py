@@ -18,6 +18,7 @@
 
 
 import os
+import re
 
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
@@ -83,20 +84,32 @@ class VCTK(datasets.GeneratorBasedBuilder):
         meta_path = os.path.join(root_path, "speaker-info.txt")
         txt_root = os.path.join(root_path, "txt")
         wav_root = os.path.join(root_path, "wav48_silence_trimmed")
-        fields = ["speaker_id", "age", "gender", "accent", "region", "comment"]
+        # NOTE: "comment" is handled separately in logic below
+        fields = ["speaker_id", "age", "gender", "accent", "region"]
 
         key = 0
         with open(meta_path) as meta_file:
             _ = next(iter(meta_file))
             for line in meta_file:
                 data = {}
+                line = line.strip()
+                search = re.search(r"\(.*\)", line)
+                if search is None:
+                    data["comment"] = ""
+                else:
+                    start, _ = search.span()
+                    data["comment"] = line[start:]
+                    line = line[:start]
                 values = line.split()
                 for i, field in enumerate(fields):
-                    data[field] = values[i] if i < len(values) else ""
+                    if field == "region":
+                        data[field] = " ".join(values[i:])
+                    else:
+                        data[field] = values[i] if i < len(values) else ""
                 speaker_id = data["speaker_id"]
                 speaker_txt_path = os.path.join(txt_root, speaker_id)
                 speaker_wav_path = os.path.join(wav_root, speaker_id)
-                # p315 does not have text
+                # NOTE: p315 does not have text
                 if not os.path.exists(speaker_txt_path):
                     continue
                 for txt_file in sorted(os.listdir(speaker_txt_path)):
@@ -104,7 +117,7 @@ class VCTK(datasets.GeneratorBasedBuilder):
                     _, text_id = filename.split("_")
                     for i in [1, 2]:
                         wav_file = os.path.join(speaker_wav_path, f"{filename}_mic{i}.flac")
-                        # p280 does not have mic2 files
+                        # NOTE: p280 does not have mic2 files
                         if not os.path.exists(wav_file):
                             continue
                         with open(os.path.join(speaker_txt_path, txt_file)) as text_file:

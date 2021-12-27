@@ -84,8 +84,8 @@ Each row consists of the following fields:
 - `age`: Speaker's age
 - `gender`: Speaker's gender
 - `accent`: Speaker's accent
-- `region`: Speaker's region
-- `comment`: Miscellaneous annotations
+- `region`: Speaker's region, if annotation exists
+- `comment`: Miscellaneous comments, if any
 
 ### Data Splits
 
