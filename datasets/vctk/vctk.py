@@ -25,9 +25,9 @@ from datasets.tasks import AutomaticSpeechRecognition
 
 _CITATION = """\
 @inproceedings{Veaux2017CSTRVC,
-	title        = {CSTR VCTK Corpus: English Multi-speaker Corpus for CSTR Voice Cloning Toolkit},
-	author       = {Christophe Veaux and Junichi Yamagishi and Kirsten MacDonald},
-	year         = 2017
+    title        = {CSTR VCTK Corpus: English Multi-speaker Corpus for CSTR Voice Cloning Toolkit},
+    author       = {Christophe Veaux and Junichi Yamagishi and Kirsten MacDonald},
+    year         = 2017
 }
 """
 
@@ -96,6 +96,7 @@ class VCTK(datasets.GeneratorBasedBuilder):
                 speaker_id = data["speaker_id"]
                 speaker_txt_path = os.path.join(txt_root, speaker_id)
                 speaker_wav_path = os.path.join(wav_root, speaker_id)
+                # p315 does not have text
                 if not os.path.exists(speaker_txt_path):
                     continue
                 for txt_file in sorted(os.listdir(speaker_txt_path)):
@@ -103,6 +104,7 @@ class VCTK(datasets.GeneratorBasedBuilder):
                     _, text_id = filename.split("_")
                     for i in [1, 2]:
                         wav_file = os.path.join(speaker_wav_path, f"{filename}_mic{i}.flac")
+                        # p280 does not have mic2 files
                         if not os.path.exists(wav_file):
                             continue
                         with open(os.path.join(speaker_txt_path, txt_file)) as text_file:
