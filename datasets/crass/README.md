@@ -156,3 +156,7 @@ The CRASS benchmark data set is released under the Apache License 2.0.
 ### Citation Information
 
 forthcoming
+
+### Contributions
+
+Thanks to [@apergo-ai](https://github.com/apergo-ai) for adding this dataset.
