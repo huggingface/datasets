@@ -21,20 +21,48 @@ import datasets
 
 
 _CITATION = """\
-@InProceedings{cvit-pib:multilingual-corpus,
-title = {Revisiting Low Resource Status of Indian Languages in Machine Translation},
-authors={Jerin Philip, Shashank Siripragada, Vinay P. Namboodiri, C.V. Jawahar
-},
-year={2020}
+@inproceedings{siripragada-etal-2020-multilingual,
+    title = "A Multilingual Parallel Corpora Collection Effort for {I}ndian Languages",
+    author = "Siripragada, Shashank  and
+      Philip, Jerin  and
+      Namboodiri, Vinay P.  and
+      Jawahar, C V",
+    booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
+    month = may,
+    year = "2020",
+    address = "Marseille, France",
+    publisher = "European Language Resources Association",
+    url = "https://aclanthology.org/2020.lrec-1.462",
+    pages = "3743--3751",
+    abstract = "We present sentence aligned parallel corpora across 10 Indian Languages - Hindi, Telugu, Tamil, Malayalam, Gujarati, Urdu, Bengali, Oriya, Marathi, Punjabi, and English - many of which are categorized as low resource. The corpora are compiled from online sources which have content shared across languages. The corpora presented significantly extends present resources that are either not large enough or are restricted to a specific domain (such as health). We also provide a separate test corpus compiled from an independent online source that can be independently used for validating the performance in 10 Indian languages. Alongside, we report on the methods of constructing such corpora using tools enabled by recent advances in machine translation and cross-lingual retrieval using deep neural network based methods.",
+    language = "English",
+    ISBN = "979-10-95546-34-4",
+}
+@article{2020,
+   title={Revisiting Low Resource Status of Indian Languages in Machine Translation},
+   url={http://dx.doi.org/10.1145/3430984.3431026},
+   DOI={10.1145/3430984.3431026},
+   journal={8th ACM IKDD CODS and 26th COMAD},
+   publisher={ACM},
+   author={Philip, Jerin and Siripragada, Shashank and Namboodiri, Vinay P. and Jawahar, C. V.},
+   year={2020},
+   month={Dec}
 }
 """
 
 _DESCRIPTION = """\
-This new dataset is the large scale sentence aligned corpus in 11 Indian languages,
-viz. CVIT-PIB corpus that is the largest multilingual corpus available for Indian languages.
+Sentence aligned parallel corpus between 11 Indian Languages, crawled and extracted from the press information bureau
+website.
 """
 
-_URL = "http://preon.iiit.ac.in/~jerin/resources/datasets/pib-v0.tar"
+_URL = {
+    "0.0.0": "http://preon.iiit.ac.in/~jerin/resources/datasets/pib-v0.tar",
+    "1.3.0": "http://preon.iiit.ac.in/~jerin/resources/datasets/pib_v1.3.tar.gz",
+}
+_ROOT_DIR = {
+    "0.0.0": "pib",
+    "1.3.0": "pib-v1.3",
+}
 
 _LanguagePairs = [
     "or-ur",
@@ -98,8 +126,8 @@ _LanguagePairs = [
 class PibConfig(datasets.BuilderConfig):
     """BuilderConfig for PIB"""
 
-    def __init__(self, language_pair, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, language_pair, version=datasets.Version("1.3.0"), **kwargs):
+        super().__init__(version=version, **kwargs)
         """
 
         Args:
@@ -118,7 +146,6 @@ class Pib(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [PibConfig(name=pair, description=_DESCRIPTION, language_pair=pair) for pair in _LanguagePairs]
 
     def _info(self):
-        # TODO: Specifies the datasets.DatasetInfo object
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
