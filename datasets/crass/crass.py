@@ -21,11 +21,13 @@ import datasets
 
 
 _CITATION = """\
-@InProceedings{huggingface:dataset,
-title = {A great new dataset},
-author={huggingface, Inc.
-},
-year={2020}
+@misc{frohberg2021crass,
+      title={CRASS: A Novel Data Set and Benchmark to Test Counterfactual Reasoning of Large Language Models}, 
+      author={Jörg Frohberg and Frank Binder},
+      year={2021},
+      eprint={2112.11941},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
 }
 """
 
