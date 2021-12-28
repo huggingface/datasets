@@ -88,7 +88,7 @@ class VCTK(datasets.GeneratorBasedBuilder):
         fields = ["speaker_id", "age", "gender", "accent", "region"]
 
         key = 0
-        with open(meta_path) as meta_file:
+        with open(meta_path, encoding="utf-8") as meta_file:
             _ = next(iter(meta_file))
             for line in meta_file:
                 data = {}
@@ -120,7 +120,7 @@ class VCTK(datasets.GeneratorBasedBuilder):
                         # NOTE: p280 does not have mic2 files
                         if not os.path.exists(wav_file):
                             continue
-                        with open(os.path.join(speaker_txt_path, txt_file)) as text_file:
+                        with open(os.path.join(speaker_txt_path, txt_file), encoding="utf-8") as text_file:
                             text = text_file.readline().strip()
                             more_data = {
                                 "file": wav_file,
