@@ -14,6 +14,8 @@ from datasets.utils.streaming_download_manager import (
     _get_extraction_protocol,
     xbasename,
     xglob,
+    xisdir,
+    xisfile,
     xjoin,
     xlistdir,
     xopen,
@@ -257,6 +259,39 @@ def test_xlistdir(input_path, expected_paths, tmp_path, mock_fsspec):
             (tmp_path / file).touch()
     output_paths = sorted(xlistdir(input_path))
     assert output_paths == expected_paths
+
+
+@pytest.mark.parametrize(
+    "input_path, isdir",
+    [
+        ("tmp_path", True),
+        ("tmp_path/file.txt", False),
+        ("mock://", True),
+        ("mock://top_level", True),
+        ("mock://dir_that_doesnt_exist", False),
+    ],
+)
+def test_xisdir(input_path, isdir, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        (tmp_path / "file.txt").touch()
+    assert xisdir(input_path) == isdir
+
+
+@pytest.mark.parametrize(
+    "input_path, isfile",
+    [
+        ("tmp_path/file.txt", True),
+        ("tmp_path/file_that_doesnt_exist.txt", False),
+        ("mock://", False),
+        ("mock://top_level/second_level/date=2019-10-01/a.parquet", True),
+    ],
+)
+def test_xisfile(input_path, isfile, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        (tmp_path / "file.txt").touch()
+    assert xisfile(input_path) == isfile
 
 
 @pytest.mark.parametrize(
