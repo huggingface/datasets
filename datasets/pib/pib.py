@@ -149,7 +149,7 @@ class Pib(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"translation": datasets.features.Translation(languages=(self.config.src, self.config.tgt))}
+                {"translation": datasets.features.Translation(languages=[self.config.src, self.config.tgt])}
             ),
             supervised_keys=(self.config.src, self.config.tgt),
             homepage="http://preon.iiit.ac.in/~jerin/bhasha/",
