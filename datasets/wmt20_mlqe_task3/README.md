@@ -51,7 +51,7 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage:** [WMT20 Quality Estimation Shared Task](http://www.statmt.org/wmt20/quality-estimation-task.html)
+- **Homepage:** [WMT20 Quality Estimation Shared Task](https://www.statmt.org/wmt20/quality-estimation-task.html)
 - **Repository**: [Github repository](https://github.com/deep-spin/deep-spin.github.io/tree/master/docs/data/wmt2020_qe)
 - **Paper:** *Not available*
 

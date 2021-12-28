@@ -33,7 +33,7 @@ class IappWikiQaSquadConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(IappWikiQaSquadConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class IappWikiQaSquad(datasets.GeneratorBasedBuilder):

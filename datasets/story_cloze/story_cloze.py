@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,8 +49,8 @@ class StoryCloze(datasets.GeneratorBasedBuilder):
     def manual_download_instructions(self):
         return (
             "To use Story Cloze you have to download it manually. Please fill this "
-            "google form (http://goo.gl/forms/aQz39sdDrO). Complete the form. "
-            "Then you will recieve a download link for the dataset. Load it using: "
+            "google form (https://goo.gl/forms/aQz39sdDrO). Complete the form. "
+            "Then you will receive a download link for the dataset. Load it using: "
             "`datasets.load_dataset('story_cloze', data_dir='path/to/folder/folder_name')`"
         )
 
@@ -110,10 +109,8 @@ class StoryCloze(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate Story Cloze examples."""
         with open(filepath, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(
-                csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
-            )
-            _ = next(csv_reader)
+            csv_reader = csv.reader(csv_file, skipinitialspace=True)
+            next(csv_reader)
             for id_, row in enumerate(csv_reader):
                 if row and len(row) == 8:
                     yield id_, {

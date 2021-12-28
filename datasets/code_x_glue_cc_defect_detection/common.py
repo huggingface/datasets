@@ -58,8 +58,8 @@ class Child:
         ]
 
     def check_empty(self, entries):
-        all_empty = all([v == "" for v in entries.values()])
-        all_non_empty = all([v != "" for v in entries.values()])
+        all_empty = all(v == "" for v in entries.values())
+        all_non_empty = all(v != "" for v in entries.values())
 
         if not all_non_empty and not all_empty:
             raise RuntimeError("Parallel data files should have the same number of lines.")

@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 HuggingFace Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -460,10 +459,10 @@ class CsvTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             open(os.path.join(tmp_dir, "table_comma.csv"), "w", encoding="utf-8").write(
-                "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+                "\n".join(",".join(str(i) for i in range(n_cols)) for _ in range(n_rows + 1))
             )
             open(os.path.join(tmp_dir, "table_tab.csv"), "w", encoding="utf-8").write(
-                "\n".join("\t".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+                "\n".join("\t".join(str(i) for i in range(n_cols)) for _ in range(n_rows + 1))
             )
             ds = load_dataset(
                 "csv",
@@ -505,7 +504,7 @@ class CsvTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
-                "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+                "\n".join(",".join(str(i) for i in range(n_cols)) for _ in range(n_rows + 1))
             )
             for type in [Value("float64"), Value("int8"), ClassLabel(num_classes=n_cols)]:
                 features = get_features(type)

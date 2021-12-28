@@ -111,7 +111,7 @@ class WikiSQL(datasets.GeneratorBasedBuilder):
         rep = f"SELECT {_AGG_OPS[agg]} {columns[sel] if columns is not None else f'col{sel}'} FROM table"
 
         if conditions:
-            rep += " WHERE " + " AND ".join([f"{columns[i]} {_COND_OPS[o]} {v}" for i, o, v in conditions])
+            rep += " WHERE " + " AND ".join(f"{columns[i]} {_COND_OPS[o]} {v}" for i, o, v in conditions)
         return " ".join(rep.split())
 
     def _generate_examples(self, main_filepath, tables_filepath):

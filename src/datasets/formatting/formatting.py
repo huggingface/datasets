@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -374,7 +373,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
     The transform must take as input a batch of data extracted for an arrow table using the python extractor,
     and return a batch.
     If the output batch is not a dict, then output_all_columns won't work.
-    If the ouput batch has several fields, then querying a single column won't work since we don't know which field
+    If the output batch has several fields, then querying a single column won't work since we don't know which field
     to return.
     """
 

@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,9 +58,7 @@ class KILTWikipediaConfig(datasets.BuilderConfig):
         .
               **kwargs: keyword arguments forwarded to super.
         """
-        super(KILTWikipediaConfig, self).__init__(
-            version=datasets.Version("1.0.0", "Wikipedia pre-processed for KILT"), **kwargs
-        )
+        super().__init__(version=datasets.Version("1.0.0", "Wikipedia pre-processed for KILT"), **kwargs)
 
 
 class KILTWikipedia(datasets.GeneratorBasedBuilder):
@@ -127,7 +124,7 @@ class KILTWikipedia(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
 
         downloaded_path = dl_manager.download_and_extract(
-            "http://dl.fbaipublicfiles.com/KILT/kilt_knowledgesource.json"
+            "https://dl.fbaipublicfiles.com/KILT/kilt_knowledgesource.json"
         )
 
         return [
@@ -147,7 +144,7 @@ class KILTWikipedia(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 pre_article = json.loads(line.strip())
-                article = dict([(k, pre_article[k]) for k in ["wikipedia_id", "wikipedia_title", "categories"]])
+                article = {k: pre_article[k] for k in ["wikipedia_id", "wikipedia_title", "categories"]}
                 # wikidata
                 article["wikidata_info"] = {}
                 pre_article["wikidata_info"] = pre_article.get("wikidata_info", {})

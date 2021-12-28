@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -52,7 +51,7 @@ class BookcorpusConfig(datasets.BuilderConfig):
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
-        super(BookcorpusConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Bookcorpus(datasets.GeneratorBasedBuilder):
@@ -96,7 +95,7 @@ class Bookcorpus(datasets.GeneratorBasedBuilder):
         ]
         _id = 0
         for txt_file in files:
-            with open(txt_file, mode="r", encoding="utf-8") as f:
+            with open(txt_file, encoding="utf-8") as f:
                 for line in f:
                     yield _id, {"text": line.strip()}
                     _id += 1

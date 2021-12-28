@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,7 +57,7 @@ class IdLiputan6Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(IdLiputan6Config, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class IdLiputan6(datasets.GeneratorBasedBuilder):
@@ -155,13 +154,13 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
         ):
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
-                clean_article = " ".join([" ".join(i) for i in data["clean_article"]])
+                clean_article = " ".join(" ".join(i) for i in data["clean_article"])
                 for d in detokenizers:
                     clean_article = d[0].sub(d[1], clean_article)
-                clean_summary = " ".join([" ".join(i) for i in data["clean_summary"]])
+                clean_summary = " ".join(" ".join(i) for i in data["clean_summary"])
                 for d in detokenizers:
                     clean_summary = d[0].sub(d[1], clean_summary)
-                extractive_summary = " ".join([" ".join(data["clean_article"][i]) for i in data["extractive_summary"]])
+                extractive_summary = " ".join(" ".join(data["clean_article"][i]) for i in data["extractive_summary"])
                 for d in detokenizers:
                     extractive_summary = d[0].sub(d[1], extractive_summary)
                 yield guid, {

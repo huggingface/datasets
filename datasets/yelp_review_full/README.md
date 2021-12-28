@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: Yelp Review Full
 ---
 
 # Dataset Card for YelpReviewFull

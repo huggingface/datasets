@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,23 +53,11 @@ _URLS = {
 }
 
 
-class SquadConfig(datasets.BuilderConfig):
-    """BuilderConfig for SQUAD."""
-
-    def __init__(self, **kwargs):
-        """BuilderConfig for SQUAD.
-
-        Args:
-          **kwargs: keyword arguments forwarded to super.
-        """
-        super(SquadConfig, self).__init__(**kwargs)
-
-
 class Squad(datasets.GeneratorBasedBuilder):
     """SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
 
     BUILDER_CONFIGS = [
-        SquadConfig(
+        datasets.BuilderConfig(
             name="plain_text",
             version=datasets.Version("1.0.0", ""),
             description="Plain text",
@@ -119,24 +106,19 @@ class Squad(datasets.GeneratorBasedBuilder):
         logger.info("generating examples from = %s", filepath)
         key = 0
         with open(filepath, encoding="utf-8") as f:
-            squad = json.load(f)
-            for article in squad["data"]:
-                title = article.get("title", "")
+            for article in json.load(f)["data"]:
                 for paragraph in article["paragraphs"]:
-                    context = paragraph["context"]  # do not strip leading blank spaces GH-2585
                     for qa in paragraph["qas"]:
-                        answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-                        answers = [answer["text"] for answer in qa["answers"]]
                         # Features currently used are "context", "question", and "answers".
                         # Others are extracted here for the ease of future expansions.
                         yield key, {
-                            "title": title,
-                            "context": context,
+                            "title": article.get("title", ""),
+                            "context": paragraph["context"],  # do not strip leading blank spaces GH-2585,
                             "question": qa["question"],
                             "id": qa["id"],
                             "answers": {
-                                "answer_start": answer_starts,
-                                "text": answers,
+                                "answer_start": [answer["answer_start"] for answer in qa["answers"]],
+                                "text": [answer["text"] for answer in qa["answers"]],
                             },
                         }
                         key += 1

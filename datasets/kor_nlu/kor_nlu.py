@@ -50,7 +50,7 @@ class KorNluConfig(datasets.BuilderConfig):
             url: `string`, url for information about the dataset.
             **kwrags: keyword arguments frowarded to super
         """
-        super(KorNluConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.description = description
         self.data_url = data_url
         self.citation = citation

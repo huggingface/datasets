@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +35,7 @@ _CITATION = r"""
     journal   = {CoRR},
     volume    = {abs/1704.05179},
     year      = {2017},
-    url       = {http://arxiv.org/abs/1704.05179},
+    url       = {https://arxiv.org/abs/1704.05179},
     archivePrefix = {arXiv},
     eprint    = {1704.05179},
     timestamp = {Mon, 13 Aug 2018 16:47:09 +0200},
@@ -72,7 +71,7 @@ class SearchQaConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(SearchQaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.data_url = data_url
 
 

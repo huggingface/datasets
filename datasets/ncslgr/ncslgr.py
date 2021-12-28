@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -129,7 +128,7 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
         for i, eaf_file in enumerate(os.listdir(eaf_path)):
             eaf_file_path = os.path.join(eaf_path, eaf_file)
             videos = []
-            with open(eaf_file_path, "r", encoding="utf-8") as f:
+            with open(eaf_file_path, encoding="utf-8") as f:
                 content = f.read()
 
             if self.config.videos:

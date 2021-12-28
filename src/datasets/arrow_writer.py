@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +15,6 @@
 import errno
 import json
 import os
-import socket
 import sys
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -269,7 +267,7 @@ class ArrowWriter:
         self.hkey_record = []
 
     def __len__(self):
-        """Return the number of writed and staged examples"""
+        """Return the number of written and staged examples"""
         return self._num_examples + len(self.current_examples) + len(self.current_rows)
 
     def __enter__(self):
@@ -407,7 +405,7 @@ class ArrowWriter:
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
             if self._check_duplicates:
                 self.check_duplicate_keys()
-                # Re-intializing to empty list for next batch
+                # Re-initializing to empty list for next batch
                 self.hkey_record = []
 
             self.write_examples_on_file()
@@ -482,7 +480,7 @@ class ArrowWriter:
         # In case current_examples < writer_batch_size, but user uses finalize()
         if self._check_duplicates:
             self.check_duplicate_keys()
-            # Re-intializing to empty list for next batch
+            # Re-initializing to empty list for next batch
             self.hkey_record = []
         self.write_examples_on_file()
         if self.pa_writer is None:
@@ -576,7 +574,7 @@ class BeamWriter:
             sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
             with beam.io.filesystems.FileSystems.create(self._path) as dest:
                 parquet_to_arrow(sources, dest)
-        except socket.error as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
+        except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
             if e.errno != errno.EPIPE:  # not a broken pipe
                 raise
             logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")

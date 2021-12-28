@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -162,7 +161,7 @@ class MLamaConfig(datasets.BuilderConfig):
         relations: A subset of place_of_birth,place_of_death,P1001,P101,P103,P106,P108,P127,P1303,P131,P136,P1376,P138,P140,P1412,P159,P17,P176,P178,P19,P190,P20,P264,P27,P276,P279,P30,P31,P36,P361,P364,P37,P39,P407,P413,P449,P463,P47,P495,P527,P530,P740,P937
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MLamaConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.languages = languages if languages is not None else _LANGUAGES
         self.relations = relations if relations is not None else _RELATIONS
 

@@ -22,7 +22,7 @@ _DATA_URL = "https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/newsph"
 
 class NewsphConfig(datasets.BuilderConfig):
     def __init__(self, data_url, **kwargs):
-        super(NewsphConfig, self).__init__(
+        super().__init__(
             version=datasets.Version(
                 "1.0.0",
             ),

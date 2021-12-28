@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -82,14 +81,14 @@ class PolevalMTConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Validate language pair.
-        name = "%s-%s" % (language_pair[0], language_pair[1])
+        name = f"{language_pair[0]}-{language_pair[1]}"
         assert "pl" in language_pair, ("Config language pair must contain `pl` (Polish), got: %s", language_pair)
         source, target = language_pair
         non_pl = source if target == "pl" else target
         assert non_pl in _SUPPORTED_LANGUAGES.keys(), ("Invalid non-polish language in pair: %s", non_pl)
 
         description = ("Translation dataset between Polish and %s") % (_SUPPORTED_LANGUAGES[non_pl])
-        super(PolevalMTConfig, self).__init__(
+        super().__init__(
             name=name,
             description=description,
             version=datasets.Version("1.0.0", ""),

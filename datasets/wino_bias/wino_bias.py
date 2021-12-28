@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +30,7 @@ _CITATION = """\
   journal   = {CoRR},
   volume    = {abs/1804.06876},
   year      = {2018},
-  url       = {http://arxiv.org/abs/1804.06876},
+  url       = {https://arxiv.org/abs/1804.06876},
   archivePrefix = {arXiv},
   eprint    = {1804.06876},
   timestamp = {Mon, 13 Aug 2018 16:47:01 +0200},
@@ -55,7 +54,7 @@ _URL = "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino
 
 class WinoBiasConfig(datasets.BuilderConfig):
     def __init__(self, **kwargs):
-        super(WinoBiasConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class WinoBias(datasets.GeneratorBasedBuilder):
@@ -73,7 +72,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     def __init__(self, *args, writer_batch_size=None, **kwargs):
-        super(WinoBias, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Batch size used by the ArrowWriter
         # It defines the number of samples that are kept in memory before writing them
         # and also the length of the arrow chunks
@@ -335,7 +334,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                             if ner_word.strip(" ") == "*":
                                 ner_word = "I-" + start_word
                         ner_tags.append(ner_word)
-                        word_is_verbal_predicate = any(["(V" in x for x in splits[11:-1]])
+                        word_is_verbal_predicate = any("(V" in x for x in splits[11:-1])
                         if word_is_verbal_predicate:
                             verbal_predicates.append(splits[3])
                         if coreference != "-":

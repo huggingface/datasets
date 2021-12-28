@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2021 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -272,7 +271,7 @@ class AMIConfig(datasets.BuilderConfig):
 
         # for microphone configs some audio files are missing
         self.missing_files = missing_files if missing_files is not None else []
-        super(AMIConfig, self).__init__(version=datasets.Version("1.6.2", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.6.2", ""), **kwargs)
 
 
 class AMI(datasets.GeneratorBasedBuilder):
@@ -436,13 +435,13 @@ class AMI(datasets.GeneratorBasedBuilder):
         word_speakers = []
 
         for path in paths:
-            # retrive speaker
+            # retrieve speaker
             speaker = path.split(".")[-3]
 
-            with open(path, "r", encoding="utf-8") as words_file:
+            with open(path, encoding="utf-8") as words_file:
                 root = ET.parse(words_file).getroot()
                 for type_tag in root.findall("w"):
-                    word_id = type_tag.get("{http://nite.sourceforge.net/}id")
+                    word_id = type_tag.get("{https://nite.sourceforge.net/}id")
 
                     word_start_time = type_tag.get("starttime")
                     word_end_time = type_tag.get("endtime")
@@ -473,10 +472,10 @@ class AMI(datasets.GeneratorBasedBuilder):
         for path in paths:
             speaker = path.split(".")[-3]
 
-            with open(path, "r", encoding="utf-8") as segments_file:
+            with open(path, encoding="utf-8") as segments_file:
                 root = ET.parse(segments_file).getroot()
                 for type_tag in root.findall("segment"):
-                    segment_ids.append(type_tag.get("{http://nite.sourceforge.net/}id"))
+                    segment_ids.append(type_tag.get("{https://nite.sourceforge.net/}id"))
                     segment_start_times.append(float(type_tag.get("transcriber_start")))
                     segment_end_times.append(float(type_tag.get("transcriber_end")))
                     channels.append(type_tag.get("channel"))

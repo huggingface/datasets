@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +62,7 @@ class MOROCOConfig(datasets.BuilderConfig):
     """BuilderConfig for the MOROCO dataset"""
 
     def __init__(self, **kwargs):
-        super(MOROCOConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class MOROCO(datasets.GeneratorBasedBuilder):
@@ -154,10 +153,10 @@ class MOROCO(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, samples_filepath, labels_filepath):
         """This function returns the examples in the raw (text) form."""
 
-        with open(samples_filepath, "r", encoding="utf-8") as fsamples:
+        with open(samples_filepath, encoding="utf-8") as fsamples:
             sample_rows = fsamples.read().splitlines()
 
-        with open(labels_filepath, "r", encoding="utf-8") as flabels:
+        with open(labels_filepath, encoding="utf-8") as flabels:
             label_rows = flabels.readlines()
 
         for i, row in enumerate(sample_rows):

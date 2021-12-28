@@ -40,7 +40,7 @@ class WinograndeConfig(datasets.BuilderConfig):
             data_size: the format of the training set we want to use (xs, s, m, l, xl, debiased)
             **kwargs: keyword arguments forwarded to super.
         """
-        super(WinograndeConfig, self).__init__(version=datasets.Version("1.1.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.1.0", ""), **kwargs)
         self.data_size = data_size
 
 

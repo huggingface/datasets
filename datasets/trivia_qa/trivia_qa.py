@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -125,9 +124,7 @@ class TriviaQaConfig(datasets.BuilderConfig):
         description = _UNFILTERED_DESCRIPTION if unfiltered else _RC_DESCRIPTION
         if not exclude_context:
             description += _CONTEXT_ADDENDUM
-        super(TriviaQaConfig, self).__init__(
-            name=name, description=description, version=datasets.Version("1.2.0"), **kwargs
-        )
+        super().__init__(name=name, description=description, version=datasets.Version("1.2.0"), **kwargs)
 
         self.sources = ["web", "wikipedia"] if source == "all" else [source]
         self.unfiltered = unfiltered
@@ -273,7 +270,7 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
                     try:
                         with open(os.path.join(file_dir, fname), encoding="utf-8") as f:
                             new_item[context_field] = f.read()
-                    except (IOError, FileNotFoundError):
+                    except (OSError, FileNotFoundError):
                         logger.info("File does not exist, skipping: %s", fname)
                         continue
                     new_items.append(new_item)
@@ -324,6 +321,6 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
                         article = json.loads(current_record + "}")
                         current_record = ""
                         example = parse_example(article)
-                        yield "%s_%s" % (fname, example["question_id"]), example
+                        yield "{}_{}".format(fname, example["question_id"]), example
                     else:
                         current_record += line

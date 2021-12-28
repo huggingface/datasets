@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,7 +25,6 @@ the original corpus repo. Modifications are made to accommodate the HuggingFace 
 import csv
 import datetime
 import glob
-import io
 import os
 import re
 
@@ -476,7 +474,7 @@ class Swda(datasets.GeneratorBasedBuilder):
         """
 
         # Read in the split file.
-        split_file = io.open(file=split_file, mode="r", encoding="utf-8").read().splitlines()
+        split_file = open(file=split_file, encoding="utf-8").read().splitlines()
         # Read in corpus data using split files.
         corpus = CorpusReader(src_dirname=data_dir, split_file=split_file)
         # Generate examples.
@@ -545,9 +543,7 @@ class CorpusReader:
         """
 
         for trans in self.iter_transcripts():
-            for utt in trans.utterances:
-                # Yield the Utterance instance:
-                yield utt
+            yield from trans.utterances
 
 
 class Metadata:
@@ -667,7 +663,7 @@ class Utterance:
             if att_name == "trees":
                 if row_value:
                     # Origianl code returned list of nltk.tree and used `[Tree.fromstring(t) for t in row_value.split("|||")]`.
-                    # Since we're returning str we don't need to make any mondifications to row_value.
+                    # Since we're returning str we don't need to make any modifications to row_value.
                     row_value = row_value
                 else:
                     row_value = ""  # []
@@ -781,7 +777,7 @@ class Transcript:
         else:  # Where the supplied value is already a Metadata object.
             self.metadata = metadata
         # Get the file rows:
-        rows = list(csv.reader(open(self.swda_filename, "rt")))
+        rows = list(csv.reader(open(self.swda_filename)))
         # Ge the header and remove it from the rows:
         self.header = rows[0]
         rows.pop(0)

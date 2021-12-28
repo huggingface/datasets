@@ -49,9 +49,9 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage:** http://arxiv.org/abs/1702.02363
+- **Homepage:** https://arxiv.org/abs/1702.02363
 - **Repository:** [Needs More Information]
-- **Paper:** http://arxiv.org/abs/1702.02363
+- **Paper:** https://arxiv.org/abs/1702.02363
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** erayyildiz@ktu.edu.tr
 
@@ -148,7 +148,7 @@ Creative Commons Attribution 4.0 International
   journal   = {CoRR},
   volume    = {abs/1702.02363},
   year      = {2017},
-  url       = {http://arxiv.org/abs/1702.02363},
+  url       = {https://arxiv.org/abs/1702.02363},
   archivePrefix = {arXiv},
   eprint    = {1702.02363},
   timestamp = {Mon, 13 Aug 2018 16:46:36 +0200},

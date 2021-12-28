@@ -22,6 +22,7 @@ task_ids:
 - question-answering-other-yes-no-qa
 - structure-prediction-other-output-structure
 paperswithcode_id: zest
+pretty_name: ZEST
 ---
 
 # Dataset Card for "ZEST: ZEroShot learning from Task descriptions"

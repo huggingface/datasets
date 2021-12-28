@@ -18,7 +18,7 @@ class CrimeAndPunishConfig(datasets.BuilderConfig):
           data_url: `string`, url to the dataset (word or raw level)
           **kwargs: keyword arguments forwarded to super.
         """
-        super(CrimeAndPunishConfig, self).__init__(
+        super().__init__(
             version=datasets.Version(
                 "1.0.0",
             ),

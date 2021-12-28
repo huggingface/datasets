@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,7 +54,7 @@ class TwiTextC3Config(datasets.BuilderConfig):
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
-        super(TwiTextC3Config, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class TwiTextC3(datasets.GeneratorBasedBuilder):
@@ -89,7 +88,6 @@ class TwiTextC3(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        with open(filepath, mode="r", encoding="utf-8") as f:
-            lines = f.read().splitlines()
-            for id, line in enumerate(lines):
-                yield id, {"text": line.strip()}
+        with open(filepath, encoding="utf-8") as file:
+            for id_, line in enumerate(file):
+                yield id_, {"text": line.strip()}

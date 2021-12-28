@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2021 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,7 +67,7 @@ class ArabicSpeechCorpusConfig(datasets.BuilderConfig):
           url: `string`, url for information about the data set
           **kwargs: keyword arguments forwarded to super.
         """
-        super(ArabicSpeechCorpusConfig, self).__init__(version=datasets.Version("2.1.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("2.1.0", ""), **kwargs)
 
 
 class ArabicSpeechCorpus(datasets.GeneratorBasedBuilder):
@@ -118,19 +117,20 @@ class ArabicSpeechCorpus(datasets.GeneratorBasedBuilder):
         phonetics = {}
         orthographics = {}
 
-        with open(phonetic_path, "r", encoding="utf-8") as f:
+        with open(phonetic_path, encoding="utf-8") as f:
             for line in f:
                 wav_file, phonetic = line.split('"')[1::2]
                 phonetics[wav_file] = phonetic
 
-        with open(orthographic_path, "r", encoding="utf-8") as f:
+        with open(orthographic_path, encoding="utf-8") as f:
             for line in f:
                 wav_file, orthographic = line.split('"')[1::2]
                 orthographics[wav_file] = orthographic
 
         for _id, lab_name in enumerate(sorted(os.listdir(lab_dir))):
             lab_path = os.path.join(lab_dir, lab_name)
-            lab_text = open(lab_path, "r", encoding="utf-8").read()
+            with open(lab_path, encoding="utf-8") as f:
+                lab_text = f.read()
 
             wav_name = lab_name[:-4] + ".wav"
             wav_path = os.path.join(wav_dir, wav_name)

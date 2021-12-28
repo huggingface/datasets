@@ -203,7 +203,7 @@ ConvAI is a dataset of human-to-bot conversations labeled for quality. This data
   journal   = {CoRR},
   volume    = {abs/1902.00098},
   year      = {2019},
-  url       = {http://arxiv.org/abs/1902.00098},
+  url       = {https://arxiv.org/abs/1902.00098},
   archivePrefix = {arXiv},
   eprint    = {1902.00098},
   timestamp = {Wed, 07 Oct 2020 11:09:41 +0200},

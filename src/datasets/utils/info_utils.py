@@ -42,7 +42,7 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
 
 
 class SplitsVerificationException(Exception):
-    """Exceptions during splis verifications"""
+    """Exceptions during splits verifications"""
 
 
 class UnexpectedSplits(SplitsVerificationException):

@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +23,7 @@ import gzip
 import itertools
 import os
 import re
-import xml.etree.cElementTree as ElementTree
+import xml.etree.ElementTree as ElementTree
 from abc import ABC, abstractmethod
 
 import datasets
@@ -644,13 +643,13 @@ class WmtConfig(datasets.BuilderConfig):
             split. Note that WMT subclasses overwrite this parameter.
           **kwargs: keyword arguments forwarded to super.
         """
-        name = "%s-%s" % (language_pair[0], language_pair[1])
+        name = f"{language_pair[0]}-{language_pair[1]}"
         if "name" in kwargs:  # Add name suffix for custom configs
             name += "." + kwargs.pop("name")
 
-        super(WmtConfig, self).__init__(name=name, description=description, **kwargs)
+        super().__init__(name=name, description=description, **kwargs)
 
-        self.url = url or "http://www.statmt.org"
+        self.url = url or "https://www.statmt.org"
         self.citation = citation
         self.language_pair = language_pair
         self.subsets = subsets
@@ -672,7 +671,7 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
                 "kwargs. You may want to use one of the `wmtYY_translate` "
                 "implementation instead to get the WMT dataset for a specific year."
             )
-        super(Wmt, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     @abstractmethod
@@ -907,7 +906,7 @@ def _parse_parallel_sentences(f1, f2, filename1, filename2):
     f1_files = sorted(glob.glob(f1))
     f2_files = sorted(glob.glob(f2))
 
-    assert f1_files and f2_files, "No matching files found: %s, %s." % (f1, f2)
+    assert f1_files and f2_files, f"No matching files found: {f1}, {f2}."
     assert len(f1_files) == len(f2_files), "Number of files do not match: %d vs %d for %s vs %s." % (
         len(f1_files),
         len(f2_files),

@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -140,7 +139,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     # Get the code from all these files
     lines = []
     for file_path in to_use_files:
-        with open(file_path, mode="r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines.extend(f.readlines())
     return hash_python_lines(lines)
 
@@ -193,9 +192,8 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
         import .c4_utils
         import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
     """
-    lines = []
-    with open(file_path, mode="r", encoding="utf-8") as f:
-        lines.extend(f.readlines())
+    with open(file_path, encoding="utf-8") as f:
+        lines = list(f)
 
     logger.debug(f"Checking {file_path} for additional imports.")
     imports: List[Tuple[str, str, str, Optional[str]]] = []
@@ -298,7 +296,7 @@ def _download_additional_modules(
         raise ImportError(
             f"To be able to use {name}, you need to install the following dependencies"
             f"{[lib_name for lib_name, lib_path in needs_to_be_installed]} using 'pip install "
-            f"{' '.join([lib_path for lib_name, lib_path in needs_to_be_installed])}' for instance'"
+            f"{' '.join(lib_path for lib_name, lib_path in needs_to_be_installed)}' for instance'"
         )
     return local_imports
 
@@ -363,7 +361,7 @@ def _copy_script_and_other_resources_in_importable_dir(
         meta_path = importable_local_file.split(".py")[0] + ".json"
         if not os.path.exists(meta_path):
             meta = {"original file path": original_local_path, "local file path": importable_local_file}
-            # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
+            # the filename is *.py in our case, so better rename to filename.json instead of filename.py.json
             with open(meta_path, "w", encoding="utf-8") as meta_file:
                 json.dump(meta, meta_file)
 
@@ -380,7 +378,7 @@ def _copy_script_and_other_resources_in_importable_dir(
             else:
                 raise OSError(f"Error with local import at {import_path}")
 
-        # Copy aditional files like dataset infos file if needed
+        # Copy additional files like dataset infos file if needed
         for file_name, original_path in additional_files:
             destination_additional_path = os.path.join(importable_subdirectory, file_name)
             if not os.path.exists(destination_additional_path) or not filecmp.cmp(
@@ -707,7 +705,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
 
 
 class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
-    """Get the module of a dataset loaded from the user's data files. The dataset builder module to use is infered from the data files extensions."""
+    """Get the module of a dataset loaded from the user's data files. The dataset builder module to use is inferred from the data files extensions."""
 
     def __init__(
         self,
@@ -727,15 +725,15 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         data_files = DataFilesDict.from_local_or_remote(
             patterns, base_path=self.path, allowed_extensions=ALL_ALLOWED_EXTENSIONS
         )
-        infered_module_names = {
+        inferred_module_names = {
             key: infer_module_for_data_files(data_files_list) for key, data_files_list in data_files.items()
         }
-        if len(set(list(infered_module_names.values()))) > 1:
-            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
-        infered_module_name = next(iter(infered_module_names.values()))
-        if not infered_module_name:
+        if len(set(list(inferred_module_names.values()))) > 1:
+            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {inferred_module_names}")
+        inferred_module_name = next(iter(inferred_module_names.values()))
+        if not inferred_module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
-        module_path, hash = _PACKAGED_DATASETS_MODULES[infered_module_name]
+        module_path, hash = _PACKAGED_DATASETS_MODULES[inferred_module_name]
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
@@ -762,7 +760,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     ):
         self.name = name
         self.data_files = data_files
-        self.downnload_config = download_config
+        self.download_config = download_config
         self.download_mode = download_mode
         increase_load_count(name, resource_type="dataset")
 
@@ -772,7 +770,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
             if self.data_files is not None
             else get_patterns_locally(str(Path().resolve()))
         )
-        data_files = DataFilesDict.from_local_or_remote(patterns, use_auth_token=self.downnload_config.use_auth_token)
+        data_files = DataFilesDict.from_local_or_remote(patterns, use_auth_token=self.download_config.use_auth_token)
         module_path, hash = _PACKAGED_DATASETS_MODULES[self.name]
         builder_kwargs = {"hash": hash, "data_files": data_files}
         return DatasetModule(module_path, hash, builder_kwargs)
@@ -781,7 +779,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
 class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     """
     Get the module of a dataset loaded from data files of a dataset repository.
-    The dataset builder module to use is infered from the data files extensions.
+    The dataset builder module to use is inferred from the data files extensions.
     """
 
     def __init__(
@@ -821,16 +819,16 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             dataset_info=hfh_dataset_info,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
-        infered_module_names = {
+        inferred_module_names = {
             key: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
             for key, data_files_list in data_files.items()
         }
-        if len(set(list(infered_module_names.values()))) > 1:
-            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
-        infered_module_name = next(iter(infered_module_names.values()))
-        if not infered_module_name:
+        if len(set(inferred_module_names.values())) > 1:
+            raise ValueError(f"Couldn't infer the same data file format for all splits. Got {inferred_module_names}")
+        inferred_module_name = next(iter(inferred_module_names.values()))
+        if not inferred_module_name:
             raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
-        module_path, hash = _PACKAGED_DATASETS_MODULES[infered_module_name]
+        module_path, hash = _PACKAGED_DATASETS_MODULES[inferred_module_name]
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
@@ -1195,7 +1193,7 @@ def dataset_module_factory(
                 return CachedDatasetModuleFactory(path, dynamic_modules_path=dynamic_modules_path).get_module()
             except Exception as e2:  # noqa: if it's not in the cache, then it doesn't exist.
                 if isinstance(e1, OfflineModeIsEnabled):
-                    raise ConnectionError(f"Couln't reach the Hugging Face Hub for dataset '{path}': {e1}") from None
+                    raise ConnectionError(f"Couldn't reach the Hugging Face Hub for dataset '{path}': {e1}") from None
                 if isinstance(e1, FileNotFoundError):
                     raise FileNotFoundError(
                         f"Couldn't find a dataset script at {relative_to_absolute_path(combined_path)} or any data file in the same directory. "
@@ -1220,7 +1218,7 @@ def metric_module_factory(
     r"""
     Download/extract/cache a metric module.
 
-    Metrics codes are cached inside the the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
+    Metrics codes are cached inside the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
 
     Args:
 
@@ -1230,7 +1228,7 @@ def metric_module_factory(
               -> load the module from the metric script
               e.g. ``'./metrics/accuracy'`` or ``'./metrics/accuracy/accuracy.py'``.
             - if ``path`` is a canonical metric (ex: `glue`, `squad`)
-              -> load the module from the metric script in the github repository at huggingface/datasets
+              -> load the module from the metric script in the GitHub repository at huggingface/datasets
               e.g. ``'accuracy'`` or ``'rouge'``.
 
         revision (Optional ``Union[str, datasets.Version]``):
@@ -1450,7 +1448,7 @@ def load_dataset_builder(
             For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
 
             - if ``path`` is a canonical dataset on the HF Hub (ex: `glue`, `squad`)
-              -> load the dataset builder from the dataset script in the github repository at huggingface/datasets
+              -> load the dataset builder from the dataset script in the GitHub repository at huggingface/datasets
               e.g. ``'squad'`` or ``'glue'``.
             - if ``path`` is a dataset repository on the HF hub (without a dataset script)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
@@ -1556,7 +1554,7 @@ def load_dataset(
             Processing scripts are small python scripts that define the citation, info and format of the dataset,
             contain the URL to the original data files and the code to load examples from the original data files.
 
-            You can find some of the scripts here: https://github.com/huggingface/datasets/tree/master/datasets
+            You can find some scripts here: https://github.com/huggingface/datasets/tree/master/datasets
             and easily upload yours to share them using the CLI ``huggingface-cli``.
             You can find the complete list of datasets in the Datasets Hub at https://huggingface.co/datasets
 
@@ -1590,7 +1588,7 @@ def load_dataset(
             For datasets on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
 
             - if ``path`` is a canonical dataset on the HF Hub (ex: `glue`, `squad`)
-              -> load the dataset builder from the dataset script in the github repository at huggingface/datasets
+              -> load the dataset builder from the dataset script in the GitHub repository at huggingface/datasets
               e.g. ``'squad'`` or ``'glue'``.
             - if ``path`` is a dataset repository on the HF hub (without a dataset script)
               -> load a generic dataset builder (csv, text etc.) based on the content of the repository
@@ -1687,7 +1685,7 @@ def load_dataset(
         )
 
     # Some datasets are already processed on the HF google storage
-    # Don't try downloading from google storage for the packaged datasets as text, json, csv or pandas
+    # Don't try downloading from Google storage for the packaged datasets as text, json, csv or pandas
     try_from_hf_gcs = path not in _PACKAGED_DATASETS_MODULES
 
     # Download and prepare data
@@ -1724,7 +1722,7 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory: Optional[bool] = 
             `"s3://my-bucket/dataset/train"`) of the Dataset or DatasetDict directory where the dataset will be
             loaded from.
         fs (:class:`~filesystems.S3FileSystem` or ``fsspec.spec.AbstractFileSystem``, optional, default ``None``):
-            Instance of of the remote filesystem used to download the files from.
+            Instance of the remote filesystem used to download the files from.
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
             nonzero. See more details in the :ref:`load_dataset_enhancing_performance` section.

@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,10 +57,10 @@ class FloresConfig(datasets.BuilderConfig):
             as target in supervised mode. For example: ("se", "en").
           **kwargs: keyword arguments forwarded to super.
         """
-        name = "%s%s" % (language_pair[0], language_pair[1])
+        name = f"{language_pair[0]}{language_pair[1]}"
 
         description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
-        super(FloresConfig, self).__init__(
+        super().__init__(
             name=name,
             description=description,
             version=datasets.Version("1.1.0", ""),

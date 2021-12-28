@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -69,12 +68,12 @@ class ThePileStackExchange(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, dirs):
         """Yields examples."""
         _id = 0
-        for dir in sorted(dirs):
-            txt_files = sorted(Path(dir).glob("**/*.txt"))
+        for dir_ in sorted(dirs):
+            txt_files = sorted(Path(dir_).glob("**/*.txt"))
             for txt_file in txt_files:
                 # PosiPath(/home/user/.cache/huggingface/datasets/downloads/extracted/3923d60abeeb876021dc55a897ac2f260b181556f8ca56a7c61e3b8b80afec77/academia.stackexchange_0000000001.txt)
                 domain = txt_file.name.split(".")[0]
-                with txt_file.open(mode="r", encoding="utf-8") as f:
+                with txt_file.open(encoding="utf-8") as f:
                     document = f.read()
                 yield _id, {"domain": domain, "text": document}
                 _id += 1

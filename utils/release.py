@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +20,7 @@ CUSTOM_JS_FILE = "docs/source/_static/js/custom.js"
 
 def update_custom_js(version):
     """Update the version table in the custom.js file."""
-    with open(CUSTOM_JS_FILE, "r", encoding="utf-8", newline="\n") as f:
+    with open(CUSTOM_JS_FILE, encoding="utf-8", newline="\n") as f:
         lines = f.readlines()
     index = 0
 

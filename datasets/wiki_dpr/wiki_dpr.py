@@ -80,7 +80,7 @@ class WikiDprConfig(datasets.BuilderConfig):
         assert embeddings_name in ("nq", "multiset")
         assert index_name in ("compressed", "exact", "no_index")
         kwargs["name"] = ".".join(name)
-        super(WikiDprConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         prefix = f"{wiki_split}.{embeddings_name}."
         if self.index_name == "exact":
@@ -141,33 +141,29 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, data_file, vectors_files=None):
         vec_idx = 0
         vecs = []
-        lines = open(data_file, "r", encoding="utf-8")
-        next(lines)  # skip headers
-        for i, line in enumerate(lines):
-            if self.config.dummy and i == 10000:
-                break
-            if i == 21015300:
-                break  # ignore the last 24 examples for which the embeddings are missing.
-            id, text, title = line.strip().split("\t")
-            text = text[1:-1]  # remove " symbol at the beginning and the end
-            text = text.replace('""', '"')  # replace double quotes by simple quotes
-            if self.config.with_embeddings:
-                if vec_idx >= len(vecs):
-                    if len(vectors_files) == 0:
-                        logger.warning(f"Ran out of vector files at index {i}")
-                        break
-                    vecs = np.load(open(vectors_files.pop(0), "rb"), allow_pickle=True)
-                    vec_idx = 0
-                vec_id, vec = vecs[vec_idx]
-                assert int(id) == int(vec_id), f"ID mismatch between lines {id} and vector {vec_id}"
-                yield id, {"id": id, "text": text, "title": title, "embeddings": vec}
-                vec_idx += 1
-            else:
-                yield id, {
-                    "id": id,
-                    "text": text,
-                    "title": title,
-                }
+        with open(data_file, encoding="utf-8") as lines:
+            next(lines)  # skip headers
+            for i, line in enumerate(lines):
+                if self.config.dummy and i == 10000:
+                    break
+                if i == 21015300:
+                    break  # ignore the last 24 examples for which the embeddings are missing.
+                id_, text, title = line.strip().split("\t")
+                text = text[1:-1]  # remove " symbol at the beginning and the end
+                text = text.replace('""', '"')  # replace double quotes by simple quotes
+                if self.config.with_embeddings:
+                    if vec_idx >= len(vecs):
+                        if len(vectors_files) == 0:
+                            logger.warning(f"Ran out of vector files at index {i}")
+                            break
+                        vecs = np.load(vectors_files.pop(0), allow_pickle=True)
+                        vec_idx = 0
+                    vec_id, vec = vecs[vec_idx]
+                    assert int(id_) == int(vec_id), f"ID mismatch between lines {id_} and vector {vec_id}"
+                    yield id_, {"id": id_, "text": text, "title": title, "embeddings": vec}
+                    vec_idx += 1
+                else:
+                    yield id_, {"id": id_, "text": text, "title": title}
 
     def _post_processing_resources(self, split):
         if self.config.with_index:

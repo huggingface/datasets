@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -78,7 +77,7 @@ class DuplicatedKeysError(Exception):
         super().__init__(f"{self.prefix}{self.err_msg}{self.suffix}")
 
 
-class KeyHasher(object):
+class KeyHasher:
     """KeyHasher class for providing hash using md5"""
 
     def __init__(self, hash_salt: str):

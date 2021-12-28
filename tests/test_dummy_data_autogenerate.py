@@ -45,7 +45,7 @@ class DummyBuilder(GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, **kwargs):
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             for i, line in enumerate(f):
                 yield i, {"text": line.strip()}
 

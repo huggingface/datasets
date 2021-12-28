@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -755,14 +754,14 @@ class ClassLabel:
 
     @staticmethod
     def _load_names_from_file(names_filepath):
-        with open(names_filepath, "r", encoding="utf-8") as f:
-            return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
+        with open(names_filepath, encoding="utf-8") as f:
+            return [name.strip() for name in f if name.strip()]  # Filter empty names
 
 
 @dataclass
 class Sequence:
     """Construct a list of feature from a single type or a dict of types.
-    Mostly here for compatiblity with tfds.
+    Mostly here for compatibility with tfds.
     """
 
     feature: Any
@@ -872,7 +871,7 @@ def encode_nested_example(schema, obj):
                     return [encode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
     elif isinstance(schema, Sequence):
-        # We allow to reverse list of dict => dict of list for compatiblity with tfds
+        # We allow reversing list of dict => dict of list for compatibility with tfds
         if isinstance(schema.feature, dict):
             # dict of list to fill
             list_dict = {}
@@ -930,7 +929,7 @@ def generate_from_dict(obj: Any):
     if class_type == Sequence:
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
 
-    field_names = set(f.name for f in fields(class_type))
+    field_names = {f.name for f in fields(class_type)}
     return class_type(**{k: v for k, v in obj.items() if k in field_names})
 
 
@@ -1019,7 +1018,7 @@ class Features(dict):
           .. note::
 
            A :class:`datasets.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of
-           lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be
+           lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
            un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the
            :class:`datasets.Sequence`.
 

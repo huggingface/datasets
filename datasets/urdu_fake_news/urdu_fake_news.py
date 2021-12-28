@@ -89,7 +89,7 @@ class UrduFakeNews(datasets.GeneratorBasedBuilder):
 
             _class = 1 if ("Real" in filename) else 0
             _class_name = "Real" if ("Real" in filename) else "Fake"
-            category = "".join([i for i in key if not i.isdigit()])
+            category = "".join(i for i in key if not i.isdigit())
             if category == "":
                 continue
             category = self.category_list.index(category)

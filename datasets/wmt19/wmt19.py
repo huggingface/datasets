@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,13 +20,13 @@ import datasets
 from .wmt_utils import CWMT_SUBSET_NAMES, Wmt, WmtConfig
 
 
-_URL = "http://www.statmt.org/wmt19/translation-task.html"
+_URL = "https://www.statmt.org/wmt19/translation-task.html"
 # TODO(adarob): Update with citation of overview paper once it is published.
 _CITATION = """
 @ONLINE {wmt19translate,
     author = {Wikimedia Foundation},
     title  = {ACL 2019 Fourth Conference on Machine Translation (WMT19), Shared Task: Machine Translation of News},
-    url    = {http://www.statmt.org/wmt19/translation-task.html}
+    url    = {https://www.statmt.org/wmt19/translation-task.html}
 }
 """
 
@@ -41,7 +40,7 @@ class Wmt19(Wmt):
     # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
     BUILDER_CONFIGS = [
         WmtConfig(  # pylint:disable=g-complex-comprehension
-            description="WMT 2019 %s-%s translation task dataset." % (l1, l2),
+            description=f"WMT 2019 {l1}-{l2} translation task dataset.",
             url=_URL,
             citation=_CITATION,
             language_pair=(l1, l2),

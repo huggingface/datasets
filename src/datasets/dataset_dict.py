@@ -140,7 +140,7 @@ class DatasetDict(dict):
 
     def cleanup_cache_files(self) -> Dict[str, int]:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is one.
-        Be carefull when running this command that no other process is currently using other cache files.
+        Be careful when running this command that no other process is currently using other cache files.
 
         Return:
             Dict with the number of removed files for each split
@@ -149,7 +149,7 @@ class DatasetDict(dict):
         return {k: dataset.cleanup_cache_files() for k, dataset in self.items()}
 
     def __repr__(self):
-        repr = "\n".join([f"{k}: {v}" for k, v in self.items()])
+        repr = "\n".join(f"{k}: {v}" for k, v in self.items())
         repr = re.sub(r"^", " " * 4, repr, 0, re.M)
         return f"DatasetDict({{\n{repr}\n}})"
 
@@ -756,7 +756,7 @@ class DatasetDict(dict):
             raise FileNotFoundError(
                 f"No such file or directory: '{dataset_dict_json_path}'. Expected to load a DatasetDict object, but got a Dataset. Please use datasets.load_from_disk instead."
             )
-        for k in json.load(fs.open(dataset_dict_json_path, "r", encoding="utf-8"))["splits"]:
+        for k in json.load(fs.open(dataset_dict_json_path, encoding="utf-8"))["splits"]:
             dataset_dict_split_path = (
                 dataset_dict_path.split("://")[0] + "://" + Path(dest_dataset_dict_path, k).as_posix()
                 if is_remote_filesystem(fs)

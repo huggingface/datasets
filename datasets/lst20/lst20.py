@@ -33,7 +33,7 @@ class Lst20Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Lst20Config, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Lst20(datasets.GeneratorBasedBuilder):

@@ -64,7 +64,7 @@ class HebrewSentimentConfig(datasets.BuilderConfig):
         """
         assert granularity in {"token", "morph"}
         self.granularity = granularity
-        super(HebrewSentimentConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class HebrewSentiment(datasets.GeneratorBasedBuilder):

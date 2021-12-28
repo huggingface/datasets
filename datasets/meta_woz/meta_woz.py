@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -136,7 +135,7 @@ class MetaWoz(datasets.GeneratorBasedBuilder):
             id_ = -1
             base_path = os.path.join(data_dir, "dialogues")
             file_list = sorted(
-                [os.path.join(base_path, file) for file in os.listdir(base_path) if file.endswith(".txt")]
+                os.path.join(base_path, file) for file in os.listdir(base_path) if file.endswith(".txt")
             )
             for filepath in file_list:
                 with open(filepath, encoding="utf-8") as f:

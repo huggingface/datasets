@@ -321,9 +321,9 @@ class Table(IndexedTableMixin):
 
 class TableBlock(Table):
     """
-    TableBlock is the allowed class inside a ConcanetationTable.
+    TableBlock is the allowed class inside a ConcatenationTable.
     Only MemoryMappedTable and InMemoryTable are TableBlock.
-    This is because we don't want a ConcanetationTable made out of other ConcanetationTables.
+    This is because we don't want a ConcatenationTable made out of other ConcatenationTables.
     """
 
     pass

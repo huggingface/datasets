@@ -169,7 +169,7 @@ Russian
   journal   = {CoRR},
   volume    = {abs/1912.09723},
   year      = {2019},
-  url       = {http://arxiv.org/abs/1912.09723},
+  url       = {https://arxiv.org/abs/1912.09723},
   eprinttype = {arXiv},
   eprint    = {1912.09723},
   timestamp = {Fri, 03 Jan 2020 16:10:45 +0100},

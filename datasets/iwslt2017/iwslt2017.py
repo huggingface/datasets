@@ -1,11 +1,10 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -189,8 +188,8 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
         id_ = 0
         source, target = self.config.pair.split("-")
         for source_file, target_file in zip(source_files, target_files):
-            with open(source_file, "r", encoding="utf-8") as sf:
-                with open(target_file, "r", encoding="utf-8") as tf:
+            with open(source_file, encoding="utf-8") as sf:
+                with open(target_file, encoding="utf-8") as tf:
                     for source_row, target_row in zip(sf, tf):
                         source_row = source_row.strip()
                         target_row = target_row.strip()
