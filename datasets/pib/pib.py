@@ -157,24 +157,27 @@ class Pib(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        dl_dir = dl_manager.download_and_extract(_URL)
-
-        data_dir = os.path.join(dl_dir, f"pib/{self.config.src}-{self.config.tgt}")
+        archive = dl_manager.download(_URL[str(self.config.version)])
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, f"train.{self.config.src}"),
-                    "labelpath": os.path.join(data_dir, f"train.{self.config.tgt}"),
+                    "archive": dl_manager.iter_archive(archive),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, labelpath):
-        """Yields examples."""
-        with open(filepath, encoding="utf-8") as f1, open(labelpath, encoding="utf-8") as f2:
-            src = f1.read().split("\n")[:-1]
-            tgt = f2.read().split("\n")[:-1]
-            for idx, (s, t) in enumerate(zip(src, tgt)):
-                yield idx, {"translation": {self.config.src: s, self.config.tgt: t}}
+    def _generate_examples(self, archive):
+        root_dir = _ROOT_DIR[str(self.config.version)]
+        data_dir = os.path.join(root_dir, f"{self.config.src}-{self.config.tgt}")
+        src = tgt = None
+        for path, file in archive:
+            if data_dir in path:
+                if os.path.join(data_dir, f"train.{self.config.src}") in path:
+                    src = file.read().decode("utf-8").split("\n")[:-1]
+                if os.path.join(data_dir, f"train.{self.config.tgt}") in path:
+                    tgt = file.read().decode("utf-8").split("\n")[:-1]
+            if src and tgt:
+                break
+        for idx, (s, t) in enumerate(zip(src, tgt)):
+            yield idx, {"translation": {self.config.src: s, self.config.tgt: t}}
