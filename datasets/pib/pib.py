@@ -169,13 +169,13 @@ class Pib(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, archive):
         root_dir = _ROOT_DIR[str(self.config.version)]
-        data_dir = os.path.join(root_dir, f"{self.config.src}-{self.config.tgt}")
+        data_dir = f"{root_dir}/{self.config.src}-{self.config.tgt}"
         src = tgt = None
         for path, file in archive:
             if data_dir in path:
-                if os.path.join(data_dir, f"train.{self.config.src}") in path:
+                if f"{data_dir}/train.{self.config.src}" in path:
                     src = file.read().decode("utf-8").split("\n")[:-1]
-                if os.path.join(data_dir, f"train.{self.config.tgt}") in path:
+                if f"{data_dir}/train.{self.config.tgt}" in path:
                     tgt = file.read().decode("utf-8").split("\n")[:-1]
             if src and tgt:
                 break
