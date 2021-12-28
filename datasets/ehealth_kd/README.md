@@ -19,6 +19,7 @@ task_ids:
 - named-entity-recognition
 - structure-prediction-other-relation-prediction
 paperswithcode_id: null
+pretty_name: eHealth-KD
 ---
 
 # Dataset Card for eHealth-KD

@@ -36,6 +36,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: ecb
+pretty_name: extension to the EventCorefBank
 ---
 
 # Dataset Card Creation Guide

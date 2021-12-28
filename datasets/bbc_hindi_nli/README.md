@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - natural-language-inference
 paperswithcode_id: null
+pretty_name: BBC Hindi NLI Dataset
 ---
 
 # Dataset Card for BBC Hindi NLI Dataset

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: c3
+pretty_name: C3
 ---
 # Dataset Card Creation Guide
 
