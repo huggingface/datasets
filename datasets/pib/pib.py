@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""CVIT IIIT-H PIB Multilingual Corpus"""
+"""CVIT PIB Multilingual Corpus"""
 
 import datasets
 
@@ -31,7 +31,6 @@ _CITATION = """\
     publisher = "European Language Resources Association",
     url = "https://aclanthology.org/2020.lrec-1.462",
     pages = "3743--3751",
-    abstract = "We present sentence aligned parallel corpora across 10 Indian Languages - Hindi, Telugu, Tamil, Malayalam, Gujarati, Urdu, Bengali, Oriya, Marathi, Punjabi, and English - many of which are categorized as low resource. The corpora are compiled from online sources which have content shared across languages. The corpora presented significantly extends present resources that are either not large enough or are restricted to a specific domain (such as health). We also provide a separate test corpus compiled from an independent online source that can be independently used for validating the performance in 10 Indian languages. Alongside, we report on the methods of constructing such corpora using tools enabled by recent advances in machine translation and cross-lingual retrieval using deep neural network based methods.",
     language = "English",
     ISBN = "979-10-95546-34-4",
 }
@@ -51,6 +50,10 @@ _DESCRIPTION = """\
 Sentence aligned parallel corpus between 11 Indian Languages, crawled and extracted from the press information bureau
 website.
 """
+
+_HOMEPAGE = "http://preon.iiit.ac.in/~jerin/bhasha/"
+
+_LICENSE = "Creative Commons Attribution-ShareAlike 4.0 International"
 
 _URL = {
     "0.0.0": "http://preon.iiit.ac.in/~jerin/resources/datasets/pib-v0.tar",
@@ -149,7 +152,8 @@ class Pib(datasets.GeneratorBasedBuilder):
                 {"translation": datasets.features.Translation(languages=[self.config.src, self.config.tgt])}
             ),
             supervised_keys=(self.config.src, self.config.tgt),
-            homepage="http://preon.iiit.ac.in/~jerin/bhasha/",
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 
