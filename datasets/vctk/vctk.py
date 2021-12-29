@@ -33,6 +33,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
+The CSTR VCTK Corpus includes speech data uttered by 110 English speakers with various accents.
 """
 
 _URL = "https://datashare.ed.ac.uk/handle/10283/3443"
