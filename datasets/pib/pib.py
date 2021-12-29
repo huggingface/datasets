@@ -14,9 +14,6 @@
 # limitations under the License.
 """CVIT IIIT-H PIB Multilingual Corpus"""
 
-
-import os
-
 import datasets
 
 
