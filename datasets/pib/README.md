@@ -27,23 +27,23 @@ size_categories:
   bn-en:
   - 10K<n<100K
   bn-gu:
-  - 1K<n<10K
+  - 10K<n<100K
   bn-hi:
   - 10K<n<100K
   bn-ml:
-  - 1K<n<10K
+  - 10K<n<100K
   bn-mr:
-  - 1K<n<10K
+  - 10K<n<100K
   bn-or:
-  - n<1K
+  - 10K<n<100K
   bn-pa:
-  - 1K<n<10K
+  - 10K<n<100K
   bn-ta:
-  - 1K<n<10K
+  - 10K<n<100K
   bn-te:
-  - n<1K
+  - 10K<n<100K
   bn-ur:
-  - 1K<n<10K
+  - 10K<n<100K
   en-gu:
   - 10K<n<100K
   en-hi:
@@ -51,89 +51,89 @@ size_categories:
   en-ml:
   - 10K<n<100K
   en-mr:
-  - 10K<n<100K
+  - 100K<n<1M
   en-or:
-  - 1K<n<10K
+  - 10K<n<100K
   en-pa:
-  - 10K<n<100K
+  - 100K<n<1M
   en-ta:
-  - 10K<n<100K
+  - 100K<n<1M
   en-te:
-  - 1K<n<10K
-  en-ur:
   - 10K<n<100K
+  en-ur:
+  - 100K<n<1M
   gu-hi:
   - 10K<n<100K
   gu-ml:
-  - 1K<n<10K
+  - 10K<n<100K
   gu-mr:
-  - 1K<n<10K
+  - 10K<n<100K
   gu-or:
-  - n<1K
+  - 10K<n<100K
   gu-pa:
-  - 1K<n<10K
+  - 10K<n<100K
   gu-ta:
-  - 1K<n<10K
+  - 10K<n<100K
   gu-te:
-  - 1K<n<10K
+  - 10K<n<100K
   gu-ur:
-  - 1K<n<10K
+  - 10K<n<100K
   hi-ml:
-  - 1K<n<10K
+  - 10K<n<100K
   hi-mr:
   - 10K<n<100K
   hi-or:
-  - 1K<n<10K
+  - 10K<n<100K
   hi-pa:
-  - 1K<n<10K
+  - 10K<n<100K
   hi-ta:
   - 10K<n<100K
   hi-te:
-  - 1K<n<10K
+  - 10K<n<100K
   hi-ur:
-  - 1K<n<10K
+  - 100K<n<1M
   ml-mr:
-  - 1K<n<10K
+  - 10K<n<100K
   ml-or:
-  - n<1K
+  - 10K<n<100K
   ml-pa:
-  - 1K<n<10K
+  - 10K<n<100K
   ml-ta:
-  - 1K<n<10K
+  - 10K<n<100K
   ml-te:
-  - 1K<n<10K
+  - 10K<n<100K
   ml-ur:
-  - 1K<n<10K
+  - 10K<n<100K
   mr-or:
-  - n<1K
+  - 10K<n<100K
   mr-pa:
-  - 1K<n<10K
+  - 10K<n<100K
   mr-ta:
   - 10K<n<100K
   mr-te:
-  - n<1K
+  - 10K<n<100K
   mr-ur:
-  - 1K<n<10K
+  - 10K<n<100K
   or-pa:
-  - n<1K
+  - 10K<n<100K
   or-ta:
-  - n<1K
+  - 10K<n<100K
   or-te:
-  - n<1K
+  - 10K<n<100K
   or-ur:
-  - n<1K
+  - 10K<n<100K
   pa-ta:
-  - 1K<n<10K
+  - 10K<n<100K
   pa-te:
-  - 1K<n<10K
+  - 10K<n<100K
   pa-ur:
-  - 1K<n<10K
+  - 10K<n<100K
   ta-te:
-  - 1K<n<10K
+  - 10K<n<100K
   ta-ur:
-  - 1K<n<10K
+  - 10K<n<100K
   te-ur:
-  - n<1K
+  - 10K<n<100K
 licenses:
 - cc-by-4.0
 paperswithcode_id: null
