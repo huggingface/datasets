@@ -1,7 +1,9 @@
 ---
 task_categories:
+- conditional-text-generation
 - sequence-modeling
 task_ids:
+- machine-translation
 - language-modeling
 multilinguality:
 - translation
@@ -179,7 +181,7 @@ This dataset is the large scale sentence aligned corpus in 11 Indian languages, 
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- Machine Translation
 
 ### Languages
 
