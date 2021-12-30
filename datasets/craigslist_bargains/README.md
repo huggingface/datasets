@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - dialogue-modeling
 paperswithcode_id: craigslistbargains
-pretty_name: CraigslistBargains
 ---
 
 # Dataset Card Creation Guide

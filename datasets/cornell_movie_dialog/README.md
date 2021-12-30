@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: cornell-movie-dialogs-corpus
-pretty_name: Cornell Movie-Dialogs Corpus
 ---
 
 # Dataset Card for "cornell_movie_dialog"

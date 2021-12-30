@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: clinc150
-pretty_name: CLINC150
 ---
 
 # Dataset Card for [Dataset Name]

@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - sentiment-scoring
 paperswithcode_id: null
-pretty_name: AppReviews
 ---
 
 # Dataset Card for [Dataset Name]

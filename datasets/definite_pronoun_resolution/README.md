@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: definite-pronoun-resolution-dataset
-pretty_name: Definite Pronoun Resolution Dataset
 ---
 
 # Dataset Card for "definite_pronoun_resolution"

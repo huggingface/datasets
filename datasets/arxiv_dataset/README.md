@@ -25,7 +25,6 @@ task_ids:
 - summarization
 - text-simplification
 paperswithcode_id: null
-pretty_name: arXiv Dataset
 ---
 
 # Dataset Card For arXiv Dataset

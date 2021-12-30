@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: billsum
-pretty_name: BillSum
 ---
 
 # Dataset Card for "billsum"

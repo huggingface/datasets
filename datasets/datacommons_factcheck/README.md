@@ -21,7 +21,6 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: null
-pretty_name: DataCommons Fact Checked claims
 ---
 
 # Dataset Card for DataCommons Fact Checked claims

@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: discofuse
-pretty_name: DiscoFuse
 ---
 
 # Dataset Card for "discofuse"

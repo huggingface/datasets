@@ -19,7 +19,6 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: eitb-parcc
-pretty_name: EiTB-ParCC
 ---
 
 # Dataset Card for [Dataset Name]

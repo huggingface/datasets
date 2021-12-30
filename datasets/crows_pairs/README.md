@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - text-scoring-other-bias-evaluation
 paperswithcode_id: crows-pairs
-pretty_name: CrowS-Pairs
 ---
 
 # Dataset Card Creation Guide

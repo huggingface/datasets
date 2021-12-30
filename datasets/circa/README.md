@@ -19,7 +19,6 @@ task_ids:
 - multi-class-classification
 - text-classification-other-question-answer-pair-classification
 paperswithcode_id: circa
-pretty_name: CIRCA
 ---
 
 # Dataset Card for CIRCA

@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: anli
-pretty_name: Adversarial NLI
 ---
 
 # Dataset Card for "anli"

@@ -20,7 +20,6 @@ task_ids:
 - sentiment-classification
 - topic-classification
 paperswithcode_id: arsentd-lev
-pretty_name: ArSenTD-LEV
 ---
 
 # Dataset Card for ArSenTD-LEV

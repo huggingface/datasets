@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - parsing
 paperswithcode_id: null
-pretty_name: AMTTL
 ---
 
 # Dataset Card for AMTTL

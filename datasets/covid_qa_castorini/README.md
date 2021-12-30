@@ -19,7 +19,6 @@ task_ids:
 - open-domain-qa
 - extractive-qa
 paperswithcode_id: covidqa
-pretty_name: CovidQaCastorini
 ---
 
 

@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - structure-prediction-other-word-tokenization
 paperswithcode_id: null
-pretty_name: best2009
 ---
 
 # Dataset Card for `best2009`

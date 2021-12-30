@@ -18,8 +18,6 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: null
-pretty_name: "COVID-19 \u65E5\u672C\u8A9ETwitter\u30C7\u30FC\u30BF\u30BB\u30C3\u30C8\
-  \ (COVID-19 Japanese Twitter Dataset)"
 ---
 
 # Dataset Card for COVID-19 日本語Twitterデータセット (COVID-19 Japanese Twitter Dataset)

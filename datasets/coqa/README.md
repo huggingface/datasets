@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: coqa
-pretty_name: Conversational Question Answering Challenge
 ---
 
 # Dataset Card for "coqa"

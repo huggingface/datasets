@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: cawac
-pretty_name: caWaC
 ---
 
 # Dataset Card for caWaC

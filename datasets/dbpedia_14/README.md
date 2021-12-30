@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: dbpedia
-pretty_name: DBpedia
 ---
 
 # Dataset Card for DBpedia14

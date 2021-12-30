@@ -19,7 +19,6 @@ task_ids:
 - open-domain-qa
 - multiple-choice-qa
 paperswithcode_id: null
-pretty_name: Ai2Arc
 ---
 
 # Dataset Card for "ai2_arc"

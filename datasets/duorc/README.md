@@ -22,7 +22,6 @@ task_ids:
 - abstractive-qa
 - extractive-qa
 paperswithcode_id: duorc
-pretty_name: DuoRC
 ---
 
 # Dataset Card for duorc

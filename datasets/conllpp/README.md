@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: conll
-pretty_name: CoNLL++
 ---
 
 # Dataset Card for "conllpp"

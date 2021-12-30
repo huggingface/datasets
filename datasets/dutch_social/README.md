@@ -20,7 +20,6 @@ task_ids:
 - sentiment-classification
 - multi-label-classification
 paperswithcode_id: null
-pretty_name: Dutch Social Media Collection
 ---
 
 # Dataset Card for Dutch Social Media Collection

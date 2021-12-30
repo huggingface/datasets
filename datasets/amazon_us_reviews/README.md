@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: null
-pretty_name: AmazonUsReviews
 ---
 
 # Dataset Card for "amazon_us_reviews"

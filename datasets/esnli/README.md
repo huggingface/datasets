@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: e-snli
-pretty_name: e-SNLI
 ---
 
 # Dataset Card for "esnli"

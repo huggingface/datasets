@@ -19,7 +19,6 @@ task_categories:
 task_ids:
 - text-scoring-other-evaluating-dialogue-systems
 paperswithcode_id: convai2
-pretty_name: Conversational Intelligence Challenge 2
 ---
 
 # Dataset Card for conv_ai_2

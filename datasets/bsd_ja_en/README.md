@@ -19,7 +19,6 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: business-scene-dialogue
-pretty_name: Business Scene Dialogue
 ---
 
 # Dataset Card for Business Scene Dialogue 

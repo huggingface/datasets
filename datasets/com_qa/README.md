@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: comqa
-pretty_name: ComQA
 ---
 
 # Dataset Card for "com_qa"

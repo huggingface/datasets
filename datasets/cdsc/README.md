@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - other-other-sentences entailment and relatedness
 paperswithcode_id: polish-cdscorpus
-pretty_name: Polish CDSCorpus
 ---
 
 # Dataset Card for [Dataset Name]

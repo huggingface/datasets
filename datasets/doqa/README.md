@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: doqa
-pretty_name: DoQA
 ---
 
 # Dataset Card for "doqa"

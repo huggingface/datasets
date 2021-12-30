@@ -33,7 +33,6 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: conceptnet
-pretty_name: Conceptnet5
 ---
 
 # Dataset Card for Conceptnet5

@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: cosmosqa
-pretty_name: CosmosQA
 ---
 
 # Dataset Card for "cosmos_qa"

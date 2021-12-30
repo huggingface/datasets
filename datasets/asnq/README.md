@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: asnq
-pretty_name: Answer Sentence Natural Questions
 ---
 
 # Dataset Card for "asnq"

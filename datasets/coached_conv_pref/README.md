@@ -22,7 +22,6 @@ task_ids:
 - dialogue-modeling
 - parsing
 paperswithcode_id: coached-conversational-preference-elicitation
-pretty_name: Coached Conversational Preference Elicitation
 ---
 
 # Dataset Card for Coached Conversational Preference Elicitation

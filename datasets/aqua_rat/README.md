@@ -19,7 +19,6 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: aqua-rat
-pretty_name: Algebra Question Answering with Rationales
 ---
 
 # Dataset Card for AQUA-RAT

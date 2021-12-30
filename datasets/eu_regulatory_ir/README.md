@@ -19,7 +19,6 @@ task_ids:
 - document-retrieval
 - text-retrieval-other-document-to-document-retrieval
 paperswithcode_id: null
-pretty_name: the RegIR datasets
 ---
 
 # Dataset Card for the RegIR datasets

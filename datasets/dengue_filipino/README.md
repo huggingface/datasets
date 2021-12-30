@@ -19,7 +19,6 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: dengue
-pretty_name: Dengue Dataset in Filipino
 ---
 
 # Dataset Card for Dengue Dataset in Filipino

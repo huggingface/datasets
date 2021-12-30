@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: null
-pretty_name: CivilComments
 ---
 
 # Dataset Card for "civil_comments"

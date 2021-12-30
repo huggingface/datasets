@@ -29,7 +29,6 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
-pretty_name: CodeXGlueCtCodeToText
 ---
 # Dataset Card for "code_x_glue_ct_code_to_text"
 

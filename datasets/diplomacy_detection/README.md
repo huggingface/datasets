@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: null
-pretty_name: HateOffensive
 ---
 
 # Dataset Card for HateOffensive

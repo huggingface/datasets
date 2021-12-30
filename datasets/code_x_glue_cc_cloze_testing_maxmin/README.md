@@ -28,7 +28,6 @@ task_categories:
 - sequence-modeling
 task_ids:
 - slot-filling
-pretty_name: CodeXGlueCcClozeTestingMaxmin
 ---
 # Dataset Card for "code_x_glue_cc_cloze_testing_maxmin"
 

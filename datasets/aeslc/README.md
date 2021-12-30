@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: aeslc
-pretty_name: AESLC
 ---
 
 # Dataset Card for "aeslc"

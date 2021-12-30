@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
-pretty_name: Bc2GmCorpus
 ---
 
 # Dataset Card for bc2gm_corpus

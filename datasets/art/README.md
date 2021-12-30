@@ -2,7 +2,6 @@
 languages:
 - en
 paperswithcode_id: art-dataset
-pretty_name: Abductive Reasoning in narrative Text
 ---
 
 # Dataset Card for "art"

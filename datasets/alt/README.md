@@ -46,7 +46,6 @@ task_ids:
 - machine-translation
 - parsing
 paperswithcode_id: alt
-pretty_name: Asian Language Treebank
 ---
 
 # Dataset Card for Asian Language Treebank (ALT)

@@ -23,7 +23,6 @@ task_categories:
 task_ids:
 - conditional-text-generation-other-rdf-to-text
 paperswithcode_id: dart
-pretty_name: DART
 ---
 
 # Dataset Card Creation Guide

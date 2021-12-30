@@ -18,7 +18,6 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: brwac
-pretty_name: BrWaC
 ---
 
 # Dataset Card for BrWaC

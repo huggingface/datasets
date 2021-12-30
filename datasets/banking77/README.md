@@ -21,7 +21,6 @@ task_ids:
 - intent-classification
 - multi-class-classification
 paperswithcode_id: null
-pretty_name: BANKING77
 ---
 
 # Dataset Card for BANKING77

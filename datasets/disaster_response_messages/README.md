@@ -25,7 +25,6 @@ task_ids:
 - sentiment-classification
 - text-simplification
 paperswithcode_id: null
-pretty_name: Disaster Response Messages
 ---
 
 # Dataset Card for Disaster Response Messages 
