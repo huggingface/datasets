@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - part-of-speech-tagging
 paperswithcode_id: null
+pretty_name: Arabic POS Dialect
 ---
 
 # Dataset Card for Arabic POS Dialect

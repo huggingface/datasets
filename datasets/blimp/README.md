@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: blimp
+pretty_name: Benchmark of Linguistic Minimal Pairs
 ---
 
 # Dataset Card for "blimp"

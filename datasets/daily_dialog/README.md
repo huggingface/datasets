@@ -20,6 +20,7 @@ task_ids:
 - multi-label-classification
 - text-classification-other-emotion-classification
 - text-classification-other-dialog-act-classification
+pretty_name: DailyDialog
 ---
 
 # Dataset Card for "daily_dialog"

@@ -28,6 +28,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - slot-filling
+pretty_name: CodeXGlueCcClozeTestingAll
 ---
 # Dataset Card for "code_x_glue_cc_cloze_testing_all"
 

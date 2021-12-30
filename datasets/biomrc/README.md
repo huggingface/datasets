@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: biomrc
+pretty_name: BIOMRC
 ---
 
 # Dataset Card for "biomrc"
