@@ -10,6 +10,7 @@ from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePath, PurePosixPath
 from typing import List, Optional, Tuple, Union
+from xml.etree import ElementTree as ET
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
@@ -158,6 +159,52 @@ def xbasename(a):
         return os.path.basename(Path(a).as_posix())
     else:
         return posixpath.basename(a)
+
+
+def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
+    """Extend `os.path.isfile` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`bool`
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.path.isfile(path)
+    else:
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        return fs.isfile(main_hop)
+
+
+def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
+    """Extend `os.path.isdir` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`bool`
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.path.isdir(path)
+    else:
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        return fs.isdir(main_hop)
 
 
 def _as_posix(path: Path):
@@ -465,10 +512,12 @@ def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
     """Extend `os.walk` function to support remote files.
 
     Args:
-        urlpath: URL root path.
+        urlpath (:obj:`str`): URL root path.
+        use_auth_token (:obj:`bool` or :obj:`str`, optional): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
 
     Yields:
-        tuple: 3-tuple (dirpath, dirnames, filenames).
+        :obj:`tuple`: 3-tuple (dirpath, dirnames, filenames).
     """
     main_hop, *rest_hops = urlpath.split("::")
     if is_local_path(main_hop):
@@ -500,6 +549,25 @@ def xpandas_read_excel(filepath_or_buffer, **kwargs):
     import pandas as pd
 
     return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
+
+
+def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = None):
+    """Extend `xml.etree.ElementTree.parse` function to support remote files.
+
+    Args:
+        source: File path or file object.
+        parser (optional, default `XMLParser`): Parser instance.
+        use_auth_token (:obj:`bool` or :obj:`str`, optional): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
+
+    Returns:
+        :obj:`xml.etree.ElementTree.Element`: Root element of the given source document.
+    """
+    if hasattr(source, "read"):
+        return ET.parse(source, parser=parser)
+    else:
+        with xopen(source, "rb", use_auth_token=use_auth_token) as f:
+            return ET.parse(f, parser=parser)
 
 
 class StreamingDownloadManager(object):
@@ -599,13 +667,13 @@ class StreamingDownloadManager(object):
         """Iterate over files.
 
         Args:
-            urlpaths (list): Root URL paths.
+            urlpaths (list): Root paths.
 
         Yields:
             str: File URL path.
         """
         for urlpath in urlpaths:
-            if "://::" not in urlpath:  # workaround for os.path.isfile(urlpath):
+            if xisfile(urlpath, use_auth_token=self.download_config.use_auth_token):
                 yield urlpath
             else:
                 for dirpath, _, filenames in xwalk(urlpath, use_auth_token=self.download_config.use_auth_token):
