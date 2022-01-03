@@ -315,7 +315,7 @@ class RedCaps(datasets.GeneratorBasedBuilder):
                 "caption": datasets.Value("string"),
                 "subreddit": datasets.ClassLabel(names=_SUBREDDITS),
                 "score": datasets.Value("int32"),
-                "created_utc": datasets.Value("timestamp[s]"),
+                "created_utc": datasets.Value("timestamp[s, tz=UTC]"),
                 "permalink": datasets.Value("string"),
                 "crosspost_parents": datasets.Sequence(datasets.Value("string")),
             }
