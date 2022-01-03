@@ -86,7 +86,7 @@ All of the subreddits in RedCaps use English as their primary language.
 
 ### Data Instances
 
-Each instance in RedCaps represents a single Reddit image post
+Each instance in RedCaps represents a single Reddit image post:
 
 ```
 {
