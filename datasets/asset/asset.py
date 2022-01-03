@@ -51,9 +51,18 @@ _HOMEPAGE = "https://github.com/facebookresearch/asset"
 _LICENSE = "Creative Common Attribution-NonCommercial 4.0 International"
 
 _URL_LIST = [
-    ("human_ratings.csv", "https://raw.githubusercontent.com/facebookresearch/asset/main/human_ratings/human_ratings.csv"),
-    ("asset.valid.orig", "https://raw.githubusercontent.com/facebookresearch/asset/main/dataset/asset.valid.orig"),
-    ("asset.test.orig", "https://raw.githubusercontent.com/facebookresearch/asset/main/dataset/asset.test.orig"),
+    (
+        "human_ratings.csv",
+        "https://raw.githubusercontent.com/facebookresearch/asset/main/human_ratings/human_ratings.csv",
+    ),
+    (
+        "asset.valid.orig",
+        "https://raw.githubusercontent.com/facebookresearch/asset/main/dataset/asset.valid.orig",
+    ),
+    (
+        "asset.test.orig",
+        "https://raw.githubusercontent.com/facebookresearch/asset/main/dataset/asset.test.orig",
+    ),
 ]
 _URL_LIST += [
     (
@@ -78,7 +87,9 @@ class Asset(datasets.GeneratorBasedBuilder):
             description="A set of original sentences aligned with 10 possible simplifications for each.",
         ),
         datasets.BuilderConfig(
-            name="ratings", version=VERSION, description="Human ratings of automatically produced text implification."
+            name="ratings",
+            version=VERSION,
+            description="Human ratings of automatically produced text implification.",
         ),
     ]
 
@@ -98,7 +109,9 @@ class Asset(datasets.GeneratorBasedBuilder):
                     "original": datasets.Value("string"),
                     "simplification": datasets.Value("string"),
                     "original_sentence_id": datasets.Value("int32"),
-                    "aspect": datasets.ClassLabel(names=["meaning", "fluency", "simplicity"]),
+                    "aspect": datasets.ClassLabel(
+                        names=["meaning", "fluency", "simplicity"]
+                    ),
                     "worker_id": datasets.Value("int32"),
                     "rating": datasets.Value("int32"),
                 }
@@ -143,10 +156,14 @@ class Asset(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         if self.config.name == "simplification":
             files = [open(filepaths[f"asset.{split}.orig"], encoding="utf-8")] + [
-                open(filepaths[f"asset.{split}.simp.{i}"], encoding="utf-8") for i in range(10)
+                open(filepaths[f"asset.{split}.simp.{i}"], encoding="utf-8")
+                for i in range(10)
             ]
             for id_, lines in enumerate(zip(*files)):
-                yield id_, {"original": lines[0].strip(), "simplifications": [line.strip() for line in lines[1:]]}
+                yield id_, {
+                    "original": lines[0].strip(),
+                    "simplifications": [line.strip() for line in lines[1:]],
+                }
         else:
             with open(filepaths["human_ratings.csv"], encoding="utf-8") as f:
                 reader = csv.reader(f, delimiter=",")
