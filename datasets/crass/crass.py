@@ -22,7 +22,7 @@ import datasets
 
 _CITATION = """\
 @misc{frohberg2021crass,
-      title={CRASS: A Novel Data Set and Benchmark to Test Counterfactual Reasoning of Large Language Models}, 
+      title={CRASS: A Novel Data Set and Benchmark to Test Counterfactual Reasoning of Large Language Models},
       author={Jörg Frohberg and Frank Binder},
       year={2021},
       eprint={2112.11941},
