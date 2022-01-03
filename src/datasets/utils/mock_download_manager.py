@@ -216,4 +216,9 @@ class MockDownloadManager:
 
     def iter_files(self, paths):
         for path in paths:
-            yield path
+            if os.path.isfile(path):
+                yield path
+            else:
+                for dirpath, _, filenames in os.walk(path):
+                    for filename in filenames:
+                        yield os.path.join(dirpath, filename)

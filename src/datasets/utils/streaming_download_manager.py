@@ -161,6 +161,52 @@ def xbasename(a):
         return posixpath.basename(a)
 
 
+def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
+    """Extend `os.path.isfile` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`bool`
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.path.isfile(path)
+    else:
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        return fs.isfile(main_hop)
+
+
+def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
+    """Extend `os.path.isdir` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`bool`
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.path.isdir(path)
+    else:
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        return fs.isdir(main_hop)
+
+
 def _as_posix(path: Path):
     """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slashes after protocol.
 
@@ -621,13 +667,13 @@ class StreamingDownloadManager(object):
         """Iterate over files.
 
         Args:
-            urlpaths (list): Root URL paths.
+            urlpaths (list): Root paths.
 
         Yields:
             str: File URL path.
         """
         for urlpath in urlpaths:
-            if "://::" not in urlpath:  # workaround for os.path.isfile(urlpath):
+            if xisfile(urlpath, use_auth_token=self.download_config.use_auth_token):
                 yield urlpath
             else:
                 for dirpath, _, filenames in xwalk(urlpath, use_auth_token=self.download_config.use_auth_token):
