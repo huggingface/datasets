@@ -110,7 +110,7 @@ A data point comprises an image and its face annotations.
   - `bbox`: the bounding box of each face (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format)
   - `blur`: the blur level of each face, with possible values including `clear` (0), `normal` (1) and `heavy`
   - `expression`: the facial expression of each face, with possible values including `typical` (0) and `exaggerate` (1)
-  - `illumination`: the lightning condition of each face, with possible values including `normal` (0) and `exaggerate`
+  - `illumination`: the lightning condition of each face, with possible values including `normal` (0) and `exaggerate` (1)
   - `occlusion`: the level of occlusion of each face, with possible values including `no` (0), `partial` (1) and `heavy` (2)
   - `pose`: the pose of each face, with possible values including `typical` (0) and `atypical` (1)
   - `invalid`: whether the image is valid or invalid.
