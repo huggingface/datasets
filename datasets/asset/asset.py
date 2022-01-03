@@ -109,9 +109,7 @@ class Asset(datasets.GeneratorBasedBuilder):
                     "original": datasets.Value("string"),
                     "simplification": datasets.Value("string"),
                     "original_sentence_id": datasets.Value("int32"),
-                    "aspect": datasets.ClassLabel(
-                        names=["meaning", "fluency", "simplicity"]
-                    ),
+                    "aspect": datasets.ClassLabel(names=["meaning", "fluency", "simplicity"]),
                     "worker_id": datasets.Value("int32"),
                     "rating": datasets.Value("int32"),
                 }
@@ -156,8 +154,7 @@ class Asset(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         if self.config.name == "simplification":
             files = [open(filepaths[f"asset.{split}.orig"], encoding="utf-8")] + [
-                open(filepaths[f"asset.{split}.simp.{i}"], encoding="utf-8")
-                for i in range(10)
+                open(filepaths[f"asset.{split}.simp.{i}"], encoding="utf-8") for i in range(10)
             ]
             for id_, lines in enumerate(zip(*files)):
                 yield id_, {
