@@ -85,7 +85,14 @@ A data point comprises an image and its face annotations.
 ```
 {
   'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=1024x755 at 0x19FA12186D8>, 'faces': {
-    'bbox': [[178.0, 238.0, 55.0, 73.0], [248.0, 235.0, 59.0, 73.0], [363.0, 157.0, 59.0, 73.0], [468.0, 153.0, 53.0, 72.0], [629.0, 110.0, 56.0, 81.0], [745.0, 138.0, 55.0, 77.0]], 
+    'bbox': [
+      [178.0, 238.0, 55.0, 73.0],
+      [248.0, 235.0, 59.0, 73.0],
+      [363.0, 157.0, 59.0, 73.0],
+      [468.0, 153.0, 53.0, 72.0],
+      [629.0, 110.0, 56.0, 81.0],
+      [745.0, 138.0, 55.0, 77.0]
+    ], 
     'blur': [2, 2, 2, 2, 2, 2],
     'expression': [0, 0, 0, 0, 0, 0],
     'illumination': [0, 0, 0, 0, 0, 0],
@@ -99,13 +106,13 @@ A data point comprises an image and its face annotations.
 ### Data Fields
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
-- `faces`: a list of face attributes for the faces present on the image
-  - `bbox`: the face bounding box (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format)
-  - `blur`: the blur level, with possible values including `clear` (0), `normal` (1) and `heavy`
-  - `expression`: the facial expression, with possible values including `typical` (0) and `exaggerate` (1)
-  - `illumination`: the lightning condition, with possible values including `normal` (0) and `exaggerate`
-  - `occlusion`: the level of occlusion, with possible values including `no` (0), `partial` (1) and `heavy` (2)
-  - `pose`: the face pose, with possible values including `typical` (0) and `atypical` (1)
+- `faces`: a dictionary of face attributes for the faces present on the image
+  - `bbox`: the bounding box of each face (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format)
+  - `blur`: the blur level of each face, with possible values including `clear` (0), `normal` (1) and `heavy`
+  - `expression`: the facial expression of each face, with possible values including `typical` (0) and `exaggerate` (1)
+  - `illumination`: the lightning condition of each face, with possible values including `normal` (0) and `exaggerate`
+  - `occlusion`: the level of occlusion of each face, with possible values including `no` (0), `partial` (1) and `heavy` (2)
+  - `pose`: the pose of each face, with possible values including `typical` (0) and `atypical` (1)
   - `invalid`: whether the image is valid or invalid.
 
 ### Data Splits
