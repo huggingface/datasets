@@ -21,7 +21,7 @@ paperswithcode_id: cppe-5
 pretty_name: CPPE - 5
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for CPPE - 5
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
