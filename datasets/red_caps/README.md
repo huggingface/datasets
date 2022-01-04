@@ -22,7 +22,7 @@ paperswithcode_id: redcaps
 pretty_name: RedCaps
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for RedCaps
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
