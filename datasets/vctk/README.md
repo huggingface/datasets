@@ -142,7 +142,7 @@ The dataset has no predefined splits.
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+The dataset consists of people who have donated their voice online.  You agree to not attempt to determine the identity of speakers in the Common Voice dataset.
 
 ## Considerations for Using the Data
 
@@ -166,7 +166,7 @@ The dataset has no predefined splits.
 
 ### Licensing Information
 
-[More Information Needed]
+Public Domain, Creative Commons Attribution 4.0 International Public License ([CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode))
 
 ### Citation Information
 
