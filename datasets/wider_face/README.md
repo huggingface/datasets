@@ -21,7 +21,7 @@ paperswithcode_id: wider-face-1
 pretty_name: WIDER FACE
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for WIDER FACE
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
