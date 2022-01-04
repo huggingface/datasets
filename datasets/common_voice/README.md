@@ -350,8 +350,6 @@ The dataset consists of people who have donated their voice online.  You agree t
 
 Public Domain, [CC-0](https://creativecommons.org/share-your-work/public-domain/cc0/)
 
-[More Information Needed] 
-
 ### Citation Information
 
 ```
