@@ -66,7 +66,7 @@ languages:
 - zh-HK
 - zh-TW
 licenses:
-- cc-by-nc-4.0
+- Public Domain
 multilinguality:
 - multilingual
 size_categories:
