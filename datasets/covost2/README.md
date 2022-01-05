@@ -27,7 +27,7 @@ languages:
 - id
 - cy
 licenses:
-- CC BY-NC 4.0
+- cc-by-nc-4.0
 multilinguality:
 - multilingual
 size_categories:
