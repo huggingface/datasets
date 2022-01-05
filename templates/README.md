@@ -1,5 +1,5 @@
 ---
-YAML tags:
+TODO: Add YAML tags here
 - copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
 ---
 
