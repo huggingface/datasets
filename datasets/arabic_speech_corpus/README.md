@@ -157,7 +157,7 @@ The corpus was recorded in south Levantine Arabic (Damascian accent) using a pro
 
 ### Licensing Information
 
-CC BY 4.0
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ### Citation Information
 
