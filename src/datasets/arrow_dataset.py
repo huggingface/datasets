@@ -78,7 +78,7 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
-    cast_with_sliced_list_support,
+    better_table_cast,
     concat_tables,
     list_table_cache_files,
 )
@@ -1338,10 +1338,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         type = features.type
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
-        # capture the PyArrow version here to make the lambda serializable on Windows
-        is_pyarrow_at_least_4 = config.PYARROW_VERSION.major >= 4
         dataset = dataset.map(
-            lambda t: t.cast(schema) if is_pyarrow_at_least_4 else cast_with_sliced_list_support(t, schema),
+            lambda t: better_table_cast(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1401,9 +1399,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         format = self.format
         dataset = self.with_format("arrow")
         # capture the PyArrow version here to make the lambda serializable on Windows
-        is_pyarrow_at_least_4 = config.PYARROW_VERSION.major >= 4
         dataset = dataset.map(
-            lambda t: t.cast(schema) if is_pyarrow_at_least_4 else cast_with_sliced_list_support(t, schema),
+            lambda t: better_table_cast(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1428,10 +1425,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Returns:
             :class:`Dataset`
         """
-        if hasattr(feature, "decode_example"):
+        if hasattr(feature(), "cast_storage"):
             dataset = copy.deepcopy(self)
             dataset.features[column] = feature
             dataset._fingerprint = new_fingerprint
+            column_idx = dataset._data.column_names.index(column)
+            subtable = dataset._data.select_columns([column_idx])
+            subschema = pa.schema({column: feature()})
+            dataset._data = concat_tables([
+                dataset._data.remove_column(column_idx),
+                better_table_cast(subtable, subschema)
+            ], axis=1)
+            dataset._data = update_metadata_with_features(dataset._data, dataset.features)
             return dataset
         else:
             features = self.features.copy()

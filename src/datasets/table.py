@@ -15,6 +15,9 @@ from .utils.logging import get_logger
 
 logger = get_logger(__name__)
 
+OVERRIDEN_TABLE_METHODS = {}
+IS_PYARROW_AT_LEAST_4 = config.PYARROW_VERSION.major >= 4
+
 
 def inject_arrow_table_documentation(arrow_table_method):
     def wrapper(method):
@@ -318,6 +321,13 @@ class Table(IndexedTableMixin):
     def drop(self, *args, **kwargs):
         raise NotImplementedError()
 
+    # Additional methods that are based on the PyArrow Table methods
+
+    def select_columns(self, columns: List[int]) -> "Table":
+        for column_to_remove in set(range(len(self.column_names))) - set(columns):
+            self = self.remove_column(column_to_remove)
+        return self
+
 
 class TableBlock(Table):
     """
@@ -393,7 +403,7 @@ class InMemoryTable(TableBlock):
 
     @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, *args, **kwargs):
-        return InMemoryTable(self.table.cast(*args, **kwargs))
+        return InMemoryTable(better_table_cast(self.table, *args, **kwargs, is_pyarrow_at_least_4=IS_PYARROW_AT_LEAST_4))
 
     @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
     def replace_schema_metadata(self, *args, **kwargs):
@@ -474,7 +484,10 @@ class MemoryMappedTable(TableBlock):
     def _apply_replays(table: pa.Table, replays: Optional[List[Replay]] = None) -> pa.Table:
         if replays is not None:
             for name, args, kwargs in replays:
-                table = getattr(table, name)(*args, **kwargs)
+                if name in OVERRIDEN_TABLE_METHODS:
+                    table = OVERRIDEN_TABLE_METHODS[name](table, *args, **kwargs)
+                else:
+                    table = getattr(table, name)(*args, **kwargs)
         return table
 
     def _append_replay(self, replay: Replay) -> List[Replay]:
@@ -511,7 +524,7 @@ class MemoryMappedTable(TableBlock):
     def cast(self, *args, **kwargs):
         replay = ("cast", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.cast(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(better_table_cast(self.table, *args, **kwargs), self.path, replays)
 
     @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
     def replace_schema_metadata(self, *args, **kwargs):
@@ -777,7 +790,7 @@ class ConcatenationTable(Table):
 
     @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, target_schema, *args, **kwargs):
-        table = self.table.cast(target_schema, *args, **kwargs)
+        table = better_table_cast(self.table, target_schema, *args, **kwargs)
         blocks = []
         for subtables in self.blocks:
             new_tables = []
@@ -787,7 +800,7 @@ class ConcatenationTable(Table):
                 for name in subtable.column_names:
                     subfields.append(fields.pop(next(i for i, field in enumerate(fields) if field.name == name)))
                 subschema = pa.schema(subfields)
-                new_tables.append(subtable.cast(subschema, *args, **kwargs))
+                new_tables.append(better_table_cast(subtable, subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
 
@@ -888,23 +901,23 @@ def list_table_cache_files(table: Table) -> List[str]:
         return []
 
 
-def cast_with_sliced_list_support(pa_table: pa.Table, schema: pa.Schema) -> pa.Table:
-    """Same as pyarrow.Table.cast, except it works for sliced list arrays"""
+def _wrap_for_chunked_arrays(func):
+    """Apply the function on each chunk of a pyarrow.ChunkedArray, or on the array directly"""
 
-    def wrap_for_chunked_arrays(func):
-        """Apply the function on each chunk of a pyarrow.ChunkedArray, or on the array directly"""
+    def wrapper(array, *args, **kwargs):
+        if isinstance(array, pa.ChunkedArray):
+            return pa.chunked_array([func(chunk, *args, **kwargs) for chunk in array.chunks])
+        else:
+            return func(array, *args, **kwargs)
 
-        def wrapper(array):
-            if isinstance(array, pa.ChunkedArray):
-                return pa.chunked_array([func(chunk) for chunk in array.chunks])
-            else:
-                return func(array)
+    return wrapper
 
-        return wrapper
 
-    @wrap_for_chunked_arrays
-    def reset_sliced_list_offset(array: pa.ListArray):
-        """Return the same pyarrow.ListArray but with array.offset == 0 for compatibility with cast"""
+def _sanitize_sliced_list_arrays_for_cast(array: Union[pa.ListArray, pa.ChunkedArray]) -> Union[pa.ListArray, pa.ChunkedArray]:
+    """Sanitize pyarrow.ListArray objects for pyarrow.Array.cast in case they are sliced list arrays"""
+    @_wrap_for_chunked_arrays
+    def _sanitize(array: pa.ListArray) -> pa.ListArray:
+        """Return the same pyarrow.ListArray but with array.offset == 0 for compatibility with cast for pyarrow 3"""
         if array.offset == 0:
             return array
         elif len(array) == 0:
@@ -914,6 +927,32 @@ def cast_with_sliced_list_support(pa_table: pa.Table, schema: pa.Schema) -> pa.T
             new_values = array.values.slice(values_offset.as_py())  # get the values to start at the right position
             new_offsets = pc.subtract(array.offsets, values_offset)  # update the offsets accordingly
             return pa.ListArray.from_arrays(new_offsets, new_values)
+    return _sanitize(array, type)
 
-    arrays = [reset_sliced_list_offset(array) if isinstance(array.type, pa.ListType) else array for array in pa_table]
+
+@_wrap_for_chunked_arrays
+def _cast_array_with_custom_storage_support(array: pa.Array, type) -> pa.Array:
+    if hasattr(type, "cast_storage"):
+        return type.cast_storage(array)
+    else:
+        return array.cast(type)
+
+
+def _better_array_cast(array: pa.Array, type) -> pa.Array:
+    if not IS_PYARROW_AT_LEAST_4 and isinstance(array.type, pa.ListType):
+        array = _sanitize_sliced_list_arrays_for_cast(array)
+    return _cast_array_with_custom_storage_support(array, type)
+
+
+def better_table_cast(table: pa.Table, schema: pa.Schema) -> pa.Table:
+    """Same as pyarrow.Table.cast but with some improvements:
+    - sliced list support
+    - custom features support
+    """
+    if sorted(table.column_names) != sorted(schema.names):
+        raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{schema}\nbecause column names don't match")
+    arrays = [_better_array_cast(table[field.name], field.type) for field in schema]
     return pa.Table.from_arrays(arrays, schema=schema)
+
+
+OVERRIDEN_TABLE_METHODS["cast"] = better_table_cast

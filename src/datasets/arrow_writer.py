@@ -127,6 +127,7 @@ class TypedSequence:
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(type, ImageExtensionType):
                 storage = pa.array(objects_to_list_of_image_dicts(self.data), type=type.storage_type)
+                storage = type.cast_storage(storage)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
