@@ -83,7 +83,8 @@ A data point comprises an image and its object annotations.
 ```
 {
   'image_id': 15,
-  'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=943x663 at 0x2373B065C18>, 'width': 943,
+  'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=943x663 at 0x2373B065C18>,
+  'width': 943,
   'height': 663,
   'objects': {
     'id': [114, 115, 116, 117], 
