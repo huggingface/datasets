@@ -21,6 +21,7 @@ task_ids:
 - multi-class-classification
 - topic-classification
 paperswithcode_id: null
+pretty_name: TeluguNews
 ---
 
 # Dataset Card for [Dataset Name]

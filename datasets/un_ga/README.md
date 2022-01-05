@@ -62,6 +62,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: UnGa
 ---
 
 # Dataset Card for [Dataset Name]

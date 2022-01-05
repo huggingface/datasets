@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: xnli
+pretty_name: Cross-lingual Natural Language Inference
 ---
 
 # Dataset Card for "xnli"

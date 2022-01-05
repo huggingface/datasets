@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-classification-other-hate-speech-detection
 paperswithcode_id: hatexplain
+pretty_name: hatexplain
 ---
 
 # Dataset Card for hatexplain

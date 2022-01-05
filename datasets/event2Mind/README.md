@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: event2mind
+pretty_name: Event2Mind
 ---
 
 # Dataset Card for "event2Mind"

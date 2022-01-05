@@ -40,6 +40,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: xquad-r
+pretty_name: LAReQA
 ---
 
 # Dataset Card for [Dataset Name]

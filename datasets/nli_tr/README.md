@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: nli-tr
+pretty_name: Natural Language Inference in Turkish
 ---
 
 # Dataset Card for "nli_tr"

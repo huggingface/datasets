@@ -19,6 +19,7 @@ task_ids:
 - open-domain-qa
 - extractive-qa
 paperswithcode_id: squad-it
+pretty_name: SQuAD-it
 ---
 
 # Dataset Card for "squad_it"

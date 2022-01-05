@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - other-social-media-shares-prediction
 paperswithcode_id: null
+pretty_name: newspop
 ---
 
 # Dataset Card for newspop

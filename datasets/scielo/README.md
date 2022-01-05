@@ -27,6 +27,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: scielo
 ---
 
 # Dataset Card for [Dataset Name]

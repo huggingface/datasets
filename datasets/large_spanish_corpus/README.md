@@ -80,6 +80,7 @@ task_categories:
 task_ids:
 - other-other-pretraining-language-models
 paperswithcode_id: null
+pretty_name: LargeSpanishCorpus
 ---
 
 # Dataset Card for [Dataset Name]

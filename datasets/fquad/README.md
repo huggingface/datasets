@@ -23,6 +23,7 @@ task_ids:
 - extractive-qa
 - closed-domain-qa
 paperswithcode_id: fquad
+pretty_name: French Question Answering Dataset
 ---
 
 # Dataset Card for "fquad"

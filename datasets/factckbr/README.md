@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: null
+pretty_name: factckbr
 ---
 
 # Dataset Card for [Dataset Name]

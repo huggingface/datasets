@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: liveqa
+pretty_name: LiveQA
 ---
 
 # Dataset Card for LiveQA

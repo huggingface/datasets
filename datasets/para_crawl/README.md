@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: paracrawl
+pretty_name: ParaCrawl
 ---
 
 # Dataset Card for "para_crawl"

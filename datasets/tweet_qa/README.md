@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: tweetqa
+pretty_name: TweetQA
 ---
 
 # Dataset Card for TweetQA

@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: OpusFinlex
 ---
 
 # Dataset Card for [opus_finlex]

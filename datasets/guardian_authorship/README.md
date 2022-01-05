@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: null
+pretty_name: GuardianAuthorship
 ---
 
 # Dataset Card for "guardian_authorship"

@@ -20,6 +20,7 @@ task_ids:
 - language-modeling
 - summarization
 paperswithcode_id: null
+pretty_name: thaisum
 ---
 
 # Dataset Card for `thaisum`

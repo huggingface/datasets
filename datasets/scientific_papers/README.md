@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: null
+pretty_name: ScientificPapers
 ---
 
 # Dataset Card for "scientific_papers"
