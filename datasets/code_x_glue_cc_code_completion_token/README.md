@@ -17,6 +17,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+pretty_name: CodeXGlueCcCodeCompletionToken
 ---
 # Dataset Card for "code_x_glue_cc_code_completion_token"
 

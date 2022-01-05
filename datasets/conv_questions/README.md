@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 - dialogue-modeling
+pretty_name: ConvQuestions
 ---
 
 # Dataset Card for ConvQuestions
