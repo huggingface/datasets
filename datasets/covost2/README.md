@@ -213,7 +213,7 @@ The dataset consists of people who have donated their voice online. You agree to
 
 ### Licensing Information
 
-cc-by-nc-4.0
+[CC BY-NC 4.0](https://github.com/facebookresearch/covost/blob/main/LICENSE)
 
 ### Citation Information
 
