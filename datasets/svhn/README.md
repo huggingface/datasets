@@ -78,7 +78,7 @@ English
 
 ### Data Instances
 
-### full_numbers
+#### full_numbers
 
 The original, variable-resolution, color house-number images with character level bounding boxes.
 
@@ -95,7 +95,7 @@ The original, variable-resolution, color house-number images with character leve
 }
 ```
 
-### cropped_digits
+#### cropped_digits
 
 Character level ground truth in an MNIST-like format. All digits have been resized to a fixed resolution of 32-by-32 pixels. The original character bounding boxes are extended in the appropriate dimension to become square windows, so that resizing them to 32-by-32 pixels does not introduce aspect ratio distortions. Nevertheless this preprocessing introduces some distracting digits to the sides of the digit of interest.
 
@@ -108,25 +108,25 @@ Character level ground truth in an MNIST-like format. All digits have been resiz
 
 ### Data Fields
 
-### full_numbers
+#### full_numbers
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `digits`: a dictionary containing digits' bounding boxes and labels
   - `bbox`: a list of bounding boxes (in the [coco](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco) format) corresponding to the digits present on the image
   - `label`: a list of integers between 0 and 9 representing the digit.
 
-### cropped_digits
+#### cropped_digits
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
 - `digit`: an integer between 0 and 9 representing the digit.
 
 ### Data Splits
 
-### full_numbers
+#### full_numbers
 
 The data is split into training, test and extra set. The training set contains 33402 images, test set 13068 and the extra set 202353 images.
 
-### cropped_digits
+#### cropped_digits
 
 The data is split into training, test and extra set. The training set contains 73257 images, test set 26032 and the extra set 531131 images.
 
