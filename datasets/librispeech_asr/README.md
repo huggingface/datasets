@@ -8,7 +8,7 @@ language_creators:
 languages:
 - en
 licenses:
-- CC BY 4.0
+- cc-by-4.0
 multilinguality:
 - monolingual
 paperswithcode_id: librispeech-1
