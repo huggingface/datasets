@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - text-scoring-other-evaluating-dialogue-systems
 paperswithcode_id: null
+pretty_name: ConvAi
 ---
 
 # Dataset Card Creation Guide

@@ -188,7 +188,7 @@ be found [here](https://catalog.ldc.upenn.edu/docs/LDC93S1/TESTSET.TXT)
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
