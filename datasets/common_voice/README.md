@@ -66,7 +66,7 @@ languages:
 - zh-HK
 - zh-TW
 licenses:
-- cc-0
+- cc0-1.0
 multilinguality:
 - multilingual
 size_categories:
