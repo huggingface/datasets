@@ -128,13 +128,7 @@ This is a Croatian-English parallel corpus of transcribed and translated TED tal
 
 ### Other Known Limitations
 
-[More Information Needed]
-
-## Additional Information
-
-### Dataset Curators
-
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ### Licensing Information
 

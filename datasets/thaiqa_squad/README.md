@@ -145,21 +145,7 @@ All contents are from Wikipedia. No personal and sensitive information is expect
 
 ### Other Known Limitations
 
-- The contexts include `<doc>` tags at start and at the end
-
-## Additional Information
-
-### Dataset Curators
-
-[NECTEC](https://www.nectec.or.th/en/) for original [thaiqa](https://aiforthai.in.th/corpus.php). SQuAD formattting by [PyThaiNLP](https://github.com/PyThaiNLP/).
-
-### Licensing Information
-
-CC-BY-NC-SA 3.0
-
-### Citation Information
-
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ### Contributions
 
