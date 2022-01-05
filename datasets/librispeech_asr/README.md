@@ -184,7 +184,7 @@ The dataset was initially created by Vassil Panayotov, Guoguo Chen, Daniel Povey
 
 ### Licensing Information
 
-CC BY 4.0
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 ### Citation Information
 
