@@ -147,6 +147,22 @@ All contents are from Wikipedia. No personal and sensitive information is expect
 
 Dataset provided for research purposes only. Please check dataset license for additional information.
 
+The contexts include `<doc>` tags at start and at the end
+
+## Additional Information
+
+### Dataset Curators
+
+[NECTEC](https://www.nectec.or.th/en/) for original [thaiqa](https://aiforthai.in.th/corpus.php). SQuAD formattting by [PyThaiNLP](https://github.com/PyThaiNLP/).
+
+### Licensing Information
+
+CC-BY-NC-SA 3.0
+
+### Citation Information
+
+[More Information Needed]
+
 ### Contributions
 
 Thanks to [@cstorm125](https://github.com/cstorm125) for adding this dataset.

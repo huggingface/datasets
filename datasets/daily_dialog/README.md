@@ -155,7 +155,7 @@ The data fields are the same among all splits.
 
 ### Other Known Limitations
 
-Dataset provided for research purposes only. Please check dataset license for additional information.(https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

@@ -130,6 +130,13 @@ This is a Croatian-English parallel corpus of transcribed and translated TED tal
 
 Dataset provided for research purposes only. Please check dataset license for additional information.
 
+
+## Additional Information
+
+### Dataset Curators
+
+[More Information Needed]
+
 ### Licensing Information
 
 [CC-BY-NC-SA license]<http://creativecommons.org/licenses/by-sa/3.0/>
