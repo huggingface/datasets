@@ -172,7 +172,7 @@ The dataset consists of people who have donated their voice online. You agree to
 
 ### Licensing Information
 
-CC BY 4.0
+Public Domain, Creative Commons Attribution 4.0 International Public License ([CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode))
 
 ### Citation Information
 
