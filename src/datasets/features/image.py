@@ -21,6 +21,17 @@ if TYPE_CHECKING:
 _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
 
 
+class ImageExtensionArray(pa.ExtensionArray):
+    def __array__(self):
+        return self.to_numpy(zero_copy_only=False)
+
+    def __getitem__(self, i):
+        return self.storage[i]
+
+    def to_pylist(self):
+        return self.to_numpy(zero_copy_only=False).tolist()
+
+
 class ImageExtensionType(pa.PyExtensionType):
     def __init__(self):
         pa.PyExtensionType.__init__(self, pa.struct({"bytes": pa.binary(), "path": pa.string()}))
@@ -34,16 +45,17 @@ class ImageExtensionType(pa.PyExtensionType):
     def to_pandas_dtype(self):
         return PandasImageExtensionDtype()
 
-
-class ImageExtensionArray(pa.ExtensionArray):
-    def __array__(self):
-        return self.to_numpy(zero_copy_only=False)
-
-    def __getitem__(self, i):
-        return self.storage[i]
-
-    def to_pylist(self):
-        return self.to_numpy(zero_copy_only=False).tolist()
+    def cast_storage(self, array: Union[pa.StringArray, pa.StructArray, ImageExtensionArray]) -> ImageExtensionArray:
+        if isinstance(array, ImageExtensionArray):
+            return array
+        if array.type == pa.string():
+            bytes_array = pa.array([None] * len(array), type=pa.binary())
+            storage = pa.StructArray.from_arrays([bytes_array, array], ["bytes", "path"])
+        elif array.type == pa.struct({"bytes": pa.binary(), "paths": pa.string()}):
+            storage = array
+        else:
+            raise TypeError(f"Can't convert array of type {array.type} to image type {type(self())}.")
+        return pa.ExtensionArray.from_storage(ImageExtensionType(), storage)
 
 
 class PandasImageExtensionDtype(PandasExtensionDtype):
