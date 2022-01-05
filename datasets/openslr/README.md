@@ -650,7 +650,8 @@ The dataset consists of people who have donated their voice online. You agree to
 
 ### Licensing Information
 
-[More Information Needed] 
+Each dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License ([CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode)).
+See https://github.com/google/language-resources#license or the resource page on [OpenSLR](https://openslr.org/resources.php) for more information.
 
 ### Citation Information
 #### SLR32
