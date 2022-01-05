@@ -167,7 +167,7 @@ pretty_name: CC100
 
 ## Dataset Description
 
-- **Homepage:** http://data.statmt.org/cc-100/
+- **Homepage:** https://data.statmt.org/cc-100/
 - **Repository:** None
 - **Paper:** https://www.aclweb.org/anthology/2020.acl-main.747.pdf, https://www.aclweb.org/anthology/2020.lrec-1.494.pdf
 - **Leaderboard:** [More Information Needed]
@@ -176,7 +176,7 @@ pretty_name: CC100
 ### Dataset Summary
 
 To load a language which isn't part of the config, all you need to do is specify the language code in the config.
-You can find the valid languages in Homepage section of Dataset Description: http://data.statmt.org/cc-100/
+You can find the valid languages in Homepage section of Dataset Description: https://data.statmt.org/cc-100/
 E.g.
 
 `dataset = load_dataset("cc100", lang="en")`
