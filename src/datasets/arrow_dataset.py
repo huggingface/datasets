@@ -74,14 +74,7 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
-from .table import (
-    InMemoryTable,
-    MemoryMappedTable,
-    Table,
-    better_table_cast,
-    concat_tables,
-    list_table_cache_files,
-)
+from .table import InMemoryTable, MemoryMappedTable, Table, better_table_cast, concat_tables, list_table_cache_files
 from .tasks import TaskTemplate
 from .tasks.text_classification import TextClassification
 from .utils import logging
@@ -1432,10 +1425,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             column_idx = dataset._data.column_names.index(column)
             subtable = dataset._data.select_columns([column_idx])
             subschema = pa.schema({column: feature()})
-            dataset._data = concat_tables([
-                dataset._data.remove_column(column_idx),
-                better_table_cast(subtable, subschema)
-            ], axis=1)
+            dataset._data = concat_tables(
+                [dataset._data.remove_column(column_idx), better_table_cast(subtable, subschema)], axis=1
+            )
             dataset._data = update_metadata_with_features(dataset._data, dataset.features)
             return dataset
         else:

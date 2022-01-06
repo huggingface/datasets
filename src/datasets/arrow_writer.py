@@ -32,8 +32,8 @@ from .features import (
     cast_to_python_objects,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
-    objects_to_list_of_image_dicts,
 )
+from .features.base_extension import BasePyarrowExtensionType
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .utils import logging
@@ -125,10 +125,9 @@ class TypedSequence:
                 else:
                     storage = pa.array(self.data, type.storage_dtype)
                 out = pa.ExtensionArray.from_storage(type, storage)
-            elif isinstance(type, ImageExtensionType):
-                storage = pa.array(objects_to_list_of_image_dicts(self.data), type=type.storage_type)
-                storage = type.cast_storage(storage)
-                out = pa.ExtensionArray.from_storage(type, storage)
+            elif isinstance(type, BasePyarrowExtensionType):
+                storage = pa.array(self.data, type=type.pa_storage_type)
+                out = type.cast_storage(storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
                 if type is not None:

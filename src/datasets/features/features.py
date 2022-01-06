@@ -35,10 +35,12 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 from pyarrow.lib import TimestampType
 
 from datasets import config, utils
-from datasets.features.audio import Audio
-from datasets.features.image import Image, ImageExtensionType, PandasImageExtensionDtype
+from datasets.features.audio import Audio, AudioExtensionType
+from datasets.features.image import Image, ImageExtensionType
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.utils.logging import get_logger
+
+from datasets.features.base_extension import BasePyarrowExtensionType
 
 
 logger = get_logger(__name__)
@@ -626,8 +628,8 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 def pandas_types_mapper(dtype):
     if isinstance(dtype, _ArrayXDExtensionType):
         return PandasArrayExtensionDtype(dtype.value_type)
-    elif isinstance(dtype, ImageExtensionType):
-        return PandasImageExtensionDtype()
+    elif isinstance(dtype, BasePyarrowExtensionType):
+        return ImageExtensionType._pd_type()
 
 
 @dataclass
@@ -958,6 +960,8 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
     elif isinstance(pa_type, ImageExtensionType):
         return Image()
+    elif isinstance(pa_type, AudioExtensionType):
+        return Audio()
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):

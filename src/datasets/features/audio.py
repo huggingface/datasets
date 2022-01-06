@@ -1,10 +1,39 @@
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import Any, ClassVar, Optional
+from typing import Any, ClassVar, Optional, Union
 
 import pyarrow as pa
 
 from ..utils.streaming_download_manager import xopen
+from .base_extension import BasePyarrowExtensionType
+
+
+class AudioExtensionType(BasePyarrowExtensionType):
+    pa_storage_type = pa.struct({"bytes": pa.binary(), "path": pa.string()})
+
+    def cast_storage(self, array: Union[pa.StringArray, pa.StructArray]) -> pa.StructArray:
+        if array.type == AudioExtensionType():
+            return array
+        elif array.type == pa.struct({"bytes": pa.binary(), "paths": pa.string()}):
+            return self.wrap_array(array)
+        elif isinstance(array.type, pa.StructType):
+            subarrays = {array.type[i].name: array.field(i) for i in range(array.type.num_fields)}
+            bytes_array = (
+                subarrays["bytes"].cast(pa.binary())
+                if "bytes" in subarrays
+                else pa.array([None] * len(array), type=pa.binary())
+            )
+            path_array = (
+                subarrays["path"].cast(pa.string())
+                if "path" in subarrays
+                else pa.array([None] * len(array), type=pa.string())
+            )
+            return self.wrap_array(pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"]))
+        elif array.type == pa.string():
+            bytes_array = pa.array([None] * len(array), type=pa.binary())
+            return self.wrap_array(pa.StructArray.from_arrays([bytes_array, array], ["bytes", "path"]))
+        else:
+            raise TypeError(f"Can't convert array of type {array.type} to audio type {type(self)}.")
 
 
 @dataclass(unsafe_hash=True)
@@ -28,17 +57,14 @@ class Audio:
 
     sampling_rate: Optional[int] = None
     mono: bool = True
-    _storage_dtype: str = "string"
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
-    pa_type: ClassVar[Any] = None
+    pa_type: ClassVar[Any] = AudioExtensionType
     _type: str = field(default="Audio", init=False, repr=False)
 
     def __call__(self):
-        return (
-            pa.struct({"path": pa.string(), "bytes": pa.binary()}) if self._storage_dtype == "struct" else pa.string()
-        )
+        return self.pa_type()
 
     def encode_example(self, value):
         """Encode example into a format for Arrow.
@@ -47,18 +73,15 @@ class Audio:
             value (:obj:`str` or :obj:`dict`): Data passed as input to Audio feature.
 
         Returns:
-            :obj:`str` or :obj:`dict`
+            :obj:`dict`
         """
-        if isinstance(value, dict):
-            self._storage_dtype = "struct"
-        return value
+        return {"bytes": None, "path": value} if isinstance(value, str) else value
 
     def decode_example(self, value):
         """Decode example audio file into audio data.
 
         Args:
-            value (obj:`str` or :obj:`dict`): Either a string with the absolute audio file path or a dictionary with
-                keys:
+            value (:obj:`dict`): a dictionary with keys:
 
                 - path: String with relative audio file path.
                 - bytes: Bytes of the audio file.
@@ -66,7 +89,7 @@ class Audio:
         Returns:
             dict
         """
-        path, file = (value["path"], BytesIO(value["bytes"])) if isinstance(value, dict) else (value, None)
+        path, file = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
         if path.endswith("mp3"):
             array, sampling_rate = self._decode_mp3(file if file else path)
         else:

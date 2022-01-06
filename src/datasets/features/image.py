@@ -1,17 +1,15 @@
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, ClassVar, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, ClassVar, List, Optional, Union
 
 import numpy as np
-import pandas as pd
 import pyarrow as pa
-from pandas.api.extensions import ExtensionArray as PandasExtensionArray
-from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
 from ..utils.file_utils import is_local_path
 from ..utils.py_utils import first_non_null_value, no_op_if_value_is_null
 from ..utils.streaming_download_manager import xopen
+from .base_extension import BasePyarrowExtensionType
 
 
 if TYPE_CHECKING:
@@ -21,150 +19,33 @@ if TYPE_CHECKING:
 _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
 
 
-class ImageExtensionArray(pa.ExtensionArray):
-    def __array__(self):
-        return self.to_numpy(zero_copy_only=False)
+class ImageExtensionType(BasePyarrowExtensionType):
+    pa_storage_type = pa.struct({"bytes": pa.binary(), "path": pa.string()})
 
-    def __getitem__(self, i):
-        return self.storage[i]
-
-    def to_pylist(self):
-        return self.to_numpy(zero_copy_only=False).tolist()
-
-
-class ImageExtensionType(pa.PyExtensionType):
-    def __init__(self):
-        pa.PyExtensionType.__init__(self, pa.struct({"bytes": pa.binary(), "path": pa.string()}))
-
-    def __arrow_ext_class__(self):
-        return ImageExtensionArray
-
-    def __reduce__(self):
-        return self.__class__, ()
-
-    def to_pandas_dtype(self):
-        return PandasImageExtensionDtype()
-
-    def cast_storage(self, array: Union[pa.StringArray, pa.StructArray, ImageExtensionArray]) -> ImageExtensionArray:
-        if isinstance(array, ImageExtensionArray):
+    def cast_storage(self, array: pa.Array) -> pa.ExtensionArray:
+        if array.type == ImageExtensionType():
             return array
-        if array.type == pa.string():
-            bytes_array = pa.array([None] * len(array), type=pa.binary())
-            storage = pa.StructArray.from_arrays([bytes_array, array], ["bytes", "path"])
         elif array.type == pa.struct({"bytes": pa.binary(), "paths": pa.string()}):
             storage = array
+        elif isinstance(array.type, pa.StructType):
+            subarrays = {array.type[i].name: array.field(i) for i in range(array.type.num_fields)}
+            bytes_array = (
+                subarrays["bytes"].cast(pa.binary())
+                if "bytes" in subarrays
+                else pa.array([None] * len(array), type=pa.binary())
+            )
+            path_array = (
+                subarrays["path"].cast(pa.string())
+                if "path" in subarrays
+                else pa.array([None] * len(array), type=pa.string())
+            )
+            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+        elif array.type == pa.string():
+            bytes_array = pa.array([None] * len(array), type=pa.binary())
+            storage = pa.StructArray.from_arrays([bytes_array, array], ["bytes", "path"])
         else:
-            raise TypeError(f"Can't convert array of type {array.type} to image type {type(self())}.")
-        return pa.ExtensionArray.from_storage(ImageExtensionType(), storage)
-
-
-class PandasImageExtensionDtype(PandasExtensionDtype):
-    def __from_arrow__(self, array: Union[pa.Array, pa.ChunkedArray]):
-        if isinstance(array, pa.ChunkedArray):
-            numpy_arr = np.hstack([chunk.to_numpy(zero_copy_only=False) for chunk in array.chunks])
-        else:
-            numpy_arr = array.to_numpy(zero_copy_only=False)
-        return PandasImageExtensionArray(numpy_arr)
-
-    @classmethod
-    def construct_array_type(cls):
-        return PandasImageExtensionArray
-
-    @property
-    def type(self) -> type:
-        # Expensive calls under the propery decorator are not a good practice, but it is what it is.
-        if config.PIL_AVAILABLE:
-            import PIL.Image
-        else:
-            raise ImportError("Pillow is not available.")
-        return PIL.Image.Image
-
-    @property
-    def kind(self) -> str:
-        return "O"
-
-    @property
-    def name(self) -> str:
-        return "image"
-
-
-class PandasImageExtensionArray(PandasExtensionArray):
-    na_value = None
-
-    def __init__(self, data: np.ndarray, copy: bool = False):
-        self._data = data if not copy else np.array(data)
-        self._dtype = PandasImageExtensionDtype()
-
-    def __array__(self):
-        return self._data
-
-    def copy(self, deep: bool = False) -> "PandasImageExtensionArray":
-        return PandasImageExtensionArray(self._data, copy=True)
-
-    @classmethod
-    def _from_sequence(
-        cls, scalars, dtype: Optional[PandasImageExtensionDtype] = None, copy: bool = False
-    ) -> "PandasImageExtensionArray":
-        data = np.array(scalars, dtype=np.object, copy=copy)
-        return cls(data, copy=copy)
-
-    @classmethod
-    def _concat_same_type(cls, to_concat: Sequence["PandasImageExtensionArray"]) -> "PandasImageExtensionArray":
-        data = np.hstack([va._data for va in to_concat])
-        return cls(data, copy=False)
-
-    @property
-    def dtype(self) -> PandasImageExtensionDtype:
-        return self._dtype
-
-    @property
-    def nbytes(self) -> int:
-        return self._data.nbytes
-
-    def isna(self) -> np.ndarray:
-        return np.array([pd.isna(arr).any() for arr in self._data])
-
-    def __setitem__(self, key: Union[int, slice, np.ndarray], value: Any) -> None:
-        raise NotImplementedError
-
-    def __getitem__(self, item: Union[int, slice, np.ndarray]) -> Union[np.ndarray, "PandasImageExtensionArray"]:
-        if isinstance(item, int):
-            return self._data[item]
-        return PandasImageExtensionArray(self._data[item], copy=False)
-
-    def take(
-        self, indices: Sequence[int], allow_fill: bool = False, fill_value: bool = None
-    ) -> "PandasImageExtensionArray":
-        indices: np.ndarray = np.asarray(indices, dtype=np.int)
-        if allow_fill:
-            fill_value = self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=np.object)
-            mask = indices == -1
-            if (indices < -1).any():
-                raise ValueError("Invalid value in `indices`, must be all >= -1 for `allow_fill` is True")
-            elif len(self) > 0:
-                pass
-            elif not np.all(mask):
-                raise IndexError("Invalid take for empty PandasImageExtensionArray, must be all -1.")
-            else:
-                data = np.array([fill_value] * len(indices), dtype=np.object)
-                return PandasImageExtensionArray(data, copy=False)
-        took = self._data.take(indices)
-        if allow_fill and mask.any():
-            took[mask] = [fill_value] * np.sum(mask)
-        return PandasImageExtensionArray(took, copy=False)
-
-    def map(self, mapper):
-        # More info about this (undocumented) function can be found here:
-        # https://github.com/pandas-dev/pandas/issues/23179
-        return PandasImageExtensionArray(pd.Series(self._data).map(mapper).to_numpy())
-
-    def __len__(self) -> int:
-        return len(self._data)
-
-    def __eq__(self, other) -> np.ndarray:
-        if not isinstance(other, PandasImageExtensionArray):
-            raise NotImplementedError(f"Invalid type to compare to: {type(other)}")
-        return (self._data == other._data).all()
+            raise TypeError(f"Can't convert array of type {array.type} to image type {type(self)}.")
+        return pa.ExtensionArray.from_storage(self, storage)
 
 
 @dataclass(unsafe_hash=True)
@@ -186,12 +67,12 @@ class Image:
 
     id: Optional[str] = None
     # Automatically constructed
-    dtype: ClassVar[str] = "dict"
-    pa_type: ClassVar[Any] = None
+    dtype: ClassVar[str] = "PIL.Image.Image"
+    pa_type: ClassVar[Any] = ImageExtensionType
     _type: str = field(default="Image", init=False, repr=False)
 
     def __call__(self):
-        return ImageExtensionType()
+        return self.pa_type()
 
     def encode_example(self, value: Union[str, dict, np.ndarray, "PIL.Image.Image"]) -> dict:
         """Encode example into a format for Arrow.

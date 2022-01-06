@@ -403,7 +403,9 @@ class InMemoryTable(TableBlock):
 
     @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, *args, **kwargs):
-        return InMemoryTable(better_table_cast(self.table, *args, **kwargs, is_pyarrow_at_least_4=IS_PYARROW_AT_LEAST_4))
+        return InMemoryTable(
+            better_table_cast(self.table, *args, **kwargs, is_pyarrow_at_least_4=IS_PYARROW_AT_LEAST_4)
+        )
 
     @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
     def replace_schema_metadata(self, *args, **kwargs):
@@ -913,8 +915,11 @@ def _wrap_for_chunked_arrays(func):
     return wrapper
 
 
-def _sanitize_sliced_list_arrays_for_cast(array: Union[pa.ListArray, pa.ChunkedArray]) -> Union[pa.ListArray, pa.ChunkedArray]:
+def _sanitize_sliced_list_arrays_for_cast(
+    array: Union[pa.ListArray, pa.ChunkedArray]
+) -> Union[pa.ListArray, pa.ChunkedArray]:
     """Sanitize pyarrow.ListArray objects for pyarrow.Array.cast in case they are sliced list arrays"""
+
     @_wrap_for_chunked_arrays
     def _sanitize(array: pa.ListArray) -> pa.ListArray:
         """Return the same pyarrow.ListArray but with array.offset == 0 for compatibility with cast for pyarrow 3"""
@@ -927,6 +932,7 @@ def _sanitize_sliced_list_arrays_for_cast(array: Union[pa.ListArray, pa.ChunkedA
             new_values = array.values.slice(values_offset.as_py())  # get the values to start at the right position
             new_offsets = pc.subtract(array.offsets, values_offset)  # update the offsets accordingly
             return pa.ListArray.from_arrays(new_offsets, new_values)
+
     return _sanitize(array, type)
 
 
