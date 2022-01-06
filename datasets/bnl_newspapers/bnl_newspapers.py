@@ -39,13 +39,44 @@ _HOMEPAGE = "https://data.bnl.lu/data/historical-newspapers/"
 _LICENSE = "CC0"
 
 
-_URL = "https://data.bnl.lu/open-data/digitization/newspapers/export01-newspapers1841-1878.zip"
+_URLs = {
+    "processed": "https://data.bnl.lu/open-data/digitization/newspapers/export01-newspapers1841-1878.zip"
+}
 
 
-class BNLProcessedNewspapers(datasets.GeneratorBasedBuilder):
+class BNLNewspapersConfig(datasets.BuilderConfig):
+    """Builder config for BNLNewspapers"""
+
+    def __init__(self, data_url, citation, url, **kwargs):
+        """
+        Args:
+        data_url: `string`, url to download the zip file from.
+        citation: `string`, citation for the data set.
+        url: `string`, url for information about the data set.
+        **kwargs: keyword arguments forwarded to super.
+        """
+        super(BNLNewspapersConfig, self).__init__(
+            version=datasets.Version("1.17.0"), **kwargs
+        )
+        self.data_url = data_url
+        self.citation = citation
+        self.url = url
+
+
+class BNLNewspapers(datasets.GeneratorBasedBuilder):
     """Historic newspapers from the BNL"""
 
-    VERSION = datasets.Version("1.1.0")
+    BUILDER_CONFIGS = [
+        BNLNewspapersConfig(
+            name="processed",
+            description="Processed BNL newspapers",
+            data_url=_URLs["processed"],
+            citation=_CITATION,
+            url=_HOMEPAGE,
+        ),
+    ]
+
+    DEFAULT_CONFIG_NAME = "processed"
 
     def _info(self):
         features = datasets.Features(
@@ -103,6 +134,7 @@ class BNLProcessedNewspapers(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
+        _URL = self.config.data_url
         data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
