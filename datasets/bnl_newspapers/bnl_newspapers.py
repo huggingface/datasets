@@ -39,9 +39,7 @@ _HOMEPAGE = "https://data.bnl.lu/data/historical-newspapers/"
 _LICENSE = "CC0"
 
 
-_URLs = {
-    "processed": "https://data.bnl.lu/open-data/digitization/newspapers/export01-newspapers1841-1878.zip"
-}
+_URLs = {"processed": "https://data.bnl.lu/open-data/digitization/newspapers/export01-newspapers1841-1878.zip"}
 
 
 class BNLNewspapersConfig(datasets.BuilderConfig):
@@ -55,9 +53,7 @@ class BNLNewspapersConfig(datasets.BuilderConfig):
         url: `string`, url for information about the data set.
         **kwargs: keyword arguments forwarded to super.
         """
-        super(BNLNewspapersConfig, self).__init__(
-            version=datasets.Version("1.17.0"), **kwargs
-        )
+        super(BNLNewspapersConfig, self).__init__(version=datasets.Version("1.17.0"), **kwargs)
         self.data_url = data_url
         self.citation = citation
         self.url = url
