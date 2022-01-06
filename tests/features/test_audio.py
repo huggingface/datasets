@@ -60,16 +60,15 @@ def test_audio_instantiation():
     assert audio.mono is True
     assert audio.id is None
     assert audio.dtype == "dict"
-    assert audio.pa_type is None
+    assert audio.pa_type is not None
     assert audio._type == "Audio"
-    assert audio._storage_dtype == "string"
 
 
 @require_sndfile
 def test_audio_decode_example(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     audio = Audio()
-    decoded_example = audio.decode_example(audio_path)
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
     assert decoded_example["path"] == audio_path
     assert decoded_example["array"].shape == (202311,)
@@ -80,7 +79,7 @@ def test_audio_decode_example(shared_datadir):
 def test_audio_resampling(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     audio = Audio(sampling_rate=16000)
-    decoded_example = audio.decode_example(audio_path)
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
     assert decoded_example["path"] == audio_path
     assert decoded_example["array"].shape == (73401,)
@@ -92,7 +91,7 @@ def test_audio_resampling(shared_datadir):
 def test_audio_decode_example_mp3(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.mp3")
     audio = Audio()
-    decoded_example = audio.decode_example(audio_path)
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
     assert decoded_example.keys() == {"path", "array", "sampling_rate"}
     assert decoded_example["path"] == audio_path
     assert decoded_example["array"].shape == (109440,)
@@ -310,9 +309,10 @@ def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
     features = Features({"audio": Audio(), "text": Value("string")})
     dset = Dataset.from_dict(data, features=features)
 
+    expected_audio = features.encode_batch(data)["audio"][0]
     for item in dset:
         assert item.keys() == {"audio", "text"}
-        assert item == {"audio": audio_path, "text": "Hello"}
+        assert item == {"audio": expected_audio, "text": "Hello"}
 
     def process_text(example):
         example["text"] = example["text"] + " World!"
@@ -321,7 +321,7 @@ def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
     processed_dset = dset.map(process_text)
     for item in processed_dset:
         assert item.keys() == {"audio", "text"}
-        assert item == {"audio": audio_path, "text": "Hello World!"}
+        assert item == {"audio": expected_audio, "text": "Hello World!"}
 
 
 @require_sndfile
