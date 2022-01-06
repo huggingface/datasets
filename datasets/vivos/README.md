@@ -167,7 +167,7 @@ The dataset was initially prepared by AILAB, a computer science lab of VNUHCM - 
 
 ### Licensing Information
 
-[Creative Commons Attribution NonCommercial ShareAlike v4.0 (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+Public Domain, Creative Commons Attribution NonCommercial ShareAlike v4.0 ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode))
 
 ### Citation Information
 
