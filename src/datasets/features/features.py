@@ -36,11 +36,10 @@ from pyarrow.lib import TimestampType
 
 from datasets import config, utils
 from datasets.features.audio import Audio, AudioExtensionType
+from datasets.features.base_extension import BasePyarrowExtensionType
 from datasets.features.image import Image, ImageExtensionType
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.utils.logging import get_logger
-
-from datasets.features.base_extension import BasePyarrowExtensionType
 
 
 logger = get_logger(__name__)
