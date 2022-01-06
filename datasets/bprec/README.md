@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - entity-linking-retrieval
 paperswithcode_id: null
+pretty_name: bprec
 ---
 
 # Dataset Card for [Dataset Name]

@@ -179,7 +179,7 @@ The annotations were performed by three annotators (A, B and C), who were native
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

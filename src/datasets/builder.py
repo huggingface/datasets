@@ -623,7 +623,8 @@ class DatasetBuilder:
         if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
             raise ManualDownloadError(
                 textwrap.dedent(
-                    f"""The dataset {self.name} with config {self.config.name} requires manual data.
+                    f"""\
+                    The dataset {self.name} with config {self.config.name} requires manual data.
                     Please follow the manual download instructions:
                      {self.manual_download_instructions}
                     Manual data can be loaded with:

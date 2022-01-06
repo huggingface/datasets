@@ -8,7 +8,7 @@ language_creators:
 languages:
 - vi
 licenses:
-- cc-by-sa-4.0
+- cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
 size_categories:
@@ -143,7 +143,7 @@ Speech was recorded in a quiet environment with high quality microphone, speaker
 
 ### Personal and Sensitive Information
 
-The dataset consists of people who have donated their voice online.  You agree to not attempt to determine the identity of speakers in the Common Voice dataset.
+The dataset consists of people who have donated their voice online.  You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -157,7 +157,7 @@ The dataset consists of people who have donated their voice online.  You agree t
 
 ### Other Known Limitations
 
-[More Information Needed] 
+Dataset provided for research purposes only. Please check dataset license for additional information. 
 
 ## Additional Information
 
@@ -167,7 +167,7 @@ The dataset was initially prepared by AILAB, a computer science lab of VNUHCM - 
 
 ### Licensing Information
 
-Creative Commons Attribution NonCommercial ShareAlike v4.0 (CC BY-NC-SA 4.0)
+Public Domain, Creative Commons Attribution NonCommercial ShareAlike v4.0 ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode))
 
 ### Citation Information
 

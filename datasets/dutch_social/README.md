@@ -20,6 +20,7 @@ task_ids:
 - sentiment-classification
 - multi-label-classification
 paperswithcode_id: null
+pretty_name: Dutch Social Media Collection
 ---
 
 # Dataset Card for Dutch Social Media Collection
@@ -187,7 +188,7 @@ As of writing this data card no anonymization has been carried out on the tweets
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 
