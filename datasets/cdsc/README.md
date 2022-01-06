@@ -142,7 +142,7 @@ Data is splitted in train/dev/test split.
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

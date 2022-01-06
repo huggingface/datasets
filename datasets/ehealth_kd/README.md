@@ -223,7 +223,7 @@ electronic health documents could be machine-readable from a semantic point of v
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

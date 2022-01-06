@@ -145,7 +145,9 @@ All contents are from Wikipedia. No personal and sensitive information is expect
 
 ### Other Known Limitations
 
-- The contexts include `<doc>` tags at start and at the end
+Dataset provided for research purposes only. Please check dataset license for additional information.
+
+The contexts include `<doc>` tags at start and at the end
 
 ## Additional Information
 
