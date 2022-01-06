@@ -1,3 +1,4 @@
+=======
 ---
 pretty_name: VIVOS
 annotations_creators:
@@ -157,7 +158,7 @@ The dataset consists of people who have donated their voice online.  You agree t
 
 ### Other Known Limitations
 
-[More Information Needed] 
+Dataset provided for research purposes only. Please check dataset license for additional information. 
 
 ## Additional Information
 

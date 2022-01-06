@@ -136,7 +136,7 @@ The text in the dataset is in American English
 
 ### Licensing Information
 
-[Needs More Information]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ### Citation Information
 

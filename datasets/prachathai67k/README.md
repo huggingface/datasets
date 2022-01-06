@@ -169,7 +169,7 @@ Prachathai.com is a left-leaning, human-right-focused news site, and thus unusua
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

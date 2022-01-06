@@ -202,7 +202,7 @@ The dataset consists of people who have donated their voice online. You agree to
 
 ### Other Known Limitations
 
-[Needs More Information]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 
@@ -212,7 +212,7 @@ The dataset was created by John S. Garofolo, Lori F. Lamel, William M. Fisher, J
 
 ### Licensing Information
 
-LDC User Agreement for Non-Members
+[LDC User Agreement for Non-Members](https://catalog.ldc.upenn.edu/license/ldc-non-members-agreement.pdf)
 
 ### Citation Information
 ```
