@@ -9,7 +9,7 @@ licenses:
 - unknown
 multilinguality:
 - monolingual
-pretty_name: ''
+pretty_name: 'text2log'
 size_categories:
 - unknown
 source_datasets:
@@ -141,3 +141,7 @@ None given
 ```
 @INPROCEEDINGS{9401852,  author={Levkovskyi, Oleksii and Li, Wei},  booktitle={SoutheastCon 2021},   title={Generating Predicate Logic Expressions from Natural Language},   year={2021},  volume={},  number={},  pages={1-8},  doi={10.1109/SoutheastCon45413.2021.9401852}}
 ```
+
+### Contributions
+
+Thanks to [@apergo-ai](https://github.com/apergo-ai) for adding this dataset.
