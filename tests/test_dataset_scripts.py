@@ -53,7 +53,7 @@ class TestDatasetScripts(TestCase):
 
         for dataset in dataset_files:
             if self._no_encoding_on_file_open(str(dataset)):
-                raise ValueError(f"open(...) must use utf-8 encoding in {dataset}")
+                raise AssertionError(f"open(...) must use utf-8 encoding in {dataset}")
 
     def test_no_print_statements(self):
         dataset_paths = Path("./datasets")
@@ -61,4 +61,4 @@ class TestDatasetScripts(TestCase):
 
         for dataset in dataset_files:
             if self._no_print_statements(str(dataset)):
-                raise ValueError(f"print statement found in {dataset}. Use datasets.logger/logging instead.")
+                raise AssertionError(f"print statement found in {dataset}. Use datasets.logger/logging instead.")
