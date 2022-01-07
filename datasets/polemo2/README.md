@@ -128,7 +128,7 @@ Note that the test set doesn't have targets so -1 is used instead
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

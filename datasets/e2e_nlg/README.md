@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - conditional-text-generation-other-meaning-representtion-to-text
 paperswithcode_id: e2e
+pretty_name: End-to-End NLG Challenge
 ---
 
 # Dataset Card Creation Guide

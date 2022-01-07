@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - semantic-similarity-classification
+pretty_name: CodeXGlueCcCloneDetectionBigCloneBench
 ---
 # Dataset Card for "code_x_glue_cc_clone_detection_big_clone_bench"
 

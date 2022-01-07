@@ -23,7 +23,7 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         flatten, cast, cast_column, remove_columns, rename_column, class_encode_column,
         __len__, __iter__, formatted_as, set_format, set_transform, reset_format, with_format, with_transform,
         __getitem__, cleanup_cache_files,
-        map, filter, select, sort, shuffle, train_test_split, shard, export,
+        map, filter, select, sort, shuffle, train_test_split, shard, export, to_tf_dataset,
         push_to_hub, save_to_disk, load_from_disk, flatten_indices,
         to_csv, to_pandas, to_dict, to_json, to_parquet,
         add_faiss_index, add_faiss_index_from_external_arrays, save_faiss_index, load_faiss_index,

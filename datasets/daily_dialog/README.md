@@ -20,6 +20,7 @@ task_ids:
 - multi-label-classification
 - text-classification-other-emotion-classification
 - text-classification-other-dialog-act-classification
+pretty_name: DailyDialog
 ---
 
 # Dataset Card for "daily_dialog"
@@ -154,7 +155,7 @@ The data fields are the same among all splits.
 
 ### Other Known Limitations
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

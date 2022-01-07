@@ -31,6 +31,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: bianet
+pretty_name: Bianet
 ---
 
 # Dataset Card for [Dataset Name]
