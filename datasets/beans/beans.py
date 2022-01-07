@@ -65,7 +65,7 @@ class Beans(datasets.GeneratorBasedBuilder):
             supervised_keys=("image", "labels"),
             homepage=_HOMEPAGE,
             citation=_CITATION,
-            task_templates=[ImageClassification(image_column="image", label_column="labels", labels=_NAMES)],
+            task_templates=[ImageClassification(image_column="image", label_column="labels")],
         )
 
     def _split_generators(self, dl_manager):

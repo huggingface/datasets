@@ -54,6 +54,12 @@ class TextClassificationTest(TestCase):
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
 
+    def test_align_with_features(self):
+        task = TextClassification(text_column="input_text", label_column="input_label")
+        self.assertEqual(task.label_schema["labels"], ClassLabel)
+        task = task._align_with_features(Features({"input_label": ClassLabel(names=self.labels)}))
+        self.assertEqual(task.label_schema["labels"], ClassLabel(names=self.labels))
+
 
 class QuestionAnsweringTest(TestCase):
     def test_column_mapping(self):
@@ -143,6 +149,12 @@ class ImageClassificationTest(TestCase):
         self.assertEqual("image-classification", task.task)
         self.assertEqual(input_schema, task.input_schema)
         self.assertEqual(label_schema, task.label_schema)
+
+    def test_align_with_features(self):
+        task = ImageClassification(image_column="input_image", label_column="input_label")
+        self.assertEqual(task.label_schema["labels"], ClassLabel)
+        task = task._align_with_features(Features({"input_label": ClassLabel(names=self.labels)}))
+        self.assertEqual(task.label_schema["labels"], ClassLabel(names=self.labels))
 
 
 class DatasetWithTaskProcessingTest(TestCase):
