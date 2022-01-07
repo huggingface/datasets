@@ -8,7 +8,7 @@ from ..packaged_modules.json.json import Json
 from ..utils import logging
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
-from .handler import IOHandler
+from .handler import FileWriteHandler
 
 
 class JsonDatasetReader(AbstractDatasetReader):
@@ -84,11 +84,11 @@ class JsonDatasetWriter:
         lines = self.to_json_kwargs.pop("lines", True)
         compression = self.to_json_kwargs.pop("compression", None)
 
-        if compression not in [None, "gzip"]:
-            raise NotImplementedError(f"Datasets currently does not support {compression} compression")
+        if compression not in [None, "gzip", "bz2", "xz"]:
+            raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
 
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with IOHandler(self.path_or_buf, "wb", compression) as buffer:
+            with FileWriteHandler(self.path_or_buf, "wb", compression) as buffer:
                 written = self._write(file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs)
         else:
             written = self._write(file_obj=self.path_or_buf, orient=orient, lines=lines, **self.to_json_kwargs)
