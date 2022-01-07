@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from typing import ClassVar, Dict, Optional, Tuple
+from typing import ClassVar, Dict
 
 from ..features import ClassLabel, Features, Image
 from .base import TaskTemplate
-
 
 @dataclass(frozen=True)
 class ImageClassification(TaskTemplate):
@@ -12,16 +11,15 @@ class ImageClassification(TaskTemplate):
     label_schema: ClassVar[Features] = Features({"labels": ClassLabel})
     image_column: str = "image"
     label_column: str = "labels"
-    labels: Optional[Tuple[str]] = None
 
-    def __post_init__(self):
-        if self.labels:
-            if len(self.labels) != len(set(self.labels)):
-                raise ValueError("Labels must be unique")
-            # Cast labels to tuple to allow hashing
-            self.__dict__["labels"] = tuple(sorted(self.labels))
-            self.__dict__["label_schema"] = self.label_schema.copy()
-            self.label_schema["labels"] = ClassLabel(names=self.labels)
+    def _align_with_features(self, features):
+        if self.label_column not in features:
+            raise ValueError(f"Column {self.label_column} is not present in features.")
+        if not isinstance(features[self.label_column], ClassLabel):
+            raise ValueError(f"Column {self.label_column} is not a ClassLabel.")
+        task_template = self.copy()
+        task_template.label_schema["labels"] = features[self.label_column]
+        return task_template
 
     @property
     def column_mapping(self) -> Dict[str, str]:

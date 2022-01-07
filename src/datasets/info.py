@@ -171,16 +171,11 @@ class DatasetInfo:
                 template = task_template_from_dict(self.task_templates)
                 self.task_templates = [template] if template is not None else []
 
-        # Insert labels and mappings for text classification
+        # Align task templates with features
         if self.task_templates is not None:
             self.task_templates = list(self.task_templates)
             if self.features is not None:
-                for idx, template in enumerate(self.task_templates):
-                    if isinstance(template, TextClassification):
-                        labels = self.features[template.label_column].names
-                        self.task_templates[idx] = TextClassification(
-                            text_column=template.text_column, label_column=template.label_column, labels=labels
-                        )
+                self.task_templates = [template._align_with_features(self.features) for template in (self.task_templates)]                
 
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)

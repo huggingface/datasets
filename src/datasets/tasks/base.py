@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import ClassVar, Dict, Type, TypeVar
 
 from ..features import Features
+import copy
 
 
 T = TypeVar("T", bound="TaskTemplate")
@@ -15,6 +16,14 @@ class TaskTemplate(abc.ABC):
     task: str
     input_schema: ClassVar[Features]
     label_schema: ClassVar[Features]
+
+    def _align_with_features(self: T, features: Features) -> T:
+        """
+        Aligns the given features with the task template.
+        """
+        # No-op
+        return self.copy()
+
 
     @property
     def features(self) -> Features:
@@ -29,3 +38,6 @@ class TaskTemplate(abc.ABC):
     def from_dict(cls: Type[T], template_dict: dict) -> T:
         field_names = set(f.name for f in dataclasses.fields(cls))
         return cls(**{k: v for k, v in template_dict.items() if k in field_names})
+
+    def copy(self: T) -> T:
+        return copy.deepcopy(self)
