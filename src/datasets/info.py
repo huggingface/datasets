@@ -36,8 +36,6 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional, Union
 
-from datasets.tasks.text_classification import TextClassification
-
 from . import config
 from .features import Features, Value
 from .splits import SplitDict
@@ -175,7 +173,9 @@ class DatasetInfo:
         if self.task_templates is not None:
             self.task_templates = list(self.task_templates)
             if self.features is not None:
-                self.task_templates = [template._align_with_features(self.features) for template in (self.task_templates)]                
+                self.task_templates = [
+                    template._align_with_features(self.features) for template in (self.task_templates)
+                ]
 
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)

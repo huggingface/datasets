@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass
 from typing import ClassVar, Dict
 
@@ -19,8 +20,10 @@ class TextClassification(TaskTemplate):
             raise ValueError(f"Column {self.label_column} is not present in features.")
         if not isinstance(features[self.label_column], ClassLabel):
             raise ValueError(f"Column {self.label_column} is not a ClassLabel.")
-        task_template = self.copy()
-        task_template.label_schema["labels"] = features[self.label_column]
+        task_template = copy.deepcopy(self)
+        label_schema = self.label_schema.copy()
+        label_schema["labels"] = features[self.label_column]
+        task_template.__dict__["label_schema"] = label_schema
         return task_template
 
     @property

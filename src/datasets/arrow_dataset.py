@@ -83,7 +83,6 @@ from .table import (
     list_table_cache_files,
 )
 from .tasks import TaskTemplate
-from .tasks.text_classification import TextClassification
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
