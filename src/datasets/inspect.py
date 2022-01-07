@@ -272,7 +272,8 @@ def get_dataset_split_names(
     if builder.info.splits is None:
         try:
             download_config = download_config.copy() if download_config else DownloadConfig()
-            download_config.use_auth_token = use_auth_token
+            if use_auth_token is not None:
+                download_config.use_auth_token = use_auth_token
             return [
                 split_generator.name
                 for split_generator in builder._split_generators(
