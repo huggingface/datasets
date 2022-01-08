@@ -15,6 +15,7 @@
 """DKTC(Dataset of Korean Threatening Conversations) Dataset"""
 
 import pandas as pd
+
 import datasets
 
 
@@ -76,8 +77,8 @@ class Dktc(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         id_ = 0
 
-        df = pd.read_csv(filepath, encoding='utf-8')
-        df = df.drop(['Unnamed: 0'], axis=1)
+        df = pd.read_csv(filepath, encoding="utf-8")
+        df = df.drop(["Unnamed: 0"], axis=1)
 
         for class_, col in enumerate(df.columns):
             for text in df[col]:

@@ -15,6 +15,7 @@
 """KMWP (Korean Math Word Problems) Dataset"""
 
 import pandas as pd
+
 import datasets
 
 
@@ -72,12 +73,9 @@ class Kmwp(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        df = pd.read_csv(filepath, encoding='utf-8')
+        df = pd.read_csv(filepath, encoding="utf-8")
 
-        for id_, (class_, problem, code, answer) in enumerate(zip(df['class'], df['problem'], df['code'], df['answer'])):
-            yield id_, {
-                "class": class_,
-                "problem": problem,
-                "code": code,
-                "answer": answer
-            }
+        for id_, (class_, problem, code, answer) in enumerate(
+            zip(df["class"], df["problem"], df["code"], df["answer"])
+        ):
+            yield id_, {"class": class_, "problem": problem, "code": code, "answer": answer}
