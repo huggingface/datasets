@@ -17,7 +17,7 @@ class TaskTemplate(abc.ABC):
     input_schema: ClassVar[Features]
     label_schema: ClassVar[Features]
 
-    def _align_with_features(self: T, features: Features) -> T:
+    def align_with_features(self: T, features: Features) -> T:
         """
         Align features with the task template.
         """

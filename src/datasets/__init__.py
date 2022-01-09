@@ -78,6 +78,6 @@ from .splits import (
     percent,
 )
 from .utils import *
-
+from .tasks import *
 
 SCRIPTS_VERSION = "master" if _version.parse(__version__).is_devrelease else __version__

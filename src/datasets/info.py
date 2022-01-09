@@ -174,7 +174,7 @@ class DatasetInfo:
             self.task_templates = list(self.task_templates)
             if self.features is not None:
                 self.task_templates = [
-                    template._align_with_features(self.features) for template in (self.task_templates)
+                    template.align_with_features(self.features) for template in (self.task_templates)
                 ]
 
     def _license_path(self, dataset_info_dir):

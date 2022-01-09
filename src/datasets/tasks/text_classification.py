@@ -15,7 +15,7 @@ class TextClassification(TaskTemplate):
     text_column: str = "text"
     label_column: str = "labels"
 
-    def _align_with_features(self, features):
+    def align_with_features(self, features):
         if self.label_column not in features:
             raise ValueError(f"Column {self.label_column} is not present in features.")
         if not isinstance(features[self.label_column], ClassLabel):
