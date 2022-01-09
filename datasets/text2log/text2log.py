@@ -56,7 +56,7 @@ class text2log(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "sentence": datasets.Value("string"),
-                #"fol_translation": datasets.Value("string"),
+                "fol_translation": datasets.Value("string"),
             }
         )
         return datasets.DatasetInfo(
@@ -68,27 +68,55 @@ class text2log(datasets.GeneratorBasedBuilder):
             citation=_CITATION,
         )
 
+def lines_from_file(direc, name, drop_punc=False, lower=True, drop_fullstop=True):
+    with open(direc + name) as f:
+        for l in f:
+            l = l.rstrip()
+            if drop_punc:
+                l = l.translate(table)
+            if lower:
+                l = l.lower()
+            if drop_fullstop and not drop_punc:
+                l = l[0:-1]
+            yield l
+
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        test_path = dl_manager.download_and_extract(_URLS["clean"])
-        return [
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
-        ]
 
-    # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
-    # def _generate_examples(self, filepath):
-    #     # TODO: This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
-    #     # The `key` is for legacy reasons (tfds) and is not important in itself, but must be unique for each example.
-    #     with open(filepath, encoding="utf-8") as f:
-    #         for key, row in enumerate(f):
-    #             data = json.loads(row)
-    #             yield key, {
-    #                 "sentence": data["sentence"],
-    #             }
-              
+        data_dir = dl_manager.download_and_extract(_URLS["clean"])
+        start_idx = 1
+        end_idx = 22
+        for i in range(start_idx, end_idx + 1):
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": os.path.join(data_dir, lambda i: f"concordance_{i}_clean.txt"),
+                        "split": "train",
+                    },
+                ),
+            ]
 
-    def _generate_examples(self, filepath):
+             
+
+    def _generate_examples(self, filepath,split):
         """Generate crass dataset examples."""
         with open(filepath, encoding="utf-8") as f:
-            for idx, line in f:
-                yield idx, {"sentence":line}
+            for id_, row in enumerate(f):
+                    yield id_, {
+                        "sentence": row[0],
+                        "fol_translation": row[1],
+                    }
+        # with open(direc + name) as f:
+        #     for l in f:
+        #         l = l.rstrip()
+        #         if drop_punc:
+        #             l = l.translate(table)
+        #         if lower:
+        #             l = l.lower()
+        #         if drop_fullstop and not drop_punc:
+        #             l = l[0:-1]
+        #         yield l       
+        # with open(filepath, encoding="utf-8") as f:
+        #     for idx, line in f:
+        #         yield idx, {"sentence":line}
