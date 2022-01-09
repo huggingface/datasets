@@ -77,7 +77,8 @@ from .splits import (
     SubSplitInfo,
     percent,
 )
-from .utils import *
 from .tasks import *
+from .utils import *
+
 
 SCRIPTS_VERSION = "master" if _version.parse(__version__).is_devrelease else __version__

@@ -57,7 +57,7 @@ class TextClassificationTest(TestCase):
     def test_align_with_features(self):
         task = TextClassification(text_column="input_text", label_column="input_label")
         self.assertEqual(task.label_schema["labels"], ClassLabel)
-        task = task._align_with_features(Features({"input_label": ClassLabel(names=self.labels)}))
+        task = task.align_with_features(Features({"input_label": ClassLabel(names=self.labels)}))
         self.assertEqual(task.label_schema["labels"], ClassLabel(names=self.labels))
 
 
@@ -153,7 +153,7 @@ class ImageClassificationTest(TestCase):
     def test_align_with_features(self):
         task = ImageClassification(image_column="input_image", label_column="input_label")
         self.assertEqual(task.label_schema["labels"], ClassLabel)
-        task = task._align_with_features(Features({"input_label": ClassLabel(names=self.labels)}))
+        task = task.align_with_features(Features({"input_label": ClassLabel(names=self.labels)}))
         self.assertEqual(task.label_schema["labels"], ClassLabel(names=self.labels))
 
 
