@@ -1864,6 +1864,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     f"This dataset has multiple task templates for task {task}. Please specify the id to unambiguously identify the task template to prepare the dataset for:"
                     f"{''.join(f'- `{idx}` for task {template}' for idx, template in enumerate(compatible_templates))}"
                 )
+            id = id or 0
             template = compatible_templates[id]
         elif isinstance(task, TaskTemplate):
             template = task
