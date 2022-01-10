@@ -1,7 +1,7 @@
 import copy
 from dataclasses import dataclass
 from itertools import cycle, islice, repeat
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Union
+from typing import Any, Callable, Dict, Generator, Iterable, Iterator, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -36,6 +36,24 @@ def _batch_to_examples(batch: Dict[str, list]) -> List[Dict[str, Any]]:
     n_examples = len(batch[next(iter(batch))])
     for i in range(n_examples):
         yield {col: array[i] for col, array in batch.items()}
+
+
+def _features_formatter(features: Optional[Features]):
+    if features is None:
+
+        def _formatter(example):
+            return example
+
+    else:
+
+        def _formatter(example):
+            # we encode the example for ClassLabel feature types for example
+            encoded_example = features.encode_example(example)
+            # Decode example for Audio feature, e.g.
+            decoded_example = features.decode_example(encoded_example)
+            return decoded_example
+
+    return _formatter
 
 
 class _BaseExamplesIterable:
@@ -164,7 +182,11 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
 
 class MappedExamplesIterable(_BaseExamplesIterable):
     def __init__(
-        self, ex_iterable: _BaseExamplesIterable, function: Callable, batched: bool = False, batch_size: int = 1000
+        self,
+        ex_iterable: Generator[Dict[str, Any], None, None],
+        function: Callable,
+        batched: bool = False,
+        batch_size: int = 1000,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -338,15 +360,9 @@ class IterableDataset(DatasetInfoMixin):
         yield from ex_iterable
 
     def __iter__(self):
+        formatter = _features_formatter(self.features)
         for key, example in self._iter():
-            if self.features:
-                # we encode the example for ClassLabel feature types for example
-                encoded_example = self.features.encode_example(example)
-                # Decode example for Audio feature, e.g.
-                decoded_example = self.features.decode_example(encoded_example)
-                yield decoded_example
-            else:
-                yield example
+            yield formatter(example)
 
     def with_format(
         self,
@@ -396,8 +412,12 @@ class IterableDataset(DatasetInfoMixin):
         """
         info = copy.deepcopy(self._info)
         info.features = None
+        formatter = _features_formatter(self.features)
         ex_iterable = MappedExamplesIterable(
-            self._ex_iterable, function=function, batched=batched, batch_size=batch_size
+            ((key, formatter(example)) for key, example in self._ex_iterable),
+            function=function,
+            batched=batched,
+            batch_size=batch_size,
         )
         return iterable_dataset(
             ex_iterable=ex_iterable,
