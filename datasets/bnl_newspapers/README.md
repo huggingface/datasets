@@ -16,7 +16,7 @@ licenses:
 - cc0-1.0
 multilinguality:
 - multilingual
-pretty_name: bnl-processed-newspapers
+pretty_name: BnL newspapers
 size_categories:
 - 100K<n<1M
 source_datasets:
