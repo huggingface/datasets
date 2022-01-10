@@ -101,12 +101,12 @@ class TweetQA(datasets.GeneratorBasedBuilder):
 
         with open(filepath, encoding="utf-8") as f:
             tweet_qa = json.load(f)
+            idx = 0
             for data in tweet_qa:
-                id_ = data["qid"]
-
-                yield id_, {
+                yield idx, {
                     "Question": data["Question"],
                     "Answer": [] if split == "test" else data["Answer"],
                     "Tweet": data["Tweet"],
                     "qid": data["qid"],
                 }
+                idx += 1
