@@ -25,7 +25,13 @@ from datasets.filesystems import extract_path_from_uri
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
-from datasets.tasks import AutomaticSpeechRecognition, QuestionAnsweringExtractive, Summarization, TextClassification
+from datasets.tasks import (
+    AutomaticSpeechRecognition,
+    LanguageModeling,
+    QuestionAnsweringExtractive,
+    Summarization,
+    TextClassification,
+)
 from datasets.utils.logging import WARNING
 
 from .conftest import s3_test_bucket_name
@@ -3164,11 +3170,27 @@ class TaskTemplatesTest(TestCase):
                 text_column="input_text", label_column="input_labels", labels=None
             )
             self.assertRaises(ValueError, dset.prepare_for_task, task_with_no_labels)
-            # Duplicate task templates
-            dset.info.task_templates = [task, task]
-            self.assertRaises(ValueError, dset.prepare_for_task, "text-classification")
             # Invalid task type
             self.assertRaises(ValueError, dset.prepare_for_task, 1)
+
+    def test_task_with_multiple_compatible_task_templates(self):
+        features = Features(
+            {
+                "text1": Value("string"),
+                "text2": Value("string"),
+            }
+        )
+        task1 = LanguageModeling(text_column="text1")
+        task2 = LanguageModeling(text_column="text2")
+        info = DatasetInfo(
+            features=features,
+            task_templates=[task1, task2],
+        )
+        data = {"text1": ["i love transformers!"], "text2": ["i love datasets!"]}
+        with Dataset.from_dict(data, info=info) as dset:
+            self.assertRaises(ValueError, dset.prepare_for_task, "language-modeling")
+            with dset.prepare_for_task("language-modeling", id=0) as dset:
+                self.assertEqual(dset[0]["text"], "i love transformers!")
 
     def test_task_templates_empty_after_preparation(self):
         features = Features(
