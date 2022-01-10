@@ -89,5 +89,4 @@ class FarsiNews(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
-            for id_, example in enumerate(data):
-                yield id_, example
+            yield from enumerate(data)

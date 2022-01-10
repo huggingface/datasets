@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -272,7 +271,7 @@ class AMIConfig(datasets.BuilderConfig):
 
         # for microphone configs some audio files are missing
         self.missing_files = missing_files if missing_files is not None else []
-        super(AMIConfig, self).__init__(version=datasets.Version("1.6.2", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.6.2", ""), **kwargs)
 
 
 class AMI(datasets.GeneratorBasedBuilder):
@@ -439,7 +438,7 @@ class AMI(datasets.GeneratorBasedBuilder):
             # retrive speaker
             speaker = path.split(".")[-3]
 
-            with open(path, "r", encoding="utf-8") as words_file:
+            with open(path, encoding="utf-8") as words_file:
                 root = ET.parse(words_file).getroot()
                 for type_tag in root.findall("w"):
                     word_id = type_tag.get("{http://nite.sourceforge.net/}id")
@@ -473,7 +472,7 @@ class AMI(datasets.GeneratorBasedBuilder):
         for path in paths:
             speaker = path.split(".")[-3]
 
-            with open(path, "r", encoding="utf-8") as segments_file:
+            with open(path, encoding="utf-8") as segments_file:
                 root = ET.parse(segments_file).getroot()
                 for type_tag in root.findall("segment"):
                     segment_ids.append(type_tag.get("{http://nite.sourceforge.net/}id"))

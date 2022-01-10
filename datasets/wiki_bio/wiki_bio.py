@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +65,7 @@ def _get_table(infobox_line):
     cells = infobox_line.split("\t")
     # remove empty cells
     cells = list(filter(lambda x: x.find("<none>") == -1, cells))
-    columns = set([cell[0 : cell.split(":")[0].rfind("_")] for cell in cells])
+    columns = {cell[0 : cell.split(":")[0].rfind("_")] for cell in cells}
     table = {col: dict() for col in columns}
     for cell in cells:
         delimiter_position_value = cell.find(":")
@@ -159,12 +158,12 @@ class WikiBio(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, id_file, infobox_file, nb_lines_file, sentences_file, article_title_file):
         """Yields examples."""
-        with open(id_file, "r", encoding="utf-8") as id_src, open(
-            infobox_file, "r", encoding="utf-8"
-        ) as infobox_src, open(nb_lines_file, "r", encoding="utf-8") as nb_lines_src, open(
-            sentences_file, "r", encoding="utf-8"
+        with open(id_file, encoding="utf-8") as id_src, open(
+            infobox_file, encoding="utf-8"
+        ) as infobox_src, open(nb_lines_file, encoding="utf-8") as nb_lines_src, open(
+            sentences_file, encoding="utf-8"
         ) as sentences_src, open(
-            article_title_file, "r", encoding="utf-8"
+            article_title_file, encoding="utf-8"
         ) as article_title_src:
             for id_, infobox, nb_lines, article_title in zip(id_src, infobox_src, nb_lines_src, article_title_src):
                 target_text = []

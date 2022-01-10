@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,7 +88,7 @@ class NewsgroupConfig(datasets.BuilderConfig):
         **kwargs: keyword arguments forwarded to super.
         """
 
-        super(NewsgroupConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.sub_dir = sub_dir
 
 

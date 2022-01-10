@@ -37,7 +37,7 @@ class Prachathai67kConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Prachathai67kConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Prachathai67k(datasets.GeneratorBasedBuilder):

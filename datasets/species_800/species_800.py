@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +62,7 @@ class Species800Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Species800Config, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Species800(datasets.GeneratorBasedBuilder):

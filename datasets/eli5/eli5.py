@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 Facebook, Inc. and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -119,7 +118,7 @@ def _download_and_select_lines(dl_manager, f_url, mode, st_time):
     f_downloaded_path = dl_manager.download(f_url)
     logger.info(f"decompressing and filtering {f_url} {time() - st_time:.2f}")
     f, fh = _open_compressed_file(f_downloaded_path, f_url.split(".")[-1])
-    lines = dict([(name, []) for name in _SUB_REDDITS])
+    lines = {name: [] for name in _SUB_REDDITS}
     for line in f:
         line_dct = json.loads(line)
         if any([line_dct.get("subreddit", "") == name for name in _SUB_REDDITS]):
@@ -131,7 +130,7 @@ def _download_and_select_lines(dl_manager, f_url, mode, st_time):
     os.remove(f_downloaded_path + ".json")
     os.remove(f_downloaded_path + ".lock")
     logger.info("tokenizing and selecting {f_url} {time() - st_time:.2f}")
-    processed_items = dict([(name, []) for name in _SUB_REDDITS])
+    processed_items = {name: [] for name in _SUB_REDDITS}
     if mode == "submissions":
         key_list = ["id", "score", "url", "title", "selftext", "subreddit"]
     else:
@@ -175,7 +174,7 @@ def _download_and_filter_reddit(dl_manager, start_year=2011, start_month=7, end_
     date_to_url_comments = _gather_dump_urls(_REDDIT_URL, "comments", dl_manager)
     # download, filter, process, remove
     st_time = time()
-    qa_dict = dict([(name, {}) for name in _SUB_REDDITS])
+    qa_dict = {name: {} for name in _SUB_REDDITS}
     # first download all questions
     for year in range(start_year, end_year + 1):
         start_mth = start_month if year == start_year else 1
@@ -254,7 +253,7 @@ class Eli5Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Eli5Config, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Eli5(datasets.GeneratorBasedBuilder):
@@ -379,7 +378,7 @@ class Eli5(datasets.GeneratorBasedBuilder):
             # flatten list of URL mappings
             url_maps = [(ul, i, j) for i, ans in enumerate(example["comments"]) for j, ul in enumerate(ans["body"][1])]
             answers_urls = [ul for ul, _, _ in url_maps]
-            map_url_indices = dict([((i, j), k) for k, (_, i, j) in enumerate(url_maps)])
+            map_url_indices = {(i, j): k for k, (_, i, j) in enumerate(url_maps)}
             answer_texts = []
             for i, ans in enumerate(example["comments"]):
                 txt = ans["body"][0]

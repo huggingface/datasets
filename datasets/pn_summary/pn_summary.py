@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,7 +88,7 @@ class PnSummaryConfig(datasets.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for pn_summary."""
 
-        super(PnSummaryConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class PnSummary(datasets.GeneratorBasedBuilder):

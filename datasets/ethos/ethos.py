@@ -55,7 +55,7 @@ class EthosConfig(datasets.BuilderConfig):
         else:
             logger.warning("Wrong variation. Could be either 'binary' or 'multilabel', using 'binary' instead.")
             self.variation = "binary"
-        super(EthosConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Ethos(datasets.GeneratorBasedBuilder):

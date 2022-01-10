@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -141,7 +140,7 @@ class TapacoConfig(datasets.BuilderConfig):
     """BuilderConfig for TapacoConfig."""
 
     def __init__(self, languages=None, **kwargs):
-        super(TapacoConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs),
+        super().__init__(version=datasets.Version(_VERSION, ""), **kwargs),
         self.languages = languages
 
 

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +20,7 @@ import bz2
 import codecs
 import json
 import re
-import xml.etree.cElementTree as etree
+import xml.etree.ElementTree as etree
 
 import datasets
 
@@ -373,7 +372,7 @@ class WikipediaConfig(datasets.BuilderConfig):
             available dates can be found at https://dumps.wikimedia.org/enwiki/.
           **kwargs: keyword arguments forwarded to super.
         """
-        super(WikipediaConfig, self).__init__(
+        super().__init__(
             name=f"{date}.{language}",
             description=f"Wikipedia dataset for {language}, parsed from {date} dump.",
             **kwargs,
@@ -426,7 +425,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
         multistream_dump_info = dump_info["jobs"]["articlesmultistreamdump"]
         assert (
             multistream_dump_info["status"] == "done"
-        ), "Specified dump (%s) multistream status is not 'done': %s" % (
+        ), "Specified dump ({}) multistream status is not 'done': {}".format(
             _base_url(lang),
             multistream_dump_info["status"],
         )

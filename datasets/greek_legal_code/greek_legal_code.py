@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -2790,7 +2789,7 @@ class GreekLegalCodeConfig(datasets.BuilderConfig):
         label_type: One of following: [volume, chapter, subject]
           **kwargs: keyword arguments forwarded to super.
         """
-        super(GreekLegalCodeConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.label_type = label_type
         self.label_names = _LABEL_NAMES[self.label_type]
 

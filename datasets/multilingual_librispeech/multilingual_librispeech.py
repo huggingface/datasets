@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +50,7 @@ class MultilingualLibrispeechConfig(datasets.BuilderConfig):
           name: `string`, name of dataset config
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MultilingualLibrispeechConfig, self).__init__(
+        super().__init__(
             version=datasets.Version("2.1.0", ""), name=name, data_dir=_DL_URL_FORMAT.format(name), **kwargs
         )
 
@@ -126,12 +125,12 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
             all_ids_paths = glob.glob(sub_path + "/*/*.txt") + glob.glob(sub_path + "/*.txt")
             all_ids = []
             for path in all_ids_paths:
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path, encoding="utf-8") as f:
                     all_ids += [line.strip() for line in f.readlines()]
 
             all_ids = set(all_ids)
 
-        with open(transcript_path, "r", encoding="utf-8") as f:
+        with open(transcript_path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 id_, transcript = line.split("\t")
@@ -141,7 +140,7 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
                     continue
 
                 audio_file = f"{id_}.flac"
-                speaker_id, chapter_id = [int(el) for el in id_.split("_")[:2]]
+                speaker_id, chapter_id = (int(el) for el in id_.split("_")[:2])
                 yield key, {
                     "id": id_,
                     "speaker_id": speaker_id,

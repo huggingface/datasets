@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +52,7 @@ class HardConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(HardConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Hard(datasets.GeneratorBasedBuilder):
@@ -99,7 +98,7 @@ class Hard(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, directory):
         """Generate examples."""
-        with open(directory, mode="r", encoding="utf-16") as file:
+        with open(directory, encoding="utf-16") as file:
             for id_, line in enumerate(file.read().splitlines()[1:]):
                 _, _, rating, _, _, _, review_text = line.split("\t")
                 yield str(id_), {"text": review_text, "label": rating}

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,7 +68,7 @@ class TTC4900Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(TTC4900Config, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class TTC4900(datasets.GeneratorBasedBuilder):

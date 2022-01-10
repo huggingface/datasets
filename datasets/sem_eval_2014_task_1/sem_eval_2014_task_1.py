@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,7 +108,7 @@ class SemEval2014Task1(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        with open(filepath, "r", encoding="us-ascii") as file:
+        with open(filepath, encoding="us-ascii") as file:
             lines = file.readlines()
 
             for idx in range(1, len(lines)):

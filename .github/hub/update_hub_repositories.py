@@ -203,7 +203,7 @@ if __name__ == "__main__":
         for path in [diff.a_path, diff.b_path]
         if path.startswith(DATASETS_LIB_CATALOG_DIR_NAME)
     ]
-    changed_datasets_names_since_last_commit = set(path.split("/")[1] for path in changed_files_since_last_commit)
+    changed_datasets_names_since_last_commit = {path.split("/")[1] for path in changed_files_since_last_commit}
     deleted_files = {dataset_name: set() for dataset_name in changed_datasets_names_since_last_commit}
     for path in changed_files_since_last_commit:
         _, dataset_name, rel_path = path.split("/", 2)
@@ -216,14 +216,14 @@ if __name__ == "__main__":
     dataset_names = sys.argv[1:]
     if dataset_names:
         if dataset_names[0] == "--all":
-            dataset_names = sorted([d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir()])
+            dataset_names = sorted(d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir())
         if dataset_names[0] == "--auto":
             if new_tag:
                 logger.info(
                     "All the datasets will be updated since --auto was used and "
                     f"this is a new release {new_tag.name} of the `datasets` library."
                 )
-                dataset_names = sorted([d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir()])
+                dataset_names = sorted(d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir())
             else:
                 logger.info(
                     "All the datasets that have been changed in the latest commit of `datasets` will be updated "

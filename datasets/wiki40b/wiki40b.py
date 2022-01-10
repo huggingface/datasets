@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -100,7 +99,7 @@ class Wiki40bConfig(datasets.BuilderConfig):
           language: string, the language code for the Wiki40B dataset to use.
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Wiki40bConfig, self).__init__(
+        super().__init__(
             name=str(language), description=f"Wiki40B dataset for {language}.", **kwargs
         )
         self.language = language

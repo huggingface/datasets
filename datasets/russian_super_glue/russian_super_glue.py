@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -232,7 +231,7 @@ class RussianSuperGlueConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # 0.0.1: Initial version.
-        super(RussianSuperGlueConfig, self).__init__(version=self.VERSION, **kwargs)
+        super().__init__(version=self.VERSION, **kwargs)
         self.features = features
         self.label_classes = label_classes
         self.data_url = data_url
@@ -443,7 +442,7 @@ class RussianSuperGlue(datasets.GeneratorBasedBuilder):
                     for question in paragraph["questions"]:
                         for answer in question["answers"]:
                             label = answer.get("label")
-                            key = "%s_%s_%s" % (row["idx"], question["idx"], answer["idx"])
+                            key = "{}_{}_{}".format(row["idx"], question["idx"], answer["idx"])
                             yield key, {
                                 "paragraph": paragraph["text"],
                                 "question": question["question"],

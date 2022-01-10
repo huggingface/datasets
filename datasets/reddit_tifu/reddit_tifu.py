@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,7 +66,7 @@ class RedditTifuConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Version 1.1.0 remove empty document and summary strings.
-        super(RedditTifuConfig, self).__init__(version=datasets.Version("1.1.0"), **kwargs)
+        super().__init__(version=datasets.Version("1.1.0"), **kwargs)
         self.summary_key = summary_key
 
 

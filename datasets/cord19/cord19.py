@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -157,9 +156,9 @@ class Cord19(datasets.GeneratorBasedBuilder):
         fh = None
         if "embeddings" in self.config.name:
             embeddings_filepath = filepath["embeddings"]
-            fh = open(embeddings_filepath, mode="r", encoding="utf-8")
+            fh = open(embeddings_filepath, encoding="utf-8")
 
-        with open(metadata_filepath, mode="r", encoding="utf-8") as f:
+        with open(metadata_filepath, encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=",")
             # skip headers
             next(reader, None)
@@ -189,7 +188,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
 
                         # load json file
                         with open(
-                            os.path.join(fulltext_dir_path, json_filepath), mode="r", encoding="utf-8"
+                            os.path.join(fulltext_dir_path, json_filepath), encoding="utf-8"
                         ) as json_file:
                             data = json.load(json_file)
                             doc_fields["fulltext"] = "\n".join(text_block["text"] for text_block in data["body_text"])

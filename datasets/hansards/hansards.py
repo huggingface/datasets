@@ -52,7 +52,7 @@ class HansardsConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(HansardsConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Hansards(datasets.GeneratorBasedBuilder):
@@ -125,8 +125,8 @@ class Hansards(datasets.GeneratorBasedBuilder):
             data_dir = os.path.join(downloaded_files[split_name], archive_dir)
             split_compress_files = list(sorted(glob.glob(os.path.join(data_dir, "*.gz"))))
             split_compress_files += list(sorted(glob.glob(os.path.join(data_dir, "**/*.gz"))))
-            fr_split_compress_files = sorted([f for f in split_compress_files if f.endswith(".f.gz")])
-            en_split_compress_files = sorted([f for f in split_compress_files if f.endswith(".e.gz")])
+            fr_split_compress_files = sorted(f for f in split_compress_files if f.endswith(".f.gz"))
+            en_split_compress_files = sorted(f for f in split_compress_files if f.endswith(".e.gz"))
             fr_files[split_name] = dl_manager.extract(fr_split_compress_files)
             en_files[split_name] = dl_manager.extract(en_split_compress_files)
         return [

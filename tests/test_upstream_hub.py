@@ -12,7 +12,7 @@ from huggingface_hub.hf_api import HfFolder
 from datasets import ClassLabel, Dataset, DatasetDict, Features, Value, load_dataset
 
 
-REPO_NAME = "repo-{}".format(int(time.time() * 10e3))
+REPO_NAME = f"repo-{int(time.time() * 10e3)}"
 ENDPOINT_STAGING = "https://moon-staging.huggingface.co"
 
 # Should create a __DUMMY_DATASETS_USER__ :)

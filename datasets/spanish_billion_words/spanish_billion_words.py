@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,7 +87,7 @@ class SpanishBillionWords(datasets.GeneratorBasedBuilder):
 
         for file in files:
             file_path = os.path.join(directory, file)
-            with open(file_path, mode="r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 for line in f:
                     yield _id, {"text": line.strip()}
                     _id += 1

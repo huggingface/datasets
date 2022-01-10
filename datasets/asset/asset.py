@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -168,7 +167,7 @@ class Asset(datasets.GeneratorBasedBuilder):
                     if id_ == 0:
                         keys = row[:]
                     else:
-                        res = dict([(k, v) for k, v in zip(keys, row)])
+                        res = {k: v for k, v in zip(keys, row)}
                         for k in ["original_sentence_id", "worker_id", "rating"]:
                             res[k] = int(res[k])
                         yield (id_ - 1), res

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -440,12 +439,12 @@ class Superb(datasets.GeneratorBasedBuilder):
             key = 0
             for transcript_path in sorted(glob.glob(transcripts_glob)):
                 transcript_dir_path = os.path.dirname(transcript_path)
-                with open(transcript_path, "r", encoding="utf-8") as f:
+                with open(transcript_path, encoding="utf-8") as f:
                     for line in f:
                         line = line.strip()
                         id_, transcript = line.split(" ", 1)
                         audio_file = f"{id_}.flac"
-                        speaker_id, chapter_id = [int(el) for el in id_.split("-")[:2]]
+                        speaker_id, chapter_id = (int(el) for el in id_.split("-")[:2])
                         audio_path = os.path.join(transcript_dir_path, audio_file)
                         yield key, {
                             "id": id_,
@@ -490,7 +489,7 @@ class Superb(datasets.GeneratorBasedBuilder):
         elif self.config.name == "si":
             wav_path = os.path.join(archive_path, "wav")
             splits_path = os.path.join(archive_path, "veri_test_class.txt")
-            with open(splits_path, "r", encoding="utf-8") as f:
+            with open(splits_path, encoding="utf-8") as f:
                 for key, line in enumerate(f):
                     split_id, file_path = line.strip().split(" ")
                     if int(split_id) != split:
@@ -538,7 +537,7 @@ class Superb(datasets.GeneratorBasedBuilder):
             emotions = ["neu", "hap", "ang", "sad", "exc"]
             key = 0
             for labels_file in sorted(glob.glob(labels_path)):
-                with open(labels_file, "r", encoding="utf-8") as f:
+                with open(labels_file, encoding="utf-8") as f:
                     for line in f:
                         if line[0] != "[":
                             continue

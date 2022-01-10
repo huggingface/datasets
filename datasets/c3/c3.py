@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -139,7 +138,7 @@ class C3(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filename, split):
         """Yields examples."""
-        with open(filename, "r", encoding="utf-8") as sf:
+        with open(filename, encoding="utf-8") as sf:
             data = json.load(sf)
             for id_, (documents, questions, document_id) in enumerate(data):
                 yield id_, {

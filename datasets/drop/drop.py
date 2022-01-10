@@ -118,7 +118,7 @@ class Drop(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """Yields examples."""
         # TODO(drop): Yields (key, example) tuples from the dataset
-        with open(filepath, mode="r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             id_ = 0
             for i, (section_id, section) in enumerate(data.items()):

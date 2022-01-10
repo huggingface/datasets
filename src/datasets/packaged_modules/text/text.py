@@ -53,7 +53,7 @@ class Text(datasets.ArrowBasedBuilder):
         schema = pa.schema(self.config.features.type if self.config.features is not None else {"text": pa.string()})
         for file_idx, file in enumerate(files):
             batch_idx = 0
-            with open(file, "r", encoding=self.config.encoding) as f:
+            with open(file, encoding=self.config.encoding) as f:
                 if self.config.sample_by == "line":
                     batch_idx = 0
                     while True:

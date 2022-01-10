@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -562,7 +561,7 @@ class ReadInstruction:
         if not subs:
             raise AssertionError(f"No instructions could be built out of {spec}")
         instruction = _str_to_read_instruction(subs[0])
-        return sum([_str_to_read_instruction(sub) for sub in subs[1:]], instruction)
+        return sum((_str_to_read_instruction(sub) for sub in subs[1:]), instruction)
 
     def to_spec(self):
         rel_instr_specs = []

@@ -45,7 +45,7 @@ class UbuntuDialogsCorpusConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
 
-        super(UbuntuDialogsCorpusConfig, self).__init__(version=datasets.Version("2.0.0"), **kwargs)
+        super().__init__(version=datasets.Version("2.0.0"), **kwargs)
         self.features = features
 
 
@@ -127,5 +127,4 @@ class UbuntuDialogsCorpus(datasets.GeneratorBasedBuilder):
         # TODO(ubuntu_dialogs_corpus): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             data = csv.DictReader(f)
-            for id_, row in enumerate(data):
-                yield id_, row
+            yield from enumerate(data)

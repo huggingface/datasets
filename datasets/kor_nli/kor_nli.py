@@ -33,7 +33,7 @@ class KorNLIConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Version 1.1.0 remove empty document and summary strings.
-        super(KorNLIConfig, self).__init__(version=datasets.Version("1.0.0"), **kwargs)
+        super().__init__(version=datasets.Version("1.0.0"), **kwargs)
 
 
 class KorNli(datasets.GeneratorBasedBuilder):

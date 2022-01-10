@@ -162,8 +162,7 @@ class CodeXGlueTcNLCodeSearchAdvImpl(CodeXGlueCtCodeToTextBaseImpl):
         return js
 
     def generate_urls(self, split_name):
-        for e in super().generate_urls(split_name, self.LANGUAGE):
-            yield e
+        yield from super().generate_urls(split_name, self.LANGUAGE)
 
     def get_data_files(self, split_name, file_paths, language):
         if split_name == "train":
@@ -174,8 +173,7 @@ class CodeXGlueTcNLCodeSearchAdvImpl(CodeXGlueCtCodeToTextBaseImpl):
             return [data_file]
 
     def _generate_examples(self, split_name, file_paths):
-        for e in super()._generate_examples(split_name, file_paths, self.LANGUAGE):
-            yield e
+        yield from super()._generate_examples(split_name, file_paths, self.LANGUAGE)
 
 
 CLASS_MAPPING = {

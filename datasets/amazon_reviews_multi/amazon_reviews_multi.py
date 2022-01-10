@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +61,7 @@ class AmazonReviewsMultiConfig(datasets.BuilderConfig):
     """BuilderConfig for AmazonReviewsMultiConfig."""
 
     def __init__(self, languages=None, **kwargs):
-        super(AmazonReviewsMultiConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs),
+        super().__init__(version=datasets.Version(_VERSION, ""), **kwargs),
         self.languages = languages
 
 
@@ -125,7 +124,7 @@ class AmazonReviewsMulti(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, file_paths):
         row_count = 0
         for file_path in file_paths:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 for line in f:
                     yield row_count, json.loads(line)
                     row_count += 1

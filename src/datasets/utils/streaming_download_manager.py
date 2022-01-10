@@ -570,7 +570,7 @@ def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = 
             return ET.parse(f, parser=parser)
 
 
-class StreamingDownloadManager(object):
+class StreamingDownloadManager:
     """
     Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
     Contrary to the regular DownloadManager, the `download` and `extract` methods don't actually download nor extract

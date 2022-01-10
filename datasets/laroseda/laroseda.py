@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +53,7 @@ class LarosedaConfig(datasets.BuilderConfig):
     """BuilderConfig for the LaRoSeDa dataset"""
 
     def __init__(self, **kwargs):
-        super(LarosedaConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Laroseda(datasets.GeneratorBasedBuilder):
@@ -123,7 +122,7 @@ class Laroseda(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
 
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data_list = json.load(f)["reviews"]
 
             for i, d in enumerate(data_list):

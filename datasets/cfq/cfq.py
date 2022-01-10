@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +65,7 @@ class CfqConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Version history:
-        super(CfqConfig, self).__init__(
+        super().__init__(
             name=name, version=datasets.Version("1.0.1"), description=_DESCRIPTION, **kwargs
         )
         self.split_file = os.path.join(directory, name + ".json")
@@ -133,7 +132,7 @@ class Cfq(datasets.GeneratorBasedBuilder):
         # dependencies we use a simple (perhaps somewhat brittle) regexp to reduce
         # the content to only what is needed. This takes 1min to execute but
         # afterwards loading requires only 500MB or RAM and is done in 2s.
-        regex = re.compile(r'("%s":\s*"[^"]*").*?("%s":\s*"[^"]*")' % (_QUESTION_FIELD, _QUERY_FIELD), re.DOTALL)
+        regex = re.compile(fr'("{_QUESTION_FIELD}":\s*"[^"]*").*?("{_QUERY_FIELD}":\s*"[^"]*")', re.DOTALL)
         return "[" + ",".join(["{" + m.group(1) + "," + m.group(2) + "}" for m in regex.finditer(content)]) + "]"
 
     def _generate_examples(self, base_directory, splits_file, split_id):

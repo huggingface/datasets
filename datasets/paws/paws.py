@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,7 +64,7 @@ class PAWSConfig(datasets.BuilderConfig):
         Args:
             **kwargs: keyword arguments forwarded to super.
         """
-        super(PAWSConfig, self).__init__(version=datasets.Version("1.1.0", ""), **kwargs),
+        super().__init__(version=datasets.Version("1.1.0", ""), **kwargs),
 
 
 class PAWS(datasets.GeneratorBasedBuilder):

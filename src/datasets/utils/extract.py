@@ -123,7 +123,7 @@ class RarExtractor:
     @staticmethod
     def extract(input_path, output_path):
         if not config.RARFILE_AVAILABLE:
-            raise EnvironmentError("Please pip install rarfile")
+            raise OSError("Please pip install rarfile")
         import rarfile
 
         os.makedirs(output_path, exist_ok=True)
@@ -149,7 +149,7 @@ class ZstdExtractor:
     @staticmethod
     def extract(input_path: str, output_path: str):
         if not config.ZSTANDARD_AVAILABLE:
-            raise EnvironmentError("Please pip install zstandard")
+            raise OSError("Please pip install zstandard")
         import zstandard as zstd
 
         dctx = zstd.ZstdDecompressor()

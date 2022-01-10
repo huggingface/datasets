@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,7 +73,7 @@ _URLs["ru-en"] = {
 
 class WmtMlqeConfig(datasets.BuilderConfig):
     def __init__(self, src_lg, tgt_lg, **kwargs):
-        super(WmtMlqeConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.src_lg = src_lg
         self.tgt_lg = tgt_lg
 

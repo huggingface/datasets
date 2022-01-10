@@ -108,7 +108,7 @@ class ConvertCommand(BaseDatasetsCLICommand):
                 self._logger.info("Skipping file")
                 continue
 
-            with open(input_file, "r", encoding="utf-8") as f:
+            with open(input_file, encoding="utf-8") as f:
                 lines = f.readlines()
 
             out_lines = []

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +63,7 @@ class SiswatiNerCorpusConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(SiswatiNerCorpusConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class SiswatiNerCorpus(datasets.GeneratorBasedBuilder):

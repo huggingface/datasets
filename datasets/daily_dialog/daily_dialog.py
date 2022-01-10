@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -131,8 +130,8 @@ class DailyDialog(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, file_path, act_path, emotion_path, split):
         """Yields examples."""
         # Yields (key, example) tuples from the dataset
-        with open(file_path, "r", encoding="utf-8") as f, open(act_path, "r", encoding="utf-8") as act, open(
-            emotion_path, "r", encoding="utf-8"
+        with open(file_path, encoding="utf-8") as f, open(act_path, encoding="utf-8") as act, open(
+            emotion_path, encoding="utf-8"
         ) as emotion:
             for i, (line_f, line_act, line_emotion) in enumerate(zip(f, act, emotion)):
                 if len(line_f.strip()) == 0:

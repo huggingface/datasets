@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +45,7 @@ class NCHLTConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         self.zip_file = zip_file
-        super(NCHLTConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class NCHLT(datasets.GeneratorBasedBuilder):
@@ -161,7 +160,7 @@ class NCHLT(datasets.GeneratorBasedBuilder):
             id_ = 0
             tokens = []
             ner_tags = []
-            with open(filename, "r", encoding="utf-8") as f:
+            with open(filename, encoding="utf-8") as f:
                 for line in f:
                     if not line.strip():
                         yield id_, {"tokens": tokens, "ner_tags": ner_tags}

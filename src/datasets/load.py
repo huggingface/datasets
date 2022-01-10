@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -140,7 +139,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     # Get the code from all these files
     lines = []
     for file_path in to_use_files:
-        with open(file_path, mode="r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines.extend(f.readlines())
     return hash_python_lines(lines)
 
@@ -194,7 +193,7 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
         import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
     """
     lines = []
-    with open(file_path, mode="r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         lines.extend(f.readlines())
 
     logger.debug(f"Checking {file_path} for additional imports.")

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +71,7 @@ class BiomrcConfig(datasets.BuilderConfig):
                 logger.warning("Wrong version for BioMRC, using BioMRC Large instead.")
             self.biomrc_version = "large"
 
-        super(BiomrcConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class Biomrc(datasets.GeneratorBasedBuilder):

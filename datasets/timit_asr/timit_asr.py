@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +62,7 @@ class TimitASRConfig(datasets.BuilderConfig):
           url: `string`, url for information about the data set
           **kwargs: keyword arguments forwarded to super.
         """
-        super(TimitASRConfig, self).__init__(version=datasets.Version("2.0.1", ""), **kwargs)
+        super().__init__(version=datasets.Version("2.0.1", ""), **kwargs)
 
 
 class TimitASR(datasets.GeneratorBasedBuilder):
@@ -137,11 +136,11 @@ class TimitASR(datasets.GeneratorBasedBuilder):
             wav_path = os.path.join(data_path, *(audio_data["path_from_data_dir"].split("/")))
 
             # extract transcript
-            with open(wav_path.replace(".WAV", ".TXT"), "r", encoding="utf-8") as op:
+            with open(wav_path.replace(".WAV", ".TXT"), encoding="utf-8") as op:
                 transcript = " ".join(op.readlines()[0].split()[2:])  # first two items are sample number
 
             # extract phonemes
-            with open(wav_path.replace(".WAV", ".PHN"), "r", encoding="utf-8") as op:
+            with open(wav_path.replace(".WAV", ".PHN"), encoding="utf-8") as op:
                 phonemes = [
                     {
                         "start": i.split(" ")[0],
@@ -152,7 +151,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
                 ]
 
             # extract words
-            with open(wav_path.replace(".WAV", ".WRD"), "r", encoding="utf-8") as op:
+            with open(wav_path.replace(".WAV", ".WRD"), encoding="utf-8") as op:
                 words = [
                     {
                         "start": i.split(" ")[0],

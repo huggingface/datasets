@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors. Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -75,7 +74,7 @@ class AmericasNLIConfig(datasets.BuilderConfig):
         language: One of aym, bzd, cni, gn, hch, nah, oto, quy, shp, tar or all_languages
           **kwargs: keyword arguments forwarded to super.
         """
-        super(AmericasNLIConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.language = language
         if language != "all_languages":
             self.languages = [language]

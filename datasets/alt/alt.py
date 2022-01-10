@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Asian Language Treebank (ALT) Project"""
 
 
@@ -60,16 +59,16 @@ class AltParallelConfig(datasets.BuilderConfig):
         name = "alt-parallel"
 
         description = "ALT Parallel Corpus"
-        super(AltParallelConfig, self).__init__(
+        super().__init__(
             name=name,
             description=description,
             version=datasets.Version("1.0.0", ""),
             **kwargs,
         )
 
-        available_langs = set(
-            ["bg", "en", "en_tok", "fil", "hi", "id", "ja", "khm", "lo", "ms", "my", "th", "vi", "zh"]
-        )
+        available_langs = {
+            "bg", "en", "en_tok", "fil", "hi", "id", "ja", "khm", "lo", "ms", "my", "th", "vi", "zh"
+        }
         for language in languages:
             assert language in available_langs
 

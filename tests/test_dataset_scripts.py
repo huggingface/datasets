@@ -18,7 +18,7 @@ class TestDatasetScripts(TestCase):
         (open)\((.*)\): Capture everything in parentheses of `open()`.
         """
 
-        with open(filepath, "r", encoding="utf-8") as input_file:
+        with open(filepath, encoding="utf-8") as input_file:
             regexp = re.compile(r"(?!.*\b(?:encoding|rb|w|wb|w+|wb+|ab|ab+)\b)(?<=\s)(open)\((.*)\)")
             input_text = input_file.read()
             match = regexp.search(input_text)
@@ -38,7 +38,7 @@ class TestDatasetScripts(TestCase):
         (print\()): Match print statement.
         """
 
-        with open(filepath, "r", encoding="utf-8") as input_file:
+        with open(filepath, encoding="utf-8") as input_file:
             regexp = re.compile(r"#[^\r\n]*print\(|\"[^\r\n]*print\(|\"\"\".*?print\(.*?\"\"\"|(print\()", re.DOTALL)
             input_text = input_file.read()
             # use `re.finditer` to handle the case where the ignored groups would be matched first by `re.search`

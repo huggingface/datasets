@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +71,7 @@ class BianetConfig(datasets.BuilderConfig):
           language_pair: pair of languages that will be used for translation.
           **kwargs: keyword arguments forwarded to super.
         """
-        name = "%s_to_%s" % (language_pair[0], language_pair[1])
+        name = f"{language_pair[0]}_to_{language_pair[1]}"
 
         description = ("Translation dataset from %s to %s or %s to %s.") % (
             language_pair[0],
@@ -80,7 +79,7 @@ class BianetConfig(datasets.BuilderConfig):
             language_pair[1],
             language_pair[0],
         )
-        super(BianetConfig, self).__init__(
+        super().__init__(
             name=name, description=description, version=datasets.Version(_VERSION, ""), **kwargs
         )
 

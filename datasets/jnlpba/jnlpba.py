@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +56,7 @@ class JNLPBAConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(JNLPBAConfig, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class JNLPBA(datasets.GeneratorBasedBuilder):

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -131,7 +130,7 @@ class EuropaEacTMConfig(datasets.BuilderConfig):
         """
         name = f"{language_pair[0]}2{language_pair[1]}"
         description = f"Translation dataset from {language_pair[0]} to {language_pair[1]}"
-        super(EuropaEacTMConfig, self).__init__(
+        super().__init__(
             *args,
             name=name,
             description=description,

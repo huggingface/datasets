@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,7 +98,7 @@ class IgboNer(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """Yields examples."""
         dictionary = {}
-        with open(filepath, "r", encoding="utf-8-sig") as f:
+        with open(filepath, encoding="utf-8-sig") as f:
             if self.config.name == "ner_data":
                 for id_, row in enumerate(f):
                     row = row.strip().split("\t")

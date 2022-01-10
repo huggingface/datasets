@@ -1,5 +1,3 @@
-# coding=utf-8
-
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -47,7 +45,7 @@ class Parquet(datasets.ArrowBasedBuilder):
     def _generate_tables(self, files):
         schema = pa.schema(self.config.features.type) if self.config.features is not None else None
         if self.config.features is not None and self.config.columns is not None:
-            if sorted([field.name for field in schema]) != sorted(self.config.columns):
+            if sorted(field.name for field in schema) != sorted(self.config.columns):
                 raise ValueError(
                     f"Tried to load parquet data with columns '{self.config.columns}' with mismatching features '{self.config.features}'"
                 )

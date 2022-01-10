@@ -300,7 +300,7 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
             raise
 
     def offline_socket(*args, **kwargs):
-        raise socket.error("Offline mode is enabled.")
+        raise OSError("Offline mode is enabled.")
 
     if mode is OfflineSimulationMode.CONNECTION_FAILS:
         # inspired from https://stackoverflow.com/a/18601897
