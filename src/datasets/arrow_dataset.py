@@ -1838,7 +1838,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
         return dataset
 
-    def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
+    def prepare_for_task(self, task: Union[str, TaskTemplate], id: Optional[int] = None) -> "Dataset":
         """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
 
         Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema. Intended for single-use only, so all task templates are removed from :attr:`datasets.DatasetInfo.task_templates` after casting.
@@ -1850,6 +1850,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - :obj:`"question-answering"`
 
                 If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
+            id (:obj:`int`, optional): The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
         """
         # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
         if isinstance(task, str):
@@ -1858,11 +1859,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             if not compatible_templates:
                 raise ValueError(f"Task {task} is not compatible with this dataset! Available tasks: {tasks}")
 
-            if len(compatible_templates) > 1:
+            if len(compatible_templates) > 1 and id is None:
                 raise ValueError(
-                    f"Expected 1 task template but found {len(compatible_templates)}! Please ensure that `datasets.DatasetInfo.task_templates` contains a unique set of task types."
+                    f"This dataset has multiple task templates for task {task}. Please specify the id to unambiguously identify the task template to prepare the dataset for:"
+                    f"{''.join(f'- `{idx}` for task {template}' for idx, template in enumerate(compatible_templates))}"
                 )
-            template = compatible_templates[0]
+            template = compatible_templates[id]
         elif isinstance(task, TaskTemplate):
             template = task
         else:
