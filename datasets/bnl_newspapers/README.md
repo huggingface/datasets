@@ -18,7 +18,7 @@ multilinguality:
 - multilingual
 pretty_name: bnl-processed-newspapers
 size_categories:
-- unknown
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
