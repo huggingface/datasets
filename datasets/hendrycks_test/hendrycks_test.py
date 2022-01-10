@@ -174,9 +174,7 @@ class HendrycksTest(datasets.GeneratorBasedBuilder):
         id_ = 0
         if split == "auxiliary_train":
             for f in sorted(os.listdir(datadir)):
-                reader = csv.reader(
-                    open(os.path.join(datadir, f), encoding="utf-8"), quotechar='"', delimiter=","
-                )
+                reader = csv.reader(open(os.path.join(datadir, f), encoding="utf-8"), quotechar='"', delimiter=",")
                 for data in reader:
                     yield id_, {"question": data[0], "choices": data[1:5], "answer": data[5]}
                     id_ += 1

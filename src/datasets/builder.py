@@ -748,9 +748,9 @@ class DatasetBuilder:
         """
         if not os.path.exists(self._cache_dir):
             raise AssertionError(
-                    f"Dataset {self.name}: could not find data in {self._cache_dir_root}. Please make sure to call "
-                    "builder.download_and_prepare(), or pass download=True to "
-                    "datasets.load_dataset() before trying to access the Dataset object."
+                f"Dataset {self.name}: could not find data in {self._cache_dir_root}. Please make sure to call "
+                "builder.download_and_prepare(), or pass download=True to "
+                "datasets.load_dataset() before trying to access the Dataset object."
             )
 
         logger.debug(f'Constructing Dataset for split {split or ", ".join(self.info.splits)}, from {self._cache_dir}')

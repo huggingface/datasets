@@ -603,9 +603,7 @@ class CommonVoiceConfig(datasets.BuilderConfig):
         self.total_hr_total = kwargs.pop("total_hrs", None)
         self.num_of_voice = kwargs.pop("num_of_voice", None)
         description = f"Common Voice speech to text dataset in {self.language} version {self.sub_version} of {self.date_of_snapshot}. The dataset comprises {self.validated_hr_total} of validated transcribed speech data from {self.num_of_voice} speakers. The dataset has a size of {self.size}"
-        super().__init__(
-            name=name, version=datasets.Version("6.1.0", ""), description=description, **kwargs
-        )
+        super().__init__(name=name, version=datasets.Version("6.1.0", ""), description=description, **kwargs)
 
 
 class CommonVoice(datasets.GeneratorBasedBuilder):

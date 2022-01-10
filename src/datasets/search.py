@@ -38,13 +38,18 @@ class MissingIndex(Exception):
 class SearchResults(NamedTuple):
     scores: List[float]
     indices: List[int]
+
+
 class BatchedSearchResults(NamedTuple):
     total_scores: List[List[float]]
     total_indices: List[List[int]]
 
+
 class NearestExamplesResults(NamedTuple):
     scores: List[float]
     examples: dict
+
+
 class BatchedNearestExamplesResults(NamedTuple):
     total_scores: List[List[float]]
     total_examples: List[dict]

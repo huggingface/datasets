@@ -58,9 +58,7 @@ class KILTWikipediaConfig(datasets.BuilderConfig):
         .
               **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(
-            version=datasets.Version("1.0.0", "Wikipedia pre-processed for KILT"), **kwargs
-        )
+        super().__init__(version=datasets.Version("1.0.0", "Wikipedia pre-processed for KILT"), **kwargs)
 
 
 class KILTWikipedia(datasets.GeneratorBasedBuilder):

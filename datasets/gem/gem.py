@@ -317,17 +317,17 @@ _SGD_ACTS = [
 ]
 
 _XSUM_REMOVE_LINES = {
-        "Share this with\n",
-        "Email\n",
-        "Facebook\n",
-        "Messenger\n",
-        "Twitter\n",
-        "Pinterest\n",
-        "WhatsApp\n",
-        "Linkedin\n",
-        "LinkedIn\n",
-        "Copy this link\n",
-        "These are external links and will open in a new window\n",
+    "Share this with\n",
+    "Email\n",
+    "Facebook\n",
+    "Messenger\n",
+    "Twitter\n",
+    "Pinterest\n",
+    "WhatsApp\n",
+    "Linkedin\n",
+    "LinkedIn\n",
+    "Copy this link\n",
+    "These are external links and will open in a new window\n",
 }
 
 

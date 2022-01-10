@@ -58,9 +58,7 @@ class ScanConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Version history:
-        super().__init__(
-            name=name, version=datasets.Version("1.0.0"), description=_DESCRIPTION, **kwargs
-        )
+        super().__init__(name=name, version=datasets.Version("1.0.0"), description=_DESCRIPTION, **kwargs)
         if directory is None:
             self.directory = name + "_split"
         else:

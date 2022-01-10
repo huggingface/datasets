@@ -15,7 +15,6 @@
 import errno
 import json
 import os
-import socket
 import sys
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple, Union

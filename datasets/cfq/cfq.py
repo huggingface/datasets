@@ -65,9 +65,7 @@ class CfqConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Version history:
-        super().__init__(
-            name=name, version=datasets.Version("1.0.1"), description=_DESCRIPTION, **kwargs
-        )
+        super().__init__(name=name, version=datasets.Version("1.0.1"), description=_DESCRIPTION, **kwargs)
         self.split_file = os.path.join(directory, name + ".json")
 
 

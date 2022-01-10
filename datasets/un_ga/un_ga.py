@@ -85,9 +85,7 @@ class UnGaConfig(datasets.BuilderConfig):
             language_pair[1],
             language_pair[0],
         )
-        super().__init__(
-            name=name, description=description, version=datasets.Version(_VERSION, ""), **kwargs
-        )
+        super().__init__(name=name, description=description, version=datasets.Version(_VERSION, ""), **kwargs)
 
         # Validate language pair.
         assert language_pair in _VALID_LANGUAGE_PAIRS, (

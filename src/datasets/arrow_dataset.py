@@ -1087,13 +1087,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_path = Dataset._build_local_temp_path(src_dataset_path)
             fs.download(src_dataset_path, dataset_path.as_posix(), recursive=True)
 
-        with open(
-            Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), encoding="utf-8"
-        ) as state_file:
+        with open(Path(dataset_path, config.DATASET_STATE_JSON_FILENAME).as_posix(), encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(
-            Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), encoding="utf-8"
-        ) as dataset_info_file:
+        with open(Path(dataset_path, config.DATASET_INFO_FILENAME).as_posix(), encoding="utf-8") as dataset_info_file:
             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
 
         dataset_size = estimate_dataset_size(

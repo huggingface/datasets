@@ -158,9 +158,7 @@ class Qa4mreConfig(datasets.BuilderConfig):
             self.track, self.lang, self.year
         )
 
-        super().__init__(
-            name=name, description=description, version=datasets.Version("0.1.0"), **kwargs
-        )
+        super().__init__(name=name, description=description, version=datasets.Version("0.1.0"), **kwargs)
 
 
 class Qa4mre(datasets.GeneratorBasedBuilder):
@@ -223,9 +221,9 @@ class Qa4mre(datasets.GeneratorBasedBuilder):
         download_urls = dict()
 
         if cfg.track == "main":
-            download_urls[f"{cfg.year}.main.{cfg.lang}"] = _BASE_URL + PATHS[cfg.year][
-                "_PATH_TMPL_MAIN_GS"
-            ].format(cfg.lang)
+            download_urls[f"{cfg.year}.main.{cfg.lang}"] = _BASE_URL + PATHS[cfg.year]["_PATH_TMPL_MAIN_GS"].format(
+                cfg.lang
+            )
 
         if cfg.year in ["2012", "2013"] and cfg.track == "alzheimers":
             download_urls[f"{cfg.year}.alzheimers.EN"] = _BASE_URL + PATHS[cfg.year]["_PATH_ALZHEIMER"]

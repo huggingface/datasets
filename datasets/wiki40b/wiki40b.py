@@ -99,9 +99,7 @@ class Wiki40bConfig(datasets.BuilderConfig):
           language: string, the language code for the Wiki40B dataset to use.
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(
-            name=str(language), description=f"Wiki40B dataset for {language}.", **kwargs
-        )
+        super().__init__(name=str(language), description=f"Wiki40B dataset for {language}.", **kwargs)
         self.language = language
 
 

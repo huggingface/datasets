@@ -124,9 +124,7 @@ class TriviaQaConfig(datasets.BuilderConfig):
         description = _UNFILTERED_DESCRIPTION if unfiltered else _RC_DESCRIPTION
         if not exclude_context:
             description += _CONTEXT_ADDENDUM
-        super().__init__(
-            name=name, description=description, version=datasets.Version("1.2.0"), **kwargs
-        )
+        super().__init__(name=name, description=description, version=datasets.Version("1.2.0"), **kwargs)
 
         self.sources = ["web", "wikipedia"] if source == "all" else [source]
         self.unfiltered = unfiltered

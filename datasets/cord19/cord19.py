@@ -187,9 +187,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
                             json_filepath = json_filepath.split(";")[0]
 
                         # load json file
-                        with open(
-                            os.path.join(fulltext_dir_path, json_filepath), encoding="utf-8"
-                        ) as json_file:
+                        with open(os.path.join(fulltext_dir_path, json_filepath), encoding="utf-8") as json_file:
                             data = json.load(json_file)
                             doc_fields["fulltext"] = "\n".join(text_block["text"] for text_block in data["body_text"])
 
