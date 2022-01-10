@@ -155,7 +155,7 @@ class BNLNewspapers(datasets.GeneratorBasedBuilder):
             "dcterms": "http://purl.org/dc/terms/",
         }
         for id_, xml in enumerate(Path(dirpath).rglob("**/*.xml")):
-            tree = ET.parse(xml)
+            tree = ET.parse(open(xml, encoding="utf-8"))
             source = tree.find(".//dc:source", ns).text
             ark_id = tree.find(".//dc:identifier", ns).text
             ispartof = tree.find(".//dcterms:isPartOf", ns).text
