@@ -19,7 +19,8 @@ multilinguality:
 pretty_name: bnl-processed-newspapers
 size_categories:
 - unknown
-source_datasets: []
+source_datasets:
+- original
 task_categories:
 - sequence-modeling
 task_ids:
