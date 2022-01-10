@@ -183,7 +183,7 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
 class MappedExamplesIterable(_BaseExamplesIterable):
     def __init__(
         self,
-        ex_iterable: Generator[Dict[str, Any], None, None],
+        ex_iterable: Union[_BaseExamplesIterable, Generator[Dict[str, Any], None, None]],
         function: Callable,
         batched: bool = False,
         batch_size: int = 1000,
@@ -414,7 +414,7 @@ class IterableDataset(DatasetInfoMixin):
         info.features = None
         formatter = _features_formatter(self.features)
         ex_iterable = MappedExamplesIterable(
-            ((key, formatter(example)) for key, example in self._ex_iterable),
+            ((key, formatter(example)) for key, example in self._ex_iterable) if self.features else self._ex_iterable,
             function=function,
             batched=batched,
             batch_size=batch_size,
