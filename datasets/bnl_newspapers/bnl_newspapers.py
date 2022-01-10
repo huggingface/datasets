@@ -19,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 
 import datasets
+from datasets.tasks import LanguageModeling
 
 
 _CITATION = """\
@@ -126,6 +127,7 @@ class BNLNewspapers(datasets.GeneratorBasedBuilder):
             license=_LICENSE,
             # Citation for the dataset
             citation=_CITATION,
+            task_templates=[LanguageModeling(text_column="text")],
         )
 
     def _split_generators(self, dl_manager):
