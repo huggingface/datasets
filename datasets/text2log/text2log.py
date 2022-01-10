@@ -38,18 +38,12 @@ _LICENSE = "none provided"
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLS = {
-    "clean": "https://github.com/alevkov/text2log/blob/main/dat/clean.tar.xz",
-    "trans": "https://github.com/alevkov/text2log/blob/main/dat/trans.tar.xz",
-}
-
-
+_URL = "https://raw.githubusercontent.com/apergo-ai/text2log/main/dat/text2log_clean.csv"
 
 class text2log(datasets.GeneratorBasedBuilder):
     """Simple English sentences and FOL representations using LDbCS"""
 
     VERSION = datasets.Version("1.0.0")
-
 
     def _info(self):
 
@@ -61,62 +55,31 @@ class text2log(datasets.GeneratorBasedBuilder):
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
+            supervised_keys=None,            
             features=features, 
-            # supervised_keys=("sentence", "label"),
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
         )
 
-def lines_from_file(direc, name, drop_punc=False, lower=True, drop_fullstop=True):
-    with open(direc + name) as f:
-        for l in f:
-            l = l.rstrip()
-            if drop_punc:
-                l = l.translate(table)
-            if lower:
-                l = l.lower()
-            if drop_fullstop and not drop_punc:
-                l = l[0:-1]
-            yield l
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-
-        data_dir = dl_manager.download_and_extract(_URLS["clean"])
-        start_idx = 1
-        end_idx = 22
-        for i in range(start_idx, end_idx + 1):
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, lambda i: f"concordance_{i}_clean.txt"),
-                        "split": "train",
-                    },
-                ),
-            ]
-
+        test_path = dl_manager.download_and_extract(_URL)
+        return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": test_path}),
+        ]
              
 
-    def _generate_examples(self, filepath,split):
-        """Generate crass dataset examples."""
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                    yield id_, {
-                        "sentence": row[0],
-                        "fol_translation": row[1],
-                    }
-        # with open(direc + name) as f:
-        #     for l in f:
-        #         l = l.rstrip()
-        #         if drop_punc:
-        #             l = l.translate(table)
-        #         if lower:
-        #             l = l.lower()
-        #         if drop_fullstop and not drop_punc:
-        #             l = l[0:-1]
-        #         yield l       
-        # with open(filepath, encoding="utf-8") as f:
-        #     for idx, line in f:
-        #         yield idx, {"sentence":line}
+    def _generate_examples(self, filepath):
+        """Generate text2log dataset examples."""
+        with open(filepath, encoding="utf-8") as csv_file:
+            csv_reader = csv.reader(
+                csv_file, quotechar='"', delimiter=";", quoting=csv.QUOTE_ALL, skipinitialspace=True
+            )
+            next(csv_reader)
+            for id_, row in enumerate(csv_reader):
+                yield id_, {
+                    "sentence": str(row[0]),
+                    "fol_translation": str(row[1]),
+                }
