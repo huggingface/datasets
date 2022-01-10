@@ -194,7 +194,12 @@ This dataset contains a single split `train`.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@misc{bnl_newspapers,
+title={Historical Newspapers},
+url={https://data.bnl.lu/data/historical-newspapers/},
+author={ Bibliothèque nationale du Luxembourg},
+```
 
 ### Contributions
 
