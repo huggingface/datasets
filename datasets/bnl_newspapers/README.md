@@ -2,7 +2,7 @@
 annotations_creators:
 - no-annotation
 language_creators:
-- other
+- found
 languages:
 - ar
 - da
