@@ -119,20 +119,13 @@ Twitter users.
 #### Annotation process
 
 The Amazon Mechanical Turk workers were used to collect question-answer
-pairs for the filtered tweets. For each Human Intelligence Task (HIT), the authors ask the worker to read three tweets and write two question-answer pairs for each tweet. To ensure the quality, they require the workers to be located in major English speaking countries (i.e. Canada, US, and UK) and have an acceptance rate larger than 95%. Since the authors use tweets as context, lots of important information are contained in hashtags or even emojis. Instead of only showing the text to the workers, they use javascript to directly embed the whole tweet into
-each HIT. This gives workers the same experience as reading tweets via web browsers and help them
-to better compose questions. To avoid trivial questions that can be simply
-answered by superficial text matching methods or too challenging questions that require background knowledge, the authors explicitly state the following items in the HIT instructions for question writing:
+pairs for the filtered tweets. For each Human Intelligence Task (HIT), the authors ask the worker to read three tweets and write two question-answer pairs for each tweet. To ensure the quality, they require the workers to be located in major English speaking countries (i.e. Canada, US, and UK) and have an acceptance rate larger than 95%. Since the authors use tweets as context, lots of important information are contained in hashtags or even emojis. Instead of only showing the text to the workers, they use javascript to directly embed the whole tweet into each HIT. This gives workers the same experience as reading tweets via web browsers and help them to better compose questions. To avoid trivial questions that can be simply answered by superficial text matching methods or too challenging questions that require background knowledge, the authors explicitly state the following items in the HIT instructions for question writing:
 - No Yes-no questions should be asked.
 - The question should have at least five words.
 - Videos, images or inserted links should not
 be considered.
 - No background knowledge should be required to answer the question.
-To help the workers better follow the instructions, they also include a representative example showing both good and bad questions or answers in the instructions.
-As for the answers, since the context they consider is relatively shorter than the context of previous datasets, they do not restrict the answers to be in the tweet, otherwise, the task may potentially be simplified as a classification problem. The workers are allowed to write their answers in their own words, but the authors require the answers to be brief and
-can be directly inferred from the tweets. After they retrieve the QA pairs from all HITs,
-they conduct further post-filtering to filter out the pairs from workers that obviously do not follow instructions. They remove QA pairs with yes/no answers. Questions with less than five words are also filtered out. This process filtered 13% of the QA pairs. The dataset now includes 10,898 articles, 17,794 tweets, and 13,757 crowdsourced
-question-answer pairs. All QA pairs were written by 492 individual workers. 
+To help the workers better follow the instructions, they also include a representative example showing both good and bad questions or answers in the instructions. As for the answers, since the context they consider is relatively shorter than the context of previous datasets, they do not restrict the answers to be in the tweet, otherwise, the task may potentially be simplified as a classification problem. The workers are allowed to write their answers in their own words, but the authors require the answers to be brief and can be directly inferred from the tweets. After they retrieve the QA pairs from all HITs, they conduct further post-filtering to filter out the pairs from workers that obviously do not follow instructions. They remove QA pairs with yes/no answers. Questions with less than five words are also filtered out. This process filtered 13% of the QA pairs. The dataset now includes 10,898 articles, 17,794 tweets, and 13,757 crowdsourced question-answer pairs. All QA pairs were written by 492 individual workers. 
 
 #### Who are the annotators?
 
@@ -165,14 +158,11 @@ From the paper:
 ## Additional Information
 
 The annotated answers are validated by the authors as follows:
-For the purposes of human performance evaluation and inter-annotator agreement checking, the authors launch a different set of HITs to ask workers to answer questions in the test and development set. The workers are shown with the
-tweet blocks as well as the questions collected in the previous step. At this step, workers are allowed to label the questions as “NA” if they think the
-questions are not answerable. They find that 3.1% of the questions are labeled as unanswerable by
-the workers (for SQuAD, the ratio is 2.6%). Since the answers collected at this step and previous step are written by different workers, the answers can be written in different text forms even they are semantically equal to each other. For example, one answer can be “Hillary Clinton” while the other is “@HillaryClinton”. As it is not straightforward to automatically calculate the overall agreement, they manually check the agreement on a subset of 200 random samples from the development set and ask an independent human moderator to verify the result. It turns out that 90% of the answers pairs are semantically equivalent, 2% of them are partially equivalent (one of them is incomplete) and 8% are totally inconsistent. The answers collected at this step are also used to measure the human performance. 59 individual workers participated in this process.
+For the purposes of human performance evaluation and inter-annotator agreement checking, the authors launch a different set of HITs to ask workers to answer questions in the test and development set. The workers are shown with the tweet blocks as well as the questions collected in the previous step. At this step, workers are allowed to label the questions as “NA” if they think the questions are not answerable. They find that 3.1% of the questions are labeled as unanswerable by the workers (for SQuAD, the ratio is 2.6%). Since the answers collected at this step and previous step are written by different workers, the answers can be written in different text forms even they are semantically equal to each other. For example, one answer can be “Hillary Clinton” while the other is “@HillaryClinton”. As it is not straightforward to automatically calculate the overall agreement, they manually check the agreement on a subset of 200 random samples from the development set and ask an independent human moderator to verify the result. It turns out that 90% of the answers pairs are semantically equivalent, 2% of them are partially equivalent (one of them is incomplete) and 8% are totally inconsistent. The answers collected at this step are also used to measure the human performance. 59 individual workers participated in this process.
 
 ### Dataset Curators
 
-iong, Wenhan and Wu, Jiawei and Wang, Hong and Kulkarni, Vivek and Yu, Mo and Guo, Xiaoxiao and Chang, Shiyu and Wang, William Yang.
+Xiong, Wenhan and Wu, Jiawei and Wang, Hong and Kulkarni, Vivek and Yu, Mo and Guo, Xiaoxiao and Chang, Shiyu and Wang, William Yang.
 
 ### Licensing Information
 
