@@ -31,8 +31,6 @@ author={ Bibliothèque nationale du Luxembourg},
 
 _DESCRIPTION = """\
 Digitised historic newspapers from the Bibliothèque nationale (BnL) - the National Library of Luxembourg.
-This datet covers the 'processed newspapers' collection from these newspapers.
-These newspapers cover 38 years of news (1841-1878) and include 510,505 extracted articles.
 """
 
 _HOMEPAGE = "https://data.bnl.lu/data/historical-newspapers/"
@@ -66,7 +64,9 @@ class BNLNewspapers(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         BNLNewspapersConfig(
             name="processed",
-            description="Processed BNL newspapers",
+            description="""This dataset covers the 'processed newspapers' portion of the BnL newspapers.
+These newspapers cover 38 years of news (1841-1878) and include 510,505 extracted articles.
+""",
             data_url=_URLs["processed"],
             citation=_CITATION,
             url=_HOMEPAGE,
