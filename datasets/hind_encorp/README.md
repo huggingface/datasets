@@ -157,7 +157,7 @@ the 1st part of data TIDES was originally col- lected for the DARPA-TIDES surpri
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: aslg-pc12
+pretty_name: English-ASL Gloss Parallel Corpus 2012
 ---
 
 # Dataset Card for "aslg_pc12"

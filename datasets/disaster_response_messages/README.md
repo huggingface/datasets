@@ -25,6 +25,7 @@ task_ids:
 - sentiment-classification
 - text-simplification
 paperswithcode_id: null
+pretty_name: Disaster Response Messages
 ---
 
 # Dataset Card for Disaster Response Messages 
@@ -127,9 +128,9 @@ Example of a Disaster Response : { 'split': 'train', 'message': 'Weather update 
 
 ### Data Splits
 
-The data is split into train, test :
-
-Train Count : 21046 Test Count : 2629
+|train|test |validation|
+|:----:|:-----------:|:----:|
+|21046|2629|2573|
 
 ## Dataset Creation
 

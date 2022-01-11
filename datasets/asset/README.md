@@ -13,7 +13,7 @@ size_categories:
 - 1K<n<10K
 source_datasets:
 - original
-- extented|other-turkcorpus
+- extended|other-turkcorpus
 task_categories:
   ratings:
   - text-scoring
@@ -25,6 +25,7 @@ task_ids:
   simplification:
   - text-simplification
 paperswithcode_id: asset
+pretty_name: ASSET
 ---
 
 # Dataset Card for ASSET
@@ -166,7 +167,7 @@ The dataset may contain some social biases, as the input sentences are based on 
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

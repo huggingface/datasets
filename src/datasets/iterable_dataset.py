@@ -7,7 +7,7 @@ import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import DatasetInfoMixin
-from .features import Features
+from .features import Features, FeatureType
 from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit
@@ -493,6 +493,26 @@ class IterableDataset(DatasetInfoMixin):
             return {k: v for k, v in example.items() if k not in column_names}
 
         return self.map(remove_fn)
+
+    def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
+        """Cast column to feature for decoding.
+
+        Args:
+            column (:obj:`str`): Column name.
+            feature (:class:`Feature`): Target feature.
+
+        Returns:
+            :class:`IterableDataset`
+        """
+        info = copy.deepcopy(self._info)
+        info.features[column] = feature
+        return iterable_dataset(
+            ex_iterable=self._ex_iterable,
+            info=info,
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+        )
 
 
 def iterable_dataset(

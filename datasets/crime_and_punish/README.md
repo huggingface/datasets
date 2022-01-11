@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: null
+pretty_name: CrimeAndPunish
 ---
 
 # Dataset Card for "crime_and_punish"

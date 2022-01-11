@@ -25,6 +25,7 @@ task_ids:
   - sentiment-classification
   - text-classification-other-Hate Speech Detection
 paperswithcode_id: ethos
+pretty_name: onlinE haTe speecH detectiOn dataSet
 ---
 
 # Dataset Card for Ethos

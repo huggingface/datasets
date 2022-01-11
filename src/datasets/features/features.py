@@ -33,7 +33,6 @@ import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 from pyarrow.lib import TimestampType
-from pyarrow.types import is_boolean, is_primitive
 
 from datasets import config, utils
 from datasets.features.audio import Audio
@@ -152,7 +151,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
     Cast pytorch/tensorflow/pandas objects to python numpy array/lists.
     It works recursively.
 
-    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be casted.
+    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be casted.
     If the first element needs to be casted, then all the elements of the list will be casted, otherwise they'll stay the same.
     This trick allows to cast objects that contain tokenizers outputs without iterating over every single token for example.
 
@@ -221,7 +220,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
     elif isinstance(obj, (list, tuple)):
         if len(obj) > 0:
             for first_elmt in obj:
-                if first_elmt is not None:
+                if _check_non_null_non_empty_recursive(first_elmt):
                     break
             casted_first_elmt, has_changed_first_elmt = _cast_to_python_objects(
                 first_elmt, only_1d_for_numpy=only_1d_for_numpy
@@ -244,7 +243,7 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False) -> Any:
     Cast numpy/pytorch/tensorflow/pandas objects to python lists.
     It works recursively.
 
-    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be casted.
+    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be casted.
     If the first element needs to be casted, then all the elements of the list will be casted, otherwise they'll stay the same.
     This trick allows to cast objects that contain tokenizers outputs without iterating over every single token for example.
 
@@ -366,10 +365,10 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
     ndims: Optional[int] = None
 
     def __init__(self, shape: tuple, dtype: str):
-        assert (
-            self.ndims is not None and self.ndims > 1
-        ), "You must instantiate an array type with a value for dim that is > 1"
-        assert len(shape) == self.ndims, f"shape={shape} and ndims={self.ndims} dom't match"
+        if self.ndims is None or self.ndims <= 1:
+            raise ValueError("You must instantiate an array type with a value for dim that is > 1")
+        if len(shape) != self.ndims:
+            raise ValueError(f"shape={shape} and ndims={self.ndims} don't match")
         self.shape = tuple(shape)
         self.value_type = dtype
         self.storage_dtype = self._generate_dtype(self.value_type)
@@ -412,7 +411,7 @@ class Array5DExtensionType(_ArrayXDExtensionType):
     ndims = 5
 
 
-def _is_zero_copy_only(pa_type: pa.DataType) -> bool:
+def _is_zero_copy_only(pa_type: pa.DataType, unnest: bool = False) -> bool:
     """
     When converting a pyarrow array to a numpy array, we must know whether this could be done in zero-copy or not.
     This function returns the value of the ``zero_copy_only`` parameter to pass to ``.to_numpy()``, given the type of the pyarrow array.
@@ -423,12 +422,20 @@ def _is_zero_copy_only(pa_type: pa.DataType) -> bool:
     # see https://arrow.apache.org/docs/python/generated/pyarrow.Array.html#pyarrow.Array.to_numpy
     # and https://issues.apache.org/jira/browse/ARROW-2871?jql=text%20~%20%22boolean%20to_numpy%22
     """
-    return is_primitive(pa_type) and not is_boolean(pa_type)
+
+    def _unnest_pa_type(pa_type: pa.DataType) -> pa.DataType:
+        if pa.types.is_list(pa_type):
+            return _unnest_pa_type(pa_type.value_type)
+        return pa_type
+
+    if unnest:
+        pa_type = _unnest_pa_type(pa_type)
+    return pa.types.is_primitive(pa_type) and not pa.types.is_boolean(pa_type)
 
 
 class ArrayExtensionArray(pa.ExtensionArray):
     def __array__(self):
-        zero_copy_only = _is_zero_copy_only(self.storage.type)
+        zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         return self.to_numpy(zero_copy_only=zero_copy_only)
 
     def __getitem__(self, i):
@@ -437,11 +444,18 @@ class ArrayExtensionArray(pa.ExtensionArray):
     def to_numpy(self, zero_copy_only=True):
         storage: pa.ListArray = self.storage
         size = 1
+
+        null_indices = np.arange(len(storage))[storage.is_null().to_numpy(zero_copy_only=False)]
+
         for i in range(self.type.ndims):
             size *= self.type.shape[i]
             storage = storage.flatten()
         numpy_arr = storage.to_numpy(zero_copy_only=zero_copy_only)
-        numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
+        numpy_arr = numpy_arr.reshape(len(self) - len(null_indices), *self.type.shape)
+
+        if len(null_indices):
+            numpy_arr = np.insert(numpy_arr.astype(np.float64), null_indices, np.nan, axis=0)
+
         return numpy_arr
 
     def to_list_of_numpy(self, zero_copy_only=True):
@@ -450,24 +464,28 @@ class ArrayExtensionArray(pa.ExtensionArray):
         ndims = self.type.ndims
 
         for dim in range(1, ndims):
-            assert shape[dim] is not None, f"Support only dynamic size on first dimension. Got: {shape}"
+            if shape[dim] is None:
+                raise ValueError(f"Support only dynamic size on first dimension. Got: {shape}")
 
         arrays = []
         first_dim_offsets = np.array([off.as_py() for off in storage.offsets])
-        for i in range(len(storage)):
-            storage_el = storage[i : i + 1]
-            first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
-            # flatten storage
-            for _ in range(ndims):
-                storage_el = storage_el.flatten()
+        for i, is_null in enumerate(storage.is_null().to_numpy(zero_copy_only=False)):
+            if is_null:
+                arrays.append(np.nan)
+            else:
+                storage_el = storage[i : i + 1]
+                first_dim = first_dim_offsets[i + 1] - first_dim_offsets[i]
+                # flatten storage
+                for _ in range(ndims):
+                    storage_el = storage_el.flatten()
 
-            numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
-            arrays.append(numpy_arr.reshape(first_dim, *shape[1:]))
+                numpy_arr = storage_el.to_numpy(zero_copy_only=zero_copy_only)
+                arrays.append(numpy_arr.reshape(first_dim, *shape[1:]))
 
         return arrays
 
     def to_pylist(self):
-        zero_copy_only = _is_zero_copy_only(self.storage.type)
+        zero_copy_only = _is_zero_copy_only(self.storage.type, unnest=True)
         if self.type.shape[0] is None:
             return self.to_list_of_numpy(zero_copy_only=zero_copy_only)
         else:
@@ -486,7 +504,7 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
                 "Dynamic first dimension is not supported for "
                 f"PandasArrayExtensionDtype, dimension: {array.type.shape}"
             )
-        zero_copy_only = _is_zero_copy_only(array.type)
+        zero_copy_only = _is_zero_copy_only(array.type, unnest=True)
         if isinstance(array, pa.ChunkedArray):
             numpy_arr = np.vstack([chunk.to_numpy(zero_copy_only=zero_copy_only) for chunk in array.chunks])
         else:
@@ -614,21 +632,19 @@ def pandas_types_mapper(dtype):
 
 @dataclass
 class ClassLabel:
-    """Handle integer class labels. Here for compatiblity with tfds.
+    """Feature type for integer class labels.
 
-    There are 3 ways to define a ClassLabel, which correspond to the 3
-    arguments:
+    There are 3 ways to define a `ClassLabel`, which correspond to the 3 arguments:
 
-     * `num_classes`: create 0 to (num_classes-1) labels
-     * `names`: a list of label strings
-     * `names_file`: a file containing the list of labels.
+     * `num_classes`: Create 0 to (num_classes-1) labels.
+     * `names`: List of label strings.
+     * `names_file`: File containing the list of labels.
 
     Args:
-        num_classes: `int`, number of classes. All labels must be < num_classes.
-        names: `list<str>`, string names for the integer classes. The
-            order in which the names are provided is kept.
-        names_file: `str`, path to a file with names for the integer
-            classes, one per line.
+        num_classes (:obj:`int`, optional): Number of classes. All labels must be < `num_classes`.
+        names (:obj:`list` of :obj:`str`, optional): String names for the integer classes.
+            The order in which the names are provided is kept.
+        names_file (:obj:`str`, optional): Path to a file with names for the integer classes, one per line.
     """
 
     num_classes: int = None
@@ -672,9 +688,10 @@ class ClassLabel:
 
     def str2int(self, values: Union[str, Iterable]):
         """Conversion class name string => integer."""
-        assert isinstance(values, str) or isinstance(
-            values, Iterable
-        ), f"Values {values} should be a string or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+        if not isinstance(values, str) and not isinstance(values, Iterable):
+            raise ValueError(
+                f"Values {values} should be a string or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+            )
         return_list = True
         if isinstance(values, str):
             values = [values]
@@ -700,9 +717,10 @@ class ClassLabel:
 
     def int2str(self, values: Union[int, Iterable]):
         """Conversion integer => class name string."""
-        assert isinstance(values, int) or isinstance(
-            values, Iterable
-        ), f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+        if not isinstance(values, int) and not isinstance(values, Iterable):
+            raise ValueError(
+                "Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+            )
         return_list = True
         if isinstance(values, int):
             values = [values]
@@ -774,6 +792,28 @@ FeatureType = Union[
 ]
 
 
+def _check_non_null_non_empty_recursive(obj, schema: Optional[FeatureType] = None) -> bool:
+    """
+    Check if the object is not None.
+    If the object is a list or a tuple, recursively check the first element of the sequence and stop if at any point the first element is not a sequence or is an empty sequence.
+    """
+    if obj is None:
+        return False
+    elif isinstance(obj, (list, tuple)) and (schema is None or isinstance(schema, (list, tuple, Sequence))):
+        if len(obj) > 0:
+            if schema is None:
+                pass
+            elif isinstance(schema, (list, tuple)):
+                schema = schema[0]
+            else:
+                schema = schema.feature
+            return _check_non_null_non_empty_recursive(obj[0], schema)
+        else:
+            return False
+    else:
+        return True
+
+
 def get_nested_type(schema: FeatureType) -> pa.DataType:
     """
     get_nested_type() converts a datasets.FeatureType into a pyarrow.DataType, and acts as the inverse of
@@ -792,7 +832,8 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
             {key: get_nested_type(schema[key]) for key in schema}
         )  # however don't sort on struct types since the order matters
     elif isinstance(schema, (list, tuple)):
-        assert len(schema) == 1, "We defining list feature, you should just provide one example of the inner type"
+        if len(schema) != 1:
+            raise ValueError("We defining list feature, you should just provide one example of the inner type")
         value_type = get_nested_type(schema[0])
         return pa.list_(value_type)
     elif isinstance(schema, Sequence):
@@ -810,7 +851,7 @@ def encode_nested_example(schema, obj):
     """Encode a nested example.
     This is used since some features (in particular ClassLabel) have some logic during encoding.
 
-    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be encoded.
+    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be encoded.
     If the first element needs to be encoded, then all the elements of the list will be encoded, otherwise they'll stay the same.
     """
     # Nested structures: we allow dict, list/tuples, sequences
@@ -825,7 +866,7 @@ def encode_nested_example(schema, obj):
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
-                    if first_elmt is not None:
+                    if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
                         break
                 if encode_nested_example(sub_schema, first_elmt) != first_elmt:
                     return [encode_nested_example(sub_schema, o) for o in obj]
@@ -853,7 +894,7 @@ def encode_nested_example(schema, obj):
         else:
             if len(obj) > 0:
                 for first_elmt in obj:
-                    if first_elmt is not None:
+                    if _check_non_null_non_empty_recursive(first_elmt, schema.feature):
                         break
                 # be careful when comparing tensors here
                 if not isinstance(first_elmt, list) or encode_nested_example(schema.feature, first_elmt) != first_elmt:
@@ -862,7 +903,7 @@ def encode_nested_example(schema, obj):
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
     elif isinstance(schema, (Audio, Image, ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
-        return schema.encode_example(obj)
+        return schema.encode_example(obj) if obj is not None else None
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
 
@@ -937,8 +978,14 @@ def numpy_to_pyarrow_listarray(arr: np.ndarray, type: pa.DataType = None) -> pa.
     return values
 
 
-def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[pa.Array]) -> pa.ListArray:
-    offsets = pa.array(np.cumsum([0] + [len(arr) for arr in l_arr]), type=pa.int32())
+def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[Optional[pa.Array]]) -> pa.ListArray:
+    null_indices = [i for i, arr in enumerate(l_arr) if arr is None]
+    l_arr = [arr for arr in l_arr if arr is not None]
+    offsets = np.cumsum(
+        [0] + [len(arr) for arr in l_arr], dtype=np.object
+    )  # convert to dtype object to allow None insertion
+    offsets = np.insert(offsets, null_indices, None)
+    offsets = pa.array(offsets, type=pa.int32())
     values = pa.concat_arrays(l_arr)
     return pa.ListArray.from_arrays(offsets, values)
 
@@ -946,7 +993,9 @@ def list_of_pa_arrays_to_pyarrow_listarray(l_arr: List[pa.Array]) -> pa.ListArra
 def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.DataType = None) -> pa.ListArray:
     """Build a PyArrow ListArray from a possibly nested list of NumPy arrays"""
     if len(l_arr) > 0:
-        return list_of_pa_arrays_to_pyarrow_listarray([numpy_to_pyarrow_listarray(arr, type=type) for arr in l_arr])
+        return list_of_pa_arrays_to_pyarrow_listarray(
+            [numpy_to_pyarrow_listarray(arr, type=type) if arr is not None else None for arr in l_arr]
+        )
     else:
         return pa.array([], type=type)
 
@@ -1075,7 +1124,9 @@ class Features(dict):
             :obj:`dict[str, Any]`
         """
         return {
-            column: feature.decode_example(value) if hasattr(feature, "decode_example") else value
+            column: feature.decode_example(value)
+            if hasattr(feature, "decode_example") and value is not None
+            else value
             for column, (feature, value) in utils.zip_dict(
                 {key: value for key, value in self.items() if key in example}, example
             )
@@ -1092,7 +1143,7 @@ class Features(dict):
             :obj:`list[Any]`
         """
         return (
-            [self[column_name].decode_example(value) for value in column]
+            [self[column_name].decode_example(value) if value is not None else None for value in column]
             if hasattr(self[column_name], "decode_example")
             else column
         )
@@ -1109,7 +1160,7 @@ class Features(dict):
         decoded_batch = {}
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
-                [self[column_name].decode_example(value) for value in column]
+                [self[column_name].decode_example(value) if value is not None else None for value in column]
                 if hasattr(self[column_name], "decode_example")
                 else column
             )
@@ -1179,7 +1230,7 @@ class Features(dict):
                     raise ValueError(f"Type mismatch: between {source} and {target}" + stack_position)
                 if len(source) != len(target):
                     raise ValueError(f"Length mismatch: between {source} and {target}" + stack_position)
-                return [recursive_reorder(source[i], target[i], stack + f".<list>") for i in range(len(target))]
+                return [recursive_reorder(source[i], target[i], stack + ".<list>") for i in range(len(target))]
             else:
                 return source
 

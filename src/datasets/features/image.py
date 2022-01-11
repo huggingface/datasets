@@ -10,6 +10,7 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from .. import config
 from ..utils.file_utils import is_local_path
+from ..utils.py_utils import first_non_null_value, no_op_if_value_is_null
 from ..utils.streaming_download_manager import xopen
 
 
@@ -273,18 +274,23 @@ def objects_to_list_of_image_dicts(
         raise ImportError("To support encoding images, please install 'Pillow'.")
 
     if objs:
-        obj = objs[0]
+        _, obj = first_non_null_value(objs)
         if isinstance(obj, str):
-            return [{"path": obj, "bytes": None} for obj in objs]
+            return [{"path": obj, "bytes": None} if obj is not None else None for obj in objs]
         if isinstance(obj, np.ndarray):
-            return [{"path": None, "bytes": image_to_bytes(PIL.Image.fromarray(obj.astype(np.uint8)))} for obj in objs]
-        elif isinstance(obj, PIL.Image.Image):
             return [
-                {"path": obj.filename, "bytes": None}
-                if hasattr(obj, "filename") and obj.filename != ""
-                else {"path": None, "bytes": image_to_bytes(obj)}
+                {"path": None, "bytes": image_to_bytes(PIL.Image.fromarray(obj.astype(np.uint8)))}
+                if obj is not None
+                else None
                 for obj in objs
             ]
+        elif isinstance(obj, PIL.Image.Image):
+            obj_to_image_dict_func = no_op_if_value_is_null(
+                lambda obj: {"path": obj.filename, "bytes": None}
+                if hasattr(obj, "filename") and obj.filename != ""
+                else {"path": None, "bytes": image_to_bytes(obj)}
+            )
+            return [obj_to_image_dict_func(obj) for obj in objs]
         else:
             return objs
     else:

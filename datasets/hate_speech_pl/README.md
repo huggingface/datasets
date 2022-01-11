@@ -166,7 +166,7 @@ The dataset contains negative posts only and due to that might underrepresent th
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

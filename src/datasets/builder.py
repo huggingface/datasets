@@ -203,6 +203,7 @@ class DatasetBuilder:
         name: Optional[str] = None,
         hash: Optional[str] = None,
         base_path: Optional[str] = None,
+        info: Optional[DatasetInfo] = None,
         features: Optional[Features] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
         namespace: Optional[str] = None,
@@ -263,11 +264,12 @@ class DatasetBuilder:
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
-        info = self.get_exported_dataset_info()
-        info.update(self._info())
-        info.builder_name = self.name
-        info.config_name = self.config.name
-        info.version = self.config.version
+        if info is None:
+            info = self.get_exported_dataset_info()
+            info.update(self._info())
+            info.builder_name = self.name
+            info.config_name = self.config.name
+            info.version = self.config.version
         self.info = info
         # update info with user specified infos
         if features is not None:
@@ -612,7 +614,8 @@ class DatasetBuilder:
         if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
             raise ManualDownloadError(
                 textwrap.dedent(
-                    f"""The dataset {self.name} with config {self.config.name} requires manual data.
+                    f"""\
+                    The dataset {self.name} with config {self.config.name} requires manual data.
                     Please follow the manual download instructions:
                      {self.manual_download_instructions}
                     Manual data can be loaded with:

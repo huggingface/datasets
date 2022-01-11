@@ -2,7 +2,7 @@
 annotations_creators:
 - expert-generated
 language_creators:
-- original
+- found
 languages:
 - en
 licenses:
@@ -20,9 +20,10 @@ task_ids:
 - text-classification-other-propaganda-technique-classification
 - structure-prediction-other-propaganda-span-identification
 paperswithcode_id: null
+pretty_name: "SemEval-2020 Task 11"
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for SemEval-2020 Task 11
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -51,7 +52,6 @@ paperswithcode_id: null
 ## Dataset Description
 
 - **Homepage:** [PTC TASKS ON "DETECTION OF PROPAGANDA TECHNIQUES IN NEWS ARTICLES"](https://propaganda.qcri.org/ptc/index.html)
-- **Repository:** [If the dataset is hosted on github or has a github homepage, add URL here]()
 - **Paper:** [SemEval-2020 Task 11: Detection of Propaganda Techniques in News Articles](https://arxiv.org/abs/2009.02696)
 - **Leaderboard:** [PTC Tasks Leaderboard](https://propaganda.qcri.org/ptc/leaderboard.php)
 - **Point of Contact:** [Task organizers contact](semeval-2020-task-11-organizers@googlegroups.com)

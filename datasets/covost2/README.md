@@ -189,7 +189,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -213,7 +213,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 ### Licensing Information
 
-cc-by-nc-4.0
+[CC BY-NC 4.0](https://github.com/facebookresearch/covost/blob/main/LICENSE)
 
 ### Citation Information
 
