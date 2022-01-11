@@ -78,7 +78,7 @@ class Cifar10(datasets.GeneratorBasedBuilder):
             supervised_keys=("img", "label"),
             homepage="https://www.cs.toronto.edu/~kriz/cifar.html",
             citation=_CITATION,
-            task_templates=ImageClassification(image_column="img", label_column="label", labels=_NAMES),
+            task_templates=ImageClassification(image_column="img", label_column="label"),
         )
 
     def _split_generators(self, dl_manager):

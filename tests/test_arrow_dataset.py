@@ -2975,7 +2975,7 @@ class TaskTemplatesTest(TestCase):
         features_after_cast = Features(
             {
                 "text": Value("string"),
-                "labels": ClassLabel(names=tuple(labels)),
+                "labels": ClassLabel(names=labels),
             }
         )
         # Label names are added in `DatasetInfo.__post_init__` so not needed here
@@ -2986,7 +2986,7 @@ class TaskTemplatesTest(TestCase):
         )
         # Label names are required when passing a TextClassification template directly to `Dataset.prepare_for_task`
         # However they also can be used to define `DatasetInfo` so we include a test for this too
-        task_with_labels = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
+        task_with_labels = TextClassification(text_column="input_text", label_column="input_labels")
         info2 = DatasetInfo(
             features=features_before_cast,
             task_templates=task_with_labels,
@@ -3161,15 +3161,6 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             # Invalid task name
             self.assertRaises(ValueError, dset.prepare_for_task, "this-task-does-not-exist")
-            # Invalid task templates with incompatible labels
-            task_with_wrong_labels = TextClassification(
-                text_column="input_text", label_column="input_labels", labels=["neut"]
-            )
-            self.assertRaises(ValueError, dset.prepare_for_task, task_with_wrong_labels)
-            task_with_no_labels = TextClassification(
-                text_column="input_text", label_column="input_labels", labels=None
-            )
-            self.assertRaises(ValueError, dset.prepare_for_task, task_with_no_labels)
             # Invalid task type
             self.assertRaises(ValueError, dset.prepare_for_task, 1)
 
@@ -3240,7 +3231,7 @@ class TaskTemplatesTest(TestCase):
 
     def test_concatenate_with_equal_task_templates(self):
         labels = ["neg", "pos"]
-        task_template = TextClassification(text_column="text", label_column="labels", labels=labels)
+        task_template = TextClassification(text_column="text", label_column="labels")
         info = DatasetInfo(
             features=Features({"text": Value("string"), "labels": ClassLabel(names=labels)}),
             # Label names are added in `DatasetInfo.__post_init__` so not included here
