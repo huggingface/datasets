@@ -1086,6 +1086,9 @@ class Features(dict):
         super().__setitem__(column_name, feature)
         self._column_requires_decoding[column_name] = require_decoding(feature)
 
+    def __reduce__(self):
+        return Features, (dict(self),)
+
     @property
     def type(self):
         """
