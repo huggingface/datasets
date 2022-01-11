@@ -38,7 +38,7 @@ _LICENSE = "none provided"
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://raw.githubusercontent.com/apergo-ai/text2log/main/dat/text2log_clean.csv"
+_URL = "https://raw.githubusercontent.com/apergo-ai/text2log/main/dat/text2log_clean.zip"
 
 class text2log(datasets.GeneratorBasedBuilder):
     """Simple English sentences and FOL representations using LDbCS"""
