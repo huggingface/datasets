@@ -88,6 +88,7 @@ from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
+from .utils.py_utils import unique_values
 from .utils.typing import PathLike
 
 
@@ -1838,7 +1839,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
         return dataset
 
-    def prepare_for_task(self, task: Union[str, TaskTemplate], id: Optional[int] = None) -> "Dataset":
+    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
         """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
 
         Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema. Intended for single-use only, so all task templates are removed from :attr:`datasets.DatasetInfo.task_templates` after casting.
@@ -1850,21 +1851,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - :obj:`"question-answering"`
 
                 If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
-            id (:obj:`int`, optional): The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
+            id (:obj:`int`, default `0`): The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
         """
         # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
         if isinstance(task, str):
             tasks = [template.task for template in (self.info.task_templates or [])]
             compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
             if not compatible_templates:
-                raise ValueError(f"Task {task} is not compatible with this dataset! Available tasks: {tasks}")
-
-            if len(compatible_templates) > 1 and id is None:
                 raise ValueError(
-                    f"This dataset has multiple task templates for task {task}. Please specify the id to unambiguously identify the task template to prepare the dataset for:"
-                    f"{''.join(f'- `{idx}` for task {template}' for idx, template in enumerate(compatible_templates))}"
+                    f"Task {task} is not compatible with this dataset! Available tasks: {list(unique_values(tasks))}"
                 )
-            id = id or 0
+
+            if not 0 <= id < len(compatible_templates):
+                templates_list_str = "\n".join(
+                    f"- `{idx}` for task {template}" for idx, template in enumerate(compatible_templates)
+                )
+                raise ValueError(
+                    f"Id {id} for task {task} is not in a valid range. Supported ids:\n{templates_list_str}"
+                )
             template = compatible_templates[id]
         elif isinstance(task, TaskTemplate):
             template = task
