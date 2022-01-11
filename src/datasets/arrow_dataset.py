@@ -742,6 +742,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        preserve_index: Optional[bool] = None
     ) -> "Dataset":
         """
         Convert :obj:`pandas.DataFrame` to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
@@ -760,6 +761,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (:class:`Features`, optional): Dataset features.
             info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (:class:`NamedSplit`, optional): Name of the dataset split.
+            preserve_index (:obj:`bool`, optional): Whether to preserve pd.DataFrame index while constructing pyarrow.Table. By default, it only preserves custom index.
 
         Returns:
             :class:`Dataset`
@@ -772,7 +774,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
-        table = InMemoryTable.from_pandas(df=df, schema=pa.schema(features.type) if features is not None else None)
+        table = InMemoryTable.from_pandas(df=df, preserve_index=preserve_index, schema=pa.schema(features.type) if features is not None else None)
         return cls(table, info=info, split=split)
 
     @classmethod
