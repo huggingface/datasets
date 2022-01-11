@@ -88,7 +88,7 @@ class SVHN(datasets.GeneratorBasedBuilder):
                     "digits": datasets.Sequence(
                         {
                             "bbox": datasets.Sequence(datasets.Value("int32"), length=4),
-                            "label": datasets.ClassLabel(names=_DIGIT_LABELS),
+                            "label": datasets.ClassLabel(num_classes=10),
                         }
                     ),
                 }
@@ -97,7 +97,7 @@ class SVHN(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "image": datasets.Image(),
-                    "label": datasets.ClassLabel(names=_DIGIT_LABELS),
+                    "label": datasets.ClassLabel(num_classes=10),
                 }
             )
         return datasets.DatasetInfo(
@@ -107,7 +107,7 @@ class SVHN(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[ImageClassification(image_column="image", label_column="label", labels=_DIGIT_LABELS)]
+            task_templates=[ImageClassification(image_column="image", label_column="label")]
             if self.config.name == "cropped_digits"
             else None,
         )
