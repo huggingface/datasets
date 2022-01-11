@@ -16,6 +16,7 @@
 # Lint as: python3
 """ This class handle features definition in datasets and some utilities to display table type."""
 import copy
+import json
 import re
 import sys
 from collections.abc import Iterable
@@ -36,10 +37,10 @@ from pyarrow.lib import TimestampType
 
 from datasets import config, utils
 from datasets.features.audio import Audio, AudioExtensionType
-from datasets.features.base_extension import BasePyarrowExtensionType
-from datasets.features.image import Image, ImageExtensionType
+from datasets.features.image import Image, ImageExtensionType, encode_pil_image
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.utils.logging import get_logger
+from datasets.utils.py_utils import map_nested
 
 
 logger = get_logger(__name__)
@@ -202,10 +203,7 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
         else:
             return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in np.asarray(obj)], True
     elif config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(obj, PIL.Image.Image):
-        if not only_1d_for_numpy:
-            return obj, False
-        else:
-            return [_cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in np.array(obj)], True
+        return encode_pil_image(obj), True
     elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
     elif isinstance(obj, pd.DataFrame):
@@ -627,8 +625,6 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 def pandas_types_mapper(dtype):
     if isinstance(dtype, _ArrayXDExtensionType):
         return PandasArrayExtensionDtype(dtype.value_type)
-    elif isinstance(dtype, BasePyarrowExtensionType):
-        return ImageExtensionType._pd_type()
 
 
 @dataclass
@@ -909,6 +905,42 @@ def encode_nested_example(schema, obj):
     return obj
 
 
+def decode_nested_example(schema, obj):
+    """Decode a nested example.
+    This is used since some features (in particular Audio and Image) have some logic during decoding.
+
+    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be decoded.
+    If the first element needs to be decoded, then all the elements of the list will be decoded, otherwise they'll stay the same.
+    """
+    # Nested structures: we allow dict, list/tuples, sequences
+    if isinstance(schema, dict):
+        return {
+            k: decode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
+        }
+    elif isinstance(schema, (list, tuple)):
+        sub_schema = schema[0]
+        if obj is None:
+            return None
+        else:
+            if len(obj) > 0:
+                for first_elmt in obj:
+                    if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
+                        break
+                if decode_nested_example(sub_schema, first_elmt) != first_elmt:
+                    return [decode_nested_example(sub_schema, o) for o in obj]
+            return list(obj)
+    elif isinstance(schema, Sequence):
+        # We allow to reverse list of dict => dict of list for compatiblity with tfds
+        if isinstance(schema.feature, dict):
+            return {k: decode_nested_example([schema.feature[k]], obj[k]) for k in schema.feature}
+        else:
+            return decode_nested_example([schema.feature], obj)
+    # Object with special decoding:
+    elif isinstance(schema, (Audio, Image)):
+        return schema.decode_example(obj) if obj is not None else None
+    return obj
+
+
 def generate_from_dict(obj: Any):
     """Regenerate the nested feature object from a deserialized dict.
     We use the '_type' fields to get the dataclass name to load.
@@ -1003,6 +1035,17 @@ def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.Data
         return pa.array([], type=type)
 
 
+def require_decoding(feature: FeatureType) -> bool:
+    if isinstance(feature, dict):
+        return any(require_decoding(f) for f in feature.values())
+    elif isinstance(feature, (list, tuple)):
+        return require_decoding(feature[0])
+    elif isinstance(feature, Sequence):
+        return require_decoding(feature.feature)
+    else:
+        return hasattr(feature, "decode_example")
+
+
 class Features(dict):
     """A special dictionary that defines the internal structure of a dataset.
 
@@ -1034,6 +1077,16 @@ class Features(dict):
         - :class:`datasets.Translation` and :class:`datasets.TranslationVariableLanguages`, the two features specific to Machine Translation
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._column_requires_decoding: Dict[str, bool] = {
+            col: require_decoding(feature) for col, feature in self.items()
+        }
+
+    def __setitem__(self, column_name: str, feature: FeatureType):
+        super().__setitem__(column_name, feature)
+        self._column_requires_decoding[column_name] = require_decoding(feature)
+
     @property
     def type(self):
         """
@@ -1048,6 +1101,7 @@ class Features(dict):
     def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
         """
         Construct Features from Arrow Schema.
+        It also checks the schema metadata for Hugging Face Datasets features.
 
         Args:
             pa_schema (:obj:`pyarrow.Schema`): Arrow Schema.
@@ -1055,6 +1109,15 @@ class Features(dict):
         Returns:
             :class:`Features`
         """
+
+        if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
+            metadata = json.loads(pa_schema.metadata["huggingface".encode("utf-8")].decode())
+            if "info" in metadata:  # try to load features from the arrow schema metadata
+                from ..info import DatasetInfo
+
+                features = DatasetInfo.from_dict(metadata["info"]).features
+                if features is not None:
+                    return features
         obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
         return cls(**obj)
 
@@ -1126,11 +1189,12 @@ class Features(dict):
         Returns:
             :obj:`dict[str, Any]`
         """
+
         return {
-            column: feature.decode_example(value)
-            if hasattr(feature, "decode_example") and value is not None
+            column_name: decode_nested_example(feature, value)
+            if self._column_requires_decoding[column_name]
             else value
-            for column, (feature, value) in utils.zip_dict(
+            for column_name, (feature, value) in utils.zip_dict(
                 {key: value for key, value in self.items() if key in example}, example
             )
         }
@@ -1147,7 +1211,7 @@ class Features(dict):
         """
         return (
             [self[column_name].decode_example(value) if value is not None else None for value in column]
-            if hasattr(self[column_name], "decode_example")
+            if self._column_requires_decoding[column_name]
             else column
         )
 
@@ -1164,7 +1228,7 @@ class Features(dict):
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
                 [self[column_name].decode_example(value) if value is not None else None for value in column]
-                if hasattr(self[column_name], "decode_example")
+                if self._column_requires_decoding[column_name]
                 else column
             )
         return decoded_batch

@@ -143,7 +143,8 @@ class BasePyarrowExtensionType(pa.PyExtensionType, metaclass=_WatchAndAutomatica
     def to_pandas_dtype(self):
         return self._pd_type()
 
-    def cast_storage(self, array: pa.Array) -> pa.ExtensionArray:
-        if isinstance(array, pa.ExtensionArray):
-            return array
-        return pa.ExtensionArray.from_storage(self.pa_storage_type, array)
+    def cast_storage(self, array: pa.Array) -> pa.Array:
+        return array.cast(self.pa_storage_type)
+
+    def wrap_array(self, storage: pa.Array) -> pa.ExtensionArray:
+        return pa.ExtensionArray.from_storage(self, self.cast_storage(storage))

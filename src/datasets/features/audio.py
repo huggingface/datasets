@@ -4,6 +4,7 @@ from typing import Any, ClassVar, Optional, Union
 
 import pyarrow as pa
 
+from ..table import array_cast
 from ..utils.streaming_download_manager import xopen
 from .base_extension import BasePyarrowExtensionType
 
@@ -11,29 +12,13 @@ from .base_extension import BasePyarrowExtensionType
 class AudioExtensionType(BasePyarrowExtensionType):
     pa_storage_type = pa.struct({"bytes": pa.binary(), "path": pa.string()})
 
-    def cast_storage(self, array: Union[pa.StringArray, pa.StructArray]) -> pa.StructArray:
-        if array.type == AudioExtensionType():
-            return array
-        elif array.type == pa.struct({"bytes": pa.binary(), "paths": pa.string()}):
-            return self.wrap_array(array)
-        elif isinstance(array.type, pa.StructType):
-            subarrays = {array.type[i].name: array.field(i) for i in range(array.type.num_fields)}
-            bytes_array = (
-                subarrays["bytes"].cast(pa.binary())
-                if "bytes" in subarrays
-                else pa.array([None] * len(array), type=pa.binary())
-            )
-            path_array = (
-                subarrays["path"].cast(pa.string())
-                if "path" in subarrays
-                else pa.array([None] * len(array), type=pa.string())
-            )
-            return self.wrap_array(pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"]))
-        elif array.type == pa.string():
-            bytes_array = pa.array([None] * len(array), type=pa.binary())
-            return self.wrap_array(pa.StructArray.from_arrays([bytes_array, array], ["bytes", "path"]))
-        else:
-            raise TypeError(f"Can't convert array of type {array.type} to audio type {type(self)}.")
+    def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray]) -> pa.StructArray:
+        if pa.types.is_string(storage.type):
+            bytes_array = pa.array([None] * len(storage), type=pa.binary())
+            storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"])
+        elif pa.types.is_struct(storage.type) and storage.type.get_all_field_indices("array"):
+            storage = pa.array([Audio().encode_example(x) for x in storage.to_pylist()])
+        return array_cast(storage, self.pa_storage_type)
 
 
 @dataclass(unsafe_hash=True)
@@ -48,6 +33,13 @@ class Audio:
         - bytes: Bytes content of the audio file.
 
       This is useful for archived files with sequential access.
+    - A :obj:`dict` with the keys:
+
+        - path: String with relative path of the audio file to the archive file.
+        - array: Array containing the audio sample
+        - sampling_rate: Integer corresponding to the samping rate of the audio sample.
+
+      This is useful for archived files with sequential access.
 
     Args:
         sampling_rate (:obj:`int`, optional): Target sampling rate. If `None`, the native sampling rate is used.
@@ -60,11 +52,11 @@ class Audio:
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
-    pa_type: ClassVar[Any] = AudioExtensionType
+    pa_type: ClassVar[Any] = AudioExtensionType()
     _type: str = field(default="Audio", init=False, repr=False)
 
     def __call__(self):
-        return self.pa_type()
+        return self.pa_type
 
     def encode_example(self, value):
         """Encode example into a format for Arrow.
@@ -75,7 +67,18 @@ class Audio:
         Returns:
             :obj:`dict`
         """
-        return {"bytes": None, "path": value} if isinstance(value, str) else value
+        try:
+            import soundfile as sf  # soundfile is a dependency of librosa, needed to decode audio files.
+        except ImportError as err:
+            raise ImportError("To support decoding audio files, please install 'librosa'.") from err
+        if isinstance(value, str):
+            return {"bytes": None, "path": value}
+        elif isinstance(value, dict) and "array" in value:
+            buffer = BytesIO()
+            sf.write(buffer, value["array"], value["sampling_rate"])
+            return {"bytes": buffer.getvalue(), "path": value.get("path")}
+        else:
+            return value
 
     def decode_example(self, value):
         """Decode example audio file into audio data.

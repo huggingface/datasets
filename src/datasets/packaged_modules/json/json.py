@@ -8,7 +8,7 @@ import pyarrow as pa
 import pyarrow.json as paj
 
 import datasets
-from datasets.table import better_table_cast
+from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
 
@@ -79,7 +79,7 @@ class Json(datasets.ArrowBasedBuilder):
                             f"Field '{col}' from the JSON data of type {pa_table[col].type} is not compatible with ClassLabel. Compatible types are int64 and string."
                         )
             # Cast allows str <-> int/float or str to Audio for example
-            pa_table = better_table_cast(pa_table, self.config.schema)
+            pa_table = table_cast(pa_table, self.config.schema)
         return pa_table
 
     def _generate_tables(self, files):

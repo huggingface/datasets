@@ -56,6 +56,8 @@ from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
 
+from datasets.features.base_extension import BasePyarrowExtensionType
+
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
@@ -74,7 +76,7 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
-from .table import InMemoryTable, MemoryMappedTable, Table, better_table_cast, concat_tables, list_table_cache_files
+from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files, table_cast
 from .tasks import TaskTemplate
 from .tasks.text_classification import TextClassification
 from .utils import logging
@@ -625,8 +627,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if self._data.schema.metadata is not None and "huggingface".encode("utf-8") in self._data.schema.metadata:
             metadata = json.loads(self._data.schema.metadata["huggingface".encode("utf-8")].decode())
-            if "info" in metadata and self.info.features is None:  # try to load features from the arrow file metadata
-                self._info.features = DatasetInfo.from_dict(metadata["info"]).features
             if (
                 "fingerprint" in metadata and self._fingerprint is None
             ):  # try to load fingerprint from the arrow file metadata
@@ -1332,7 +1332,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: better_table_cast(t, schema),
+            lambda t: table_cast(t, schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1393,7 +1393,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset = self.with_format("arrow")
         # capture the PyArrow version here to make the lambda serializable on Windows
         dataset = dataset.map(
-            lambda t: better_table_cast(t, schema),
+            partial(table_cast, schema=schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1413,21 +1413,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             column (:obj:`str`): Column name.
-            feature (:class:`Feature`): Target feature.
+            feature (:class:`FeatureType`): Target feature.
 
         Returns:
             :class:`Dataset`
         """
-        if hasattr(feature(), "cast_storage"):
+        if hasattr(feature, "pa_type") and isinstance(feature.pa_type, BasePyarrowExtensionType):
             dataset = copy.deepcopy(self)
             dataset.features[column] = feature
             dataset._fingerprint = new_fingerprint
-            column_idx = dataset._data.column_names.index(column)
-            subtable = dataset._data.select_columns([column_idx])
-            subschema = pa.schema({column: feature()})
-            dataset._data = concat_tables(
-                [dataset._data.remove_column(column_idx), better_table_cast(subtable, subschema)], axis=1
-            )
+            dataset._data = dataset._data.cast(pa.schema(dataset.features.type))
             dataset._data = update_metadata_with_features(dataset._data, dataset.features)
             return dataset
         else:

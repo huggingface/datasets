@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from datasets import Dataset, Features, Image, Value, load_dataset
-from datasets.features.image import image_to_bytes
+from datasets.features.image import ImageExtensionType, image_to_bytes
 
 from ..utils import require_pil
 
@@ -31,8 +31,8 @@ def iter_archive(archive_path):
 def test_image_instantiation():
     image = Image()
     assert image.id is None
-    assert image.dtype == "dict"
-    assert image.pa_type is None
+    assert image.dtype == "PIL.Image.Image"
+    assert image.pa_type == ImageExtensionType()
     assert image._type == "Image"
 
 
@@ -242,7 +242,12 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
 
     for item in dset:
         assert item.keys() == {"image"}
-        assert item == {"image": {"path": image_path, "bytes": None}}
+        assert item == {
+            "image": {
+                "bytes": None,
+                "path": image_path,
+            }
+        }
 
     # return pil image
 
@@ -253,7 +258,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
     decoded_dset = dset.map(process_image_resize_by_example)
     for item in decoded_dset:
         assert item.keys() == {"image"}
-        assert item == {"image": {"path": None, "bytes": image_to_bytes(pil_image.resize((100, 100)))}}
+        assert item == {"image": {"bytes": image_to_bytes(pil_image.resize((100, 100))), "path": None}}
 
     def process_image_resize_by_batch(batch):
         batch["image"] = [image.resize((100, 100)) for image in batch["image"]]
@@ -262,7 +267,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
     decoded_dset = dset.map(process_image_resize_by_batch, batched=True)
     for item in decoded_dset:
         assert item.keys() == {"image"}
-        assert item == {"image": {"path": None, "bytes": image_to_bytes(pil_image.resize((100, 100)))}}
+        assert item == {"image": {"bytes": image_to_bytes(pil_image.resize((100, 100))), "path": None}}
 
     # return np.ndarray (e.g. when using albumentations)
 
@@ -275,8 +280,8 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
         assert item.keys() == {"image"}
         assert item == {
             "image": {
-                "path": None,
                 "bytes": image_to_bytes(PIL.Image.fromarray(np.array(pil_image.resize((100, 100))))),
+                "path": None,
             }
         }
 
@@ -289,8 +294,8 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
         assert item.keys() == {"image"}
         assert item == {
             "image": {
-                "path": None,
                 "bytes": image_to_bytes(PIL.Image.fromarray(np.array(pil_image.resize((100, 100))))),
+                "path": None,
             }
         }
 

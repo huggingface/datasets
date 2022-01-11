@@ -8,6 +8,7 @@ import pytest
 
 from datasets import Dataset, load_dataset
 from datasets.features import Audio, Features, Value
+from datasets.features.audio import AudioExtensionType
 
 
 # pytestmark = pytest.mark.audio
@@ -60,7 +61,7 @@ def test_audio_instantiation():
     assert audio.mono is True
     assert audio.id is None
     assert audio.dtype == "dict"
-    assert audio.pa_type is not None
+    assert audio.pa_type == AudioExtensionType()
     assert audio._type == "Audio"
 
 

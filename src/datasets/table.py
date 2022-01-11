@@ -7,7 +7,6 @@ from typing import List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
-import pyarrow.compute as pc
 
 from . import config
 from .utils.logging import get_logger
@@ -403,9 +402,7 @@ class InMemoryTable(TableBlock):
 
     @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, *args, **kwargs):
-        return InMemoryTable(
-            better_table_cast(self.table, *args, **kwargs, is_pyarrow_at_least_4=IS_PYARROW_AT_LEAST_4)
-        )
+        return InMemoryTable(table_cast(self.table, *args, **kwargs))
 
     @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
     def replace_schema_metadata(self, *args, **kwargs):
@@ -526,7 +523,7 @@ class MemoryMappedTable(TableBlock):
     def cast(self, *args, **kwargs):
         replay = ("cast", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(better_table_cast(self.table, *args, **kwargs), self.path, replays)
+        return MemoryMappedTable(table_cast(self.table, *args, **kwargs), self.path, replays)
 
     @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
     def replace_schema_metadata(self, *args, **kwargs):
@@ -792,7 +789,7 @@ class ConcatenationTable(Table):
 
     @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, target_schema, *args, **kwargs):
-        table = better_table_cast(self.table, target_schema, *args, **kwargs)
+        table = table_cast(self.table, target_schema, *args, **kwargs)
         blocks = []
         for subtables in self.blocks:
             new_tables = []
@@ -802,7 +799,7 @@ class ConcatenationTable(Table):
                 for name in subtable.column_names:
                     subfields.append(fields.pop(next(i for i, field in enumerate(fields) if field.name == name)))
                 subschema = pa.schema(subfields)
-                new_tables.append(better_table_cast(subtable, subschema, *args, **kwargs))
+                new_tables.append(table_cast(subtable, subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
 
@@ -915,50 +912,52 @@ def _wrap_for_chunked_arrays(func):
     return wrapper
 
 
-def _sanitize_sliced_list_arrays_for_cast(
-    array: Union[pa.ListArray, pa.ChunkedArray]
-) -> Union[pa.ListArray, pa.ChunkedArray]:
-    """Sanitize pyarrow.ListArray objects for pyarrow.Array.cast in case they are sliced list arrays"""
-
-    @_wrap_for_chunked_arrays
-    def _sanitize(array: pa.ListArray) -> pa.ListArray:
-        """Return the same pyarrow.ListArray but with array.offset == 0 for compatibility with cast for pyarrow 3"""
-        if array.offset == 0:
-            return array
-        elif len(array) == 0:
-            return array.values.slice(0, 0)
-        else:
-            values_offset = array.offsets[0]  # the relevant values start at this index
-            new_values = array.values.slice(values_offset.as_py())  # get the values to start at the right position
-            new_offsets = pc.subtract(array.offsets, values_offset)  # update the offsets accordingly
-            return pa.ListArray.from_arrays(new_offsets, new_values)
-
-    return _sanitize(array, type)
+@_wrap_for_chunked_arrays
+def _cast_to_feature(array, feature):
+    if hasattr(feature, "cast"):
+        return feature.cast(array)
+    elif isinstance(array.type, pa.StructType):
+        # feature must be a dict or Sequence(subfeatures_dict)
+        if not isinstance(feature, dict):
+            feature = {name: [subfeature] for name, subfeature in feature.feature.items()}
+        arrays = [_cast_to_feature(array.field(name), subfeature) for name, subfeature in feature.items()]
+        return pa.StructArray.from_arrays(arrays, names=list(feature))
+    elif isinstance(array, pa.ListType):
+        # feature must be either [subfeature] or Sequence(subfeature)
+        subfeature = feature[0] if isinstance(feature, list) else feature.feature
+        return pa.ListArray.from_arrays(array.offsets, _cast_to_feature(array.values, subfeature))
+    else:
+        return array_cast(array, feature.pa_type)
 
 
 @_wrap_for_chunked_arrays
-def _cast_array_with_custom_storage_support(array: pa.Array, type) -> pa.Array:
-    if hasattr(type, "cast_storage"):
-        return type.cast_storage(array)
+def array_cast(array, pa_type):
+    if isinstance(array, pa.ExtensionArray):
+        array = array.storage
+    if isinstance(pa_type, pa.ExtensionType):
+        return pa_type.wrap_array(array)
+    elif isinstance(array.type, pa.StructType):
+        # type must be StructType
+        arrays = [array_cast(array.field(field.name), field.type) for field in pa_type]
+        return pa.StructArray.from_arrays(arrays, fields=list(pa_type))
+    elif isinstance(array, pa.ListType):
+        # type must be ListType
+        return pa.ListArray.from_arrays(array.offsets, _cast_to_feature(array.values, pa_type.value_type))
     else:
-        return array.cast(type)
+        return array.cast(pa_type)
 
 
-def _better_array_cast(array: pa.Array, type) -> pa.Array:
-    if not IS_PYARROW_AT_LEAST_4 and isinstance(array.type, pa.ListType):
-        array = _sanitize_sliced_list_arrays_for_cast(array)
-    return _cast_array_with_custom_storage_support(array, type)
-
-
-def better_table_cast(table: pa.Table, schema: pa.Schema) -> pa.Table:
-    """Same as pyarrow.Table.cast but with some improvements:
-    - sliced list support
-    - custom features support
-    """
+def table_cast(table: pa.Table, schema):
     if sorted(table.column_names) != sorted(schema.names):
         raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{schema}\nbecause column names don't match")
-    arrays = [_better_array_cast(table[field.name], field.type) for field in schema]
-    return pa.Table.from_arrays(arrays, schema=schema)
+    if schema.metadata:
+        from .features import Features
+
+        features = Features.from_arrow_schema(schema)
+        arrays = [_cast_to_feature(table[field.name], features[field.name]) for field in schema]
+    else:
+        arrays = [array_cast(table[field.name], field.type) for field in schema]
+    return table.from_arrays(arrays, schema=schema)
 
 
-OVERRIDEN_TABLE_METHODS["cast"] = better_table_cast
+OVERRIDEN_TABLE_METHODS["cast"] = table_cast

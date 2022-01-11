@@ -27,7 +27,7 @@ import pyarrow as pa
 from . import config, utils
 from .features import (
     Features,
-    ImageExtensionType,
+    Image,
     _ArrayXDExtensionType,
     cast_to_python_objects,
     list_of_np_array_to_pyarrow_listarray,
@@ -36,6 +36,7 @@ from .features import (
 from .features.base_extension import BasePyarrowExtensionType
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
+from .table import array_cast
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import first_non_null_value
@@ -112,42 +113,39 @@ class TypedSequence:
         else:
             type = self.type
         trying_int_optimization = False
-        non_null_idx, non_null_value = first_non_null_value(self.data)
+        data = self.data
+        non_null_idx, non_null_value = first_non_null_value(data)
         if type is None:  # automatic type inference for custom objects
             if config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(non_null_value, PIL.Image.Image):
-                type = ImageExtensionType()
+                type = Image().pa_type
+                data = [Image().encode_example(value) for value in data]
         try:
             if isinstance(type, _ArrayXDExtensionType):
-                if isinstance(self.data, np.ndarray):
-                    storage = numpy_to_pyarrow_listarray(self.data, type=type.value_type)
-                elif isinstance(self.data, list) and self.data and isinstance(non_null_value, np.ndarray):
-                    storage = list_of_np_array_to_pyarrow_listarray(self.data, type=type.value_type)
+                if isinstance(data, np.ndarray):
+                    storage = numpy_to_pyarrow_listarray(data, type=type.value_type)
+                elif isinstance(data, list) and data and isinstance(non_null_value, np.ndarray):
+                    storage = list_of_np_array_to_pyarrow_listarray(data, type=type.value_type)
                 else:
-                    storage = pa.array(self.data, type.storage_dtype)
+                    storage = pa.array(data, type.storage_dtype)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(type, BasePyarrowExtensionType):
-                storage = pa.array(self.data, type=type.pa_storage_type)
-                out = type.cast_storage(storage)
-            elif isinstance(self.data, np.ndarray):
-                out = numpy_to_pyarrow_listarray(self.data)
+                if isinstance(data, np.ndarray):
+                    storage = numpy_to_pyarrow_listarray(data)
+                else:
+                    storage = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
+                out = type.wrap_array(storage)
+            elif isinstance(data, np.ndarray):
+                out = numpy_to_pyarrow_listarray(data)
                 if type is not None:
                     out = out.cast(type)
-            elif isinstance(self.data, list) and self.data and isinstance(non_null_value, np.ndarray):
-                out = list_of_np_array_to_pyarrow_listarray(self.data)
+            elif isinstance(data, list) and data and isinstance(non_null_value, np.ndarray):
+                out = list_of_np_array_to_pyarrow_listarray(data)
                 if type is not None:
-                    out = out.cast(type)
+                    out = array_cast(out, type)
             else:
-                out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
-            if trying_type and not isinstance(type, ImageExtensionType) and non_null_idx != -1:
-                is_equal = (
-                    np.array_equal(np.array(out[non_null_idx].as_py()), self.data[non_null_idx])
-                    if isinstance(self.data[non_null_idx], np.ndarray)
-                    else out[non_null_idx].as_py() == self.data[non_null_idx]
-                )
-                if not is_equal:
-                    raise TypeError(
-                        "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
-                    )
+                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
+                if type is not None:
+                    out = array_cast(out, type)
             if self.optimized_int_type and self.type is None and self.try_type is None:
                 trying_int_optimization = True
                 if pa.types.is_int64(out.type):
