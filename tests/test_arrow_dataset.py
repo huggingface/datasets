@@ -3188,9 +3188,11 @@ class TaskTemplatesTest(TestCase):
         )
         data = {"text1": ["i love transformers!"], "text2": ["i love datasets!"]}
         with Dataset.from_dict(data, info=info) as dset:
-            self.assertRaises(ValueError, dset.prepare_for_task, "language-modeling")
-            with dset.prepare_for_task("language-modeling", id=0) as dset:
-                self.assertEqual(dset[0]["text"], "i love transformers!")
+            self.assertRaises(ValueError, dset.prepare_for_task, "language-modeling", id=3)
+            with dset.prepare_for_task("language-modeling") as dset1:
+                self.assertEqual(dset1[0]["text"], "i love transformers!")
+            with dset.prepare_for_task("language-modeling", id=1) as dset2:
+                self.assertEqual(dset2[0]["text"], "i love datasets!")
 
     def test_task_templates_empty_after_preparation(self):
         features = Features(
