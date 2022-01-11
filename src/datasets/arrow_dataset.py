@@ -202,6 +202,10 @@ class DatasetInfoMixin:
         return self._info.supervised_keys
 
     @property
+    def task_templates(self):
+        return self._info.task_templates
+
+    @property
     def version(self):
         return self._info.version
 
