@@ -40,7 +40,6 @@ from datasets.features.audio import Audio, AudioExtensionType
 from datasets.features.image import Image, ImageExtensionType, encode_pil_image
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.utils.logging import get_logger
-from datasets.utils.py_utils import map_nested
 
 
 logger = get_logger(__name__)
