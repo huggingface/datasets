@@ -774,7 +774,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
-        table = InMemoryTable.from_pandas(df=df, preserve_index=preserve_index, schema=pa.schema(features.type) if features is not None else None)
+        table = InMemoryTable.from_pandas(
+            df=df,
+            preserve_index=preserve_index,
+            schema=pa.schema(features.type) if features is not None else None
+        )
         return cls(table, info=info, split=split)
 
     @classmethod
