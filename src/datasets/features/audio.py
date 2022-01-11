@@ -33,6 +33,7 @@ class Audio:
         - bytes: Bytes content of the audio file.
 
       This is useful for archived files with sequential access.
+
     - A :obj:`dict` with the keys:
 
         - path: String with relative path of the audio file to the archive file.
