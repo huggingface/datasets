@@ -1304,3 +1304,21 @@ class Features(dict):
                 return source
 
         return Features(recursive_reorder(self, other))
+
+    def flatten(self, max_depth=16) -> "Features":
+        for depth in range(1, max_depth):
+            no_change = True
+            flattened = self.copy()
+            for column_name, subfeature in self.items():
+                if isinstance(subfeature, dict):
+                    no_change = False
+                    flattened.update({f"{column_name}.{k}": v for k, v in subfeature.items()})
+                    del flattened[column_name]
+                elif isinstance(subfeature, Sequence) and isinstance(subfeature.feature, dict):
+                    no_change = False
+                    flattened.update({f"{column_name}.{k}": [v] for k, v in subfeature.feature.items()})
+                    del flattened[column_name]
+            self = flattened
+            if no_change:
+                break
+        return self

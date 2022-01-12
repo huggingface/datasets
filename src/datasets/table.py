@@ -7,6 +7,8 @@ from typing import List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.compute as pc
+from packaging import version
 
 from . import config
 from .utils.logging import get_logger
@@ -799,7 +801,7 @@ class ConcatenationTable(Table):
                 for name in subtable.column_names:
                     subfields.append(fields.pop(next(i for i, field in enumerate(fields) if field.name == name)))
                 subschema = pa.schema(subfields)
-                new_tables.append(table_cast(subtable, subschema, *args, **kwargs))
+                new_tables.append(subtable.cast(subschema, *args, **kwargs))
             blocks.append(new_tables)
         return ConcatenationTable(table, blocks)
 
@@ -912,37 +914,48 @@ def _wrap_for_chunked_arrays(func):
     return wrapper
 
 
-@_wrap_for_chunked_arrays
-def _cast_to_feature(array, feature):
-    if hasattr(feature, "cast"):
-        return feature.cast(array)
-    elif isinstance(array.type, pa.StructType):
-        # feature must be a dict or Sequence(subfeatures_dict)
-        if not isinstance(feature, dict):
-            feature = {name: [subfeature] for name, subfeature in feature.feature.items()}
-        arrays = [_cast_to_feature(array.field(name), subfeature) for name, subfeature in feature.items()]
-        return pa.StructArray.from_arrays(arrays, names=list(feature))
-    elif isinstance(array, pa.ListType):
-        # feature must be either [subfeature] or Sequence(subfeature)
-        subfeature = feature[0] if isinstance(feature, list) else feature.feature
-        return pa.ListArray.from_arrays(array.offsets, _cast_to_feature(array.values, subfeature))
-    else:
-        return array_cast(array, feature.pa_type)
+def _sanitize_sliced_list_arrays_for_cast(func):
+    """Sanitize pyarrow.ListArray objects for pyarrow.Array.cast in case they are sliced list arrays"""
+
+    @_wrap_for_chunked_arrays
+    def _sanitize(array: pa.ListArray) -> pa.ListArray:
+        """Return the same pyarrow.ListArray but with array.offset == 0 for compatibility with cast for pyarrow 3"""
+        if array.offset == 0:
+            return array
+        elif len(array) == 0:
+            return array.values.slice(0, 0)
+        else:
+            values_offset = array.offsets[0]  # the relevant values start at this index
+            new_values = array.values.slice(values_offset.as_py())  # get the values to start at the right position
+            new_offsets = pc.subtract(array.offsets, values_offset)  # update the offsets accordingly
+            return pa.ListArray.from_arrays(new_offsets, new_values)
+
+    def wrapper(array, *args, **kwargs):
+        if pa.types.is_list(array.type) and config.PYARROW_VERSION < version.parse("4.0.0"):
+            array = _sanitize(array)
+        return func(array, *args, **kwargs)
+
+    return wrapper
 
 
+@_sanitize_sliced_list_arrays_for_cast
 @_wrap_for_chunked_arrays
 def array_cast(array, pa_type):
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
         return pa_type.wrap_array(array)
-    elif isinstance(array.type, pa.StructType):
-        # type must be StructType
+    elif pa.types.is_struct(array.type):
+        if not pa.types.is_struct(pa_type) or (
+            sorted(field.name for field in pa_type) != sorted(field.name for field in array.type)
+        ):
+            raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
         arrays = [array_cast(array.field(field.name), field.type) for field in pa_type]
         return pa.StructArray.from_arrays(arrays, fields=list(pa_type))
-    elif isinstance(array, pa.ListType):
-        # type must be ListType
-        return pa.ListArray.from_arrays(array.offsets, _cast_to_feature(array.values, pa_type.value_type))
+    elif pa.types.is_list(array.type):
+        if not pa.types.is_list(pa_type):
+            raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
+        return pa.ListArray.from_arrays(array.offsets, array_cast(array.values, pa_type.value_type))
     else:
         return array.cast(pa_type)
 
@@ -950,13 +963,7 @@ def array_cast(array, pa_type):
 def table_cast(table: pa.Table, schema):
     if sorted(table.column_names) != sorted(schema.names):
         raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{schema}\nbecause column names don't match")
-    if schema.metadata:
-        from .features import Features
-
-        features = Features.from_arrow_schema(schema)
-        arrays = [_cast_to_feature(table[field.name], features[field.name]) for field in schema]
-    else:
-        arrays = [array_cast(table[field.name], field.type) for field in schema]
+    arrays = [array_cast(table[field.name], field.type) for field in schema]
     return table.from_arrays(arrays, schema=schema)
 
 

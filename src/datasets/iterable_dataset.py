@@ -11,14 +11,15 @@ from .features import Features, FeatureType
 from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit
+from .table import table_cast
 
 
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
     pa_table = pa.Table.from_pydict(batch)
     if try_features is not None:
         try:
-            pa_table = pa_table.cast(pa.schema(try_features.type))
-        except (pa.ArrowInvalid, pa.ArrowNotImplementedError):
+            pa_table = table_cast(pa_table, pa.schema(try_features.type))
+        except (TypeError, pa.ArrowInvalid, pa.ArrowNotImplementedError):
             pass
     return Features.from_arrow_schema(pa_table.schema)
 
