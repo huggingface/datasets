@@ -3594,14 +3594,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         repo_id, split, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
             repo_id=repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
         )
+        old_config = HfApi(endpoint=config.HF_ENDPOINT).dataset_info(
+            repo_id=repo_id,
+            token=token if token is not None else HfFolder.get_token(),
+            revision=branch,
+        )
         organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
         info_to_dump.download_checksums = None
-        info_to_dump.download_size = uploaded_size + self.info.download_size
-        info_to_dump.dataset_size = dataset_nbytes + self.info.dataset_size
-        info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes + self.info.size_in_bytes
+        info_to_dump.download_size = uploaded_size + old_config.download_size
+        info_to_dump.dataset_size = dataset_nbytes + old_config.dataset_size
+        info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes + old_config.size_in_bytes
         info_to_dump.splits = {
-            **self.info.splits,
+            **self.old_config.splits,
             split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)
         }
         buffer = BytesIO()
