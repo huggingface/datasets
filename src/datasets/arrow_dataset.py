@@ -3604,9 +3604,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         fs = HfFileSystem(repo_info=dataset_info_hub, token=token if token is not None else HfFolder.get_token())
         with fs.open("dataset_infos.json") as fi:
             dataset_config_dict = json.load(fi)
-            assert len(dataset_config_dict) == 1
-            dataset_config_dict = dataset_config_dict[next(iter(dataset_config_dict))]
-            old_config = DatasetInfo.from_dict(dataset_config_dict)
+            key = repo_id.replace("/", "--")
+            old_config = DatasetInfo.from_dict(dataset_config_dict[key])
 
         organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
