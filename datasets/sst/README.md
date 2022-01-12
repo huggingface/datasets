@@ -23,6 +23,7 @@ task_ids:
 - sentiment-classification
 - sentiment-scoring
 paperswithcode_id: sst
+pretty_name: Stanford Sentiment Treebank
 ---
 
 # Dataset Card for sst

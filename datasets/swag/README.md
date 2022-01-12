@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - natural-language-inference
 paperswithcode_id: swag
+pretty_name: Situations With Adversarial Generations
 ---
 
 # Dataset Card Creation Guide

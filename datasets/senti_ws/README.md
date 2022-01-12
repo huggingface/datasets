@@ -21,6 +21,7 @@ task_ids:
 - sentiment-scoring
 - structure-prediction-other-pos-tagging
 paperswithcode_id: null
+pretty_name: SentiWS
 ---
 
 # Dataset Card for SentiWS

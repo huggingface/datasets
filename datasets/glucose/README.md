@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sequence-modeling-other-common-sense-inference
 paperswithcode_id: glucose
+pretty_name: GLUCOSE
 ---
 
 # Dataset Card for [Dataset Name]

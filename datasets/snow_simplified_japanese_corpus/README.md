@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: SNOW T15 and T23 (simplified Japanese corpus)
 ---
 
 # Dataset Card for SNOW T15 and T23 (simplified Japanese corpus)

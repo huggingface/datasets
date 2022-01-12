@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-classification-other-fake-news-detection
 paperswithcode_id: liar
+pretty_name: LIAR
 ---
 
 # Dataset Card for [Dataset Name]

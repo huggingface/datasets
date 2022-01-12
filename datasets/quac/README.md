@@ -21,6 +21,7 @@ task_ids:
 - dialogue-modeling
 - extractive-qa
 paperswithcode_id: quac
+pretty_name: Question Answering in Context
 ---
 
 # Dataset Card Creation Guide

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: null
+pretty_name: KannadaNews Dataset
 ---
 
 # Dataset Card for kannada_news dataset 

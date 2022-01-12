@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: piqa
+pretty_name: 'Physical Interaction: Question Answering'
 ---
 
 # Dataset Card Creation Guide

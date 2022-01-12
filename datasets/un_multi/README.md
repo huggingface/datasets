@@ -80,6 +80,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: multiun
+pretty_name: Multilingual Corpus from United Nation Documents
 ---
 
 # Dataset Card for [Dataset Name]

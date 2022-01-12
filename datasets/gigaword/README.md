@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: null
+pretty_name: gigaword
 ---
 
 # Dataset Card for "gigaword"

@@ -387,6 +387,7 @@ task_ids:
 - machine-translation
 - semantic-similarity-classification
 paperswithcode_id: tapaco
+pretty_name: TaPaCo Corpus
 ---
 
 # Dataset Card for TaPaCo Corpus

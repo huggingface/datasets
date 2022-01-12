@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: quartz
+pretty_name: QuaRTz Dataset
 ---
 
 # Dataset Card for "quartz"

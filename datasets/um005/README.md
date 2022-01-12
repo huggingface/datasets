@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: umc005-english-urdu
+pretty_name: UMC005 English-Urdu
 ---
 
 # Dataset Card Creation Guide

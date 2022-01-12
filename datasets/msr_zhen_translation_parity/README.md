@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: MsrZhenTranslationParity
 ---
 
 # Dataset Card for msr_zhen_translation_parity

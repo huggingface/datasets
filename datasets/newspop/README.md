@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - other-social-media-shares-prediction
 paperswithcode_id: null
+pretty_name: News Popularity in Multiple Social Media Platforms
 ---
 
-# Dataset Card for newspop
+# Dataset Card for News Popularity in Multiple Social Media Platforms
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

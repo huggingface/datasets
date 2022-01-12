@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: selqa
+pretty_name: SelQA
 ---
 
 # Dataset Card for SelQA

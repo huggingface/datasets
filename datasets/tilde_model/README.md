@@ -47,6 +47,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: tilde-model-corpus
+pretty_name: Tilde Multilingual Open Data for European Languages
 ---
 
 # Dataset Card Creation Guide

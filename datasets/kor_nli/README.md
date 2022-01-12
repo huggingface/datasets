@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: kornli
+pretty_name: KorNLI
 ---
 
 # Dataset Card for "kor_nli"
