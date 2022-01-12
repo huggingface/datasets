@@ -109,9 +109,9 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
-pretty_name: kde4
+pretty_name: KDE4
 ---
-# Dataset Card Creation Guide
+# Dataset Card for KDE4
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

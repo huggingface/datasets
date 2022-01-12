@@ -1,9 +1,9 @@
 ---
 paperswithcode_id: null
-pretty_name: IwslT217
+pretty_name: IWSLT 2017
 ---
 
-# Dataset Card for "iwslt2017"
+# Dataset Card for IWSLT 2017
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
