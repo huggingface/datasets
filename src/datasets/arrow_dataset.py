@@ -3614,7 +3614,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info_to_dump.dataset_size = dataset_nbytes + old_config.dataset_size
         info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes + old_config.size_in_bytes
         info_to_dump.splits = {
-            **self.old_config.splits,
+            **old_config.splits,
             split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)
         }
         buffer = BytesIO()
