@@ -761,7 +761,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (:class:`Features`, optional): Dataset features.
             info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (:class:`NamedSplit`, optional): Name of the dataset split.
-            preserve_index (:obj:`bool`, optional): Whether to preserve pd.DataFrame index while constructing pyarrow.Table. By default, it only preserves custom index.
+            preserve_index (:obj:`bool`, optional): Whether to store the index as an additional column in the resulting Dataset.
+                The default of None will store the index as a column, except for RangeIndex which is stored as metadata only.
+                Use preserve_index=True to force it to be stored as a column.
 
         Returns:
             :class:`Dataset`
