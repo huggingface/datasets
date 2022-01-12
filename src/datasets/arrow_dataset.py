@@ -3650,9 +3650,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name),
             }
         else:
-            info_to_dump.download_size = uploaded_size if old_dataset_infos.download_size is None else uploaded_size + old_dataset_infos.download_size
-            info_to_dump.dataset_size = dataset_nbytes if old_dataset_infos.dataset_size is None else dataset_nbytes + old_dataset_infos.dataset_size
-            info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes if old_dataset_infos.size_in_bytes is None else uploaded_size + dataset_nbytes + old_dataset_infos.size_in_bytes
+            info_to_dump.download_size = (
+                uploaded_size
+                if old_dataset_infos.download_size is None
+                else uploaded_size + old_dataset_infos.download_size
+            )
+            info_to_dump.dataset_size = (
+                dataset_nbytes
+                if old_dataset_infos.dataset_size is None
+                else dataset_nbytes + old_dataset_infos.dataset_size
+            )
+            info_to_dump.size_in_bytes = (
+                uploaded_size + dataset_nbytes
+                if old_dataset_infos.size_in_bytes is None
+                else uploaded_size + dataset_nbytes + old_dataset_infos.size_in_bytes
+            )
             info_to_dump.splits = {
                 **(old_dataset_infos.splits if old_dataset_infos.splits is not None else {}),
                 split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name),
