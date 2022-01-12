@@ -47,7 +47,7 @@ class ArcdConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(ArcdConfig, self).__init__(**kwargs)
 
 
 class Arcd(datasets.GeneratorBasedBuilder):

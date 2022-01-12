@@ -80,7 +80,7 @@ class WikiDprConfig(datasets.BuilderConfig):
         assert embeddings_name in ("nq", "multiset")
         assert index_name in ("compressed", "exact", "no_index")
         kwargs["name"] = ".".join(name)
-        super().__init__(**kwargs)
+        super(WikiDprConfig, self).__init__(**kwargs)
 
         prefix = f"{wiki_split}.{embeddings_name}."
         if self.index_name == "exact":
@@ -141,7 +141,7 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, data_file, vectors_files=None):
         vec_idx = 0
         vecs = []
-        lines = open(data_file, encoding="utf-8")
+        lines = open(data_file, "r", encoding="utf-8")
         next(lines)  # skip headers
         for i, line in enumerate(lines):
             if self.config.dummy and i == 10000:

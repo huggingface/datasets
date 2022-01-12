@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -92,12 +93,12 @@ class ParaPatConfig(datasets.BuilderConfig):
 
     def __init__(self, language_pair=(None, None), url=None, **kwargs):
         """BuilderConfig for ParaPat."""
-        name = f"{language_pair[0]}-{language_pair[1]}"
+        name = "%s-%s" % (language_pair[0], language_pair[1])
 
         description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
 
         source, target = language_pair
-        super().__init__(
+        super(ParaPatConfig, self).__init__(
             name=name,
             description=description,
             version=datasets.Version("1.1.0", ""),

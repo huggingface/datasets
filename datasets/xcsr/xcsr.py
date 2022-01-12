@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -89,7 +90,7 @@ class XcsrConfig(datasets.BuilderConfig):
         language: One of {en, zh, de, es, fr, it, jap, nl, pl, pt, ru, ar, vi, hi, sw, ur}, or all_languages
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(XcsrConfig, self).__init__(**kwargs)
         self.name = name
         self.language = language
 

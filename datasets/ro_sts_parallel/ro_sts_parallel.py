@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +50,7 @@ class ROSTSParallelConfig(datasets.BuilderConfig):
     def __init__(self, language_pair=(None, None), **kwargs):
 
         # description = ("RO-STS Parallel dataset, translation from %s to %s") % (language_pair[0], language_pair[1])
-        super().__init__(**kwargs)
+        super(ROSTSParallelConfig, self).__init__(**kwargs)
         self.language_pair = language_pair
 
 

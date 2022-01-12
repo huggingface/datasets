@@ -132,7 +132,7 @@ class WikiSnippetsConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(WikiSnippetsConfig, self).__init__(**kwargs)
         self.wikipedia_name = wikipedia_name
         self.wikipedia_version_name = wikipedia_version_name
         self.snippets_length = snippets_length

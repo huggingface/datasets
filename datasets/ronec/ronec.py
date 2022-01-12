@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +51,7 @@ class RONECConfig(datasets.BuilderConfig):
     """BuilderConfig for RONEC dataset"""
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(RONECConfig, self).__init__(**kwargs)
 
 
 class RONEC(datasets.GeneratorBasedBuilder):
@@ -154,7 +155,7 @@ class RONEC(datasets.GeneratorBasedBuilder):
         """Yields examples."""
 
         logger.info("⏳ Generating examples from = %s", filepath)
-        with open(filepath, encoding="utf-8") as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
             for instance in data:
                 yield instance["id"], instance

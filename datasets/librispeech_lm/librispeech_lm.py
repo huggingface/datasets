@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +67,7 @@ class LibrispeechLm(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, archive_path):
         """Yields examples."""
-        with open(archive_path, encoding="utf-8") as f:
+        with open(archive_path, "r", encoding="utf-8") as f:
             for key, line in enumerate(f):
                 text = line.strip()
                 if text:  # Skip empty lines.

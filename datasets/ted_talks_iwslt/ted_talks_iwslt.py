@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -204,7 +205,7 @@ class TedTalksIWSLTConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Validate language pair.
-        name = f"{language_pair[0]}_{language_pair[1]}_{year}"
+        name = "%s_%s_%s" % (language_pair[0], language_pair[1], year)
         source, target = language_pair
         assert source in _LANGUAGES, f"Invalid source code in language pair: {source}"
         assert target in _LANGUAGES, f"Invalid target code in language pair: {target}"
@@ -212,7 +213,7 @@ class TedTalksIWSLTConfig(datasets.BuilderConfig):
         assert year in _YEAR.keys()
 
         description = f"Translation Ted Talks dataset (WIT3) between {source} and {target}"
-        super().__init__(
+        super(TedTalksIWSLTConfig, self).__init__(
             name=name,
             description=description,
             **kwargs,

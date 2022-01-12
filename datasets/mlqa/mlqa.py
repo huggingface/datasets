@@ -40,7 +40,7 @@ class MlqaConfig(datasets.BuilderConfig):
           data_url: `string`, url to the dataset
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(
+        super(MlqaConfig, self).__init__(
             version=datasets.Version(
                 "1.0.0",
             ),

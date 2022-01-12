@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +61,7 @@ class CodahConfig(datasets.BuilderConfig):
           fold: `string`, official cross validation fold.
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(CodahConfig, self).__init__(**kwargs)
         self.fold = fold
 
 

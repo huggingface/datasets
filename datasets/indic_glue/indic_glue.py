@@ -430,7 +430,7 @@ class IndicGlueConfig(datasets.BuilderConfig):
         dict for each text field to the name of the column in the csv/json file
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(IndicGlueConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.data_url = data_url
         self.citation = citation
         self.url = url
@@ -813,14 +813,14 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             if args["key"] == "test-split":
                 for path, f in files:
                     if path == filepath:
-                        data = csv.DictReader(line.decode("utf-8") for line in f)
+                        data = csv.DictReader((line.decode("utf-8") for line in f))
                         for id_, row in enumerate(data):
                             yield id_, {"hypothesis": row["sentence1"], "premise": row["sentence2"], "label": "None"}
                         break
             else:
                 for path, f in files:
                     if path == filepath:
-                        data = csv.DictReader(line.decode("utf-8") for line in f)
+                        data = csv.DictReader((line.decode("utf-8") for line in f))
                         for id_, row in enumerate(data):
                             label = "entailment" if row["label"] else "not_entailment"
                             yield id_, {

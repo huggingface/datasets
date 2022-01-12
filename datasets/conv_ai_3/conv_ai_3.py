@@ -32,7 +32,7 @@ class ConvAi_3_Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(ConvAi_3_Config, self).__init__(**kwargs)
 
 
 class ConvAi_3(datasets.GeneratorBasedBuilder):

@@ -57,7 +57,7 @@ class WisesightSentimentConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(WisesightSentimentConfig, self).__init__(**kwargs)
 
 
 class WisesightSentiment(datasets.GeneratorBasedBuilder):

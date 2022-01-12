@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -105,7 +106,7 @@ class S2orc(datasets.GeneratorBasedBuilder):
         _MANIFEST_URL = _ROOT_URL + "manifest.txt"
         manifest_file = dl_manager.download_and_extract(_MANIFEST_URL)
 
-        file = open(manifest_file, encoding="utf-8")
+        file = open(manifest_file, "r", encoding="utf-8")
         train_names = file.read().splitlines()
 
         r = re.compile("(?s:s2\\-corpus\\-.*\\.gz)\\Z")  # files are of the form 's2-corpus-*.gz'

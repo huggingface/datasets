@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -226,7 +227,7 @@ _LANGS = [
 
 class WikiannConfig(datasets.BuilderConfig):
     def __init__(self, **kwargs):
-        super().__init__(version=datasets.Version(_VERSION, ""), **kwargs)
+        super(WikiannConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs)
 
 
 class Wikiann(datasets.GeneratorBasedBuilder):

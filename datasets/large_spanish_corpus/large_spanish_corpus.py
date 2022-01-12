@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,7 +72,7 @@ _COMBINED = "combined"
 
 class LargeSpanishCorpusConfig(datasets.BuilderConfig):
     def __init__(self, corpora=None, **kwargs):
-        super().__init__(version=datasets.Version(_VERSION, ""), **kwargs)
+        super(LargeSpanishCorpusConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs)
         self.corpora = corpora
 
     @property
@@ -115,7 +116,7 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
         for filepath in self.config.filepaths:
             filepath = os.path.join(data_dir, filepath)
             _id = 0
-            with open(filepath, encoding="utf-8") as f:
+            with open(filepath, mode="r", encoding="utf-8") as f:
                 for line in f:
                     yield _id, {"text": line.strip()},
                     _id += 1

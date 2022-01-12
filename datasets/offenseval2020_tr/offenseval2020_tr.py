@@ -1,3 +1,4 @@
+# coding=utf-8
 # Lint as: python3
 """OffensEval-TR 2020: A Corpus of Turkish Offensive Language on Social Media"""
 
@@ -42,7 +43,7 @@ class OffensEval2020TRConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(OffensEval2020TRConfig, self).__init__(**kwargs)
 
 
 class Offenseval2020TR(datasets.GeneratorBasedBuilder):

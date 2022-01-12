@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,7 +69,7 @@ class ScientificPapersConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # 1.1.0 remove sentence breaker <S> and </S> in summary.
-        super().__init__(version=datasets.Version("1.1.1"), **kwargs)
+        super(ScientificPapersConfig, self).__init__(version=datasets.Version("1.1.1"), **kwargs)
         self.filename = filename
 
 

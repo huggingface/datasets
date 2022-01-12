@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +55,7 @@ class ArabicPosDialectConfig(datasets.BuilderConfig):
             Code should be one of the following: egy, lev, glf, mgr.
             **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(ArabicPosDialectConfig, self).__init__(**kwargs)
         assert dialect in _DIALECTS, ("Invalid dialect code: %s", dialect)
         self.dialect = dialect
 

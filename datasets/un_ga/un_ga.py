@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +78,7 @@ class UnGaConfig(datasets.BuilderConfig):
           language_pair: pair of languages that will be used for translation.
           **kwargs: keyword arguments forwarded to super.
         """
-        name = f"{language_pair[0]}_to_{language_pair[1]}"
+        name = "%s_to_%s" % (language_pair[0], language_pair[1])
 
         description = ("Translation dataset from %s to %s or %s to %s.") % (
             language_pair[0],
@@ -85,7 +86,9 @@ class UnGaConfig(datasets.BuilderConfig):
             language_pair[1],
             language_pair[0],
         )
-        super().__init__(name=name, description=description, version=datasets.Version(_VERSION, ""), **kwargs)
+        super(UnGaConfig, self).__init__(
+            name=name, description=description, version=datasets.Version(_VERSION, ""), **kwargs
+        )
 
         # Validate language pair.
         assert language_pair in _VALID_LANGUAGE_PAIRS, (

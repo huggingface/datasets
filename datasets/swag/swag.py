@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -157,7 +158,7 @@ class Swag(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """Yields examples."""
-        with open(filepath, encoding="utf-8") as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             lines = list(csv.reader(f, delimiter=","))
 
             for id_, row in enumerate(lines[1:]):

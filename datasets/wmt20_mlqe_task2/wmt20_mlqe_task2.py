@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +73,7 @@ _URLs = {f"{src_lg}-{tgt_lg}": inject_to_link(src_lg, tgt_lg) for (src_lg, tgt_l
 
 class WmtMlqeConfig(datasets.BuilderConfig):
     def __init__(self, src_lg, tgt_lg, **kwargs):
-        super().__init__(**kwargs)
+        super(WmtMlqeConfig, self).__init__(**kwargs)
         self.src_lg = src_lg
         self.tgt_lg = tgt_lg
 

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +26,7 @@ the original corpus repo. Modifications are made to accommodate the HuggingFace 
 import csv
 import datetime
 import glob
+import io
 import os
 import re
 
@@ -474,7 +476,7 @@ class Swda(datasets.GeneratorBasedBuilder):
         """
 
         # Read in the split file.
-        split_file = open(file=split_file, mode="r", encoding="utf-8").read().splitlines()
+        split_file = io.open(file=split_file, mode="r", encoding="utf-8").read().splitlines()
         # Read in corpus data using split files.
         corpus = CorpusReader(src_dirname=data_dir, split_file=split_file)
         # Generate examples.
@@ -543,7 +545,9 @@ class CorpusReader:
         """
 
         for trans in self.iter_transcripts():
-            yield from trans.utterances
+            for utt in trans.utterances:
+                # Yield the Utterance instance:
+                yield utt
 
 
 class Metadata:
@@ -777,7 +781,7 @@ class Transcript:
         else:  # Where the supplied value is already a Metadata object.
             self.metadata = metadata
         # Get the file rows:
-        rows = list(csv.reader(open(self.swda_filename)))
+        rows = list(csv.reader(open(self.swda_filename, "rt")))
         # Ge the header and remove it from the rows:
         self.header = rows[0]
         rows.pop(0)

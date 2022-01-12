@@ -31,7 +31,7 @@ class ThaiSumConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(ThaiSumConfig, self).__init__(**kwargs)
 
 
 class Thaisum(datasets.GeneratorBasedBuilder):

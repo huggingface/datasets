@@ -42,7 +42,7 @@ class XquadConfig(datasets.BuilderConfig):
             lang: string, language for the input text
             **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(XquadConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.lang = lang
 
 

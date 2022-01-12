@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +17,7 @@
 
 import itertools
 import os
-import xml.etree.ElementTree as ET
+import xml.etree.cElementTree as ET
 from collections import defaultdict
 from glob import glob
 from os.path import join as pjoin

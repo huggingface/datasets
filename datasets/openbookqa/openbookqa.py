@@ -42,7 +42,7 @@ class OpenbookqaConfig(datasets.BuilderConfig):
 
         """
 
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(OpenbookqaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
         self.data_dir = data_dir
 

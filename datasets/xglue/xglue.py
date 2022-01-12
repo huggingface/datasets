@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -116,7 +117,7 @@ class XGlueConfig(datasets.BuilderConfig):
           url: `string`, url for information about the data set
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(XGlueConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.data_dir = data_dir
         self.citation = citation
         self.url = url

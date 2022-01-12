@@ -35,7 +35,7 @@ class ScbMtEnth2020Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(
+        super(ScbMtEnth2020Config, self).__init__(
             name=f"{language_pair[0]}{language_pair[1]}",
             description="Translate {language_pair[0]} to {language_pair[1]}",
             version=datasets.Version("1.0.0"),

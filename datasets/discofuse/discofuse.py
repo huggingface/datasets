@@ -36,7 +36,7 @@ class DiscofuseConfig(datasets.BuilderConfig):
             balanced: to specify if we want to load the balanced file or the full file
             **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(DiscofuseConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.balanced = balanced
         self.data_url = data_url
 

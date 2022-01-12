@@ -255,13 +255,15 @@ _DESCRIPTIONS = {
 }
 _CITATIONS = {
     "tydiqa": textwrap.dedent(
-        """\
+        (
+            """\
             @article{tydiqa,
               title   = {TyDi QA: A Benchmark for Information-Seeking Question Answering in Typologically Diverse Languages},
               author  = {Jonathan H. Clark and Eunsol Choi and Michael Collins and Dan Garrette and Tom Kwiatkowski and Vitaly Nikolaev and Jennimaria Palomaki}
               year    = {2020},
               journal = {Transactions of the Association for Computational Linguistics}
               }"""
+        )
     ),
     "XNLI": textwrap.dedent(
         """\
@@ -435,7 +437,7 @@ class XtremeConfig(datasets.BuilderConfig):
             label_classes
             **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(XtremeConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.data_url = data_url
         self.citation = citation

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +64,7 @@ class SelqaConfig(datasets.BuilderConfig):
     """ "BuilderConfig for SelQA Dataset"""
 
     def __init__(self, mode, type_, **kwargs):
-        super().__init__(**kwargs)
+        super(SelqaConfig, self).__init__(**kwargs)
         self.mode = mode
         self.type_ = type_
 

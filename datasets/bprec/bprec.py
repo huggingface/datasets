@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,7 +68,7 @@ class BprecConfig(datasets.BuilderConfig):
     """BuilderConfig for BprecConfig."""
 
     def __init__(self, categories=None, **kwargs):
-        super().__init__(version=datasets.Version(_VERSION, ""), **kwargs),
+        super(BprecConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs),
         self.categories = categories
 
 
@@ -183,7 +184,7 @@ class Bprec(datasets.GeneratorBasedBuilder):
         # The key is not important, it's more here for legacy reason (legacy from tfds)
         cats = [cat for cat in self.config.categories]
         for cat, filepath in zip(cats, filedirs):
-            with open(filepath, encoding="utf-8") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 for key in data.keys():
                     example = data[key]

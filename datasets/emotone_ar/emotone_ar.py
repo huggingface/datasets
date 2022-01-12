@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,7 +70,7 @@ class EmotoneAr(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate labeled arabic tweets examples for emoptions detection."""
-        with open(filepath, encoding="utf-8") as csv_file:
+        with open(filepath, encoding="utf-8", mode="r") as csv_file:
             next(csv_file)  # skip header
             csv_reader = csv.reader(csv_file, quotechar='"', delimiter=",")
 

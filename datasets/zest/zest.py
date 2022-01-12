@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,7 +92,7 @@ class Zest(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, is_labeled=True):
         """Generate AG News examples."""
         counter = 0
-        with open(filepath, encoding="utf-8") as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             for line in f:
                 task = json.loads(line)
                 base_dict = {

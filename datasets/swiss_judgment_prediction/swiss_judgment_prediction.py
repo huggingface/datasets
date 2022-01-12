@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +60,7 @@ class SwissJudgmentPredictionConfig(datasets.BuilderConfig):
         language: One of de,fr,it, or all_languages
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(SwissJudgmentPredictionConfig, self).__init__(**kwargs)
         self.language = language
         if language != "all_languages":
             self.languages = [language]

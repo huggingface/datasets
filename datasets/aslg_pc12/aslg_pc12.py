@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,8 +72,8 @@ class ASLGPC12(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, gloss_path, text_path):
         """Yields examples."""
 
-        gloss_f = open(gloss_path, encoding="utf-8")
-        text_f = open(text_path, encoding="utf-8")
+        gloss_f = open(gloss_path, "r", encoding="utf-8")
+        text_f = open(text_path, "r", encoding="utf-8")
 
         for i, (gloss, text) in enumerate(zip(gloss_f, text_f)):
             yield i, {"gloss": gloss, "text": text}

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,7 +95,7 @@ _URLs = dict(_URLS_LIST)
 
 class ExamsConfig(datasets.BuilderConfig):
     def __init__(self, lang, with_para, **kwargs):
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(ExamsConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.lang = lang
         self.with_para = "_with_para" if with_para else ""
 

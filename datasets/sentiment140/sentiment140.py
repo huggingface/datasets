@@ -38,7 +38,7 @@ class Sentiment140Config(datasets.BuilderConfig):
           data_url: `string`, url to the dataset (word or raw level)
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(Sentiment140Config, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.data_url = data_url
 
 

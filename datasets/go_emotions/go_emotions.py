@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -142,7 +143,7 @@ class GoEmotions(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths, raw=False):
         """Generate AG News examples."""
         for file_idx, filepath in enumerate(filepaths):
-            with open(filepath, encoding="utf-8") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 if raw:
                     reader = csv.DictReader(f)
                 else:

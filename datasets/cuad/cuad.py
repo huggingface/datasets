@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +14,7 @@
 # limitations under the License.
 """CUAD: A dataset for legal contract review curated by the Atticus Project."""
 
+from __future__ import absolute_import, division, print_function
 
 import json
 import os

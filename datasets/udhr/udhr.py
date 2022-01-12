@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +78,7 @@ class UDHN(datasets.GeneratorBasedBuilder):
             txt_path = os.path.join(txt_dir, f"udhr_{lang}.txt")
             assert os.path.exists(txt_path), f"xml file {xml_path} found with no corresponding txt file"
 
-            with open(txt_path, encoding="utf-8") as f:
+            with open(txt_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()[6:]  # ignore first 6 lines (metainfo)
             text = "\n".join([line.strip() for line in lines if len(line.strip()) > 0])
 

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +44,7 @@ class ROSTSConfig(datasets.BuilderConfig):
     """BuilderConfig for RO-STS dataset"""
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(ROSTSConfig, self).__init__(**kwargs)
 
 
 class RoSts(datasets.GeneratorBasedBuilder):

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -603,7 +604,9 @@ class CommonVoiceConfig(datasets.BuilderConfig):
         self.total_hr_total = kwargs.pop("total_hrs", None)
         self.num_of_voice = kwargs.pop("num_of_voice", None)
         description = f"Common Voice speech to text dataset in {self.language} version {self.sub_version} of {self.date_of_snapshot}. The dataset comprises {self.validated_hr_total} of validated transcribed speech data from {self.num_of_voice} speakers. The dataset has a size of {self.size}"
-        super().__init__(name=name, version=datasets.Version("6.1.0", ""), description=description, **kwargs)
+        super(CommonVoiceConfig, self).__init__(
+            name=name, version=datasets.Version("6.1.0", ""), description=description, **kwargs
+        )
 
 
 class CommonVoice(datasets.GeneratorBasedBuilder):

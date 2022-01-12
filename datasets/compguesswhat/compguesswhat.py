@@ -16,7 +16,9 @@ class CompguesswhatConfig(datasets.BuilderConfig):
             the zero-shot reference games based on NOCAPS images ('zero_shot')
             **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("0.2.0", "Second CompGuessWhat?! release"), **kwargs)
+        super(CompguesswhatConfig, self).__init__(
+            version=datasets.Version("0.2.0", "Second CompGuessWhat?! release"), **kwargs
+        )
         assert gameplay_scenario in (
             "original",
             "zero_shot",

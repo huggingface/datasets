@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,7 +97,7 @@ class LiveQA(datasets.GeneratorBasedBuilder):
 
         data_raw = ""
         for filepath in filepaths:
-            with open(filepath, encoding="utf-8") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 data_raw += f.read()
 
         data = json.loads(data_raw)

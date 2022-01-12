@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,7 +59,9 @@ class KILTWikipediaConfig(datasets.BuilderConfig):
         .
               **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", "Wikipedia pre-processed for KILT"), **kwargs)
+        super(KILTWikipediaConfig, self).__init__(
+            version=datasets.Version("1.0.0", "Wikipedia pre-processed for KILT"), **kwargs
+        )
 
 
 class KILTWikipedia(datasets.GeneratorBasedBuilder):
@@ -144,7 +147,7 @@ class KILTWikipedia(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 pre_article = json.loads(line.strip())
-                article = {k: pre_article[k] for k in ["wikipedia_id", "wikipedia_title", "categories"]}
+                article = dict([(k, pre_article[k]) for k in ["wikipedia_id", "wikipedia_title", "categories"]])
                 # wikidata
                 article["wikidata_info"] = {}
                 pre_article["wikidata_info"] = pre_article.get("wikidata_info", {})

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,7 +99,7 @@ class CnnDailymailConfig(datasets.BuilderConfig):
 
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(CnnDailymailConfig, self).__init__(**kwargs)
 
 
 def _get_url_hashes(path):
@@ -165,7 +166,7 @@ END_TOKENS = [".", "!", "?", "...", "'", "`", '"', DM_SINGLE_CLOSE_QUOTE, DM_DOU
 
 def _read_text_file(text_file):
     lines = []
-    with open(text_file, encoding="utf-8") as f:
+    with open(text_file, "r", encoding="utf-8") as f:
         for line in f:
             lines.append(line.strip())
     return lines

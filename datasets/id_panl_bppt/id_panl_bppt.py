@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +54,7 @@ class IdPanlBpptConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(IdPanlBpptConfig, self).__init__(**kwargs)
         self.src_tag = src_tag
         self.tgt_tag = tgt_tag
         self.topics = topics

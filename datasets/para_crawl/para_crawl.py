@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,7 +94,7 @@ class ParaCrawlConfig(datasets.BuilderConfig):
         name = "en%s" % (target_language)
 
         description = ("Translation dataset from English to %s.") % (target_language)
-        super().__init__(name=name, description=description, **kwargs)
+        super(ParaCrawlConfig, self).__init__(name=name, description=description, **kwargs)
 
         # Store the attributes.
 

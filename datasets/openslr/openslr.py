@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +14,7 @@
 # limitations under the License.
 """ OpenSLR Dataset"""
 
+from __future__ import absolute_import, division, print_function
 
 import os
 import re
@@ -512,7 +514,7 @@ class OpenSlrConfig(datasets.BuilderConfig):
             f"Open Speech and Language Resources dataset in {self.language}. Name: {self.name}, "
             f"Summary: {self.summary}."
         )
-        super().__init__(name=name, description=description, **kwargs)
+        super(OpenSlrConfig, self).__init__(name=name, description=description, **kwargs)
 
 
 class OpenSlr(datasets.GeneratorBasedBuilder):

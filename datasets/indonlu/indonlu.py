@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,7 +69,7 @@ class IndonluConfig(datasets.BuilderConfig):
           citation: `string`, citation for the data set
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(IndonluConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.label_column = label_column
         self.label_classes = label_classes

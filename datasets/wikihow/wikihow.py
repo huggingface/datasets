@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +78,7 @@ class WikihowConfig(datasets.BuilderConfig):
         """
         # Version 1.1.0 remove empty document and summary strings.
         # Version 1.2.0 add train validation test split, add cleaning & filtering.
-        super().__init__(version=datasets.Version("1.2.0"), **kwargs)
+        super(WikihowConfig, self).__init__(version=datasets.Version("1.2.0"), **kwargs)
         self.filename = filename
 
 

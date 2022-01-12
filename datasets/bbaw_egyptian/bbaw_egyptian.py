@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,7 +79,7 @@ class BbawEgyptian(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples as (key, example) tuples."""
-        with open(filepath, encoding="utf-8") as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
         for id_, row in enumerate(data):
             yield id_, {

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -316,19 +317,21 @@ _SGD_ACTS = [
     "THANK_YOU",
 ]
 
-_XSUM_REMOVE_LINES = {
-    "Share this with\n",
-    "Email\n",
-    "Facebook\n",
-    "Messenger\n",
-    "Twitter\n",
-    "Pinterest\n",
-    "WhatsApp\n",
-    "Linkedin\n",
-    "LinkedIn\n",
-    "Copy this link\n",
-    "These are external links and will open in a new window\n",
-}
+_XSUM_REMOVE_LINES = set(
+    [
+        "Share this with\n",
+        "Email\n",
+        "Facebook\n",
+        "Messenger\n",
+        "Twitter\n",
+        "Pinterest\n",
+        "WhatsApp\n",
+        "Linkedin\n",
+        "LinkedIn\n",
+        "Copy this link\n",
+        "These are external links and will open in a new window\n",
+    ]
+)
 
 
 class Gem(datasets.GeneratorBasedBuilder):
@@ -1048,7 +1051,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                     bad_ids = {}
                 else:
                     bad_ids_dct = json.load(open(filepaths, encoding="utf-8"))
-                    bad_ids = {bad_url: True for _, bad_url in bad_ids_dct[f"{lang}-{split}"]}
+                    bad_ids = dict((bad_url, True) for _, bad_url in bad_ids_dct[f"{lang}-{split}"])
                 with open(filepath, encoding="utf-8") as f:
                     id_ = -1
                     for line in f:
@@ -1126,7 +1129,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                     exple["gem_id"] = f"{self.config.name}-{split}-{id_}"
                     yield id_, exple
             else:
-                with open(filepath, encoding="utf-8") as json_file:
+                with open(filepath, "r", encoding="utf-8") as json_file:
                     json_list = list(json_file)
                 id_ = -1
                 i = -1
@@ -1224,7 +1227,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                     for id_, line in enumerate(f):
                         values = line.strip().split("\t")
                         assert len(values) == 2, f"Not enough fields in ---- {line} --- {values}"
-                        example = {k: val for k, val in zip(keys, values)}
+                        example = dict([(k, val) for k, val in zip(keys, values)])
                         example["gem_id"] = f"{self.config.name}-{split}-{id_}"
                         example["gem_parent_id"] = example["gem_id"]
                         example["references"] = [] if split == "train" else [example["target"]]
@@ -1314,10 +1317,10 @@ class Gem(datasets.GeneratorBasedBuilder):
                         exple["gem_id"] = f"{self.config.name}-{split}-{id_}"
                         yield id_, exple
             else:
-                with open(filepath, encoding="utf-8") as f:
+                with open(filepath, "r", encoding="utf-8") as f:
                     split_ids = json.load(f)
                 for id_, i in enumerate(split_ids[split]):
-                    with open(os.path.join(filepaths, i + ".summary"), encoding="utf-8") as f:
+                    with open(os.path.join(filepaths, i + ".summary"), "r", encoding="utf-8") as f:
                         text = "".join(
                             [line for line in f.readlines() if line not in _XSUM_REMOVE_LINES and line.strip()]
                         )

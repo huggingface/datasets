@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -121,7 +122,7 @@ class SpeechCommandsConfig(datasets.BuilderConfig):
     """BuilderConfig for SpeechCommands."""
 
     def __init__(self, labels, **kwargs):
-        super().__init__(**kwargs)
+        super(SpeechCommandsConfig, self).__init__(**kwargs)
         self.labels = labels
 
 

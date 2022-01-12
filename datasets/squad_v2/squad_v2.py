@@ -44,7 +44,7 @@ class SquadV2Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(SquadV2Config, self).__init__(**kwargs)
 
 
 class SquadV2(datasets.GeneratorBasedBuilder):

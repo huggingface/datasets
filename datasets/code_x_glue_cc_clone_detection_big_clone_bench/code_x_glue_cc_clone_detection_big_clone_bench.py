@@ -60,7 +60,7 @@ class CodeXGlueCcCloneDetectionBigCloneBenchImpl(TrainValidTestChild):
         with open(file_paths["index"], encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 line = line.strip()
-                idx1, idx2, label = (int(i) for i in line.split("\t"))
+                idx1, idx2, label = [int(i) for i in line.split("\t")]
                 func1 = js_all[idx1]
                 func2 = js_all[idx2]
 

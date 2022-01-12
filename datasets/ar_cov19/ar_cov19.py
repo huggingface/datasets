@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +61,7 @@ class ArCov19Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(ArCov19Config, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case

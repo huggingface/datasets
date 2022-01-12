@@ -111,7 +111,7 @@ class Pg19(datasets.GeneratorBasedBuilder):
             return local_filepath
 
         def filepath_to_json(path):
-            with open(path, encoding="utf-8") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
 
         splits = ["train", "validation", "test"]

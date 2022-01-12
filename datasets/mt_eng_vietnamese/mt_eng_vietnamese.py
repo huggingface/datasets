@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +54,7 @@ class MT_Eng_ViConfig(datasets.BuilderConfig):
         """
 
         description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
-        super().__init__(
+        super(MT_Eng_ViConfig, self).__init__(
             description=description,
             version=datasets.Version("1.0.0"),
             **kwargs,

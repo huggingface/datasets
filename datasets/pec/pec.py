@@ -43,7 +43,7 @@ class PECConfig(datasets.BuilderConfig):
             domain: the domain of our dataset: happy or offmychest
             **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(PECConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.domain = domain
 
 

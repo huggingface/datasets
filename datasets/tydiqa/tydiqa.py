@@ -50,7 +50,7 @@ class TydiqaConfig(datasets.BuilderConfig):
         Args:
             **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(TydiqaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Tydiqa(datasets.GeneratorBasedBuilder):

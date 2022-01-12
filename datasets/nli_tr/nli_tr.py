@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +48,7 @@ class NLITRConfig(datasets.BuilderConfig):
     """BuilderConfig for NLI-TR"""
 
     def __init__(self, version=None, data_url=None, **kwargs):
-        super().__init__(version=datasets.Version(version, ""), **kwargs)
+        super(NLITRConfig, self).__init__(version=datasets.Version(version, ""), **kwargs)
         self.data_url = data_url
 
 

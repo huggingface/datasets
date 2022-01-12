@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +60,7 @@ class InquisitiveQgConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwrags)
+        super(InquisitiveQgConfig, self).__init__(**kwrags)
 
 
 class InquisitiveQg(datasets.GeneratorBasedBuilder):

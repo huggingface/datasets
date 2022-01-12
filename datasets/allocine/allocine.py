@@ -35,7 +35,7 @@ class AllocineConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(AllocineConfig, self).__init__(**kwargs)
 
 
 class AllocineDataset(datasets.GeneratorBasedBuilder):

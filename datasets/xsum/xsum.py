@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,19 +53,21 @@ _DOCUMENT = "document"
 _SUMMARY = "summary"
 _ID = "id"
 
-_REMOVE_LINES = {
-    "Share this with\n",
-    "Email\n",
-    "Facebook\n",
-    "Messenger\n",
-    "Twitter\n",
-    "Pinterest\n",
-    "WhatsApp\n",
-    "Linkedin\n",
-    "LinkedIn\n",
-    "Copy this link\n",
-    "These are external links and will open in a new window\n",
-}
+_REMOVE_LINES = set(
+    [
+        "Share this with\n",
+        "Email\n",
+        "Facebook\n",
+        "Messenger\n",
+        "Twitter\n",
+        "Pinterest\n",
+        "WhatsApp\n",
+        "Linkedin\n",
+        "LinkedIn\n",
+        "Copy this link\n",
+        "These are external links and will open in a new window\n",
+    ]
+)
 
 
 class Xsum(datasets.GeneratorBasedBuilder):
@@ -127,7 +130,7 @@ class Xsum(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, split_path, split_name, data_dir, files):
         """Yields examples."""
 
-        with open(split_path, encoding="utf-8") as f:
+        with open(split_path, "r", encoding="utf-8") as f:
             split_ids = json.load(f)
         split_ids = {k: set(v) for k, v in split_ids.items()}
 

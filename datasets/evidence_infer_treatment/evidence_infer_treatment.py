@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -139,21 +140,21 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
         SPLITS = {}
         for split in ["train", "test", "validation"]:
             filename = os.path.join(dl_dir, "splits", f"{split}_article_ids.txt")
-            with open(filename, encoding="utf-8") as f:
+            with open(filename, "r", encoding="utf-8") as f:
                 for line in f:
                     id_ = int(line.strip())
                     SPLITS[id_] = split
 
         ALL_PROMPTS = {}
         prompts_filename = os.path.join(dl_dir, "prompts_merged.csv")
-        with open(prompts_filename, encoding="utf-8") as f:
+        with open(prompts_filename, "r", encoding="utf-8") as f:
             data = csv.DictReader(f)
             for item in data:
                 prompt_id = int(item["PromptID"])
                 ALL_PROMPTS[prompt_id] = {"Prompt": item, "Annotations": []}
 
         annotations_filename = os.path.join(dl_dir, "annotations_merged.csv")
-        with open(annotations_filename, encoding="utf-8") as f:
+        with open(annotations_filename, "r", encoding="utf-8") as f:
             data = csv.DictReader(f)
             for item in data:
                 prompt_id = int(item["PromptID"])
@@ -221,7 +222,7 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
         for id_, item in enumerate(items):
             pmcid = item["PMCID"]
             filename = os.path.join(directory, f"PMC{pmcid}.txt")
-            with open(filename, encoding="utf-8") as f:
+            with open(filename, "r", encoding="utf-8") as f:
                 text = f.read()
 
             yield id_, {"Text": text, **item}

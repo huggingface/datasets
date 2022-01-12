@@ -37,7 +37,7 @@ class WikitextConfig(datasets.BuilderConfig):
           data_url: `string`, url to the dataset (word or raw level)
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(
+        super(WikitextConfig, self).__init__(
             version=datasets.Version(
                 "1.0.0",
             ),

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,7 +91,7 @@ class FinancialPhraseBankConfig(datasets.BuilderConfig):
           filename_bit: `string`, the changing part of the filename.
         """
 
-        super().__init__(name=f"sentences_{split}agree", version=_VERSION, **kwargs)
+        super(FinancialPhraseBankConfig, self).__init__(name=f"sentences_{split}agree", version=_VERSION, **kwargs)
 
         self.path = os.path.join("FinancialPhraseBank-v1.0", f"Sentences_{split.title()}Agree.txt")
 

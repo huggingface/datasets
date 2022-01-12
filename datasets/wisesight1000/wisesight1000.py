@@ -34,7 +34,7 @@ class Wisesight1000Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(Wisesight1000Config, self).__init__(**kwargs)
 
 
 class Wisesight1000(datasets.GeneratorBasedBuilder):

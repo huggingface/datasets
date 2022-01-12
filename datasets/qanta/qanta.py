@@ -38,7 +38,7 @@ class QantaConfig(datasets.BuilderConfig):
     """BuilderConfig for Qanta."""
 
     def __init__(self, mode: str, char_skip: int, **kwargs):
-        super().__init__(version=_VERSION, **kwargs)
+        super(QantaConfig, self).__init__(version=_VERSION, **kwargs)
         self.mode = mode
         self.char_skip = char_skip
 

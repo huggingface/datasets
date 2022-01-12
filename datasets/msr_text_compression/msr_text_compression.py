@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -107,7 +108,7 @@ class MsrTextCompression(datasets.GeneratorBasedBuilder):
         ]
 
     def _parse_source(self, s):
-        source_id, domain, text = (x.strip() for x in s.split("\t"))
+        source_id, domain, text = [x.strip() for x in s.split("\t")]
         return SourceInfo(source_id, domain, text)._asdict()
 
     def _parse_ratings(self, num_ratings, ratings):
@@ -126,7 +127,7 @@ class MsrTextCompression(datasets.GeneratorBasedBuilder):
         return [int(r) for r in ratings[:: len(ratings) // num_ratings]]
 
     def _parse_target(self, target):
-        text, judge, num_ratings, *ratings = (t.strip() for t in target.split("\t"))
+        text, judge, num_ratings, *ratings = [t.strip() for t in target.split("\t")]
         num_ratings = int(num_ratings)
         ratings = self._parse_ratings(num_ratings, ratings)
         return CompressionInfo(text, judge, num_ratings, ratings)._asdict()

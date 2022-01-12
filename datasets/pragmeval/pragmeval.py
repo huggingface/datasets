@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -411,7 +412,7 @@ class PragmevalConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
 
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(PragmevalConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
         self.text_features = text_features
         self.label_column = "label"

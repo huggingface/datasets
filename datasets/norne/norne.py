@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,7 +62,7 @@ class NorneConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(NorneConfig, self).__init__(**kwargs)
 
 
 class Norne(datasets.GeneratorBasedBuilder):
@@ -281,7 +282,7 @@ class Norne(datasets.GeneratorBasedBuilder):
                 return x
 
         for filepath, lang in zip(filepaths, langs):
-            with open(filepath, encoding="utf-8") as data_file:
+            with open(filepath, "r", encoding="utf-8") as data_file:
                 tokens = list(conllu.parse_incr(data_file))
                 for sent in tokens:
                     yield idx, {

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -136,7 +137,7 @@ class WikiAtomicEdits(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath):
-        with open(datapath, encoding="utf-8") as data_file:
+        with open(datapath, "r", encoding="utf-8") as data_file:
             next(data_file)
             for sentence_counter, sent in enumerate(data_file):
                 sent = sent.split("\t")

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +81,7 @@ class MasakhanerConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(MasakhanerConfig, self).__init__(**kwargs)
 
 
 class Masakhaner(datasets.GeneratorBasedBuilder):

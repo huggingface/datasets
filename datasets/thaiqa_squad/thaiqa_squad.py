@@ -28,7 +28,7 @@ class ThaiQaSquadConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(ThaiQaSquadConfig, self).__init__(**kwargs)
 
 
 class ThaiqaSquad(datasets.GeneratorBasedBuilder):

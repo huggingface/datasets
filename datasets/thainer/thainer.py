@@ -37,7 +37,7 @@ class ThaiNerConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(ThaiNerConfig, self).__init__(**kwargs)
 
 
 class Thainer(datasets.GeneratorBasedBuilder):

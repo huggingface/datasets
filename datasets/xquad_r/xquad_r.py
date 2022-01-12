@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +57,7 @@ class XquadRConfig(datasets.BuilderConfig):
             lang: string, language for the input text
             **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(XquadRConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.lang = lang
 
 

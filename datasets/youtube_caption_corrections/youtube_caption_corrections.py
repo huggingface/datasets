@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,7 +89,7 @@ class YoutubeCaptionCorrections(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths):
         """Yields examples."""
         for file_idx, fp in enumerate(filepaths):
-            with open(fp, encoding="utf-8") as json_file:
+            with open(fp, "r", encoding="utf-8") as json_file:
                 json_lists = list(json_file)
             for line_idx, json_list_str in enumerate(json_lists):
                 json_list = json.loads(json_list_str)

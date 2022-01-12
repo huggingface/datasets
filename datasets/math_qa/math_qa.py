@@ -80,4 +80,5 @@ class MathQa(datasets.GeneratorBasedBuilder):
         # TODO(math_qa): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
-            yield from enumerate(data)
+            for id_, row in enumerate(data):
+                yield id_, row

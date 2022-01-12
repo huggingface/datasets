@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -8196,7 +8197,7 @@ class MultiEURLEXConfig(datasets.BuilderConfig):
         language: One of ar,bg,de,el,en,es,fr,hi,ru,sw,th,tr,ur,vi,zh, or all_languages
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(MultiEURLEXConfig, self).__init__(**kwargs)
         self.language = language
         self.label_level = label_level
         if language != "all_languages":

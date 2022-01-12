@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +58,7 @@ class IdLiputan6Config(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(IdLiputan6Config, self).__init__(**kwargs)
 
 
 class IdLiputan6(datasets.GeneratorBasedBuilder):

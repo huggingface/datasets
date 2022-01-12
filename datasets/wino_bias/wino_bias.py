@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +55,7 @@ _URL = "https://raw.githubusercontent.com/uclanlp/corefBias/master/WinoBias/wino
 
 class WinoBiasConfig(datasets.BuilderConfig):
     def __init__(self, **kwargs):
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(WinoBiasConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class WinoBias(datasets.GeneratorBasedBuilder):
@@ -72,7 +73,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     def __init__(self, *args, writer_batch_size=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(WinoBias, self).__init__(*args, **kwargs)
         # Batch size used by the ArrowWriter
         # It defines the number of samples that are kept in memory before writing them
         # and also the length of the arrow chunks

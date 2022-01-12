@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -214,7 +215,7 @@ class Autshumato(datasets.GeneratorBasedBuilder):
 
     def _generate_examples_mono(self, source_files, target_files, split):
         for source_file in source_files:
-            with open(source_file, encoding="utf-8") as sf:
+            with open(source_file, "r", encoding="utf-8") as sf:
                 for id_, source_row in enumerate(sf):
                     source_row = source_row.strip()
                     yield id_, {"text": source_row}
@@ -223,8 +224,8 @@ class Autshumato(datasets.GeneratorBasedBuilder):
         id_ = 0
         source, target = self.config.langs
         for source_file, target_file in zip(source_files, target_files):
-            with open(source_file, encoding="utf-8") as sf:
-                with open(target_file, encoding="utf-8") as tf:
+            with open(source_file, "r", encoding="utf-8") as sf:
+                with open(target_file, "r", encoding="utf-8") as tf:
                     for source_row, target_row in zip(sf, tf):
                         source_row = source_row.strip()
                         target_row = target_row.strip()

@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +23,7 @@ from datasets.tasks import TextClassification
 
 _CITATION = """\
 @inproceedings{Casanueva2020,
-    author      = {I{\\~{n}}igo Casanueva and Tadas Temcinas and Daniela Gerz and Matthew Henderson and Ivan Vulic},
+    author      = {I{\~{n}}igo Casanueva and Tadas Temcinas and Daniela Gerz and Matthew Henderson and Ivan Vulic},
     title       = {Efficient Intent Detection with Dual Sentence Encoders},
     year        = {2020},
     month       = {mar},

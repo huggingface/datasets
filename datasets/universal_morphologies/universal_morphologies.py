@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -159,7 +160,7 @@ _URLs = {
     "vep|southern": "https://raw.githubusercontent.com/unimorph/vep/master/vep-southern-veps.txt",
 }
 
-_LANGUAGES = sorted({ln.split("|")[0] for ln in _URLs})
+_LANGUAGES = sorted(set([ln.split("|")[0] for ln in _URLs]))
 
 # make multiple splits for the languages with several dialects
 _SPLITS = {}
@@ -403,7 +404,7 @@ _CATEGORIES = {
     "Voice": ["ACT", "MID", "PASS", "ANTIP", "DIR", "INV", "AGFOC", "PFOC", "LFOC", "BFOC", "ACFOC", "IFOC", "CFOC"],
 }
 
-_TAG_TO_CAT = {tag: cat for cat, tags in _CATEGORIES.items() for tag in tags}
+_TAG_TO_CAT = dict([(tag, cat) for cat, tags in _CATEGORIES.items() for tag in tags])
 
 
 class UniversalMorphologies(datasets.GeneratorBasedBuilder):
@@ -447,7 +448,7 @@ class UniversalMorphologies(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        config_urls = {ln: f_url for ln, f_url in _URLs.items() if ln.split("|")[0] == self.config.name}
+        config_urls = dict([(ln, f_url) for ln, f_url in _URLs.items() if ln.split("|")[0] == self.config.name])
         data_dir = dl_manager.download_and_extract(config_urls)
         if self.config.name in _SPLITS:
             return [

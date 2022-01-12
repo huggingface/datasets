@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -143,7 +144,7 @@ class ArabicBillionWords(datasets.GeneratorBasedBuilder):
         pattern = re.compile(rf".*?<{data_tag}(.*?)</{data_tag}.*?", re.MULTILINE | re.DOTALL)
         key = 0
         lines = ""
-        with open(filepath, encoding="utf-8") as f:
+        with open(filepath, mode="r", encoding="utf-8") as f:
             for i, line in enumerate(f):
                 lines += line
                 if f"</{data_tag}" in line:

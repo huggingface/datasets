@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -190,7 +191,7 @@ class Reuters21578Config(datasets.BuilderConfig):
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(Reuters21578Config, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Reuters21578(datasets.GeneratorBasedBuilder):

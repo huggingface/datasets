@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,7 +76,7 @@ class GuardianAuthorshipConfig(datasets.BuilderConfig):
 
             **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(**kwargs)
+        super(GuardianAuthorshipConfig, self).__init__(**kwargs)
         self.train_folder = train_folder
         self.valid_folder = valid_folder
         self.test_folder = test_folder
@@ -312,7 +313,7 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
                     path_2_author = os.path.join(full_path, author)
                     path_2_article = os.path.join(path_2_author, article)
 
-                    with open(path_2_article, encoding="utf8", errors="ignore") as f:
+                    with open(path_2_article, "r", encoding="utf8", errors="ignore") as f:
                         art = f.readlines()
 
                     # The whole article is stored as one line. We access the 1st element of the list

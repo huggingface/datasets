@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -131,7 +132,7 @@ class GreatCode(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, datapath, datatype):
         for file_idx, dp in enumerate(datapath):
-            with open(dp, encoding="utf-8") as json_file:
+            with open(dp, "r", encoding="utf-8") as json_file:
                 for example_counter, json_str in enumerate(json_file):
                     result = json.loads(json_str)
                     response = {

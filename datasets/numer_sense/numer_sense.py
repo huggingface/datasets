@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,7 +74,7 @@ class NumerSense(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, file_path, is_test):
-        with open(file_path, encoding="utf-8") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             if is_test:
                 for i, sentence in enumerate(f):
                     yield i, {"sentence": sentence.rstrip(), "target": ""}

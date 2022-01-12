@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -102,7 +103,7 @@ class Totto(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath, datatype):
-        with open(datapath, encoding="utf-8") as json_file:
+        with open(datapath, "r", encoding="utf-8") as json_file:
             json_list = list(json_file)
 
         for example_counter, json_str in enumerate(json_list):

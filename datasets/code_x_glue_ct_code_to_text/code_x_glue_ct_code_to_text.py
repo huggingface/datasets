@@ -118,11 +118,13 @@ class CodeXGlueCtCodeToTextImpl(CodeXGlueCtCodeToTextBaseImpl):
 
     def generate_urls(self, split_name):
         language = self.info["parameters"]["language"]
-        yield from super().generate_urls(split_name, language)
+        for e in super().generate_urls(split_name, language):
+            yield e
 
     def _generate_examples(self, split_name, file_paths):
         language = self.info["parameters"]["language"]
-        yield from super()._generate_examples(split_name, file_paths, language)
+        for e in super()._generate_examples(split_name, file_paths, language):
+            yield e
 
 
 CLASS_MAPPING = {

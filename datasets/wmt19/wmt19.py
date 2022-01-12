@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +41,7 @@ class Wmt19(Wmt):
     # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
     BUILDER_CONFIGS = [
         WmtConfig(  # pylint:disable=g-complex-comprehension
-            description=f"WMT 2019 {l1}-{l2} translation task dataset.",
+            description="WMT 2019 %s-%s translation task dataset." % (l1, l2),
             url=_URL,
             citation=_CITATION,
             language_pair=(l1, l2),

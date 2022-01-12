@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,7 +99,7 @@ class Swahili(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """Yields examples."""
         _id = 0
-        with open(filepath, encoding="utf-8") as f:
+        with open(filepath, mode="r", encoding="utf-8") as f:
             for line in f:
                 yield _id, {"text": line.strip()},
                 _id += 1

@@ -69,7 +69,7 @@ class XORTyDiConfig(datasets.BuilderConfig):
         url: `string`, url for information about the dataset.
         **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(version=datasets.Version("1.1.0", ""), **kwargs)
+        super(XORTyDiConfig, self).__init__(version=datasets.Version("1.1.0", ""), **kwargs)
         self.data_url = data_url
         self.citation = citation
         self.url = url
