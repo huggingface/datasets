@@ -3560,7 +3560,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         repo_id: str,
         token: Optional[str] = None,
         branch: Optional[str] = None,
-    ) -> DatasetInfo:
+    ) -> Optional[DatasetInfo]:
         """Queries the dataset infos from the hub if available.
         The dataset is queried using HTTP requests and does not need to have neither git or git-lfs installed.
 
@@ -3576,6 +3576,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             branch (Optional :obj:`str`):
                 The git branch on which to push the dataset. This defaults to the default branch as specified
                 in your repository, which defaults to `"main"`.
+
+        Returns:
+            :class:`DatasetInfo` or None
         """
         dataset_info_hub = HfApi(endpoint=config.HF_ENDPOINT).dataset_info(
             repo_id=repo_id,
@@ -3587,8 +3590,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             with fs.open("dataset_infos.json") as fi:
                 dataset_infos_dict = json.load(fi)
         except FileNotFoundError:
-            # The dataset info is missing, we can generate a new one.
-            return DatasetInfo()
+            return None
         else:
             key = repo_id.replace("/", "--")
             return DatasetInfo.from_dict(dataset_infos_dict[key])
@@ -3636,6 +3638,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         old_dataset_infos = self.get_remote_dataset_infos(repo_id=repo_id, token=token, branch=branch)
+        # If there isn't a remote `dataset_infos.json` file, then we assume the old one is a virgin one.
+        old_dataset_infos = old_dataset_infos if old_dataset_infos is not None else DatasetInfo()
 
         organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
