@@ -140,6 +140,7 @@ TESTS_REQUIRE = [
     # datasets dependencies
     "bs4",
     "conllu",
+    "h5py",
     "langdetect",
     "lxml",
     "mwparserfromhell",
