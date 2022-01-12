@@ -3601,7 +3601,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             token=token if token is not None else HfFolder.get_token(),
             revision=branch,
         )
-        fs = HfFileSystem(repo_info=dataset_info_hub)
+        fs = HfFileSystem(repo_info=dataset_info_hub, token=token if token is not None else HfFolder.get_token())
         with fs.open("dataset_infos.json") as fi:
             dataset_config_dict = json.load(fi)
             old_config = DatasetInfo.from_dict(dataset_config_dict)
