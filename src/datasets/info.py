@@ -193,7 +193,7 @@ class DatasetInfo:
 
     def _dump_info(self, file):
         """Dump info in `file` file-like object open in bytes mode (to support remote files)"""
-        file.write(json.dumps(asdict(self)).encode("utf-8"))
+        file.write(json.dumps(asdict(self), indent=2).encode("utf-8"))
 
     def _dump_license(self, file):
         """Dump license in `file` file-like object open in bytes mode (to support remote files)"""
