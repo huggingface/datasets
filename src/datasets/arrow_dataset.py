@@ -51,11 +51,12 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
-from datasets.filesystems import HfFileSystem
 from huggingface_hub import HfApi, HfFolder
 from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
+
+from datasets.filesystems import HfFileSystem
 
 from . import config, utils
 from .arrow_reader import ArrowReader
@@ -3560,9 +3561,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
     ) -> DatasetInfo:
-        """
-
-        """
+        """ """
         dataset_info_hub = HfApi(endpoint=config.HF_ENDPOINT).dataset_info(
             repo_id=repo_id,
             token=token if token is not None else HfFolder.get_token(),
@@ -3631,7 +3630,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes + old_dataset_infos.size_in_bytes
         info_to_dump.splits = {
             **old_dataset_infos.splits,
-            split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)
+            split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name),
         }
         buffer = BytesIO()
         buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
