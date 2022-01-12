@@ -3554,6 +3554,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         return repo_id, split, uploaded_size, dataset_nbytes
 
+    def get_config(
+        self,
+        repo_id: str,
+        token: Optional[str] = None,
+        branch: Optional[str] = None,
+    ) -> DatasetInfo:
+        """
+
+        """
+        dataset_info_hub = HfApi(endpoint=config.HF_ENDPOINT).dataset_info(
+            repo_id=repo_id,
+            token=token if token is not None else HfFolder.get_token(),
+            revision=branch,
+        )
+        fs = HfFileSystem(repo_info=dataset_info_hub, token=token if token is not None else HfFolder.get_token())
+        try:
+            with fs.open("dataset_infos.json") as fi:
+                dataset_config_dict = json.load(fi)
+        except FileNotFoundError:
+            # The dataset info
+            return DatasetInfo()
+        else:
+            key = repo_id.replace("/", "--")
+            return DatasetInfo.from_dict(dataset_config_dict[key])
+
     def push_to_hub(
         self,
         repo_id: str,
@@ -3596,21 +3621,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             repo_id=repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
         )
 
-        dataset_info_hub = HfApi(endpoint=config.HF_ENDPOINT).dataset_info(
-            repo_id=repo_id,
-            token=token if token is not None else HfFolder.get_token(),
-            revision=branch,
-        )
-        fs = HfFileSystem(repo_info=dataset_info_hub, token=token if token is not None else HfFolder.get_token())
-        try:
-            with fs.open("dataset_infos.json") as fi:
-                dataset_config_dict = json.load(fi)
-        except FileNotFoundError:
-            # The dataset info
-            old_config = DatasetInfo()
-        else:
-            key = repo_id.replace("/", "--")
-            old_config = DatasetInfo.from_dict(dataset_config_dict[key])
+        old_config = self.get_config(repo_id=repo_id, token=token, branch=branch)
 
         organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
