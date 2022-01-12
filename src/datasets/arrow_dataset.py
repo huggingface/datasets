@@ -3638,19 +3638,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         )
 
         old_dataset_infos = self.get_remote_dataset_infos(repo_id=repo_id, token=token, branch=branch)
-        # If there isn't a remote `dataset_infos.json` file, then we assume the old one is a virgin one.
-        old_dataset_infos = old_dataset_infos if old_dataset_infos is not None else DatasetInfo()
 
         organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
         info_to_dump.download_checksums = None
-        info_to_dump.download_size = uploaded_size + old_dataset_infos.download_size
-        info_to_dump.dataset_size = dataset_nbytes + old_dataset_infos.dataset_size
-        info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes + old_dataset_infos.size_in_bytes
-        info_to_dump.splits = {
-            **old_dataset_infos.splits,
-            split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name),
-        }
+        if old_dataset_infos is None:
+            info_to_dump.download_size = uploaded_size
+            info_to_dump.dataset_size = dataset_nbytes
+            info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes
+            info_to_dump.splits = {
+                split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name),
+            }
+        else:
+            info_to_dump.download_size = uploaded_size if old_dataset_infos.download_size is None else uploaded_size + old_dataset_infos.download_size
+            info_to_dump.dataset_size = dataset_nbytes if old_dataset_infos.dataset_size is None else dataset_nbytes + old_dataset_infos.dataset_size
+            info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes if old_dataset_infos.size_in_bytes is None else uploaded_size + dataset_nbytes + old_dataset_infos.size_in_bytes
+            info_to_dump.splits = {
+                **(old_dataset_infos.splits if old_dataset_infos.splits is not None else {}),
+                split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name),
+            }
         buffer = BytesIO()
         buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
         info_to_dump._dump_info(buffer)
