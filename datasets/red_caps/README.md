@@ -28,6 +28,7 @@ pretty_name: RedCaps
 - [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Dataset Preprocessing](#dataset-preprocessing)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
@@ -68,6 +69,33 @@ fine-grained descriptions (northern cardinal, taj mahal). Subreddit names provid
 labels (r/shiba) even when captions may not (mlem!), and sometimes may group many visually
 unrelated images through a common semantic meaning (r/perfectfit).
 
+### Dataset Preprocessing
+
+This dataset doesn't download the images locally by default. Instead, it exposes URLs to the images. To fetch the images, use the following code:
+
+```python
+from datasets import load_dataset
+
+def fetch_images(batch, timeout):
+    import PIL.Image
+    import requests
+
+    images = []
+    for image_url in batch["image_url"]:
+        try:
+            image = PIL.Image.open(requests.get(image_url, stream=True, timeout=timeout).raw)
+        except requests.exceptions.ConnectionError:
+            image = None
+        images.append(image)
+    batch["image"] = images
+    return batch
+
+timeout = None
+num_proc = 4
+dset = load_dataset("red_caps", "rabbits_2017")
+dset = dset.map(fetch_images, batched=True, batch_size=100, fn_kwargs={"timeout": timeout}, num_proc=num_proc)
+```
+
 ### Supported Tasks and Leaderboards
 
 From the paper:
@@ -94,7 +122,7 @@ Each instance in RedCaps represents a single Reddit image post:
   'author': 'djasz1',
   'image_url': 'https://i.redd.it/ho0wntksivy21.jpg',
   'raw_caption': 'Found on a friend’s property in the Keys FL. She is now happily living in my house.',
-  'caption': "found on a friend's property in the keys fl. she is now happily living in my house.", 'subreddit': 3,
+  'caption': 'found on a friend's property in the keys fl. she is now happily living in my house.', 'subreddit': 3,
   'score': 72,
   'created_utc': datetime.datetime(2019, 5, 18, 1, 36, 41),
   'permalink': '/r/airplants/comments/bpzj7r/found_on_a_friends_property_in_the_keys_fl_she_is/', 'crosspost_parents': None
