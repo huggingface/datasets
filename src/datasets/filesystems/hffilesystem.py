@@ -16,7 +16,7 @@ class HfFileSystem(AbstractFileSystem):
 
     def __init__(
         self,
-        repo_info: Optional[str] = None,
+        repo_info: Optional[DatasetInfo] = None,
         token: Optional[str] = None,
         **kwargs,
     ):

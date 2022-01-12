@@ -51,6 +51,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+from datasets.filesystems import HfFileSystem
 from huggingface_hub import HfApi, HfFolder
 from multiprocess import Pool, RLock
 from requests import HTTPError
@@ -3594,11 +3595,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         repo_id, split, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
             repo_id=repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
         )
-        old_config = HfApi(endpoint=config.HF_ENDPOINT).dataset_info(
+
+        dataset_info_hub = HfApi(endpoint=config.HF_ENDPOINT).dataset_info(
             repo_id=repo_id,
             token=token if token is not None else HfFolder.get_token(),
             revision=branch,
         )
+        fs = HfFileSystem(repo_info=dataset_info_hub)
+        with fs.open("dataset_infos.json") as fi:
+            dataset_config_dict = json.load(fi)
+            old_config = DatasetInfo.from_dict(dataset_config_dict)
+
         organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
         info_to_dump.download_checksums = None
