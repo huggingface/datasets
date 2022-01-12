@@ -940,7 +940,7 @@ def _sanitize_sliced_list_arrays_for_cast(func):
 
 @_sanitize_sliced_list_arrays_for_cast
 @_wrap_for_chunked_arrays
-def array_cast(array, pa_type):
+def array_cast(array, pa_type, allow_number_to_str=True):
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
@@ -950,13 +950,26 @@ def array_cast(array, pa_type):
             sorted(field.name for field in pa_type) != sorted(field.name for field in array.type)
         ):
             raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
-        arrays = [array_cast(array.field(field.name), field.type) for field in pa_type]
+        arrays = [
+            array_cast(array.field(field.name), field.type, allow_number_to_str=allow_number_to_str)
+            for field in pa_type
+        ]
         return pa.StructArray.from_arrays(arrays, fields=list(pa_type))
     elif pa.types.is_list(array.type):
         if not pa.types.is_list(pa_type):
             raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
-        return pa.ListArray.from_arrays(array.offsets, array_cast(array.values, pa_type.value_type))
+        return pa.ListArray.from_arrays(
+            array.offsets, array_cast(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str)
+        )
     else:
+        if (
+            not allow_number_to_str
+            and pa.types.is_string(pa_type)
+            and (pa.types.is_floating(array.type) or pa.types.is_integer(array.type))
+        ):
+            raise TypeError(
+                f"Couldn't cast array of type {array.type} to {pa_type} since allow_number_to_str is set to {allow_number_to_str}"
+            )
         return array.cast(pa_type)
 
 

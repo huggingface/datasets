@@ -49,7 +49,7 @@ class DatasetDictTest(TestCase):
         dset = DatasetDict({"train": dset_split, "test": dset_split})
         dset.flatten_()
         self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
-        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
+        self.assertListEqual(sorted(dset["train"].features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(
             dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
         )
@@ -63,7 +63,7 @@ class DatasetDictTest(TestCase):
         dset = DatasetDict({"train": dset_split, "test": dset_split})
         dset = dset.flatten()
         self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
-        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
+        self.assertListEqual(sorted(dset["train"].features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(
             dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
         )

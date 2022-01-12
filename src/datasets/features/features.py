@@ -1316,7 +1316,7 @@ class Features(dict):
                     del flattened[column_name]
                 elif isinstance(subfeature, Sequence) and isinstance(subfeature.feature, dict):
                     no_change = False
-                    flattened.update({f"{column_name}.{k}": [v] for k, v in subfeature.feature.items()})
+                    flattened.update({f"{column_name}.{k}": Sequence(v) for k, v in subfeature.feature.items()})
                     del flattened[column_name]
             self = flattened
             if no_change:

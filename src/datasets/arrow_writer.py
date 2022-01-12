@@ -145,7 +145,9 @@ class TypedSequence:
             else:
                 out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
                 if type is not None:
-                    out = array_cast(out, type)
+                    # When trying type "string", we don't want to convert integers or floats to "string"
+                    # We only do it if trying_type is False - since this is what the user asks for.
+                    out = array_cast(out, type, allow_number_to_str=not trying_type)
             if self.optimized_int_type and self.type is None and self.try_type is None:
                 trying_int_optimization = True
                 if pa.types.is_int64(out.type):
