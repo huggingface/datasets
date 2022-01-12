@@ -3554,7 +3554,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
         return repo_id, split, uploaded_size, dataset_nbytes
 
-    def get_config(
+    def get_remote_dataset_infos(
         self,
         repo_id: str,
         token: Optional[str] = None,
@@ -3571,13 +3571,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         fs = HfFileSystem(repo_info=dataset_info_hub, token=token if token is not None else HfFolder.get_token())
         try:
             with fs.open("dataset_infos.json") as fi:
-                dataset_config_dict = json.load(fi)
+                dataset_infos_dict = json.load(fi)
         except FileNotFoundError:
-            # The dataset info
+            # The dataset info is missing, we can generate a new one.
             return DatasetInfo()
         else:
             key = repo_id.replace("/", "--")
-            return DatasetInfo.from_dict(dataset_config_dict[key])
+            return DatasetInfo.from_dict(dataset_infos_dict[key])
 
     def push_to_hub(
         self,
@@ -3621,16 +3621,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             repo_id=repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
         )
 
-        old_config = self.get_config(repo_id=repo_id, token=token, branch=branch)
+        old_dataset_infos = self.get_remote_dataset_infos(repo_id=repo_id, token=token, branch=branch)
 
         organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
         info_to_dump.download_checksums = None
-        info_to_dump.download_size = uploaded_size + old_config.download_size
-        info_to_dump.dataset_size = dataset_nbytes + old_config.dataset_size
-        info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes + old_config.size_in_bytes
+        info_to_dump.download_size = uploaded_size + old_dataset_infos.download_size
+        info_to_dump.dataset_size = dataset_nbytes + old_dataset_infos.dataset_size
+        info_to_dump.size_in_bytes = uploaded_size + dataset_nbytes + old_dataset_infos.size_in_bytes
         info_to_dump.splits = {
-            **old_config.splits,
+            **old_dataset_infos.splits,
             split: SplitInfo(split, num_bytes=dataset_nbytes, num_examples=len(self), dataset_name=dataset_name)
         }
         buffer = BytesIO()
