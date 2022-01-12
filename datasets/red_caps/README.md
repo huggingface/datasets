@@ -75,6 +75,7 @@ This dataset doesn't download the images locally by default. Instead, it exposes
 
 ```python
 from datasets import load_dataset
+from datasets.utils.file_utils import get_datasets_user_agent
 
 def fetch_images(batch, timeout):
     import PIL.Image
@@ -83,7 +84,14 @@ def fetch_images(batch, timeout):
     images = []
     for image_url in batch["image_url"]:
         try:
-            image = PIL.Image.open(requests.get(image_url, stream=True, timeout=timeout).raw)
+            image = PIL.Image.open(
+                requests.get(
+                    image_url,
+                    stream=True,
+                    headers={"user-agent": get_datasets_user_agent()},
+                    timeout=timeout,
+                ).raw
+              )
         except requests.exceptions.ConnectionError:
             image = None
         images.append(image)
