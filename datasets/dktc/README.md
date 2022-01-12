@@ -17,9 +17,10 @@ task_categories:
 - text-classification
 task_ids:
 - multi-label-classification
+pretty_name: Dataset of Korean Threatening Conversations
 ---
 
-# Dataset Card for [Needs More Information]
+# Dataset Card for Dataset of Korean Threatening Conversations
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -46,8 +47,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** https://github.com/tunib-ai/DKTC
-- **Repository:** https://github.com/tunib-ai/DKTC
+- **Homepage:** 
+- **Repository:** [GitHub](https://github.com/tunib-ai/DKTC)
 - **Paper:** [Needs More Information]
 - **Leaderboard:** [Needs More Information]
 - **Point of Contact:** [Needs More Information]
@@ -68,17 +69,21 @@ Korean
 
 ### Data Instances
 
+Here is an example from the dataset:
+```
 {'class': 0,
 'text': '이 약이 뭔 거 같아? \n뭔데요.?\n뭐긴 뭐야 네 엄마 저승길 보내주는 약이지.\n네? 그게 무슨.\n네 엄마 지금 저 빌딩에 있지? 그리고 저 빌딩에선 시음회가 열리고 있고.\n그게.무슨.\n이미 인력은 다 배치해놨어. 저 음료를 마시면 네 엄마는.\n아 안 돼!!\n네 엄마 살리고 싶으면 내가 시키는 대로 해.\n멈춰요 알겠으니까 그만하라고!!\n내가 시키는 대로 해!!\n알겠다고요!!! 제발 그만'}
+```
 
 ### Data Fields
 
-{'class': Value(dtype='int32', id=None),
- 'text': Value(dtype='string', id=None)}
+{The dataset has two fields:
+- **class**: the classification label of the text: threat (0), extortion (1), workspace (2) or etc (3)
+- **text**: text content as a string
 
 ### Data Splits
 
-- Train
+- The train spit has 3950 samples, divided into several classes:
   - threat (0): 896
   - extortion (1): 981
   - workspace (2): 979
@@ -140,6 +145,7 @@ CC-BY-NC-SA 4.0 License.
 
 ### Citation Information
 
+```bibtex
 @misc{DKTC
   author       = {Cho, Soyoung and Ha, Sangchun and Ryu, Myeonghyeon and
                   Keum, Bitna and Park, Kyubyong},
@@ -147,3 +153,4 @@ CC-BY-NC-SA 4.0 License.
   howpublished = {https://github.com/tunib-ai/DKTC},
   year         = {2022},
 }
+```

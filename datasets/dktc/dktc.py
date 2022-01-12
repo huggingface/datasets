@@ -54,7 +54,7 @@ class Dktc(datasets.GeneratorBasedBuilder):
 
         features = datasets.Features(
             {
-                "class": datasets.Value("int32"),
+                "class": datasets.ClassLabel(names=["threat", "extortion", "workspace", "etc"]),
                 "text": datasets.Value("string"),
             }
         )
