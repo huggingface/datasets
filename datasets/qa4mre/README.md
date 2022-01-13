@@ -1,5 +1,4 @@
 ---
-{}
 pretty_name: qa4mre
 ---
 
