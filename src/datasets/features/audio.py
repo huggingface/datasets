@@ -71,7 +71,7 @@ class Audio:
         try:
             import soundfile as sf  # soundfile is a dependency of librosa, needed to decode audio files.
         except ImportError as err:
-            raise ImportError("To support decoding audio files, please install 'librosa'.") from err
+            raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
         if isinstance(value, str):
             return {"bytes": None, "path": value}
         elif isinstance(value, dict) and "array" in value:
@@ -118,7 +118,7 @@ class Audio:
             import librosa
             import soundfile as sf
         except ImportError as err:
-            raise ImportError("To support decoding audio files, please install 'librosa'.") from err
+            raise ImportError("To support decoding audio files, please install 'librosa' and 'soundfile'.") from err
 
         array, sampling_rate = sf.read(file)
         array = array.T

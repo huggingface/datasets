@@ -136,6 +136,7 @@ TESTS_REQUIRE = [
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
     "torchaudio",
+    "soundfile",
     "transformers",
     # datasets dependencies
     "bs4",
