@@ -6,7 +6,6 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
-from datasets import config
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
