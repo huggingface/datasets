@@ -769,13 +769,9 @@ def test_concatenation_table_cast(
             for k, v in zip(in_memory_pa_table.schema.names, in_memory_pa_table.schema.types)
         }
     )
-    if config.PYARROW_VERSION.major < 4:
-        with pytest.raises(pa.ArrowNotImplementedError):
-            ConcatenationTable.from_blocks(blocks).cast(schema)
-    else:
-        table = ConcatenationTable.from_blocks(blocks).cast(schema)
-        assert table.table == in_memory_pa_table.cast(schema)
-        assert isinstance(table, ConcatenationTable)
+    table = ConcatenationTable.from_blocks(blocks).cast(schema)
+    assert table.table == in_memory_pa_table.cast(schema)
+    assert isinstance(table, ConcatenationTable)
     schema = pa.schema(
         {
             k: v if v != pa.int64() else pa.int32()
