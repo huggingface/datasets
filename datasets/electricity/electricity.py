@@ -199,8 +199,11 @@ class Electricty(datasets.GeneratorBasedBuilder):
                     )
             save_to_file(Path(data_dir) / "test.jsonl", test_ts)
         else:
+            # data_dir is a file not a directory, so we rename it to electricity.txt and set the data_dir to the parent directory
             os.rename(data_dir, Path(data_dir).parents[0] / "electricity.txt")
-            os.makedirs(data_dir, exist_ok=True)
+            # import pdb
+            # pdb.set_trace()
+            data_dir = Path(data_dir).parents[0]
 
             time_index = pd.date_range(
                 start="2012-01-01",
@@ -208,7 +211,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
                 periods=26304,
             )
             timeseries = pd.read_csv(
-                Path(data_dir).parents[0] / "electricity.txt", header=None
+                data_dir / "electricity.txt", header=None
             )
             timeseries.set_index(time_index, inplace=True)
 
@@ -241,8 +244,8 @@ class Electricty(datasets.GeneratorBasedBuilder):
                         )
                     )
 
-            save_to_file(Path(data_dir) / "train.jsonl", train_ts)
-            save_to_file(Path(data_dir) / "dev.jsonl", val_ts)
+            save_to_file(data_dir / "train.jsonl", train_ts)
+            save_to_file(data_dir / "dev.jsonl", val_ts)
 
             test_ts = []
             for i in range(rolling_evaluations):
@@ -260,7 +263,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
                                 item_id=ts_id,
                             )
                         )
-            save_to_file(Path(data_dir) / "test.jsonl", train_ts)
+            save_to_file(data_dir / "test.jsonl", train_ts)
 
         return [
             datasets.SplitGenerator(
