@@ -123,6 +123,20 @@ def create_pd_type(pa_type_cls):
     return pd_type
 
 
+class BaseExtensionArray(pa.ExtensionArray):
+    def __array__(self):
+        return self.to_numpy(zero_copy_only=False)
+
+    def __getitem__(self, i):
+        return self.storage[i]
+
+    def to_numpy(self, zero_copy_only=True):
+        return self.storage.to_numpy(zero_copy_only=zero_copy_only)
+
+    def to_pylist(self):
+        return self.storage.to_pylist()
+
+
 class _WatchAndAutomaticallyCreatePandasDtype(type):
     def __init__(cls, name, bases, clsdict):
         if len(cls.mro()) > len(pa.PyExtensionType.mro()) + 1 and cls._pd_type is None:
@@ -148,3 +162,6 @@ class BasePyarrowExtensionType(pa.PyExtensionType, metaclass=_WatchAndAutomatica
 
     def wrap_array(self, storage: pa.Array) -> pa.ExtensionArray:
         return pa.ExtensionArray.from_storage(self, self.cast_storage(storage))
+
+    def __arrow_ext_class__(self):
+        return BaseExtensionArray
