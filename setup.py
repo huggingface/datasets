@@ -169,6 +169,7 @@ TESTS_REQUIRE = [
 ]
 
 TESTS_REQUIRE.extend(VISION_REQURE)
+TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 if os.name != "nt":
     # dependencies of unbabel-comet
