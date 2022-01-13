@@ -123,7 +123,7 @@ def create_pd_type(pa_type_cls):
     return pd_type
 
 
-class BaseExtensionArray(pa.ExtensionArray):
+class ExtensionArray(pa.ExtensionArray):
     def __array__(self):
         return self.to_numpy(zero_copy_only=False)
 
@@ -164,4 +164,4 @@ class BasePyarrowExtensionType(pa.PyExtensionType, metaclass=_WatchAndAutomatica
         return pa.ExtensionArray.from_storage(self, self.cast_storage(storage))
 
     def __arrow_ext_class__(self):
-        return BaseExtensionArray
+        return ExtensionArray
