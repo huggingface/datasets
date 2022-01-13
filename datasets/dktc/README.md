@@ -77,7 +77,7 @@ Here is an example from the dataset:
 
 ### Data Fields
 
-{The dataset has two fields:
+The dataset has two fields:
 - **class**: the classification label of the text: threat (0), extortion (1), workspace (2) or etc (3)
 - **text**: text content as a string
 
@@ -154,3 +154,6 @@ CC-BY-NC-SA 4.0 License.
   year         = {2022},
 }
 ```
+
+### Contributions
+Thanks to [@sooftware](https://github.com/sooftware) for adding this dataset.
