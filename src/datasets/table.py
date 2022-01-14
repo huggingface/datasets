@@ -978,7 +978,7 @@ def array_cast(array, pa_type, allow_number_to_str=True):
             )
     else:
         if (
-            allow_number_to_str
+            not allow_number_to_str
             and pa.types.is_string(pa_type)
             and (pa.types.is_floating(array.type) or pa.types.is_integer(array.type))
         ):
