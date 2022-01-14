@@ -15,12 +15,8 @@
 """Electricity time series dataset."""
 
 
-import csv
-import json
-import os
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 import datasets
@@ -123,7 +119,6 @@ class Electricty(datasets.GeneratorBasedBuilder):
         freq = "1H"
         prediction_length = 24
         rolling_evaluations = 7
-        univariate = True
 
         train_ts = []
         val_ts = []
