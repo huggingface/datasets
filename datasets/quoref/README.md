@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: quoref
+pretty_name: Quoref
 ---
 
 # Dataset Card for "quoref"

@@ -27,6 +27,7 @@ task_ids:
   - dialogue-modeling
   - utterance-retrieval
 paperswithcode_id: pec
+pretty_name: Persona-Based Empathetic Conversational
 ---
 
 # Dataset Card for PEC

@@ -21,6 +21,7 @@ task_ids:
 - other-other-token-classification-of-text-errors
 - slot-filling
 paperswithcode_id: null
+pretty_name: YouTube Caption Corrections
 ---
 
 # Dataset Card for YouTube Caption Corrections

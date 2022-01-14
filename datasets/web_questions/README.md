@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: webquestions
+pretty_name: WebQuestions
 ---
 
 # Dataset Card for "web_questions"

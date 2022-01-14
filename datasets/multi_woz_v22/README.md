@@ -23,6 +23,7 @@ task_ids:
 - multi-class-classification
 - parsing
 paperswithcode_id: multiwoz
+pretty_name: Multi-domain Wizard-of-Oz
 ---
 
 # Dataset Card for MultiWOZ

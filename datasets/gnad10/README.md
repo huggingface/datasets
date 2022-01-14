@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: null
+pretty_name: 10k German News Articles Datasets
 ---
 
 # Dataset Card for 10k German News Articles Datasets

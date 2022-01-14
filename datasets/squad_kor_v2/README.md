@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: null
+pretty_name: KorQuAD v2.1
 ---
 
 # Dataset Card for KorQuAD v2.1

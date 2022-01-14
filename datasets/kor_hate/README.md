@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - multi-label-classification
 paperswithcode_id: korean-hatespeech-dataset
+pretty_name: Korean HateSpeech Dataset
 ---
 
 # Dataset Card for [Dataset Name]

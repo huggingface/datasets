@@ -16,6 +16,7 @@ task_categories:
 task_ids:
 - other-other-image-classification
 paperswithcode_id: mnist
+pretty_name: MNIST
 ---
 
 # Dataset Card for MNIST

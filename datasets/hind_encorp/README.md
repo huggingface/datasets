@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: hindencorp
+pretty_name: HindEnCorp
 ---
 
 # Dataset Card for HindEnCorp

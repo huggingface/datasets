@@ -20,6 +20,7 @@ task_ids:
 - extractive-qa
 - question-answering-other-conversational-qa
 paperswithcode_id: sharc
+pretty_name: Shaping Answers with Rules through Conversation
 ---
 
 # Dataset Card Creation Guide

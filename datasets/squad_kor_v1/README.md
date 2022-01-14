@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: korquad
+pretty_name: The Korean Question Answering Dataset
 ---
 
 # Dataset Card for KorQuAD v1.0

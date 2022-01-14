@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: quarel
+pretty_name: QuaRel
 ---
 
 # Dataset Card for "quarel"

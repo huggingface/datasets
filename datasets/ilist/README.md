@@ -20,6 +20,7 @@ size_categories:
 licenses:
 - unknown
 paperswithcode_id: null
+pretty_name: ilist
 ---
 
 # Dataset Card Creation Guide

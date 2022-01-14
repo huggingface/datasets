@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: multi-news
+pretty_name: Multi-News
 ---
 
 # Dataset Card for "multi_news"

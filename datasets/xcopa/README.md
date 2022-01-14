@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: xcopa
+pretty_name: XCOPA
 ---
 
 # Dataset Card for "xcopa"

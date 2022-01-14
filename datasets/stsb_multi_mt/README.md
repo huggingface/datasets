@@ -29,6 +29,7 @@ task_categories:
 task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: null
+pretty_name: STSb Multi MT
 ---
 
 # Dataset Card for STSb Multi MT
