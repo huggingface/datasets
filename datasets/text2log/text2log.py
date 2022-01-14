@@ -35,13 +35,12 @@ _HOMEPAGE = "https://github.com/alevkov/text2log"
 
 _LICENSE = "none provided"
 
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLS ={
-"csv":"https://raw.githubusercontent.com/apergo-ai/text2log/main/dat/text2log_clean.csv",
-"zip":"https://raw.githubusercontent.com/apergo-ai/text2log/main/dat/text2log_clean.zip"
+
+_URLS = {
+    "csv": "https://raw.githubusercontent.com/apergo-ai/text2log/main/dat/text2log_clean.csv",
+    "zip": "https://raw.githubusercontent.com/apergo-ai/text2log/main/dat/text2log_clean.zip",
 }
+
 
 class text2log(datasets.GeneratorBasedBuilder):
     """Simple English sentences and FOL representations using LDbCS"""
@@ -58,13 +57,12 @@ class text2log(datasets.GeneratorBasedBuilder):
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            supervised_keys=None,            
-            features=features, 
+            supervised_keys=None,
+            features=features,
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
         )
-
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
@@ -72,7 +70,6 @@ class text2log(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": test_path}),
         ]
-             
 
     def _generate_examples(self, filepath):
         """Generate text2log dataset examples."""
