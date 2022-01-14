@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: hotpotqa
+pretty_name: HotpotQA
 ---
 
 # Dataset Card for "hotpot_qa"

@@ -309,7 +309,13 @@ class DatasetDictTest(TestCase):
             )
             self.assertListEqual(list(dsets.keys()), list(filtered_dsets_2.keys()))
             self.assertEqual(len(filtered_dsets_2["train"]), 5)
-            del dsets, filtered_dsets_1, filtered_dsets_2
+
+            filtered_dsets_3: DatasetDict = dsets.filter(
+                lambda examples: [int(ex.split("_")[-1]) < 10 for ex in examples["filename"]], batched=True
+            )
+            self.assertListEqual(list(dsets.keys()), list(filtered_dsets_3.keys()))
+            self.assertEqual(len(filtered_dsets_3["train"]), 10)
+            del dsets, filtered_dsets_1, filtered_dsets_2, filtered_dsets_3
 
     def test_sort(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

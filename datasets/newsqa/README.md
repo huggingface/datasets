@@ -23,6 +23,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: newsqa
+pretty_name: NewsQA
 ---
 
 # Dataset Card for NewsQA

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: ag-news
+pretty_name: AG’s News Corpus
 ---
 
 # Dataset Card for "ag_news"

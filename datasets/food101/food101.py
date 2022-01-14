@@ -180,7 +180,7 @@ class Food101(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             citation=_CITATION,
             license=_LICENSE,
-            task_templates=[ImageClassification(image_column="image", label_column="label", labels=_NAMES)],
+            task_templates=[ImageClassification(image_column="image", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

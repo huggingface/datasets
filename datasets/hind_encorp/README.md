@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: hindencorp
+pretty_name: HindEnCorp
 ---
 
 # Dataset Card for HindEnCorp
@@ -157,7 +158,7 @@ the 1st part of data TIDES was originally col- lected for the DARPA-TIDES surpri
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

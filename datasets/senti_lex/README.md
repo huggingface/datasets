@@ -265,6 +265,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: SentiWS
 ---
 
 # Dataset Card for SentiWS

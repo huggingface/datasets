@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-analysis
 paperswithcode_id: null
+pretty_name: Hate Speech in Filipino
 ---
 
 # Dataset Card for Hate Speech in Filipino

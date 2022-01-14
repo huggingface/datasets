@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: OpusTedtalks
 ---
 
 # Dataset Card Creation Guide
@@ -128,7 +129,8 @@ This is a Croatian-English parallel corpus of transcribed and translated TED tal
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
+
 
 ## Additional Information
 

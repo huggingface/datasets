@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: null
+pretty_name: Penn Treebank
 ---
 
 # Dataset Card for Penn Treebank
@@ -136,7 +137,7 @@ The text in the dataset is in American English
 
 ### Licensing Information
 
-[Needs More Information]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ### Citation Information
 

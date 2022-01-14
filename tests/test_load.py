@@ -453,14 +453,14 @@ def test_load_dataset_builder_for_community_dataset_with_script():
     assert builder.info.features == Features({"text": Value("string")})
     namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
     assert builder._relative_data_dir().startswith(namespace)
-    assert SAMPLE_DATASET_IDENTIFIER.replace("/", "___") in builder.__module__
+    assert SAMPLE_DATASET_IDENTIFIER.replace("/", "--") in builder.__module__
 
 
 def test_load_dataset_builder_for_community_dataset_without_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
-    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.replace("/", "___")
+    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.replace("/", "--")
     assert isinstance(builder.config.data_files, DataFilesDict)
     assert len(builder.config.data_files["train"]) > 0
     assert len(builder.config.data_files["test"]) > 0

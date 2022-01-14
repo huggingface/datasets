@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: quizbowl
+pretty_name: Quizbowl
 ---
 
 # Dataset Card for "qanta"

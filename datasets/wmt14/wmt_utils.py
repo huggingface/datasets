@@ -793,7 +793,6 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
             # +++++++++++++++++++++
 
             logger.info("Generating examples from: %s", ss_name)
-            print("Generating examples from: %s", ss_name)
             dataset = DATASET_MAP[ss_name]
             extract_dirs = extraction_map[ss_name]
             files = _get_local_paths(dataset, extract_dirs)

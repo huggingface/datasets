@@ -240,7 +240,7 @@ Here are the step to open the Pull-Request on the main repo.
 	pip install isort
 	pip install flake8
 
-	black --line-length 119 --target-version py36 datasets/your_dataset
+	black --line-length 119 --target-version py36 datasets/your_dataset/your_dataset.py
 	
 	isort datasets/your_dataset/your_dataset.py
 

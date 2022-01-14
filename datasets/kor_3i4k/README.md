@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: null
+pretty_name: 3i4K
 ---
 
 # Dataset Card for 3i4K

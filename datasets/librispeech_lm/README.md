@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: null
+pretty_name: LibrispeechLm
 ---
 
 # Dataset Card for "librispeech_lm"

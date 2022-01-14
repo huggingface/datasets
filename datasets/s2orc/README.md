@@ -23,6 +23,7 @@ task_ids:
 - multi-label-classification
 - other-other-citation-recommendation
 paperswithcode_id: s2orc
+pretty_name: S2ORC
 ---
 
 # Dataset Card for S2ORC: The Semantic Scholar Open Research Corpus

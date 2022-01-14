@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: reclor
+pretty_name: ReClor
 ---
 
 ### Contributions
