@@ -38,7 +38,10 @@ _LICENSE = "none provided"
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://raw.githubusercontent.com/apergo-ai/text2log/main/dat/text2log_clean.zip"
+_URLS ={
+"csv":"https://raw.githubusercontent.com/apergo-ai/text2log/main/dat/text2log_clean.csv",
+"zip":"https://raw.githubusercontent.com/apergo-ai/text2log/main/dat/text2log_clean.zip"
+}
 
 class text2log(datasets.GeneratorBasedBuilder):
     """Simple English sentences and FOL representations using LDbCS"""
@@ -65,7 +68,7 @@ class text2log(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        test_path = dl_manager.download_and_extract(_URL)
+        test_path = dl_manager.download_and_extract(_URLS["csv"])
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": test_path}),
         ]
