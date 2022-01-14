@@ -29,30 +29,33 @@ import datasets
 from .utils import to_dict, save_to_file
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
-@InProceedings{huggingface:dataset,
-title = {A great new dataset},
-author={huggingface, Inc.
-},
-year={2020}
+@inproceedings{10.1145/3209978.3210006,
+    author = {Lai, Guokun and Chang, Wei-Cheng and Yang, Yiming and Liu, Hanxiao},
+    title = {Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks},
+    year = {2018},
+    isbn = {9781450356572},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3209978.3210006},
+    doi = {10.1145/3209978.3210006},
+    booktitle = {The 41st International ACM SIGIR Conference on Research & Development in Information Retrieval},
+    pages = {95–-104},
+    numpages = {10},
+    location = {Ann Arbor, MI, USA},
+    series = {SIGIR '18}
 }
 """
 
-# TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-This new dataset is designed to solve this great NLP task and is crafted with a lot of care.
+This new dataset is contains hourly kW electricity consumption time series of 370 clients over a number of years.
 """
 
-# TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = "https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014"
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
-# TODO: Add link to the official dataset URLs here
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLS = {
@@ -61,33 +64,21 @@ _URLS = {
 }
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class Electricty(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """Hourly electricity consumption of 370 points/clients."""
 
     VERSION = datasets.Version("1.0.0")
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
             name="uci",
             version=VERSION,
-            description="This part of my dataset covers a first domain",
+            description="Original UCI time series.",
         ),
         datasets.BuilderConfig(
             name="lstnet",
             version=VERSION,
-            description="This part of my dataset covers a second domain",
+            description="Electricity time series preporcessed as in LSTNet paper.",
         ),
     ]
 
@@ -99,9 +90,9 @@ class Electricty(datasets.GeneratorBasedBuilder):
                 "start": datasets.Value("string"),
                 "target": datasets.Sequence(datasets.Value("float32")),
                 "feat_static_cat": datasets.Sequence(datasets.Value("uint64")),
-                # "feat_dynamic_real": ndarray type
-                # "feat_dynamic_cat"
-                # "feat_static_real"
+                # "feat_dynamic_real":
+                # "feat_dynamic_cat": 
+                # "feat_static_real":
                 "item_id": datasets.Value("string"),
             }
         )
@@ -122,8 +113,6 @@ class Electricty(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLS
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
@@ -201,8 +190,6 @@ class Electricty(datasets.GeneratorBasedBuilder):
         else:
             # data_dir is a file not a directory, so we rename it to electricity.txt and set the data_dir to the parent directory
             os.rename(data_dir, Path(data_dir).parents[0] / "electricity.txt")
-            # import pdb
-            # pdb.set_trace()
             data_dir = Path(data_dir).parents[0]
 
             time_index = pd.date_range(
@@ -210,9 +197,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
                 freq=freq,
                 periods=26304,
             )
-            timeseries = pd.read_csv(
-                data_dir / "electricity.txt", header=None
-            )
+            timeseries = pd.read_csv(data_dir / "electricity.txt", header=None)
             timeseries.set_index(time_index, inplace=True)
 
             # train/val ends at 8/10-th of the time series
