@@ -124,7 +124,7 @@ class JsonDatasetWriter:
             for offset in utils.tqdm(
                 range(0, len(self.dataset), self.batch_size),
                 unit="ba",
-                disable=bool(logging.get_verbosity() == logging.NOTSET),
+                disable=not utils.is_progress_bar_enabled(),
                 desc="Creating json from Arrow format",
             ):
                 json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
@@ -141,7 +141,7 @@ class JsonDatasetWriter:
                     ),
                     total=(len(self.dataset) // self.batch_size) + 1,
                     unit="ba",
-                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    disable=not utils.is_progress_bar_enabled(),
                     desc="Creating json from Arrow format",
                 ):
                     written += file_obj.write(json_str)

@@ -459,7 +459,7 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
         total=total,
         initial=resume_size,
         desc="Downloading",
-        disable=bool(logging.get_verbosity() == logging.NOTSET),
+        disable=not utils.is_progress_bar_enabled(),
     )
     for chunk in response.iter_content(chunk_size=1024):
         if chunk:  # filter out keep-alive new chunks

@@ -2091,7 +2091,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
-        disable_tqdm = bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
+        disable_tqdm = not utils.is_progress_bar_enabled()
 
         if num_proc is None or num_proc == 1:
             return self._map_single(
@@ -3528,7 +3528,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 file_shards_to_delete,
                 desc="Deleting unused files from dataset repository",
                 total=len(file_shards_to_delete),
-                disable=bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled(),
+                disable=not utils.is_progress_bar_enabled(),
             ):
                 delete_file(file)
 
@@ -3537,7 +3537,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             enumerate(shards),
             desc="Pushing dataset shards to the dataset hub",
             total=num_shards,
-            disable=bool(logging.get_verbosity() == logging.NOTSET),
+            disable=not utils.is_progress_bar_enabled(),
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)

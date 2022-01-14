@@ -108,7 +108,7 @@ class CsvDatasetWriter:
             for offset in utils.tqdm(
                 range(0, len(self.dataset), self.batch_size),
                 unit="ba",
-                disable=bool(logging.get_verbosity() == logging.NOTSET),
+                disable=not utils.is_progress_bar_enabled(),
                 desc="Creating CSV from Arrow format",
             ):
                 csv_str = self._batch_csv((offset, header, to_csv_kwargs))
@@ -123,7 +123,7 @@ class CsvDatasetWriter:
                     ),
                     total=(len(self.dataset) // self.batch_size) + 1,
                     unit="ba",
-                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    disable=not utils.is_progress_bar_enabled(),
                     desc="Creating CSV from Arrow format",
                 ):
                     written += file_obj.write(csv_str)
