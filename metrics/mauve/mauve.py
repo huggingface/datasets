@@ -14,14 +14,11 @@
 # limitations under the License.
 """ MAUVE metric from https://github.com/krishnap25/mauve. """
 
-# The dependencies in https://github.com/google-research/google-research/blob/master/rouge/requirements.txt
-import numpy  # Here to have a nice missing dependency error message early on
-import sklearn  # Here to have a nice missing dependency error message early on
 import faiss  # Here to have a nice missing dependency error message early on
-import tqdm  # Here to have a nice missing dependency error message early on
+import numpy  # Here to have a nice missing dependency error message early on
 import requests  # Here to have a nice missing dependency error message early on
-
-
+import sklearn  # Here to have a nice missing dependency error message early on
+import tqdm  # Here to have a nice missing dependency error message early on
 from mauve import compute_mauve
 
 import datasets
