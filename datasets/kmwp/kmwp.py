@@ -50,7 +50,18 @@ class Kmwp(datasets.GeneratorBasedBuilder):
 
         features = datasets.Features(
             {
-                "class": datasets.Value("int32"),
+                "class": datasets.ClassLabel(
+                    names=[
+                        "arithmetic",
+                        "order",
+                        "combination",
+                        "find-number-1",
+                        "find-number-2",
+                        "find-number-3",
+                        "size-comparison",
+                        "figure",
+                    ]
+                ),
                 "problem": datasets.Value("string"),
                 "code": datasets.Value("string"),
                 "answer": datasets.Value("string"),
@@ -78,4 +89,4 @@ class Kmwp(datasets.GeneratorBasedBuilder):
         for id_, (class_, problem, code, answer) in enumerate(
             zip(df["class"], df["problem"], df["code"], df["answer"])
         ):
-            yield id_, {"class": class_, "problem": problem, "code": code, "answer": answer}
+            yield id_, {"class": class_ - 1, "problem": problem, "code": code, "answer": answer}
