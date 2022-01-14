@@ -120,7 +120,7 @@ def create_pd_type(pa_type_cls):
     pd_type.pd_extension_array = type(
         "Pandas" + feature_name + "ExtensionArray", (PandasBaseExtensionArray,), {"pd_type": pd_type}
     )
-    return pd_type
+    return pd_type()
 
 
 class ExtensionArray(pa.ExtensionArray):
@@ -155,7 +155,7 @@ class BasePyarrowExtensionType(pa.PyExtensionType, metaclass=_WatchAndAutomatica
         return self.__class__, ()
 
     def to_pandas_dtype(self):
-        return self._pd_type()
+        return self._pd_type
 
     def cast_storage(self, array: pa.Array) -> pa.Array:
         return array.cast(self.pa_storage_type)

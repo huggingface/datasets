@@ -1333,7 +1333,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
         dataset = dataset.map(
-            lambda t: table_cast(t, schema),
+            partial(table_cast, schema=schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
