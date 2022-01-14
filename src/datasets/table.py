@@ -959,7 +959,7 @@ def array_cast(array, pa_type, allow_number_to_str=True):
             if pa_type.list_size * len(array) == len(array.values):
                 return pa.FixedSizeListArray.from_arrays(
                     array_cast(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str),
-                    pa_type.list_size
+                    pa_type.list_size,
                 )
         elif pa.types.is_list(pa_type):
             return pa.ListArray.from_arrays(
@@ -969,7 +969,7 @@ def array_cast(array, pa_type, allow_number_to_str=True):
         if pa.types.is_fixed_size_list(pa_type):
             return pa.FixedSizeListArray.from_arrays(
                 array_cast(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str),
-                pa_type.list_size
+                pa_type.list_size,
             )
         elif pa.types.is_list(pa_type):
             offsets_arr = pa.array(range(len(array) + 1), pa.int32())
