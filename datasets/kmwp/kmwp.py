@@ -21,7 +21,7 @@ import datasets
 
 _CITATION = """
 @misc{KMWP
-  author       = {Keum, Bitna and Ryu, Myeonghyeon and Ham, Yoseph and Seo, Minsuh and 
+  author       = {Keum, Bitna and Ryu, Myeonghyeon and Ham, Yoseph and Seo, Minsuh and
                   Jo, Heechang and Kim, Hangyeol and Park, Kyubyong},
   title        = {KMWP, Korean Math Word Problems},
   howpublished = {https://github.com/tunib-ai/KMWP},
