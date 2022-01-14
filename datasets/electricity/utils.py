@@ -18,30 +18,6 @@ def save_to_file(path: Path, data: List[Dict]):
             fp.write("\n".encode("utf-8"))
 
 
-def load_from_pandas(
-    df: pd.DataFrame,
-    time_index: pd.DatetimeIndex,
-    agg_freq: Optional[str] = None,
-) -> List[pd.Series]:
-    df = df.set_index(time_index)
-
-    pivot_df = df.transpose()
-    pivot_df.head()
-
-    timeseries = []
-    for row in pivot_df.iterrows():
-        ts = pd.Series(row[1].values, index=time_index)
-        if agg_freq is not None:
-            ts = ts.resample(agg_freq).sum()
-        first_valid = ts[ts.notnull()].index[0]
-        last_valid = ts[ts.notnull()].index[-1]
-        ts = ts[first_valid:last_valid]
-
-        timeseries.append(ts)
-
-    return timeseries
-
-
 def to_dict(
     target_values: np.ndarray,
     start: pd.Timestamp,

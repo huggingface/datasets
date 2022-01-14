@@ -12,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# TODO: Address all TODOs and remove all explanatory comments
-"""TODO: Add a description here."""
+"""Electricity time series dataset."""
 
 
 import csv
@@ -49,7 +48,7 @@ _CITATION = """\
 
 # You can copy an official description
 _DESCRIPTION = """\
-This new dataset is contains hourly kW electricity consumption time series of 370 clients over a number of years.
+This new dataset contains hourly kW electricity consumption time series of 370 Portuguese clients from 2011 to 2014.
 """
 
 _HOMEPAGE = "https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014"
@@ -279,7 +278,6 @@ class Electricty(datasets.GeneratorBasedBuilder):
 
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath, split):
-        # TODO: This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is for legacy reasons (tfds) and is not important in itself, but must be unique for each example.
         with open(filepath, encoding="utf-8") as f:
             for key, row in enumerate(f):
