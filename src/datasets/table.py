@@ -946,24 +946,39 @@ def array_cast(array, pa_type, allow_number_to_str=True):
     if isinstance(pa_type, pa.ExtensionType):
         return pa_type.wrap_array(array)
     elif pa.types.is_struct(array.type):
-        if not pa.types.is_struct(pa_type) or (
-            sorted(field.name for field in pa_type) != sorted(field.name for field in array.type)
+        if pa.types.is_struct(pa_type) and (
+            sorted(field.name for field in pa_type) == sorted(field.name for field in array.type)
         ):
-            raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
-        arrays = [
-            array_cast(array.field(field.name), field.type, allow_number_to_str=allow_number_to_str)
-            for field in pa_type
-        ]
-        return pa.StructArray.from_arrays(arrays, fields=list(pa_type))
+            arrays = [
+                array_cast(array.field(field.name), field.type, allow_number_to_str=allow_number_to_str)
+                for field in pa_type
+            ]
+            return pa.StructArray.from_arrays(arrays, fields=list(pa_type))
     elif pa.types.is_list(array.type):
-        if not pa.types.is_list(pa_type):
-            raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
-        return pa.ListArray.from_arrays(
-            array.offsets, array_cast(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str)
-        )
+        if pa.types.is_fixed_size_list(pa_type):
+            if pa_type.list_size * len(array) == len(array.values):
+                return pa.FixedSizeListArray.from_arrays(
+                    array_cast(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str),
+                    pa_type.list_size
+                )
+        elif pa.types.is_list(pa_type):
+            return pa.ListArray.from_arrays(
+                array.offsets, array_cast(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str)
+            )
+    elif pa.types.is_fixed_size_list(array.type):
+        if pa.types.is_fixed_size_list(pa_type):
+            return pa.FixedSizeListArray.from_arrays(
+                array_cast(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str),
+                pa_type.list_size
+            )
+        elif pa.types.is_list(pa_type):
+            offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+            return pa.ListArray.from_arrays(
+                offsets_arr, array_cast(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str)
+            )
     else:
         if (
-            not allow_number_to_str
+            allow_number_to_str
             and pa.types.is_string(pa_type)
             and (pa.types.is_floating(array.type) or pa.types.is_integer(array.type))
         ):
@@ -971,6 +986,7 @@ def array_cast(array, pa_type, allow_number_to_str=True):
                 f"Couldn't cast array of type {array.type} to {pa_type} since allow_number_to_str is set to {allow_number_to_str}"
             )
         return array.cast(pa_type)
+    raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
 
 
 def table_cast(table: pa.Table, schema):
