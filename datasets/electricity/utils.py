@@ -1,21 +1,8 @@
 from typing import Any, List, Dict, Optional
 
-from pathlib import Path
-import os
-import json
 
 import numpy as np
 import pandas as pd
-
-
-def save_to_file(path: Path, data: List[Dict]):
-    print(f"saving time-series into {path}")
-    path_dir = os.path.dirname(path)
-    os.makedirs(path_dir, exist_ok=True)
-    with open(path, "wb") as fp:
-        for d in data:
-            fp.write(json.dumps(d).encode("utf-8"))
-            fp.write("\n".encode("utf-8"))
 
 
 def to_dict(

@@ -25,7 +25,7 @@ import numpy as np
 
 import datasets
 
-from .utils import to_dict, save_to_file
+from .utils import to_dict
 
 
 _CITATION = """\
@@ -90,7 +90,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
                 "target": datasets.Sequence(datasets.Value("float32")),
                 "feat_static_cat": datasets.Sequence(datasets.Value("uint64")),
                 # "feat_dynamic_real":
-                # "feat_dynamic_cat": 
+                # "feat_dynamic_cat":
                 # "feat_static_real":
                 "item_id": datasets.Value("string"),
             }
@@ -125,6 +125,10 @@ class Electricty(datasets.GeneratorBasedBuilder):
         rolling_evaluations = 7
         univariate = True
 
+        train_ts = []
+        val_ts = []
+        test_ts = []
+
         if self.config.name == "uci":
             df = pd.read_csv(
                 Path(data_dir) / "LD2011_2014.txt",
@@ -141,8 +145,6 @@ class Electricty(datasets.GeneratorBasedBuilder):
             )
             train_end_date = val_end_date - pd.Timedelta(prediction_length, "H")
 
-            train_ts = []
-            val_ts = []
             for cat, (ts_id, ts) in enumerate(df.iteritems()):
                 start_date = ts.ne(0).idxmax()
 
@@ -165,10 +167,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
                         item_id=ts_id,
                     )
                 )
-            save_to_file(Path(data_dir) / "train.jsonl", train_ts)
-            save_to_file(Path(data_dir) / "dev.jsonl", val_ts)
 
-            test_ts = []
             for i in range(rolling_evaluations):
                 for cat, (ts_id, ts) in enumerate(df.iteritems()):
                     start_date = ts.ne(0).idxmax()
@@ -185,26 +184,19 @@ class Electricty(datasets.GeneratorBasedBuilder):
                             item_id=ts_id,
                         )
                     )
-            save_to_file(Path(data_dir) / "test.jsonl", test_ts)
         else:
-            # data_dir is a file not a directory, so we rename it to electricity.txt and set the data_dir to the parent directory
-            os.rename(data_dir, Path(data_dir).parents[0] / "electricity.txt")
-            data_dir = Path(data_dir).parents[0]
-
             time_index = pd.date_range(
                 start="2012-01-01",
                 freq=freq,
                 periods=26304,
             )
-            timeseries = pd.read_csv(data_dir / "electricity.txt", header=None)
-            timeseries.set_index(time_index, inplace=True)
+            timeseries = pd.read_csv(data_dir, header=None, compression=None)
+            timeseries.set_index(time_index[: len(timeseries)], inplace=True)
 
             # train/val ends at 8/10-th of the time series
             validation_end = time_index[int(len(time_index) * (8 / 10))]
             training_end = validation_end - pd.Timedelta(prediction_length, "H")
 
-            train_ts = []
-            val_ts = []
             for cat, (ts_id, ts) in enumerate(timeseries.iteritems()):
                 sliced_ts = ts[:training_end]
                 if len(sliced_ts) > 0:
@@ -228,10 +220,6 @@ class Electricty(datasets.GeneratorBasedBuilder):
                         )
                     )
 
-            save_to_file(data_dir / "train.jsonl", train_ts)
-            save_to_file(data_dir / "dev.jsonl", val_ts)
-
-            test_ts = []
             for i in range(rolling_evaluations):
                 for cat, (ts_id, ts) in enumerate(timeseries.iteritems()):
                     testing_end = validation_end + pd.Timedelta(
@@ -247,31 +235,30 @@ class Electricty(datasets.GeneratorBasedBuilder):
                                 item_id=ts_id,
                             )
                         )
-            save_to_file(data_dir / "test.jsonl", train_ts)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.jsonl"),
-                    "split": "train",
+                    "split": train_ts,
+                    "filepath": None,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.jsonl"),
-                    "split": "test",
+                    "split": test_ts,
+                    "filepath": None,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "dev.jsonl"),
-                    "split": "dev",
+                    "split": val_ts,
+                    "filepath": None,
                 },
             ),
         ]
@@ -279,13 +266,11 @@ class Electricty(datasets.GeneratorBasedBuilder):
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath, split):
         # The `key` is for legacy reasons (tfds) and is not important in itself, but must be unique for each example.
-        with open(filepath, encoding="utf-8") as f:
-            for key, row in enumerate(f):
-                data = json.loads(row)
-                # Yields examples as (key, example) tuples
-                yield key, {
-                    "target": data["target"],
-                    "start": data["start"],
-                    "feat_static_cat": data["feat_static_cat"],
-                    "item_id": data["item_id"],
-                }
+        for key, row in enumerate(split):
+            # Yields examples as (key, example) tuples
+            yield key, {
+                "target": row["target"],
+                "start": row["start"],
+                "feat_static_cat": row["feat_static_cat"],
+                "item_id": row["item_id"],
+            }
