@@ -140,9 +140,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
             df.sort_index(inplace=True)
             df = df.resample(freq).sum()
 
-            val_end_date = df.index.max() - pd.Timedelta(
-                prediction_length * rolling_evaluations, "H"
-            )
+            val_end_date = df.index.max() - pd.Timedelta(prediction_length * rolling_evaluations, "H")
             train_end_date = val_end_date - pd.Timedelta(prediction_length, "H")
 
             for cat, (ts_id, ts) in enumerate(df.iteritems()):
@@ -172,9 +170,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
                 for cat, (ts_id, ts) in enumerate(df.iteritems()):
                     start_date = ts.ne(0).idxmax()
 
-                    test_end_date = val_end_date + pd.Timedelta(
-                        prediction_length * (i + 1), "H"
-                    )
+                    test_end_date = val_end_date + pd.Timedelta(prediction_length * (i + 1), "H")
                     sliced_ts = ts[start_date:test_end_date]
                     test_ts.append(
                         to_dict(
@@ -222,9 +218,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
 
             for i in range(rolling_evaluations):
                 for cat, (ts_id, ts) in enumerate(timeseries.iteritems()):
-                    testing_end = validation_end + pd.Timedelta(
-                        prediction_length * (i + 1), "H"
-                    )
+                    testing_end = validation_end + pd.Timedelta(prediction_length * (i + 1), "H")
                     sliced_ts = ts[:testing_end]
                     if len(sliced_ts) > 0:
                         test_ts.append(
