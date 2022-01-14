@@ -14,7 +14,10 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- math-word-problem
+- conditional-text-generation
+task_ids:
+- conditional-text-generation-other-math-word-problem
+pretty_name: KMWP (Korean Math Word Problems)
 ---
 
 # Dataset Card for KMWP
