@@ -75,17 +75,19 @@ class Dktc(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        id_ = 0
+        convert_dict = {
+            "협박 대화": 0,
+            "갈취 대화": 1,
+            "직장 내 괴롭힘 대화": 2,
+            "기타 괴롭힘 대화": 3,
+        }
 
         df = pd.read_csv(filepath, encoding="utf-8")
-        df = df.drop(["Unnamed: 0"], axis=1)
 
-        for class_, col in enumerate(df.columns):
-            for text in df[col]:
-                if pd.isna(text):
-                    continue
-                yield id_, {
-                    "class": class_,
-                    "text": text,
-                }
-                id_ += 1
+        for idx, (text, class_name) in enumerate(zip(df["conversation"], df["class"])):
+            if pd.isna(text):
+                continue
+            yield idx, {
+                "class": convert_dict[class_name],
+                "text": text,
+            }
