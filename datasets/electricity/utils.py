@@ -1,5 +1,4 @@
-from typing import Any, List, Dict, Optional
-
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
