@@ -32,7 +32,7 @@ import pyarrow as pa
 import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
-from pyarrow.lib import TimestampType
+from pyarrow.lib import DurationType, TimestampType
 
 from datasets import config, utils
 from datasets.features.audio import Audio
@@ -87,6 +87,9 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "date32"  # pyarrow dtype is "date32[day]"
     elif pyarrow.types.is_date64(arrow_type):
         return "date64"  # pyarrow dtype is "date64[ms]"
+    elif pyarrow.types.is_duration(arrow_type):
+        assert isinstance(arrow_type, DurationType)
+        return f"duration[{arrow_type.unit}]"
     elif pyarrow.types.is_binary(arrow_type):
         return "binary"
     elif pyarrow.types.is_large_binary(arrow_type):
@@ -115,6 +118,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
     """
     timestamp_regex = re.compile(r"timestamp\[(.*)\]")
     timestamp_matches = timestamp_regex.match(datasets_dtype)
+
     if timestamp_matches:
         """
         Example timestamp dtypes:
@@ -132,10 +136,25 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
         else:
             raise ValueError(
                 f"{datasets_dtype} is not a validly formatted string representation of a pyarrow timestamp."
-                f"Examples include timestamp[us] or timestamp[us, tz=America/New_York]"
-                f"See: https://arrow.apache.org/docs/python/generated/pyarrow.timestamp.html#pyarrow.timestamp"
+                f"Examples include timestamp[us] or timestamp[us, tz=America/New_York]."
+                f"See: https://arrow.apache.org/docs/python/generated/pyarrow.timestamp.html"
             )
-    elif datasets_dtype not in pa.__dict__:
+
+    duration_regex = re.compile(r"duration\[(.*)\]")
+    duration_matches = duration_regex.match(datasets_dtype)
+
+    if duration_matches:
+        duration_internals = duration_matches.group(1)
+        if duration_internals in ["s", "ms", "us", "ns"]:
+            return pa.duration(duration_internals)
+        else:
+            raise ValueError(
+                f"{datasets_dtype} is not a validly formatted string representation of a pyarrow duration."
+                f"Examples include duration[s] or duration[ms]."
+                f"See: https://arrow.apache.org/docs/python/generated/pyarrow.duration.html"
+            )
+
+    if datasets_dtype not in pa.__dict__:
         if str(datasets_dtype + "_") not in pa.__dict__:
             raise ValueError(
                 f"Neither {datasets_dtype} nor {datasets_dtype + '_'} seems to be a pyarrow data type. "
@@ -281,6 +300,7 @@ class Value:
     timestamp[(s|ms|us|ns), tz=(tzstring)]
     date32
     date64
+    duration[(s|ms|us|ns)]
     binary
     large_binary
     string
