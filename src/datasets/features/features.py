@@ -116,9 +116,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
         which means that each Value() must be able to resolve into a corresponding pyarrow.DataType, which is the
         purpose of this function.
     """
-    timestamp_regex = re.compile(r"timestamp\[(.*)\]")
-    timestamp_matches = timestamp_regex.match(datasets_dtype)
-
+    timestamp_matches = re.match(r"timestamp\[(.*)\]", datasets_dtype)
     if timestamp_matches:
         """
         Example timestamp dtypes:
@@ -127,8 +125,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
         timestamp[us, tz=America/New_York]
         """
         timestamp_internals = timestamp_matches.group(1)
-        internals_regex = re.compile(r"(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+\-:]*)")
-        internals_matches = internals_regex.match(timestamp_internals)
+        internals_matches = re.match(r"(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+\-:]*)", timestamp_internals)
         if timestamp_internals in ["s", "ms", "us", "ns"]:
             return pa.timestamp(timestamp_internals)
         elif internals_matches:
@@ -140,9 +137,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
                 f"See: https://arrow.apache.org/docs/python/generated/pyarrow.timestamp.html"
             )
 
-    duration_regex = re.compile(r"duration\[(.*)\]")
-    duration_matches = duration_regex.match(datasets_dtype)
-
+    duration_matches = re.match(r"duration\[(.*)\]", datasets_dtype)
     if duration_matches:
         duration_internals = duration_matches.group(1)
         if duration_internals in ["s", "ms", "us", "ns"]:
