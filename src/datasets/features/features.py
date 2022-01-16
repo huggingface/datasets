@@ -49,7 +49,6 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
     _arrow_to_datasets_dtype takes a pyarrow.DataType and converts it to a datasets string dtype.
     In effect, `dt == string_to_arrow(_arrow_to_datasets_dtype(dt))`
     """
-
     if pyarrow.types.is_null(arrow_type):
         return "null"
     elif pyarrow.types.is_boolean(arrow_type):
@@ -84,6 +83,10 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
             return f"timestamp[{arrow_type.unit}, tz={arrow_type.tz}]"
         else:
             raise ValueError(f"Unexpected timestamp object {arrow_type}.")
+    elif pyarrow.types.is_date32(arrow_type):
+        return "date32"  # pyarrow dtype is "date32[day]"
+    elif pyarrow.types.is_date64(arrow_type):
+        return "date64"  # pyarrow dtype is "date64[ms]"
     elif pyarrow.types.is_binary(arrow_type):
         return "binary"
     elif pyarrow.types.is_large_binary(arrow_type):
@@ -110,8 +113,8 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
         which means that each Value() must be able to resolve into a corresponding pyarrow.DataType, which is the
         purpose of this function.
     """
-    timestamp_regex = re.compile(r"^timestamp\[(.*)\]$")
-    timestamp_matches = timestamp_regex.search(datasets_dtype)
+    timestamp_regex = re.compile(r"timestamp\[(.*)\]")
+    timestamp_matches = timestamp_regex.match(datasets_dtype)
     if timestamp_matches:
         """
         Example timestamp dtypes:
@@ -120,8 +123,8 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
         timestamp[us, tz=America/New_York]
         """
         timestamp_internals = timestamp_matches.group(1)
-        internals_regex = re.compile(r"^(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+\-:]*)$")
-        internals_matches = internals_regex.search(timestamp_internals)
+        internals_regex = re.compile(r"(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+\-:]*)")
+        internals_matches = internals_regex.match(timestamp_internals)
         if timestamp_internals in ["s", "ms", "us", "ns"]:
             return pa.timestamp(timestamp_internals)
         elif internals_matches:
@@ -276,6 +279,8 @@ class Value:
     float64 (alias double)
     timestamp[(s|ms|us|ns)]
     timestamp[(s|ms|us|ns), tz=(tzstring)]
+    date32
+    date64
     binary
     large_binary
     string
