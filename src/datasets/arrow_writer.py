@@ -107,9 +107,7 @@ class TypedSequence:
         self.optimized_int_type = optimized_int_type
         # when trying a type (is ignored if data is not compatible)
         self.trying_type = self.try_type is not None
-        self.trying_int_optimization = (
-            optimized_int_type is not None and type is None and try_type is None
-        )
+        self.trying_int_optimization = optimized_int_type is not None and type is None and try_type is None
         # used to get back the inferred type after __arrow_array__() is called once
         self._inferred_type = None
 
@@ -143,7 +141,9 @@ class TypedSequence:
         else:
             type = self._inferred_type
         pa_type = get_nested_type(type) if type is not None else None
-        optimized_int_pa_type = get_nested_type(self.optimized_int_type) if self.optimized_int_type is not None else None
+        optimized_int_pa_type = (
+            get_nested_type(self.optimized_int_type) if self.optimized_int_type is not None else None
+        )
         try:
             # custom pyarrow types
             if isinstance(pa_type, _ArrayXDExtensionType):
