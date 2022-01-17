@@ -32,7 +32,7 @@ import pyarrow as pa
 import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
-from pyarrow.lib import DurationType, Time32Type, Time64Type, TimestampType
+from pyarrow.lib import Decimal128Type, Decimal256Type, DurationType, Time32Type, Time64Type, TimestampType
 
 from datasets import config, utils
 from datasets.features.audio import Audio
@@ -96,6 +96,12 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
     elif pyarrow.types.is_duration(arrow_type):
         assert isinstance(arrow_type, DurationType)
         return f"duration[{arrow_type.unit}]"
+    elif pyarrow.types.is_decimal128(arrow_type):
+        assert isinstance(arrow_type, Decimal128Type)
+        return f"decimal128({arrow_type.precision}, {arrow_type.scale})"
+    elif pyarrow.types.is_decimal256(arrow_type):
+        assert isinstance(arrow_type, Decimal256Type)
+        return f"decimal256({arrow_type.precision}, {arrow_type.scale})"
     elif pyarrow.types.is_binary(arrow_type):
         return "binary"
     elif pyarrow.types.is_large_binary(arrow_type):
@@ -168,6 +174,28 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
             time_internals_unit = time_matches.group(2)
             if time_internals_unit in ["us", "ns"]:
                 return pa.time64(time_internals_unit)
+            else:
+                pass
+        else:
+            pass
+
+    decimal_matches = re.match(r"decimal(.*)\((.*)\)", datasets_dtype)
+    if decimal_matches:
+        decimal_internals_bits = decimal_matches.group(1)
+        if decimal_internals_bits == "128":
+            decimal_internals_precision_and_scale = re.match(r"(\d+),\s*(-?\d+)", decimal_matches.group(2))
+            if decimal_internals_precision_and_scale:
+                precision = decimal_internals_precision_and_scale.group(1)
+                scale = decimal_internals_precision_and_scale.group(2)
+                return pa.decimal128(int(precision), int(scale))
+            else:
+                pass
+        elif decimal_internals_bits == "256":
+            decimal_internals_precision_and_scale = re.match(r"(\d+),\s*(-?\d+)", decimal_matches.group(2))
+            if decimal_internals_precision_and_scale:
+                precision = decimal_internals_precision_and_scale.group(1)
+                scale = decimal_internals_precision_and_scale.group(2)
+                return pa.decimal128(int(precision), int(scale))
             else:
                 pass
         else:
@@ -322,6 +350,8 @@ class Value:
     date32
     date64
     duration[(s|ms|us|ns)]
+    decimal128(precision, scale)
+    decimal256(precision, scale)
     binary
     large_binary
     string
