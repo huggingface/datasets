@@ -89,7 +89,7 @@ The dataset currently contains a single configuration.
 An example instance from the datasets:
 
 ``` python
-{'ark_id': 'https://persist.lu/ark:/70795/wx8r4c/articles/DTL47',
+{'id': 'https://persist.lu/ark:/70795/wx8r4c/articles/DTL47',
  'article_type': 8,
  'extent': 49,
  'ispartof': 'Luxemburger Wort',
@@ -104,7 +104,7 @@ An example instance from the datasets:
 
 ### Data Fields
 
-- 'ark_id': This is a unique and persistent identifier using ARK. 
+- 'id': This is a unique and persistent identifier using ARK. 
 - 'article_type': The type of the exported data, possible values ('ADVERTISEMENT_SECTION',
  'BIBLIOGRAPHY',
  'CHAPTER',
