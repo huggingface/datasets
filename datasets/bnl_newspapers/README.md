@@ -64,11 +64,9 @@ task_ids:
 
 ### Dataset Summary
 
-The BnL has digitised over 800.000 pages of Luxembourg newspapers. This dataset contains a subset of these newspapers which sit under the "Processed Datasets" collection. The BNL:
+The BnL has digitised over 800.000 pages of Luxembourg newspapers. This dataset currently has one configuration covering a subset of these newspapers, which sit under the "Processed Datasets" collection. The BNL:
 
 > processed all newspapers and monographs that are in the public domain and extracted the full text and associated meta data of every single article, section, advertisement… The result is a large number of small, easy to use XML files formatted using Dublin Core.
-
-This dataset contains the newspapers from these processed collections. 
 
 [More Information Needed]
 
