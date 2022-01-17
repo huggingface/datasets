@@ -16,6 +16,7 @@ from datasets.iterable_dataset import (
     ShufflingConfig,
     SkipExamplesIterable,
     TakeExamplesIterable,
+    TypedExamplesIterable,
     _batch_to_examples,
     _examples_to_batch,
     iterable_dataset,
@@ -473,6 +474,6 @@ def test_interleave_datasets_with_features(dataset: IterableDataset, generate_ex
 
     merged_dataset = interleave_datasets([dataset, dataset_with_features], probabilities=[0, 1])
     assert isinstance(merged_dataset._ex_iterable, CyclingMultiSourcesExamplesIterable)
-    assert isinstance(merged_dataset._ex_iterable.ex_iterables[1], MappedExamplesIterable)
-    assert merged_dataset._ex_iterable.ex_iterables[1].function == features.encode_example
+    assert isinstance(merged_dataset._ex_iterable.ex_iterables[1], TypedExamplesIterable)
+    assert merged_dataset._ex_iterable.ex_iterables[1].features == features
     assert next(iter(merged_dataset)) == next(iter(dataset_with_features))
