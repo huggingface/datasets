@@ -28,7 +28,7 @@ class JsonConfig(datasets.BuilderConfig):
 
     @property
     def schema(self):
-        return pa.schema(self.features.type) if self.features is not None else None
+        return self.features.arrow_schema if self.features is not None else None
 
 
 class Json(datasets.ArrowBasedBuilder):

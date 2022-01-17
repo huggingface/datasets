@@ -10,7 +10,6 @@ from ..table import array_cast
 from ..utils.file_utils import is_local_path
 from ..utils.py_utils import first_non_null_value, no_op_if_value_is_null
 from ..utils.streaming_download_manager import xopen
-from .base_extension import BasePyarrowExtensionType
 
 
 if TYPE_CHECKING:
@@ -18,28 +17,6 @@ if TYPE_CHECKING:
 
 
 _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
-
-
-class ImageExtensionType(BasePyarrowExtensionType):
-    pa_storage_type = pa.struct({"bytes": pa.binary(), "path": pa.string()})
-
-    def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]) -> pa.StructArray:
-        if config.PIL_AVAILABLE:
-            import PIL.Image
-        else:
-            raise ImportError("To support encoding images, please install 'Pillow'.")
-
-        if pa.types.is_string(storage.type):
-            bytes_array = pa.array([None] * len(storage), type=pa.binary())
-            storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"])
-        elif pa.types.is_list(storage.type):
-            bytes_array = pa.array(
-                [image_to_bytes(PIL.Image.fromarray(np.array(arr, np.uint8))) for arr in storage.to_pylist()],
-                type=pa.binary(),
-            )
-            path_array = pa.array([None] * len(storage), type=pa.string())
-            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
-        return array_cast(storage, self.pa_storage_type)
 
 
 @dataclass(unsafe_hash=True)
@@ -63,7 +40,7 @@ class Image:
     # Automatically constructed
     dtype: ClassVar[str] = "PIL.Image.Image"
     # pa_type: ClassVar[Any] = ImageExtensionType
-    pa_type: ClassVar[Any] = ImageExtensionType()
+    pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Image", init=False, repr=False)
 
     def __call__(self):
@@ -126,6 +103,24 @@ class Image:
         else:
             image = PIL.Image.open(BytesIO(bytes_))
         return image
+
+    def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]) -> pa.StructArray:
+        if config.PIL_AVAILABLE:
+            import PIL.Image
+        else:
+            raise ImportError("To support encoding images, please install 'Pillow'.")
+
+        if pa.types.is_string(storage.type):
+            bytes_array = pa.array([None] * len(storage), type=pa.binary())
+            storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"])
+        elif pa.types.is_list(storage.type):
+            bytes_array = pa.array(
+                [image_to_bytes(PIL.Image.fromarray(np.array(arr, np.uint8))) for arr in storage.to_pylist()],
+                type=pa.binary(),
+            )
+            path_array = pa.array([None] * len(storage), type=pa.string())
+            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+        return array_cast(storage, self.pa_type)
 
 
 def list_image_compression_formats() -> List[str]:

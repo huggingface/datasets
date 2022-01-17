@@ -3,10 +3,11 @@ import tarfile
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 import pytest
 
 from datasets import Dataset, Features, Image, Value, load_dataset
-from datasets.features.image import ImageExtensionType, image_to_bytes
+from datasets.features.image import image_to_bytes
 
 from ..utils import require_pil
 
@@ -32,7 +33,7 @@ def test_image_instantiation():
     image = Image()
     assert image.id is None
     assert image.dtype == "PIL.Image.Image"
-    assert image.pa_type == ImageExtensionType()
+    assert image.pa_type == pa.struct({"bytes": pa.binary(), "path": pa.string()})
     assert image._type == "Image"
 
 

@@ -20,7 +20,7 @@ import json
 import re
 import sys
 from collections.abc import Iterable
-from dataclasses import dataclass, field, fields
+from dataclasses import _asdict_inner, dataclass, field, fields
 from functools import reduce
 from operator import mul
 from typing import Any, ClassVar, Dict, List, Optional
@@ -36,8 +36,8 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 from pyarrow.lib import TimestampType
 
 from datasets import config, utils
-from datasets.features.audio import Audio, AudioExtensionType
-from datasets.features.image import Image, ImageExtensionType, encode_pil_image
+from datasets.features.audio import Audio
+from datasets.features.image import Image, encode_pil_image
 from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.utils.logging import get_logger
 
@@ -988,10 +988,6 @@ def generate_from_arrow_type(pa_type: pa.DataType) -> FeatureType:
     elif isinstance(pa_type, _ArrayXDExtensionType):
         array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
         return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
-    elif isinstance(pa_type, ImageExtensionType):
-        return Image()
-    elif isinstance(pa_type, AudioExtensionType):
-        return Audio()
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
@@ -1099,6 +1095,17 @@ class Features(dict):
         """
         return get_nested_type(self)
 
+    @property
+    def arrow_schema(self):
+        """
+        Features schema.
+
+        Returns:
+            :obj:`pyarrow.Schema`
+        """
+        hf_metadata = {"info": {"features": self.to_dict()}}
+        return pa.schema(self.type).with_metadata({"huggingface": json.dumps(hf_metadata)})
+
     @classmethod
     def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
         """
@@ -1111,15 +1118,11 @@ class Features(dict):
         Returns:
             :class:`Features`
         """
-
+        # try to load features from the arrow schema metadata
         if pa_schema.metadata is not None and "huggingface".encode("utf-8") in pa_schema.metadata:
             metadata = json.loads(pa_schema.metadata["huggingface".encode("utf-8")].decode())
-            if "info" in metadata:  # try to load features from the arrow schema metadata
-                from ..info import DatasetInfo
-
-                features = DatasetInfo.from_dict(metadata["info"]).features
-                if features is not None:
-                    return features
+            if "info" in metadata and "features" in metadata["info"] and metadata["info"]["features"] is not None:
+                return Features.from_dict(metadata["info"]["features"])
         obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
         return cls(**obj)
 
@@ -1150,6 +1153,9 @@ class Features(dict):
         """
         obj = generate_from_dict(dic)
         return cls(**obj)
+
+    def to_dict(self):
+        return _asdict_inner(self, dict)
 
     def encode_example(self, example):
         """

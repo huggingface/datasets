@@ -8,7 +8,7 @@ import pyarrow as pa
 import pytest
 
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
-from datasets.features import Array2DExtensionType
+from datasets.features import Array2D, Array2DExtensionType, Value
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
 
 
@@ -23,38 +23,38 @@ class TypedSequenceTest(TestCase):
 
     def test_try_type_and_type_forbidden(self):
         with self.assertRaises(ValueError):
-            _ = pa.array(TypedSequence([1, 2, 3], try_type=pa.bool_(), type=pa.int64()))
+            _ = pa.array(TypedSequence([1, 2, 3], try_type=Value("bool"), type=Value("int64")))
 
     def test_compatible_type(self):
-        arr = pa.array(TypedSequence([1, 2, 3], type=pa.int32()))
+        arr = pa.array(TypedSequence([1, 2, 3], type=Value("int32")))
         self.assertEqual(arr.type, pa.int32())
 
     def test_incompatible_type(self):
         with self.assertRaises((TypeError, pa.lib.ArrowInvalid)):
-            _ = pa.array(TypedSequence(["foo", "bar"], type=pa.int64()))
+            _ = pa.array(TypedSequence(["foo", "bar"], type=Value("int64")))
 
     def test_try_compatible_type(self):
-        arr = pa.array(TypedSequence([1, 2, 3], try_type=pa.int32()))
+        arr = pa.array(TypedSequence([1, 2, 3], try_type=Value("int32")))
         self.assertEqual(arr.type, pa.int32())
 
     def test_try_incompatible_type(self):
-        arr = pa.array(TypedSequence(["foo", "bar"], try_type=pa.int64()))
+        arr = pa.array(TypedSequence(["foo", "bar"], try_type=Value("int64")))
         self.assertEqual(arr.type, pa.string())
 
     def test_compatible_extension_type(self):
-        arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType((1, 3), "int64")))
+        arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2D((1, 3), "int64")))
         self.assertEqual(arr.type, Array2DExtensionType((1, 3), "int64"))
 
     def test_incompatible_extension_type(self):
         with self.assertRaises((TypeError, pa.lib.ArrowInvalid)):
-            _ = pa.array(TypedSequence(["foo", "bar"], type=Array2DExtensionType((1, 3), "int64")))
+            _ = pa.array(TypedSequence(["foo", "bar"], type=Array2D((1, 3), "int64")))
 
     def test_try_compatible_extension_type(self):
-        arr = pa.array(TypedSequence([[[1, 2, 3]]], try_type=Array2DExtensionType((1, 3), "int64")))
+        arr = pa.array(TypedSequence([[[1, 2, 3]]], try_type=Array2D((1, 3), "int64")))
         self.assertEqual(arr.type, Array2DExtensionType((1, 3), "int64"))
 
     def test_try_incompatible_extension_type(self):
-        arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2DExtensionType((1, 3), "int64")))
+        arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2D((1, 3), "int64")))
         self.assertEqual(arr.type, pa.string())
 
 
@@ -214,7 +214,7 @@ def change_first_primitive_element_in_list(lst, value):
         lst[0] = value
 
 
-@pytest.mark.parametrize("optimized_int_type, expected_dtype", [(None, pa.int64()), (pa.int32(), pa.int32())])
+@pytest.mark.parametrize("optimized_int_type, expected_dtype", [(None, pa.int64()), (Value("int32"), pa.int32())])
 @pytest.mark.parametrize("sequence", [[1, 2, 3], [[1, 2, 3]], [[[1, 2, 3]]]])
 def test_optimized_int_type_for_typed_sequence(sequence, optimized_int_type, expected_dtype):
     arr = pa.array(TypedSequence(sequence, optimized_int_type=optimized_int_type))

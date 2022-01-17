@@ -3,7 +3,7 @@ import os
 import tempfile
 from functools import wraps
 from itertools import groupby
-from typing import List, Optional, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
@@ -12,6 +12,10 @@ from packaging import version
 
 from . import config
 from .utils.logging import get_logger
+
+
+if TYPE_CHECKING:
+    from .features import Features, FeatureType
 
 
 logger = get_logger(__name__)
@@ -940,7 +944,7 @@ def _sanitize_sliced_list_arrays_for_cast(func):
 
 @_sanitize_sliced_list_arrays_for_cast
 @_wrap_for_chunked_arrays
-def array_cast(array, pa_type, allow_number_to_str=True):
+def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
     if isinstance(pa_type, pa.ExtensionType):
@@ -989,11 +993,65 @@ def array_cast(array, pa_type, allow_number_to_str=True):
     raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
 
 
-def table_cast(table: pa.Table, schema):
-    if sorted(table.column_names) != sorted(schema.names):
-        raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{schema}\nbecause column names don't match")
-    arrays = [array_cast(table[field.name], field.type) for field in schema]
-    return table.from_arrays(arrays, schema=schema)
+@_sanitize_sliced_list_arrays_for_cast
+@_wrap_for_chunked_arrays
+def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_to_str=True):
+    from .features import Sequence
+
+    if isinstance(array, pa.ExtensionArray):
+        array = array.storage
+    if hasattr(feature, "cast_storage"):
+        return feature.cast_storage(array)
+    elif pa.types.is_struct(array.type):
+        # feature must be a dict or Sequence(subfeatures_dict)
+        if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
+            feature = {
+                name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
+            }
+        if isinstance(feature, dict):
+            arrays = [cast_array_to_feature(array.field(name), subfeature) for name, subfeature in feature.items()]
+            return pa.StructArray.from_arrays(arrays, names=list(feature))
+    elif pa.types.is_list(array.type):
+        # feature must be either [subfeature] or Sequence(subfeature)
+        if isinstance(feature, list):
+            return pa.ListArray.from_arrays(array.offsets, cast_array_to_feature(array.values, feature[0]))
+        elif isinstance(feature, Sequence):
+            if feature.length > -1:
+                if feature.length * len(array) == len(array.values):
+                    return pa.FixedSizeListArray.from_arrays(
+                        cast_array_to_feature(array.values, feature.feature), feature.length
+                    )
+            else:
+                return pa.ListArray.from_arrays(array.offsets, cast_array_to_feature(array.values, feature.feature))
+    elif pa.types.is_fixed_size_list(array.type):
+        # feature must be either [subfeature] or Sequence(subfeature)
+        if isinstance(feature, list):
+            return pa.ListArray.from_arrays(array.offsets, cast_array_to_feature(array.values, feature[0]))
+        elif isinstance(feature, Sequence):
+            if feature.length > -1:
+                if feature.length * len(array) == len(array.values):
+                    return pa.FixedSizeListArray.from_arrays(
+                        cast_array_to_feature(array.values, feature.feature), feature.length
+                    )
+            else:
+                offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+                return pa.ListArray.from_arrays(offsets_arr, cast_array_to_feature(array.values, feature.feature))
+    elif hasattr(feature, "pa_type"):
+        return array_cast(array, feature.pa_type, allow_number_to_str=allow_number_to_str)
+    raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{feature}")
+
+
+def cast_table_to_features(table: pa.Table, features: "Features"):
+    if sorted(table.column_names) != sorted(features):
+        raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match")
+    arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
+    return table.from_arrays(arrays, schema=features.arrow_schema)
+
+
+def table_cast(table: pa.Table, schema: pa.Schema):
+    from .features import Features
+
+    return cast_table_to_features(table, Features.from_arrow_schema(schema))
 
 
 OVERRIDEN_TABLE_METHODS["cast"] = table_cast

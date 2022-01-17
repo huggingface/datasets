@@ -56,8 +56,6 @@ from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
 
-from datasets.features.base_extension import BasePyarrowExtensionType
-
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
@@ -764,7 +762,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
-        table = InMemoryTable.from_pandas(df=df, schema=pa.schema(features.type) if features is not None else None)
+        table = InMemoryTable.from_pandas(df=df, schema=features.arrow_schema if features is not None else None)
         return cls(table, info=info, split=split)
 
     @classmethod
@@ -798,10 +796,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if features is not None:
             mapping = features.encode_batch(mapping)
         mapping = {
-            col: OptimizedTypedSequence(data, type=features.type[col].type if features is not None else None, col=col)
+            col: OptimizedTypedSequence(data, type=features[col] if features is not None else None, col=col)
             for col, data in mapping.items()
         }
         pa_table = InMemoryTable.from_pydict(mapping=mapping)
+        if info.features is None:
+            info.features = Features({col: ts.get_inferred_type() for col, ts in mapping.items()})
         return cls(pa_table, info=info, split=split)
 
     @staticmethod
@@ -1419,11 +1419,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Returns:
             :class:`Dataset`
         """
-        if hasattr(feature, "pa_type") and isinstance(feature.pa_type, BasePyarrowExtensionType):
+        if hasattr(feature, "cast_storage"):
             dataset = copy.deepcopy(self)
             dataset.features[column] = feature
             dataset._fingerprint = new_fingerprint
-            dataset._data = dataset._data.cast(pa.schema(dataset.features.type))
+            dataset._data = dataset._data.cast(dataset.features.arrow_schema)
             dataset._data = update_metadata_with_features(dataset._data, dataset.features)
             return dataset
         else:
