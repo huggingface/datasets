@@ -357,16 +357,22 @@ class IterableDataset(DatasetInfoMixin):
         return self._ex_iterable.n_shards
 
     def _iter(self):
-        ex_iterable = self._ex_iterable
-        if not isinstance(ex_iterable, TypedExamplesIterable) and self.features is not None:
-            ex_iterable = TypedExamplesIterable(ex_iterable, self.features)
         if self._shuffling:
-            ex_iterable = ex_iterable.shuffle_data_sources(self._effective_seed)
+            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_seed)
+        else:
+            ex_iterable = self._ex_iterable
         yield from ex_iterable
 
     def __iter__(self):
         for key, example in self._iter():
-            yield example
+            if self.features:
+                # we encode the example for ClassLabel feature types for example
+                encoded_example = self.features.encode_example(example)
+                # Decode example for Audio feature, e.g.
+                decoded_example = self.features.decode_example(encoded_example)
+                yield decoded_example
+            else:
+                yield example
 
     def with_format(
         self,
