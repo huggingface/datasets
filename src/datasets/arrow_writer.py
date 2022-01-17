@@ -143,6 +143,7 @@ class TypedSequence:
         else:
             type = self._inferred_type
         pa_type = get_nested_type(type) if type is not None else None
+        optimized_int_pa_type = get_nested_type(self.optimized_int_type) if self.optimized_int_type is not None else None
         try:
             # custom pyarrow types
             if isinstance(pa_type, _ArrayXDExtensionType):
@@ -165,12 +166,12 @@ class TypedSequence:
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
                 if pa.types.is_int64(out.type):
-                    out = out.cast(self.optimized_int_pa_type)
+                    out = out.cast(optimized_int_pa_type)
                 elif pa.types.is_list(out.type):
                     if pa.types.is_int64(out.type.value_type):
-                        out = array_cast(out, pa.list_(self.optimized_int_pa_type))
+                        out = array_cast(out, pa.list_(optimized_int_pa_type))
                     elif pa.types.is_list(out.type.value_type) and pa.types.is_int64(out.type.value_type.value_type):
-                        out = array_cast(out, pa.list_(pa.list_(self.optimized_int_pa_type)))
+                        out = array_cast(out, pa.list_(pa.list_(optimized_int_pa_type)))
             # use custom cast_storage methods like for Audio and Images
             elif type is not None and hasattr(type, "cast_storage"):
                 out = type.cast_storage(out)
@@ -195,7 +196,7 @@ class TypedSequence:
                             f"There was an overflow with type {type_(data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
                         ) from None
                     elif self.trying_int_optimization and "not in range" in str(e):
-                        optimized_int_pa_type_str = np.dtype(self.optimized_int_pa_type.to_pandas_dtype()).name
+                        optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
                         logger.info(
                             f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64."
                         )
@@ -207,7 +208,7 @@ class TypedSequence:
                     f"There was an overflow with type {type_(data)}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({e})"
                 ) from None
             elif self.trying_int_optimization and "not in range" in str(e):
-                optimized_int_pa_type_str = np.dtype(self.optimized_int_pa_type.to_pandas_dtype()).name
+                optimized_int_pa_type_str = np.dtype(optimized_int_pa_type.to_pandas_dtype()).name
                 logger.info(f"Failed to cast a sequence to {optimized_int_pa_type_str}. Falling back to int64.")
                 return out
             else:
