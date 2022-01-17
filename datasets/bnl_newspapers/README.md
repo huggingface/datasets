@@ -56,7 +56,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**: [https://data.bnl.lu/data/historical-newspapers/](https://data.bnl.lu/data/historical-newspapers/) 
+- **Homepage:**: https://data.bnl.lu/data/historical-newspapers/ 
 - **Repository:**
 - **Paper:**
 - **Leaderboard:**
