@@ -56,11 +56,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**: https://data.bnl.lu/data/historical-newspapers/ 
+- **Homepage:** https://data.bnl.lu/data/historical-newspapers/ 
 - **Repository:**
 - **Paper:**
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:** opendata@bnl.etat.lu
 
 ### Dataset Summary
 
