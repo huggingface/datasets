@@ -32,7 +32,7 @@ import pyarrow as pa
 import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
-from pyarrow.lib import DurationType, TimestampType
+from pyarrow.lib import DurationType, Time32Type, Time64Type, TimestampType
 
 from datasets import config, utils
 from datasets.features.audio import Audio
@@ -75,6 +75,12 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "float32"  # pyarrow dtype is "float"
     elif pyarrow.types.is_float64(arrow_type):
         return "float64"  # pyarrow dtype is "double"
+    elif pyarrow.types.is_time32(arrow_type):
+        assert isinstance(arrow_type, Time32Type)
+        return f"time32[{arrow_type.unit}]"
+    elif pyarrow.types.is_time64(arrow_type):
+        assert isinstance(arrow_type, Time64Type)
+        return f"time64[{arrow_type.unit}]"
     elif pyarrow.types.is_timestamp(arrow_type):
         assert isinstance(arrow_type, TimestampType)
         if arrow_type.tz is None:
@@ -148,6 +154,24 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
                 f"Examples include duration[s] or duration[ms]."
                 f"See: https://arrow.apache.org/docs/python/generated/pyarrow.duration.html"
             )
+
+    time_matches = re.match(r"time(.*)\[(.*)\]", datasets_dtype)
+    if time_matches:
+        time_internals_bits = time_matches.group(1)
+        if time_internals_bits == "32":
+            time_internals_unit = time_matches.group(2)
+            if time_internals_unit in ["s", "ms"]:
+                return pa.time32(time_internals_unit)
+            else:
+                pass
+        elif time_internals_bits == "64":
+            time_internals_unit = time_matches.group(2)
+            if time_internals_unit in ["us", "ns"]:
+                return pa.time64(time_internals_unit)
+            else:
+                pass
+        else:
+            pass
 
     if datasets_dtype not in pa.__dict__:
         if str(datasets_dtype + "_") not in pa.__dict__:
@@ -291,6 +315,8 @@ class Value:
     float16
     float32 (alias float)
     float64 (alias double)
+    time32[(s|ms)]
+    time64[(us|ns)]
     timestamp[(s|ms|us|ns)]
     timestamp[(s|ms|us|ns), tz=(tzstring)]
     date32
