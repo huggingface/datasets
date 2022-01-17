@@ -35,7 +35,7 @@ It is a Korean dataset that classifies threatening conversation data into four t
 - 0: threat
 - 1: extortion
 - 2: workspace
-- 3: etc 
+- 3: etc
 """
 
 _HOMEPAGE = "https://github.com/tunib-ai/DKTC"
