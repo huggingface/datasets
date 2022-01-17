@@ -30,7 +30,7 @@ _CITATION = """
 """
 
 _DESCRIPTION = """
-It is a Korean dataset that classifies threatening conversation data into four threat situations. 
+It is a Korean dataset that classifies threatening conversation data into four threat situations.
 
 - 0: threat
 - 1: extortion
