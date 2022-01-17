@@ -108,7 +108,7 @@ class TypedSequence:
         # when trying a type (is ignored if data is not compatible)
         self.trying_type = self.try_type is not None
         self.trying_int_optimization = (
-            optimized_int_type is not None and self.pa_type is None and self.try_pa_type is None
+            optimized_int_type is not None and type is None and try_type is None
         )
         # used to get back the inferred type after __arrow_array__() is called once
         self._inferred_type = None
