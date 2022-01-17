@@ -27,7 +27,7 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for bnl-processed-newspapers 
+# Dataset Card for BnL Newspapers 
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
