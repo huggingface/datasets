@@ -83,11 +83,11 @@ from .table import (
     list_table_cache_files,
 )
 from .tasks import TaskTemplate
-from .tasks.text_classification import TextClassification
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
+from .utils.py_utils import unique_values
 from .utils.typing import PathLike
 
 
@@ -200,6 +200,10 @@ class DatasetInfoMixin:
     @property
     def supervised_keys(self):
         return self._info.supervised_keys
+
+    @property
+    def task_templates(self):
+        return self._info.task_templates
 
     @property
     def version(self):
@@ -741,6 +745,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        preserve_index: Optional[bool] = None,
     ) -> "Dataset":
         """
         Convert :obj:`pandas.DataFrame` to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
@@ -759,6 +764,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (:class:`Features`, optional): Dataset features.
             info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (:class:`NamedSplit`, optional): Name of the dataset split.
+            preserve_index (:obj:`bool`, optional): Whether to store the index as an additional column in the resulting Dataset.
+                The default of None will store the index as a column, except for RangeIndex which is stored as metadata only.
+                Use preserve_index=True to force it to be stored as a column.
 
         Returns:
             :class:`Dataset`
@@ -771,7 +779,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
-        table = InMemoryTable.from_pandas(df=df, schema=pa.schema(features.type) if features is not None else None)
+        table = InMemoryTable.from_pandas(
+            df=df, preserve_index=preserve_index, schema=pa.schema(features.type) if features is not None else None
+        )
         return cls(table, info=info, split=split)
 
     @classmethod
@@ -1838,7 +1848,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
         return dataset
 
-    def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
+    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
         """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
 
         Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema. Intended for single-use only, so all task templates are removed from :attr:`datasets.DatasetInfo.task_templates` after casting.
@@ -1850,31 +1860,32 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - :obj:`"question-answering"`
 
                 If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
+            id (:obj:`int`, default `0`): The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
         """
         # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
         if isinstance(task, str):
             tasks = [template.task for template in (self.info.task_templates or [])]
             compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
             if not compatible_templates:
-                raise ValueError(f"Task {task} is not compatible with this dataset! Available tasks: {tasks}")
-
-            if len(compatible_templates) > 1:
                 raise ValueError(
-                    f"Expected 1 task template but found {len(compatible_templates)}! Please ensure that `datasets.DatasetInfo.task_templates` contains a unique set of task types."
+                    f"Task {task} is not compatible with this dataset! Available tasks: {list(unique_values(tasks))}"
                 )
-            template = compatible_templates[0]
+
+            if not 0 <= id < len(compatible_templates):
+                templates_list_str = "\n".join(
+                    f"- `{idx}` for task {template}" for idx, template in enumerate(compatible_templates)
+                )
+                raise ValueError(
+                    f"Id {id} for task {task} is not in a valid range. Supported ids:\n{templates_list_str}"
+                )
+            template = compatible_templates[id]
         elif isinstance(task, TaskTemplate):
             template = task
         else:
             raise ValueError(
-                f"Expected a `str` or `datasets.tasks.TaskTemplate` object but got task {task} with type {type(task)}."
+                f"Expected a `str` or `datasets.TaskTemplate` object but got task {task} with type {type(task)}."
             )
-        if isinstance(template, TextClassification) and self.info.features is not None:
-            dataset_labels = tuple(sorted(self.info.features[template.label_column].names))
-            if template.labels is None or template.labels != dataset_labels:
-                raise ValueError(
-                    f"Incompatible labels between the dataset and task template! Expected labels {dataset_labels} but got {template.labels}. Please ensure that `datasets.tasks.TextClassification.labels` matches the features of the dataset."
-                )
+        template = template.align_with_features(self.info.features)
         column_mapping = template.column_mapping
         columns_to_drop = [column for column in self.column_names if column not in column_mapping]
         dataset = self.remove_columns(columns_to_drop)

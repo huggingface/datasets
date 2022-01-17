@@ -53,6 +53,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: null
+pretty_name: pragmeval
 ---
 
 ### Contributions

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - slot-filling
 paperswithcode_id: numersense
+pretty_name: NumerSense
 ---
 
 # Dataset Card for [Dataset Name]

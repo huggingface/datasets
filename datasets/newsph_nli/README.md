@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - natural-language-inference
 paperswithcode_id: newsph-nli
+pretty_name: NewsPH NLI
 ---
 
 # Dataset Card for NewsPH NLI

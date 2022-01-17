@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - text-classification-other-hate-speech-detection
 paperswithcode_id: hate-speech-and-offensive-language
+pretty_name: Hate Speech and Offensive Language
 ---
 
 # Dataset Card for [Dataset Name]

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: samsum-corpus
+pretty_name: SAMSum Corpus
 ---
 
 # Dataset Card for SAMSum Corpus

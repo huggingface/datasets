@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: wikiasp
+pretty_name: WikiAsp
 ---
 
 # Dataset Card Creation Guide

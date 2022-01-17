@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-scoring-other-Meronym-Prediction
 paperswithcode_id: haspart-kb
+pretty_name: hasPart KB
 ---
 
 # Dataset Card for [HasPart]

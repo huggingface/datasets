@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: null
+pretty_name: Swedish Machine Translated STS-B
 ---
 
 # Dataset Card for Swedish Machine Translated STS-B 

@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: null
+pretty_name: KiltWikipedia
 ---
 
 # Dataset Card for "kilt_wikipedia"

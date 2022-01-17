@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: mathqa
+pretty_name: MathQA
 ---
 
 # Dataset Card for "math_qa"

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multi-label-classification
 paperswithcode_id: null
+pretty_name: Fake News English
 ---
 
 # Dataset Card for Fake News English

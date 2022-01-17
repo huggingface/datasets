@@ -16,6 +16,7 @@ size_categories:
 licenses:
 - CC-BY-SA-4.0
 paperswithcode_id: null
+pretty_name: GoogleWellformedQuery
 ---
 
 # Dataset Card Creation Guide

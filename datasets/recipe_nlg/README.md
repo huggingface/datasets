@@ -24,6 +24,7 @@ task_ids:
 - language-modeling
 - summarization
 paperswithcode_id: recipenlg
+pretty_name: RecipeNLG
 ---
 
 

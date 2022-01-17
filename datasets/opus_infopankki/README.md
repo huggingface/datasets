@@ -215,6 +215,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: OpusInfopankki
 ---
 
 # Dataset Card for [Dataset Name]

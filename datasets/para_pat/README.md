@@ -33,6 +33,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: parapat
+pretty_name: Parallel Corpus of Patents Abstracts
 ---
 
 # Dataset Card for ParaPat: The Multi-Million Sentences Parallel Corpus of Patents Abstracts

@@ -17,6 +17,7 @@ task_categories:
 - structure-prediction
 task_ids:
 - named-entity-recognition
+pretty_name: Persian NER
 ---
 
 # Dataset Card for [Persian NER]

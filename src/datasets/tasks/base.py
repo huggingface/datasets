@@ -1,4 +1,5 @@
 import abc
+import copy
 import dataclasses
 from dataclasses import dataclass
 from typing import ClassVar, Dict, Type, TypeVar
@@ -15,6 +16,13 @@ class TaskTemplate(abc.ABC):
     task: str
     input_schema: ClassVar[Features]
     label_schema: ClassVar[Features]
+
+    def align_with_features(self: T, features: Features) -> T:
+        """
+        Align features with the task template.
+        """
+        # No-op
+        return copy.deepcopy(self)
 
     @property
     def features(self) -> Features:
