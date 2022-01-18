@@ -158,6 +158,7 @@ TESTS_REQUIRE = [
     "scikit-learn",
     "jiwer",
     "sentencepiece",  # for bleurt
+    "torchmetrics==0.6.0",  # for comet: https://github.com/PyTorchLightning/metrics/issues/770
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
