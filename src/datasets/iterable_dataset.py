@@ -281,6 +281,31 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
+class TypedExamplesIterable(_BaseExamplesIterable):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, features: Features):
+        self.ex_iterable = ex_iterable
+        self.features = features
+
+    def __iter__(self):
+        for key, example in self.ex_iterable:
+            # we encode the example for ClassLabel feature types for example
+            encoded_example = self.features.encode_example(example)
+            # Decode example for Audio feature, e.g.
+            decoded_example = self.features.decode_example(encoded_example)
+            yield key, decoded_example
+
+    def shuffle_data_sources(self, seed: Optional[int]) -> "TypedExamplesIterable":
+        """Shuffle the wrapped examples iterable."""
+        return TypedExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(seed),
+            features=self.features,
+        )
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
+
+
 def _generate_examples_from_tables_wrapper(generate_tables_fn):
     def wrapper(**kwargs):
         python_formatter = PythonFormatter()
@@ -397,7 +422,12 @@ class IterableDataset(DatasetInfoMixin):
         info = copy.deepcopy(self._info)
         info.features = None
         ex_iterable = MappedExamplesIterable(
-            self._ex_iterable, function=function, batched=batched, batch_size=batch_size
+            TypedExamplesIterable(self._ex_iterable, self._info.features)
+            if self._info.features is not None
+            else self._ex_iterable,
+            function=function,
+            batched=batched,
+            batch_size=batch_size,
         )
         return iterable_dataset(
             ex_iterable=ex_iterable,
