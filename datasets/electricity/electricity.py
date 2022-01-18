@@ -85,9 +85,9 @@ class Electricty(datasets.GeneratorBasedBuilder):
                 "start": datasets.Value("string"),
                 "target": datasets.Sequence(datasets.Value("float32")),
                 "feat_static_cat": datasets.Sequence(datasets.Value("uint64")),
-                # "feat_dynamic_real":
-                # "feat_dynamic_cat":
-                # "feat_static_real":
+                # "feat_static_real":  datasets.Sequence(datasets.Value("float32")),
+                # "feat_dynamic_real":  datasets.Sequence(datasets.Sequence(datasets.Value("uint64"))),
+                # "feat_dynamic_cat": datasets.Sequence(datasets.Sequence(datasets.Value("uint64"))),
                 "item_id": datasets.Value("string"),
             }
         )
@@ -257,9 +257,4 @@ class Electricty(datasets.GeneratorBasedBuilder):
         # The `key` is for legacy reasons (tfds) and is not important in itself, but must be unique for each example.
         for key, row in enumerate(split):
             # Yields examples as (key, example) tuples
-            yield key, {
-                "target": row["target"],
-                "start": row["start"],
-                "feat_static_cat": row["feat_static_cat"],
-                "item_id": row["item_id"],
-            }
+            yield key, row
