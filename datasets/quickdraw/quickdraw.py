@@ -16,7 +16,6 @@
 
 
 import json
-import os
 import struct
 import textwrap
 from datetime import datetime
@@ -145,7 +144,7 @@ class Quickdraw(datasets.GeneratorBasedBuilder):
             version=VERSION,
             description=textwrap.dedent(
                 """\
-            The simplified version of the dataset with the simplified vectors, removed timing information, and the data positioned and scaled into a 256x256 region. 
+            The simplified version of the dataset with the simplified vectors, removed timing information, and the data positioned and scaled into a 256x256 region.
             The simplification process was:
                 1.Align the drawing to the top-left corner, to have minimum values of 0.
                 2.Uniformly scale the drawing, to have a maximum value of 255.
