@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: hans
+pretty_name: Heuristic Analysis for NLI Systems
 ---
 
 # Dataset Card for "hans"

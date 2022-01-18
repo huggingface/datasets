@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: web-of-science-dataset
+pretty_name: Web of Science Dataset
 ---
 
 # Dataset Card for "web_of_science"

@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: opinosis
+pretty_name: Opinosis
 ---
 
 # Dataset Card for "opinosis"

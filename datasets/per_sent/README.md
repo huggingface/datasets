@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: persent
+pretty_name: PerSenT
 ---
 
 # Dataset Card for PerSenT

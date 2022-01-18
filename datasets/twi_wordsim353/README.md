@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - semantic-similarity-scoring
 paperswithcode_id: null
+pretty_name: Yorùbá Wordsim-353
 ---
 
 # Dataset Card for Yorùbá Wordsim-353

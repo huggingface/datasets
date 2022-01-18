@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-classification-other-poetry-classification
 paperswithcode_id: metrec
+pretty_name: MetRec
 ---
 
 # Dataset Card for MetRec

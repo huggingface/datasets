@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: superglue
+pretty_name: SuperGLUE
 ---
 
 # Dataset Card for "super_glue"

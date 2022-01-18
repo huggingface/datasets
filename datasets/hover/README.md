@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - fact-checking-retrieval
 paperswithcode_id: hover
+pretty_name: HoVer
 ---
 
 # Dataset Card Creation Guide

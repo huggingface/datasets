@@ -80,9 +80,10 @@ task_categories:
 task_ids:
 - other-other-pretraining-language-models
 paperswithcode_id: null
+pretty_name: The Large Spanish Corpus
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for The Large Spanish Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -112,7 +113,7 @@ paperswithcode_id: null
 
 - **Homepage:** [https://github.com/josecannete/spanish-corpora](https://github.com/josecannete/spanish-corpora)
 - **Repository:** [https://github.com/josecannete/spanish-corpora](https://github.com/josecannete/spanish-corpora)
-- **Paper:** 
+- **Paper:**
 - **Leaderboard:**
 - **Point of Contact:** [José Cañete](mailto:jose.canete@ug.uchile.cl) (corpus creator) or [Lewis Tunstall](mailto:lewis.c.tunstall@gmail.com) (corpus submitter)
 

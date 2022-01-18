@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: wikisplit
+pretty_name: WikiSplit
 ---
 
 # Dataset Card for "wiki_split"

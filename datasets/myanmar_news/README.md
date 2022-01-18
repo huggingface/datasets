@@ -16,6 +16,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: null
+pretty_name: MyanmarNews
 ---
 
 # Dataset Card for Myanmar_News

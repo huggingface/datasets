@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: null
+pretty_name: GermEval14
 ---
 
 # Dataset Card for "germeval_14"

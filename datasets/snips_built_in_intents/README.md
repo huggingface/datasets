@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: snips
+pretty_name: SNIPS Natural Language Understanding benchmark
 ---
 
 # Dataset Card for Snips Built In Intents

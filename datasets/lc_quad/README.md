@@ -2,9 +2,10 @@
 languages:
 - en
 paperswithcode_id: lc-quad-2-0
+pretty_name: "LC-QuAD 2.0: Large-scale Complex Question Answering Dataset"
 ---
 
-# Dataset Card for "lc_quad"
+# Dataset Card for LC-QuAD 2.0
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

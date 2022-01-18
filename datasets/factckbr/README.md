@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: null
+pretty_name: FACTCK BR
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for FACTCK BR
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

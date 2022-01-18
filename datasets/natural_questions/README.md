@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: natural-questions
+pretty_name: Natural Questions
 ---
 
 # Dataset Card for "natural_questions"
