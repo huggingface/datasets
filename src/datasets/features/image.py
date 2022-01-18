@@ -53,7 +53,7 @@ class Image:
             value (:obj:`str`, :obj:`np.ndarray`, :obj:`PIL.Image.Image` or :obj:`dict`): Data passed as input to Image feature.
 
         Returns:
-            :obj:`dict`
+            :obj:`dict` with "path" and "bytes" fields
         """
         if config.PIL_AVAILABLE:
             import PIL.Image
@@ -68,7 +68,7 @@ class Image:
         elif isinstance(value, PIL.Image.Image):
             return encode_pil_image(value)
         else:
-            return value
+            return {"bytes": value.get("bytes"), "path": value.get("path")}
 
     def decode_example(self, value):
         """Decode example image file into image data.
@@ -88,12 +88,14 @@ class Image:
             raise ImportError("To support decoding images, please install 'Pillow'.")
 
         if isinstance(value, str):
-            path, bytes_ = value, None
+            path, bytes_ = value, None  # TODO(QL, Mario): remove this case ?
         else:
             path, bytes_ = value["path"], value["bytes"]
 
         if bytes_ is None:
-            if isinstance(path, str):
+            if path is None:
+                raise ValueError("An image should have one of 'path' or 'bytes' but both are None.")
+            else:
                 if is_local_path(path):
                     image = PIL.Image.open(path)
                 else:
@@ -113,6 +115,16 @@ class Image:
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"])
+        elif pa.types.is_struct(storage.type):
+            if storage.type.get_field_index("bytes") >= 0:
+                bytes_array = storage.field("bytes")
+            else:
+                bytes_array = pa.array([None] * len(storage), type=pa.binary())
+            if storage.type.get_field_index("path") >= 0:
+                path_array = storage.field("path")
+            else:
+                path_array = pa.array([None] * len(storage), type=pa.string())
+            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
         elif pa.types.is_list(storage.type):
             bytes_array = pa.array(
                 [image_to_bytes(PIL.Image.fromarray(np.array(arr, np.uint8))) for arr in storage.to_pylist()],

@@ -39,7 +39,7 @@ from .features import (
 )
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
-from .table import array_cast
+from .table import array_cast, cast_array_to_feature
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import first_non_null_value
@@ -172,14 +172,12 @@ class TypedSequence:
                         out = array_cast(out, pa.list_(optimized_int_pa_type))
                     elif pa.types.is_list(out.type.value_type) and pa.types.is_int64(out.type.value_type.value_type):
                         out = array_cast(out, pa.list_(pa.list_(optimized_int_pa_type)))
-            # use custom cast_storage methods like for Audio and Images
-            elif type is not None and hasattr(type, "cast_storage"):
-                out = type.cast_storage(out)
             # otherwise we can finally use the user's type
-            elif pa_type is not None:
-                # When trying type "string", we don't want to convert integers or floats to "string"
+            elif type is not None:
+                # We use array_cast_to_feature to support casting to custom types like Audio and Image
+                # Also, when trying type "string", we don't want to convert integers or floats to "string".
                 # We only do it if trying_type is False - since this is what the user asks for.
-                out = array_cast(out, pa_type, allow_number_to_str=not self.trying_type)
+                out = cast_array_to_feature(out, type, allow_number_to_str=not self.trying_type)
             return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if self.trying_type:
