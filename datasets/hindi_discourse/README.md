@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sequence-modeling-other-discourse-analysis
 paperswithcode_id: null
+pretty_name: Discourse Analysis dataset
 ---
 
 # Dataset Card for Discourse Analysis dataset

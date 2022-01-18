@@ -55,7 +55,7 @@ class CatsVsDogs(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=("image", "labels"),
-            task_templates=[ImageClassification(image_column="image", label_column="labels", labels=["cat", "dog"])],
+            task_templates=[ImageClassification(image_column="image", label_column="labels")],
             homepage=_HOMEPAGE,
             citation=_CITATION,
         )

@@ -19,6 +19,7 @@ task_ids:
 - explanation-generation
 - table-to-text
 paperswithcode_id: wikibio
+pretty_name: WikiBio
 ---
 
 # Dataset Card for [Dataset Name]

@@ -87,6 +87,7 @@ task_ids:
   - intent-classification
   - multi-class-classification
 paperswithcode_id: tweeteval
+pretty_name: TweetEval
 ---
 
 # Dataset Card for tweet_eval

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: tabfact
+pretty_name: TabFact
 ---
 
 # Dataset Card Creation Guide

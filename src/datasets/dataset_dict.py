@@ -527,6 +527,7 @@ class DatasetDict(dict):
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
+        desc: Optional[str] = None,
     ) -> "DatasetDict":
         """Apply a filter function to all the elements in the table in batches
         and update the table so that the dataset only includes examples according to the filter function.
@@ -559,6 +560,7 @@ class DatasetDict(dict):
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while filtering examples.
         """
         self._check_values_type()
         if cache_file_names is None:
@@ -578,6 +580,7 @@ class DatasetDict(dict):
                     writer_batch_size=writer_batch_size,
                     fn_kwargs=fn_kwargs,
                     num_proc=num_proc,
+                    desc=desc,
                 )
                 for k, dataset in self.items()
             }
@@ -886,9 +889,9 @@ class DatasetDict(dict):
         ).read()
 
     @is_documented_by(Dataset.prepare_for_task)
-    def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "DatasetDict":
+    def prepare_for_task(self, task: Union[str, TaskTemplate], id: Optional[int] = None) -> "DatasetDict":
         self._check_values_type()
-        return DatasetDict({k: dataset.prepare_for_task(task=task) for k, dataset in self.items()})
+        return DatasetDict({k: dataset.prepare_for_task(task=task, id=id) for k, dataset in self.items()})
 
     @is_documented_by(Dataset.align_labels_with_mapping)
     def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "DatasetDict":

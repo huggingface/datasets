@@ -34,6 +34,7 @@ task_categories:
 task_ids:
 - other-other-knowledge-extraction
 paperswithcode_id: cord-19
+pretty_name: CORD-19
 ---
 
 # Dataset Card Creation Guide

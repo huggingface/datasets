@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - semantic-similarity-classification
 paperswithcode_id: null
+pretty_name: KorQpair
 ---
 
 # Dataset Card for [Dataset Name]

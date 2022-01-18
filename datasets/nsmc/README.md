@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: nsmc
+pretty_name: Naver Sentiment Movie Corpus
 ---
 
 # Dataset Card for Naver sentiment movie corpus

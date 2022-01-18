@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: null
+pretty_name: Clickbait/Fake News in Bulgarian
 ---
 
 # Dataset Card for Clickbait/Fake News in Bulgarian

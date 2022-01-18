@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - structure-prediction-other-acronym-identification
 paperswithcode_id: acronym-identification
+pretty_name: Acronym Identification Dataset
 ---
 
 # Dataset Card for Acronym Identification Dataset
@@ -164,7 +165,7 @@ Papers published on arXiv are unlikely to contain much personal information, alt
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

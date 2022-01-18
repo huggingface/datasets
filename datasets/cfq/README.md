@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: cfq
+pretty_name: Compositional Freebase Questions
 ---
 
 # Dataset Card for "cfq"

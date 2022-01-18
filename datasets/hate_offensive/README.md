@@ -19,6 +19,7 @@ task_ids:
 - multi-class-classification
 - text-classification-other-hate-speech-detection
 paperswithcode_id: hate-speech-and-offensive-language
+pretty_name: HateOffensive
 ---
 
 # Dataset Card for HateOffensive

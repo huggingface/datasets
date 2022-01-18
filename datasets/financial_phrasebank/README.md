@@ -19,6 +19,7 @@ task_ids:
 - multi-class-classification
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: FinancialPhrasebank
 ---
 
 # Dataset Card for financial_phrasebank

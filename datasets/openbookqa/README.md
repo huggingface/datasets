@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: openbookqa
+pretty_name: OpenBookQA
 ---
 
 # Dataset Card for "openbookqa"

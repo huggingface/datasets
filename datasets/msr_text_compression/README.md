@@ -17,6 +17,7 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - summarization
+pretty_name: MsrTextCompression
 ---
 
 # Dataset Card for [Dataset Name]

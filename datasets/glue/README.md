@@ -64,9 +64,10 @@ task_ids:
   wnli:
   - text-classification-other-coreference-nli
 paperswithcode_id: glue
+pretty_name: GLUE (General Language Understanding Evaluation benchmark)
 ---
 
-# Dataset Card for "glue"
+# Dataset Card for GLUE
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

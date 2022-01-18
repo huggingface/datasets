@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: scan
+pretty_name: Simplified versions of the CommAI Navigation tasks
 ---
 
 # Dataset Card for "scan"

@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: commongen
+pretty_name: CommonGen
 ---
 
 # Dataset Card for "common_gen"

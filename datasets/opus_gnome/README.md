@@ -223,6 +223,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: OpusGnome
 ---
 
 # Dataset Card Creation Guide
