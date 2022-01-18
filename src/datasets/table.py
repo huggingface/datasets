@@ -996,7 +996,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
 @_sanitize_sliced_list_arrays_for_cast
 @_wrap_for_chunked_arrays
 def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_to_str=True):
-    from .features import Sequence
+    from .features import Sequence, get_nested_type
 
     if isinstance(array, pa.ExtensionArray):
         array = array.storage
@@ -1036,8 +1036,10 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             else:
                 offsets_arr = pa.array(range(len(array) + 1), pa.int32())
                 return pa.ListArray.from_arrays(offsets_arr, cast_array_to_feature(array.values, feature.feature))
-    elif hasattr(feature, "pa_type"):
-        return array_cast(array, feature.pa_type, allow_number_to_str=allow_number_to_str)
+    if pa.types.is_null(array.type):
+        return array_cast(array, get_nested_type(feature), allow_number_to_str=allow_number_to_str)
+    elif not isinstance(feature, (Sequence, dict, list, tuple)):
+        return array_cast(array, feature(), allow_number_to_str=allow_number_to_str)
     raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{feature}")
 
 
