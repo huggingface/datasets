@@ -951,7 +951,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
         return pa_type.wrap_array(array)
     elif pa.types.is_struct(array.type):
         if pa.types.is_struct(pa_type) and (
-            sorted(field.name for field in pa_type) == sorted(field.name for field in array.type)
+            set(field.name for field in pa_type) == set(field.name for field in array.type)
         ):
             arrays = [
                 array_cast(array.field(field.name), field.type, allow_number_to_str=allow_number_to_str)
@@ -1008,7 +1008,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             feature = {
                 name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
             }
-        if isinstance(feature, dict):
+        if isinstance(feature, dict) and set(field.name for field in array.type) == set(feature):
             arrays = [cast_array_to_feature(array.field(name), subfeature) for name, subfeature in feature.items()]
             return pa.StructArray.from_arrays(arrays, names=list(feature))
     elif pa.types.is_list(array.type):
