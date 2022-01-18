@@ -66,7 +66,7 @@ def test_image_feature_encode_example(shared_datadir, build_example):
     image = Image()
     encoded_example = image.encode_example(build_example(image_path))
     assert isinstance(encoded_example, dict)
-    assert sorted(encoded_example) == ["bytes", "path"]
+    assert encoded_example.keys() == {"bytes", "path"}
     assert encoded_example["bytes"] is not None or encoded_example["path"] is not None
     decoded_example = image.decode_example(encoded_example)
     assert isinstance(decoded_example, PIL.Image.Image)

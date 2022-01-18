@@ -66,7 +66,7 @@ class Audio:
             sf.write(buffer, value["array"], value["sampling_rate"])
             return {"bytes": buffer.getvalue(), "path": value.get("path")}
         else:
-            return value
+            return {"bytes": value.get("bytes"), "path": value.get("path")}
 
     def decode_example(self, value):
         """Decode example audio file into audio data.
@@ -81,7 +81,9 @@ class Audio:
             dict
         """
         path, file = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
-        if path.endswith("mp3"):
+        if path is None and file is None:
+            raise ValueError("An audio sample should have one of 'path' or 'bytes' but both are None.")
+        elif path is not None and path.endswith("mp3"):
             array, sampling_rate = self._decode_mp3(file if file else path)
         else:
             if file:
@@ -96,6 +98,16 @@ class Audio:
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"])
         elif pa.types.is_struct(storage.type) and storage.type.get_all_field_indices("array"):
             storage = pa.array([Audio().encode_example(x) for x in storage.to_pylist()])
+        elif pa.types.is_struct(storage.type):
+            if storage.type.get_field_index("bytes") >= 0:
+                bytes_array = storage.field("bytes")
+            else:
+                bytes_array = pa.array([None] * len(storage), type=pa.binary())
+            if storage.type.get_field_index("path") >= 0:
+                path_array = storage.field("path")
+            else:
+                path_array = pa.array([None] * len(storage), type=pa.string())
+            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
         return array_cast(storage, self.pa_type)
 
     def _decode_non_mp3_path_like(self, path):

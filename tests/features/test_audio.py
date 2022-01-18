@@ -7,8 +7,8 @@ from importlib.util import find_spec
 import pyarrow as pa
 import pytest
 
-from datasets import Dataset, load_dataset
-from datasets.features import Audio, Features, Value
+from datasets import Dataset, concatenate_datasets, load_dataset
+from datasets.features import Audio, Features, Sequence, Value
 
 
 # pytestmark = pytest.mark.audio
@@ -63,6 +63,37 @@ def test_audio_instantiation():
     assert audio.dtype == "dict"
     assert audio.pa_type == pa.struct({"bytes": pa.binary(), "path": pa.string()})
     assert audio._type == "Audio"
+
+
+def test_audio_feature_type_to_arrow():
+    features = Features({"audio": Audio()})
+    assert features.arrow_schema == pa.schema({"audio": Audio().pa_type})
+    features = Features({"struct_containing_an_audio": {"audio": Audio()}})
+    assert features.arrow_schema == pa.schema({"struct_containing_an_audio": pa.struct({"audio": Audio().pa_type})})
+    features = Features({"sequence_of_audios": Sequence(Audio())})
+    assert features.arrow_schema == pa.schema({"sequence_of_audios": pa.list_(Audio().pa_type)})
+
+
+@pytest.mark.parametrize(
+    "build_example",
+    [
+        lambda audio_path: audio_path,
+        lambda audio_path: {"path": audio_path},
+        lambda audio_path: {"path": audio_path, "bytes": None},
+        lambda audio_path: {"path": audio_path, "bytes": open(audio_path, "rb").read()},
+        lambda audio_path: {"path": None, "bytes": open(audio_path, "rb").read()},
+        lambda audio_path: {"bytes": open(audio_path, "rb").read()},
+    ],
+)
+def test_audio_feature_encode_example(shared_datadir, build_example):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    audio = Audio()
+    encoded_example = audio.encode_example(build_example(audio_path))
+    assert isinstance(encoded_example, dict)
+    assert encoded_example.keys() == {"bytes", "path"}
+    assert encoded_example["bytes"] is not None or encoded_example["path"] is not None
+    decoded_example = audio.decode_example(encoded_example)
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
 
 
 @require_sndfile
@@ -301,6 +332,62 @@ def test_resampling_after_loading_dataset_with_audio_feature_mp3(shared_datadir)
     assert column[0]["path"] == audio_path
     assert column[0]["array"].shape == (39707,)
     assert column[0]["sampling_rate"] == 16000
+
+
+@pytest.mark.parametrize(
+    "build_data",
+    [
+        lambda audio_path: {"audio": [audio_path]},
+        lambda audio_path: {"audio": [{"path": audio_path}]},
+        lambda audio_path: {"audio": [{"path": audio_path, "bytes": None}]},
+        lambda audio_path: {"audio": [{"path": audio_path, "bytes": open(audio_path, "rb").read()}]},
+        lambda audio_path: {"audio": [{"path": None, "bytes": open(audio_path, "rb").read()}]},
+        lambda audio_path: {"audio": [{"bytes": open(audio_path, "rb").read()}]},
+    ],
+)
+def test_dataset_cast_to_audio_features(shared_datadir, build_data):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data = build_data(audio_path)
+    dset = Dataset.from_dict(data)
+    item = dset.cast(Features({"audio": Audio()}))[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+    item = dset.cast_column("audio", Audio())[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"].keys() == {"path", "array", "sampling_rate"}
+
+
+def test_dataset_concatenate_audio_features(shared_datadir):
+    # we use a different data structure between 1 and 2 to make sure they are compatible with each other
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data1 = {"audio": [audio_path]}
+    dset1 = Dataset.from_dict(data1, features=Features({"audio": Audio()}))
+    data2 = {"audio": [{"bytes": open(audio_path, "rb").read()}]}
+    dset2 = Dataset.from_dict(data2, features=Features({"audio": Audio()}))
+    concatenated_dataset = concatenate_datasets([dset1, dset2])
+    assert len(concatenated_dataset) == len(dset1) + len(dset2)
+    assert concatenated_dataset[0]["audio"]["array"].shape == dset1[0]["audio"]["array"].shape
+    assert concatenated_dataset[1]["audio"]["array"].shape == dset2[0]["audio"]["array"].shape
+
+
+def test_dataset_concatenate_nested_audio_features(shared_datadir):
+    # we use a different data structure between 1 and 2 to make sure they are compatible with each other
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    features = Features({"list_of_structs_of_audios": [{"audio": Audio()}]})
+    data1 = {"list_of_structs_of_audios": [[{"audio": audio_path}]]}
+    dset1 = Dataset.from_dict(data1, features=features)
+    data2 = {"list_of_structs_of_audios": [[{"audio": {"bytes": open(audio_path, "rb").read()}}]]}
+    dset2 = Dataset.from_dict(data2, features=features)
+    concatenated_dataset = concatenate_datasets([dset1, dset2])
+    assert len(concatenated_dataset) == len(dset1) + len(dset2)
+    assert (
+        concatenated_dataset[0]["list_of_structs_of_audios"][0]["audio"]["array"].shape
+        == dset1[0]["list_of_structs_of_audios"][0]["audio"]["array"].shape
+    )
+    assert (
+        concatenated_dataset[1]["list_of_structs_of_audios"][0]["audio"]["array"].shape
+        == dset2[0]["list_of_structs_of_audios"][0]["audio"]["array"].shape
+    )
 
 
 @require_sndfile
