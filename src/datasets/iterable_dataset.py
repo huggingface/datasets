@@ -287,8 +287,7 @@ class TypedExamplesIterable(_BaseExamplesIterable):
         self.features = features
 
     def __iter__(self):
-        iterator = iter(self.ex_iterable)
-        for key, example in iterator:
+        for key, example in self.ex_iterable:
             # we encode the example for ClassLabel feature types for example
             encoded_example = self.features.encode_example(example)
             # Decode example for Audio feature, e.g.
