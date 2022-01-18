@@ -47,8 +47,15 @@ class FeaturesTest(TestCase):
 
     def test_string_to_arrow_bijection_for_primitive_types(self):
         supported_pyarrow_datatypes = [
+            pa.time32("s"),
+            pa.time64("us"),
             pa.timestamp("s"),
             pa.timestamp("ns", tz="America/New_York"),
+            pa.date32(),
+            pa.date64(),
+            pa.duration("s"),
+            pa.decimal128(10, 2),
+            pa.decimal256(40, -3),
             pa.string(),
             pa.int32(),
             pa.float64(),
@@ -61,11 +68,27 @@ class FeaturesTest(TestCase):
             with self.assertRaises(ValueError):
                 string_to_arrow(_arrow_to_datasets_dtype(dt))
 
-        supported_datasets_dtypes = ["timestamp[ns]", "timestamp[ns, tz=+07:30]", "int32", "float64"]
+        supported_datasets_dtypes = [
+            "time32[s]",
+            "timestamp[ns]",
+            "timestamp[ns, tz=+07:30]",
+            "duration[us]",
+            "decimal128(30, -4)",
+            "int32",
+            "float64",
+        ]
         for sdt in supported_datasets_dtypes:
             self.assertEqual(sdt, _arrow_to_datasets_dtype(string_to_arrow(sdt)))
 
-        unsupported_datasets_dtypes = ["timestamp[blob]", "timestamp[[ns]]", "timestamp[ns, tz=[ns]]", "int"]
+        unsupported_datasets_dtypes = [
+            "time32[ns]",
+            "timestamp[blob]",
+            "timestamp[[ns]]",
+            "timestamp[ns, tz=[ns]]",
+            "duration[[us]]",
+            "decimal20(30, -4)",
+            "int",
+        ]
         for sdt in unsupported_datasets_dtypes:
             with self.assertRaises(ValueError):
                 string_to_arrow(sdt)
