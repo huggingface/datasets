@@ -1,0 +1,229 @@
+import gzip
+import json
+from typing import List, Union
+
+import datasets
+from datasets.tasks import LanguageModeling
+
+
+"TODO finalize citation"
+_CITATION = """\
+@misc{bllabs2021,
+  author = {British Library Labs},
+  title = {Digitised Books. c. 1510 - c. 1900. JSONL (OCR derived text + metadata)},
+  year = {2021},
+  publisher = {British Library},
+  howpublished={https://doi.org/10.23636/r7w6-zy15}
+"""
+
+_DESCRIPTION = """\
+A dataset comprising of text created by OCR from the 49,455 digitised books, equating to 65,227 volumes (25+ million pages), published between c. 1510 - c. 1900.
+The books cover a wide range of subject areas including philosophy, history, poetry and literature.
+"""
+
+_BASE_URL = "https://bl.iro.bl.uk/downloads/"
+
+
+_DATA_URLS = {
+    "1510_1699": _BASE_URL + "61f58234-b370-422f-8591-8f98e46c2757?locale=en",
+    "1700_1799": _BASE_URL + "78b4a8ec-395e-4383-831c-809faff85ad7?locale=en",
+    "1800_1809": _BASE_URL + "91ae15cb-e08f-4abf-8396-e4742d9d4e37?locale=en",
+    "1810_1819": _BASE_URL + "6d1a6e17-f28d-45b9-8f7a-a03cf3a96491?locale=en",
+    "1820_1829": _BASE_URL + "ec764dbd-1ed4-4fc2-8668-b4df5c8ec451?locale=en",
+    "1830_1839": _BASE_URL + "eab68022-0418-4df7-a401-78972514ed20?locale=en",
+    "1840_1849": _BASE_URL + "d16d88b0-aa3f-4dfe-b728-c58d168d7b4d?locale=en",
+    "1850_1859": _BASE_URL + "a6a44ea8-8d33-4880-8b17-f89c90e3d89a?locale=en",
+    "1860_1869": _BASE_URL + "2e17f00f-52e6-4259-962c-b88ad60dec23?locale=en",
+    "1870_1879": _BASE_URL + "899c3719-030c-4517-abd3-b28fdc85eed4?locale=en",
+    "1880_1889": _BASE_URL + "ec3b8545-775b-47bd-885d-ce895263709e?locale=en",
+    "1890_1899": _BASE_URL + "54ed2842-089a-439a-b751-2179b3ffba28?locale=en",
+}
+_ALL = list(_DATA_URLS.values())
+_1800s = [
+    _DATA_URLS.get(subset)
+    for subset in [
+        "1800_1809",
+        "1810_1819",
+        "1820_1829",
+        "1830_1839",
+        "1840_1849",
+        "1850_1859",
+        "1860_1869",
+        "1870_1879",
+        "1880_1889",
+        "1890_1899",
+    ]
+]
+
+_1700s = [_DATA_URLS.get(subset) for subset in ["1700_1799"]]
+_1510_1699 = [_DATA_URLS.get(subset) for subset in ["1510_1699"]]
+
+URL = "https://doi.org/10.23636/r7w6-zy15"
+
+features = datasets.Features(
+    {
+        "record_id": datasets.Value("string"),
+        "date": datasets.Value("int32"),
+        "raw_date": datasets.Value("string"),
+        "title": datasets.Value("string"),
+        "place": datasets.Value("string"),
+        "empty_pg": datasets.Value("bool"),
+        "text": datasets.Value("string"),
+        "pg": datasets.Value("int32"),
+        "mean_wc_ocr": datasets.Value("float32"),
+        "std_wc_ocr": datasets.Value("float64"),
+        "name": datasets.Value("string"),
+        "all_names": datasets.Value("string"),
+        "Publisher": datasets.Value("string"),
+        "Country of publication 1": datasets.Value("string"),
+        "all Countries of publication": datasets.Value("string"),
+        "Physical description": datasets.Value("string"),
+        "Language_1": datasets.Value("string"),
+        "Language_2": datasets.Value("string"),
+        "Language_3": datasets.Value("string"),
+        "Language_4": datasets.Value("string"),
+        "multi_language": datasets.Value("bool"),
+    }
+)
+
+
+class BritishLibraryBooksConfig(datasets.BuilderConfig):
+    """BuilderConfig for BritishLibraryBooks."""
+
+    def __init__(self, data_urls, citation, url, skip_empty=False, **kwargs):
+        """BuilderConfig for BritishLibraryBooks.
+
+        Args:
+        data_url: `string`, url to download the zip file from.
+        citation: `string`, citation for the data set.
+        url: `string`, url for information about the data set.
+        skip_empty: `bool`, whether to skip empty pages.
+        **kwargs: keyword arguments forwarded to super.
+        """
+
+        super(BritishLibraryBooksConfig, self).__init__(version=datasets.Version("1.0.2"), **kwargs)
+        self.data_urls: Union[str, List[str]] = data_urls
+        self.citation: str = citation
+        self.skip_empty: bool = skip_empty
+
+
+class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
+    """The BritishLibraryBooks dataset."""
+
+    BUILDER_CONFIGS = [
+        BritishLibraryBooksConfig(
+            name="all",
+            description="All periods of" + _DESCRIPTION,
+            data_urls=_ALL,
+            citation=_CITATION,
+            url="TODO",
+            skip_empty=True,
+        ),
+        BritishLibraryBooksConfig(
+            name="1800s",
+            description="A subset covering texts published during the 1800-1899 of" + _DESCRIPTION,
+            data_urls=_1800s,
+            citation=_CITATION,
+            url="TODO",
+            skip_empty=True,
+        ),
+        BritishLibraryBooksConfig(
+            name="1700s",
+            description="Subset covering 1700-1799 of" + _DESCRIPTION,
+            data_urls=_1700s,
+            citation=_CITATION,
+            url="TODO",
+            skip_empty=True,
+        ),
+        BritishLibraryBooksConfig(
+            name="1510_1699",
+            description="Subset covering 1510-1699 of " + _DESCRIPTION,
+            data_urls=_1510_1699,
+            citation=_CITATION,
+            url="TODO",
+            skip_empty=True,
+        ),
+    ]
+
+    DEFAULT_CONFIG_NAME = "all"
+
+    def _info(self):
+        return datasets.DatasetInfo(
+            description=_DESCRIPTION,
+            features=features,
+            supervised_keys=None,
+            homepage="https://www.bl.uk/collection-guides/digitised-printed-books",
+            citation=_CITATION,
+            task_templates=[LanguageModeling(text_column="text")],
+        )
+
+    def _split_generators(self, dl_manager: datasets.DownloadManager):
+        urls_to_download = self.config.data_urls
+        downloaded_archives = dl_manager.download(urls_to_download)
+        downloaded_archives = [dl_manager.iter_archive(archive) for archive in downloaded_archives]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dirs": downloaded_archives})]
+
+    def _generate_examples(self, data_dirs):
+        skip_empty = self.config.skip_empty
+        id_ = 0
+        for data_dir in data_dirs:
+            for path, file in data_dir:
+                if not path.endswith(".gz"):
+                    continue
+                with gzip.open(file) as json_l:
+                    for row in json_l.readlines():
+                        data = json.loads(row)
+                        empty_pg = data["empty_pg"]
+                        if skip_empty and empty_pg:
+                            continue
+                        record_id = data["record_id"]
+                        date = data["date"]
+                        if not date:
+                            continue
+                        date = date
+                        raw_date = data["raw_date"]
+                        title = data["title"]
+                        place = data["place"]
+                        # if place:
+                        #     place = str(place)
+                        text = data["text"]
+                        pg = data["pg"]
+                        mean_wc_ocr = data["mean_wc_ocr"]
+                        mean_wc_ocr = float(mean_wc_ocr) if mean_wc_ocr else 0.0
+                        std_wc_ocr = data["std_wc_ocr"]
+                        std_wc_ocr = float(data["std_wc_ocr"]) if std_wc_ocr else 0.0
+                        name = data["Name"]
+                        all_names = data["All names"]
+                        publisher = data["Publisher"]
+                        country_of_publication_1 = data["Country of publication 1"]
+                        all_Countries_of_publication = data["All Countries of publication"]
+                        Physical_description = data["Physical description"]
+                        Language_1 = data["Language_1"]
+                        Language_2 = data["Language_2"]
+                        Language_3 = data["Language_3"]
+                        Language_4 = data["Language_4"]
+                        multi_language = data["multi_language"]
+                        id_ += 1
+                        yield id_, {
+                            "record_id": record_id,
+                            "date": date,
+                            "raw_date": raw_date,
+                            "title": title,
+                            "place": place,
+                            "empty_pg": empty_pg,
+                            "text": text,
+                            "pg": int(pg),
+                            "mean_wc_ocr": mean_wc_ocr,
+                            "std_wc_ocr": std_wc_ocr,
+                            "name": name,
+                            "all_names": all_names,
+                            "Publisher": publisher,
+                            "Country of publication 1": country_of_publication_1,
+                            "all Countries of publication": all_Countries_of_publication,
+                            "Physical description": Physical_description,
+                            "Language_1": Language_1,
+                            "Language_2": Language_2,
+                            "Language_3": Language_3,
+                            "Language_4": Language_4,
+                            "multi_language": multi_language,
+                        }
