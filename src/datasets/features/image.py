@@ -67,8 +67,12 @@ class Image:
             return {"path": None, "bytes": image_to_bytes(image)}
         elif isinstance(value, PIL.Image.Image):
             return encode_pil_image(value)
-        else:
+        elif value.get("bytes") is not None or value.get("path") is not None:
             return {"bytes": value.get("bytes"), "path": value.get("path")}
+        else:
+            raise ValueError(
+                f"An audio sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
+            )
 
     def decode_example(self, value):
         """Decode example image file into image data.
@@ -94,7 +98,7 @@ class Image:
 
         if bytes_ is None:
             if path is None:
-                raise ValueError("An image should have one of 'path' or 'bytes' but both are None.")
+                raise ValueError(f"An image should have one of 'path' or 'bytes' but both are None in {value}.")
             else:
                 if is_local_path(path):
                     image = PIL.Image.open(path)
@@ -107,6 +111,22 @@ class Image:
         return image
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray, pa.ListArray]) -> pa.StructArray:
+        """Cast an Arrow array to the Image arrow storage type.
+        The Arrow types that can be converted to the Image pyarrow storage type are:
+
+        - pa.string() - it must contain the "path" data
+        - pa.struct({"bytes": pa.binary()})
+        - pa.struct({"path": pa.string()})
+        - pa.struct({"bytes": pa.binary(), "path": pa.string()})  - order doesn't matter
+        - pa.list(*) - it must contain the image array data
+
+        Args:
+            storage (Union[pa.StringArray, pa.StructArray, pa.ListArray]): [description]
+
+        Returns:
+            pa.StructArray: Array in the Image arrow storage type, that is
+                pa.struct({"bytes": pa.binary(), "path": pa.string()})
+        """
         if config.PIL_AVAILABLE:
             import PIL.Image
         else:

@@ -65,8 +65,12 @@ class Audio:
             buffer = BytesIO()
             sf.write(buffer, value["array"], value["sampling_rate"])
             return {"bytes": buffer.getvalue(), "path": value.get("path")}
-        else:
+        elif value.get("bytes") is not None or value.get("path") is not None:
             return {"bytes": value.get("bytes"), "path": value.get("path")}
+        else:
+            raise ValueError(
+                f"An audio sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
+            )
 
     def decode_example(self, value):
         """Decode example audio file into audio data.
@@ -82,7 +86,7 @@ class Audio:
         """
         path, file = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
         if path is None and file is None:
-            raise ValueError("An audio sample should have one of 'path' or 'bytes' but both are None.")
+            raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
         elif path is not None and path.endswith("mp3"):
             array, sampling_rate = self._decode_mp3(file if file else path)
         else:
@@ -93,6 +97,21 @@ class Audio:
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray]) -> pa.StructArray:
+        """Cast an Arrow array to the Audio arrow storage type.
+        The Arrow types that can be converted to the Audio pyarrow storage type are:
+
+        - pa.string() - it must contain the "path" data
+        - pa.struct({"bytes": pa.binary()})
+        - pa.struct({"path": pa.string()})
+        - pa.struct({"bytes": pa.binary(), "path": pa.string()})  - order doesn't matter
+
+        Args:
+            storage (Union[pa.StringArray, pa.StructArray]): [description]
+
+        Returns:
+            pa.StructArray: Array in the Audio arrow storage type, that is
+                pa.struct({"bytes": pa.binary(), "path": pa.string()})
+        """
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
             storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"])

@@ -1312,6 +1312,16 @@ class Features(dict):
         return Features(recursive_reorder(self, other))
 
     def flatten(self, max_depth=16) -> "Features":
+        """Flatten the features. Every dictionary column is removed and is replaced by
+        all the subfields it contains. The new fields are named by concatenating the
+        name of the original column and the subfield name like this: "<original>.<subfield>".
+
+        If a column contains nested dictionaries, then all the lower-level subfields names are
+        also concatenated to form new columns: "<original>.<subfield>.<subsubfield>", etc.
+
+        Returns:
+            Features: the flattened features
+        """
         for depth in range(1, max_depth):
             no_change = True
             flattened = self.copy()

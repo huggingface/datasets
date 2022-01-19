@@ -112,12 +112,37 @@ class TypedSequence:
         self._inferred_type = None
 
     def get_inferred_type(self) -> FeatureType:
+        """Return the inferred feature type.
+        This is done by converting the sequence to an Arrow array, and getting the corresponding
+        feature type.
+
+        Since building the Arrow array can be expensive, the value of the inferred type is cached
+        as soon as pa.array is called on the typed sequence.
+
+        Returns:
+            FeatureType: inferred feature type of the sequence.
+        """
         if self._inferred_type is None:
             self._inferred_type = generate_from_arrow_type(pa.array(self).type)
         return self._inferred_type
 
     @staticmethod
     def _infer_custom_type_and_encode(data: Iterable) -> Tuple[Iterable, Optional[FeatureType]]:
+        """Implement type inference for custom objects like PIL.Image.Image -> Image type.
+
+        This function is only used for custom python objects that can't be direclty passed to build
+        an Arrow array. In such cases is infers the feature type to use, and it encodes the data so
+        that they can be passed to an Arrow array.
+
+        Args:
+            data (Iterable): array of data to infer the type, e.g. a list of PIL images.
+
+        Returns:
+            Tuple[Iterable, Optional[FeatureType]]: a tuple with:
+                - the (possibly encoded) array, if the inferred feature type requires encoding
+                - the inferred feature type if the array is made of supported custom objects like
+                    PIL images, else None.
+        """
         if config.PIL_AVAILABLE and "PIL" in sys.modules:
             import PIL.Image
 
