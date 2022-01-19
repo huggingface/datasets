@@ -50,7 +50,9 @@ tagging scheme, whereas the original dataset uses IOB1.
 For more details see https://www.clips.uantwerpen.be/conll2003/ner/ and https://www.aclweb.org/anthology/W03-0419
 """
 
-_URL = "https://github.com/davidsbatista/NER-datasets/raw/master/CONLL2003/"
+_URL = (
+    "https://raw.githubusercontent.com/davidsbatista/NER-datasets/dcb6c7439a7de43abc2448bad5b1d81a47f26c0d/CONLL2003/"
+)
 _TRAINING_FILE = "train.txt"
 _DEV_FILE = "valid.txt"
 _TEST_FILE = "test.txt"
