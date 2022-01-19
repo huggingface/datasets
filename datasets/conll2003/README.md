@@ -6,7 +6,7 @@ language_creators:
 languages:
 - en
 licenses:
-- unknown
+- other
 multilinguality:
 - monolingual
 size_categories:
@@ -199,8 +199,6 @@ The data fields are the same among all splits.
 From the [CoNLL2003 shared task](https://www.clips.uantwerpen.be/conll2003/ner/) page:
 
 > The English data is a collection of news wire articles from the Reuters Corpus. The annotation has been done by people of the University of Antwerp. Because of copyright reasons we only make available the annotations. In order to build the complete data sets you will need access to the Reuters Corpus. It can be obtained for research purposes without any charge from NIST.
-
-The dataset used to be hosted in this [GitHub repository](https://github.com/davidsbatista/NER-datasets) and was removed because of the copyrights restriction.
 
 The copyrights are defined below, from the [Reuters Corpus page](https://trec.nist.gov/data/reuters/reuters.html):
 
