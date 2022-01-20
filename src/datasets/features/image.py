@@ -74,7 +74,7 @@ class Image:
                 f"An audio sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
-    def decode_example(self, value):
+    def decode_example(self, value: dict) -> "PIL.Image.Image":
         """Decode example image file into image data.
 
         Args:
@@ -91,11 +91,7 @@ class Image:
         else:
             raise ImportError("To support decoding images, please install 'Pillow'.")
 
-        if isinstance(value, str):
-            path, bytes_ = value, None  # TODO(QL, Mario): remove this case ?
-        else:
-            path, bytes_ = value["path"], value["bytes"]
-
+        path, bytes_ = value["path"], value["bytes"]
         if bytes_ is None:
             if path is None:
                 raise ValueError(f"An image should have one of 'path' or 'bytes' but both are None in {value}.")

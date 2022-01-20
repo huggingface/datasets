@@ -46,7 +46,7 @@ class Audio:
     def __call__(self):
         return self.pa_type
 
-    def encode_example(self, value):
+    def encode_example(self, value: Union[str, dict]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
@@ -72,7 +72,7 @@ class Audio:
                 f"An audio sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
-    def decode_example(self, value):
+    def decode_example(self, value: dict) -> dict:
         """Decode example audio file into audio data.
 
         Args:
