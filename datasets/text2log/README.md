@@ -4,14 +4,14 @@ annotations_creators:
 language_creators:
 - machine-generated
 languages:
-- en-US
+- en
 licenses:
 - unknown
 multilinguality:
 - monolingual
 pretty_name: 'text2log'
 size_categories:
-- unknown
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
@@ -47,15 +47,15 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** none
-- **Repository:** https://github.com/alevkov/text2log
-- **Paper:** https://github.com/alevkov/text2log
-- **Leaderboard:** none
+- **Homepage:**
+- **Repository:** [GitHub](https://github.com/alevkov/text2log)
+- **Paper:**
+- **Leaderboard:**
 - **Point of Contact:** https://github.com/alevkov
 
 ### Dataset Summary
 
-data set containing 100,000 simple English sentences selected and filtered from enTenTen15 and their translation into First Order Logic (FOL) using ccg2lambda
+The dataset contains 100,000 simple English sentences selected and filtered from `enTenTen15` and their translation into First Order Logic (FOL) using `ccg2lambda`.
 
 ### Supported Tasks and Leaderboards
 
@@ -69,10 +69,12 @@ en-US
 
 ### Data Instances
 
+```
 {
 'clean':'All things that are new are good.',
 'trans':'all x1.(_thing(x1) -> (_new(x1) -> _good(x1)))'
 }
+```
 
 ### Data Fields
 
@@ -138,8 +140,17 @@ The dataset does not contain personal or sensitive information.
 None given
 
 ### Citation Information
-```
-@INPROCEEDINGS{9401852,  author={Levkovskyi, Oleksii and Li, Wei},  booktitle={SoutheastCon 2021},   title={Generating Predicate Logic Expressions from Natural Language},   year={2021},  volume={},  number={},  pages={1-8},  doi={10.1109/SoutheastCon45413.2021.9401852}}
+```bibtex
+@INPROCEEDINGS{9401852, 
+author={Levkovskyi, Oleksii and Li, Wei},
+booktitle={SoutheastCon 2021},
+title={Generating Predicate Logic Expressions from Natural Language},
+year={2021},
+volume={},
+number={},
+pages={1-8},
+doi={10.1109/SoutheastCon45413.2021.9401852}
+}
 ```
 
 ### Contributions

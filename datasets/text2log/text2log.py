@@ -40,7 +40,7 @@ _URLS = {
 }
 
 
-class text2log(datasets.GeneratorBasedBuilder):
+class Text2log(datasets.GeneratorBasedBuilder):
     """Simple English sentences and FOL representations using LDbCS"""
 
     VERSION = datasets.Version("1.0.0")
