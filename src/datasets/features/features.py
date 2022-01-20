@@ -32,7 +32,6 @@ import pyarrow as pa
 import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
-from pyarrow.lib import TimestampType
 
 from datasets import config, utils
 from datasets.features.audio import Audio
@@ -49,7 +48,6 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
     _arrow_to_datasets_dtype takes a pyarrow.DataType and converts it to a datasets string dtype.
     In effect, `dt == string_to_arrow(_arrow_to_datasets_dtype(dt))`
     """
-
     if pyarrow.types.is_null(arrow_type):
         return "null"
     elif pyarrow.types.is_boolean(arrow_type):
@@ -76,14 +74,27 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
         return "float32"  # pyarrow dtype is "float"
     elif pyarrow.types.is_float64(arrow_type):
         return "float64"  # pyarrow dtype is "double"
+    elif pyarrow.types.is_time32(arrow_type):
+        return f"time32[{arrow_type.unit}]"
+    elif pyarrow.types.is_time64(arrow_type):
+        return f"time64[{arrow_type.unit}]"
     elif pyarrow.types.is_timestamp(arrow_type):
-        assert isinstance(arrow_type, TimestampType)
         if arrow_type.tz is None:
             return f"timestamp[{arrow_type.unit}]"
         elif arrow_type.tz:
             return f"timestamp[{arrow_type.unit}, tz={arrow_type.tz}]"
         else:
             raise ValueError(f"Unexpected timestamp object {arrow_type}.")
+    elif pyarrow.types.is_date32(arrow_type):
+        return "date32"  # pyarrow dtype is "date32[day]"
+    elif pyarrow.types.is_date64(arrow_type):
+        return "date64"  # pyarrow dtype is "date64[ms]"
+    elif pyarrow.types.is_duration(arrow_type):
+        return f"duration[{arrow_type.unit}]"
+    elif pyarrow.types.is_decimal128(arrow_type):
+        return f"decimal128({arrow_type.precision}, {arrow_type.scale})"
+    elif pyarrow.types.is_decimal256(arrow_type):
+        return f"decimal256({arrow_type.precision}, {arrow_type.scale})"
     elif pyarrow.types.is_binary(arrow_type):
         return "binary"
     elif pyarrow.types.is_large_binary(arrow_type):
@@ -110,40 +121,139 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
         which means that each Value() must be able to resolve into a corresponding pyarrow.DataType, which is the
         purpose of this function.
     """
-    timestamp_regex = re.compile(r"^timestamp\[(.*)\]$")
-    timestamp_matches = timestamp_regex.search(datasets_dtype)
-    if timestamp_matches:
-        """
-        Example timestamp dtypes:
 
-        timestamp[us]
-        timestamp[us, tz=America/New_York]
-        """
+    def _dtype_error_msg(dtype, pa_dtype, examples=None, urls=None):
+        msg = f"{dtype} is not a validly formatted string representation of the pyarrow {pa_dtype} type."
+        if examples:
+            examples = ", ".join(examples[:-1]) + " or " + examples[-1] if len(examples) > 1 else examples[0]
+            msg += f"\nValid examples include: {examples}."
+        if urls:
+            urls = ", ".join(urls[:-1]) + " and " + urls[-1] if len(urls) > 1 else urls[0]
+            msg += f"\nFor more insformation, see: {urls}."
+        return msg
+
+    if datasets_dtype in pa.__dict__:
+        return pa.__dict__[datasets_dtype]()
+
+    if (datasets_dtype + "_") in pa.__dict__:
+        return pa.__dict__[datasets_dtype + "_"]()
+
+    timestamp_matches = re.search(r"^timestamp\[(.*)\]$", datasets_dtype)
+    if timestamp_matches:
         timestamp_internals = timestamp_matches.group(1)
-        internals_regex = re.compile(r"^(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+\-:]*)$")
-        internals_matches = internals_regex.search(timestamp_internals)
+        internals_matches = re.search(r"^(s|ms|us|ns),\s*tz=([a-zA-Z0-9/_+\-:]*)$", timestamp_internals)
         if timestamp_internals in ["s", "ms", "us", "ns"]:
             return pa.timestamp(timestamp_internals)
         elif internals_matches:
             return pa.timestamp(internals_matches.group(1), internals_matches.group(2))
         else:
             raise ValueError(
-                f"{datasets_dtype} is not a validly formatted string representation of a pyarrow timestamp."
-                f"Examples include timestamp[us] or timestamp[us, tz=America/New_York]"
-                f"See: https://arrow.apache.org/docs/python/generated/pyarrow.timestamp.html#pyarrow.timestamp"
+                _dtype_error_msg(
+                    datasets_dtype,
+                    "timestamp",
+                    examples=["timestamp[us]", "timestamp[us, tz=America/New_York"],
+                    urls=["https://arrow.apache.org/docs/python/generated/pyarrow.timestamp.html"],
+                )
             )
-    elif datasets_dtype not in pa.__dict__:
-        if str(datasets_dtype + "_") not in pa.__dict__:
-            raise ValueError(
-                f"Neither {datasets_dtype} nor {datasets_dtype + '_'} seems to be a pyarrow data type. "
-                f"Please make sure to use a correct data type, see: "
-                f"https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions"
-            )
-        arrow_data_factory_function_name = str(datasets_dtype + "_")
-    else:
-        arrow_data_factory_function_name = datasets_dtype
 
-    return pa.__dict__[arrow_data_factory_function_name]()
+    duration_matches = re.search(r"^duration\[(.*)\]$", datasets_dtype)
+    if duration_matches:
+        duration_internals = duration_matches.group(1)
+        if duration_internals in ["s", "ms", "us", "ns"]:
+            return pa.duration(duration_internals)
+        else:
+            raise ValueError(
+                _dtype_error_msg(
+                    datasets_dtype,
+                    "duration",
+                    examples=["duration[s]", "duration[us]"],
+                    urls=["https://arrow.apache.org/docs/python/generated/pyarrow.duration.html"],
+                )
+            )
+
+    time_matches = re.search(r"^time(.*)\[(.*)\]$", datasets_dtype)
+    if time_matches:
+        time_internals_bits = time_matches.group(1)
+        if time_internals_bits == "32":
+            time_internals_unit = time_matches.group(2)
+            if time_internals_unit in ["s", "ms"]:
+                return pa.time32(time_internals_unit)
+            else:
+                raise ValueError(
+                    f"{time_internals_unit} is not a valid unit for the pyarrow time32 type. Supported units: s (second) and ms (millisecond)."
+                )
+        elif time_internals_bits == "64":
+            time_internals_unit = time_matches.group(2)
+            if time_internals_unit in ["us", "ns"]:
+                return pa.time64(time_internals_unit)
+            else:
+                raise ValueError(
+                    f"{time_internals_unit} is not a valid unit for the pyarrow time64 type. Supported units: us (microsecond) and ns (nanosecond)."
+                )
+        else:
+            raise ValueError(
+                _dtype_error_msg(
+                    datasets_dtype,
+                    "time",
+                    examples=["time32[s]", "time64[us]"],
+                    urls=[
+                        "https://arrow.apache.org/docs/python/generated/pyarrow.time32.html",
+                        "https://arrow.apache.org/docs/python/generated/pyarrow.time64.html",
+                    ],
+                )
+            )
+
+    decimal_matches = re.search(r"^decimal(.*)\((.*)\)$", datasets_dtype)
+    if decimal_matches:
+        decimal_internals_bits = decimal_matches.group(1)
+        if decimal_internals_bits == "128":
+            decimal_internals_precision_and_scale = re.search(r"^(\d+),\s*(-?\d+)$", decimal_matches.group(2))
+            if decimal_internals_precision_and_scale:
+                precision = decimal_internals_precision_and_scale.group(1)
+                scale = decimal_internals_precision_and_scale.group(2)
+                return pa.decimal128(int(precision), int(scale))
+            else:
+                raise ValueError(
+                    _dtype_error_msg(
+                        datasets_dtype,
+                        "decimal128",
+                        examples=["decimal128(10, 2)", "decimal128(4, -2)"],
+                        urls=["https://arrow.apache.org/docs/python/generated/pyarrow.decimal128.html"],
+                    )
+                )
+        elif decimal_internals_bits == "256":
+            decimal_internals_precision_and_scale = re.search(r"^(\d+),\s*(-?\d+)$", decimal_matches.group(2))
+            if decimal_internals_precision_and_scale:
+                precision = decimal_internals_precision_and_scale.group(1)
+                scale = decimal_internals_precision_and_scale.group(2)
+                return pa.decimal256(int(precision), int(scale))
+            else:
+                raise ValueError(
+                    _dtype_error_msg(
+                        datasets_dtype,
+                        "decimal256",
+                        examples=["decimal256(30, 2)", "decimal256(38, -4)"],
+                        urls=["https://arrow.apache.org/docs/python/generated/pyarrow.decimal256.html"],
+                    )
+                )
+        else:
+            raise ValueError(
+                _dtype_error_msg(
+                    datasets_dtype,
+                    "decimal",
+                    examples=["decimal128(12, 3)", "decimal256(40, 6)"],
+                    urls=[
+                        "https://arrow.apache.org/docs/python/generated/pyarrow.decimal128.html",
+                        "https://arrow.apache.org/docs/python/generated/pyarrow.decimal256.html",
+                    ],
+                )
+            )
+
+    raise ValueError(
+        f"Neither {datasets_dtype} nor {datasets_dtype + '_'} seems to be a pyarrow data type. "
+        f"Please make sure to use a correct data type, see: "
+        f"https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions"
+    )
 
 
 def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, bool]:
@@ -274,8 +384,15 @@ class Value:
     float16
     float32 (alias float)
     float64 (alias double)
+    time32[(s|ms)]
+    time64[(us|ns)]
     timestamp[(s|ms|us|ns)]
     timestamp[(s|ms|us|ns), tz=(tzstring)]
+    date32
+    date64
+    duration[(s|ms|us|ns)]
+    decimal128(precision, scale)
+    decimal256(precision, scale)
     binary
     large_binary
     string
