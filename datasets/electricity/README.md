@@ -32,15 +32,15 @@ YAML tags:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [Electricity Load 2011-2014](https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014)
+- **Paper:** [Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks
+](https://dl.acm.org/doi/10.1145/3209978.3210006)
+- **Point of Contact:** [Artur Trindade](artur.trindade@elergone.pt)
 
 ### Dataset Summary
 
-[More Information Needed]
+This new dataset contains hourly kW electricity consumption time series of 370 Portuguese clients from 2011 to 2014.
+
 
 ### Supported Tasks and Leaderboards
 
@@ -52,17 +52,54 @@ YAML tags:
 
 ## Dataset Structure
 
+Data set has no missing values.
+Values are in kW of each 15 min. To convert values in kWh values must be divided by 4.
+Each column represent one client. Some clients were created after 2011. In these cases consumption were considered zero.
+All time labels report to Portuguese hour. However all days present 96 measures (24*4). Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
+
+
+
 ### Data Instances
 
-[More Information Needed]
+A sample from the training set is provided below:
+
+```python
+{
+  'start': '2012-01-01 00:00:00', 
+  'target': [14.0, 18.0, 21.0, 20.0, 22.0, 20.0, 20.0, 20.0, 13.0, 11.0], # <= this target value is a concatenated sample
+  'feat_static_cat': [0], 
+  'item_id': '0'
+}
+```
 
 ### Data Fields
 
-[More Information Needed]
+For a univariate regular time series we have:
+
+- `start`: a `datetime` of the first entry of this time series
+- `target`: an `array[float32]` the actual target value
+
+Given the `freq` and the `start` date, we can assign a datetime to each entry in the target array.
+
 
 ### Data Splits
 
-[More Information Needed]
+```python
+DatasetDict({
+    train: Dataset({
+        features: ['start', 'target', 'feat_static_cat', 'item_id'],
+        num_rows: 321
+    })
+    test: Dataset({
+        features: ['start', 'target', 'feat_static_cat', 'item_id'],
+        num_rows: 2247
+    })
+    validation: Dataset({
+        features: ['start', 'target', 'feat_static_cat', 'item_id'],
+        num_rows: 321
+    })
+})
+```
 
 ## Dataset Creation
 
