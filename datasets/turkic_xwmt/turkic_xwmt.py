@@ -15,6 +15,8 @@
 
 # Lint as: python3
 """A Large-Scale Study of Machine Translation in Turkic Languages."""
+import os
+
 import datasets
 
 
@@ -98,8 +100,8 @@ class TurkicXWMT(datasets.GeneratorBasedBuilder):
         path = dl_manager.download_and_extract(_DATA_URL)
 
         source, target = self.config.language_pair
-        source_path = f"{path}/test/{source}-{target}/{source}-{target}.{source}.txt"
-        target_path = f"{path}/test/{source}-{target}/{source}-{target}.{target}.txt"
+        source_path = os.path.join(path, "test", f"{source}-{target}", f"{source}-{target}.{source}.txt")
+        target_path = os.path.join(path, "test", f"{source}-{target}", f"{source}-{target}.{target}.txt")
 
         files = {}
         files["test"] = {

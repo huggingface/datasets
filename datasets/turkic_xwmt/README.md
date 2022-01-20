@@ -278,17 +278,16 @@ licenses:
 - mit
 multilinguality:
 - translation
-pretty_name: turkic-xwmt
+pretty_name: turkic_xwmt
 size_categories:
-- unknown
-source_datasets: []
+- n<1K
 task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for turkic_xwmt
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -317,8 +316,8 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [https://github.com/turkic-interlingua/til-mt/tree/master/xwmt](https://github.com/turkic-interlingua/til-mt/tree/master/xwmt)
-- **Repository:**[https://github.com/turkic-interlingua/til-mt/tree/master/xwmt](https://github.com/turkic-interlingua/til-mt/tree/master/xwmt)
+- **Homepage:** 
+- **Repository:**[Github](https://github.com/turkic-interlingua/til-mt/tree/master/xwmt)
 - **Paper:** [https://arxiv.org/abs/2109.04593](https://arxiv.org/abs/2109.04593)
 - **Leaderboard:** [More Information Needed]
 - **Point of Contact:** [turkicinterlingua@gmail.com](mailto:turkicinterlingua@gmail.com)
@@ -334,32 +333,127 @@ To establish a comprehensive and challenging evaluation benchmark for Machine Tr
 ### Languages
 
 Currently covered languages are (besides English and Russian):
-Azerbaijani (az)
-Bashkir (ba)
-Karakalpak (kaa)
-Kazakh (kk)
-Kirghiz (ky)
-Turkish (tr)
-Sakha (sah)
-Uzbek (uz)
+- Azerbaijani (az)
+- Bashkir (ba)
+- Karakalpak (kaa)
+- Kazakh (kk)
+- Kirghiz (ky)
+- Turkish (tr)
+- Sakha (sah)
+- Uzbek (uz)
 
 ## Dataset Structure
-
-[More Information Needed]
 
 ### Data Instances
 
 ```
 A random example from the Russian-Uzbek set:
-{'ru': 'Моника Мутсвангва , министр информации Зимбабве , утверждает , что полиция вмешалась в отъезд Магомбейи из соображений безопасности и вследствие состояния его здоровья .', 'uz': 'Zimbabvening Axborot vaziri , Monika Mutsvanva Magombeyining xavfsizligi va sog'ligi tufayli bo'lgan jo'nab ketishinida politsiya aralashuvini ushlab turadi .'}
+```
+{"translation": {'ru': 'Моника Мутсвангва , министр информации Зимбабве , утверждает , что полиция вмешалась в отъезд Магомбейи из соображений безопасности и вследствие состояния его здоровья .', 'uz': 'Zimbabvening Axborot vaziri , Monika Mutsvanva Magombeyining xavfsizligi va sog'ligi tufayli bo'lgan jo'nab ketishinida politsiya aralashuvini ushlab turadi .'}}
 ```
 ### Data Fields
 
-[More Information Needed]
-
+Each example has one field "translation" that contains two subfields: one per language, e.g. for the Russian-Uzbek set:
+- **translation**: a dictionary with two subfields:
+  - **ru**: the russian text
+  - **uz**: the uzbek text
 ### Data Splits
 
-[More Information Needed]
+<details>
+  <summary>Click here to show the number of examples per configuration:</summary>
+|         |   test |
+|:--------|-------:|
+| az-ba   |    600 |
+| az-en   |    600 |
+| az-kaa  |    300 |
+| az-kk   |    500 |
+| az-ky   |    500 |
+| az-ru   |    600 |
+| az-sah  |    300 |
+| az-tr   |    500 |
+| az-uz   |    600 |
+| ba-az   |    600 |
+| ba-en   |   1000 |
+| ba-kaa  |    300 |
+| ba-kk   |    700 |
+| ba-ky   |    500 |
+| ba-ru   |   1000 |
+| ba-sah  |    300 |
+| ba-tr   |    700 |
+| ba-uz   |    900 |
+| en-az   |    600 |
+| en-ba   |   1000 |
+| en-kaa  |    300 |
+| en-kk   |    700 |
+| en-ky   |    500 |
+| en-ru   |   1000 |
+| en-sah  |    300 |
+| en-tr   |    700 |
+| en-uz   |    900 |
+| kaa-az  |    300 |
+| kaa-ba  |    300 |
+| kaa-en  |    300 |
+| kaa-kk  |    300 |
+| kaa-ky  |    300 |
+| kaa-ru  |    300 |
+| kaa-sah |    300 |
+| kaa-tr  |    300 |
+| kaa-uz  |    300 |
+| kk-az   |    500 |
+| kk-ba   |    700 |
+| kk-en   |    700 |
+| kk-kaa  |    300 |
+| kk-ky   |    500 |
+| kk-ru   |    700 |
+| kk-sah  |    300 |
+| kk-tr   |    500 |
+| kk-uz   |    700 |
+| ky-az   |    500 |
+| ky-ba   |    500 |
+| ky-en   |    500 |
+| ky-kaa  |    300 |
+| ky-kk   |    500 |
+| ky-ru   |    500 |
+| ky-sah  |    300 |
+| ky-tr   |    400 |
+| ky-uz   |    500 |
+| ru-az   |    600 |
+| ru-ba   |   1000 |
+| ru-en   |   1000 |
+| ru-kaa  |    300 |
+| ru-kk   |    700 |
+| ru-ky   |    500 |
+| ru-sah  |    300 |
+| ru-tr   |    700 |
+| ru-uz   |    900 |
+| sah-az  |    300 |
+| sah-ba  |    300 |
+| sah-en  |    300 |
+| sah-kaa |    300 |
+| sah-kk  |    300 |
+| sah-ky  |    300 |
+| sah-ru  |    300 |
+| sah-tr  |    300 |
+| sah-uz  |    300 |
+| tr-az   |    500 |
+| tr-ba   |    700 |
+| tr-en   |    700 |
+| tr-kaa  |    300 |
+| tr-kk   |    500 |
+| tr-ky   |    400 |
+| tr-ru   |    700 |
+| tr-sah  |    300 |
+| tr-uz   |    600 |
+| uz-az   |    600 |
+| uz-ba   |    900 |
+| uz-en   |    900 |
+| uz-kaa  |    300 |
+| uz-kk   |    700 |
+| uz-ky   |    500 |
+| uz-ru   |    900 |
+| uz-sah  |    300 |
+| uz-tr   |    600 |
+</details>
 
 ## Dataset Creation
 
