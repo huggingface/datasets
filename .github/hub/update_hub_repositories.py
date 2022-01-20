@@ -162,7 +162,7 @@ class update_main:
             logs.append(repr(e))
         if "Your branch is up to date with" not in repo.git.status():
             logs.append(repo.git.status())
-            logs = "\n".join(logs)
+            logs = "\n".join(str(log) for log in logs)
             logger.warning(f"[{dataset_name}] Push failed")
             logger.warning(f"[{dataset_name}] Git logs: \n{logs}")
             return False

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: tunizi
+pretty_name: TUNIZI
 ---
 
 # Dataset Card Creation Guide

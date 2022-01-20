@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: wikisql
+pretty_name: WikiSQL
 ---
 
 # Dataset Card for "wikisql"

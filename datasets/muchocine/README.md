@@ -18,7 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
-pretty_name: MuchoCine
+pretty_name: Muchocine
 ---
 
 # Dataset Card for Muchocine

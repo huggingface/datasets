@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: gutenberg-time-dataset
+pretty_name: the Gutenberg Time dataset
 ---
 
 # Dataset Card for the Gutenberg Time dataset

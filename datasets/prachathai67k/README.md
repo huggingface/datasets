@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - topic-classification
 paperswithcode_id: prachathai-67k
+pretty_name: prachathai67k
 ---
 
 # Dataset Card for `prachathai67k`

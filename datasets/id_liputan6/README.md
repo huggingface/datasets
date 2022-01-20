@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: null
+pretty_name: Large-scale Indonesian Summarization
 ---
 
 # Dataset Card for Large-scale Indonesian Summarization

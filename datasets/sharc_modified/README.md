@@ -20,6 +20,7 @@ task_ids:
 - extractive-qa
 - question-answering-other-conversational-qa
 paperswithcode_id: null
+pretty_name: SharcModified
 ---
 
 # Dataset Card Creation Guide

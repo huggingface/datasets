@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: gutenberg-poem-dataset
+pretty_name: Gutenberg Poem Dataset
 ---
 
 # Dataset Card Creation Guide
