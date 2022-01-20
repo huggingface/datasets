@@ -39,7 +39,7 @@ from .features import (
 )
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
-from .table import array_cast, cast_array_to_feature
+from .table import array_cast, cast_array_to_feature, table_cast
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
 from .utils.py_utils import first_non_null_value
@@ -510,9 +510,7 @@ class ArrowWriter:
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
-        # reorder the arrays if necessary + cast to self._schema
-        # we can't simply use .cast here because we may need to change the order of the columns
-        pa_table = pa.Table.from_arrays([pa_table[name] for name in self._schema.names], schema=self._schema)
+        pa_table = table_cast(pa_table, self._schema)
         batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
         self._num_bytes += sum(batch.nbytes for batch in batches)
         self._num_examples += pa_table.num_rows

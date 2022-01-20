@@ -8,7 +8,7 @@ import pyarrow as pa
 import pytest
 
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
-from datasets.features import Array2D, Array2DExtensionType, Value
+from datasets.features import Array2D, Array2DExtensionType, ClassLabel, Features, Value
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
 
 
@@ -84,6 +84,27 @@ def test_write(fields, writer_batch_size):
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
     assert writer._schema == pa.schema(fields, metadata=writer._schema.metadata)
     _check_output(output.getvalue(), expected_num_chunks=num_examples if writer_batch_size == 1 else 1)
+
+
+def test_write_with_features():
+    output = pa.BufferOutputStream()
+    features = Features({"labels": ClassLabel(names=["neg", "pos"])})
+    with ArrowWriter(stream=output, features=features) as writer:
+        writer.write({"labels": 0})
+        writer.write({"labels": 1})
+        num_examples, num_bytes = writer.finalize()
+    assert num_examples == 2
+    assert num_bytes > 0
+    assert writer._schema == features.arrow_schema
+    assert writer._schema.metadata == features.arrow_schema.metadata
+    stream = pa.BufferReader(output.getvalue())
+    f = pa.ipc.open_stream(stream)
+    pa_table: pa.Table = f.read_all()
+    schema = pa_table.schema
+    assert pa_table.num_rows == 2
+    assert schema == features.arrow_schema
+    assert schema.metadata == features.arrow_schema.metadata
+    assert features == Features.from_arrow_schema(schema)
 
 
 @pytest.mark.parametrize("writer_batch_size", [None, 1, 10])

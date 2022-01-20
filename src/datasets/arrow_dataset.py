@@ -3852,8 +3852,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Cast to align the schemas of the tables and concatenate the tables
         table = concat_tables(
             [
-                self._data.cast(pa.schema(dset_features.type)) if self.features != dset_features else self._data,
-                item_table.cast(pa.schema(item_features.type)),
+                self._data.cast(dset_features.arrow_schema) if self.features != dset_features else self._data,
+                item_table.cast(item_features.arrow_schema),
             ]
         )
         if self._indices is None:
