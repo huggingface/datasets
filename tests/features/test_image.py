@@ -78,7 +78,7 @@ def test_image_decode_example(shared_datadir):
 
     image_path = str(shared_datadir / "test_image_rgb.jpg")
     image = Image()
-    decoded_example = image.decode_example(image_path)
+    decoded_example = image.decode_example({"path": image_path, "bytes": None})
 
     assert isinstance(decoded_example, PIL.Image.Image)
     assert os.path.samefile(decoded_example.filename, image_path)
@@ -333,7 +333,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
     import PIL.Image
 
     image_path = str(shared_datadir / "test_image_rgb.jpg")
-    pil_image = Image().decode_example(image_path)
+    pil_image = Image().decode_example({"path": image_path, "bytes": None})
     data = {"image": [image_path]}
     features = Features({"image": Image()})
     dset = Dataset.from_dict(data, features=features)
