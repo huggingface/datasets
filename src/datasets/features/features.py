@@ -32,7 +32,6 @@ import pyarrow as pa
 import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
-from pyarrow.lib import Decimal128Type, Decimal256Type, DurationType, Time32Type, Time64Type, TimestampType
 
 from datasets import config, utils
 from datasets.features.audio import Audio
@@ -76,13 +75,10 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
     elif pyarrow.types.is_float64(arrow_type):
         return "float64"  # pyarrow dtype is "double"
     elif pyarrow.types.is_time32(arrow_type):
-        assert isinstance(arrow_type, Time32Type)
         return f"time32[{arrow_type.unit}]"
     elif pyarrow.types.is_time64(arrow_type):
-        assert isinstance(arrow_type, Time64Type)
         return f"time64[{arrow_type.unit}]"
     elif pyarrow.types.is_timestamp(arrow_type):
-        assert isinstance(arrow_type, TimestampType)
         if arrow_type.tz is None:
             return f"timestamp[{arrow_type.unit}]"
         elif arrow_type.tz:
@@ -94,13 +90,10 @@ def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
     elif pyarrow.types.is_date64(arrow_type):
         return "date64"  # pyarrow dtype is "date64[ms]"
     elif pyarrow.types.is_duration(arrow_type):
-        assert isinstance(arrow_type, DurationType)
         return f"duration[{arrow_type.unit}]"
     elif pyarrow.types.is_decimal128(arrow_type):
-        assert isinstance(arrow_type, Decimal128Type)
         return f"decimal128({arrow_type.precision}, {arrow_type.scale})"
     elif pyarrow.types.is_decimal256(arrow_type):
-        assert isinstance(arrow_type, Decimal256Type)
         return f"decimal256({arrow_type.precision}, {arrow_type.scale})"
     elif pyarrow.types.is_binary(arrow_type):
         return "binary"
