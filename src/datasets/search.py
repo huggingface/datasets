@@ -102,12 +102,12 @@ class ElasticSearchIndex(BaseIndex):
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
     ):
-        assert (
-            _has_elasticsearch
-        ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
-        assert es_client is None or (
-            host is None and port is None
-        ), "Please specify either `es_client` or `(host, port)`, but not both."
+        if not _has_elasticsearch:
+            raise ImportError(
+                "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
+            )
+        if es_client is not None and (host is not None or port is not None):
+            raise ValueError("Please specify either `es_client` or `(host, port)`, but not both.")
         host = host or "localhost"
         port = port or 9200
 
@@ -224,9 +224,8 @@ class FaissIndex(BaseIndex):
         You can find more information about Faiss here:
         - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
         """
-        assert not (
-            string_factory is not None and custom_index is not None
-        ), "Please specify either `string_factory` or `custom_index` but not both."
+        if string_factory is not None and custom_index is not None:
+            raise ValueError("Please specify either `string_factory` or `custom_index` but not both.")
         self.device = device
         self.string_factory = string_factory
         self.metric_type = metric_type
@@ -306,7 +305,9 @@ class FaissIndex(BaseIndex):
             scores (`List[List[float]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
-        assert len(query.shape) == 1 or (len(query.shape) == 2 and query.shape[0] == 1)
+        if len(query.shape) != 1 and (len(query.shape) != 2 or query.shape[0] != 1):
+            raise ValueError("Shape of query is incorrect, it has to be either a 1D array or 2D (1, N)")
+
         queries = query.reshape(1, -1)
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
@@ -324,7 +325,8 @@ class FaissIndex(BaseIndex):
             total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
             total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
-        assert len(queries.shape) == 2
+        if len(queries.shape) != 2:
+            raise ValueError("Shape of query must be 2D")
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k)
@@ -496,9 +498,10 @@ class IndexableMixin:
             device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
         """
         index = FaissIndex.load(file, device=device)
-        assert index.faiss_index.ntotal == len(
-            self
-        ), f"Index size should match Dataset size, but Index '{index_name}' at {file} has {index.faiss_index.ntotal} elements while the dataset has {len(self)} examples."
+        if index.faiss_index.ntotal != len(self):
+            raise ValueError(
+                f"Index size should match Dataset size, but Index '{index_name}' at {file} has {index.faiss_index.ntotal} elements while the dataset has {len(self)} examples."
+            )
         self._indexes[index_name] = index
         logger.info(f"Loaded FaissIndex {index_name} from {file}")
 

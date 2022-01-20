@@ -22,7 +22,7 @@ from functools import partial
 from hashlib import sha256
 from pathlib import Path
 from typing import Dict, Optional, TypeVar, Union
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import numpy as np
 import requests
@@ -239,6 +239,8 @@ class DownloadConfig:
         max_retries (:obj:`int`, default ``1``): The number of times to retry an HTTP request if it fails.
         use_auth_token (:obj:`str` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token
             for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
+        ignore_url_params (:obj:`bool`, default ``False``): Whether to strip all query parameters and #fragments from
+            the download URL before using it for caching the file.
     """
 
     cache_dir: Optional[Union[str, Path]] = None
@@ -254,6 +256,7 @@ class DownloadConfig:
     num_proc: Optional[int] = None
     max_retries: int = 1
     use_auth_token: Optional[Union[str, bool]] = None
+    ignore_url_params: bool = False
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -303,6 +306,7 @@ def cached_path(
             use_etag=download_config.use_etag,
             max_retries=download_config.max_retries,
             use_auth_token=download_config.use_auth_token,
+            ignore_url_params=download_config.ignore_url_params,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
@@ -495,13 +499,14 @@ def get_from_cache(
     cache_dir=None,
     force_download=False,
     proxies=None,
-    etag_timeout=10,
+    etag_timeout=100,
     resume_download=False,
     user_agent=None,
     local_files_only=False,
     use_etag=True,
     max_retries=0,
     use_auth_token=None,
+    ignore_url_params=False,
 ) -> str:
     """
     Given a URL, look for the corresponding file in the local cache.
@@ -523,15 +528,21 @@ def get_from_cache(
 
     os.makedirs(cache_dir, exist_ok=True)
 
-    original_url = url  # Some parameters may be added
+    if ignore_url_params:
+        # strip all query parameters and #fragments from the URL
+        cached_url = urljoin(url, urlparse(url).path)
+    else:
+        cached_url = url  # additional parameters may be added to the given URL
+
     connected = False
     response = None
     cookies = None
     etag = None
+    head_error = None
 
     # Try a first time to file the file on the local file system without eTag (None)
     # if we don't ask for 'force_download' then we spare a request
-    filename = hash_url_to_filename(original_url, etag=None)
+    filename = hash_url_to_filename(cached_url, etag=None)
     cache_path = os.path.join(cache_dir, filename)
 
     if os.path.exists(cache_path) and not force_download and not use_etag:
@@ -578,14 +589,19 @@ def get_from_cache(
             ):
                 connected = True
                 logger.info(f"Couldn't get ETag version for url {url}")
-        except (EnvironmentError, requests.exceptions.Timeout):
+            elif response.status_code == 401 and config.HF_ENDPOINT in url and use_auth_token is None:
+                raise ConnectionError(
+                    f"Unauthorized for URL {url}. Please use the parameter ``use_auth_token=True`` after logging in with ``huggingface-cli login``"
+                )
+        except (EnvironmentError, requests.exceptions.Timeout) as e:
             # not connected
+            head_error = e
             pass
 
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
     if not connected:
-        if os.path.exists(cache_path):
+        if os.path.exists(cache_path) and not force_download:
             return cache_path
         if local_files_only:
             raise FileNotFoundError(
@@ -595,10 +611,15 @@ def get_from_cache(
         elif response is not None and response.status_code == 404:
             raise FileNotFoundError(f"Couldn't find file at {url}")
         _raise_if_offline_mode_is_enabled(f"Tried to reach {url}")
-        raise ConnectionError(f"Couldn't reach {url}")
+        if head_error is not None:
+            raise ConnectionError(f"Couldn't reach {url} ({repr(head_error)})")
+        elif response is not None:
+            raise ConnectionError(f"Couldn't reach {url} (error {response.status_code})")
+        else:
+            raise ConnectionError(f"Couldn't reach {url}")
 
     # Try a second time
-    filename = hash_url_to_filename(original_url, etag)
+    filename = hash_url_to_filename(cached_url, etag)
     cache_path = os.path.join(cache_dir, filename)
 
     if os.path.exists(cache_path) and not force_download:

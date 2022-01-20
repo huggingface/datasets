@@ -179,7 +179,7 @@ class PAWS(datasets.GeneratorBasedBuilder):
                 ),
             ]
         else:
-            raise NotImplementedError("{} does not exist".format(self.config.name))
+            raise NotImplementedError(f"{self.config.name} does not exist")
 
     def _generate_examples(self, filepath, files):
         """Yields examples."""

@@ -883,7 +883,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                 ("challenge_test_bfp_02", "test_xsum_ButterFingersPerturbation_p=0.02_500.json"),
                 ("challenge_test_bfp_05", "test_xsum_ButterFingersPerturbation_p=0.05_500.json"),
                 ("challenge_test_nopunc", "test_xsum_WithoutPunctuation500.json"),
-                ("challenge_test_covid", f"en_test_covid19.jsonl"),
+                ("challenge_test_covid", "en_test_covid19.jsonl"),
             ]
             return [
                 datasets.SplitGenerator(

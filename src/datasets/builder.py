@@ -203,6 +203,7 @@ class DatasetBuilder:
         name: Optional[str] = None,
         hash: Optional[str] = None,
         base_path: Optional[str] = None,
+        info: Optional[DatasetInfo] = None,
         features: Optional[Features] = None,
         use_auth_token: Optional[Union[bool, str]] = None,
         namespace: Optional[str] = None,
@@ -263,11 +264,12 @@ class DatasetBuilder:
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
-        info = self.get_exported_dataset_info()
-        info.update(self._info())
-        info.builder_name = self.name
-        info.config_name = self.config.name
-        info.version = self.config.version
+        if info is None:
+            info = self.get_exported_dataset_info()
+            info.update(self._info())
+            info.builder_name = self.name
+            info.config_name = self.config.name
+            info.version = self.config.version
         self.info = info
         # update info with user specified infos
         if features is not None:
@@ -583,7 +585,7 @@ class DatasetBuilder:
                     downloaded_from_gcs = False
                     if try_from_hf_gcs:
                         try:
-                            self._download_prepared_from_hf_gcs(dl_manager._download_config)
+                            self._download_prepared_from_hf_gcs(dl_manager.download_config)
                             downloaded_from_gcs = True
                         except (DatasetNotOnHfGcsError, MissingFilesOnHfGcsError):
                             logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
@@ -612,7 +614,8 @@ class DatasetBuilder:
         if self.manual_download_instructions is not None and dl_manager.manual_dir is None:
             raise ManualDownloadError(
                 textwrap.dedent(
-                    f"""The dataset {self.name} with config {self.config.name} requires manual data.
+                    f"""\
+                    The dataset {self.name} with config {self.config.name} requires manual data.
                     Please follow the manual download instructions:
                      {self.manual_download_instructions}
                     Manual data can be loaded with:

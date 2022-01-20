@@ -43,6 +43,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: mkqa
+pretty_name: Multilingual Knowledge Questions and Answers
 ---
 
 # Dataset Card for MKQA: Multilingual Knowledge Questions & Answers

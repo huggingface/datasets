@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: break
+pretty_name: BREAK
 ---
 
 # Dataset Card for "break_data"

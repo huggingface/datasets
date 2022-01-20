@@ -34,19 +34,6 @@ _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 _run_packaged_tests = parse_flag_from_env("RUN_PACKAGED", default=True)
 
 
-def require_pyarrow_at_least_3(test_case):
-    """
-    Decorator marking a test that requires PyArrow 3.0.0
-    to allow nested types in parquet, as well as batch iterators of parquet files.
-
-    These tests are skipped when the PyArrow version is outdated.
-
-    """
-    if config.PYARROW_VERSION.major < 3:
-        test_case = unittest.skip("test requires PyArrow>=3.0.0")(test_case)
-    return test_case
-
-
 def require_beam(test_case):
     """
     Decorator marking a test that requires Apache Beam.
@@ -134,6 +121,18 @@ def require_jax(test_case):
     """
     if not config.JAX_AVAILABLE:
         test_case = unittest.skip("test requires JAX")(test_case)
+    return test_case
+
+
+def require_pil(test_case):
+    """
+    Decorator marking a test that requires Pillow.
+
+    These tests are skipped when Pillow isn't installed.
+
+    """
+    if not config.PIL_AVAILABLE:
+        test_case = unittest.skip("test requires Pillow")(test_case)
     return test_case
 
 

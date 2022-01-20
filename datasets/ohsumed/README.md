@@ -194,7 +194,7 @@ No PII data is present in the train, test or query files.
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

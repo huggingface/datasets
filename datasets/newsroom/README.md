@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: newsroom
+pretty_name: CORNELL NEWSROOM
 ---
 
 # Dataset Card for "newsroom"

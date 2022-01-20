@@ -47,6 +47,7 @@ from .data_files import (
 from .dataset_dict import DatasetDict, IterableDatasetDict
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
 from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, hash_python_lines
@@ -150,9 +151,8 @@ def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
     sub_directory = None
     if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
         if "blob" in url_path:
-            assert url_path.endswith(
-                ".py"
-            ), f"External import from github at {url_path} should point to a file ending with '.py'"
+            if not url_path.endswith(".py"):
+                raise ValueError(f"External import from github at {url_path} should point to a file ending with '.py'")
             url_path = url_path.replace("blob", "raw")  # Point to the raw file
         else:
             # Parse github url to point to zip
@@ -399,7 +399,7 @@ def _create_importable_file(
     name: str,
     download_mode: GenerateMode,
 ) -> Tuple[str, str]:
-    importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "___"))
+    importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "--"))
     Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
     (Path(importable_directory_path).parent / "__init__.py").touch(exist_ok=True)
     hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
@@ -414,7 +414,7 @@ def _create_importable_file(
     )
     logger.debug(f"Created importable dataset file at {importable_local_file}")
     module_path = ".".join(
-        [os.path.basename(dynamic_modules_path), module_namespace, name.replace("/", "___"), hash, name.split("/")[-1]]
+        [os.path.basename(dynamic_modules_path), module_namespace, name.replace("/", "--"), hash, name.split("/")[-1]]
     )
     return module_path, hash
 
@@ -422,24 +422,35 @@ def _create_importable_file(
 def infer_module_for_data_files(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]] = None
 ) -> Optional[str]:
-    extensions_counter = Counter(suffix[1:] for filepath in data_files_list for suffix in Path(filepath).suffixes)
+    extensions_counter = Counter(
+        suffix[1:]
+        for filepath in data_files_list[: config.DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE]
+        for suffix in Path(filepath).suffixes
+    )
     if extensions_counter:
-        most_common = extensions_counter.most_common(1)[0][0]
-        if most_common in _EXTENSION_TO_MODULE:
-            return _EXTENSION_TO_MODULE[most_common]
-        elif most_common == "zip":
-            return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
+        for ext, _ in extensions_counter.most_common():
+            if ext in _EXTENSION_TO_MODULE:
+                return _EXTENSION_TO_MODULE[ext]
+            elif ext == "zip":
+                return infer_module_for_data_files_in_archives(data_files_list, use_auth_token=use_auth_token)
 
 
 def infer_module_for_data_files_in_archives(
     data_files_list: DataFilesList, use_auth_token: Optional[Union[bool, str]]
 ) -> Optional[str]:
     archived_files = []
+    archive_files_counter = 0
     for filepath in data_files_list:
         if str(filepath).endswith(".zip"):
-            extracted = xjoin(StreamingDownloadManager().extract(filepath), "*")
+            archive_files_counter += 1
+            if archive_files_counter > config.GLOBBED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE:
+                break
+            extracted = xjoin(StreamingDownloadManager().extract(filepath), "**")
             archived_files += [
-                f.split("::")[0] for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)
+                f.split("::")[0]
+                for f in xglob(extracted, recursive=True, use_auth_token=use_auth_token)[
+                    : config.ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE
+                ]
             ]
     extensions_counter = Counter(suffix[1:] for filepath in archived_files for suffix in Path(filepath).suffixes)
     if extensions_counter:
@@ -731,6 +742,11 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "name": os.path.basename(self.path),
             "base_path": self.path,
         }
+        if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
+            with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
+                dataset_infos: DatasetInfosDict = json.load(f)
+                builder_kwargs["name"] = next(iter(dataset_infos.values()))
+                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
@@ -789,7 +805,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             token = HfFolder.get_token() if self.download_config.use_auth_token else None
         else:
             token = self.download_config.use_auth_token
-        dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
+        hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
             self.name,
             revision=self.revision,
             token=token,
@@ -798,11 +814,11 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         patterns = (
             sanitize_patterns(self.data_files)
             if self.data_files is not None
-            else get_patterns_in_dataset_repository(dataset_info)
+            else get_patterns_in_dataset_repository(hfh_dataset_info)
         )
         data_files = DataFilesDict.from_hf_repo(
             patterns,
-            dataset_info=dataset_info,
+            dataset_info=hfh_dataset_info,
             allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         infered_module_names = {
@@ -813,14 +829,25 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {infered_module_names}")
         infered_module_name = next(iter(infered_module_names.values()))
         if not infered_module_name:
-            raise FileNotFoundError(f"No data files or dataset script found in {self.path}")
+            raise FileNotFoundError(f"No data files or dataset script found in {self.name}")
         module_path, hash = _PACKAGED_DATASETS_MODULES[infered_module_name]
         builder_kwargs = {
             "hash": hash,
             "data_files": data_files,
-            "name": self.name.replace("/", "___"),
+            "name": self.name.replace("/", "--"),
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
         }
+        try:
+            dataset_infos_path = cached_path(
+                hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
+                download_config=self.download_config,
+            )
+            with open(dataset_infos_path, encoding="utf-8") as f:
+                dataset_infos: DatasetInfosDict = json.load(f)
+                builder_kwargs["name"] = next(iter(dataset_infos))
+                builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
+        except FileNotFoundError:
+            pass
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
@@ -908,7 +935,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
 
     def get_module(self) -> DatasetModule:
         dynamic_modules_path = self.dynamic_modules_path if self.dynamic_modules_path else init_dynamic_modules()
-        importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name.replace("/", "___"))
+        importable_directory_path = os.path.join(dynamic_modules_path, "datasets", self.name.replace("/", "--"))
         hashes = (
             [h for h in os.listdir(importable_directory_path) if len(h) == 64]
             if os.path.isdir(importable_directory_path)
@@ -935,7 +962,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
             [
                 os.path.basename(dynamic_modules_path),
                 "datasets",
-                self.name.replace("/", "___"),
+                self.name.replace("/", "--"),
                 hash,
                 self.name.split("/")[-1],
             ]
@@ -1060,6 +1087,9 @@ def dataset_module_factory(
         download_config = DownloadConfig(**download_kwargs)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
+    download_config.force_download = download_mode = (
+        GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS) == GenerateMode.FORCE_REDOWNLOAD
+    )
 
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
     if not filename.endswith(".py"):

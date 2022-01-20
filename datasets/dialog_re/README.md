@@ -19,6 +19,7 @@ task_ids:
 - other-other-relation-extraction
 - dialogue-modeling
 paperswithcode_id: dialogre
+pretty_name: DialogRE
 ---
 
 # Dataset Card for [DialogRE]

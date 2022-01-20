@@ -17,6 +17,7 @@
 """Download manager interface."""
 
 import enum
+import io
 import os
 import tarfile
 from datetime import datetime
@@ -85,10 +86,10 @@ class DownloadManager:
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
-        self._download_config = download_config or DownloadConfig()
         self._base_path = base_path or os.path.abspath(".")
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums: Dict[str, Dict[str, Union[int, str]]] = {}
+        self.download_config = download_config or DownloadConfig()
         self.downloaded_paths = {}
         self.extracted_paths = {}
 
@@ -146,8 +147,8 @@ class DownloadManager:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        cache_dir = self._download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
-        max_retries = self._download_config.max_retries
+        cache_dir = self.download_config.cache_dir or config.DOWNLOADED_DATASETS_PATH
+        max_retries = self.download_config.max_retries
 
         def url_to_downloaded_path(url):
             return os.path.join(cache_dir, hash_url_to_filename(url))
@@ -163,7 +164,7 @@ class DownloadManager:
                 cached = True
             except FileNotFoundError:
                 cached = False
-            if not cached or self._download_config.force_download:
+            if not cached or self.download_config.force_download:
                 custom_download(url, path)
                 get_from_cache(
                     url, cache_dir=cache_dir, local_files_only=True, use_etag=False, max_retries=max_retries
@@ -182,7 +183,7 @@ class DownloadManager:
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        download_config = self._download_config.copy()
+        download_config = self.download_config.copy()
         download_config.extract_compressed_file = False
         # Default to using 16 parallel thread for downloading
         # Note that if we have less than 16 files, multi-processing is not activated
@@ -215,17 +216,18 @@ class DownloadManager:
             url_or_filename = url_or_path_join(self._base_path, url_or_filename)
         return cached_path(url_or_filename, download_config=download_config)
 
-    def iter_archive(self, path):
-        """Returns iterator over files within archive.
+    def iter_archive(self, path_or_buf: Union[str, io.BufferedReader]):
+        """Iterate over files within an archive.
 
         Args:
-            path: path to archive.
+            path_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
 
-        Returns:
-            Generator yielding tuple (path_within_archive, file_obj).
-            File-Obj are opened in byte mode (io.BufferedReader)
+        Yields:
+            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+                File object is opened in binary mode.
         """
-        with open(path, "rb") as f:
+
+        def _iter_archive(f):
             stream = tarfile.open(fileobj=f, mode="r|*")
             for tarinfo in stream:
                 file_path = tarinfo.name
@@ -237,9 +239,32 @@ class DownloadManager:
                     # skipping hidden files
                     continue
                 file_obj = stream.extractfile(tarinfo)
-                yield (file_path, file_obj)
+                yield file_path, file_obj
                 stream.members = []
             del stream
+
+        if hasattr(path_or_buf, "read"):
+            yield from _iter_archive(path_or_buf)
+        else:
+            with open(path_or_buf, "rb") as f:
+                yield from _iter_archive(f)
+
+    def iter_files(self, paths):
+        """Iterate over file paths.
+
+        Args:
+            paths (list): Root paths.
+
+        Yields:
+            str: File path.
+        """
+        for path in paths:
+            if os.path.isfile(path):
+                yield path
+            else:
+                for dirpath, _, filenames in os.walk(path):
+                    for filename in filenames:
+                        yield os.path.join(dirpath, filename)
 
     def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).
@@ -254,7 +279,7 @@ class DownloadManager:
             extracted_path(s): `str`, The extracted paths matching the given input
                 path_or_paths.
         """
-        download_config = self._download_config.copy()
+        download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config), path_or_paths, num_proc=num_proc, disable_tqdm=False
@@ -293,5 +318,5 @@ class DownloadManager:
                 del self.extracted_paths[key]
 
     def manage_extracted_files(self):
-        if self._download_config.delete_extracted:
+        if self.download_config.delete_extracted:
             self.delete_extracted_files()

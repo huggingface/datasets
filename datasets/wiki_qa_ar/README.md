@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - open-domain-qa
 paperswithcode_id: wikiqaar
+pretty_name: English-Arabic Wikipedia Question-Answering
 ---
 
 # Dataset Card for WikiQAar

@@ -2,6 +2,7 @@ import csv
 import json
 import lzma
 import os
+import tarfile
 import textwrap
 
 import pyarrow as pa
@@ -274,6 +275,17 @@ def zip_csv_path(csv_path, csv2_path, tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def zip_csv_with_dir_path(csv_path, csv2_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset_with_dir.csv.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(csv_path, arcname=os.path.join("main_dir", os.path.basename(csv_path)))
+        f.write(csv2_path, arcname=os.path.join("main_dir", os.path.basename(csv2_path)))
+    return path
+
+
+@pytest.fixture(scope="session")
 def parquet_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.parquet")
     schema = pa.schema(
@@ -319,6 +331,15 @@ def jsonl_path(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
+def jsonl2_path(tmp_path_factory):
+    path = str(tmp_path_factory.mktemp("data") / "dataset2.jsonl")
+    with open(path, "w") as f:
+        for item in DATA:
+            f.write(json.dumps(item) + "\n")
+    return path
+
+
+@pytest.fixture(scope="session")
 def jsonl_312_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset_312.jsonl")
     with open(path, "w") as f:
@@ -333,16 +354,6 @@ def jsonl_str_path(tmp_path_factory):
     with open(path, "w") as f:
         for item in DATA_STR:
             f.write(json.dumps(item) + "\n")
-    return path
-
-
-@pytest.fixture(scope="session")
-def text_path(tmp_path_factory):
-    data = ["0", "1", "2", "3"]
-    path = str(tmp_path_factory.mktemp("data") / "dataset.txt")
-    with open(path, "w") as f:
-        for item in data:
-            f.write(item + "\n")
     return path
 
 
@@ -365,4 +376,85 @@ def jsonl_gz_path(tmp_path_factory, jsonl_path):
     with open(jsonl_path, "rb") as orig_file:
         with gzip.open(path, "wb") as zipped_file:
             zipped_file.writelines(orig_file)
+    return path
+
+
+@pytest.fixture(scope="session")
+def zip_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset.jsonl.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(jsonl_path, arcname=os.path.basename(jsonl_path))
+        f.write(jsonl2_path, arcname=os.path.basename(jsonl2_path))
+    return path
+
+
+@pytest.fixture(scope="session")
+def zip_jsonl_with_dir_path(jsonl_path, jsonl2_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset_with_dir.jsonl.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(jsonl_path, arcname=os.path.join("main_dir", os.path.basename(jsonl_path)))
+        f.write(jsonl2_path, arcname=os.path.join("main_dir", os.path.basename(jsonl2_path)))
+    return path
+
+
+@pytest.fixture(scope="session")
+def tar_jsonl_path(jsonl_path, jsonl2_path, tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "dataset.jsonl.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(jsonl_path, arcname=os.path.basename(jsonl_path))
+        f.add(jsonl2_path, arcname=os.path.basename(jsonl2_path))
+    return path
+
+
+@pytest.fixture(scope="session")
+def tar_nested_jsonl_path(tar_jsonl_path, jsonl_path, jsonl2_path, tmp_path_factory):
+    path = tmp_path_factory.mktemp("data") / "dataset_nested.jsonl.tar"
+    with tarfile.TarFile(path, "w") as f:
+        f.add(tar_jsonl_path, arcname=os.path.join("nested", os.path.basename(tar_jsonl_path)))
+    return path
+
+
+@pytest.fixture(scope="session")
+def text_path(tmp_path_factory):
+    data = ["0", "1", "2", "3"]
+    path = str(tmp_path_factory.mktemp("data") / "dataset.txt")
+    with open(path, "w") as f:
+        for item in data:
+            f.write(item + "\n")
+    return path
+
+
+@pytest.fixture(scope="session")
+def text2_path(tmp_path_factory):
+    data = ["0", "1", "2", "3"]
+    path = str(tmp_path_factory.mktemp("data") / "dataset2.txt")
+    with open(path, "w") as f:
+        for item in data:
+            f.write(item + "\n")
+    return path
+
+
+@pytest.fixture(scope="session")
+def zip_text_path(text_path, text2_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset.text.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(text_path, arcname=os.path.basename(text_path))
+        f.write(text2_path, arcname=os.path.basename(text2_path))
+    return path
+
+
+@pytest.fixture(scope="session")
+def zip_text_with_dir_path(text_path, text2_path, tmp_path_factory):
+    import zipfile
+
+    path = tmp_path_factory.mktemp("data") / "dataset_with_dir.text.zip"
+    with zipfile.ZipFile(path, "w") as f:
+        f.write(text_path, arcname=os.path.join("main_dir", os.path.basename(text_path)))
+        f.write(text2_path, arcname=os.path.join("main_dir", os.path.basename(text2_path)))
     return path

@@ -119,15 +119,6 @@ def _interleave_map_style_datasets(
     """
     from .arrow_dataset import concatenate_datasets
 
-    if not all([dset.features.type == datasets[0].features.type for dset in datasets]):
-        raise ValueError("Features must match for all datasets")
-
-    # Find common format or reset format
-    format = datasets[0].format
-    if any(dset.format != format for dset in datasets):
-        format = {}
-        logger.info("Some of the datasets have disparate format. Resetting the format of the interleaved dataset.")
-
     # To interleave the datasets, we concatenate them and then we re-order the indices
     concatenated_datasets = concatenate_datasets(datasets, info=info, split=split)
 
@@ -183,14 +174,15 @@ def _interleave_iterable_datasets(
     """
     from .iterable_dataset import (
         CyclingMultiSourcesExamplesIterable,
-        MappedExamplesIterable,
         RandomlyCyclingMultiSourcesExamplesIterable,
+        TypedExamplesIterable,
         iterable_dataset,
     )
 
-    # Keep individual features formatting
     ex_iterables = [
-        MappedExamplesIterable(d._ex_iterable, d.features.encode_example) if d.features is not None else d._ex_iterable
+        TypedExamplesIterable(d._ex_iterable, d.features)
+        if not isinstance(d._ex_iterable, TypedExamplesIterable) and d.features is not None
+        else d._ex_iterable
         for d in datasets
     ]
     # Use cycling or random cycling or sources

@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: europeana-newspapers
+pretty_name: Europeana Newspapers
 ---
 
 # Dataset Card for Europeana Newspapers

@@ -183,9 +183,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(path_to_manual_folder):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('newsqa', data_dir=...)` that includes files from the Manual download instructions: {}".format(
-                    path_to_manual_folder, self.manual_download_instructions
-                )
+                f"{path_to_manual_folder} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('newsqa', data_dir=...)` that includes files from the Manual download instructions: {self.manual_download_instructions}"
             )
 
         if self.config.name == "combined-csv":

@@ -3,23 +3,29 @@ import copy
 import json
 import os
 import re
+from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
-
-from datasets.splits import NamedSplit, Split
-from datasets.utils.doc_utils import is_documented_by
+from huggingface_hub import HfApi
 
 from . import config
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .info import DatasetInfo
+from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
 from .tasks import TaskTemplate
+from .utils import logging
 from .utils.deprecation_utils import deprecated
+from .utils.doc_utils import is_documented_by
 from .utils.typing import PathLike
+
+
+logger = logging.get_logger(__name__)
 
 
 class DatasetDict(dict):
@@ -263,14 +269,20 @@ class DatasetDict(dict):
             }
         )
 
-    def class_encode_column(self, column: str) -> "DatasetDict":
+    def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
         """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the tables.
 
         Args:
             column (`str`): The name of the column to cast
+            include_nulls (`bool`, default `False`):
+                Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
+
+                .. versionadded:: 1.14.2
         """
         self._check_values_type()
-        return DatasetDict({k: dataset.class_encode_column(column=column) for k, dataset in self.items()})
+        return DatasetDict(
+            {k: dataset.class_encode_column(column=column, include_nulls=include_nulls) for k, dataset in self.items()}
+        )
 
     @contextlib.contextmanager
     def formatted_as(
@@ -506,6 +518,7 @@ class DatasetDict(dict):
         function,
         with_indices=False,
         input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
         batch_size: Optional[int] = 1000,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
@@ -514,6 +527,7 @@ class DatasetDict(dict):
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
+        desc: Optional[str] = None,
     ) -> "DatasetDict":
         """Apply a filter function to all the elements in the table in batches
         and update the table so that the dataset only includes examples according to the filter function.
@@ -528,6 +542,7 @@ class DatasetDict(dict):
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+            batched (`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
@@ -545,6 +560,7 @@ class DatasetDict(dict):
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while filtering examples.
         """
         self._check_values_type()
         if cache_file_names is None:
@@ -555,6 +571,7 @@ class DatasetDict(dict):
                     function=function,
                     with_indices=with_indices,
                     input_columns=input_columns,
+                    batched=batched,
                     batch_size=batch_size,
                     remove_columns=remove_columns,
                     keep_in_memory=keep_in_memory,
@@ -563,6 +580,7 @@ class DatasetDict(dict):
                     writer_batch_size=writer_batch_size,
                     fn_kwargs=fn_kwargs,
                     num_proc=num_proc,
+                    desc=desc,
                 )
                 for k, dataset in self.items()
             }
@@ -573,6 +591,7 @@ class DatasetDict(dict):
         column: str,
         reverse: bool = False,
         kind: str = None,
+        null_placement: str = "last",
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         indices_cache_file_names: Optional[Dict[str, Optional[str]]] = None,
@@ -581,25 +600,28 @@ class DatasetDict(dict):
         """Create a new dataset sorted according to a column.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        Currently sorting according to a column name uses numpy sorting algorithm under the hood.
-        The column should thus be a numpy compatible type (in particular not a nested type).
+        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
+        The column should thus be a pandas compatible type (in particular not a nested type).
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
-            column (`str`): column name to sort by.
-            reverse: (`bool`, defaults to `False`): If True, sort by descending order rather then ascending.
-            kind (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
+            column (:obj:`str`): column name to sort by.
+            reverse (:obj:`bool`, default `False`): If True, sort by descending order rather then ascending.
+            kind (:obj:`str`, optional): Pandas algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                 The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            null_placement (:obj:`str`, default `last`):
+                Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
+
+                .. versionadded:: 1.14.2
+            keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
+            load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
             indices_cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
+                Higher value gives smaller cache files, lower value consume less temporary memory.
         """
         self._check_values_type()
         if indices_cache_file_names is None:
@@ -610,6 +632,7 @@ class DatasetDict(dict):
                     column=column,
                     reverse=reverse,
                     kind=kind,
+                    null_placement=null_placement,
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
                     indices_cache_file_name=indices_cache_file_names[k],
@@ -866,9 +889,9 @@ class DatasetDict(dict):
         ).read()
 
     @is_documented_by(Dataset.prepare_for_task)
-    def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "DatasetDict":
+    def prepare_for_task(self, task: Union[str, TaskTemplate], id: Optional[int] = None) -> "DatasetDict":
         self._check_values_type()
-        return DatasetDict({k: dataset.prepare_for_task(task=task) for k, dataset in self.items()})
+        return DatasetDict({k: dataset.prepare_for_task(task=task, id=id) for k, dataset in self.items()})
 
     @is_documented_by(Dataset.align_labels_with_mapping)
     def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "DatasetDict":
@@ -878,6 +901,78 @@ class DatasetDict(dict):
                 k: dataset.align_labels_with_mapping(label2id=label2id, label_column=label_column)
                 for k, dataset in self.items()
             }
+        )
+
+    def push_to_hub(
+        self,
+        repo_id,
+        private: Optional[bool] = False,
+        token: Optional[str] = None,
+        branch: Optional[None] = None,
+        shard_size: Optional[int] = 500 << 20,
+    ):
+        """Pushes the ``DatasetDict`` to the hub.
+        The ``DatasetDict`` is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+
+        Each dataset split will be pushed independently. The pushed dataset will keep the original split names.
+
+        Args:
+            repo_id (:obj:`str`):
+                The ID of the repository to push to in the following format: `<user>/<dataset_name>` or
+                `<org>/<dataset_name>`. Also accepts `<dataset_name>`, which will default to the namespace
+                of the logged-in user.
+            private (Optional :obj:`bool`):
+                Whether the dataset repository should be set to private or not. Only affects repository creation:
+                a repository that already exists will not be affected by that parameter.
+            token (Optional :obj:`str`):
+                An optional authentication token for the Hugging Face Hub. If no token is passed, will default
+                to the token saved locally when logging in with ``huggingface-cli login``. Will raise an error
+                if no token is passed and the user is not logged-in.
+            branch (Optional :obj:`str`):
+                The git branch on which to push the dataset.
+            shard_size (Optional :obj:`int`):
+                The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
+                of the size specified here, in bytes.
+
+        Example:
+            .. code-block:: python
+
+                >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
+        """
+        self._check_values_type()
+        total_uploaded_size = 0
+        total_dataset_nbytes = 0
+        info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
+        dataset_name = repo_id.split("/")[-1]
+        info_to_dump.splits = SplitDict(dataset_name=dataset_name)
+        for split in self.keys():
+            logger.warning(f"Pushing split {split} to the Hub.")
+            # The split=key needs to be removed before merging
+            repo_id, split, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
+                repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
+            )
+            total_uploaded_size += uploaded_size
+            total_dataset_nbytes += dataset_nbytes
+            info_to_dump.splits[split] = SplitInfo(
+                str(split), num_bytes=dataset_nbytes, num_examples=len(self[split]), dataset_name=dataset_name
+            )
+        organization, dataset_name = repo_id.split("/")
+        info_to_dump.download_checksums = None
+        info_to_dump.download_size = total_uploaded_size
+        info_to_dump.dataset_size = total_dataset_nbytes
+        info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
+        buffer = BytesIO()
+        buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
+        info_to_dump._dump_info(buffer)
+        buffer.write(b"}")
+        HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+            path_or_fileobj=buffer.getvalue(),
+            path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+            repo_id=repo_id,
+            token=token,
+            repo_type="dataset",
+            revision=branch,
+            identical_ok=True,
         )
 
 

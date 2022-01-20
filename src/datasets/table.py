@@ -104,7 +104,8 @@ class IndexedTableMixin:
         than pa.concat_tables(table.fast_slice(int(i) % table.num_rows, 1) for i in indices) since NumPy can compute
         the binary searches in parallel, highly optimized C
         """
-        assert len(indices), "Indices must be non-empty"
+        if not len(indices):
+            raise ValueError("Indices must be non-empty")
         batch_indices = np.searchsorted(self._offsets, indices, side="right") - 1
         return pa.Table.from_batches(
             [
@@ -353,23 +354,23 @@ class InMemoryTable(TableBlock):
         table = _in_memory_arrow_table_from_buffer(buffer)
         return cls(table)
 
-    @inject_arrow_table_documentation(pa.Table.from_pandas)
     @classmethod
+    @inject_arrow_table_documentation(pa.Table.from_pandas)
     def from_pandas(cls, *args, **kwargs):
         return cls(pa.Table.from_pandas(*args, **kwargs))
 
-    @inject_arrow_table_documentation(pa.Table.from_arrays)
     @classmethod
+    @inject_arrow_table_documentation(pa.Table.from_arrays)
     def from_arrays(cls, *args, **kwargs):
         return cls(pa.Table.from_arrays(*args, **kwargs))
 
-    @inject_arrow_table_documentation(pa.Table.from_pydict)
     @classmethod
+    @inject_arrow_table_documentation(pa.Table.from_pydict)
     def from_pydict(cls, *args, **kwargs):
         return cls(pa.Table.from_pydict(*args, **kwargs))
 
-    @inject_arrow_table_documentation(pa.Table.from_batches)
     @classmethod
+    @inject_arrow_table_documentation(pa.Table.from_batches)
     def from_batches(cls, *args, **kwargs):
         return cls(pa.Table.from_batches(*args, **kwargs))
 
@@ -610,15 +611,7 @@ class ConcatenationTable(Table):
     def _concat_blocks(blocks: List[Union[TableBlock, pa.Table]], axis: int = 0) -> pa.Table:
         pa_tables = [table.table if hasattr(table, "table") else table for table in blocks]
         if axis == 0:
-            # Align schemas: re-order the columns to make the schemas match before concatenating over rows
-            schema = pa_tables[0].schema
-            pa_tables = [
-                table
-                if table.schema == schema
-                else pa.Table.from_arrays([table[name] for name in schema.names], names=schema.names)
-                for table in pa_tables
-            ]
-            return pa.concat_tables(pa_tables)
+            return pa.concat_tables(pa_tables, promote=True)
         elif axis == 1:
             for i, table in enumerate(pa_tables):
                 if i == 0:

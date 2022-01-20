@@ -76,6 +76,7 @@ A sample from the training set is provided below:
 ```
 {
     'image_file_path': '/root/.cache/huggingface/datasets/downloads/extracted/0aaa78294d4bf5114f58547e48d91b7826649919505379a167decb629aa92b0a/train/bean_rust/bean_rust_train.109.jpg',
+    'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=500x500 at 0x16BAA72A4A8>,
     'labels': 1
 }
 ```
@@ -85,6 +86,7 @@ A sample from the training set is provided below:
 The data instances have the following fields:
 
 - `image_file_path`: a `string` filepath to an image.
+- `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
 - `labels`: an `int` classification label.
 
 Class Label Mappings:

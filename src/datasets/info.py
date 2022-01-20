@@ -34,9 +34,7 @@ import dataclasses
 import json
 import os
 from dataclasses import asdict, dataclass, field
-from typing import List, Optional, Union
-
-from datasets.tasks.text_classification import TextClassification
+from typing import Dict, List, Optional, Union
 
 from . import config
 from .features import Features, Value
@@ -171,16 +169,13 @@ class DatasetInfo:
                 template = task_template_from_dict(self.task_templates)
                 self.task_templates = [template] if template is not None else []
 
-        # Insert labels and mappings for text classification
+        # Align task templates with features
         if self.task_templates is not None:
             self.task_templates = list(self.task_templates)
             if self.features is not None:
-                for idx, template in enumerate(self.task_templates):
-                    if isinstance(template, TextClassification):
-                        labels = self.features[template.label_column].names
-                        self.task_templates[idx] = TextClassification(
-                            text_column=template.text_column, label_column=template.label_column, labels=labels
-                        )
+                self.task_templates = [
+                    template.align_with_features(self.features) for template in (self.task_templates)
+                ]
 
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, config.LICENSE_FILENAME)
@@ -274,7 +269,7 @@ class DatasetInfo:
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
 
-class DatasetInfosDict(dict):
+class DatasetInfosDict(Dict[str, DatasetInfo]):
     def write_to_directory(self, dataset_infos_dir, overwrite=False):
         total_dataset_infos = {}
         dataset_infos_path = os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME)

@@ -69,6 +69,7 @@ task_ids:
 - summarization
 - topic-classification
 paperswithcode_id: null
+pretty_name: The Multilingual Amazon Reviews Corpus
 ---
 
 # Dataset Card for The Multilingual Amazon Reviews Corpus

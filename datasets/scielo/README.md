@@ -27,9 +27,10 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: SciELO
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for SciELO
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

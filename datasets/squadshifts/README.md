@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: squad-shifts
+pretty_name: SQuAD-shifts
 ---
 
 # Dataset Card for "squadshifts"

@@ -20,6 +20,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: BbawEgyptian
 ---
 
 # Dataset Card for "bbaw_egyptian"

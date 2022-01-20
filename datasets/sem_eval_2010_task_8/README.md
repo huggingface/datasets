@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: semeval-2010-task-8
+pretty_name: SemEval-2010 Task 8
 ---
 
 # Dataset Card for "sem_eval_2010_task_8"

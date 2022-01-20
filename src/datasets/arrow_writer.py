@@ -17,6 +17,7 @@ import errno
 import json
 import os
 import socket
+import sys
 from dataclasses import asdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -26,15 +27,18 @@ import pyarrow as pa
 from . import config, utils
 from .features import (
     Features,
+    ImageExtensionType,
     _ArrayXDExtensionType,
     cast_to_python_objects,
     list_of_np_array_to_pyarrow_listarray,
     numpy_to_pyarrow_listarray,
+    objects_to_list_of_image_dicts,
 )
 from .info import DatasetInfo
 from .keyhash import DuplicatedKeysError, KeyHasher
 from .utils import logging
 from .utils.file_utils import hash_url_to_filename
+from .utils.py_utils import first_non_null_value
 
 
 logger = logging.get_logger(__name__)
@@ -49,7 +53,7 @@ class TypedSequence:
     More specifically it adds several features:
     - Support extension types like ``datasets.features.Array2DExtensionType``:
         By default pyarrow arrays don't return extension arrays. One has to call
-        ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type_name))``
+        ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type))``
         in order to get an extension array.
     - Support for ``try_type`` parameter that can be used instead of ``type``:
         When an array is transformed, we like to keep the same type as before if possible.
@@ -83,7 +87,9 @@ class TypedSequence:
     """
 
     def __init__(self, data, type=None, try_type=None, optimized_int_type=None):
-        assert type is None or try_type is None, "You cannot specify both type and try_type"
+        # assert type is None or try_type is None,
+        if type is not None and try_type is not None:
+            raise ValueError("You cannot specify both type and try_type")
         self.data = data
         self.type = type
         self.try_type = try_type  # is ignored if it doesn't match the data
@@ -91,7 +97,12 @@ class TypedSequence:
 
     def __arrow_array__(self, type=None):
         """This function is called when calling pa.array(typed_sequence)"""
-        assert type is None, "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
+
+        if config.PIL_AVAILABLE and "PIL" in sys.modules:
+            import PIL.Image
+
+        if type is not None:
+            raise ValueError("TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)")
         trying_type = False
         if type is not None:  # user explicitly passed the feature
             pass
@@ -101,30 +112,37 @@ class TypedSequence:
         else:
             type = self.type
         trying_int_optimization = False
+        non_null_idx, non_null_value = first_non_null_value(self.data)
+        if type is None:  # automatic type inference for custom objects
+            if config.PIL_AVAILABLE and "PIL" in sys.modules and isinstance(non_null_value, PIL.Image.Image):
+                type = ImageExtensionType()
         try:
             if isinstance(type, _ArrayXDExtensionType):
                 if isinstance(self.data, np.ndarray):
                     storage = numpy_to_pyarrow_listarray(self.data, type=type.value_type)
-                elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                elif isinstance(self.data, list) and self.data and isinstance(non_null_value, np.ndarray):
                     storage = list_of_np_array_to_pyarrow_listarray(self.data, type=type.value_type)
                 else:
                     storage = pa.array(self.data, type.storage_dtype)
+                out = pa.ExtensionArray.from_storage(type, storage)
+            elif isinstance(type, ImageExtensionType):
+                storage = pa.array(objects_to_list_of_image_dicts(self.data), type=type.storage_type)
                 out = pa.ExtensionArray.from_storage(type, storage)
             elif isinstance(self.data, np.ndarray):
                 out = numpy_to_pyarrow_listarray(self.data)
                 if type is not None:
                     out = out.cast(type)
-            elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+            elif isinstance(self.data, list) and self.data and isinstance(non_null_value, np.ndarray):
                 out = list_of_np_array_to_pyarrow_listarray(self.data)
                 if type is not None:
                     out = out.cast(type)
             else:
                 out = pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True), type=type)
-            if trying_type:
+            if trying_type and not isinstance(type, ImageExtensionType) and non_null_idx != -1:
                 is_equal = (
-                    np.array_equal(np.array(out[0].as_py()), self.data[0])
-                    if isinstance(self.data[0], np.ndarray)
-                    else out[0].as_py() == self.data[0]
+                    np.array_equal(np.array(out[non_null_idx].as_py()), self.data[non_null_idx])
+                    if isinstance(self.data[non_null_idx], np.ndarray)
+                    else out[non_null_idx].as_py() == self.data[non_null_idx]
                 )
                 if not is_equal:
                     raise TypeError(
@@ -145,7 +163,11 @@ class TypedSequence:
                 try:  # second chance
                     if isinstance(self.data, np.ndarray):
                         return numpy_to_pyarrow_listarray(self.data)
-                    elif isinstance(self.data, list) and self.data and isinstance(self.data[0], np.ndarray):
+                    elif (
+                        isinstance(self.data, list)
+                        and self.data
+                        and any(isinstance(value, np.ndarray) for value in self.data)
+                    ):
                         return list_of_np_array_to_pyarrow_listarray(self.data)
                     else:
                         return pa.array(cast_to_python_objects(self.data, only_1d_for_numpy=True))

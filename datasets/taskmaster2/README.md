@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - dialogue-modeling
 paperswithcode_id: taskmaster-2
+pretty_name: Taskmaster-2
 ---
 
 # Dataset Card Creation Guide

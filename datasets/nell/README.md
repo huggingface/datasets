@@ -26,8 +26,9 @@ task_categories:
 task_ids:
 - entity-linking-retrieval
 - fact-checking-retrieval
-- other-stuctured-to-text
+- other-structured-to-text
 paperswithcode_id: nell
+pretty_name: Never Ending Language Learning (NELL)
 ---
 
 # Dataset Card for Never Ending Language Learning (NELL)
@@ -101,6 +102,10 @@ Extract new instances of categories and relations. In other words, find noun phr
 Learn to read better than yesterday. NELL uses a variety of methods to extract beliefs from the web. These are retrained, using the growing knowledge base as a self-supervised collection of training examples. The result is a semi-supervised learning method that couples the training of hundreds of different extraction methods for a wide range of categories and relations. Much of NELL’s current success is due to its algorithm for coupling the simultaneous training of many extraction methods.
 
 For more information, see: http://rtw.ml.cmu.edu/rtw/resources
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 en, and perhaps some others

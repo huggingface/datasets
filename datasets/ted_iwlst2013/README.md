@@ -59,6 +59,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: TedIwlst2013
 ---
 
 # Dataset Card Creation Guide

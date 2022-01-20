@@ -122,8 +122,8 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
                         date = parse_date(line)
                     elif line != "" and not line.startswith("<"):
                         if date == "":
-                            logger.warning("Date missing for {} in {}".format(line, file_name))
-                        assert date is not None, "Date is missing before {}".format(line)
+                            logger.warning(f"Date missing for {line} in {file_name}")
+                        assert date is not None, f"Date is missing before {line}"
                         yield key, {
                             "text": line,
                             "date": date,

@@ -59,7 +59,7 @@ def get_train_test_dev_files(files, test_split, train_split, dev_split):
         elif filename in dev_split:
             dev_files.append(file)
         else:
-            logger.info("skipped file {}".format(file))
+            logger.info(f"skipped file {file}")
     return test_files, train_files, dev_files
 
 

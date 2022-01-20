@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - conditional-text-generation-other-meaning-representtion-to-text
 paperswithcode_id: null
+pretty_name: the Cleaned Version of the E2E Dataset
 ---
 
 # Dataset Card for the Cleaned Version of the E2E Dataset

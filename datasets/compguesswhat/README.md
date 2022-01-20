@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: compguesswhat
+pretty_name: CompGuessWhat?!
 ---
 
 # Dataset Card for "compguesswhat"

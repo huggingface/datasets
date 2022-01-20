@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: hellaswag
+pretty_name: HellaSwag
 ---
 
 # Dataset Card for "hellaswag"

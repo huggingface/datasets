@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: multibooked
+pretty_name: MultiBooked
 ---
 
 # Dataset Card for MultiBooked

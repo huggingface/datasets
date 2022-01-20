@@ -154,12 +154,12 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
             if self.config.with_embeddings:
                 if vec_idx >= len(vecs):
                     if len(vectors_files) == 0:
-                        logger.warning("Ran out of vector files at index {}".format(i))
+                        logger.warning(f"Ran out of vector files at index {i}")
                         break
                     vecs = np.load(open(vectors_files.pop(0), "rb"), allow_pickle=True)
                     vec_idx = 0
                 vec_id, vec = vecs[vec_idx]
-                assert int(id) == int(vec_id), "ID mismatch between lines {} and vector {}".format(id, vec_id)
+                assert int(id) == int(vec_id), f"ID mismatch between lines {id} and vector {vec_id}"
                 yield id, {"id": id, "text": text, "title": title, "embeddings": vec}
                 vec_idx += 1
             else:

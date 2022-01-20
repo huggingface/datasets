@@ -226,6 +226,8 @@ def test_classlabel_str2int():
         assert classlabel.str2int(label) == names.index(label)
     with pytest.raises(KeyError):
         classlabel.str2int("__bad_label_name__")
+    with pytest.raises(ValueError):
+        classlabel.str2int(1)
 
 
 def test_classlabel_int2str():
@@ -242,6 +244,23 @@ def test_encode_nested_example_sequence_with_none():
     obj = None
     result = encode_nested_example(schema, obj)
     assert result is None
+
+
+def test_encode_batch_with_example_with_empty_first_elem():
+    features = Features(
+        {
+            "x": Sequence(Sequence(ClassLabel(names=["a", "b"]))),
+        }
+    )
+    encoded_batch = features.encode_batch(
+        {
+            "x": [
+                [["a"], ["b"]],
+                [[], ["b"]],
+            ]
+        }
+    )
+    assert encoded_batch == {"x": [[[0], [1]], [[], [1]]]}
 
 
 def iternumpy(key1, value1, value2):

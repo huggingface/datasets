@@ -17,6 +17,7 @@ task_categories:
 - text-classification
 task_ids:
 - multi-class-classification
+pretty_name: CodeXGlueCcDefectDetection
 ---
 # Dataset Card for "code_x_glue_cc_defect_detection"
 

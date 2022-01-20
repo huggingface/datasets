@@ -37,7 +37,7 @@ _LICENSE = "CC BY-SA 4.0"
 
 _HOMEPAGE = "http://nlp.ffzg.hr/resources/corpora/hrwac/"
 _URLS = [
-    "https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1064/hrWaC2.1.{:02d}.xml.gz".format(i + 1)
+    f"https://www.clarin.si/repository/xmlui/bitstream/handle/11356/1064/hrWaC2.1.{i + 1:02d}.xml.gz"
     for i in range(14)
 ]
 
