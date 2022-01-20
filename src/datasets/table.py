@@ -1121,3 +1121,5 @@ def table_cast(table: pa.Table, schema: pa.Schema):
         return cast_table_to_features(table, Features.from_arrow_schema(schema))
     elif table.schema.metadata != schema.metadata:
         return table.replace_schema_metadata(schema.metadata)
+    else:
+        return table
