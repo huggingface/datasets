@@ -112,9 +112,7 @@ class LibrispeechASR(datasets.GeneratorBasedBuilder):
             supervised_keys=("file", "text"),
             homepage=_URL,
             citation=_CITATION,
-            task_templates=[
-                AutomaticSpeechRecognition(audio_column="audio", transcription_column="text", streaming=True)
-            ],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="text")],
         )
 
     def _split_generators(self, dl_manager):

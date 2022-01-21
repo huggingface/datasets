@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass
 from typing import ClassVar, Dict
 
@@ -8,16 +9,22 @@ from .base import TaskTemplate
 @dataclass(frozen=True)
 class AutomaticSpeechRecognition(TaskTemplate):
     task: str = "automatic-speech-recognition"
-    input_schema: ClassVar[Features] = Features({"audio": Audio(_storage_dtype="string")})
+    input_schema: ClassVar[Features] = Features({"audio": Audio()})
     label_schema: ClassVar[Features] = Features({"transcription": Value("string")})
     audio_column: str = "audio"
     transcription_column: str = "transcription"
-    # set the `streaming` flag when casting streamable datasets that have `Audio` stored as `struct{path, bytes}`
-    streaming: bool = False
 
-    def __post_init__(self):
-        if self.streaming:
-            self.__dict__["input_schema"] = Features({"audio": Audio(_storage_dtype="struct")})
+    def align_with_features(self, features):
+        # infer the `mono` and the `sampling_rate` attributes from the Audio feature
+        if self.audio_column not in features:
+            raise ValueError(f"Column {self.audio_column} is not present in features.")
+        if not isinstance(features[self.audio_column], Audio):
+            raise ValueError(f"Column {self.audio_column} is not an Audio feature.")
+        task_template = copy.deepcopy(self)
+        input_schema = self.input_schema.copy()
+        input_schema["audio"] = features[self.audio_column]
+        task_template.__dict__["input_schema"] = input_schema
+        return task_template
 
     @property
     def column_mapping(self) -> Dict[str, str]:

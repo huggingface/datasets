@@ -650,9 +650,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[
-                AutomaticSpeechRecognition(audio_column="audio", transcription_column="sentence", streaming=True)
-            ],
+            task_templates=[AutomaticSpeechRecognition(audio_column="audio", transcription_column="sentence")],
         )
 
     def _split_generators(self, dl_manager):
