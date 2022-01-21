@@ -136,6 +136,7 @@ TESTS_REQUIRE = [
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
     "torchaudio",
+    "soundfile",
     "transformers",
     # datasets dependencies
     "bs4",
@@ -172,6 +173,7 @@ TESTS_REQUIRE = [
 ]
 
 TESTS_REQUIRE.extend(VISION_REQURE)
+TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 if os.name != "nt":
     # dependencies of unbabel-comet

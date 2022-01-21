@@ -80,7 +80,7 @@ def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
     features = DatasetInfo.from_dict(metadata["info"]).features
     assert features is not None
     assert dataset.features is not None
-    assert features.type == dataset.features.type
+    assert sorted(features) == sorted(field.name for field in dataset.data.schema)
 
 
 IN_MEMORY_PARAMETERS = [
@@ -764,8 +764,8 @@ class BaseDatasetTest(TestCase):
                 with self._to(in_memory, tmp_dir, dset) as dset:
                     fingerprint = dset._fingerprint
                     dset.flatten_()
-                    self.assertListEqual(dset.column_names, ["a.b.c", "foo"])
-                    self.assertListEqual(list(dset.features.keys()), ["a.b.c", "foo"])
+                    self.assertListEqual(sorted(dset.column_names), ["a.b.c", "foo"])
+                    self.assertListEqual(sorted(dset.features.keys()), ["a.b.c", "foo"])
                     self.assertDictEqual(
                         dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
                     )

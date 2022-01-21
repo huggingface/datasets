@@ -8,6 +8,7 @@ import pyarrow as pa
 import pyarrow.json as paj
 
 import datasets
+from datasets.table import table_cast
 from datasets.utils.file_utils import readline
 
 
@@ -27,7 +28,7 @@ class JsonConfig(datasets.BuilderConfig):
 
     @property
     def schema(self):
-        return pa.schema(self.features.type) if self.features is not None else None
+        return self.features.arrow_schema if self.features is not None else None
 
 
 class Json(datasets.ArrowBasedBuilder):
@@ -77,11 +78,8 @@ class Json(datasets.ArrowBasedBuilder):
                         raise ValueError(
                             f"Field '{col}' from the JSON data of type {pa_table[col].type} is not compatible with ClassLabel. Compatible types are int64 and string."
                         )
-            # Cast allows str <-> int/float
-            # Before casting, rearrange JSON field names to match passed features schema field names order
-            pa_table = pa.Table.from_arrays(
-                [pa_table[name] for name in self.config.features], schema=self.config.schema
-            )
+            # Cast allows str <-> int/float or str to Audio for example
+            pa_table = table_cast(pa_table, self.config.schema)
         return pa_table
 
     def _generate_tables(self, files):

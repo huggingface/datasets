@@ -11,6 +11,7 @@ jobs:
         resource_class: medium
         steps:
             - checkout
+            - run: sudo apt-get -y update && sudo apt-get install -y libsndfile1-dev
             - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
@@ -26,6 +27,7 @@ jobs:
         resource_class: medium
         steps:
             - checkout
+            - run: sudo apt-get -y update && sudo apt-get install -y libsndfile1-dev
             - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate

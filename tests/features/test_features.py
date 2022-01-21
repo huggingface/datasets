@@ -220,6 +220,13 @@ class FeaturesTest(TestCase):
         self.assertEqual(reordered_features.type, expected.type)
         self.assertNotEqual(reordered_features.type, features.type)
 
+    def test_flatten(self):
+        features = Features({"foo": {"bar1": Value("int32"), "bar2": {"foobar": Value("string")}}})
+        _features = features.copy()
+        flattened_features = features.flatten()
+        assert flattened_features == {"foo.bar1": Value("int32"), "foo.bar2.foobar": Value("string")}
+        assert features == _features, "calling flatten shouldn't alter the current features"
+
 
 def test_classlabel_init(tmp_path_factory):
     names = ["negative", "positive"]
