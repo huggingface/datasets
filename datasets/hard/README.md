@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: hard
+pretty_name: Hotel Arabic-Reviews Dataset
 ---
 
 # Dataset Card for Hard

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - conditional-text-generation-other-dialogue-generation
 paperswithcode_id: negotiation-dialogues-dataset
+pretty_name: Deal or No Deal Negotiator
 ---
 
 

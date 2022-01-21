@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: null
+pretty_name: XSum Hallucination Annotations
 ---
 
 # Dataset Card for XSum Hallucination Annotations

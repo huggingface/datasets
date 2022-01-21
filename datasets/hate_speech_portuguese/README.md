@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-classification-other-hate-speech-detection
 paperswithcode_id: null
+pretty_name: HateSpeechPortuguese
 ---
 
 # Dataset Card for [Dataset Name]

@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: commonsenseqa
+pretty_name: CommonsenseQA
 ---
 
 # Dataset Card for "commonsense_qa"

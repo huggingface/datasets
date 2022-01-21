@@ -22,6 +22,7 @@ task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
 paperswithcode_id: null
+pretty_name: KorNlu
 ---
 
 # Dataset Card for [Dataset Name]

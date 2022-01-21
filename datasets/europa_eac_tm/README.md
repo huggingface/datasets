@@ -43,6 +43,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: Europa Education and Culture Translation Memory (EAC-TM)
 ---
 
 # Dataset Card for Europa Education and Culture Translation Memory (EAC-TM)

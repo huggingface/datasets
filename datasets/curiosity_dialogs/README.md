@@ -19,6 +19,7 @@ task_ids:
 - dialogue-modeling
 - sequence-modeling-other-conversational-curiosity
 paperswithcode_id: curiosity
+pretty_name: Curiosity Dataset
 ---
 
 # Dataset Card for Curiosity Dataset

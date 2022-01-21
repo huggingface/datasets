@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: c3
+pretty_name: C3
 ---
 # Dataset Card Creation Guide
 
@@ -129,7 +130,7 @@ We present a comprehensive analysis of the prior knowledge (i.e., linguistic, do
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

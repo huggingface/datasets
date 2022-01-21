@@ -27,6 +27,7 @@ task_categories:
 task_ids:
 - text-simplification
 paperswithcode_id: null
+pretty_name: WikiAuto
 ---
 
 # Dataset Card for WikiAuto

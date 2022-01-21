@@ -31,6 +31,7 @@ task_categories:
 task_ids:
 - text-classification-other-offensive-language
 paperswithcode_id: null
+pretty_name: Offenseval Dravidian
 ---
 
 # Dataset Card for Offenseval Dravidian

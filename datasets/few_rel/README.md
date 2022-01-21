@@ -22,6 +22,7 @@ task_categories:
 task_ids:
 - other-other-relation-extraction
 paperswithcode_id: fewrel
+pretty_name: Few-Shot Relation Classification Dataset
 ---
 
 # Dataset Card for few_rel

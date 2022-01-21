@@ -1,6 +1,6 @@
 ---
 annotations_creators:
-- found
+- no-annotation
 language_creators:
 - found
 languages:
@@ -167,7 +167,7 @@ pretty_name: CC100
 
 ## Dataset Description
 
-- **Homepage:** http://data.statmt.org/cc-100/
+- **Homepage:** https://data.statmt.org/cc-100/
 - **Repository:** None
 - **Paper:** https://www.aclweb.org/anthology/2020.acl-main.747.pdf, https://www.aclweb.org/anthology/2020.lrec-1.494.pdf
 - **Leaderboard:** [More Information Needed]
@@ -175,20 +175,19 @@ pretty_name: CC100
 
 ### Dataset Summary
 
-To load a language which isn't part of the config, all you need to do is specify the language code in the config.
-You can find the valid languages in Homepage section of Dataset Description: http://data.statmt.org/cc-100/
-E.g.
-
-`dataset = load_dataset("cc100", lang="en")`
-
+This corpus is an attempt to recreate the dataset used for training XLM-R. This corpus comprises of monolingual data for 100+ languages and also includes data for romanized languages (indicated by *_rom). This was constructed using the urls and paragraph indices provided by the CC-Net repository by processing January-December 2018 Commoncrawl snapshots.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+CC-100 is mainly inteded to pretrain language models and word represantations.
 
 ### Languages
 
-[More Information Needed]
+To load a language which isn't part of the config, all you need to do is specify the language code in the config.
+You can find the valid languages in Homepage section of Dataset Description: https://data.statmt.org/cc-100/
+E.g.
+
+`dataset = load_dataset("cc100", lang="en")`
 
 ## Dataset Structure
 
@@ -199,6 +198,8 @@ An example from the `am` configuration:
 ```
 {'id': '0', 'text': 'ተለዋዋጭ የግድግዳ አንግል ሙቅ አንቀሳቅሷል ቲ-አሞሌ አጥቅሼ ...\n'}
 ```
+
+Each data point is a paragraph of text. The paragraphs are presented in the original (unshuffled) order. Documents are separated by a data point consisting of a single newline character.
 
 ### Data Fields
 
@@ -232,23 +233,23 @@ Sizes of some configurations:
 
 #### Who are the source language producers?
 
-[More Information Needed]
+The data comes from multiple web pages in a large variety of languages.
 
 ### Annotations
 
-[More Information Needed]
+The dataset does not contain any additional annotations.
 
 #### Annotation process
 
-[More Information Needed]
+[N/A]
 
 #### Who are the annotators?
 
-[More Information Needed]
+[N/A]
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+Being constructed from Common Crawl, personal and sensitive information might be present. This **must** be considered before training deep learning models with CC-100, specially in the case of text-generation models.
 
 ## Considerations for Using the Data
 
@@ -268,11 +269,11 @@ Sizes of some configurations:
 
 ### Dataset Curators
 
-[More Information Needed]
+This dataset was prepared by [Statistical Machine Translation at the University of Edinburgh](https://www.statmt.org/ued/) using the [CC-Net](https://github.com/facebookresearch/cc_net) toolkit by Facebook Research.
 
 ### Licensing Information
 
-[More Information Needed]
+Statistical Machine Translation at the University of Edinburgh makes no claims of intellectual property on the work of preparation of the corpus. By using this, you are also bound by the [Common Crawl terms of use](https://commoncrawl.org/terms-of-use/) in respect of the content contained in the dataset.
 
 ### Citation Information
 

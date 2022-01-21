@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: reddit
+pretty_name: Reddit
 ---
 
 # Dataset Card for "reddit"

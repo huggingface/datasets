@@ -25,6 +25,7 @@ task_categories:
 task_ids:
 - closed-domain-qa
 paperswithcode_id: null
+pretty_name: CovidQaUcsd
 ---
 
 # Dataset Card for [Dataset Name]
