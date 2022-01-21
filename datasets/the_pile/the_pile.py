@@ -38,8 +38,16 @@ datasets combined together.
 _HOMEPAGE = "https://pile.eleuther.ai/"
 
 _LICENSES = {
-    "all": "MIT License",
-    "pubmed_central": "MIT License",
+    "all": "Multiple: see each subset license",
+    "enron_emails": "Unknown",
+    "europarl": "Unknown",
+    "free_law": "Unknown",
+    "hacker_news": "Unknown",
+    "nih_exporter": "Unknown",
+    "pubmed": "Unknown",
+    "pubmed_central": "Unknown",
+    "ubuntu_irc": "Unknown",
+    "uspto": "Unknown",
 }
 
 _DATA_URLS = {
@@ -48,7 +56,15 @@ _DATA_URLS = {
         "validation": ["https://the-eye.eu/public/AI/pile/val.jsonl.zst"],
         "test": ["https://the-eye.eu/public/AI/pile/test.jsonl.zst"],
     },
+    "enron_emails": "http://eaidata.bmk.sh/data/enron_emails.jsonl.zst",
+    "europarl": "https://the-eye.eu/public/AI/pile_preliminary_components/EuroParliamentProceedings_1996_2011.jsonl.zst",
+    "free_law": "https://the-eye.eu/public/AI/pile_preliminary_components/FreeLaw_Opinions.jsonl.zst",
+    "hacker_news": "https://the-eye.eu/public/AI/pile_preliminary_components/hn.tar.gz",
+    "nih_exporter": "https://the-eye.eu/public/AI/pile_preliminary_components/NIH_ExPORTER_awarded_grant_text.jsonl.zst",
+    "pubmed": "https://the-eye.eu/public/AI/pile_preliminary_components/PUBMED_title_abstracts_2019_baseline.jsonl.zst",
     "pubmed_central": "https://the-eye.eu/public/AI/pile_preliminary_components/PMC_extracts.tar.gz",
+    "ubuntu_irc": "https://the-eye.eu/public/AI/pile_preliminary_components/ubuntu_irc_until_2020_9_1.jsonl.zst",
+    "uspto": "https://the-eye.eu/public/AI/pile_preliminary_components/pile_uspto.tar",
 }
 
 _FEATURES = {
@@ -58,10 +74,58 @@ _FEATURES = {
             "meta": {"pile_set_name": datasets.Value("string")},
         }
     ),
+    "enron_emails": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "europarl": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "free_law": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "hacker_news": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "nih_exporter": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "pubmed": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
     "pubmed_central": datasets.Features(
         {
-            "id": datasets.Value("string"),
             "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "ubuntu_irc": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
+        }
+    ),
+    "uspto": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
         }
     ),
 }
@@ -100,7 +164,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-            features=_FEATURES[self.config.name],
+            features=_FEATURES.get(self.config.name),
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
@@ -108,7 +172,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
             # License for the dataset if available
-            license=_LICENSES[self.config.name],
+            license=_LICENSES.get(self.config.name, "Multiple: see each subset license"),
             # Citation for the dataset
             citation=_CITATION,
         )
@@ -133,7 +197,12 @@ class ThePile(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "files": {subset: dl_manager.iter_archive(archive[subset]) for subset in self.config.subsets},
+                        "files": {
+                            subset: dl_manager.iter_archive(archive[subset])
+                            if ".tar" in data_urls[subset]
+                            else archive[subset]
+                            for subset in self.config.subsets
+                        },
                     },
                 ),
             ]
@@ -152,12 +221,30 @@ class ThePile(datasets.GeneratorBasedBuilder):
                         key += 1
         else:
             for subset in files:
-                if subset == "pubmed_central":
+                if subset in {"enron_emails", "europarl", "free_law", "nih_exporter", "pubmed", "ubuntu_irc"}:
+                    import zstandard as zstd
+
+                    with zstd.open(open(files[subset], "rb"), "rt", encoding="utf-8") as f:
+                        for row in f:
+                            data = json.loads(row)
+                            yield key, data
+                            key += 1
+                elif subset in {"hacker_news", "pubmed_central"}:
                     for path, file in files[subset]:
                         id_ = path.split("/")[-1].split(".")[0]
+                        meta = {"id": id_}
                         text = file.read().decode("utf-8")
                         yield key, {
-                            "id": id_,
                             "text": text,
+                            "meta": meta,
                         }
                         key += 1
+                elif subset == "uspto":
+                    import zstandard as zstd
+
+                    for path, file in files[subset]:
+                        with zstd.open(file, "rt", encoding="utf-8") as f:
+                            for row in f:
+                                data = json.loads(row)
+                                yield key, data
+                                key += 1

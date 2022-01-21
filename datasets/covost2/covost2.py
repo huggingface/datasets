@@ -96,7 +96,7 @@ class Covost2(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 client_id=datasets.Value("string"),
                 file=datasets.Value("string"),
-                audio=datasets.features.Audio(sampling_rate=16_000),
+                audio=datasets.Audio(sampling_rate=16_000),
                 sentence=datasets.Value("string"),
                 translation=datasets.Value("string"),
                 id=datasets.Value("string"),

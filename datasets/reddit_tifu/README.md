@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: reddit-tifu
+pretty_name: Reddit TIFU
 ---
 
 # Dataset Card for "reddit_tifu"

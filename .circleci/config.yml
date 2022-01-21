@@ -11,6 +11,7 @@ jobs:
         resource_class: medium
         steps:
             - checkout
+            - run: sudo apt-get -y update && sudo apt-get install -y libsndfile1-dev
             - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
@@ -26,6 +27,7 @@ jobs:
         resource_class: medium
         steps:
             - checkout
+            - run: sudo apt-get -y update && sudo apt-get install -y libsndfile1-dev
             - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
@@ -41,19 +43,19 @@ jobs:
             shell: powershell
         steps:
             - checkout
-            - run: conda update conda
-            - run: conda install python=3.6 --yes
-            - run: Remove-Item c:\tools\miniconda3\lib\site-packages\ruamel* -Recurse -Force -Confirm:$false
-            - run: pip install ruamel.yaml
-            - run: conda install pytorch --yes
-            - run: pip install virtualenv
-            - run: python -m virtualenv venv --system-site-packages
-            - run: "& venv/Scripts/activate.ps1"
-            - run: pip install .[tests]
-            - run: pip install -r additional-tests-requirements.txt --no-deps
-            - run: pip install pyarrow --upgrade
-            - run: $env:HF_SCRIPTS_VERSION="master"
-            - run: python -m pytest -n 2 --dist loadfile -sv ./tests/
+            - run: |
+                conda init powershell
+                conda update conda
+                conda create -n py36 python=3.6 pytorch --yes
+            - run: |
+                conda activate py36
+                pip install .[tests]
+                pip install -r additional-tests-requirements.txt --no-deps
+                pip install pyarrow --upgrade
+            - run: |
+                conda activate py36
+                $env:HF_SCRIPTS_VERSION="master"
+                python -m pytest -n 2 --dist loadfile -sv ./tests/
 
     run_dataset_script_tests_pyarrow_3_WIN:
         working_directory: ~/datasets
@@ -62,19 +64,19 @@ jobs:
             shell: powershell
         steps:
             - checkout
-            - run: conda update conda
-            - run: conda install python=3.6 --yes
-            - run: Remove-Item c:\tools\miniconda3\lib\site-packages\ruamel* -Recurse -Force -Confirm:$false
-            - run: pip install ruamel.yaml
-            - run: conda install pytorch --yes
-            - run: pip install virtualenv
-            - run: python -m virtualenv venv --system-site-packages
-            - run: "& venv/Scripts/activate.ps1"
-            - run: pip install .[tests]
-            - run: pip install -r additional-tests-requirements.txt --no-deps
-            - run: pip install pyarrow==3.0.0
-            - run: $env:HF_SCRIPTS_VERSION="master"
-            - run: python -m pytest -n 2 --dist loadfile -sv ./tests/
+            - run: |
+                conda init powershell
+                conda update conda
+                conda create -n py36 python=3.6 pytorch --yes
+            - run: |
+                conda activate py36
+                pip install .[tests]
+                pip install -r additional-tests-requirements.txt --no-deps
+                pip install pyarrow==3.0.0
+            - run: |
+                conda activate py36
+                $env:HF_SCRIPTS_VERSION="master"
+                python -m pytest -n 2 --dist loadfile -sv ./tests/
 
     check_code_quality:
         working_directory: ~/datasets

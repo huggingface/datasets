@@ -25,6 +25,7 @@ task_ids:
   subtask-2:
   - text-classification-other-funnier-headline-identification
 paperswithcode_id: humicroedit
+pretty_name: Humicroedit
 ---
 
 # Dataset Card for [Dataset Name]

@@ -127,7 +127,7 @@ class MultilingualLibrispeech(datasets.GeneratorBasedBuilder):
             all_ids = []
             for path in all_ids_paths:
                 with open(path, "r", encoding="utf-8") as f:
-                    all_ids += [l.strip() for l in f.readlines()]
+                    all_ids += [line.strip() for line in f.readlines()]
 
             all_ids = set(all_ids)
 

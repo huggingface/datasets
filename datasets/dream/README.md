@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: dream
+pretty_name: DREAM
 ---
 
 # Dataset Card Creation Guide

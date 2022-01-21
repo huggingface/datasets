@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: null
+pretty_name: hansards
 ---
 
 # Dataset Card for "hansards"

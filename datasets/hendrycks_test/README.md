@@ -17,6 +17,7 @@ task_categories:
 - question-answering
 task_ids:
 - multiple-choice-qa
+pretty_name: HendrycksTest
 ---
 
 # Dataset Card for HendrycksTest

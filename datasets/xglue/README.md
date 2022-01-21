@@ -279,6 +279,7 @@ task_ids:
   xnli:
   - natural-language-inference
 paperswithcode_id: null
+pretty_name: XGLUE
 ---
 
 # Dataset Card for XGLUE

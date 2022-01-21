@@ -16,6 +16,7 @@ task_categories:
 task_ids:
 - other-other-image-classification
 paperswithcode_id: mnist
+pretty_name: MNIST
 ---
 
 # Dataset Card for MNIST
@@ -69,12 +70,19 @@ English
 
 ### Data Instances
 
-A data point comprises an image and its label.
+A data point comprises an image and its label:
+
+```
+{
+  'image': <PIL.PngImagePlugin.PngImageFile image mode=L size=28x28 at 0x276021F6DD8>,
+  'label': 5
+}
+```
 
 ### Data Fields
 
-- image: a 2d array of integers representing the 28x28 image.
-- label: an integer between 0 and 9 representing the digit.
+- `image`: A `PIL.Image.Image` object containing the 28x28 image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`
+- `label`: an integer between 0 and 9 representing the digit.
 
 ### Data Splits
 

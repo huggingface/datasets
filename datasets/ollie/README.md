@@ -19,9 +19,10 @@ source_datasets:
 task_categories:
 - other
 task_ids:
-- other-stuctured-to-text
+- other-structured-to-text
 - other-other-relation-extraction
 paperswithcode_id: null
+pretty_name: Ollie
 ---
 
 # Dataset Card for Ollie
@@ -81,6 +82,10 @@ conditions (if X then).
 
 More information is available at the Ollie homepage:
 https://knowitall.github.io/ollie/
+
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
 
 ### Languages
 en
@@ -195,7 +200,6 @@ Since the data is gathered from the web, there is likely to be biased text and r
 
 [More Information Needed]
 
-
 ## Additional Information
 
 ### Dataset Curators
@@ -208,12 +212,15 @@ The University of Washington academic license: https://raw.githubusercontent.com
 
 
 ### Citation Information
+
+```
 @inproceedings{ollie-emnlp12,
   author = {Mausam and Michael Schmitz and Robert Bart and Stephen Soderland and Oren Etzioni},
   title = {Open Language Learning for Information Extraction},
   booktitle = {Proceedings of Conference on Empirical Methods in Natural Language Processing and Computational Natural Language Learning (EMNLP-CONLL)},
   year = {2012}
 }
+```
 
 ### Contributions
 

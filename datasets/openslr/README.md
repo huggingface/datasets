@@ -626,7 +626,7 @@ There is only one "train" split for all configurations and the number of example
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -650,7 +650,8 @@ There is only one "train" split for all configurations and the number of example
 
 ### Licensing Information
 
-[More Information Needed] 
+Each dataset is distributed under Creative Commons Attribution-ShareAlike 4.0 International Public License ([CC-BY-SA-4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode)).
+See https://github.com/google/language-resources#license or the resource page on [OpenSLR](https://openslr.org/resources.php) for more information.
 
 ### Citation Information
 #### SLR32

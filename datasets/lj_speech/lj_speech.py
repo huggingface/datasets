@@ -74,7 +74,7 @@ class LJSpeech(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=22050),
+                    "audio": datasets.Audio(sampling_rate=22050),
                     "file": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "normalized_text": datasets.Value("string"),

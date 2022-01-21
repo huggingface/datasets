@@ -22,6 +22,7 @@ import struct
 import numpy as np
 
 import datasets
+from datasets.tasks import ImageClassification
 
 
 _CITATION = """\
@@ -62,6 +63,19 @@ _URLS = {
     "test_labels": "t10k-labels-idx1-ubyte.gz",
 }
 
+_NAMES = [
+    "T - shirt / top",
+    "Trouser",
+    "Pullover",
+    "Dress",
+    "Coat",
+    "Sandal",
+    "Shirt",
+    "Sneaker",
+    "Bag",
+    "Ankle boot",
+]
+
 
 class FashionMnist(datasets.GeneratorBasedBuilder):
     """FashionMNIST Data Set"""
@@ -79,26 +93,14 @@ class FashionMnist(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "image": datasets.Array2D(shape=(28, 28), dtype="uint8"),
-                    "label": datasets.features.ClassLabel(
-                        names=[
-                            "T - shirt / top",
-                            "Trouser",
-                            "Pullover",
-                            "Dress",
-                            "Coat",
-                            "Sandal",
-                            "Shirt",
-                            "Sneaker",
-                            "Bag",
-                            "Ankle boot",
-                        ]
-                    ),
+                    "image": datasets.Image(),
+                    "label": datasets.features.ClassLabel(names=_NAMES),
                 }
             ),
             supervised_keys=("image", "label"),
-            homepage="https://github.com/zalandoresearch/fashion-mnist",
+            homepage=_HOMEPAGE,
             citation=_CITATION,
+            task_templates=[ImageClassification(image_column="image", label_column="label")],
         )
 
     def _split_generators(self, dl_manager):

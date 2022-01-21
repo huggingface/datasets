@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: cmrc-2018
+pretty_name: Chinese Machine Reading Comprehension 2018
 ---
 
 # Dataset Card for "cmrc2018"

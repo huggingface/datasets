@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: OpusElhuyar
 ---
 
 # Dataset Card for [opus_elhuyar]

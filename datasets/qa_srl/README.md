@@ -19,6 +19,7 @@ task_ids:
 - multiple-choice-qa
 - open-domain-qa
 paperswithcode_id: qa-srl
+pretty_name: QA-SRL
 ---
 
 # Dataset Card for QA-SRL

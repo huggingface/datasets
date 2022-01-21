@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: null
+pretty_name: Polish Summaries Corpus
 ---
 
-# Dataset Card for polsum
+# Dataset Card for Polish Summaries Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

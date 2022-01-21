@@ -1,10 +1,10 @@
-from collections import defaultdict
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import Any, ClassVar, Optional
+from typing import Any, ClassVar, Optional, Union
 
 import pyarrow as pa
 
+from ..table import array_cast
 from ..utils.streaming_download_manager import xopen
 
 
@@ -21,6 +21,14 @@ class Audio:
 
       This is useful for archived files with sequential access.
 
+    - A :obj:`dict` with the keys:
+
+        - path: String with relative path of the audio file to the archive file.
+        - array: Array containing the audio sample
+        - sampling_rate: Integer corresponding to the samping rate of the audio sample.
+
+      This is useful for archived files with sequential access.
+
     Args:
         sampling_rate (:obj:`int`, optional): Target sampling rate. If `None`, the native sampling rate is used.
         mono (:obj:`bool`, default ``True``): Whether to convert the audio signal to mono by averaging samples across
@@ -29,37 +37,46 @@ class Audio:
 
     sampling_rate: Optional[int] = None
     mono: bool = True
-    _storage_dtype: str = "string"
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
-    pa_type: ClassVar[Any] = None
+    pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Audio", init=False, repr=False)
 
     def __call__(self):
-        return (
-            pa.struct({"path": pa.string(), "bytes": pa.binary()}) if self._storage_dtype == "struct" else pa.string()
-        )
+        return self.pa_type
 
-    def encode_example(self, value):
+    def encode_example(self, value: Union[str, dict]) -> dict:
         """Encode example into a format for Arrow.
 
         Args:
             value (:obj:`str` or :obj:`dict`): Data passed as input to Audio feature.
 
         Returns:
-            :obj:`str` or :obj:`dict`
+            :obj:`dict`
         """
-        if isinstance(value, dict):
-            self._storage_dtype = "struct"
-        return value
+        try:
+            import soundfile as sf  # soundfile is a dependency of librosa, needed to decode audio files.
+        except ImportError as err:
+            raise ImportError("To support encoding audio data, please install 'soundfile'.") from err
+        if isinstance(value, str):
+            return {"bytes": None, "path": value}
+        elif isinstance(value, dict) and "array" in value:
+            buffer = BytesIO()
+            sf.write(buffer, value["array"], value["sampling_rate"])
+            return {"bytes": buffer.getvalue(), "path": value.get("path")}
+        elif value.get("bytes") is not None or value.get("path") is not None:
+            return {"bytes": value.get("bytes"), "path": value.get("path")}
+        else:
+            raise ValueError(
+                f"An audio sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
+            )
 
-    def decode_example(self, value):
+    def decode_example(self, value: dict) -> dict:
         """Decode example audio file into audio data.
 
         Args:
-            value (obj:`str` or :obj:`dict`): Either a string with the absolute audio file path or a dictionary with
-                keys:
+            value (:obj:`dict`): a dictionary with keys:
 
                 - path: String with relative audio file path.
                 - bytes: Bytes of the audio file.
@@ -67,8 +84,10 @@ class Audio:
         Returns:
             dict
         """
-        path, file = (value["path"], BytesIO(value["bytes"])) if isinstance(value, dict) else (value, None)
-        if path.endswith("mp3"):
+        path, file = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
+        if path is None and file is None:
+            raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
+        elif path is not None and path.endswith("mp3"):
             array, sampling_rate = self._decode_mp3(file if file else path)
         else:
             if file:
@@ -76,6 +95,39 @@ class Audio:
             else:
                 array, sampling_rate = self._decode_non_mp3_path_like(path)
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
+
+    def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray]) -> pa.StructArray:
+        """Cast an Arrow array to the Audio arrow storage type.
+        The Arrow types that can be converted to the Audio pyarrow storage type are:
+
+        - pa.string() - it must contain the "path" data
+        - pa.struct({"bytes": pa.binary()})
+        - pa.struct({"path": pa.string()})
+        - pa.struct({"bytes": pa.binary(), "path": pa.string()})  - order doesn't matter
+
+        Args:
+            storage (Union[pa.StringArray, pa.StructArray]): [description]
+
+        Returns:
+            pa.StructArray: Array in the Audio arrow storage type, that is
+                pa.struct({"bytes": pa.binary(), "path": pa.string()})
+        """
+        if pa.types.is_string(storage.type):
+            bytes_array = pa.array([None] * len(storage), type=pa.binary())
+            storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"])
+        elif pa.types.is_struct(storage.type) and storage.type.get_all_field_indices("array"):
+            storage = pa.array([Audio().encode_example(x) for x in storage.to_pylist()])
+        elif pa.types.is_struct(storage.type):
+            if storage.type.get_field_index("bytes") >= 0:
+                bytes_array = storage.field("bytes")
+            else:
+                bytes_array = pa.array([None] * len(storage), type=pa.binary())
+            if storage.type.get_field_index("path") >= 0:
+                path_array = storage.field("path")
+            else:
+                path_array = pa.array([None] * len(storage), type=pa.string())
+            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+        return array_cast(storage, self.pa_type)
 
     def _decode_non_mp3_path_like(self, path):
         try:
@@ -92,7 +144,7 @@ class Audio:
             import librosa
             import soundfile as sf
         except ImportError as err:
-            raise ImportError("To support decoding audio files, please install 'librosa'.") from err
+            raise ImportError("To support decoding audio files, please install 'librosa' and 'soundfile'.") from err
 
         array, sampling_rate = sf.read(file)
         array = array.T
@@ -124,11 +176,3 @@ class Audio:
         if self.mono:
             array = array.mean(axis=0)
         return array, sampling_rate
-
-    def decode_batch(self, values):
-        decoded_batch = defaultdict(list)
-        for value in values:
-            decoded_example = self.decode_example(value)
-            for k, v in decoded_example.items():
-                decoded_batch[k].append(v)
-        return dict(decoded_batch)

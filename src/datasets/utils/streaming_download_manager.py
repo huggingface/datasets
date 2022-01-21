@@ -1,13 +1,16 @@
 import glob
+import io
 import os
 import posixpath
 import re
 import tarfile
 import time
 from asyncio import TimeoutError
+from io import BytesIO
 from itertools import chain
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePath, PurePosixPath
 from typing import List, Optional, Tuple, Union
+from xml.etree import ElementTree as ET
 
 import fsspec
 from aiohttp.client_exceptions import ClientError
@@ -158,6 +161,79 @@ def xbasename(a):
         return posixpath.basename(a)
 
 
+def xsplitext(a):
+    """
+    This function extends os.path.splitext to support the "::" hop separator. It supports both paths and urls.
+
+    A shorthand, particularly useful where you have multiple hops, is to “chain” the URLs with the special separator "::".
+    This is used to access files inside a zip file over http for example.
+
+    Let's say you have a zip file at https://host.com/archive.zip, and you want to access the file inside the zip file at /folder1/file.txt.
+    Then you can just chain the url this way:
+
+        zip://folder1/file.txt::https://host.com/archive.zip
+
+    The xsplitext function allows you to apply the splitext on the first path of the chain.
+
+    Example::
+
+        >>> xsplitext("zip://folder1/file.txt::https://host.com/archive.zip")
+        ('zip://folder1/file::https://host.com/archive.zip', '.txt')
+    """
+    a, *b = a.split("::")
+    if is_local_path(a):
+        return os.path.splitext(Path(a).as_posix())
+    else:
+        a, ext = posixpath.splitext(a)
+        return "::".join([a] + b), ext
+
+
+def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
+    """Extend `os.path.isfile` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`bool`
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.path.isfile(path)
+    else:
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        return fs.isfile(main_hop)
+
+
+def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
+    """Extend `os.path.isdir` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`bool`
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.path.isdir(path)
+    else:
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        return fs.isdir(main_hop)
+
+
 def _as_posix(path: Path):
     """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slashes after protocol.
 
@@ -276,6 +352,8 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     It also has a retry mechanism in case connection fails.
     The args and kwargs are passed to fsspec.open, except `use_auth_token` which is used for queries to private repos on huggingface.co
     """
+    # required for `xopen(str(Path(...)))` to work
+    file = _as_posix(PurePath(file))
     main_hop, *rest_hops = file.split("::")
     # add headers and cookies for authentication on the HF Hub and for Google Drive
     if not rest_hops and (main_hop.startswith("http://") or main_hop.startswith("https://")):
@@ -409,6 +487,30 @@ def xpathrglob(path, pattern, **kwargs):
     return xpathglob(path, "**/" + pattern, **kwargs)
 
 
+def xpathparent(path: Path):
+    """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        :obj:`~pathlib.Path`
+    """
+    return type(path)(xdirname(_as_posix(path)))
+
+
+def xpathname(path: Path):
+    """Name function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
+
+    Args:
+        path (:obj:`~pathlib.Path`): Calling Path instance.
+
+    Returns:
+        :obj:`str`
+    """
+    return PurePosixPath(_as_posix(path).split("::")[0]).name
+
+
 def xpathstem(path: Path):
     """Stem function for argument of type :obj:`~pathlib.Path` that supports both local paths end remote URLs.
 
@@ -433,6 +535,34 @@ def xpathsuffix(path: Path):
     return PurePosixPath(_as_posix(path).split("::")[0]).suffix
 
 
+def xwalk(urlpath, use_auth_token: Optional[Union[str, bool]] = None):
+    """Extend `os.walk` function to support remote files.
+
+    Args:
+        urlpath (:obj:`str`): URL root path.
+        use_auth_token (:obj:`bool` or :obj:`str`, optional): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
+
+    Yields:
+        :obj:`tuple`: 3-tuple (dirpath, dirnames, filenames).
+    """
+    main_hop, *rest_hops = urlpath.split("::")
+    if is_local_path(main_hop):
+        return os.walk(main_hop)
+    else:
+        # walking inside a zip in a private repo requires authentication
+        if rest_hops and (rest_hops[0].startswith("http://") or rest_hops[0].startswith("https://")):
+            url = rest_hops[0]
+            url, kwargs = _prepare_http_url_kwargs(url, use_auth_token=use_auth_token)
+            storage_options = {"https": kwargs}
+            urlpath = "::".join([main_hop, url, *rest_hops[1:]])
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(urlpath, storage_options=storage_options)
+        for dirpath, dirnames, filenames in fs.walk(main_hop):
+            yield "::".join([f"{fs.protocol}://{dirpath}"] + rest_hops), dirnames, filenames
+
+
 def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
     import pandas as pd
 
@@ -440,6 +570,40 @@ def xpandas_read_csv(filepath_or_buffer, use_auth_token: Optional[Union[str, boo
         return pd.read_csv(filepath_or_buffer, **kwargs)
     else:
         return pd.read_csv(xopen(filepath_or_buffer, use_auth_token=use_auth_token), **kwargs)
+
+
+def xpandas_read_excel(filepath_or_buffer, **kwargs):
+    import pandas as pd
+
+    return pd.read_excel(BytesIO(filepath_or_buffer.read()), **kwargs)
+
+
+def xsio_loadmat(filepath_or_buffer, use_auth_token: Optional[Union[str, bool]] = None, **kwargs):
+    import scipy.io as sio
+
+    if hasattr(filepath_or_buffer, "read"):
+        return sio.loadmat(filepath_or_buffer, **kwargs)
+    else:
+        return sio.loadmat(xopen(filepath_or_buffer, "rb", use_auth_token=use_auth_token), **kwargs)
+
+
+def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = None):
+    """Extend `xml.etree.ElementTree.parse` function to support remote files.
+
+    Args:
+        source: File path or file object.
+        parser (optional, default `XMLParser`): Parser instance.
+        use_auth_token (:obj:`bool` or :obj:`str`, optional): Whether to use token or token to authenticate on the
+            Hugging Face Hub for private remote files.
+
+    Returns:
+        :obj:`xml.etree.ElementTree.Element`: Root element of the given source document.
+    """
+    if hasattr(source, "read"):
+        return ET.parse(source, parser=parser)
+    else:
+        with xopen(source, "rb", use_auth_token=use_auth_token) as f:
+            return ET.parse(f, parser=parser)
 
 
 class StreamingDownloadManager(object):
@@ -502,17 +666,18 @@ class StreamingDownloadManager(object):
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
 
-    def iter_archive(self, urlpath: str):
-        """Returns iterator over files within archive.
+    def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]):
+        """Iterate over files within an archive.
 
         Args:
-            path: path to archive.
+            urlpath_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
 
-        Returns:
-            Generator yielding tuple (path_within_archive, file_obj).
-            File-Obj are opened in byte mode (io.BufferedReader)
+        Yields:
+            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+                File object is opened in binary mode.
         """
-        with xopen(urlpath, "rb", use_auth_token=self.download_config.use_auth_token) as f:
+
+        def _iter_archive(f):
             stream = tarfile.open(fileobj=f, mode="r|*")
             for tarinfo in stream:
                 file_path = tarinfo.name
@@ -524,6 +689,29 @@ class StreamingDownloadManager(object):
                     # skipping hidden files
                     continue
                 file_obj = stream.extractfile(tarinfo)
-                yield (file_path, file_obj)
+                yield file_path, file_obj
                 stream.members = []
             del stream
+
+        if hasattr(urlpath_or_buf, "read"):
+            yield from _iter_archive(urlpath_or_buf)
+        else:
+            with xopen(urlpath_or_buf, "rb", use_auth_token=self.download_config.use_auth_token) as f:
+                yield from _iter_archive(f)
+
+    def iter_files(self, urlpaths):
+        """Iterate over files.
+
+        Args:
+            urlpaths (list): Root paths.
+
+        Yields:
+            str: File URL path.
+        """
+        for urlpath in urlpaths:
+            if xisfile(urlpath, use_auth_token=self.download_config.use_auth_token):
+                yield urlpath
+            else:
+                for dirpath, _, filenames in xwalk(urlpath, use_auth_token=self.download_config.use_auth_token):
+                    for filename in filenames:
+                        yield xjoin(dirpath, filename)

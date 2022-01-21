@@ -123,6 +123,10 @@ else:
     logger.info("Disabling Apache Beam because USE_BEAM is set to False")
 
 
+# Optional tools for feature decoding
+PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
+
+
 # Optional compression tools
 RARFILE_AVAILABLE = importlib.util.find_spec("rarfile") is not None
 ZSTANDARD_AVAILABLE = importlib.util.find_spec("zstandard") is not None
@@ -187,6 +191,10 @@ MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255
 
 # Streaming
-
 STREAMING_READ_MAX_RETRIES = 20
 STREAMING_READ_RETRY_INTERVAL = 5
+
+# Datasets without script
+DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 200
+GLOBBED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 10
+ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 200

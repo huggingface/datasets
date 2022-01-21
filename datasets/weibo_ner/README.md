@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: weibo-ner
+pretty_name: Weibo NER
 ---
 
 # Dataset Card Creation Guide

@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: null
+pretty_name: DataCommons Fact Checked claims
 ---
 
 # Dataset Card for DataCommons Fact Checked claims
@@ -147,7 +148,7 @@ See section above describing the [fact checking organizations](#who-are-the-anno
 
 ### Other Known Limitations
 
-[More Information Needed]
+Dataset provided for research purposes only. Please check dataset license for additional information.
 
 ## Additional Information
 

@@ -252,6 +252,7 @@ task_categories:
 task_ids:
 - text-classification-other-language-identification
 paperswithcode_id: wili-2018
+pretty_name: Wili2018
 ---
 
 # Dataset Card for wili_2018

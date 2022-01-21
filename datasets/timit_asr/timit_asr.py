@@ -77,7 +77,7 @@ class TimitASR(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "file": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=16_000),
+                    "audio": datasets.Audio(sampling_rate=16_000),
                     "text": datasets.Value("string"),
                     "phonetic_detail": datasets.Sequence(
                         {

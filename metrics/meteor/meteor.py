@@ -108,6 +108,8 @@ class Meteor(datasets.Metric):
         nltk.download("wordnet")
         if NLTK_VERSION >= version.Version("3.6.4"):
             nltk.download("punkt")
+        if NLTK_VERSION >= version.Version("3.6.6"):
+            nltk.download("omw-1.4")
 
     def _compute(self, predictions, references, alpha=0.9, beta=3, gamma=0.5):
         if NLTK_VERSION >= version.Version("3.6.4"):

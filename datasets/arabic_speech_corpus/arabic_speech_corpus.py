@@ -85,7 +85,7 @@ class ArabicSpeechCorpus(datasets.GeneratorBasedBuilder):
                 {
                     "file": datasets.Value("string"),
                     "text": datasets.Value("string"),
-                    "audio": datasets.features.Audio(sampling_rate=48_000),
+                    "audio": datasets.Audio(sampling_rate=48_000),
                     "phonetic": datasets.Value("string"),
                     "orthographic": datasets.Value("string"),
                 }

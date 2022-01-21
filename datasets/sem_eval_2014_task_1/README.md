@@ -20,6 +20,7 @@ task_ids:
 - natural-language-inference
 - semantic-similarity-scoring
 paperswithcode_id: null
+pretty_name: SemEval 2014 - Task 1
 ---
 
 # Dataset Card for SemEval 2014 - Task 1

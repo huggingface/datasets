@@ -18,7 +18,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "1.16.2.dev0"
+__version__ = "1.17.1.dev0"
 
 import pyarrow
 from packaging import version as _version
@@ -45,6 +45,7 @@ from .features import (
     Audio,
     ClassLabel,
     Features,
+    Image,
     Sequence,
     Translation,
     TranslationVariableLanguages,
@@ -76,6 +77,7 @@ from .splits import (
     SubSplitInfo,
     percent,
 )
+from .tasks import *
 from .utils import *
 
 
