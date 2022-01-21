@@ -285,6 +285,8 @@ task_categories:
 - conditional-text-generation
 task_ids:
 - machine-translation
+source_datasets:
+- "other-WMT 2020 News Translation Task"
 ---
 
 # Dataset Card for turkic_xwmt
@@ -346,7 +348,6 @@ Currently covered languages are (besides English and Russian):
 
 ### Data Instances
 
-```
 A random example from the Russian-Uzbek set:
 ```
 {"translation": {'ru': 'Моника Мутсвангва , министр информации Зимбабве , утверждает , что полиция вмешалась в отъезд Магомбейи из соображений безопасности и вследствие состояния его здоровья .', 'uz': 'Zimbabvening Axborot vaziri , Monika Mutsvanva Magombeyining xavfsizligi va sog'ligi tufayli bo'lgan jo'nab ketishinida politsiya aralashuvini ushlab turadi .'}}

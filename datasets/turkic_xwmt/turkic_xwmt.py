@@ -116,8 +116,8 @@ class TurkicXWMT(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, source_file, target_file):
         """This function returns the examples in the raw (text) form."""
         source_sentences, target_sentences = None, None
-        source_sentences = open(source_file, "r").read().strip().split("\n")
-        target_sentences = open(target_file, "r").read().strip().split("\n")
+        source_sentences = open(source_file, encoding="utf-8").read().strip().split("\n")
+        target_sentences = open(target_file, encoding="utf-8").read().strip().split("\n")
 
         assert len(target_sentences) == len(source_sentences), "Sizes do not match: %d vs %d for %s vs %s." % (
             len(source_sentences),
