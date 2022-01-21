@@ -22,7 +22,7 @@ import codecs
 import json
 import re
 import xml.etree.cElementTree as etree
-
+from datetime import datetime
 import datasets
 
 
@@ -359,6 +359,8 @@ WIKIPEDIA_LANGUAGES = [
 
 _BASE_URL_TMPL = "https://dumps.wikimedia.org/{lang}wiki/{date}/"
 _INFO_FILE = "dumpstatus.json"
+_DATE = current_month = datetime.now().strftime('%Y%m01')
+
 
 
 class WikipediaConfig(datasets.BuilderConfig):
@@ -394,7 +396,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
         WikipediaConfig(
             version=_VERSION,
             language=lang,
-            date="20200501",
+            date=_DATE,
         )  # pylint:disable=g-complex-comprehension
         for lang in WIKIPEDIA_LANGUAGES
     ]
