@@ -74,14 +74,7 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
-from .table import (
-    InMemoryTable,
-    MemoryMappedTable,
-    Table,
-    cast_with_sliced_list_support,
-    concat_tables,
-    list_table_cache_files,
-)
+from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files, table_cast
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils.deprecation_utils import deprecated
@@ -636,8 +629,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if self._data.schema.metadata is not None and "huggingface".encode("utf-8") in self._data.schema.metadata:
             metadata = json.loads(self._data.schema.metadata["huggingface".encode("utf-8")].decode())
-            if "info" in metadata and self.info.features is None:  # try to load features from the arrow file metadata
-                self._info.features = DatasetInfo.from_dict(metadata["info"]).features
             if (
                 "fingerprint" in metadata and self._fingerprint is None
             ):  # try to load fingerprint from the arrow file metadata
@@ -780,7 +771,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             info = DatasetInfo()
         info.features = features
         table = InMemoryTable.from_pandas(
-            df=df, preserve_index=preserve_index, schema=pa.schema(features.type) if features is not None else None
+            df=df, preserve_index=preserve_index, schema=features.arrow_schema if features is not None else None
         )
         return cls(table, info=info, split=split)
 
@@ -815,10 +806,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if features is not None:
             mapping = features.encode_batch(mapping)
         mapping = {
-            col: OptimizedTypedSequence(data, type=features.type[col].type if features is not None else None, col=col)
+            col: OptimizedTypedSequence(data, type=features[col] if features is not None else None, col=col)
             for col, data in mapping.items()
         }
         pa_table = InMemoryTable.from_pydict(mapping=mapping)
+        if info.features is None:
+            info.features = Features({col: ts.get_inferred_type() for col, ts in mapping.items()})
         return cls(pa_table, info=info, split=split)
 
     @staticmethod
@@ -1221,12 +1214,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dset = self
 
         # Create the new feature
-        class_names = sorted(sample for sample in dset.unique(column) if include_nulls or sample is not None)
+        class_names = sorted(str(sample) for sample in dset.unique(column) if include_nulls or sample is not None)
         dst_feat = ClassLabel(names=class_names)
 
         def cast_to_class_labels(batch):
             batch[column] = [
-                dst_feat.str2int(sample) if include_nulls or sample is not None else None for sample in batch[column]
+                dst_feat.str2int(str(sample)) if include_nulls or sample is not None else None
+                for sample in batch[column]
             ]
             return batch
 
@@ -1280,7 +1274,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 self._data = self._data.flatten()
             else:
                 break
-        self.info.features = Features.from_arrow_schema(self._data.schema)
+        self.info.features = self.features.flatten(max_depth=max_depth)
         self._data = update_metadata_with_features(self._data, self.features)
         logger.info(f'Flattened dataset from depth {depth} to depth { 1 if depth + 1 < max_depth else "unknown"}.')
 
@@ -1299,7 +1293,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 dataset._data = dataset._data.flatten()
             else:
                 break
-        dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
+        dataset.info.features = self.features.flatten(max_depth=max_depth)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
         dataset._fingerprint = new_fingerprint
@@ -1348,10 +1342,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         type = features.type
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
-        # capture the PyArrow version here to make the lambda serializable on Windows
-        is_pyarrow_at_least_4 = config.PYARROW_VERSION.major >= 4
         dataset = dataset.map(
-            lambda t: t.cast(schema) if is_pyarrow_at_least_4 else cast_with_sliced_list_support(t, schema),
+            partial(table_cast, schema=schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1406,14 +1398,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"as the columns in the dataset: {self._data.column_names}"
             )
 
-        type = features.type
-        schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
+        schema = features.arrow_schema
         format = self.format
         dataset = self.with_format("arrow")
         # capture the PyArrow version here to make the lambda serializable on Windows
-        is_pyarrow_at_least_4 = config.PYARROW_VERSION.major >= 4
         dataset = dataset.map(
-            lambda t: t.cast(schema) if is_pyarrow_at_least_4 else cast_with_sliced_list_support(t, schema),
+            partial(table_cast, schema=schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1433,15 +1423,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             column (:obj:`str`): Column name.
-            feature (:class:`Feature`): Target feature.
+            feature (:class:`FeatureType`): Target feature.
 
         Returns:
             :class:`Dataset`
         """
-        if hasattr(feature, "decode_example"):
+        if hasattr(feature, "cast_storage"):
             dataset = copy.deepcopy(self)
             dataset.features[column] = feature
             dataset._fingerprint = new_fingerprint
+            dataset._data = dataset._data.cast(dataset.features.arrow_schema)
+            dataset._data = update_metadata_with_features(dataset._data, dataset.features)
             return dataset
         else:
             features = self.features.copy()
@@ -3860,8 +3852,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Cast to align the schemas of the tables and concatenate the tables
         table = concat_tables(
             [
-                self._data.cast(pa.schema(dset_features.type)) if self.features != dset_features else self._data,
-                item_table.cast(pa.schema(item_features.type)),
+                self._data.cast(dset_features.arrow_schema) if self.features != dset_features else self._data,
+                item_table.cast(item_features.arrow_schema),
             ]
         )
         if self._indices is None:
