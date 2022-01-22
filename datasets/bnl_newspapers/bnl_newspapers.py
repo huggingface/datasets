@@ -129,20 +129,18 @@ These newspapers cover 38 years of news (1841-1878) and include 510,505 extracte
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "data_dir": data_dir,
+                    "paths": dl_manager.iter_files([data_dir]),
                 },
             ),
         ]
 
-    def _generate_examples(self, data_dir):
+    def _generate_examples(self, paths):
         key = 0
-        for dirpath, _, filenames in os.walk(data_dir):
-            for filename in filenames:
-                if filename.endswith(".xml"):
-                    xml_path = os.path.join(dirpath, filename)
-                    data = parse_xml(xml_path)
-                    yield key, data
-                    key += 1
+        for path in paths:
+            if os.path.basename(path).endswith(".xml"):
+                data = parse_xml(path)
+                yield key, data
+                key += 1
 
 
 def parse_xml(path):
