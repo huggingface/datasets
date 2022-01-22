@@ -17,7 +17,6 @@
 import os
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from pathlib import Path
 
 import datasets
 from datasets.tasks import LanguageModeling
