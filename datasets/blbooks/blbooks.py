@@ -104,7 +104,8 @@ class BritishLibraryBooksConfig(datasets.BuilderConfig):
         """
 
         super(BritishLibraryBooksConfig, self).__init__(version=datasets.Version("1.0.2"), **kwargs)
-        self.data_urls: Union[str, List[str]] = data_urls
+        self.url: str = url
+        self.data_urls: List[str] = data_urls
         self.citation: str = citation
         self.skip_empty: bool = skip_empty
 
