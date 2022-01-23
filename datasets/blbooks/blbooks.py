@@ -1,6 +1,8 @@
 import gzip
 import json
-from typing import List, Union
+from datetime import datetime
+from functools import lru_cache
+from typing import Dict, List
 
 import datasets
 from datasets.tasks import LanguageModeling
@@ -63,7 +65,7 @@ URL = "https://doi.org/10.23636/r7w6-zy15"
 features = datasets.Features(
     {
         "record_id": datasets.Value("string"),
-        "date": datasets.Value("int32"),
+        "date": datasets.Value("timestamp[s]"),
         "raw_date": datasets.Value("string"),
         "title": datasets.Value("string"),
         "place": datasets.Value("string"),
@@ -163,6 +165,43 @@ class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
         downloaded_archives = [dl_manager.iter_archive(archive) for archive in downloaded_archives]
         return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dirs": downloaded_archives})]
 
+    @lru_cache(maxsize=512)
+    def _parse_date(self, date):
+        if date is not None:
+            date = datetime.strptime(str(date), "%Y")
+        return date
+
+    def _parse_data(self, data: Dict) -> Dict:
+        mean_wc_ocr = data["mean_wc_ocr"]
+        mean_wc_ocr = float(mean_wc_ocr) if mean_wc_ocr else None
+        std_wc_ocr = data["std_wc_ocr"]
+        std_wc_ocr = float(data["std_wc_ocr"]) if std_wc_ocr else None
+        date = data["date"]
+        if date is not None:
+            date = datetime.strptime(str(date), "%Y")
+        return {
+            "record_id": data["record_id"],
+            "date": date,
+            "raw_date": data["raw_date"],
+            "title": data["title"],
+            "place": data["place"],
+            "text": data["text"],
+            "pg": int(data["pg"]),
+            "mean_wc_ocr": data["mean_wc_ocr"],
+            "std_wc_ocr": std_wc_ocr,
+            "name": data["Name"],
+            "all_names": data["All names"],
+            "Publisher": data["Publisher"],
+            "Country of publication 1": data["Country of publication 1"],
+            "all Countries of publication": data["All Countries of publication"],
+            "Physical description": data["Physical description"],
+            "Language_1": data["Language_1"],
+            "Language_2": data["Language_2"],
+            "Language_3": data["Language_3"],
+            "Language_4": data["Language_4"],
+            "multi_language": data["multi_language"],
+        }
+
     def _generate_examples(self, data_dirs):
         skip_empty = self.config.skip_empty
         id_ = 0
@@ -176,54 +215,6 @@ class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
                         empty_pg = data["empty_pg"]
                         if skip_empty and empty_pg:
                             continue
-                        record_id = data["record_id"]
-                        date = data["date"]
-                        if not date:
-                            continue
-                        date = date
-                        raw_date = data["raw_date"]
-                        title = data["title"]
-                        place = data["place"]
-                        # if place:
-                        #     place = str(place)
-                        text = data["text"]
-                        pg = data["pg"]
-                        mean_wc_ocr = data["mean_wc_ocr"]
-                        mean_wc_ocr = float(mean_wc_ocr) if mean_wc_ocr else 0.0
-                        std_wc_ocr = data["std_wc_ocr"]
-                        std_wc_ocr = float(data["std_wc_ocr"]) if std_wc_ocr else 0.0
-                        name = data["Name"]
-                        all_names = data["All names"]
-                        publisher = data["Publisher"]
-                        country_of_publication_1 = data["Country of publication 1"]
-                        all_Countries_of_publication = data["All Countries of publication"]
-                        Physical_description = data["Physical description"]
-                        Language_1 = data["Language_1"]
-                        Language_2 = data["Language_2"]
-                        Language_3 = data["Language_3"]
-                        Language_4 = data["Language_4"]
-                        multi_language = data["multi_language"]
+                        parsed_data = self._parse_data(data)
+                        yield id_, {**parsed_data, **{"empty_pg": empty_pg}}
                         id_ += 1
-                        yield id_, {
-                            "record_id": record_id,
-                            "date": date,
-                            "raw_date": raw_date,
-                            "title": title,
-                            "place": place,
-                            "empty_pg": empty_pg,
-                            "text": text,
-                            "pg": int(pg),
-                            "mean_wc_ocr": mean_wc_ocr,
-                            "std_wc_ocr": std_wc_ocr,
-                            "name": name,
-                            "all_names": all_names,
-                            "Publisher": publisher,
-                            "Country of publication 1": country_of_publication_1,
-                            "all Countries of publication": all_Countries_of_publication,
-                            "Physical description": Physical_description,
-                            "Language_1": Language_1,
-                            "Language_2": Language_2,
-                            "Language_3": Language_3,
-                            "Language_4": Language_4,
-                            "multi_language": multi_language,
-                        }
