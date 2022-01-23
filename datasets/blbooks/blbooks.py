@@ -39,7 +39,7 @@ _DATA_URLS = {
     "1890_1899": _BASE_URL + "54ed2842-089a-439a-b751-2179b3ffba28?locale=en",
 }
 _ALL = list(_DATA_URLS.values())
-_1800s = [
+_1800_1899 = [
     _DATA_URLS.get(subset)
     for subset in [
         "1800_1809",
@@ -55,7 +55,7 @@ _1800s = [
     ]
 ]
 
-_1700s = [_DATA_URLS.get(subset) for subset in ["1700_1799"]]
+_1700_1799 = [_DATA_URLS.get(subset) for subset in ["1700_1799"]]
 _1510_1699 = [_DATA_URLS.get(subset) for subset in ["1510_1699"]]
 
 URL = "https://doi.org/10.23636/r7w6-zy15"
@@ -112,7 +112,7 @@ class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         BritishLibraryBooksConfig(
-            name="all",
+            name="1500_1899",
             description="All periods of" + _DESCRIPTION,
             data_urls=_ALL,
             citation=_CITATION,
@@ -120,17 +120,17 @@ class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
             skip_empty=True,
         ),
         BritishLibraryBooksConfig(
-            name="1800s",
+            name="1800_1899",
             description="A subset covering texts published during the 1800-1899 of" + _DESCRIPTION,
-            data_urls=_1800s,
+            data_urls=_1800_1899,
             citation=_CITATION,
             url="TODO",
             skip_empty=True,
         ),
         BritishLibraryBooksConfig(
-            name="1700s",
+            name="1700_1799",
             description="Subset covering 1700-1799 of" + _DESCRIPTION,
-            data_urls=_1700s,
+            data_urls=_1700_1799,
             citation=_CITATION,
             url="TODO",
             skip_empty=True,
