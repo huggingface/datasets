@@ -36,14 +36,14 @@ class Image:
     - A :obj:`PIL.Image.Image`: PIL image object.
 
     Args:
-        decode: Whether to decode the image data. If `False`, returns the data in the underlying storage format.
+        decode (:obj:`bool`, default ``True``): Whether to decode the image data. If `False`,
+            returns the underlying dictionary in the format {"path": image_path, "bytes": image_bytes}.
     """
 
     decode: bool = True
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "PIL.Image.Image"
-    # pa_type: ClassVar[Any] = ImageExtensionType
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Image", init=False, repr=False)
 
@@ -59,20 +59,14 @@ class Image:
         Returns:
             :obj:`dict` with "path" and "bytes" fields
         """
-        # Pillow is not needed for encoding strings and dictionaries
-        if isinstance(value, str):
-            return {"path": value, "bytes": None}
-        elif isinstance(value, dict):
-            return value
-
         if config.PIL_AVAILABLE:
             import PIL.Image
         else:
-            raise ImportError(
-                "To support encoding `np.ndarray` and `PIL.Image.Image` objects as images, please install 'Pillow'."
-            )
+            raise ImportError("To support encoding images, please install 'Pillow'.")
 
-        if isinstance(value, np.ndarray):
+        if isinstance(value, str):
+            return {"path": value, "bytes": None}
+        elif isinstance(value, np.ndarray):
             image = PIL.Image.fromarray(value.astype(np.uint8))
             return {"path": None, "bytes": image_to_bytes(image)}
         elif isinstance(value, PIL.Image.Image):
@@ -81,7 +75,7 @@ class Image:
             return {"bytes": value.get("bytes"), "path": value.get("path")}
         else:
             raise ValueError(
-                f"An audio sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
+                f"An image sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
     def decode_example(self, value: dict) -> "PIL.Image.Image":

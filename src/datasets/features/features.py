@@ -1155,7 +1155,7 @@ def require_decoding(feature: FeatureType) -> bool:
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
     else:
-        return hasattr(feature, "decode_example")
+        return hasattr(feature, "decode_example") and feature.decode
 
 
 class Features(dict):

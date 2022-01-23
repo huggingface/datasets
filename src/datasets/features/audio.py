@@ -33,7 +33,8 @@ class Audio:
         sampling_rate (:obj:`int`, optional): Target sampling rate. If `None`, the native sampling rate is used.
         mono (:obj:`bool`, default ``True``): Whether to convert the audio signal to mono by averaging samples across
             channels.
-        decode: Whether to decode the audio data. If `False`, returns the data in the underlying storage format.
+        decode (:obj:`bool`, default ``True``): Whether to decode the audio data. If `False`,
+            returns the underlying dictionary in the format {"path": audio_path, "bytes": audio_bytes}.
     """
 
     sampling_rate: Optional[int] = None
