@@ -289,7 +289,7 @@ def test_dataset_with_image_feature_map(shared_datadir):
     features = Features({"image": Image(), "caption": Value("string")})
     dset = Dataset.from_dict(data, features=features)
 
-    for item in dset:
+    for item in dset._iter(decoded=False):
         assert item.keys() == {"image", "caption"}
         assert item == {"image": {"path": image_path, "bytes": None}, "caption": "cats sleeping"}
 
@@ -300,7 +300,7 @@ def test_dataset_with_image_feature_map(shared_datadir):
         return example
 
     processed_dset = dset.map(process_caption)
-    for item in processed_dset:
+    for item in processed_dset._iter(decoded=False):
         assert item.keys() == {"image", "caption"}
         assert item == {"image": {"path": image_path, "bytes": None}, "caption": "Two cats sleeping"}
 
@@ -311,7 +311,7 @@ def test_dataset_with_image_feature_map(shared_datadir):
         return example
 
     decoded_dset = dset.map(process_image_by_example)
-    for item in decoded_dset:
+    for item in decoded_dset._iter(decoded=False):
         assert item.keys() == {"image", "caption", "mode"}
         assert os.path.samefile(item["image"]["path"], image_path)
         assert item["caption"] == "cats sleeping"
@@ -324,7 +324,7 @@ def test_dataset_with_image_feature_map(shared_datadir):
         return batch
 
     decoded_dset = dset.map(process_image_by_batch, batched=True)
-    for item in decoded_dset:
+    for item in decoded_dset._iter(decoded=False):
         assert item.keys() == {"image", "caption", "mode"}
         assert os.path.samefile(item["image"]["path"], image_path)
         assert item["caption"] == "cats sleeping"
@@ -341,7 +341,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
     features = Features({"image": Image()})
     dset = Dataset.from_dict(data, features=features)
 
-    for item in dset:
+    for item in dset._iter(decoded=False):
         assert item.keys() == {"image"}
         assert item == {
             "image": {
@@ -357,7 +357,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
         return example
 
     decoded_dset = dset.map(process_image_resize_by_example)
-    for item in decoded_dset:
+    for item in decoded_dset._iter(decoded=False):
         assert item.keys() == {"image"}
         assert item == {"image": {"bytes": image_to_bytes(pil_image.resize((100, 100))), "path": None}}
 
@@ -366,7 +366,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
         return batch
 
     decoded_dset = dset.map(process_image_resize_by_batch, batched=True)
-    for item in decoded_dset:
+    for item in decoded_dset._iter(decoded=False):
         assert item.keys() == {"image"}
         assert item == {"image": {"bytes": image_to_bytes(pil_image.resize((100, 100))), "path": None}}
 
@@ -377,7 +377,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
         return example
 
     decoded_dset = dset.map(process_image_resize_by_example_return_np_array)
-    for item in decoded_dset:
+    for item in decoded_dset._iter(decoded=False):
         assert item.keys() == {"image"}
         assert item == {
             "image": {
@@ -391,7 +391,7 @@ def test_dataset_with_image_feature_map_change_image(shared_datadir):
         return batch
 
     decoded_dset = dset.map(process_image_resize_by_batch_return_np_array, batched=True)
-    for item in decoded_dset:
+    for item in decoded_dset._iter(decoded=False):
         assert item.keys() == {"image"}
         assert item == {
             "image": {
