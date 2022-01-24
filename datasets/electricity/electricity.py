@@ -53,10 +53,7 @@ _LICENSE = ""
 
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLS = {
-    "uci": "https://archive.ics.uci.edu/ml/machine-learning-databases/00321/LD2011_2014.txt.zip",
-    "lstnet": "https://raw.githubusercontent.com/laiguokun/multivariate-time-series-data/master/electricity/electricity.txt.gz",
-}
+_URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/00321/LD2011_2014.txt.zip"
 
 
 class Electricty(datasets.GeneratorBasedBuilder):
@@ -108,12 +105,10 @@ class Electricty(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLS
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        urls = _URLS[self.config.name]
-        data_dir = dl_manager.download_and_extract(urls)
+        data_dir = dl_manager.download_and_extract(_URL)
 
         # define the prediction problem # TODO save these in metadata
         freq = "1H"
@@ -124,25 +119,61 @@ class Electricty(datasets.GeneratorBasedBuilder):
         val_ts = []
         test_ts = []
 
-        if self.config.name == "uci":
-            df = pd.read_csv(
+        df = pd.read_csv(
                 Path(data_dir) / "LD2011_2014.txt",
                 sep=";",
                 index_col=0,
                 parse_dates=True,
                 decimal=",",
             )
-            df.sort_index(inplace=True)
-            df = df.resample(freq).sum()
-
+        df.sort_index(inplace=True)
+        df = df.resample(freq).sum()
+            
+        if self.config.name == "uci":
             val_end_date = df.index.max() - pd.Timedelta(prediction_length * rolling_evaluations, "H")
             train_end_date = val_end_date - pd.Timedelta(prediction_length, "H")
+        else:
+            # set time index from 2012 till 2014
+            df = df[(df.index.year >= 2012) & (df.index.year <= 2014)]
 
+            # drop columns which are zero at the start
+            df = df.T[df.iloc[0] > 0].T
+
+            # validation ends at 8/10-th of the time series
+            val_end_date = df.index[int(len(df) * (8 / 10)) - 1]
+            # training ends at 6/10-th of the time series
+            train_end_date = df.index[int(len(df) * (6 / 10)) - 1]
+
+        for cat, (ts_id, ts) in enumerate(df.iteritems()):
+            start_date = ts.ne(0).idxmax()
+
+            sliced_ts = ts[start_date:train_end_date]
+            train_ts.append(
+                to_dict(
+                    target_values=sliced_ts.values,
+                    start=start_date,
+                    cat=[cat],
+                    item_id=ts_id,
+                )
+            )
+
+            sliced_ts = ts[start_date:val_end_date]
+            val_ts.append(
+                to_dict(
+                    target_values=sliced_ts.values,
+                    start=start_date,
+                    cat=[cat],
+                    item_id=ts_id,
+                )
+            )
+
+        for i in range(rolling_evaluations):
             for cat, (ts_id, ts) in enumerate(df.iteritems()):
                 start_date = ts.ne(0).idxmax()
 
-                sliced_ts = ts[start_date:train_end_date]
-                train_ts.append(
+                test_end_date = val_end_date + pd.Timedelta(prediction_length * (i + 1), "H")
+                sliced_ts = ts[start_date:test_end_date]
+                test_ts.append(
                     to_dict(
                         target_values=sliced_ts.values,
                         start=start_date,
@@ -150,81 +181,6 @@ class Electricty(datasets.GeneratorBasedBuilder):
                         item_id=ts_id,
                     )
                 )
-
-                sliced_ts = ts[start_date:val_end_date]
-                val_ts.append(
-                    to_dict(
-                        target_values=sliced_ts.values,
-                        start=start_date,
-                        cat=[cat],
-                        item_id=ts_id,
-                    )
-                )
-
-            for i in range(rolling_evaluations):
-                for cat, (ts_id, ts) in enumerate(df.iteritems()):
-                    start_date = ts.ne(0).idxmax()
-
-                    test_end_date = val_end_date + pd.Timedelta(prediction_length * (i + 1), "H")
-                    sliced_ts = ts[start_date:test_end_date]
-                    test_ts.append(
-                        to_dict(
-                            target_values=sliced_ts.values,
-                            start=start_date,
-                            cat=[cat],
-                            item_id=ts_id,
-                        )
-                    )
-        else:
-            time_index = pd.date_range(
-                start="2012-01-01",
-                freq=freq,
-                periods=26304,
-            )
-            timeseries = pd.read_csv(data_dir, header=None, compression=None)
-            timeseries.set_index(time_index[: len(timeseries)], inplace=True)
-
-            # validation ends at 8/10-th of the time series
-            validation_end = time_index[int(len(time_index) * (8 / 10)) - 1]
-            # training ends at 6/10-th of the time series
-            training_end = time_index[int(len(time_index) * (6 / 10)) - 1]
-
-            for cat, (ts_id, ts) in enumerate(timeseries.iteritems()):
-                sliced_ts = ts[:training_end]
-                if len(sliced_ts) > 0:
-                    train_ts.append(
-                        to_dict(
-                            target_values=sliced_ts.values,
-                            start=sliced_ts.index[0],
-                            cat=[cat],
-                            item_id=ts_id,
-                        )
-                    )
-
-                sliced_ts = ts[:validation_end]
-                if len(sliced_ts) > 0:
-                    val_ts.append(
-                        to_dict(
-                            target_values=sliced_ts.values,
-                            start=sliced_ts.index[0],
-                            cat=[cat],
-                            item_id=ts_id,
-                        )
-                    )
-
-            for i in range(rolling_evaluations):
-                for cat, (ts_id, ts) in enumerate(timeseries.iteritems()):
-                    testing_end = validation_end + pd.Timedelta(prediction_length * (i + 1), "H")
-                    sliced_ts = ts[:testing_end]
-                    if len(sliced_ts) > 0:
-                        test_ts.append(
-                            to_dict(
-                                target_values=sliced_ts.values,
-                                start=sliced_ts.index[0],
-                                cat=[cat],
-                                item_id=ts_id,
-                            )
-                        )
 
         return [
             datasets.SplitGenerator(
