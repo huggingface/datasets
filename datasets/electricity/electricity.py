@@ -184,9 +184,10 @@ class Electricty(datasets.GeneratorBasedBuilder):
             timeseries = pd.read_csv(data_dir, header=None, compression=None)
             timeseries.set_index(time_index[: len(timeseries)], inplace=True)
 
-            # train/val ends at 8/10-th of the time series
-            validation_end = time_index[int(len(time_index) * (8 / 10))]
-            training_end = validation_end - pd.Timedelta(prediction_length, "H")
+            # validation ends at 8/10-th of the time series
+            validation_end = time_index[int(len(time_index) * (8 / 10)) - 1]
+            # training ends at 6/10-th of the time series
+            training_end = time_index[int(len(time_index) * (6 / 10)) - 1]
 
             for cat, (ts_id, ts) in enumerate(timeseries.iteritems()):
                 sliced_ts = ts[:training_end]

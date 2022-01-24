@@ -41,7 +41,6 @@ YAML tags:
 
 This new dataset contains hourly kW electricity consumption time series of 370 Portuguese clients from 2011 to 2014.
 
-
 ### Supported Tasks and Leaderboards
 
 [More Information Needed]
@@ -52,8 +51,7 @@ This new dataset contains hourly kW electricity consumption time series of 370 P
 
 ## Dataset Structure
 
-Data set has no missing values.
-Values are in kW of each 15 min. To convert values in kWh values must be divided by 4.
+Data set has no missing values. Values are in kW of each 15 min and are resampled to hourly frequency. 
 Each column represent one client. Some clients were created after 2011. In these cases consumption were considered zero.
 All time labels report to Portuguese hour. However all days present 96 measures (24*4). Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
 
@@ -74,12 +72,12 @@ A sample from the training set is provided below:
 
 ### Data Fields
 
-For a univariate regular time series we have:
+For this univariate regular time series we have:
 
-- `start`: a `datetime` of the first entry of this time series
-- `target`: an `array[float32]` the actual target value
+- `start`: a `datetime` as string of the first entry of each time serie in the dataset
+- `target`: an `array[float32]` of the actual target values
 
-Given the `freq` and the `start` date, we can assign a datetime to each entry in the target array.
+Given the `freq` and the `start` date, we can assign a datetime to each entry in the target array. Each time serie is also assigned a unique `feat_static_cat` integer id as well as an identifier `item_id`.
 
 
 ### Data Splits
