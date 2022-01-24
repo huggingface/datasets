@@ -1,6 +1,15 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
+annotations_creators: []
+language_creators: []
+languages: []
+licenses: []
+multilinguality: []
+pretty_name: Electricity
+size_categories:
+- unknown
+source_datasets: []
+task_categories: []
+task_ids: []
 ---
 
 # Dataset Card for [Dataset Name]
@@ -159,4 +168,4 @@ DatasetDict({
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+Thanks to [@kashif](https://github.com/kashif) for adding this dataset.
