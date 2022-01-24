@@ -110,12 +110,14 @@ DatasetDict({
 
 ## Dataset Creation
 
+The Electricity Load Diagrams 2011–2014 Dataset was developed by Artur Trindade and shared in UCI Machine Learning Repository. This dataset covers the electricity load of 370 sub- stations in Portugal from the start of 2011 to the end of 2014 with a sampling period of 15 min.
 ### Curation Rationale
 
-[More Information Needed]
+Research and development of load forecasting methods. In particular short-term electricity forecasting.
 
 ### Source Data
 
+This dataset covers the electricity load of 370 sub-stations in Portugal from the start of 2011 to the end of 2014 with a sampling period of 15 min.
 #### Initial Data Collection and Normalization
 
 [More Information Needed]
@@ -140,6 +142,13 @@ DatasetDict({
 
 ## Considerations for Using the Data
 
+**UCI Dataset:**
+- Data set has no missing values.
+- Values are in kW of each 15 min. To convert values in kWh values must be divided by 4.
+- All time labels report to Portuguese hour
+- However all days present 96 measures (24*4). 
+- Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. 
+- Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
 ### Social Impact of Dataset
 
 [More Information Needed]
