@@ -82,7 +82,7 @@ class Image:
         """Decode example image file into image data.
 
         Args:
-            value (obj:`str` or :obj:`dict`): Either a string with the absolute image file path or a dictionary with
+            value (obj:`str` or :obj:`dict`): a string with the absolute image file path, a dictionary with
                 keys:
 
                 - path: String with absolute or relative image file path.
@@ -193,23 +193,15 @@ def objects_to_list_of_image_dicts(
     objs: Union[List[str], List[dict], List[np.ndarray], List["PIL.Image.Image"]]
 ) -> List[dict]:
     """Encode a list of objects into a format suitable for creating an extension array of type :obj:`ImageExtensionType`."""
+    if config.PIL_AVAILABLE:
+        import PIL.Image
+    else:
+        raise ImportError("To support encoding images, please install 'Pillow'.")
 
     if objs:
         _, obj = first_non_null_value(objs)
-
-        # Pillow is not needed for encoding strings and dictionaries
         if isinstance(obj, str):
             return [{"path": obj, "bytes": None} if obj is not None else None for obj in objs]
-        elif isinstance(obj, dict):
-            return objs
-
-        if config.PIL_AVAILABLE:
-            import PIL.Image
-        else:
-            raise ImportError(
-                "To support encoding `np.ndarray` and `PIL.Image.Image` objects as images, please install 'Pillow'."
-            )
-
         if isinstance(obj, np.ndarray):
             return [
                 {"path": None, "bytes": image_to_bytes(PIL.Image.fromarray(obj.astype(np.uint8)))}
