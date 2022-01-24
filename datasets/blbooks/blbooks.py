@@ -225,7 +225,7 @@ class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
                 if not path.endswith(".gz"):
                     continue
                 with gzip.open(file) as json_l:
-                    for row in json_l.readlines():
+                    for row in json_l:
                         data = json.loads(row)
                         empty_pg = data["empty_pg"]
                         if skip_empty and empty_pg:
