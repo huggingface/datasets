@@ -8,7 +8,7 @@ from ..table import array_cast
 from ..utils.streaming_download_manager import xopen
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class Audio:
     """Audio Feature to extract audio data from an audio file.
 

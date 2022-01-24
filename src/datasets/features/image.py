@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class Image:
     """Image feature to read image data from an image file.
 
