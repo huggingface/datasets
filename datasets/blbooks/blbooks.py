@@ -148,7 +148,7 @@ class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = "all"
+    DEFAULT_CONFIG_NAME = "1500_1899"
 
     def _info(self):
         return datasets.DatasetInfo(
