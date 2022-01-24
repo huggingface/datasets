@@ -59,7 +59,16 @@ from tqdm.auto import tqdm
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, FeatureType, Sequence, Value, _ArrayXD, pandas_types_mapper
+from .features import (
+    ClassLabel,
+    Features,
+    FeatureType,
+    Sequence,
+    Value,
+    _ArrayXD,
+    decode_nested_example,
+    pandas_types_mapper,
+)
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -99,18 +108,12 @@ class LazyDict(UserDict):
             else {}
         )
 
-    def values(self):
-        return self.data.values()
-
-    def items(self):
-        return self.data.items()
-
 
 class Example(LazyDict):
     def __getitem__(self, key):
         value = super().__getitem__(key)
         if self.features and key in self.features:
-            value = self.features[key].decode_example(value) if value is not None else None
+            value = decode_nested_example(self.features[key], value) if value is not None else None
             self[key] = value
             del self.features[key]
         return value
@@ -120,7 +123,9 @@ class Batch(LazyDict):
     def __getitem__(self, key):
         values = super().__getitem__(key)
         if self.features and key in self.features:
-            values = [self.features[key].decode_example(value) if value is not None else None for value in values]
+            values = [
+                decode_nested_example(self.features[key], value) if value is not None else None for value in values
+            ]
             self[key] = values
             del self.features[key]
         return values
