@@ -195,7 +195,7 @@ The publication dates of books in the data cover a broad period of time (1500-19
 
 #### Optical Character Recognition
 
-The digitised books in this collection were transformed into machine-readable text using Optical Character Recognition (OCR) software. The text produced via OCR software will usually include some errors. These errors include; mistakes at the character level; for example, an `i’ is mistaken for an `l`, at the word level or across significant passages of text.
+The digitised books in this collection were transformed into machine-readable text using Optical Character Recognition (OCR) software. The text produced via OCR software will usually include some errors. These errors include; mistakes at the character level; for example, an `i` is mistaken for an `l`, at the word level or across significant passages of text.
 
 The books in this dataset can pose some additional challenges for OCR software. OCR errors can stem from:
 
