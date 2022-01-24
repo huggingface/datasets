@@ -234,6 +234,23 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
         return fs.isdir(main_hop)
 
 
+def xrelpath(path, start=None):
+    """Extend `os.path.relpath` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+        start (:obj:`str`): Start URL directory path.
+
+    Returns:
+        :obj:`str`
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.path.relpath(main_hop, start=start) if start else os.path.relpath(main_hop)
+    else:
+        return os.path.relpath(main_hop, start=start.split("::")[0]) if start else os.path.relpath(main_hop)
+
+
 def _as_posix(path: Path):
     """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slashes after protocol.
 
