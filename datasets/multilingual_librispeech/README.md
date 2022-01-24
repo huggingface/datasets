@@ -16,7 +16,7 @@ languages:
 licenses:
 - cc-by-4.0
 multilinguality:
-- monolingual
+- multilingual
 paperswithcode_id: librispeech-1
 size_categories:
 - 100K<n<1M
