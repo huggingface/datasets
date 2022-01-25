@@ -11,7 +11,7 @@ multilinguality:
 - monolingual
 pretty_name: consumer-finance-complaints
 size_categories:
-- unknown
+- 1M<n<10M
 source_datasets:
 - original
 task_categories:
