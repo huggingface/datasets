@@ -88,9 +88,8 @@ class Audio:
             dict
         """
         if not self.decode:
-            raise RuntimeError(
-                "Decoding is disabled for this feature. Set the `decode` attribute to `True` to enable it."
-            )
+            raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
+
         path, file = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
         if path is None and file is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
