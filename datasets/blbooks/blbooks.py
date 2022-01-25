@@ -132,15 +132,16 @@ class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
             description="All periods of" + _DESCRIPTION,
             data_urls=_ALL,
             citation=_CITATION,
-            url="TODO",
+            url=URL,
             skip_empty=True,
         ),
         BritishLibraryBooksConfig(
             name="1800_1899",
-            description="A subset covering texts published during the 1800-1899 of" + _DESCRIPTION,
+            description="A subset covering texts published during the 1800-1899 of"
+            + _DESCRIPTION,
             data_urls=_1800_1899,
             citation=_CITATION,
-            url="TODO",
+            url=URL,
             skip_empty=True,
         ),
         BritishLibraryBooksConfig(
@@ -148,7 +149,7 @@ class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
             description="Subset covering 1700-1799 of" + _DESCRIPTION,
             data_urls=_1700_1799,
             citation=_CITATION,
-            url="TODO",
+            url=URL,
             skip_empty=True,
         ),
         BritishLibraryBooksConfig(
