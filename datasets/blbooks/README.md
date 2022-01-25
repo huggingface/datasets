@@ -70,11 +70,11 @@ annotations_creators:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
+- **Homepage:** https://www.bl.uk/collection-guides/digitised-printed-books
+- **Repository:** https://doi.org/10.21250/db14
 - **Paper:**
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:** labs@bl.uk
 
 ### Dataset Summary
 
