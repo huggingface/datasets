@@ -22,9 +22,8 @@ import datasets
 from datasets.tasks import LanguageModeling
 
 
-"TODO finalize citation"
 _CITATION = """\
-@misc{bllabs2021,
+@misc{BritishLibraryBooks2021,
   author = {British Library Labs},
   title = {Digitised Books. c. 1510 - c. 1900. JSONL (OCR derived text + metadata)},
   year = {2021},
