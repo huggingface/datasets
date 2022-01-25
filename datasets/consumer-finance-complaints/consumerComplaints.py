@@ -141,7 +141,7 @@ _PRODUCT_CATEGORIES = [
 ]
 
 
-class consumerComplaints(datasets.GeneratorBasedBuilder):
+class ConsumerComplaints(datasets.GeneratorBasedBuilder):
     """Consumer Complaints dataset."""
 
     def _info(self):
