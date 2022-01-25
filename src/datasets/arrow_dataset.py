@@ -59,7 +59,16 @@ from tqdm.auto import tqdm
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, FeatureType, Sequence, Value, _ArrayXD, pandas_types_mapper
+from .features import (
+    ClassLabel,
+    Features,
+    FeatureType,
+    Sequence,
+    Value,
+    _ArrayXD,
+    decode_nested_example,
+    pandas_types_mapper,
+)
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -91,27 +100,20 @@ logger = logging.get_logger(__name__)
 
 
 class LazyDict(UserDict):
-    def __init__(self, data, features=None, decoding=True):
+    def __init__(self, data, features=None):
         self.data = data
         self.features = (
-            {key: feature for key, feature in features.items() if hasattr(feature, "decode_example")}
+            {key: feature for key, feature in features.items() if features._column_requires_decoding[key]}
             if features
             else {}
         )
-        self.decoding = decoding
-
-    def values(self):
-        return self.data.values()
-
-    def items(self):
-        return self.data.items()
 
 
 class Example(LazyDict):
     def __getitem__(self, key):
         value = super().__getitem__(key)
-        if self.decoding and self.features and key in self.features:
-            value = self.features[key].decode_example(value) if value is not None else None
+        if self.features and key in self.features:
+            value = decode_nested_example(self.features[key], value) if value is not None else None
             self[key] = value
             del self.features[key]
         return value
@@ -120,8 +122,10 @@ class Example(LazyDict):
 class Batch(LazyDict):
     def __getitem__(self, key):
         values = super().__getitem__(key)
-        if self.decoding and self.features and key in self.features:
-            values = [self.features[key].decode_example(value) if value is not None else None for value in values]
+        if self.features and key in self.features:
+            values = [
+                decode_nested_example(self.features[key], value) if value is not None else None for value in values
+            ]
             self[key] = values
             del self.features[key]
         return values
@@ -1650,7 +1654,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Number of rows in the dataset."""
         return self.num_rows
 
-    def __iter__(self):
+    def _iter(self, decoded: bool = True):
         """Iterate through the examples.
 
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
@@ -1659,8 +1663,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         for index in range(self.num_rows):
             yield self._getitem(
                 index,
-                decoded=False,
+                decoded=decoded,
             )
+
+    def __iter__(self):
+        """Iterate through the examples.
+
+        If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
+        selected format.
+        """
+        return self._iter()
 
     def __repr__(self):
         return f"Dataset({{\n    features: {list(self.features.keys())},\n    num_rows: {self.num_rows}\n}})"
@@ -2436,7 +2448,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     input_dataset = self
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
+                pbar_iterable = (
+                    input_dataset._iter(decoded=False) if not batched else range(0, len(input_dataset), batch_size)
+                )
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
                 pbar = utils.tqdm(

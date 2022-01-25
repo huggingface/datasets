@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import partial
+
 # Lint as: python3
 from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
 
@@ -20,7 +22,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import _ArrayXDExtensionType, _is_zero_copy_only, pandas_types_mapper
+from ..features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
 from ..utils import no_op_if_value_is_null
 
@@ -233,9 +235,9 @@ class PandasFeaturesDecoder:
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
         decode = (
             {
-                column_name: no_op_if_value_is_null(feature.decode_example)
+                column_name: no_op_if_value_is_null(partial(decode_nested_example, feature))
                 for column_name, feature in self.features.items()
-                if column_name in row.columns and hasattr(feature, "decode_example")
+                if self.features._column_requires_decoding[column_name]
             }
             if self.features
             else {}
@@ -246,8 +248,8 @@ class PandasFeaturesDecoder:
 
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
         decode = (
-            no_op_if_value_is_null(self.features[column_name].decode_example)
-            if self.features and column_name in self.features and hasattr(self.features[column_name], "decode_example")
+            no_op_if_value_is_null(partial(decode_nested_example, self.features[column_name]))
+            if self.features and column_name in self.features and self.features._column_requires_decoding[column_name]
             else None
         )
         if decode:

@@ -106,6 +106,9 @@ def test_audio_decode_example(shared_datadir):
     assert decoded_example["array"].shape == (202311,)
     assert decoded_example["sampling_rate"] == 44100
 
+    with pytest.raises(RuntimeError):
+        Audio(decode=False).decode_example(audio_path)
+
 
 @require_sndfile
 def test_audio_resampling(shared_datadir):
@@ -398,7 +401,7 @@ def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
     dset = Dataset.from_dict(data, features=features)
 
     expected_audio = features.encode_batch(data)["audio"][0]
-    for item in dset:
+    for item in dset._iter(decoded=False):
         assert item.keys() == {"audio", "text"}
         assert item == {"audio": expected_audio, "text": "Hello"}
 
@@ -407,7 +410,7 @@ def test_dataset_with_audio_feature_map_is_not_decoded(shared_datadir):
         return example
 
     processed_dset = dset.map(process_text)
-    for item in processed_dset:
+    for item in processed_dset._iter(decoded=False):
         assert item.keys() == {"audio", "text"}
         assert item == {"audio": expected_audio, "text": "Hello World!"}
 
@@ -424,7 +427,7 @@ def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
         return example
 
     decoded_dset = dset.map(process_audio_sampling_rate_by_example)
-    for item in decoded_dset:
+    for item in decoded_dset._iter(decoded=False):
         assert item.keys() == {"audio", "text", "double_sampling_rate"}
         assert item["double_sampling_rate"] == 88200
 
@@ -436,7 +439,7 @@ def test_dataset_with_audio_feature_map_is_decoded(shared_datadir):
         return batch
 
     decoded_dset = dset.map(process_audio_sampling_rate_by_batch, batched=True)
-    for item in decoded_dset:
+    for item in decoded_dset._iter(decoded=False):
         assert item.keys() == {"audio", "text", "double_sampling_rate"}
         assert item["double_sampling_rate"] == 88200
 
@@ -526,3 +529,69 @@ def test_dataset_with_audio_feature_loaded_from_cache():
     # load from cache
     ds = load_dataset("patrickvonplaten/librispeech_asr_dummy", "clean", split="validation")
     assert isinstance(ds, Dataset)
+
+
+def test_dataset_with_audio_feature_undecoded(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data = {"audio": [audio_path]}
+    features = Features({"audio": Audio(decode=False)})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"] == {"path": audio_path, "bytes": None}
+    batch = dset[:1]
+    assert batch.keys() == {"audio"}
+    assert len(batch["audio"]) == 1
+    assert batch["audio"][0] == {"path": audio_path, "bytes": None}
+    column = dset["audio"]
+    assert len(column) == 1
+    assert column[0] == {"path": audio_path, "bytes": None}
+
+
+def test_formatted_dataset_with_audio_feature_undecoded(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data = {"audio": [audio_path]}
+    features = Features({"audio": Audio(decode=False)})
+    dset = Dataset.from_dict(data, features=features)
+    with dset.formatted_as("numpy"):
+        item = dset[0]
+        assert item.keys() == {"audio"}
+        assert item["audio"] == {"path": audio_path, "bytes": None}
+        batch = dset[:1]
+        assert batch.keys() == {"audio"}
+        assert len(batch["audio"]) == 1
+        assert batch["audio"][0] == {"path": audio_path, "bytes": None}
+        column = dset["audio"]
+        assert len(column) == 1
+        assert column[0] == {"path": audio_path, "bytes": None}
+
+    with dset.formatted_as("pandas"):
+        item = dset[0]
+        assert item.shape == (1, 1)
+        assert item.columns == ["audio"]
+        assert item["audio"][0] == {"path": audio_path, "bytes": None}
+        batch = dset[:1]
+        assert batch.shape == (1, 1)
+        assert batch.columns == ["audio"]
+        assert batch["audio"][0] == {"path": audio_path, "bytes": None}
+        column = dset["audio"]
+        assert len(column) == 1
+        assert column[0] == {"path": audio_path, "bytes": None}
+
+
+def test_dataset_with_audio_feature_map_undecoded(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.wav")
+    data = {"audio": [audio_path]}
+    features = Features({"audio": Audio(decode=False)})
+    dset = Dataset.from_dict(data, features=features)
+
+    def assert_audio_example_undecoded(example):
+        assert example["audio"] == {"path": audio_path, "bytes": None}
+
+    dset.map(assert_audio_example_undecoded)
+
+    def assert_audio_batch_undecoded(batch):
+        for audio in batch["audio"]:
+            assert audio == {"path": audio_path, "bytes": None}
+
+    dset.map(assert_audio_batch_undecoded, batched=True)

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 _IMAGE_COMPRESSION_FORMATS: Optional[List[str]] = None
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class Image:
     """Image feature to read image data from an image file.
 
@@ -34,12 +34,16 @@ class Image:
 
     - An :obj:`np.ndarray`: NumPy array representing an image.
     - A :obj:`PIL.Image.Image`: PIL image object.
+
+    Args:
+        decode (:obj:`bool`, default ``True``): Whether to decode the image data. If `False`,
+            returns the underlying dictionary in the format {"path": image_path, "bytes": image_bytes}.
     """
 
+    decode: bool = True
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "PIL.Image.Image"
-    # pa_type: ClassVar[Any] = ImageExtensionType
     pa_type: ClassVar[Any] = pa.struct({"bytes": pa.binary(), "path": pa.string()})
     _type: str = field(default="Image", init=False, repr=False)
 
@@ -71,7 +75,7 @@ class Image:
             return {"bytes": value.get("bytes"), "path": value.get("path")}
         else:
             raise ValueError(
-                f"An audio sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
+                f"An image sample should have one of 'path' or 'bytes' but they are missing or None in {value}."
             )
 
     def decode_example(self, value: dict) -> "PIL.Image.Image":
@@ -80,12 +84,16 @@ class Image:
         Args:
             value (obj:`str` or :obj:`dict`): a string with the absolute image file path, a dictionary with
                 keys:
+
                 - path: String with absolute or relative image file path.
                 - bytes: The bytes of the image file.
 
         Returns:
             :obj:`PIL.Image.Image`
         """
+        if not self.decode:
+            raise RuntimeError("Decoding is disabled for this feature. Please use Image(decode=True) instead.")
+
         if config.PIL_AVAILABLE:
             import PIL.Image
         else:
