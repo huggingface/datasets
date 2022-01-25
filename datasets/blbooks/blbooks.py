@@ -53,6 +53,7 @@ _DATA_URLS = {
     "1880_1889": _BASE_URL + "ec3b8545-775b-47bd-885d-ce895263709e?locale=en",
     "1890_1899": _BASE_URL + "54ed2842-089a-439a-b751-2179b3ffba28?locale=en",
 }
+
 _ALL = list(_DATA_URLS.values())
 _1800_1899 = [
     _DATA_URLS.get(subset)
@@ -69,7 +70,6 @@ _1800_1899 = [
         "1890_1899",
     ]
 ]
-
 _1700_1799 = [_DATA_URLS.get(subset) for subset in ["1700_1799"]]
 _1510_1699 = [_DATA_URLS.get(subset) for subset in ["1510_1699"]]
 
@@ -137,8 +137,7 @@ class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
         ),
         BritishLibraryBooksConfig(
             name="1800_1899",
-            description="A subset covering texts published during the 1800-1899 of"
-            + _DESCRIPTION,
+            description="A subset covering texts published during the 1800-1899 of" + _DESCRIPTION,
             data_urls=_1800_1899,
             citation=_CITATION,
             url=URL,
