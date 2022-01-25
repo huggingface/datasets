@@ -182,7 +182,7 @@ class ConsumerComplaints(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         path = dl_manager.download_and_extract(_url)
-        path = f"{path}/complaints.csv"
+        path = os.path.join(path, "complaints.csv")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
