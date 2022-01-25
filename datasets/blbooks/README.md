@@ -525,7 +525,7 @@ The books are licensed under the [CC Public Domain Mark 1.0](https://creativecom
 ### Citation Information
 
 ```bibtext
-@misc{bllabs2021,
+@misc{bBritishLibraryBooks2021,
   author = {British Library Labs},
   title = {Digitised Books. c. 1510 - c. 1900. JSONL (OCR derived text + metadata)},
   year = {2021},
