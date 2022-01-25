@@ -133,10 +133,10 @@ class Electricty(datasets.GeneratorBasedBuilder):
             val_end_date = df.index.max() - pd.Timedelta(prediction_length * rolling_evaluations, "H")
             train_end_date = val_end_date - pd.Timedelta(prediction_length, "H")
         else:
-            # set time index from 2012 till 2014
+            # concate the time series to be from 2012 till 2014
             df = df[(df.index.year >= 2012) & (df.index.year <= 2014)]
 
-            # drop columns which are zero at the start
+            # drop time series which are zero at the start
             df = df.T[df.iloc[0] > 0].T
 
             # validation ends at 8/10-th of the time series
