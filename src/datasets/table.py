@@ -958,7 +958,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     Args:
         array (pa.Array): PyArrow array to cast
         pa_type (pa.DataType): target PyArrow type
-        allow_number_to_str (bool, optional): Weheter to allow casting numbers to strings.
+        allow_number_to_str (bool, default ``True``): Whether to allow casting numbers to strings.
             Defaults to True.
 
     Raises:
@@ -1029,7 +1029,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     Args:
         array (pa.Array): the PyArrow array to cast
         feature (FeatureType): the target feature type
-        allow_number_to_str (bool, optional): Weheter to allow casting numbers to strings.
+        allow_number_to_str (bool, default ``True``): Whether to allow casting numbers to strings.
             Defaults to True.
 
     Raises:

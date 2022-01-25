@@ -1155,7 +1155,7 @@ def require_decoding(feature: FeatureType) -> bool:
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
     else:
-        return hasattr(feature, "decode_example")
+        return hasattr(feature, "decode_example") and feature.decode
 
 
 class Features(dict):
@@ -1335,7 +1335,7 @@ class Features(dict):
             :obj:`list[Any]`
         """
         return (
-            [self[column_name].decode_example(value) if value is not None else None for value in column]
+            [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
             if self._column_requires_decoding[column_name]
             else column
         )
@@ -1352,7 +1352,7 @@ class Features(dict):
         decoded_batch = {}
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
-                [self[column_name].decode_example(value) if value is not None else None for value in column]
+                [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
                 if self._column_requires_decoding[column_name]
                 else column
             )
