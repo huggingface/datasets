@@ -157,7 +157,7 @@ class BritishLibraryBooks(datasets.GeneratorBasedBuilder):
             description="Subset covering 1510-1699 of " + _DESCRIPTION,
             data_urls=_1510_1699,
             citation=_CITATION,
-            url="TODO",
+            url=URL,
             skip_empty=True,
         ),
     ]
