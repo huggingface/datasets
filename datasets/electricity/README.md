@@ -61,9 +61,7 @@ This new dataset contains hourly kW electricity consumption time series of 370 P
 ## Dataset Structure
 
 Data set has no missing values. Values are in kW of each 15 min and are resampled to hourly frequency. 
-Each column represent one client. Some clients were created after 2011. In these cases consumption were considered zero.
-All time labels report to Portuguese hour. However all days present 96 measures (24*4). Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
-
+Each column represent one client. Some clients were created after 2011. In these cases consumption were considered zero. All time labels report to Portuguese hour. However all days present 96 measures (24*4). Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
 
 
 ### Data Instances
@@ -79,6 +77,15 @@ A sample from the training set is provided below:
 }
 ```
 
+We have two configurations `uci` and `lstnet`, which are specificed as as follows. 
+
+The time series are resampled to hourly frequency. We test on 7 rolling windows of prediction lenght of 24. 
+
+The `uci` validation therefore ends 24*7 time steps before the end of each time series. The training split ends 24 time steps before the end of the validation split. 
+
+For the `lsnet` configuration we split the training window to be 0.6 of the full time series and the validation is the 0.8-th time series and the last 0.2 time windows are used as the test set of 7 rolling windows of the 24 time steps. Finally as in the LSTNet paper we only consider time series which are active in the year 2012-2014 which leaves us with 320 time series.
+
+
 ### Data Fields
 
 For this univariate regular time series we have:
@@ -91,26 +98,49 @@ Given the `freq` and the `start` date, we can assign a datetime to each entry in
 
 ### Data Splits
 
+#### UCI configuration
+
+```
+DatasetDict({
+    train: Dataset({
+        features: ['start', 'target', 'feat_static_cat', 'item_id'],
+        num_rows: 370
+    })
+    test: Dataset({
+        features: ['start', 'target', 'feat_static_cat', 'item_id'],
+        num_rows: 2590
+    })
+    validation: Dataset({
+        features: ['start', 'target', 'feat_static_cat', 'item_id'],
+        num_rows: 370
+    })
+})
+```
+
+### LSTNet configuration
+
+
 ```python
 DatasetDict({
     train: Dataset({
         features: ['start', 'target', 'feat_static_cat', 'item_id'],
-        num_rows: 321
+        num_rows: 320
     })
     test: Dataset({
         features: ['start', 'target', 'feat_static_cat', 'item_id'],
-        num_rows: 2247
+        num_rows: 2240
     })
     validation: Dataset({
         features: ['start', 'target', 'feat_static_cat', 'item_id'],
-        num_rows: 321
+        num_rows: 320
     })
 })
 ```
 
 ## Dataset Creation
 
-The Electricity Load Diagrams 2011–2014 Dataset was developed by Artur Trindade and shared in UCI Machine Learning Repository. This dataset covers the electricity load of 370 sub- stations in Portugal from the start of 2011 to the end of 2014 with a sampling period of 15 min.
+The Electricity Load Diagrams 2011–2014 Dataset was developed by Artur Trindade and shared in UCI Machine Learning Repository. This dataset covers the electricity load of 370 substations in Portugal from the start of 2011 to the end of 2014 with a sampling period of 15 min. We will resample this to hourly time series.
+
 ### Curation Rationale
 
 Research and development of load forecasting methods. In particular short-term electricity forecasting.
