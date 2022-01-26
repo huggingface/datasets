@@ -15,7 +15,7 @@
 """TED TALKS IWSLT: Web Inventory of Transcribed and Translated Ted Talks in 109 languages."""
 
 
-import os
+import io
 import xml.etree.ElementTree as ET
 import zipfile
 from collections import defaultdict
@@ -263,88 +263,73 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
-
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        my_urls = _URL
-        language_pair = self.config.language_pair
-        year = self.config.year
-
-        data_dir = dl_manager.download_and_extract(my_urls)
-
-        zip_file_pair0 = os.path.join(data_dir, _YEAR_FOLDER[year] + "/ted_" + language_pair[0] + _YEAR[year] + ".zip")
-        zip_file_pair1 = os.path.join(data_dir, _YEAR_FOLDER[year] + "/ted_" + language_pair[1] + _YEAR[year] + ".zip")
+        data_dir = dl_manager.download(_URL)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": [zip_file_pair0, zip_file_pair1],
-                    "split": "train",
+                    "files": dl_manager.iter_archive(data_dir),
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, files):
         """Yields examples."""
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
-        source = filepath[0]
-        target = filepath[1]
 
-        language_pair = self.config.name.split("_")
+        def parse_zip_file(path, file):
+            def et_to_dict(tree):
+                """This is used to convert the xml to a list of dicts"""
 
-        def et_to_dict(tree):
-            """This is used to convert the xml to a list of dicts"""
+                dct = {tree.tag: {} if tree.attrib else None}
+                children = list(tree)
+                if children:
+                    dd = defaultdict(list)
+                    for dc in map(et_to_dict, children):
+                        for k, v in dc.items():
+                            dd[k].append(v)
+                    dct = {tree.tag: dd}
+                if tree.attrib:
+                    dct[tree.tag].update((k, v) for k, v in tree.attrib.items())
+                if tree.text:
+                    text = tree.text.strip()
+                    if children or tree.attrib:
+                        if text:
+                            dct[tree.tag]["text"] = text
+                    else:
+                        dct[tree.tag] = text
+                return dct
 
-            dct = {tree.tag: {} if tree.attrib else None}
-            children = list(tree)
-            if children:
-                dd = defaultdict(list)
-                for dc in map(et_to_dict, children):
-                    for k, v in dc.items():
-                        dd[k].append(v)
-                dct = {tree.tag: dd}
-            if tree.attrib:
-                dct[tree.tag].update((k, v) for k, v in tree.attrib.items())
-            if tree.text:
-                text = tree.text.strip()
-                if children or tree.attrib:
-                    if text:
-                        dct[tree.tag]["text"] = text
-                else:
-                    dct[tree.tag] = text
-            return dct
+            with zipfile.ZipFile(io.BytesIO(file)) as zf:
+                try:
+                    tree = ET.parse(zf.open(path.split("/")[-1][:-3] + "xml"))
+                    root = tree.getroot()
+                    talks = et_to_dict(root).get("xml").get("file")
+                    ids = [talk.get("head")[0].get("talkid") for talk in talks]
+                except Exception as pe:
+                    logger.warning(f"ERROR: {pe}")
+                    logger.warning(f"This likely means that you have a malformed XML file!")
+                    ids = []
+            return talks, ids
 
-        if os.path.exists(source) and os.path.exists(target):
+        language_pair = self.config.language_pair
+        year = self.config.year
 
-            with zipfile.ZipFile(source) as zf_source:
-                with zipfile.ZipFile(target) as zf_target:
-                    try:
-                        tree_source = ET.parse(zf_source.open(source.split("/")[-1][:-3] + "xml"))
-                        root_source = tree_source.getroot()
-                        source_talks = et_to_dict(root_source).get("xml").get("file")
+        source_file_path = _YEAR_FOLDER[year] + "/ted_" + language_pair[0] + _YEAR[year] + ".zip"
+        target_file_path = _YEAR_FOLDER[year] + "/ted_" + language_pair[1] + _YEAR[year] + ".zip"
 
-                        tree_target = ET.parse(zf_target.open(target.split("/")[-1][:-3] + "xml"))
-                        root_target = tree_target.getroot()
-                        target_talks = et_to_dict(root_target).get("xml").get("file")
+        source_talks, source_ids = None, None
+        target_talks, target_ids = None, None
+        for path, file in files:
+            if source_ids is not None and target_ids is not None:
+                break
 
-                        source_ids = [talk.get("head")[0].get("talkid") for talk in source_talks]
-                        target_ids = [talk.get("head")[0].get("talkid") for talk in target_talks]
-                    except Exception as pe:
-                        logger.warning(f"ERROR: {pe}")
-                        logger.warning(
-                            f"This likely means that you have a malformed XML file!\nEither {source} or {target}\n"
-                        )
-                        source_ids = list()
-                        target_ids = list()
-        else:
-            logger.warning(f"File doesn't exist {source} or {target}")
+            if source_ids is None and path.endswith(source_file_path):
+                source_talks, source_ids = parse_zip_file(path, file.read())
+            elif target_ids is None and path.endswith(target_file_path):
+                target_talks, target_ids = parse_zip_file(path, file.read())
+
+        if source_ids is None or target_ids is None:
             source_ids = list()
             target_ids = list()
 
