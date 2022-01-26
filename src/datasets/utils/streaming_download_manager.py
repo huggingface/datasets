@@ -248,7 +248,7 @@ def xrelpath(path, start=None):
     if is_local_path(main_hop):
         return os.path.relpath(main_hop, start=start) if start else os.path.relpath(main_hop)
     else:
-        return os.path.relpath(main_hop, start=start.split("::")[0]) if start else os.path.relpath(main_hop)
+        return posixpath.relpath(main_hop, start=start.split("::")[0]) if start else os.path.relpath(main_hop)
 
 
 def _as_posix(path: Path):
