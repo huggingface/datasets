@@ -356,8 +356,8 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
 @pytest.mark.parametrize(
     "input_path, start_path, expected_path",
     [
-        ("dir1/dir2/file.txt", "dir1", "dir2/file.txt"),
-        ("dir1/dir2/file.txt", "dir1/dir2", "file.txt"),
+        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1", "dir2/file.txt".replace("/", os.path.sep)),
+        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1/dir2".replace("/", os.path.sep), "file.txt"),
         ("zip://file.txt::https://host.com/archive.zip", "zip://::https://host.com/archive.zip", "file.txt"),
         (
             "zip://folder/file.txt::https://host.com/archive.zip",
