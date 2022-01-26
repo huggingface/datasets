@@ -22,6 +22,7 @@ task_ids:
 - semantic-similarity-classification
 - semantic-similarity-scoring
 paperswithcode_id: refresd
+pretty_name: Rationalized English-French Semantic Divergences
 ---
 
 # Dataset Card for REFreSD Dataset

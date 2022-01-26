@@ -162,7 +162,7 @@ class update_main:
             logs.append(repr(e))
         if "Your branch is up to date with" not in repo.git.status():
             logs.append(repo.git.status())
-            logs = "\n".join(logs)
+            logs = "\n".join(str(log) for log in logs)
             logger.warning(f"[{dataset_name}] Push failed")
             logger.warning(f"[{dataset_name}] Git logs: \n{logs}")
             return False
@@ -216,14 +216,14 @@ if __name__ == "__main__":
     dataset_names = sys.argv[1:]
     if dataset_names:
         if dataset_names[0] == "--all":
-            dataset_names = sorted([d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir()])
+            dataset_names = sorted([d.name for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*") if d.is_dir()])
         if dataset_names[0] == "--auto":
             if new_tag:
                 logger.info(
                     "All the datasets will be updated since --auto was used and "
                     f"this is a new release {new_tag.name} of the `datasets` library."
                 )
-                dataset_names = sorted([d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir()])
+                dataset_names = sorted([d.name for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*") if d.is_dir()])
             else:
                 logger.info(
                     "All the datasets that have been changed in the latest commit of `datasets` will be updated "

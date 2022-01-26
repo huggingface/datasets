@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: null
+pretty_name: Microsoft Research Sequential Question Answering
 ---
 
 # Dataset Card for Microsoft Research Sequential Question Answering

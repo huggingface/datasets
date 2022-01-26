@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: lener-br
+pretty_name: leNER-br
 ---
 
 # Dataset Card for leNER-br

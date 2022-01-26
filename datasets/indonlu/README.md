@@ -87,6 +87,7 @@ task_ids:
   wrete:
   - semantic-similarity-classification
 paperswithcode_id: indonlu-benchmark
+pretty_name: IndoNLU
 ---
 
 

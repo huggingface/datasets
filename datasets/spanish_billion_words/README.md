@@ -20,6 +20,7 @@ task_ids:
 - language-modeling
 - other-other-pretraining-language-models
 paperswithcode_id: sbwce
+pretty_name: Spanish Billion Word Corpus and Embeddings
 ---
 
 # Dataset Card for Spanish Billion Words

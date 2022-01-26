@@ -21,6 +21,7 @@ task_ids:
 - named-entity-recognition
 - part-of-speech-tagging
 paperswithcode_id: null
+pretty_name: thainer
 ---
 
 # Dataset Card for `thainer`

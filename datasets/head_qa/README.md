@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - multiple-choice-qa
 paperswithcode_id: headqa
+pretty_name: HEAD-QA
 ---
 
 # Dataset Card for HEAD-QA
