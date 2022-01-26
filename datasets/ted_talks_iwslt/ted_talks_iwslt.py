@@ -308,7 +308,7 @@ class TedTalksIWSLT(datasets.GeneratorBasedBuilder):
                     ids = [talk.get("head")[0].get("talkid") for talk in talks]
                 except Exception as pe:
                     logger.warning(f"ERROR: {pe}")
-                    logger.warning(f"This likely means that you have a malformed XML file!")
+                    logger.warning("This likely means that you have a malformed XML file!")
                     ids = []
             return talks, ids
 
