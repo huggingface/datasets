@@ -44,7 +44,7 @@ task_ids: []
 - **Homepage:** [Electricity Load 2011-2014](https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014)
 - **Paper:** [Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks
 ](https://dl.acm.org/doi/10.1145/3209978.3210006)
-- **Point of Contact:** [Artur Trindade](artur.trindade@elergone.pt)
+- **Point of Contact:** [Artur Trindade](mailto:artur.trindade@elergone.pt)
 
 ### Dataset Summary
 
