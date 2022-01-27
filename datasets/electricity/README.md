@@ -148,6 +148,7 @@ Research and development of load forecasting methods. In particular short-term e
 ### Source Data
 
 This dataset covers the electricity load of 370 sub-stations in Portugal from the start of 2011 to the end of 2014 with a sampling period of 15 min.
+
 #### Initial Data Collection and Normalization
 
 [More Information Needed]
@@ -172,13 +173,44 @@ This dataset covers the electricity load of 370 sub-stations in Portugal from th
 
 ## Considerations for Using the Data
 
-**UCI Dataset:**
+### UCI Metadata:
+
+```json
+{
+    "freq": "1H",
+    "prediction_length": 24,
+    "feat_static_cat": [
+        {
+            "name": "feat_static_cat",
+            "cardinality": "370"
+        }
+    ]
+}
+```
+
+### LSTNet Metadata:
+
+```json
+{
+    "freq": "1H",
+    "prediction_length": 24,
+    "feat_static_cat": [
+        {
+            "name": "feat_static_cat",
+            "cardinality": "320"
+        }
+    ]
+}
+```
+
+### Notes
+
 - Data set has no missing values.
-- Values are in kW of each 15 min. To convert values in kWh values must be divided by 4.
-- All time labels report to Portuguese hour
-- However all days present 96 measures (24*4). 
+- Values are in kW of each 15 min rescaled to hourly. To convert values in kWh values must be divided by 4.
+- All time labels report to Portuguese hour, however all days present 96 measures (24*4). 
 - Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. 
 - Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
+
 ### Social Impact of Dataset
 
 [More Information Needed]
