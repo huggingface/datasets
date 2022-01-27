@@ -2916,7 +2916,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if generator is None:
             if seed is None:
                 _, seed, pos, *_ = np.random.get_state()
-                seed = seed[pos]
+                seed = seed[0] if pos == 624 else seed[pos]
                 _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
 
