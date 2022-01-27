@@ -181,7 +181,11 @@ class Metric(MetricInfoMixin):
         self.keep_in_memory = keep_in_memory
         self._data_dir_root = os.path.expanduser(cache_dir or config.HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
-        self.seed: int = seed or np.random.get_state()[1][0]
+        if seed is None:
+            _, seed, pos, *_ = np.random.get_state()
+            self.seed: int = seed[pos] if pos < 624 else seed[0]
+        else:
+            self.seed: int = seed
         self.timeout: Union[int, float] = timeout
 
         # Update 'compute' and 'add' docstring
