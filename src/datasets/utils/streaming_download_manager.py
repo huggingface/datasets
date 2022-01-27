@@ -606,7 +606,71 @@ def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = 
             return ET.parse(f, parser=parser)
 
 
-class StreamingDownloadManager(object):
+class _IterableFromGenerator:
+    """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
+
+    def __init__(self, generator, *args, **kwargs):
+        self.generator = generator
+        self.args = args
+        self.kwargs = kwargs
+
+    def __iter__(self):
+        yield from self.generator(*self.args, **self.kwargs)
+
+
+class ArchiveIterable(_IterableFromGenerator):
+    """An iterable of (path, fileobj) from a TAR archive"""
+
+    @classmethod
+    def _iter_from_fileobj(cls, f):
+        stream = tarfile.open(fileobj=f, mode="r|*")
+        for tarinfo in stream:
+            file_path = tarinfo.name
+            if not tarinfo.isreg():
+                continue
+            if file_path is None:
+                continue
+            if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                # skipping hidden files
+                continue
+            file_obj = stream.extractfile(tarinfo)
+            yield file_path, file_obj
+            stream.members = []
+        del stream
+
+    @classmethod
+    def _iter_from_urlpath(cls, urlpath, use_auth_token: Optional[Union[str, bool]] = None):
+        with xopen(urlpath, "rb", use_auth_token=use_auth_token) as f:
+            yield from cls._iter_from_fileobj(f)
+
+    @classmethod
+    def from_buf(cls, fileobj) -> "ArchiveIterable":
+        return cls(cls._iter_from_fileobj, fileobj)
+
+    @classmethod
+    def from_urlpath(cls, urlpath_or_buf, use_auth_token: Optional[Union[str, bool]] = None) -> "ArchiveIterable":
+        return cls(cls._iter_from_urlpath, urlpath_or_buf, use_auth_token)
+
+
+class FilesIterable(_IterableFromGenerator):
+    """An iterable of paths from a list of directories or files"""
+
+    @classmethod
+    def _iter_from_urlpaths(cls, urlpaths, use_auth_token: Optional[Union[str, bool]] = None):
+        for urlpath in urlpaths:
+            if xisfile(urlpath, use_auth_token=use_auth_token):
+                yield urlpath
+            else:
+                for dirpath, _, filenames in xwalk(urlpath, use_auth_token=use_auth_token):
+                    for filename in filenames:
+                        yield xjoin(dirpath, filename)
+
+    @classmethod
+    def from_urlpaths(cls, urlpaths, use_auth_token: Optional[Union[str, bool]] = None) -> "FilesIterable":
+        return cls(cls._iter_from_urlpaths, urlpaths, use_auth_token)
+
+
+class StreamingDownloadManager:
     """
     Download manager that uses the "::" separator to navigate through (possibly remote) compressed archives.
     Contrary to the regular DownloadManager, the `download` and `extract` methods don't actually download nor extract
@@ -677,27 +741,10 @@ class StreamingDownloadManager(object):
                 File object is opened in binary mode.
         """
 
-        def _iter_archive(f):
-            stream = tarfile.open(fileobj=f, mode="r|*")
-            for tarinfo in stream:
-                file_path = tarinfo.name
-                if not tarinfo.isreg():
-                    continue
-                if file_path is None:
-                    continue
-                if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
-                    # skipping hidden files
-                    continue
-                file_obj = stream.extractfile(tarinfo)
-                yield file_path, file_obj
-                stream.members = []
-            del stream
-
         if hasattr(urlpath_or_buf, "read"):
-            yield from _iter_archive(urlpath_or_buf)
+            return ArchiveIterable.from_buf(urlpath_or_buf)
         else:
-            with xopen(urlpath_or_buf, "rb", use_auth_token=self.download_config.use_auth_token) as f:
-                yield from _iter_archive(f)
+            return ArchiveIterable.from_urlpath(urlpath_or_buf, use_auth_token=self.download_config.use_auth_token)
 
     def iter_files(self, urlpaths):
         """Iterate over files.
@@ -708,10 +755,4 @@ class StreamingDownloadManager(object):
         Yields:
             str: File URL path.
         """
-        for urlpath in urlpaths:
-            if xisfile(urlpath, use_auth_token=self.download_config.use_auth_token):
-                yield urlpath
-            else:
-                for dirpath, _, filenames in xwalk(urlpath, use_auth_token=self.download_config.use_auth_token):
-                    for filename in filenames:
-                        yield xjoin(dirpath, filename)
+        return FilesIterable.from_urlspaths(urlpaths, use_auth_token=self.download_config.use_auth_token)
