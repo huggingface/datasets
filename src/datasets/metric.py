@@ -183,7 +183,7 @@ class Metric(MetricInfoMixin):
         self.data_dir = self._build_data_dir()
         if seed is None:
             _, seed, pos, *_ = np.random.get_state()
-            self.seed: int = seed[0] if pos == 624 else seed[pos]
+            self.seed: int = seed[pos] if pos < 624 else seed[0]
         else:
             self.seed: int = seed
         self.timeout: Union[int, float] = timeout

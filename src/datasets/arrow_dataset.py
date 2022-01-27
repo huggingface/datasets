@@ -2916,8 +2916,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if generator is None:
             if seed is None:
                 _, seed, pos, *_ = np.random.get_state()
-                seed = seed[0] if pos == 624 else seed[pos]
-                _ = np.random.random()  # do 1 step of rng
+                if pos < 624:
+                    seed = seed[pos]
+                    _ = np.random.random()  # do 1 step of rng
+                else:
+                    seed = seed[0]  # fixed seed
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
@@ -3083,8 +3086,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if generator is None and shuffle is True:
             if seed is None:
                 _, seed, pos, *_ = np.random.get_state()
-                seed = seed[0] if pos == 624 else seed[pos]
-                _ = np.random.random()  # do 1 step of rng
+                if pos < 624:
+                    seed = seed[pos]
+                    _ = np.random.random()  # do 1 step of rng
+                else:
+                    seed = seed[0]  # fixed seed
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)

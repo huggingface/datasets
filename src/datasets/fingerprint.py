@@ -382,7 +382,7 @@ def fingerprint_transform(
             if randomized_function:  # randomized functions have `seed` and `generator` parameters
                 if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
                     _, seed, pos, *_ = np.random.get_state()
-                    seed = seed[0] if pos == 624 else seed[pos]
+                    seed = seed[pos] if pos < 624 else seed[0]
                     kwargs_for_fingerprint["generator"] = np.random.default_rng(seed)
 
             # remove kwargs that are the default values
