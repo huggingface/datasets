@@ -755,4 +755,4 @@ class StreamingDownloadManager:
         Yields:
             str: File URL path.
         """
-        return FilesIterable.from_urlspaths(urlpaths, use_auth_token=self.download_config.use_auth_token)
+        return FilesIterable.from_urlpaths(urlpaths, use_auth_token=self.download_config.use_auth_token)
