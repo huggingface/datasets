@@ -3649,13 +3649,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         column_table = InMemoryTable.from_pydict({name: column})
         _check_column_names(self._data.column_names + column_table.column_names)
+        dataset = self.flatten_indices() if self._indices is not None else self
         # Concatenate tables horizontally
-        table = concat_tables([self._data, column_table], axis=1)
+        table = concat_tables([dataset._data, column_table], axis=1)
         # Update features
-        info = self.info.copy()
+        info = dataset.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
-        return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
+        return Dataset(table, info=info, split=self.split, indices_table=None, fingerprint=new_fingerprint)
 
     def add_faiss_index(
         self,
