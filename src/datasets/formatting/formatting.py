@@ -57,7 +57,7 @@ def _query_table_with_indices_mapping(
         key = indices.fast_slice(key % indices.num_rows, 1).column(0)[0].as_py()
         return _query_table(table, key)
     if isinstance(key, slice):
-        key = range(*key.indices(table.num_rows))
+        key = range(*key.indices(indices.num_rows))
     if isinstance(key, range):
         if _is_range_contiguous(key) and key.start >= 0:
             return _query_table(
