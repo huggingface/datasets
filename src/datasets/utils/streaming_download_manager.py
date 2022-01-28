@@ -9,7 +9,7 @@ from asyncio import TimeoutError
 from io import BytesIO
 from itertools import chain
 from pathlib import Path, PurePath, PurePosixPath
-from typing import List, Optional, Tuple, Union
+from typing import Callable, Generator, Iterable, List, Optional, Tuple, Union
 from xml.etree import ElementTree as ET
 
 import fsspec
@@ -606,10 +606,10 @@ def xet_parse(source, parser=None, use_auth_token: Optional[Union[str, bool]] = 
             return ET.parse(f, parser=parser)
 
 
-class _IterableFromGenerator:
+class _IterableFromGenerator(Iterable):
     """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
 
-    def __init__(self, generator, *args, **kwargs):
+    def __init__(self, generator: Callable, *args, **kwargs):
         self.generator = generator
         self.args = args
         self.kwargs = kwargs
@@ -619,10 +619,10 @@ class _IterableFromGenerator:
 
 
 class ArchiveIterable(_IterableFromGenerator):
-    """An iterable of (path, fileobj) from a TAR archive"""
+    """An iterable of (path, fileobj) from a TAR archive, used by `iter_archive`"""
 
     @classmethod
-    def _iter_from_fileobj(cls, f):
+    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
         stream = tarfile.open(fileobj=f, mode="r|*")
         for tarinfo in stream:
             file_path = tarinfo.name
@@ -639,7 +639,9 @@ class ArchiveIterable(_IterableFromGenerator):
         del stream
 
     @classmethod
-    def _iter_from_urlpath(cls, urlpath, use_auth_token: Optional[Union[str, bool]] = None):
+    def _iter_from_urlpath(
+        cls, urlpath: str, use_auth_token: Optional[Union[str, bool]] = None
+    ) -> Generator[Tuple, None, None]:
         with xopen(urlpath, "rb", use_auth_token=use_auth_token) as f:
             yield from cls._iter_from_fileobj(f)
 
@@ -656,7 +658,9 @@ class FilesIterable(_IterableFromGenerator):
     """An iterable of paths from a list of directories or files"""
 
     @classmethod
-    def _iter_from_urlpaths(cls, urlpaths, use_auth_token: Optional[Union[str, bool]] = None):
+    def _iter_from_urlpaths(
+        cls, urlpaths: List[str], use_auth_token: Optional[Union[str, bool]] = None
+    ) -> Generator[str, None, None]:
         for urlpath in urlpaths:
             if xisfile(urlpath, use_auth_token=use_auth_token):
                 yield urlpath
@@ -730,7 +734,7 @@ class StreamingDownloadManager:
     def download_and_extract(self, url_or_urls):
         return self.extract(self.download(url_or_urls))
 
-    def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]):
+    def iter_archive(self, urlpath_or_buf: Union[str, io.BufferedReader]) -> Iterable[Tuple]:
         """Iterate over files within an archive.
 
         Args:
@@ -746,7 +750,7 @@ class StreamingDownloadManager:
         else:
             return ArchiveIterable.from_urlpath(urlpath_or_buf, use_auth_token=self.download_config.use_auth_token)
 
-    def iter_files(self, urlpaths):
+    def iter_files(self, urlpaths: List[str]) -> Iterable[str]:
         """Iterate over files.
 
         Args:
