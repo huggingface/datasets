@@ -2521,9 +2521,7 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
     assert dataset._fingerprint != original_dataset._fingerprint
     dataset.reset_format()
     original_dataset.reset_format()
-    assert all(
-        dataset[col][: len(dataset)] == original_dataset[col][: len(dataset)] for col in original_dataset.column_names
-    )
+    assert all(dataset[col] == original_dataset[col] for col in original_dataset.column_names)
     assert set(dataset["col_4"]) == set(column)
     if dataset._indices is not None:
         dataset_indices = dataset._indices["indices"].to_pylist()
