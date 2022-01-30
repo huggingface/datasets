@@ -80,7 +80,7 @@ class JsonDatasetWriter:
         self.to_json_kwargs = to_json_kwargs
 
         if (num_proc is None or num_proc == 1) and map_unordered:
-            raise ValueError(f"Unordered map is only defined when using multiprocessing.")
+            raise ValueError("Unordered map is only defined when using multiprocessing.")
         self.map_unordered = map_unordered
 
     def write(self) -> int:
