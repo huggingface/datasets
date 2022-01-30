@@ -65,6 +65,7 @@ class JsonDatasetWriter:
         dataset: Dataset,
         path_or_buf: Union[PathLike, BinaryIO],
         batch_size: Optional[int] = None,
+        map_unordered: bool = False,
         num_proc: Optional[int] = None,
         **to_json_kwargs,
     ):
@@ -77,6 +78,10 @@ class JsonDatasetWriter:
         self.num_proc = num_proc
         self.encoding = "utf-8"
         self.to_json_kwargs = to_json_kwargs
+
+        if (num_proc is None or num_proc == 1) and map_unordered:
+            raise ValueError(f"Unordered map is only defined when using multiprocessing.")
+        self.map_unordered = map_unordered
 
     def write(self) -> int:
         _ = self.to_json_kwargs.pop("path_or_buf", None)
@@ -131,8 +136,9 @@ class JsonDatasetWriter:
                 written += file_obj.write(json_str)
         else:
             with multiprocessing.Pool(self.num_proc) as pool:
+                map_ = pool.imap_unordered if self.map_unordered else pool.map
                 for json_str in utils.tqdm(
-                    pool.imap(
+                    map_(
                         self._batch_json,
                         [
                             (offset, orient, lines, to_json_kwargs)
