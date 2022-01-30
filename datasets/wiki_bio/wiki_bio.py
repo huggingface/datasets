@@ -58,6 +58,7 @@ _LICENSE = "CC BY-SA 3.0"
 
 _URL = "https://huggingface.co/datasets/wiki_bio/resolve/main/data/wikipedia-biography-dataset.zip"
 
+
 def _get_table(infobox_line):
     """Converts the infobox into a one row table."""
     cells = infobox_line.split("\t")
