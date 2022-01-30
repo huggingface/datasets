@@ -69,7 +69,7 @@ English.
 
 ### Data Instances
 
-[More Information Needed]
+More Information Needed
 
 ### Data Fields
 
