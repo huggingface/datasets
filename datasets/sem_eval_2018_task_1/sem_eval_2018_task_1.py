@@ -39,16 +39,11 @@ _HOMEPAGE = "https://competitions.codalab.org/competitions/17751"
 _LICENSE = ""
 
 _URLs = {
-    "subtask5.english": [
-        "https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"
-    ],
-    "subtask5.spanish": [
-        "https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"
-    ],
-    "subtask5.arabic": [
-        "https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"
-    ],
+    "subtask5.english": ["https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"],
+    "subtask5.spanish": ["https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"],
+    "subtask5.arabic": ["https://saifmohammad.com/WebDocs/AIT-2018/AIT2018-DATA/SemEval2018-Task1-all-data.zip"],
 }
+
 
 class SemEval2018Task1(datasets.GeneratorBasedBuilder):
 
@@ -105,33 +100,42 @@ class SemEval2018Task1(datasets.GeneratorBasedBuilder):
         my_urls = _URLs[self.config.name]
         if self.config.name == "subtask5.english":
             shortname = "En"
-            longname="English"
+            longname = "English"
         if self.config.name == "subtask5.spanish":
             shortname = "Es"
-            longname="Spanish"
+            longname = "Spanish"
         if self.config.name == "subtask5.arabic":
             shortname = "Ar"
-            longname="Arabic"
+            longname = "Arabic"
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir[0], "SemEval2018-Task1-all-data/" + longname + "/E-c/2018-E-c-" + shortname + "-train.txt"),
+                    "filepath": os.path.join(
+                        data_dir[0],
+                        "SemEval2018-Task1-all-data/" + longname + "/E-c/2018-E-c-" + shortname + "-train.txt",
+                    ),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir[0], "SemEval2018-Task1-all-data/" + longname + "/E-c/2018-E-c-" + shortname + "-test-gold.txt"),
+                    "filepath": os.path.join(
+                        data_dir[0],
+                        "SemEval2018-Task1-all-data/" + longname + "/E-c/2018-E-c-" + shortname + "-test-gold.txt",
+                    ),
                     "split": "test",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir[0], "SemEval2018-Task1-all-data/" + longname + "/E-c/2018-E-c-" + shortname + "-dev.txt"),
+                    "filepath": os.path.join(
+                        data_dir[0],
+                        "SemEval2018-Task1-all-data/" + longname + "/E-c/2018-E-c-" + shortname + "-dev.txt",
+                    ),
                     "split": "dev",
                 },
             ),
