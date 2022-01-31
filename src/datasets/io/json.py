@@ -5,7 +5,6 @@ from typing import BinaryIO, Optional, Union
 from .. import Dataset, Features, NamedSplit, config, utils
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
-from ..utils import logging
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 from .handler import IOHandler
