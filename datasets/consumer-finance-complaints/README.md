@@ -96,6 +96,30 @@ English
 
 This dataset is a point in time extract of the database, the database increases in size every day
 
+```
+{
+ "complaint-id": "4511031",
+ "status": "Closed",
+ "product": "Credit reporting, credit repair services, or other personal consumer reports",
+ "Sub Issue": "Credit inquiries on your report that you don't recognize",
+ "Consumer Disputed": "N/A",
+ "Sub Product": "Credit reporting",
+ "State": "TX",
+ "Tags": "Older American, Servicemember",
+ "Company Public Response": "",
+ "Zip Code": "75202",
+ "Issue": "Improper use of your report",
+ "Submitted via": "Web",
+ "Company Response To Consumer": "Closed with explanation",
+ "Complaint Text": "I am XXXX XXXX and I am submitting this complaint myself and there is no third party involved. Despite the multiple previous written requests, the unverified inquiries listed below still remain on my credit report in violation of Federal Law. The Equifax Credit Bureau failed to comply with Fair Credit Reporting Act, XXXX XXXX sections XXXX within the time set forth by law and continued reporting of erroneous information which now, given all my attempts to address it directly with the creditor, as willful negligence and non-compliance with federal statutes. PLEASE REMOVE THE FOLLOWING INQUIRIES COMPLETELY FROM MY CREDIT REPORT : XXXX CARD-Date of inquiry XX/XX/XXXX XXXX CARD-Date of inquiry XX/XX/XXXX",
+ "Date Received": "07-02-2021",
+ "Company": "EQUIFAX, INC.",
+ "Consumer Consent Provided": "Consent not provided",
+ "Timely Response": "Yes",
+ "Date Sent To Company": "2021-07-02"
+}
+```
+
 ### Data Fields
 
 
@@ -141,7 +165,7 @@ This database is maintained by the Consumer Financial Protection Bureau
 
 #### Who are the source language producers?
 
-Englisgh
+English
 
 ### Annotations
 
