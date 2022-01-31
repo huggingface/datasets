@@ -202,6 +202,7 @@ class DownloadManager:
             map_tuple=True,
             num_proc=download_config.num_proc,
             disable_tqdm=not utils.is_progress_bar_enabled(),
+            desc="Downloading data files",
         )
         duration = datetime.now() - start_time
         logger.info(f"Downloading took {duration.total_seconds() // 60} min")
@@ -293,6 +294,7 @@ class DownloadManager:
             path_or_paths,
             num_proc=num_proc,
             disable_tqdm=not utils.is_progress_bar_enabled(),
+            desc="Extracting data files",
         )
         path_or_paths = NestedDataStructure(path_or_paths)
         extracted_paths = NestedDataStructure(extracted_paths)

@@ -189,7 +189,7 @@ class classproperty(property):  # pylint: disable=invalid-name
 
 def _single_map_nested(args):
     """Apply a function recursively to each element of a nested data struct."""
-    function, data_struct, types, rank, disable_tqdm = args
+    function, data_struct, types, rank, disable_tqdm, desc = args
 
     # Singleton first to spare some computation
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
@@ -205,13 +205,13 @@ def _single_map_nested(args):
 
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
-    pbar_desc = "#" + str(rank) if rank is not None else None
+    pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
     pbar = utils.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
 
     if isinstance(data_struct, dict):
-        return {k: _single_map_nested((function, v, types, None, True)) for k, v in pbar}
+        return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
     else:
-        mapped = [_single_map_nested((function, v, types, None, True)) for v in pbar]
+        mapped = [_single_map_nested((function, v, types, None, True, None)) for v in pbar]
         if isinstance(data_struct, list):
             return mapped
         elif isinstance(data_struct, tuple):
@@ -230,6 +230,7 @@ def map_nested(
     num_proc: Optional[int] = None,
     types=None,
     disable_tqdm: bool = True,
+    desc: Optional[str] = None,
 ):
     """Apply a function recursively to each element of a nested data struct.
     If num_proc > 1 and the length of data_struct is longer than num_proc: use multi-processing
@@ -256,8 +257,8 @@ def map_nested(
         num_proc = 1
     if num_proc <= 1 or len(iterable) <= num_proc:
         mapped = [
-            _single_map_nested((function, obj, types, None, True))
-            for obj in utils.tqdm(iterable, disable=disable_tqdm)
+            _single_map_nested((function, obj, types, None, True, None))
+            for obj in utils.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
         split_kwds = []  # We organize the splits ourselve (contiguous splits)
@@ -266,7 +267,7 @@ def map_nested(
             mod = len(iterable) % num_proc
             start = div * index + min(index, mod)
             end = start + div + (1 if index < mod else 0)
-            split_kwds.append((function, iterable[start:end], types, index, disable_tqdm))
+            split_kwds.append((function, iterable[start:end], types, index, disable_tqdm, desc))
 
         if len(iterable) != sum(len(i[1]) for i in split_kwds):
             raise ValueError(
