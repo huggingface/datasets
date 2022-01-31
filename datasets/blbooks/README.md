@@ -544,7 +544,3 @@ The books are licensed under the [CC Public Domain Mark 1.0](https://creativecom
 ### Contributions
 
 Thanks to [@davanstrien](https://github.com/davanstrien) for adding this dataset.
-
-```
-
-```
