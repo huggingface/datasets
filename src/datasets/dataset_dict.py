@@ -889,7 +889,7 @@ class DatasetDict(dict):
         ).read()
 
     @is_documented_by(Dataset.prepare_for_task)
-    def prepare_for_task(self, task: Union[str, TaskTemplate], id: Optional[int] = None) -> "DatasetDict":
+    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "DatasetDict":
         self._check_values_type()
         return DatasetDict({k: dataset.prepare_for_task(task=task, id=id) for k, dataset in self.items()})
 

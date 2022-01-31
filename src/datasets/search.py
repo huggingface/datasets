@@ -35,15 +35,24 @@ class MissingIndex(Exception):
     pass
 
 
-SearchResults = NamedTuple("SearchResults", [("scores", List[float]), ("indices", List[int])])
-BatchedSearchResults = NamedTuple(
-    "BatchedSearchResults", [("total_scores", List[List[float]]), ("total_indices", List[List[int]])]
-)
+class SearchResults(NamedTuple):
+    scores: List[float]
+    indices: List[int]
 
-NearestExamplesResults = NamedTuple("NearestExamplesResults", [("scores", List[float]), ("examples", dict)])
-BatchedNearestExamplesResults = NamedTuple(
-    "BatchedNearestExamplesResults", [("total_scores", List[List[float]]), ("total_examples", List[dict])]
-)
+
+class BatchedSearchResults(NamedTuple):
+    total_scores: List[List[float]]
+    total_indices: List[List[int]]
+
+
+class NearestExamplesResults(NamedTuple):
+    scores: List[float]
+    examples: dict
+
+
+class BatchedNearestExamplesResults(NamedTuple):
+    total_scores: List[List[float]]
+    total_examples: List[dict]
 
 
 class BaseIndex:

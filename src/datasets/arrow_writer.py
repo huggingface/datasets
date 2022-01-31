@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +15,6 @@
 import errno
 import json
 import os
-import socket
 import sys
 from dataclasses import asdict
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
@@ -616,7 +614,7 @@ class BeamWriter:
             sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
             with beam.io.filesystems.FileSystems.create(self._path) as dest:
                 parquet_to_arrow(sources, dest)
-        except socket.error as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
+        except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
             if e.errno != errno.EPIPE:  # not a broken pipe
                 raise
             logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")

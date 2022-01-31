@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -868,7 +867,7 @@ class ClassLabel:
 
     @staticmethod
     def _load_names_from_file(names_filepath):
-        with open(names_filepath, "r", encoding="utf-8") as f:
+        with open(names_filepath, encoding="utf-8") as f:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 
@@ -1079,7 +1078,7 @@ def generate_from_dict(obj: Any):
     if class_type == Sequence:
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
 
-    field_names = set(f.name for f in fields(class_type))
+    field_names = {f.name for f in fields(class_type)}
     return class_type(**{k: v for k, v in obj.items() if k in field_names})
 
 
@@ -1155,7 +1154,7 @@ def require_decoding(feature: FeatureType) -> bool:
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
     else:
-        return hasattr(feature, "decode_example")
+        return hasattr(feature, "decode_example") and feature.decode
 
 
 class Features(dict):
@@ -1335,7 +1334,7 @@ class Features(dict):
             :obj:`list[Any]`
         """
         return (
-            [self[column_name].decode_example(value) if value is not None else None for value in column]
+            [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
             if self._column_requires_decoding[column_name]
             else column
         )
@@ -1352,7 +1351,7 @@ class Features(dict):
         decoded_batch = {}
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
-                [self[column_name].decode_example(value) if value is not None else None for value in column]
+                [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
                 if self._column_requires_decoding[column_name]
                 else column
             )

@@ -74,8 +74,8 @@ def picklable_filter_function(x):
 
 def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
     assert dataset.data.schema.metadata is not None
-    assert "huggingface".encode("utf-8") in dataset.data.schema.metadata
-    metadata = json.loads(dataset.data.schema.metadata["huggingface".encode("utf-8")].decode())
+    assert b"huggingface" in dataset.data.schema.metadata
+    metadata = json.loads(dataset.data.schema.metadata[b"huggingface"].decode())
     assert "info" in metadata
     features = DatasetInfo.from_dict(metadata["info"]).features
     assert features is not None
@@ -194,6 +194,10 @@ class BaseDatasetTest(TestCase):
 
                 self.assertListEqual(dset[[0, -1]]["filename"], ["my_name-train_0", "my_name-train_29"])
                 self.assertListEqual(dset[np.array([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
+
+                with dset.select(range(2)) as dset_subset:
+                    self.assertListEqual(dset_subset[-1:]["filename"], ["my_name-train_1"])
+                    self.assertListEqual(dset_subset["filename"][-1:], ["my_name-train_1"])
 
     def test_dummy_dataset_deepcopy(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -741,7 +745,7 @@ class BaseDatasetTest(TestCase):
                 dset3._data.table = Unpicklable()
             else:
                 dset1._data.table, dset2._data.table = Unpicklable(), Unpicklable()
-            dset1, dset2, dset3 = [pickle.loads(pickle.dumps(d)) for d in (dset1, dset2, dset3)]
+            dset1, dset2, dset3 = (pickle.loads(pickle.dumps(d)) for d in (dset1, dset2, dset3))
             with concatenate_datasets([dset1, dset2, dset3]) as dset_concat:
                 if not in_memory:
                     dset_concat._data.table = Unpicklable()
@@ -959,7 +963,7 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(dset_test["id"], list(range(30)))
                     self.assertNotEqual(dset_test._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test)
-                    file_names = sorted([Path(cache_file["filename"]).name for cache_file in dset_test.cache_files])
+                    file_names = sorted(Path(cache_file["filename"]).name for cache_file in dset_test.cache_files)
                     for i, file_name in enumerate(file_names):
                         self.assertIn(new_fingerprint + f"_{i:05d}", file_name)
 
@@ -2337,7 +2341,7 @@ def test_update_metadata_with_features(dataset_dict):
     assert features1 != features2
 
     table2 = update_metadata_with_features(table1, features2)
-    metadata = json.loads(table2.schema.metadata["huggingface".encode("utf-8")].decode())
+    metadata = json.loads(table2.schema.metadata[b"huggingface"].decode())
     assert features2 == Features.from_dict(metadata["info"]["features"])
 
     with Dataset(table1) as dset1, Dataset(table2) as dset2:
@@ -2487,7 +2491,13 @@ def test_interleave_datasets_probabilities():
 @pytest.mark.parametrize("in_memory", [False, True])
 @pytest.mark.parametrize(
     "transform",
-    [None, ("shuffle", (42,), {}), ("with_format", ("pandas",), {}), ("class_encode_column", ("col_2",), {})],
+    [
+        None,
+        ("shuffle", (42,), {}),
+        ("with_format", ("pandas",), {}),
+        ("class_encode_column", ("col_2",), {}),
+        ("select", (range(3),), {}),
+    ],
 )
 def test_dataset_add_column(column, expected_dtype, in_memory, transform, dataset_dict, arrow_path):
     column_name = "col_4"
@@ -2499,8 +2509,9 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
     if transform is not None:
         transform_name, args, kwargs = transform
         original_dataset: Dataset = getattr(original_dataset, transform_name)(*args, **kwargs)
+    column = column[:3] if transform is not None and transform_name == "select" else column
     dataset = original_dataset.add_column(column_name, column)
-    assert dataset.data.shape == (4, 4)
+    assert dataset.data.shape == (3, 4) if transform is not None and transform_name == "select" else (4, 4)
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     # Sort expected features as in the original dataset
     expected_features = {feature: expected_features[feature] for feature in original_dataset.features}
@@ -2994,23 +3005,23 @@ class TaskTemplatesTest(TestCase):
         data = {"input_text": ["i love transformers!"], "input_labels": [1]}
         # Test we can load from task name when label names not included in template (default behaviour)
         with Dataset.from_dict(data, info=info1) as dset:
-            self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
+            self.assertSetEqual({"input_text", "input_labels"}, set(dset.column_names))
             self.assertDictEqual(features_before_cast, dset.features)
             with dset.prepare_for_task(task="text-classification") as dset:
-                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                self.assertSetEqual({"labels", "text"}, set(dset.column_names))
                 self.assertDictEqual(features_after_cast, dset.features)
         # Test we can load from task name when label names included in template
         with Dataset.from_dict(data, info=info2) as dset:
-            self.assertSetEqual(set(["input_text", "input_labels"]), set(dset.column_names))
+            self.assertSetEqual({"input_text", "input_labels"}, set(dset.column_names))
             self.assertDictEqual(features_before_cast, dset.features)
             with dset.prepare_for_task(task="text-classification") as dset:
-                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                self.assertSetEqual({"labels", "text"}, set(dset.column_names))
                 self.assertDictEqual(features_after_cast, dset.features)
         # Test we can load from TextClassification template
         info1.task_templates = None
         with Dataset.from_dict(data, info=info1) as dset:
             with dset.prepare_for_task(task=task_with_labels) as dset:
-                self.assertSetEqual(set(["labels", "text"]), set(dset.column_names))
+                self.assertSetEqual({"labels", "text"}, set(dset.column_names))
                 self.assertDictEqual(features_after_cast, dset.features)
 
     def test_task_question_answering(self):
@@ -3050,13 +3061,13 @@ class TaskTemplatesTest(TestCase):
         # Test we can load from task name
         with Dataset.from_dict(data, info=info) as dset:
             self.assertSetEqual(
-                set(["input_context", "input_question", "input_answers.text", "input_answers.answer_start"]),
+                {"input_context", "input_question", "input_answers.text", "input_answers.answer_start"},
                 set(dset.flatten().column_names),
             )
             self.assertDictEqual(features_before_cast, dset.features)
             with dset.prepare_for_task(task="question-answering-extractive") as dset:
                 self.assertSetEqual(
-                    set(["context", "question", "answers.text", "answers.answer_start"]),
+                    {"context", "question", "answers.text", "answers.answer_start"},
                     set(dset.flatten().column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3065,7 +3076,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    set(["context", "question", "answers.text", "answers.answer_start"]),
+                    {"context", "question", "answers.text", "answers.answer_start"},
                     set(dset.flatten().column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3087,7 +3098,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="summarization") as dset:
                 self.assertSetEqual(
-                    set(["text", "summary"]),
+                    {"text", "summary"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3096,7 +3107,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    set(["text", "summary"]),
+                    {"text", "summary"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3124,7 +3135,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task="automatic-speech-recognition") as dset:
                 self.assertSetEqual(
-                    set(["audio_file_path", "transcription"]),
+                    {"audio_file_path", "transcription"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)
@@ -3133,7 +3144,7 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             with dset.prepare_for_task(task=task) as dset:
                 self.assertSetEqual(
-                    set(["audio_file_path", "transcription"]),
+                    {"audio_file_path", "transcription"},
                     set(dset.column_names),
                 )
                 self.assertDictEqual(features_after_cast, dset.features)

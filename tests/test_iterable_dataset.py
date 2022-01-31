@@ -68,7 +68,7 @@ def test_examples_iterable_with_kwargs(generate_examples_fn):
     expected = list(generate_examples_fn(filepaths=["0.txt", "1.txt"], split="train"))
     assert list(ex_iterable) == expected
     assert all("split" in ex for _, ex in ex_iterable)
-    assert sorted(set(ex["filepath"] for _, ex in ex_iterable)) == ["0.txt", "1.txt"]
+    assert sorted({ex["filepath"] for _, ex in ex_iterable}) == ["0.txt", "1.txt"]
 
 
 def test_examples_iterable_shuffle_data_sources(generate_examples_fn):
