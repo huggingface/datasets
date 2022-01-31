@@ -72,7 +72,6 @@ class WikisourceConfig(datasets.BuilderConfig):
         self.language = language
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class Wikisource(datasets.GeneratorBasedBuilder):
     """Wikisource dataset."""
 
@@ -172,14 +171,14 @@ class Wikisource(datasets.GeneratorBasedBuilder):
                         continue
 
                     beam.metrics.Metrics.counter(language, "extracted-examples").inc()
-                    yield (id_, title, raw_content)
+                    yield id_, title, raw_content
 
         def _clean_content(inputs):
             """Cleans raw wikicode to extract text."""
             id_, title, raw_content = inputs
             try:
                 text = _parse_and_clean_wikicode(raw_content, parser=mwparserfromhell)
-            except (mwparserfromhell.parser.ParserError) as e:
+            except mwparserfromhell.parser.ParserError as e:
                 beam.metrics.Metrics.counter(language, "parser-error").inc()
                 logger.error("mwparserfromhell ParseError: %s", e)
                 return
@@ -202,7 +201,7 @@ class Wikisource(datasets.GeneratorBasedBuilder):
 
 
 def _parse_and_clean_wikicode(raw_content, parser):
-    """Strips formatting and unwanted sections from raw page content."""
+    """Strip formatting and unwanted sections from raw page content."""
     wikicode = parser.parse(raw_content)
 
     # Filters for references, tables, and file/image links.
