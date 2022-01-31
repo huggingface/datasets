@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: scitail
+pretty_name: SciTail
 ---
 
 # Dataset Card for "scitail"

@@ -58,7 +58,16 @@ from tqdm.auto import tqdm
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import ClassLabel, Features, FeatureType, Sequence, Value, _ArrayXD, pandas_types_mapper
+from .features import (
+    ClassLabel,
+    Features,
+    FeatureType,
+    Sequence,
+    Value,
+    _ArrayXD,
+    decode_nested_example,
+    pandas_types_mapper,
+)
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -73,20 +82,13 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
-from .table import (
-    InMemoryTable,
-    MemoryMappedTable,
-    Table,
-    cast_with_sliced_list_support,
-    concat_tables,
-    list_table_cache_files,
-)
+from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files, table_cast
 from .tasks import TaskTemplate
-from .tasks.text_classification import TextClassification
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
+from .utils.py_utils import unique_values
 from .utils.typing import PathLike
 
 
@@ -97,27 +99,20 @@ logger = logging.get_logger(__name__)
 
 
 class LazyDict(UserDict):
-    def __init__(self, data, features=None, decoding=True):
+    def __init__(self, data, features=None):
         self.data = data
         self.features = (
-            {key: feature for key, feature in features.items() if hasattr(feature, "decode_example")}
+            {key: feature for key, feature in features.items() if features._column_requires_decoding[key]}
             if features
             else {}
         )
-        self.decoding = decoding
-
-    def values(self):
-        return self.data.values()
-
-    def items(self):
-        return self.data.items()
 
 
 class Example(LazyDict):
     def __getitem__(self, key):
         value = super().__getitem__(key)
-        if self.decoding and self.features and key in self.features:
-            value = self.features[key].decode_example(value) if value is not None else None
+        if self.features and key in self.features:
+            value = decode_nested_example(self.features[key], value) if value is not None else None
             self[key] = value
             del self.features[key]
         return value
@@ -126,8 +121,10 @@ class Example(LazyDict):
 class Batch(LazyDict):
     def __getitem__(self, key):
         values = super().__getitem__(key)
-        if self.decoding and self.features and key in self.features:
-            values = [self.features[key].decode_example(value) if value is not None else None for value in values]
+        if self.features and key in self.features:
+            values = [
+                decode_nested_example(self.features[key], value) if value is not None else None for value in values
+            ]
             self[key] = values
             del self.features[key]
         return values
@@ -199,6 +196,10 @@ class DatasetInfoMixin:
     @property
     def supervised_keys(self):
         return self._info.supervised_keys
+
+    @property
+    def task_templates(self):
+        return self._info.task_templates
 
     @property
     def version(self):
@@ -631,8 +632,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if self._data.schema.metadata is not None and b"huggingface" in self._data.schema.metadata:
             metadata = json.loads(self._data.schema.metadata[b"huggingface"].decode())
-            if "info" in metadata and self.info.features is None:  # try to load features from the arrow file metadata
-                self._info.features = DatasetInfo.from_dict(metadata["info"]).features
             if (
                 "fingerprint" in metadata and self._fingerprint is None
             ):  # try to load fingerprint from the arrow file metadata
@@ -740,6 +739,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        preserve_index: Optional[bool] = None,
     ) -> "Dataset":
         """
         Convert :obj:`pandas.DataFrame` to a :obj:`pyarrow.Table` to create a :class:`Dataset`.
@@ -758,6 +758,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (:class:`Features`, optional): Dataset features.
             info (:class:`DatasetInfo`, optional): Dataset information, like description, citation, etc.
             split (:class:`NamedSplit`, optional): Name of the dataset split.
+            preserve_index (:obj:`bool`, optional): Whether to store the index as an additional column in the resulting Dataset.
+                The default of None will store the index as a column, except for RangeIndex which is stored as metadata only.
+                Use preserve_index=True to force it to be stored as a column.
 
         Returns:
             :class:`Dataset`
@@ -770,7 +773,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
-        table = InMemoryTable.from_pandas(df=df, schema=pa.schema(features.type) if features is not None else None)
+        table = InMemoryTable.from_pandas(
+            df=df, preserve_index=preserve_index, schema=features.arrow_schema if features is not None else None
+        )
         return cls(table, info=info, split=split)
 
     @classmethod
@@ -804,10 +809,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if features is not None:
             mapping = features.encode_batch(mapping)
         mapping = {
-            col: OptimizedTypedSequence(data, type=features.type[col].type if features is not None else None, col=col)
+            col: OptimizedTypedSequence(data, type=features[col] if features is not None else None, col=col)
             for col, data in mapping.items()
         }
         pa_table = InMemoryTable.from_pydict(mapping=mapping)
+        if info.features is None:
+            info.features = Features({col: ts.get_inferred_type() for col, ts in mapping.items()})
         return cls(pa_table, info=info, split=split)
 
     @staticmethod
@@ -1206,12 +1213,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dset = self
 
         # Create the new feature
-        class_names = sorted(sample for sample in dset.unique(column) if include_nulls or sample is not None)
+        class_names = sorted(str(sample) for sample in dset.unique(column) if include_nulls or sample is not None)
         dst_feat = ClassLabel(names=class_names)
 
         def cast_to_class_labels(batch):
             batch[column] = [
-                dst_feat.str2int(sample) if include_nulls or sample is not None else None for sample in batch[column]
+                dst_feat.str2int(str(sample)) if include_nulls or sample is not None else None
+                for sample in batch[column]
             ]
             return batch
 
@@ -1265,7 +1273,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 self._data = self._data.flatten()
             else:
                 break
-        self.info.features = Features.from_arrow_schema(self._data.schema)
+        self.info.features = self.features.flatten(max_depth=max_depth)
         self._data = update_metadata_with_features(self._data, self.features)
         logger.info(f'Flattened dataset from depth {depth} to depth { 1 if depth + 1 < max_depth else "unknown"}.')
 
@@ -1284,7 +1292,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 dataset._data = dataset._data.flatten()
             else:
                 break
-        dataset.info.features = Features.from_arrow_schema(dataset._data.schema)
+        dataset.info.features = self.features.flatten(max_depth=max_depth)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
         dataset._fingerprint = new_fingerprint
@@ -1333,10 +1341,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         type = features.type
         schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         dataset = self.with_format("arrow")
-        # capture the PyArrow version here to make the lambda serializable on Windows
-        is_pyarrow_at_least_4 = config.PYARROW_VERSION.major >= 4
         dataset = dataset.map(
-            lambda t: t.cast(schema) if is_pyarrow_at_least_4 else cast_with_sliced_list_support(t, schema),
+            partial(table_cast, schema=schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1391,14 +1397,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"as the columns in the dataset: {self._data.column_names}"
             )
 
-        type = features.type
-        schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
+        schema = features.arrow_schema
         format = self.format
         dataset = self.with_format("arrow")
         # capture the PyArrow version here to make the lambda serializable on Windows
-        is_pyarrow_at_least_4 = config.PYARROW_VERSION.major >= 4
         dataset = dataset.map(
-            lambda t: t.cast(schema) if is_pyarrow_at_least_4 else cast_with_sliced_list_support(t, schema),
+            partial(table_cast, schema=schema),
             batched=True,
             batch_size=batch_size,
             keep_in_memory=keep_in_memory,
@@ -1418,15 +1422,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             column (:obj:`str`): Column name.
-            feature (:class:`Feature`): Target feature.
+            feature (:class:`FeatureType`): Target feature.
 
         Returns:
             :class:`Dataset`
         """
-        if hasattr(feature, "decode_example"):
+        if hasattr(feature, "cast_storage"):
             dataset = copy.deepcopy(self)
             dataset.features[column] = feature
             dataset._fingerprint = new_fingerprint
+            dataset._data = dataset._data.cast(dataset.features.arrow_schema)
+            dataset._data = update_metadata_with_features(dataset._data, dataset.features)
             return dataset
         else:
             features = self.features.copy()
@@ -1643,7 +1649,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Number of rows in the dataset."""
         return self.num_rows
 
-    def __iter__(self):
+    def _iter(self, decoded: bool = True):
         """Iterate through the examples.
 
         If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
@@ -1652,8 +1658,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         for index in range(self.num_rows):
             yield self._getitem(
                 index,
-                decoded=False,
+                decoded=decoded,
             )
+
+    def __iter__(self):
+        """Iterate through the examples.
+
+        If a formatting is set with :meth:`Dataset.set_format` rows will be returned with the
+        selected format.
+        """
+        return self._iter()
 
     def __repr__(self):
         return f"Dataset({{\n    features: {list(self.features.keys())},\n    num_rows: {self.num_rows}\n}})"
@@ -1833,7 +1847,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset.set_transform(transform=transform, columns=columns, output_all_columns=output_all_columns)
         return dataset
 
-    def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "Dataset":
+    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
         """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
 
         Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema. Intended for single-use only, so all task templates are removed from :attr:`datasets.DatasetInfo.task_templates` after casting.
@@ -1845,31 +1859,32 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - :obj:`"question-answering"`
 
                 If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
+            id (:obj:`int`, default `0`): The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
         """
         # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
         if isinstance(task, str):
             tasks = [template.task for template in (self.info.task_templates or [])]
             compatible_templates = [template for template in (self.info.task_templates or []) if template.task == task]
             if not compatible_templates:
-                raise ValueError(f"Task {task} is not compatible with this dataset! Available tasks: {tasks}")
-
-            if len(compatible_templates) > 1:
                 raise ValueError(
-                    f"Expected 1 task template but found {len(compatible_templates)}! Please ensure that `datasets.DatasetInfo.task_templates` contains a unique set of task types."
+                    f"Task {task} is not compatible with this dataset! Available tasks: {list(unique_values(tasks))}"
                 )
-            template = compatible_templates[0]
+
+            if not 0 <= id < len(compatible_templates):
+                templates_list_str = "\n".join(
+                    f"- `{idx}` for task {template}" for idx, template in enumerate(compatible_templates)
+                )
+                raise ValueError(
+                    f"Id {id} for task {task} is not in a valid range. Supported ids:\n{templates_list_str}"
+                )
+            template = compatible_templates[id]
         elif isinstance(task, TaskTemplate):
             template = task
         else:
             raise ValueError(
-                f"Expected a `str` or `datasets.tasks.TaskTemplate` object but got task {task} with type {type(task)}."
+                f"Expected a `str` or `datasets.TaskTemplate` object but got task {task} with type {type(task)}."
             )
-        if isinstance(template, TextClassification) and self.info.features is not None:
-            dataset_labels = tuple(sorted(self.info.features[template.label_column].names))
-            if template.labels is None or template.labels != dataset_labels:
-                raise ValueError(
-                    f"Incompatible labels between the dataset and task template! Expected labels {dataset_labels} but got {template.labels}. Please ensure that `datasets.tasks.TextClassification.labels` matches the features of the dataset."
-                )
+        template = template.align_with_features(self.info.features)
         column_mapping = template.column_mapping
         columns_to_drop = [column for column in self.column_names if column not in column_mapping]
         dataset = self.remove_columns(columns_to_drop)
@@ -2428,7 +2443,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     input_dataset = self
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                pbar_iterable = input_dataset if not batched else range(0, len(input_dataset), batch_size)
+                pbar_iterable = (
+                    input_dataset._iter(decoded=False) if not batched else range(0, len(input_dataset), batch_size)
+                )
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
                 pbar = utils.tqdm(
@@ -2511,7 +2528,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             return self
 
     @transmit_format
-    @fingerprint_transform(inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name"], version="2.0.1")
+    @fingerprint_transform(
+        inplace=False, ignore_kwargs=["load_from_cache_file", "cache_file_name", "desc"], version="2.0.1"
+    )
     def filter(
         self,
         function: Optional[Callable] = None,
@@ -2891,7 +2910,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if generator is None:
             if seed is None:
-                seed = np.random.get_state()[1][0]
+                _, seed, pos, *_ = np.random.get_state()
+                seed = seed[pos] if pos < 624 else seed[0]
                 _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
 
@@ -3057,7 +3077,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if generator is None and shuffle is True:
             if seed is None:
-                seed = np.random.get_state()[1][0]
+                _, seed, pos, *_ = np.random.get_state()
+                seed = seed[pos] if pos < 624 else seed[0]
                 _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
 
@@ -3623,13 +3644,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         column_table = InMemoryTable.from_pydict({name: column})
         _check_column_names(self._data.column_names + column_table.column_names)
+        dataset = self.flatten_indices() if self._indices is not None else self
         # Concatenate tables horizontally
-        table = concat_tables([self._data, column_table], axis=1)
+        table = concat_tables([dataset._data, column_table], axis=1)
         # Update features
-        info = self.info.copy()
+        info = dataset.info.copy()
         info.features.update(Features.from_arrow_schema(column_table.schema))
         table = update_metadata_with_features(table, info.features)
-        return Dataset(table, info=info, split=self.split, indices_table=self._indices, fingerprint=new_fingerprint)
+        return Dataset(table, info=info, split=self.split, indices_table=None, fingerprint=new_fingerprint)
 
     def add_faiss_index(
         self,
@@ -3844,8 +3866,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Cast to align the schemas of the tables and concatenate the tables
         table = concat_tables(
             [
-                self._data.cast(pa.schema(dset_features.type)) if self.features != dset_features else self._data,
-                item_table.cast(pa.schema(item_features.type)),
+                self._data.cast(dset_features.arrow_schema) if self.features != dset_features else self._data,
+                item_table.cast(item_features.arrow_schema),
             ]
         )
         if self._indices is None:

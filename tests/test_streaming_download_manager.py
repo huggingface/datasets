@@ -27,6 +27,7 @@ from datasets.utils.streaming_download_manager import (
     xpathrglob,
     xpathstem,
     xpathsuffix,
+    xsplitext,
 )
 
 from .utils import require_lz4, require_zstandard
@@ -227,6 +228,28 @@ def test_xdirname(input_path, expected_path):
     output_path = xdirname(input_path)
     output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
     assert output_path == _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+
+
+@pytest.mark.parametrize(
+    "input_path, expected_path_and_ext",
+    [
+        (
+            str(Path(__file__).resolve()),
+            (str(Path(__file__).resolve().with_suffix("")), str(Path(__file__).resolve().suffix)),
+        ),
+        ("https://host.com/archive.zip", ("https://host.com/archive", ".zip")),
+        ("zip://file.txt::https://host.com/archive.zip", ("zip://file::https://host.com/archive.zip", ".txt")),
+        ("zip://folder::https://host.com/archive.zip", ("zip://folder::https://host.com/archive.zip", "")),
+        ("zip://::https://host.com/archive.zip", ("zip://::https://host.com/archive.zip", "")),
+    ],
+)
+def test_xsplitext(input_path, expected_path_and_ext):
+    output_path, ext = xsplitext(input_path)
+    expected_path, expected_ext = expected_path_and_ext
+    output_path = _readd_double_slash_removed_by_path(Path(output_path).as_posix())
+    expected_path = _readd_double_slash_removed_by_path(Path(expected_path).as_posix())
+    assert output_path == expected_path
+    assert ext == expected_ext
 
 
 def test_xopen_local(text_path):
@@ -621,14 +644,30 @@ def _test_jsonl(path, file):
 
 def test_iter_archive_path(tar_jsonl_path):
     dl_manager = StreamingDownloadManager()
-    for num_jsonl, (path, file) in enumerate(dl_manager.iter_archive(str(tar_jsonl_path)), start=1):
+    archive_iterable = dl_manager.iter_archive(str(tar_jsonl_path))
+    num_jsonl = 0
+    for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
+        _test_jsonl(path, file)
+    assert num_jsonl == 2
+    # do it twice to make sure it's reset correctly
+    num_jsonl = 0
+    for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
         _test_jsonl(path, file)
     assert num_jsonl == 2
 
 
 def test_iter_archive_file(tar_nested_jsonl_path):
     dl_manager = StreamingDownloadManager()
-    for num_tar, (path, file) in enumerate(dl_manager.iter_archive(str(tar_nested_jsonl_path)), start=1):
+    files_iterable = dl_manager.iter_archive(str(tar_nested_jsonl_path))
+    num_tar, num_jsonl = 0, 0
+    for num_tar, (path, file) in enumerate(files_iterable, start=1):
+        for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
+            _test_jsonl(subpath, subfile)
+    assert num_tar == 1
+    assert num_jsonl == 2
+    # do it twice to make sure it's reset correctly
+    num_tar, num_jsonl = 0, 0
+    for num_tar, (path, file) in enumerate(files_iterable, start=1):
         for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1

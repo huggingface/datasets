@@ -459,6 +459,7 @@ task_ids:
 - multi-label-classification
 - structure-prediction-other-morphology
 paperswithcode_id: null
+pretty_name: UniversalMorphologies
 ---
 
 # Dataset Card for [Dataset Name]

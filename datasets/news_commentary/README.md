@@ -29,6 +29,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: NewsCommentary
 ---
 
 # Dataset Card Creation Guide

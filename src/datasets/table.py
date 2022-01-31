@@ -1,19 +1,26 @@
 import copy
 import os
 import tempfile
-from functools import wraps
+from functools import partial, wraps
 from itertools import groupby
-from typing import List, Optional, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
 import pyarrow.compute as pc
+from packaging import version
 
 from . import config
 from .utils.logging import get_logger
 
 
+if TYPE_CHECKING:
+    from .features import Features, FeatureType
+
+
 logger = get_logger(__name__)
+
+IS_PYARROW_AT_LEAST_4 = config.PYARROW_VERSION.major >= 4
 
 
 def inject_arrow_table_documentation(arrow_table_method):
@@ -318,6 +325,18 @@ class Table(IndexedTableMixin):
     def drop(self, *args, **kwargs):
         raise NotImplementedError()
 
+    # Additional methods that are based on the PyArrow Table methods
+
+    def select_columns(self, columns: List[int]) -> "Table":
+        """Return the table by keeping only the requested columns
+
+        Returns:
+            Table: table with only a subset of the columns
+        """
+        for column_to_remove in set(range(len(self.column_names))) - set(columns):
+            self = self.remove_column(column_to_remove)
+        return self
+
 
 class TableBlock(Table):
     """
@@ -393,7 +412,7 @@ class InMemoryTable(TableBlock):
 
     @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, *args, **kwargs):
-        return InMemoryTable(self.table.cast(*args, **kwargs))
+        return InMemoryTable(table_cast(self.table, *args, **kwargs))
 
     @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
     def replace_schema_metadata(self, *args, **kwargs):
@@ -474,7 +493,10 @@ class MemoryMappedTable(TableBlock):
     def _apply_replays(table: pa.Table, replays: Optional[List[Replay]] = None) -> pa.Table:
         if replays is not None:
             for name, args, kwargs in replays:
-                table = getattr(table, name)(*args, **kwargs)
+                if name == "cast":
+                    table = table_cast(table, *args, **kwargs)
+                else:
+                    table = getattr(table, name)(*args, **kwargs)
         return table
 
     def _append_replay(self, replay: Replay) -> List[Replay]:
@@ -511,7 +533,7 @@ class MemoryMappedTable(TableBlock):
     def cast(self, *args, **kwargs):
         replay = ("cast", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.cast(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(table_cast(self.table, *args, **kwargs), self.path, replays)
 
     @inject_arrow_table_documentation(pa.Table.replace_schema_metadata)
     def replace_schema_metadata(self, *args, **kwargs):
@@ -777,7 +799,7 @@ class ConcatenationTable(Table):
 
     @inject_arrow_table_documentation(pa.Table.cast)
     def cast(self, target_schema, *args, **kwargs):
-        table = self.table.cast(target_schema, *args, **kwargs)
+        table = table_cast(self.table, target_schema, *args, **kwargs)
         blocks = []
         for subtables in self.blocks:
             new_tables = []
@@ -888,23 +910,24 @@ def list_table_cache_files(table: Table) -> List[str]:
         return []
 
 
-def cast_with_sliced_list_support(pa_table: pa.Table, schema: pa.Schema) -> pa.Table:
-    """Same as pyarrow.Table.cast, except it works for sliced list arrays"""
+def _wrap_for_chunked_arrays(func):
+    """Apply the function on each chunk of a pyarrow.ChunkedArray, or on the array directly"""
 
-    def wrap_for_chunked_arrays(func):
-        """Apply the function on each chunk of a pyarrow.ChunkedArray, or on the array directly"""
+    def wrapper(array, *args, **kwargs):
+        if isinstance(array, pa.ChunkedArray):
+            return pa.chunked_array([func(chunk, *args, **kwargs) for chunk in array.chunks])
+        else:
+            return func(array, *args, **kwargs)
 
-        def wrapper(array):
-            if isinstance(array, pa.ChunkedArray):
-                return pa.chunked_array([func(chunk) for chunk in array.chunks])
-            else:
-                return func(array)
+    return wrapper
 
-        return wrapper
 
-    @wrap_for_chunked_arrays
-    def reset_sliced_list_offset(array: pa.ListArray):
-        """Return the same pyarrow.ListArray but with array.offset == 0 for compatibility with cast"""
+def _sanitize_sliced_list_arrays_for_cast(func):
+    """Sanitize pyarrow.ListArray objects for pyarrow.Array.cast in case they are sliced list arrays"""
+
+    @_wrap_for_chunked_arrays
+    def _sanitize(array: pa.ListArray) -> pa.ListArray:
+        """Return the same pyarrow.ListArray but with array.offset == 0 for compatibility with cast for pyarrow 3"""
         if array.offset == 0:
             return array
         elif len(array) == 0:
@@ -915,5 +938,188 @@ def cast_with_sliced_list_support(pa_table: pa.Table, schema: pa.Schema) -> pa.T
             new_offsets = pc.subtract(array.offsets, values_offset)  # update the offsets accordingly
             return pa.ListArray.from_arrays(new_offsets, new_values)
 
-    arrays = [reset_sliced_list_offset(array) if isinstance(array.type, pa.ListType) else array for array in pa_table]
-    return pa.Table.from_arrays(arrays, schema=schema)
+    def wrapper(array, *args, **kwargs):
+        if pa.types.is_list(array.type) and config.PYARROW_VERSION < version.parse("4.0.0"):
+            array = _sanitize(array)
+        return func(array, *args, **kwargs)
+
+    return wrapper
+
+
+@_sanitize_sliced_list_arrays_for_cast
+@_wrap_for_chunked_arrays
+def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
+    """Improved version of pa.Array.cast
+
+    It supports casting pa.StructArray objects to re-order the fields.
+    It also let you control certain aspects of the casting, e.g. whether
+    to disable numbers (floats or ints) to strings.
+
+    Args:
+        array (pa.Array): PyArrow array to cast
+        pa_type (pa.DataType): target PyArrow type
+        allow_number_to_str (bool, default ``True``): Whether to allow casting numbers to strings.
+            Defaults to True.
+
+    Raises:
+        pa.ArrowInvalidError: if the arrow data casting fails
+        TypeError: if the target type is not supported according, e.g.
+
+            - if a field is missing
+            = if casting from numbers to strings and allow_number_to_str is False
+
+    Returns:
+        pa.Array: the casted array
+    """
+    _c = partial(array_cast, allow_number_to_str=allow_number_to_str)
+    if isinstance(array, pa.ExtensionArray):
+        array = array.storage
+    if isinstance(pa_type, pa.ExtensionType):
+        return pa_type.wrap_array(array)
+    elif pa.types.is_struct(array.type):
+        if pa.types.is_struct(pa_type) and (
+            set(field.name for field in pa_type) == set(field.name for field in array.type)
+        ):
+            arrays = [
+                _c(array.field(field.name), field.type, allow_number_to_str=allow_number_to_str) for field in pa_type
+            ]
+            return pa.StructArray.from_arrays(arrays, fields=list(pa_type))
+    elif pa.types.is_list(array.type):
+        if pa.types.is_fixed_size_list(pa_type):
+            if pa_type.list_size * len(array) == len(array.values):
+                return pa.FixedSizeListArray.from_arrays(
+                    _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str),
+                    pa_type.list_size,
+                )
+        elif pa.types.is_list(pa_type):
+            return pa.ListArray.from_arrays(
+                array.offsets, _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str)
+            )
+    elif pa.types.is_fixed_size_list(array.type):
+        if pa.types.is_fixed_size_list(pa_type):
+            return pa.FixedSizeListArray.from_arrays(
+                _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str),
+                pa_type.list_size,
+            )
+        elif pa.types.is_list(pa_type):
+            offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+            return pa.ListArray.from_arrays(
+                offsets_arr, _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str)
+            )
+    else:
+        if (
+            not allow_number_to_str
+            and pa.types.is_string(pa_type)
+            and (pa.types.is_floating(array.type) or pa.types.is_integer(array.type))
+        ):
+            raise TypeError(
+                f"Couldn't cast array of type {array.type} to {pa_type} since allow_number_to_str is set to {allow_number_to_str}"
+            )
+        return array.cast(pa_type)
+    raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
+
+
+@_sanitize_sliced_list_arrays_for_cast
+@_wrap_for_chunked_arrays
+def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_to_str=True):
+    """Cast an array to the arrow type that corresponds to the requested feature type.
+    For custom features like Audio or Image, it takes into account the "cast_storage" methods
+    they defined to enable casting from other arrow types.
+
+    Args:
+        array (pa.Array): the PyArrow array to cast
+        feature (FeatureType): the target feature type
+        allow_number_to_str (bool, default ``True``): Whether to allow casting numbers to strings.
+            Defaults to True.
+
+    Raises:
+        pa.ArrowInvalidError: if the arrow data casting fails
+        TypeError: if the target type is not supported according, e.g.
+
+            - if a field is missing
+            = if casting from numbers to strings and allow_number_to_str is False
+
+    Returns:
+        pa.Array: the casted array
+    """
+    from .features import Sequence, get_nested_type
+
+    _c = partial(cast_array_to_feature, allow_number_to_str=allow_number_to_str)
+
+    if isinstance(array, pa.ExtensionArray):
+        array = array.storage
+    if hasattr(feature, "cast_storage"):
+        return feature.cast_storage(array)
+    elif pa.types.is_struct(array.type):
+        # feature must be a dict or Sequence(subfeatures_dict)
+        if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
+            feature = {
+                name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
+            }
+        if isinstance(feature, dict) and set(field.name for field in array.type) == set(feature):
+            arrays = [_c(array.field(name), subfeature) for name, subfeature in feature.items()]
+            return pa.StructArray.from_arrays(arrays, names=list(feature))
+    elif pa.types.is_list(array.type):
+        # feature must be either [subfeature] or Sequence(subfeature)
+        if isinstance(feature, list):
+            return pa.ListArray.from_arrays(array.offsets, _c(array.values, feature[0]))
+        elif isinstance(feature, Sequence):
+            if feature.length > -1:
+                if feature.length * len(array) == len(array.values):
+                    return pa.FixedSizeListArray.from_arrays(_c(array.values, feature.feature), feature.length)
+            else:
+                return pa.ListArray.from_arrays(array.offsets, _c(array.values, feature.feature))
+    elif pa.types.is_fixed_size_list(array.type):
+        # feature must be either [subfeature] or Sequence(subfeature)
+        if isinstance(feature, list):
+            return pa.ListArray.from_arrays(array.offsets, _c(array.values, feature[0]))
+        elif isinstance(feature, Sequence):
+            if feature.length > -1:
+                if feature.length * len(array) == len(array.values):
+                    return pa.FixedSizeListArray.from_arrays(_c(array.values, feature.feature), feature.length)
+            else:
+                offsets_arr = pa.array(range(len(array) + 1), pa.int32())
+                return pa.ListArray.from_arrays(offsets_arr, _c(array.values, feature.feature))
+    if pa.types.is_null(array.type):
+        return array_cast(array, get_nested_type(feature), allow_number_to_str=allow_number_to_str)
+    elif not isinstance(feature, (Sequence, dict, list, tuple)):
+        return array_cast(array, feature(), allow_number_to_str=allow_number_to_str)
+    raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{feature}")
+
+
+def cast_table_to_features(table: pa.Table, features: "Features"):
+    """Cast an table to the arrow schema that corresponds to the requested features.
+
+    Args:
+        table (pa.Table): PyArrow table to cast
+        features (Features): target features.
+
+    Returns:
+        pa.Table: the casted table
+    """
+    if sorted(table.column_names) != sorted(features):
+        raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match")
+    arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
+    return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
+
+
+def table_cast(table: pa.Table, schema: pa.Schema):
+    """Improved version of pa.Table.cast
+
+    It supports casting to feature types stored in the schema metadata.
+
+    Args:
+        table (pa.Table): PyArrow table to cast
+        schema (pa.Schema): target PyArrow schema.
+
+    Returns:
+        pa.Table: the casted table
+    """
+    if table.schema != schema:
+        from .features import Features
+
+        return cast_table_to_features(table, Features.from_arrow_schema(schema))
+    elif table.schema.metadata != schema.metadata:
+        return table.replace_schema_metadata(schema.metadata)
+    else:
+        return table

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - abstractive-qa
 paperswithcode_id: narrativeqa
+pretty_name: NarrativeQA
 ---
 
 # Dataset Card for Narrative QA Manual

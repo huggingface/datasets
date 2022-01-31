@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: openwebtext
+pretty_name: OpenWebText
 ---
 
 # Dataset Card for "openwebtext"

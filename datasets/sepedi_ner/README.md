@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: Sepedi NER Corpus
 ---
 
 # Dataset Card for Sepedi NER Corpus

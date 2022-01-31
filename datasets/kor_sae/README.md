@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - intent-classification
 paperswithcode_id: null
+pretty_name: Structured Argument Extraction for Korean
 ---
 
 # Dataset Card for Structured Argument Extraction for Korean

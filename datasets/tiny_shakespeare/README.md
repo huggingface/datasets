@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: null
+pretty_name: TinyShakespeare
 ---
 
 # Dataset Card for "tiny_shakespeare"

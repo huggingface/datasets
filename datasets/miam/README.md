@@ -47,6 +47,7 @@ task_ids:
   - language-modeling
   - text-classification-other-dialogue-act-classification
 paperswithcode_id: null
+pretty_name: MIAM
 ---
 
 # Dataset Card for MIAM

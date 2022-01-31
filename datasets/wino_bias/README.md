@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - coreference-resolution
 paperswithcode_id: winobias
+pretty_name: WinoBias
 ---
 
 # Dataset Card for Wino_Bias dataset

@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: trecqa
+pretty_name: Text Retrieval Conference Question Answering
 ---
 
 # Dataset Card for "trec"

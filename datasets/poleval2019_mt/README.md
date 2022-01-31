@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: Poleval2019Mt
 ---
 
 # Dataset Card for poleval2019_mt

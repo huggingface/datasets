@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: igbonlp-datasets
+pretty_name: IgboNLP Datasets
 ---
 
 # Dataset Card Creation Guide

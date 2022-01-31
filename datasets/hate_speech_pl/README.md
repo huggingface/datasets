@@ -23,6 +23,7 @@ task_ids:
 - sentiment-scoring
 - topic-classification
 paperswithcode_id: null
+pretty_name: HateSpeechPl
 ---
 
 

@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-classification-other-stereotype-detection
 paperswithcode_id: stereoset
+pretty_name: StereoSet
 ---
 
 # Dataset Card for StereoSet

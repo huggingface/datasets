@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: winogrande
+pretty_name: WinoGrande
 ---
 
 # Dataset Card for "winogrande"

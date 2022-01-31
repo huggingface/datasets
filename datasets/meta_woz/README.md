@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - dialogue-modeling
 paperswithcode_id: metalwoz
+pretty_name: Meta-Learning Wizard-of-Oz
 ---
 
 # Dataset Card for MetaLWOz

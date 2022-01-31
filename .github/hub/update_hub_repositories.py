@@ -16,7 +16,16 @@ from tqdm.contrib.concurrent import thread_map
 load_dotenv()
 logger = logging.getLogger(__name__)
 ROOT = Path()
-HUB_ENDPOINT = "https://moon-staging.huggingface.co"
+
+# General environment variables accepted values for booleans
+ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
+ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
+
+if os.environ.get("HF_USE_PROD", "AUTO") in ENV_VARS_TRUE_VALUES:
+    HUB_ENDPOINT = "https://huggingface.co"
+else:
+    HUB_ENDPOINT = "https://moon-staging.huggingface.co"
+
 HUB_CANONICAL_WHOAMI = HUB_ENDPOINT + "/api/whoami-v2"
 HUB_CANONICAL_CREATE_URL = HUB_ENDPOINT + "/api/repos/create"
 HUB_CANONICAL_INFO_URL = HUB_ENDPOINT + "/api/datasets/{dataset_name}"
@@ -162,7 +171,7 @@ class update_main:
             logs.append(repr(e))
         if "Your branch is up to date with" not in repo.git.status():
             logs.append(repo.git.status())
-            logs = "\n".join(logs)
+            logs = "\n".join(str(log) for log in logs)
             logger.warning(f"[{dataset_name}] Push failed")
             logger.warning(f"[{dataset_name}] Git logs: \n{logs}")
             return False
@@ -202,8 +211,16 @@ if __name__ == "__main__":
         for diff in datasets_lib_repo.index.diff(prev_commit)
         for path in [diff.a_path, diff.b_path]
         if path.startswith(DATASETS_LIB_CATALOG_DIR_NAME)
+        and path.count("/") > 2
     ]
+
     changed_datasets_names_since_last_commit = {path.split("/")[1] for path in changed_files_since_last_commit}
+    # ignore json, csv etc.
+    changed_datasets_names_since_last_commit = {
+        dataset_name for dataset_name in changed_datasets_names_since_last_commit
+        if (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME / dataset_name / (dataset_name + ".py")).is_file()
+    }
+
     deleted_files = {dataset_name: set() for dataset_name in changed_datasets_names_since_last_commit}
     for path in changed_files_since_last_commit:
         _, dataset_name, rel_path = path.split("/", 2)
@@ -216,7 +233,10 @@ if __name__ == "__main__":
     dataset_names = sys.argv[1:]
     if dataset_names:
         if dataset_names[0] == "--all":
-            dataset_names = sorted(d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir())
+            dataset_names = sorted(
+                d.name for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
+                if d.is_dir() and (d / (d.name + ".py")).is_file()  # ignore json, csv etc.
+            )
         if dataset_names[0] == "--auto":
             if new_tag:
                 logger.info(
@@ -224,6 +244,10 @@ if __name__ == "__main__":
                     f"this is a new release {new_tag.name} of the `datasets` library."
                 )
                 dataset_names = sorted(d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir())
+                dataset_names = sorted(
+                    d.name for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
+                    if d.is_dir() and (d / (d.name + ".py")).is_file()  # ignore json, csv etc.
+                )
             else:
                 logger.info(
                     "All the datasets that have been changed in the latest commit of `datasets` will be updated "

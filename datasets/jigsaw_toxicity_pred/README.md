@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multi-label-classification
 paperswithcode_id: null
+pretty_name: JigsawToxicityPred
 ---
 
 # Dataset Card for [Dataset Name]

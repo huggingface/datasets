@@ -889,9 +889,9 @@ class DatasetDict(dict):
         ).read()
 
     @is_documented_by(Dataset.prepare_for_task)
-    def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "DatasetDict":
+    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "DatasetDict":
         self._check_values_type()
-        return DatasetDict({k: dataset.prepare_for_task(task=task) for k, dataset in self.items()})
+        return DatasetDict({k: dataset.prepare_for_task(task=task, id=id) for k, dataset in self.items()})
 
     @is_documented_by(Dataset.align_labels_with_mapping)
     def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "DatasetDict":

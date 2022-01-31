@@ -25,7 +25,13 @@ from datasets.filesystems import extract_path_from_uri
 from datasets.info import DatasetInfo
 from datasets.splits import NamedSplit
 from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable
-from datasets.tasks import AutomaticSpeechRecognition, QuestionAnsweringExtractive, Summarization, TextClassification
+from datasets.tasks import (
+    AutomaticSpeechRecognition,
+    LanguageModeling,
+    QuestionAnsweringExtractive,
+    Summarization,
+    TextClassification,
+)
 from datasets.utils.logging import WARNING
 
 from .conftest import s3_test_bucket_name
@@ -74,7 +80,7 @@ def assert_arrow_metadata_are_synced_with_dataset_features(dataset: Dataset):
     features = DatasetInfo.from_dict(metadata["info"]).features
     assert features is not None
     assert dataset.features is not None
-    assert features.type == dataset.features.type
+    assert sorted(features) == sorted(field.name for field in dataset.data.schema)
 
 
 IN_MEMORY_PARAMETERS = [
@@ -188,6 +194,10 @@ class BaseDatasetTest(TestCase):
 
                 self.assertListEqual(dset[[0, -1]]["filename"], ["my_name-train_0", "my_name-train_29"])
                 self.assertListEqual(dset[np.array([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
+
+                with dset.select(range(2)) as dset_subset:
+                    self.assertListEqual(dset_subset[-1:]["filename"], ["my_name-train_1"])
+                    self.assertListEqual(dset_subset["filename"][-1:], ["my_name-train_1"])
 
     def test_dummy_dataset_deepcopy(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -758,8 +768,8 @@ class BaseDatasetTest(TestCase):
                 with self._to(in_memory, tmp_dir, dset) as dset:
                     fingerprint = dset._fingerprint
                     dset.flatten_()
-                    self.assertListEqual(dset.column_names, ["a.b.c", "foo"])
-                    self.assertListEqual(list(dset.features.keys()), ["a.b.c", "foo"])
+                    self.assertListEqual(sorted(dset.column_names), ["a.b.c", "foo"])
+                    self.assertListEqual(sorted(dset.features.keys()), ["a.b.c", "foo"])
                     self.assertDictEqual(
                         dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
                     )
@@ -2481,7 +2491,13 @@ def test_interleave_datasets_probabilities():
 @pytest.mark.parametrize("in_memory", [False, True])
 @pytest.mark.parametrize(
     "transform",
-    [None, ("shuffle", (42,), {}), ("with_format", ("pandas",), {}), ("class_encode_column", ("col_2",), {})],
+    [
+        None,
+        ("shuffle", (42,), {}),
+        ("with_format", ("pandas",), {}),
+        ("class_encode_column", ("col_2",), {}),
+        ("select", (range(3),), {}),
+    ],
 )
 def test_dataset_add_column(column, expected_dtype, in_memory, transform, dataset_dict, arrow_path):
     column_name = "col_4"
@@ -2493,8 +2509,9 @@ def test_dataset_add_column(column, expected_dtype, in_memory, transform, datase
     if transform is not None:
         transform_name, args, kwargs = transform
         original_dataset: Dataset = getattr(original_dataset, transform_name)(*args, **kwargs)
+    column = column[:3] if transform is not None and transform_name == "select" else column
     dataset = original_dataset.add_column(column_name, column)
-    assert dataset.data.shape == (4, 4)
+    assert dataset.data.shape == (3, 4) if transform is not None and transform_name == "select" else (4, 4)
     expected_features = {"col_1": "string", "col_2": "int64", "col_3": "float64"}
     # Sort expected features as in the original dataset
     expected_features = {feature: expected_features[feature] for feature in original_dataset.features}
@@ -2969,7 +2986,7 @@ class TaskTemplatesTest(TestCase):
         features_after_cast = Features(
             {
                 "text": Value("string"),
-                "labels": ClassLabel(names=tuple(labels)),
+                "labels": ClassLabel(names=labels),
             }
         )
         # Label names are added in `DatasetInfo.__post_init__` so not needed here
@@ -2980,7 +2997,7 @@ class TaskTemplatesTest(TestCase):
         )
         # Label names are required when passing a TextClassification template directly to `Dataset.prepare_for_task`
         # However they also can be used to define `DatasetInfo` so we include a test for this too
-        task_with_labels = TextClassification(text_column="input_text", label_column="input_labels", labels=labels)
+        task_with_labels = TextClassification(text_column="input_text", label_column="input_labels")
         info2 = DatasetInfo(
             features=features_before_cast,
             task_templates=task_with_labels,
@@ -3155,20 +3172,29 @@ class TaskTemplatesTest(TestCase):
         with Dataset.from_dict(data, info=info) as dset:
             # Invalid task name
             self.assertRaises(ValueError, dset.prepare_for_task, "this-task-does-not-exist")
-            # Invalid task templates with incompatible labels
-            task_with_wrong_labels = TextClassification(
-                text_column="input_text", label_column="input_labels", labels=["neut"]
-            )
-            self.assertRaises(ValueError, dset.prepare_for_task, task_with_wrong_labels)
-            task_with_no_labels = TextClassification(
-                text_column="input_text", label_column="input_labels", labels=None
-            )
-            self.assertRaises(ValueError, dset.prepare_for_task, task_with_no_labels)
-            # Duplicate task templates
-            dset.info.task_templates = [task, task]
-            self.assertRaises(ValueError, dset.prepare_for_task, "text-classification")
             # Invalid task type
             self.assertRaises(ValueError, dset.prepare_for_task, 1)
+
+    def test_task_with_multiple_compatible_task_templates(self):
+        features = Features(
+            {
+                "text1": Value("string"),
+                "text2": Value("string"),
+            }
+        )
+        task1 = LanguageModeling(text_column="text1")
+        task2 = LanguageModeling(text_column="text2")
+        info = DatasetInfo(
+            features=features,
+            task_templates=[task1, task2],
+        )
+        data = {"text1": ["i love transformers!"], "text2": ["i love datasets!"]}
+        with Dataset.from_dict(data, info=info) as dset:
+            self.assertRaises(ValueError, dset.prepare_for_task, "language-modeling", id=3)
+            with dset.prepare_for_task("language-modeling") as dset1:
+                self.assertEqual(dset1[0]["text"], "i love transformers!")
+            with dset.prepare_for_task("language-modeling", id=1) as dset2:
+                self.assertEqual(dset2[0]["text"], "i love datasets!")
 
     def test_task_templates_empty_after_preparation(self):
         features = Features(
@@ -3216,7 +3242,7 @@ class TaskTemplatesTest(TestCase):
 
     def test_concatenate_with_equal_task_templates(self):
         labels = ["neg", "pos"]
-        task_template = TextClassification(text_column="text", label_column="labels", labels=labels)
+        task_template = TextClassification(text_column="text", label_column="labels")
         info = DatasetInfo(
             features=Features({"text": Value("string"), "labels": ClassLabel(names=labels)}),
             # Label names are added in `DatasetInfo.__post_init__` so not included here

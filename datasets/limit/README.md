@@ -21,6 +21,7 @@ task_ids:
 - multi-class-classification
 - named-entity-recognition
 paperswithcode_id: limit
+pretty_name: Literal Motion in Text Dataset
 ---
 
 # Dataset Card Creation Guide

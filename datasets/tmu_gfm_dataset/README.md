@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - conditional-text-generation-other-grammatical-error-correction
 paperswithcode_id: null
+pretty_name: TMU-GFM-Dataset
 ---
 
 # Dataset Card for TMU-GFM-Dataset
