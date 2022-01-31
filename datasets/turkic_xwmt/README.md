@@ -286,7 +286,7 @@ task_categories:
 task_ids:
 - machine-translation
 source_datasets:
-- "other-WMT 2020 News Translation Task"
+- extended|WMT 2020 News Translation Task
 ---
 
 # Dataset Card for turkic_xwmt
