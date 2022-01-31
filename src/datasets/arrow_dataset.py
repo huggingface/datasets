@@ -2447,12 +2447,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     pbar_iterable = input_dataset._iter(decoded=False)
                     pbar_total = len(input_dataset)
                 else:
-                    pbar_iterable = range(0, len(input_dataset), batch_size)
-                    pbar_total = (
-                        (len(input_dataset) // batch_size) + 1
-                        if len(input_dataset) % batch_size and not drop_last_batch
-                        else len(input_dataset) // batch_size
+                    num_rows = (
+                        len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
                     )
+                    pbar_iterable = range(0, num_rows, batch_size)
+                    pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
                 pbar = utils.tqdm(
@@ -2476,8 +2475,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write(example)
                 else:
                     for i in pbar:
-                        if drop_last_batch and i + batch_size > input_dataset.num_rows:
-                            continue
                         batch = input_dataset._getitem(
                             slice(i, i + batch_size),
                             decoded=False,
