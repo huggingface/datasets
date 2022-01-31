@@ -24,6 +24,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: scb-mt-en-th-2020
+pretty_name: ScbMtEnth2020
 ---
 
 # Dataset Card for `scb_mt_enth_2020`

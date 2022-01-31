@@ -88,6 +88,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: wikilingua
+pretty_name: WikiLingua
 ---
 # Dataset Card for "wiki_lingua"
 

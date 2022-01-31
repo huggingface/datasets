@@ -174,14 +174,15 @@ def _interleave_iterable_datasets(
     """
     from .iterable_dataset import (
         CyclingMultiSourcesExamplesIterable,
-        MappedExamplesIterable,
         RandomlyCyclingMultiSourcesExamplesIterable,
+        TypedExamplesIterable,
         iterable_dataset,
     )
 
-    # Keep individual features formatting
     ex_iterables = [
-        MappedExamplesIterable(d._ex_iterable, d.features.encode_example) if d.features is not None else d._ex_iterable
+        TypedExamplesIterable(d._ex_iterable, d.features)
+        if not isinstance(d._ex_iterable, TypedExamplesIterable) and d.features is not None
+        else d._ex_iterable
         for d in datasets
     ]
     # Use cycling or random cycling or sources

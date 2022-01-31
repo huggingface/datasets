@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: null
+pretty_name: SrWac
 ---
 
 # Dataset Card for SrWac

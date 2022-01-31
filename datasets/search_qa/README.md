@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: searchqa
+pretty_name: SearchQA
 ---
 
 # Dataset Card for "search_qa"

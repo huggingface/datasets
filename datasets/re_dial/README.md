@@ -20,6 +20,7 @@ task_ids:
 - sentiment-classification
 - text-classification-other-dialogue-sentiment-classification
 paperswithcode_id: redial
+pretty_name: ReDial (Recommendation Dialogues)
 ---
 
 # Dataset Card for ReDial (Recommendation Dialogues)

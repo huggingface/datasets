@@ -21,6 +21,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: subjqa
+pretty_name: subjqa
 ---
 
 # Dataset Card for subjqa

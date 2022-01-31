@@ -23,9 +23,10 @@ task_ids:
 - extractive-qa
 - closed-domain-qa
 paperswithcode_id: fquad
+pretty_name: "FQuAD: French Question Answering Dataset"
 ---
 
-# Dataset Card for "fquad"
+# Dataset Card for FQuAD
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -63,10 +64,10 @@ paperswithcode_id: fquad
 ### Dataset Summary
 
 FQuAD: French Question Answering Dataset
-We introduce FQuAD, a native French Question Answering Dataset. 
+We introduce FQuAD, a native French Question Answering Dataset.
 
 FQuAD contains 25,000+ question and answer pairs.
-Finetuning CamemBERT on FQuAD yields a F1 score of 88% and an exact match of 77.9%.  
+Finetuning CamemBERT on FQuAD yields a F1 score of 88% and an exact match of 77.9%.
 Developped to provide a SQuAD equivalent in the French language. Questions are original and based on high quality Wikipedia articles.
 
 ### Supported Tasks and Leaderboards
@@ -116,7 +117,7 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-The FQuAD dataset has 3 splits: _train_, _validation_, and _test_. The _test_ split is however not released publicly at the moment. The splits contain disjoint sets of articles. The following table contains stats about each split. 
+The FQuAD dataset has 3 splits: _train_, _validation_, and _test_. The _test_ split is however not released publicly at the moment. The splits contain disjoint sets of articles. The following table contains stats about each split.
 
 Dataset Split | Number of Articles in Split | Number of paragraphs in split | Number of questions in split
 --------------|------------------------------|--------------------------|-------------------------
@@ -134,7 +135,7 @@ Test | 10 | 532 | 2189
 The text used for the contexts are from the curated list of French High-Quality Wikipedia [articles](https://fr.wikipedia.org/wiki/Cat%C3%A9gorie:Article_de_qualit%C3%A9).
 ### Annotations
 
-Annotations (spans and questions) are written by students of the CentraleSupélec school of engineering. 
+Annotations (spans and questions) are written by students of the CentraleSupélec school of engineering.
 Wikipedia articles were scraped and Illuin used an internally-developped tool to help annotators ask questions and indicate the answer spans.
 Annotators were given paragraph sized contexts and asked to generate 4/5 non-trivial questions about information in the context.
 

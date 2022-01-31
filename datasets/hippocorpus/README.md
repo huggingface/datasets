@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - text-scoring-other-narrative-flow
 paperswithcode_id: null
+pretty_name: hippocorpus
 ---
 
 # Dataset Card for [Dataset Name]

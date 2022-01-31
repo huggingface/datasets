@@ -136,6 +136,7 @@ TESTS_REQUIRE = [
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
     "torchaudio",
+    "soundfile",
     "transformers",
     # datasets dependencies
     "bs4",
@@ -158,6 +159,8 @@ TESTS_REQUIRE = [
     "scikit-learn",
     "jiwer",
     "sentencepiece",  # for bleurt
+    "torchmetrics==0.6.0",  # for comet: https://github.com/PyTorchLightning/metrics/issues/770
+    "mauve-text",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
@@ -170,6 +173,7 @@ TESTS_REQUIRE = [
 ]
 
 TESTS_REQUIRE.extend(VISION_REQURE)
+TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 if os.name != "nt":
     # dependencies of unbabel-comet
@@ -224,9 +228,9 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.17.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.18.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
-    long_description=open("README.md", "r", encoding="utf-8").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",

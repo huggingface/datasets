@@ -23,6 +23,7 @@ task_ids:
 - multi-label-classification
 - text-classification-other-emotion
 paperswithcode_id: goemotions
+pretty_name: GoEmotions
 ---
 
 # Dataset Card for GoEmotions

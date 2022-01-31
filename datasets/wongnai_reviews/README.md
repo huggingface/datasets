@@ -16,6 +16,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: WongnaiReviews
 ---
 
 # Dataset Card for Wongnai_Reviews

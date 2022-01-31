@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - structure-prediction-other-word-tokenization
 paperswithcode_id: null
+pretty_name: wisesight1000
 ---
 
 # Dataset Card for `wisesight1000`

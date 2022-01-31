@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: null
+pretty_name: Tamilmixsentiment
 ---
 
 # Dataset Card for Tamilmixsentiment

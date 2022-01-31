@@ -11,6 +11,7 @@ jobs:
         resource_class: medium
         steps:
             - checkout
+            - run: sudo apt-get -y update && sudo apt-get install -y libsndfile1-dev
             - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
@@ -26,6 +27,7 @@ jobs:
         resource_class: medium
         steps:
             - checkout
+            - run: sudo apt-get -y update && sudo apt-get install -y libsndfile1-dev
             - run: pip install --upgrade pip
             - run: python -m venv venv
             - run: source venv/bin/activate
@@ -44,14 +46,14 @@ jobs:
             - run: |
                 conda init powershell
                 conda update conda
-                conda create -n py36 python=3.6 pytorch --yes
+                conda create -n py37 python=3.7 pytorch --yes
             - run: |
-                conda activate py36
+                conda activate py37
                 pip install .[tests]
                 pip install -r additional-tests-requirements.txt --no-deps
                 pip install pyarrow --upgrade
             - run: |
-                conda activate py36
+                conda activate py37
                 $env:HF_SCRIPTS_VERSION="master"
                 python -m pytest -n 2 --dist loadfile -sv ./tests/
 
@@ -65,14 +67,14 @@ jobs:
             - run: |
                 conda init powershell
                 conda update conda
-                conda create -n py36 python=3.6 pytorch --yes
+                conda create -n py37 python=3.7 pytorch --yes
             - run: |
-                conda activate py36
+                conda activate py37
                 pip install .[tests]
                 pip install -r additional-tests-requirements.txt --no-deps
                 pip install pyarrow==3.0.0
             - run: |
-                conda activate py36
+                conda activate py37
                 $env:HF_SCRIPTS_VERSION="master"
                 python -m pytest -n 2 --dist loadfile -sv ./tests/
 
