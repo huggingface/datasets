@@ -2443,13 +2443,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     input_dataset = self
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                pbar_iterable = (
-                    input_dataset._iter(decoded=False) if not batched else range(0, len(input_dataset), batch_size)
-                )
+                if not batched:
+                    pbar_iterable = input_dataset._iter(decoded=False)
+                    pbar_total = len(input_dataset)
+                else:
+                    pbar_iterable = range(0, len(input_dataset), batch_size)
+                    pbar_total = (
+                        len(input_dataset) // batch_size + 1
+                        if not drop_last_batch
+                        else len(input_dataset) // batch_size
+                    )
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
                 pbar = utils.tqdm(
                     pbar_iterable,
+                    total=pbar_total,
                     disable=disable_tqdm,
                     position=rank,
                     unit=pbar_unit,
