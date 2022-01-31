@@ -141,7 +141,7 @@ This database is maintained by the Consumer Financial Protection Bureau
 
 #### Who are the source language producers?
 
-Englisgh
+English
 
 ### Annotations
 
