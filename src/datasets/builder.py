@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -538,7 +537,7 @@ class DatasetBuilder:
             logger.info(f"Generating dataset {self.name} ({self._cache_dir})")
             if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
                 if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
-                    raise IOError(
+                    raise OSError(
                         f"Not enough disk space. Needed: {utils.size_str(self.info.size_in_bytes or 0)} (download: {utils.size_str(self.info.download_size or 0)}, generated: {utils.size_str(self.info.dataset_size or 0)}, post-processed: {utils.size_str(self.info.post_processing_size or 0)})"
                     )
 
@@ -749,11 +748,9 @@ class DatasetBuilder:
         """
         if not os.path.exists(self._cache_dir):
             raise AssertionError(
-                (
-                    f"Dataset {self.name}: could not find data in {self._cache_dir_root}. Please make sure to call "
-                    "builder.download_and_prepare(), or pass download=True to "
-                    "datasets.load_dataset() before trying to access the Dataset object."
-                )
+                f"Dataset {self.name}: could not find data in {self._cache_dir_root}. Please make sure to call "
+                "builder.download_and_prepare(), or pass download=True to "
+                "datasets.load_dataset() before trying to access the Dataset object."
             )
 
         logger.debug(f'Constructing Dataset for split {split or ", ".join(self.info.splits)}, from {self._cache_dir}')
@@ -1020,7 +1017,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
     DEFAULT_WRITER_BATCH_SIZE = None
 
     def __init__(self, *args, writer_batch_size=None, **kwargs):
-        super(GeneratorBasedBuilder, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Batch size used by the ArrowWriter
         # It defines the number of samples that are kept in memory before writing them
         # and also the length of the arrow chunks
@@ -1163,7 +1160,7 @@ class BeamBasedBuilder(DatasetBuilder):
     def __init__(self, *args, **kwargs):
         self._beam_runner = kwargs.pop("beam_runner", None)
         self._beam_options = kwargs.pop("beam_options", None)
-        super(BeamBasedBuilder, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._beam_writers = {}  # {split: beam_writer} mapping.
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -1245,7 +1242,7 @@ class BeamBasedBuilder(DatasetBuilder):
             runner=beam_runner,
             options=beam_options,
         )
-        super(BeamBasedBuilder, self)._download_and_prepare(
+        super()._download_and_prepare(
             dl_manager,
             verify_infos=False,
             pipeline=pipeline,
