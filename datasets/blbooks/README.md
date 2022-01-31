@@ -1,28 +1,28 @@
 ---
 annotations_creators:
 - no-annotation
-  language_creators:
+language_creators:
 - machine-generated
-  languages:
+languages:
 - en
 - fr
 - de
 - es
 - it
 - nl
-  licenses:
+licenses:
 - cc0-1.0
-  multilinguality:
+multilinguality:
 - multilingual
-  pretty_name: British Library Books
-  size_categories:
-- unknown
-  source_datasets:
+pretty_name: British Library Books
+size_categories:
+- 100K<n<1M
+source_datasets:
 - original
-  task_categories:
+task_categories:
 - sequence-modeling
 - other
-  task_ids:
+task_ids:
 - language-modeling
 - other-other-digital-humanities-research
 ---
