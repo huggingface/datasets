@@ -289,6 +289,9 @@ class DownloadManager:
         """
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
+        # Extract downloads the file first if it is not already downloaded
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading data"
         extracted_paths = map_nested(
             partial(cached_path, download_config=download_config),
             path_or_paths,
