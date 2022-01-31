@@ -52,14 +52,16 @@ WIKISOURCE_LANGUAGES = []
 class WikisourceConfig(datasets.BuilderConfig):
     """BuilderConfig for Wikisource."""
 
-    def __init__(self, language=None, date=None, **kwargs):
-        """BuilderConfig for Wikipedia.
+    def __init__(self, language=None, date=None, text_min_length=100, **kwargs):
+        """BuilderConfig for Wikisource.
 
         Args:
-          language (str): Language code for the Wikisource dump to use.
-          date (str): Date of the Wikisource dump in YYYYMMDD format. A list of
-            available dates can be found at https://dumps.wikimedia.org/enwiki/.
-          **kwargs: Keyword arguments forwarded to super.
+            language (str): Language code for the Wikisource dump to use.
+            date (str): Date of the Wikisource dump in YYYYMMDD format. A list of
+                available dates can be found at https://dumps.wikimedia.org/enwiki/.
+            text_min_length (int): Minimum text length. Note that many pages just have a small amount of metadata but
+                not contain the transcribed text.
+            **kwargs: Keyword arguments forwarded to super.
         """
         super().__init__(
             name=f"{date}.{language}",
@@ -182,7 +184,7 @@ class Wikisource(datasets.GeneratorBasedBuilder):
                 logger.error("mwparserfromhell ParseError: %s", e)
                 return
 
-            if not text:
+            if not text or len(text) < self.config.text_min_length:
                 beam.metrics.Metrics.counter(language, "empty-clean-examples").inc()
                 return
 
