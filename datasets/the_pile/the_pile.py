@@ -39,6 +39,7 @@ _HOMEPAGE = "https://pile.eleuther.ai/"
 
 _LICENSES = {
     "all": "Multiple: see each subset license",
+    "enron_emails": "Unknown",
     "europarl": "Unknown",
     "free_law": "Unknown",
     "hacker_news": "Unknown",
@@ -55,6 +56,7 @@ _DATA_URLS = {
         "validation": ["https://the-eye.eu/public/AI/pile/val.jsonl.zst"],
         "test": ["https://the-eye.eu/public/AI/pile/test.jsonl.zst"],
     },
+    "enron_emails": "http://eaidata.bmk.sh/data/enron_emails.jsonl.zst",
     "europarl": "https://the-eye.eu/public/AI/pile_preliminary_components/EuroParliamentProceedings_1996_2011.jsonl.zst",
     "free_law": "https://the-eye.eu/public/AI/pile_preliminary_components/FreeLaw_Opinions.jsonl.zst",
     "hacker_news": "https://the-eye.eu/public/AI/pile_preliminary_components/hn.tar.gz",
@@ -70,6 +72,12 @@ _FEATURES = {
         {
             "text": datasets.Value("string"),
             "meta": {"pile_set_name": datasets.Value("string")},
+        }
+    ),
+    "enron_emails": datasets.Features(
+        {
+            "text": datasets.Value("string"),
+            "meta": datasets.Value("string"),
         }
     ),
     "europarl": datasets.Features(
@@ -213,7 +221,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
                         key += 1
         else:
             for subset in files:
-                if subset in {"europarl", "free_law", "nih_exporter", "pubmed", "ubuntu_irc"}:
+                if subset in {"enron_emails", "europarl", "free_law", "nih_exporter", "pubmed", "ubuntu_irc"}:
                     import zstandard as zstd
 
                     with zstd.open(open(files[subset], "rb"), "rt", encoding="utf-8") as f:

@@ -384,6 +384,7 @@ task_ids:
 - constituency-parsing
 - dependency-parsing
 paperswithcode_id: universal-dependencies
+pretty_name: Universal Dependencies Treebank
 ---
 
 # Dataset Card for Universal Dependencies Treebank

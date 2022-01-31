@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: boolq
+pretty_name: Boolean Questions
 ---
 
 # Dataset Card for "boolq"

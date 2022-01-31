@@ -7,18 +7,19 @@ import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import DatasetInfoMixin
-from .features import Features
+from .features import Features, FeatureType
 from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit
+from .table import table_cast
 
 
 def _infer_features_from_batch(batch: Dict[str, list], try_features: Optional[Features] = None) -> Features:
     pa_table = pa.Table.from_pydict(batch)
     if try_features is not None:
         try:
-            pa_table = pa_table.cast(pa.schema(try_features.type))
-        except (pa.ArrowInvalid, pa.ArrowNotImplementedError):
+            pa_table = table_cast(pa_table, pa.schema(try_features.type))
+        except (TypeError, pa.ArrowInvalid, pa.ArrowNotImplementedError):
             pass
     return Features.from_arrow_schema(pa_table.schema)
 
@@ -75,15 +76,14 @@ class ExamplesIterable(_BaseExamplesIterable):
         self.kwargs = kwargs
 
     def __iter__(self):
-        for key, example in self.generate_examples_fn(**self.kwargs):
-            yield key, example
+        yield from self.generate_examples_fn(**self.kwargs)
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "ExamplesIterable":
         return ShardShuffledExamplesIterable(self.generate_examples_fn, self.kwargs, seed)
 
     @property
     def n_shards(self) -> int:
-        max_length = max([len(value) for value in self.kwargs.values() if isinstance(value, list)], default=0)
+        max_length = max((len(value) for value in self.kwargs.values() if isinstance(value, list)), default=0)
         return max(1, max_length)
 
 
@@ -96,8 +96,7 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
         """Shuffle the kwargs order to shuffle shards"""
         rng = np.random.default_rng(self.seed)
         kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
-        for key, example in self.generate_examples_fn(**kwargs_with_shuffled_shards):
-            yield key, example
+        yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
 
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
@@ -281,6 +280,31 @@ class TakeExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
+class TypedExamplesIterable(_BaseExamplesIterable):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, features: Features):
+        self.ex_iterable = ex_iterable
+        self.features = features
+
+    def __iter__(self):
+        for key, example in self.ex_iterable:
+            # we encode the example for ClassLabel feature types for example
+            encoded_example = self.features.encode_example(example)
+            # Decode example for Audio feature, e.g.
+            decoded_example = self.features.decode_example(encoded_example)
+            yield key, decoded_example
+
+    def shuffle_data_sources(self, seed: Optional[int]) -> "TypedExamplesIterable":
+        """Shuffle the wrapped examples iterable."""
+        return TypedExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(seed),
+            features=self.features,
+        )
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
+
+
 def _generate_examples_from_tables_wrapper(generate_tables_fn):
     def wrapper(**kwargs):
         python_formatter = PythonFormatter()
@@ -397,7 +421,12 @@ class IterableDataset(DatasetInfoMixin):
         info = copy.deepcopy(self._info)
         info.features = None
         ex_iterable = MappedExamplesIterable(
-            self._ex_iterable, function=function, batched=batched, batch_size=batch_size
+            TypedExamplesIterable(self._ex_iterable, self._info.features)
+            if self._info.features is not None
+            else self._ex_iterable,
+            function=function,
+            batched=batched,
+            batch_size=batch_size,
         )
         return iterable_dataset(
             ex_iterable=ex_iterable,
@@ -493,6 +522,26 @@ class IterableDataset(DatasetInfoMixin):
             return {k: v for k, v in example.items() if k not in column_names}
 
         return self.map(remove_fn)
+
+    def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
+        """Cast column to feature for decoding.
+
+        Args:
+            column (:obj:`str`): Column name.
+            feature (:class:`Feature`): Target feature.
+
+        Returns:
+            :class:`IterableDataset`
+        """
+        info = copy.deepcopy(self._info)
+        info.features[column] = feature
+        return iterable_dataset(
+            ex_iterable=self._ex_iterable,
+            info=info,
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+        )
 
 
 def iterable_dataset(

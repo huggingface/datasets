@@ -2,9 +2,10 @@
 languages:
 - en
 paperswithcode_id: null
+pretty_name: The modified Winograd Schema Challenge (MWSC)
 ---
 
-# Dataset Card for "mwsc"
+# Dataset Card for The modified Winograd Schema Challenge (MWSC)
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

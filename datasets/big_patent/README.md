@@ -37,6 +37,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: bigpatent
+pretty_name: Big Patent
 ---
 
 # Dataset Card for Big Patent
@@ -108,7 +109,18 @@ Each instance contains a pair of `description` and `abstract`. `description` is 
 
 ### Data Splits
 
-[More Information Needed]
+|     |             train |   validation |   test |
+|:----|------------------:|-------------:|-------:|
+| all | 1207222           |        67068 |  67072 |
+| a   |  174134           |         9674 |   9675 |
+| b   |  161520           |         8973 |   8974 |
+| c   |  101042           |         5613 |   5614 |
+| d   |   10164           |          565 |    565 |
+| e   |   34443           |         1914 |   1914 |
+| f   |   85568           |         4754 |   4754 |
+| g   |  258935           |        14385 |  14386 |
+| h   |  257019           |        14279 |  14279 |
+| y   |  124397           |         6911 |   6911 |
 
 ## Dataset Creation
 
@@ -166,7 +178,24 @@ Each instance contains a pair of `description` and `abstract`. `description` is 
 
 ### Citation Information
 
-[More Information Needed]
+```bibtex
+@article{DBLP:journals/corr/abs-1906-03741,
+  author    = {Eva Sharma and
+               Chen Li and
+               Lu Wang},
+  title     = {{BIGPATENT:} {A} Large-Scale Dataset for Abstractive and Coherent
+               Summarization},
+  journal   = {CoRR},
+  volume    = {abs/1906.03741},
+  year      = {2019},
+  url       = {http://arxiv.org/abs/1906.03741},
+  eprinttype = {arXiv},
+  eprint    = {1906.03741},
+  timestamp = {Wed, 26 Jun 2019 07:14:58 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-1906-03741.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+```
 
 ### Contributions
 

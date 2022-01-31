@@ -363,7 +363,7 @@ class DatasetMetadata:
     def validate_pretty_name(pretty_name: Union[str, Dict[str, str]]):
         if isinstance(pretty_name, str):
             if len(pretty_name) == 0:
-                return None, f"The pretty name must have a length greater than 0 but got an empty string."
+                return None, "The pretty name must have a length greater than 0 but got an empty string."
         else:
             error_string = ""
             for key, value in pretty_name.items():

@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: cos-e
+pretty_name: Commonsense Explanations Dataset
 ---
 
 # Dataset Card for "cos_e"

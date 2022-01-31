@@ -20,6 +20,7 @@ task_ids:
 - dialogue-modeling
 - other-multi-turn
 paperswithcode_id: kdconv
+pretty_name: Knowledge-driven Conversation
 ---
 
 # Dataset Card for KdConv

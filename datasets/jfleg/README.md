@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - conditional-text-generation-other-grammatical-error-correction
 paperswithcode_id: jfleg
+pretty_name: JHU FLuency-Extended GUG corpus
 ---
 
 # Dataset Card for JFLEG

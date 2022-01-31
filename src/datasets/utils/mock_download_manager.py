@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -213,3 +212,12 @@ class MockDownloadManager:
         for file_path in path.rglob("*"):
             if file_path.is_file() and not file_path.name.startswith(".") and not file_path.name.startswith("__"):
                 yield file_path.relative_to(path).as_posix(), file_path.open("rb")
+
+    def iter_files(self, paths):
+        for path in paths:
+            if os.path.isfile(path):
+                yield path
+            else:
+                for dirpath, _, filenames in os.walk(path):
+                    for filename in filenames:
+                        yield os.path.join(dirpath, filename)

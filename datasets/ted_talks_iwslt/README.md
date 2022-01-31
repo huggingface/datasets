@@ -156,6 +156,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: null
+pretty_name: Web Inventory of Transcribed & Translated(WIT) Ted Talks
 ---
 
 # Dataset Card for Web Inventory of Transcribed & Translated(WIT) Ted Talks

@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: matinf
+pretty_name: Maternal and Infant Dataset
 ---
 
 # Dataset Card for "matinf"

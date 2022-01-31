@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - natural-language-inference
 paperswithcode_id: sick
+pretty_name: Sentences Involving Compositional Knowledge
 ---
 
 # Dataset Card for sick

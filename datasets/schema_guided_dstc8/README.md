@@ -23,6 +23,7 @@ task_ids:
 - multi-class-classification
 - parsing
 paperswithcode_id: sgd
+pretty_name: Schema-Guided Dialogue
 ---
 
 # Dataset Card for The Schema-Guided Dialogue Dataset

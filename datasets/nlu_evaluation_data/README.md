@@ -21,6 +21,7 @@ task_ids:
 - intent-classification
 - multi-class-classification
 paperswithcode_id: null
+pretty_name: NLU Evaluation Data
 ---
 
 # Dataset Card for NLU Evaluation Data

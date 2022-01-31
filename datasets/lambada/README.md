@@ -18,6 +18,7 @@ size_categories:
 licenses:
 - cc-by-4.0
 paperswithcode_id: lambada
+pretty_name: LAMBADA
 ---
 
 # Dataset Card for LAMBADA

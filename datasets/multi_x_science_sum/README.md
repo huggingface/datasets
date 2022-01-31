@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - summarization
 paperswithcode_id: multi-xscience
+pretty_name: Multi-XScience
 ---
 
 # Dataset Card for Multi-XScience

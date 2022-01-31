@@ -24,6 +24,7 @@ task_ids:
 - open-domain-qa
 - summarization
 - text-simplification
+pretty_name: WikiSummary
 ---
 
 # Dataset Card for [Needs More Information]

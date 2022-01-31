@@ -3,23 +3,25 @@ import copy
 import json
 import os
 import re
+from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import numpy as np
-
-from datasets.splits import NamedSplit, Split
-from datasets.utils.doc_utils import is_documented_by
+from huggingface_hub import HfApi
 
 from . import config
 from .arrow_dataset import Dataset
 from .features import Features
 from .filesystems import extract_path_from_uri, is_remote_filesystem
+from .info import DatasetInfo
+from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils.deprecation_utils import deprecated
+from .utils.doc_utils import is_documented_by
 from .utils.typing import PathLike
 
 
@@ -516,6 +518,7 @@ class DatasetDict(dict):
         function,
         with_indices=False,
         input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
         batch_size: Optional[int] = 1000,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
@@ -524,6 +527,7 @@ class DatasetDict(dict):
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
         num_proc: Optional[int] = None,
+        desc: Optional[str] = None,
     ) -> "DatasetDict":
         """Apply a filter function to all the elements in the table in batches
         and update the table so that the dataset only includes examples according to the filter function.
@@ -538,6 +542,7 @@ class DatasetDict(dict):
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+            batched (`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
@@ -555,6 +560,7 @@ class DatasetDict(dict):
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
+            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while filtering examples.
         """
         self._check_values_type()
         if cache_file_names is None:
@@ -565,6 +571,7 @@ class DatasetDict(dict):
                     function=function,
                     with_indices=with_indices,
                     input_columns=input_columns,
+                    batched=batched,
                     batch_size=batch_size,
                     remove_columns=remove_columns,
                     keep_in_memory=keep_in_memory,
@@ -573,6 +580,7 @@ class DatasetDict(dict):
                     writer_batch_size=writer_batch_size,
                     fn_kwargs=fn_kwargs,
                     num_proc=num_proc,
+                    desc=desc,
                 )
                 for k, dataset in self.items()
             }
@@ -881,9 +889,9 @@ class DatasetDict(dict):
         ).read()
 
     @is_documented_by(Dataset.prepare_for_task)
-    def prepare_for_task(self, task: Union[str, TaskTemplate]) -> "DatasetDict":
+    def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "DatasetDict":
         self._check_values_type()
-        return DatasetDict({k: dataset.prepare_for_task(task=task) for k, dataset in self.items()})
+        return DatasetDict({k: dataset.prepare_for_task(task=task, id=id) for k, dataset in self.items()})
 
     @is_documented_by(Dataset.align_labels_with_mapping)
     def align_labels_with_mapping(self, label2id: Dict, label_column: str) -> "DatasetDict":
@@ -931,12 +939,41 @@ class DatasetDict(dict):
 
                 >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
         """
-        for key in self.keys():
-            logger.warning(f"Pushing split {key} to the Hub.")
+        self._check_values_type()
+        total_uploaded_size = 0
+        total_dataset_nbytes = 0
+        info_to_dump: DatasetInfo = next(iter(self.values())).info.copy()
+        dataset_name = repo_id.split("/")[-1]
+        info_to_dump.splits = SplitDict(dataset_name=dataset_name)
+        for split in self.keys():
+            logger.warning(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
-            self[key].push_to_hub(
-                repo_id, split=key, private=private, token=token, branch=branch, shard_size=shard_size
+            repo_id, split, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
+                repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
             )
+            total_uploaded_size += uploaded_size
+            total_dataset_nbytes += dataset_nbytes
+            info_to_dump.splits[split] = SplitInfo(
+                str(split), num_bytes=dataset_nbytes, num_examples=len(self[split]), dataset_name=dataset_name
+            )
+        organization, dataset_name = repo_id.split("/")
+        info_to_dump.download_checksums = None
+        info_to_dump.download_size = total_uploaded_size
+        info_to_dump.dataset_size = total_dataset_nbytes
+        info_to_dump.size_in_bytes = total_uploaded_size + total_dataset_nbytes
+        buffer = BytesIO()
+        buffer.write(f'{{"{organization}--{dataset_name}": '.encode())
+        info_to_dump._dump_info(buffer)
+        buffer.write(b"}")
+        HfApi(endpoint=config.HF_ENDPOINT).upload_file(
+            path_or_fileobj=buffer.getvalue(),
+            path_in_repo=config.DATASETDICT_INFOS_FILENAME,
+            repo_id=repo_id,
+            token=token,
+            repo_type="dataset",
+            revision=branch,
+            identical_ok=True,
+        )
 
 
 class IterableDatasetDict(dict):

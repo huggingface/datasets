@@ -342,7 +342,7 @@ def fingerprint_transform(
         raise ValueError(f"ignore_kwargs is supposed to be a list, not {type(use_kwargs)}")
 
     if inplace and fingerprint_names:
-        raise ValueError(f"fingerprint_names are only used when inplace is False")
+        raise ValueError("fingerprint_names are only used when inplace is False")
 
     fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
 
@@ -381,7 +381,9 @@ def fingerprint_transform(
                 kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
             if randomized_function:  # randomized functions have `seed` and `generator` parameters
                 if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
-                    kwargs_for_fingerprint["generator"] = np.random.default_rng(np.random.get_state()[1][0])
+                    _, seed, pos, *_ = np.random.get_state()
+                    seed = seed[pos] if pos < 624 else seed[0]
+                    kwargs_for_fingerprint["generator"] = np.random.default_rng(seed)
 
             # remove kwargs that are the default values
 

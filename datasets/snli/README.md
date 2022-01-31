@@ -19,6 +19,7 @@ task_categories:
 task_ids:
 - natural-language-inference
 paperswithcode_id: snli
+pretty_name: Stanford Natural Language Inference
 ---
 # Dataset Card for SNLI
 

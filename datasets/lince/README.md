@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: lince
+pretty_name: Linguistic Code-switching Evaluation Dataset
 ---
 
 # Dataset Card for "lince"

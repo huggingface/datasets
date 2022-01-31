@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -168,17 +167,17 @@ class NonMutableDict(dict):
         )
         if kwargs:
             raise ValueError("NonMutableDict cannot be initialized with kwargs.")
-        super(NonMutableDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __setitem__(self, key, value):
         if key in self:
             raise ValueError(self._error_msg.format(key=key))
-        return super(NonMutableDict, self).__setitem__(key, value)
+        return super().__setitem__(key, value)
 
     def update(self, other):
         if any(k in self for k in other):
             raise ValueError(self._error_msg.format(key=set(self) & set(other)))
-        return super(NonMutableDict, self).update(other)
+        return super().update(other)
 
 
 class classproperty(property):  # pylint: disable=invalid-name
@@ -270,11 +269,14 @@ def map_nested(
             start = div * index + min(index, mod)
             end = start + div + (1 if index < mod else 0)
             split_kwds.append((function, iterable[start:end], types, index, disable_tqdm))
-        assert len(iterable) == sum(len(i[1]) for i in split_kwds), (
-            f"Error dividing inputs iterable among processes. "
-            f"Total number of objects {len(iterable)}, "
-            f"length: {sum(len(i[1]) for i in split_kwds)}"
-        )
+
+        if len(iterable) != sum(len(i[1]) for i in split_kwds):
+            raise ValueError(
+                f"Error dividing inputs iterable among processes. "
+                f"Total number of objects {len(iterable)}, "
+                f"length: {sum(len(i[1]) for i in split_kwds)}"
+            )
+
         logger.info(
             f"Spawning {num_proc} processes for {len(iterable)} objects in slices of {[len(i[1]) for i in split_kwds]}"
         )

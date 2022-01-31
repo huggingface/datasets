@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -162,7 +161,8 @@ class BaseReader:
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
             in_memory (bool, default False): Whether to copy the data in-memory.
         """
-        assert len(files) > 0 and all(isinstance(f, dict) for f in files), "please provide valid file informations"
+        if len(files) == 0 or not all(isinstance(f, dict) for f in files):
+            raise ValueError("please provide valid file informations")
         pa_tables = []
         files = copy.deepcopy(files)
         for f in files:
@@ -376,8 +376,10 @@ class _RelativeInstruction:
     rounding: Optional[str] = None
 
     def __post_init__(self):
-        assert self.unit is None or self.unit in ["%", "abs"]
-        assert self.rounding is None or self.rounding in ["closest", "pct1_dropremainder"]
+        if self.unit is not None and self.unit not in ["%", "abs"]:
+            raise ValueError("unit must be either % or abs")
+        if self.rounding is not None and self.rounding not in ["closest", "pct1_dropremainder"]:
+            raise ValueError("rounding must be either closest or pct1_dropremainder")
         if self.unit != "%" and self.rounding is not None:
             raise AssertionError("It is forbidden to specify rounding if not using percent slicing.")
         if self.unit == "%" and self.from_ is not None and abs(self.from_) > 100:
@@ -559,7 +561,7 @@ class ReadInstruction:
         if not subs:
             raise AssertionError(f"No instructions could be built out of {spec}")
         instruction = _str_to_read_instruction(subs[0])
-        return sum([_str_to_read_instruction(sub) for sub in subs[1:]], instruction)
+        return sum((_str_to_read_instruction(sub) for sub in subs[1:]), instruction)
 
     def to_spec(self):
         rel_instr_specs = []
