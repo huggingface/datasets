@@ -824,7 +824,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             key: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
             for key, data_files_list in data_files.items()
         }
-        if len(set(list(inferred_module_names.values()))) > 1:
+        if len(set(inferred_module_names.values())) > 1:
             raise ValueError(f"Couldn't infer the same data file format for all splits. Got {inferred_module_names}")
         inferred_module_name = next(iter(inferred_module_names.values()))
         if not inferred_module_name:
