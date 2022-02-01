@@ -34,7 +34,7 @@ _CITATION = """\
   year      = {2005},
   address   = {Ann Arbor, Michigan},
   publisher = {Association for Computational Linguistics},
-  url       = {https://www.aclweb.org/anthology/W05-0909},
+  url       = {https://aclanthology.org/W05-0909/},
   pages     = {65--72},
 }
 """

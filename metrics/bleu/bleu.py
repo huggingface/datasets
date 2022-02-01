@@ -35,7 +35,7 @@ _CITATION = """\
     year = "2004",
     address = "Geneva, Switzerland",
     publisher = "COLING",
-    url = "https://www.aclweb.org/anthology/C04-1072",
+    url = "https://aclanthology.org/C04-1072/",
     pages = "501--507",
 }
 """

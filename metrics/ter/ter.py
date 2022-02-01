@@ -43,7 +43,7 @@ _CITATION = """\
     year = "2018",
     address = "Belgium, Brussels",
     publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/W18-6319",
+    url = "https://aclanthology.org/W18-6319/",
     pages = "186--191",
 }
 """

@@ -63,7 +63,7 @@ _CITATION = """\
    year = "2020",
    address = "Online",
    publisher = "Association for Computational Linguistics",
-   url = "https://www.aclweb.org/anthology/2020.emnlp-main.213",
+   url = "https://aclanthology.org/2020.emnlp-main.213/",
    pages = "2685--2702",
 }
 """
@@ -123,7 +123,7 @@ class COMET(datasets.Metric):
             codebase_urls=["https://github.com/Unbabel/COMET"],
             reference_urls=[
                 "https://github.com/Unbabel/COMET",
-                "https://www.aclweb.org/anthology/2020.emnlp-main.213/",
+                "https://aclanthology.org/2020.emnlp-main.213/",
                 "https://www.statmt.org/wmt20/pdf/2020.wmt-1.101.pdf",
             ],
         )

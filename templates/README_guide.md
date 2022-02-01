@@ -117,7 +117,7 @@ If the data was modified or normalized after being collected (e.g. if the data i
 
 State whether the data was produced by humans or machine generated. Describe the people or systems who originally created the data.
 
-If available, include self-reported demographic or identity information for the source data creators, but avoid inferring this information. Instead, state that this information is unknown. See [Larson 2017](https://www.aclweb.org/anthology/W17-1601.pdf) for using identity categories as a variables, particularly gender.
+If available, include self-reported demographic or identity information for the source data creators, but avoid inferring this information. Instead, state that this information is unknown. See [Larson 2017](https://aclanthology.org/W17-1601.pdf) for using identity categories as a variables, particularly gender.
 
 Describe the conditions under which the data was created (for example, if the producers were crowdworkers, state what platform was used, or if the data was found, what website the data was found on). If compensation was provided, include that information here.
 
@@ -137,13 +137,13 @@ If annotations were collected for the source data (such as class labels or synta
 
 Describe the people or systems who originally created the annotations and their selection criteria if applicable.
 
-If available, include self-reported demographic or identity information for the annotators, but avoid inferring this information. Instead, state that this information is unknown. See [Larson 2017](https://www.aclweb.org/anthology/W17-1601.pdf) for using identity categories as a variables, particularly gender.
+If available, include self-reported demographic or identity information for the annotators, but avoid inferring this information. Instead, state that this information is unknown. See [Larson 2017](https://aclanthology.org/W17-1601.pdf) for using identity categories as a variables, particularly gender.
 
 Describe the conditions under which the data was annotated (for example, if the annotators were crowdworkers, state what platform was used, or if the data was found, what website the data was found on). If compensation was provided, include that information here.
 
 ### Personal and Sensitive Information
 
-State whether the dataset uses identity categories and, if so, how the information is used. Describe where this information comes from (i.e. self-reporting, collecting from profiles, inferring, etc.). See [Larson 2017](https://www.aclweb.org/anthology/W17-1601.pdf) for using identity categories as a variables, particularly gender. State whether the data is linked to individuals and whether those individuals can be identified in the dataset, either directly or indirectly (i.e., in combination with other data).
+State whether the dataset uses identity categories and, if so, how the information is used. Describe where this information comes from (i.e. self-reporting, collecting from profiles, inferring, etc.). See [Larson 2017](https://aclanthology.org/W17-1601.pdf) for using identity categories as a variables, particularly gender. State whether the data is linked to individuals and whether those individuals can be identified in the dataset, either directly or indirectly (i.e., in combination with other data).
 
 State whether the dataset contains other data that might be considered sensitive (e.g., data that reveals racial or ethnic origins, sexual orientations, religious beliefs, political opinions or union memberships, or locations; financial or health data; biometric or genetic data; forms of government identification, such as social security numbers; criminal history).  
 
@@ -163,7 +163,7 @@ Also describe in this section if the proposed dataset contains a low-resource or
 
 Provide descriptions of specific biases that are likely to be reflected in the data, and state whether any steps were taken to reduce their impact.
 
-For Wikipedia text, see for example [Dinan et al. 2020 on biases in Wikipedia (esp. Table 1)](https://arxiv.org/abs/2005.00614), or [Blodgett et al. 2020](https://www.aclweb.org/anthology/2020.acl-main.485/) for a more general discussion of the topic.
+For Wikipedia text, see for example [Dinan et al. 2020 on biases in Wikipedia (esp. Table 1)](https://arxiv.org/abs/2005.00614), or [Blodgett et al. 2020](https://aclanthology.org/2020.acl-main.485/) for a more general discussion of the topic.
 
 If analyses have been run quantifying these biases, please add brief summaries and links to the studies here.
 

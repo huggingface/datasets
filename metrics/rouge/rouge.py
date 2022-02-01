@@ -32,7 +32,7 @@ _CITATION = """\
     year = "2004",
     address = "Barcelona, Spain",
     publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/W04-1013",
+    url = "https://aclanthology.org/W04-1013/",
     pages = "74--81",
 }
 """

@@ -75,7 +75,7 @@ series = {MUC6 ’95}
     year = "2016",
     address = "Berlin, Germany",
     publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/P16-1060",
+    url = "https://aclanthology.org/P16-1060/",
     doi = "10.18653/v1/P16-1060",
     pages = "632--642",
 }
@@ -284,7 +284,7 @@ class Coval(datasets.Metric):
             codebase_urls=["https://github.com/ns-moosavi/coval"],
             reference_urls=[
                 "https://github.com/ns-moosavi/coval",
-                "https://www.aclweb.org/anthology/P16-1060",
+                "https://aclanthology.org/P16-1060/",
                 "https://www.conll.cemantix.org/2012/data.html",
             ],
         )

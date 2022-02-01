@@ -28,7 +28,7 @@ _CITATION = """\
       Marcus, Mitch",
     booktitle = "Third Workshop on Very Large Corpora",
     year = "1995",
-    url = "https://www.aclweb.org/anthology/W95-0107",
+    url = "https://aclanthology.org/W95-0107/",
 }
 @misc{seqeval,
   title={{seqeval}: A Python framework for sequence labeling evaluation},
