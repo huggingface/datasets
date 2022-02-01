@@ -15,6 +15,8 @@
 """ Common Voice Dataset"""
 
 
+import os
+
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
 
@@ -657,15 +659,21 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        archive = dl_manager.download(_DATA_URL.format(self.config.name))
-        path_to_data = "/".join(["cv-corpus-6.1-2020-12-11", self.config.name])
+        archive_path = dl_manager.download(_DATA_URL.format(self.config.name))
+        if archive_path.startswith("https://"):
+            path_to_data = "/".join(["cv-corpus-6.1-2020-12-11", self.config.name])
+            archive_iterator = dl_manager.iter_archive(archive_path)
+        else:
+            archive_path = dl_manager.extract(archive_path)
+            path_to_data = os.path.join(archive_path, "cv-corpus-6.1-2020-12-11", self.config.name)
+            archive_iterator = None
         path_to_clips = "/".join([path_to_data, "clips"])
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "files": dl_manager.iter_archive(archive),
+                    "archive_iterator": archive_iterator,
                     "filepath": "/".join([path_to_data, "train.tsv"]),
                     "path_to_clips": path_to_clips,
                 },
@@ -673,7 +681,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "files": dl_manager.iter_archive(archive),
+                    "archive_iterator": archive_iterator,
                     "filepath": "/".join([path_to_data, "test.tsv"]),
                     "path_to_clips": path_to_clips,
                 },
@@ -681,7 +689,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "files": dl_manager.iter_archive(archive),
+                    "archive_iterator": archive_iterator,
                     "filepath": "/".join([path_to_data, "dev.tsv"]),
                     "path_to_clips": path_to_clips,
                 },
@@ -689,7 +697,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name="other",
                 gen_kwargs={
-                    "files": dl_manager.iter_archive(archive),
+                    "archive_iterator": archive_iterator,
                     "filepath": "/".join([path_to_data, "other.tsv"]),
                     "path_to_clips": path_to_clips,
                 },
@@ -705,15 +713,52 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name="invalidated",
                 gen_kwargs={
-                    "files": dl_manager.iter_archive(archive),
+                    "archive_iterator": archive_iterator,
                     "filepath": "/".join([path_to_data, "invalidated.tsv"]),
                     "path_to_clips": path_to_clips,
                 },
             ),
         ]
 
-    def _generate_examples(self, files, filepath, path_to_clips):
+    def _generate_examples(self, archive_iterator, filepath, path_to_clips):
         """Yields examples."""
+        if archive_iterator is not None:
+            yield from self._generate_examples_streaming(archive_iterator, filepath, path_to_clips)
+
+        data_fields = list(self._info().features.keys())
+
+        # audio is not a header of the csv files
+        data_fields.remove("audio")
+        path_idx = data_fields.index("path")
+
+        with open(filepath, encoding="utf-8") as f:
+            lines = f.readlines()
+            headline = lines[0]
+
+            column_names = headline.strip().split("\t")
+            assert (
+                column_names == data_fields
+            ), f"The file should have {data_fields} as column names, but has {column_names}"
+
+            for id_, line in enumerate(lines[1:]):
+                field_values = line.strip().split("\t")
+
+                # set absolute path for mp3 audio file
+                field_values[path_idx] = os.path.join(path_to_clips, field_values[path_idx])
+
+                # if data is incomplete, fill with empty values
+                if len(field_values) < len(data_fields):
+                    field_values += (len(data_fields) - len(field_values)) * ["''"]
+
+                result = {key: value for key, value in zip(data_fields, field_values)}
+
+                # set audio feature
+                result["audio"] = field_values[path_idx]
+
+                yield id_, result
+
+    def _generate_examples_streaming(self, archive_iterator, filepath, path_to_clips):
+        """Yields examples in streaming mode."""
         data_fields = list(self._info().features.keys())
 
         # audio is not a header of the csv files
@@ -722,7 +767,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
         all_field_values = {}
         metadata_found = False
-        for path, f in files:
+        for path, f in archive_iterator:
             if path == filepath:
                 metadata_found = True
                 lines = f.readlines()
