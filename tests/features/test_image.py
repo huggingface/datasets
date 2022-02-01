@@ -484,7 +484,7 @@ class __DummyDataset__(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, **kwargs):
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             for i, line in enumerate(f):
                 image_path, caption = line.split(",")
                 yield i, {"image": image_path.strip(), "caption": caption.strip()}
