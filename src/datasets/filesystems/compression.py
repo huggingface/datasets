@@ -11,7 +11,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
 
     root_marker = ""
     protocol: str = (
-        None  # protocol passed in prefix to the url. ex: "gzip", for gzip://file.txt::http://foo.bar/file.txt.gz
+        None  # protocol passed in prefix to the url. ex: "gzip", for gzip://file.txt::https://foo.bar/file.txt.gz
     )
     compression: str = None  # compression type in fsspec. ex: "gzip"
     extension: str = None  # extension of the filename to strip. ex: "".gz" to get file.txt from file.txt.gz
