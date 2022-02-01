@@ -33,14 +33,14 @@ _CITATION = """\
   address   = {Beijing, China},
   publisher = {Association for Computational Linguistics},
   pages     = {588--593},
-  url       = {http://www.aclweb.org/anthology/P15-2097}
+  url       = {https://aclanthology.org/P15-2097/}
 }
 @Article{napoles2016gleu,
   author    = {Napoles, Courtney  and  Sakaguchi, Keisuke  and  Post, Matt  and  Tetreault, Joel},
   title     = {{GLEU} Without Tuning},
   journal   = {eprint arXiv:1605.02592 [cs.CL]},
   year      = {2016},
-  url       = {http://arxiv.org/abs/1605.02592}
+  url       = {https://arxiv.org/abs/1605.02592}
 }
 """
 

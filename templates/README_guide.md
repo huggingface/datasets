@@ -38,7 +38,7 @@ YAML tags:
 ## Dataset Description
 
 - **Homepage:** [Add homepage URL here if available (unless it's a GitHub repository)]()
-- **Repository:** [If the dataset is hosted on github or has a github homepage, add URL here]()
+- **Repository:** [If the dataset is hosted on GitHub or has a GitHub homepage, add URL here]()
 - **Paper:** [If the dataset was introduced by a paper or there was a paper written describing the dataset, add URL here (landing page for Arxiv paper preferred)]()
 - **Leaderboard:** [If the dataset supports an active leaderboard, add link here]()
 - **Point of Contact:** [If known, name and email of at least one person the reader can contact for questions about the dataset.]()
@@ -49,7 +49,7 @@ Briefly summarize the dataset, its intended use and the supported tasks. Give an
 
 ### Supported Tasks and Leaderboards
 
-For each of the tasks tagged for this dataset, give a brief description of the tag, metrics, and suggested models (with a link to their HuggingFace implementation if available). Give a similar description of tasks that were not covered by the structured tag set (repace the `task-category-tag` with an appropriate `other:other-task-name`).
+For each of the tasks tagged for this dataset, give a brief description of the tag, metrics, and suggested models (with a link to their HuggingFace implementation if available). Give a similar description of tasks that were not covered by the structured tag set (replace the `task-category-tag` with an appropriate `other:other-task-name`).
 
 - `task-category-tag`: The dataset can be used to train a model for [TASK NAME], which consists in [TASK DESCRIPTION]. Success on this task is typically measured by achieving a *high/low* [metric name](https://huggingface.co/metrics/metric_name). The ([model name](https://huggingface.co/model_name) or [model class](https://huggingface.co/transformers/model_doc/model_class.html)) model currently achieves the following score. *[IF A LEADERBOARD IS AVAILABLE]:* This task has an active leaderboard which can be found at [leaderboard url]() and ranks models based on [metric name](https://huggingface.co/metrics/metric_name) while also reporting [other metric name](https://huggingface.co/metrics/other_metric_name).
 
@@ -86,20 +86,20 @@ Note that the descriptions can be initialized with the **Show Markdown Data Fiel
 
 Describe and name the splits in the dataset if there are more than one.
 
-Describe any criteria for splitting the data, if used. If their are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
+Describe any criteria for splitting the data, if used. If there are differences between the splits (e.g. if the training annotations are machine-generated and the dev and test ones are created by humans, or if different numbers of annotators contributed to each example), describe them here.
 
 Provide the sizes of each split. As appropriate, provide any descriptive statistics for the features, such as average length.  For example:
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| Input Sentences            |        |       |      |
-| Average Sentence Length    |        |       |      |
+|                         | Train | Valid | Test |
+|-------------------------|-------|-------|------|
+| Input Sentences         |       |       |      |
+| Average Sentence Length |       |       |      |
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-What need motivated the creation of this dataset? What are some of the reasons underlying the major choices involved in putting it together?
+What need motivated the creation of this dataset? What are some reasons underlying the major choices involved in putting it together?
 
 ### Source Data
 
@@ -107,7 +107,7 @@ This section describes the source data (e.g. news text and headlines, social med
 
 #### Initial Data Collection and Normalization
 
-Describe the data collection process. Describe any criteria for data selection or filtering. List any key words or search terms used. If possible, include runtime information for the collection process.
+Describe the data collection process. Describe any criteria for data selection or filtering. List any keywords or search terms used. If possible, include runtime information for the collection process.
 
 If data was collected from other pre-existing datasets, link to source here and to their [Hugging Face version](https://huggingface.co/datasets/dataset_name).
 
@@ -117,7 +117,7 @@ If the data was modified or normalized after being collected (e.g. if the data i
 
 State whether the data was produced by humans or machine generated. Describe the people or systems who originally created the data.
 
-If available, include self-reported demographic or identity information for the source data creators, but avoid inferring this information. Instead state that this information is unknown. See [Larson 2017](https://www.aclweb.org/anthology/W17-1601.pdf) for using identity categories as a variables, particularly gender.
+If available, include self-reported demographic or identity information for the source data creators, but avoid inferring this information. Instead, state that this information is unknown. See [Larson 2017](https://www.aclweb.org/anthology/W17-1601.pdf) for using identity categories as a variables, particularly gender.
 
 Describe the conditions under which the data was created (for example, if the producers were crowdworkers, state what platform was used, or if the data was found, what website the data was found on). If compensation was provided, include that information here.
 
@@ -137,7 +137,7 @@ If annotations were collected for the source data (such as class labels or synta
 
 Describe the people or systems who originally created the annotations and their selection criteria if applicable.
 
-If available, include self-reported demographic or identity information for the annotators, but avoid inferring this information. Instead state that this information is unknown. See [Larson 2017](https://www.aclweb.org/anthology/W17-1601.pdf) for using identity categories as a variables, particularly gender.
+If available, include self-reported demographic or identity information for the annotators, but avoid inferring this information. Instead, state that this information is unknown. See [Larson 2017](https://www.aclweb.org/anthology/W17-1601.pdf) for using identity categories as a variables, particularly gender.
 
 Describe the conditions under which the data was annotated (for example, if the annotators were crowdworkers, state what platform was used, or if the data was found, what website the data was found on). If compensation was provided, include that information here.
 
@@ -153,7 +153,7 @@ If efforts were made to anonymize the data, describe the anonymization process.
 
 ### Social Impact of Dataset
 
-Please discuss some of the ways you believe the use of this dataset will impact society.
+Please discuss some ways you believe the use of this dataset will impact society.
 
 The statement should include both positive outlooks, such as outlining how technologies developed through its use may improve people's lives, and discuss the accompanying risks. These risks may range from making important decisions more opaque to people who are affected by the technology, to reinforcing existing harmful biases (whose specifics should be discussed in the next section), among other considerations.
 
@@ -163,7 +163,7 @@ Also describe in this section if the proposed dataset contains a low-resource or
 
 Provide descriptions of specific biases that are likely to be reflected in the data, and state whether any steps were taken to reduce their impact.
 
-For Wikipedia text, see for example [Dinan et al 2020 on biases in Wikipedia (esp. Table 1)](https://arxiv.org/abs/2005.00614), or [Blodgett et al 2020](https://www.aclweb.org/anthology/2020.acl-main.485/) for a more general discussion of the topic.
+For Wikipedia text, see for example [Dinan et al. 2020 on biases in Wikipedia (esp. Table 1)](https://arxiv.org/abs/2005.00614), or [Blodgett et al. 2020](https://www.aclweb.org/anthology/2020.acl-main.485/) for a more general discussion of the topic.
 
 If analyses have been run quantifying these biases, please add brief summaries and links to the studies here.
 
@@ -184,7 +184,7 @@ Provide the license and link to the license webpage if available.
 ### Citation Information
 
 Provide the [BibTex](http://www.bibtex.org/)-formatted reference for the dataset. For example:
-```
+```bibtex
 @article{article_id,
   author    = {Author List},
   title     = {Dataset Paper Title},

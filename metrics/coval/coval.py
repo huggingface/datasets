@@ -106,7 +106,7 @@ Column	Type	Description
 11	Named Entities	These columns identifies the spans representing various named entities.
 12:N	Predicate Arguments	There is one column each of predicate argument structure information for the predicate mentioned in Column 7.
 N	Coreference	Coreference chain information encoded in a parenthesis structure.
-More informations on the format can be found here (section "*_conll File Format"): http://www.conll.cemantix.org/2012/data.html
+More information on the format can be found here (section "*_conll File Format"): https://www.conll.cemantix.org/2012/data.html
 
 Details on the evaluation on CoNLL can be found here: https://github.com/ns-moosavi/coval/blob/master/conll/README.md
 
@@ -285,7 +285,7 @@ class Coval(datasets.Metric):
             reference_urls=[
                 "https://github.com/ns-moosavi/coval",
                 "https://www.aclweb.org/anthology/P16-1060",
-                "http://www.conll.cemantix.org/2012/data.html",
+                "https://www.conll.cemantix.org/2012/data.html",
             ],
         )
 

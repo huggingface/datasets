@@ -53,7 +53,7 @@ Examples:
 """
 
 # TODO: Define external resources urls if needed
-BAD_WORDS_URL = "http://url/to/external/resource/bad_words.txt"
+BAD_WORDS_URL = "https://url/to/external/resource/bad_words.txt"
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
@@ -73,10 +73,10 @@ class NewMetric(datasets.Metric):
                 'references': datasets.Value('string'),
             }),
             # Homepage of the metric for documentation
-            homepage="http://metric.homepage",
+            homepage="https://metric.homepage",
             # Additional links to the codebase or references
-            codebase_urls=["http://github.com/path/to/codebase/of/new_metric"],
-            reference_urls=["http://path.to.reference.url/new_metric"]
+            codebase_urls=["https://github.com/path/to/codebase/of/new_metric"],
+            reference_urls=["https://path.to.reference.url/new_metric"]
         )
 
     def _download_and_prepare(self, dl_manager):

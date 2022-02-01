@@ -99,7 +99,7 @@ class Ter(datasets.Metric):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
-            homepage="http://www.cs.umd.edu/~snover/tercom/",
+            homepage="https://www.cs.umd.edu/~snover/tercom/",
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {

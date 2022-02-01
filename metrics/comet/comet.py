@@ -124,7 +124,7 @@ class COMET(datasets.Metric):
             reference_urls=[
                 "https://github.com/Unbabel/COMET",
                 "https://www.aclweb.org/anthology/2020.emnlp-main.213/",
-                "http://www.statmt.org/wmt20/pdf/2020.wmt-1.101.pdf6",
+                "https://www.statmt.org/wmt20/pdf/2020.wmt-1.101.pdf",
             ],
         )
 
