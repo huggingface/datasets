@@ -20,7 +20,13 @@ from typing import Dict, List, Mapping, Optional, Sequence, Union
 import huggingface_hub
 
 from .features import Features
-from .load import dataset_module_factory, import_main_class, load_dataset_builder, metric_module_factory
+from .load import (
+    dataset_module_factory,
+    extend_dataset_builder_for_streaming,
+    import_main_class,
+    load_dataset_builder,
+    metric_module_factory,
+)
 from .utils import DownloadConfig
 from .utils.download_manager import GenerateMode
 from .utils.logging import get_logger
@@ -268,6 +274,7 @@ def get_dataset_split_names(
         use_auth_token=use_auth_token,
         **config_kwargs,
     )
+    extend_dataset_builder_for_streaming(builder, use_auth_token=use_auth_token)
     if builder.info.splits is None:
         try:
             download_config = download_config.copy() if download_config else DownloadConfig()
