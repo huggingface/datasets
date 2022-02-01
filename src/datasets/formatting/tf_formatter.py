@@ -67,7 +67,7 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
         if isinstance(data_struct, (list, np.ndarray)):
             if (
                 data_struct.dtype == np.object
-            ):  # tensorflow tensors can sometimes be instantied from an array of objects
+            ):  # tensorflow tensors can sometimes be instantiated from an array of objects
                 try:
                     return self._tensorize(data_struct)
                 except ValueError:

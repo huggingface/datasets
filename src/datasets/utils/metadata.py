@@ -68,12 +68,12 @@ def yaml_block_from_readme(path: Path) -> Optional[str]:
 
 
 def metadata_dict_from_readme(path: Path) -> Optional[Dict[str, List[str]]]:
-    """Loads a dataset's metadata from the dataset card (REAMDE.md), as a Python dict"""
+    """Loads a dataset's metadata from the dataset card (README.md), as a Python dict"""
     yaml_block = yaml_block_from_readme(path=path)
     if yaml_block is None:
         return None
-    metada_dict = yaml.load(yaml_block, Loader=NoDuplicateSafeLoader) or dict()
-    return metada_dict
+    metadata_dict = yaml.load(yaml_block, Loader=NoDuplicateSafeLoader) or dict()
+    return metadata_dict
 
 
 ValidatorOutput = Tuple[List[str], Optional[str]]
@@ -208,8 +208,8 @@ class DatasetMetadata:
         self.language_creators, language_creators_errors = self.validate_language_creators(self.language_creators)
         self.languages, languages_errors = self.validate_language_codes(self.languages)
         self.licenses, licenses_errors = self.validate_licences(self.licenses)
-        self.multilinguality, multilinguality_errors = self.validate_mulitlinguality(self.multilinguality)
-        self.size_categories, size_categories_errors = self.validate_size_catgeories(self.size_categories)
+        self.multilinguality, multilinguality_errors = self.validate_multilinguality(self.multilinguality)
+        self.size_categories, size_categories_errors = self.validate_size_categories(self.size_categories)
         self.source_datasets, source_datasets_errors = self.validate_source_datasets(self.source_datasets)
         self.task_categories, task_categories_errors = self.validate_task_categories(self.task_categories)
         self.task_ids, task_ids_errors = self.validate_task_ids(self.task_ids)
@@ -273,8 +273,8 @@ class DatasetMetadata:
         Raises:
             :obj:`TypeError`: If the dataset's metadata is invalid
         """
-        metada_dict = yaml.load(string, Loader=NoDuplicateSafeLoader) or dict()
-        return cls(**metada_dict)
+        metadata_dict = yaml.load(string, Loader=NoDuplicateSafeLoader) or dict()
+        return cls(**metadata_dict)
 
     @staticmethod
     def validate_annotations_creators(annotations_creators: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
@@ -328,7 +328,7 @@ class DatasetMetadata:
         return validated, error
 
     @staticmethod
-    def validate_mulitlinguality(multilinguality: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
+    def validate_multilinguality(multilinguality: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         validated, error = tagset_validator(
             multilinguality,
             list(known_multilingualities.keys()),
@@ -339,7 +339,7 @@ class DatasetMetadata:
         return validated, error
 
     @staticmethod
-    def validate_size_catgeories(size_cats: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
+    def validate_size_categories(size_cats: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
         return tagset_validator(size_cats, known_size_categories, "size_categories", known_size_categories_url)
 
     @staticmethod

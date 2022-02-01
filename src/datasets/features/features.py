@@ -117,7 +117,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
 
     Value(dtype=str)
 
-    But Features.type (via `get_nested_type()` expects to resolve Features into a pyarrow Schema,
+    But Features.type (via `get_nested_type()`) expects to resolve Features into a pyarrow Schema,
         which means that each Value() must be able to resolve into a corresponding pyarrow.DataType, which is the
         purpose of this function.
     """
@@ -129,7 +129,7 @@ def string_to_arrow(datasets_dtype: str) -> pa.DataType:
             msg += f"\nValid examples include: {examples}."
         if urls:
             urls = ", ".join(urls[:-1]) + " and " + urls[-1] if len(urls) > 1 else urls[0]
-            msg += f"\nFor more insformation, see: {urls}."
+            msg += f"\nFor more information, see: {urls}."
         return msg
 
     if datasets_dtype in pa.__dict__:
@@ -261,18 +261,18 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
     Cast pytorch/tensorflow/pandas objects to python numpy array/lists.
     It works recursively.
 
-    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be casted.
-    If the first element needs to be casted, then all the elements of the list will be casted, otherwise they'll stay the same.
-    This trick allows to cast objects that contain tokenizers outputs without iterating over every single token for example.
+    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be cast.
+    If the first element needs to be cast, then all the elements of the list will be cast, otherwise they'll stay the same.
+    This trick allows casting objects that contain tokenizers outputs without iterating over every single token for example.
 
     Args:
         obj: the object (nested struct) to cast
         only_1d_for_numpy (bool): whether to keep the full multi-dim tensors as multi-dim numpy arrays, or convert them to
             nested lists of 1-dimensional numpy arrays. This can be useful to keep only 1-d arrays to instantiate Arrow arrays.
-            Indeed Arrow only support converting 1-dimensional array values.
+            Indeed, Arrow only support converting 1-dimensional array values.
 
     Returns:
-        casted_obj: the casted object
+        casted_obj: the cast object
         has_changed (bool): True if the object has been changed, False if it is identical
     """
 
@@ -350,15 +350,15 @@ def cast_to_python_objects(obj: Any, only_1d_for_numpy=False) -> Any:
     Cast numpy/pytorch/tensorflow/pandas objects to python lists.
     It works recursively.
 
-    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be casted.
-    If the first element needs to be casted, then all the elements of the list will be casted, otherwise they'll stay the same.
-    This trick allows to cast objects that contain tokenizers outputs without iterating over every single token for example.
+    To avoid iterating over possibly long lists, it first checks (recursively) if the first element that is not None or empty (if it is a sequence) has to be cast.
+    If the first element needs to be cast, then all the elements of the list will be cast, otherwise they'll stay the same.
+    This trick allows casting objects that contain tokenizers outputs without iterating over every single token for example.
 
     Args:
         obj: the object (nested struct) to cast
 
     Returns:
-        casted_obj: the casted object
+        casted_obj: the cast object
     """
     return _cast_to_python_objects(obj, only_1d_for_numpy=only_1d_for_numpy)[0]
 
@@ -874,7 +874,7 @@ class ClassLabel:
 @dataclass
 class Sequence:
     """Construct a list of feature from a single type or a dict of types.
-    Mostly here for compatiblity with tfds.
+    Mostly here for compatibility with tfds.
     """
 
     feature: Any
@@ -942,7 +942,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     elif isinstance(schema, dict):
         return pa.struct(
             {key: get_nested_type(schema[key]) for key in schema}
-        )  # however don't sort on struct types since the order matters
+        )  # however, don't sort on struct types since the order matters
     elif isinstance(schema, (list, tuple)):
         if len(schema) != 1:
             raise ValueError("We defining list feature, you should just provide one example of the inner type")
@@ -950,7 +950,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         return pa.list_(value_type)
     elif isinstance(schema, Sequence):
         value_type = get_nested_type(schema.feature)
-        # We allow to reverse list of dict => dict of list for compatibility with tfds
+        # We allow reversing list of dict => dict of list for compatibility with tfds
         if isinstance(schema.feature, dict):
             return pa.struct({f.name: pa.list_(f.type, schema.length) for f in value_type})
         return pa.list_(value_type, schema.length)
@@ -984,7 +984,7 @@ def encode_nested_example(schema, obj):
                     return [encode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
     elif isinstance(schema, Sequence):
-        # We allow to reverse list of dict => dict of list for compatiblity with tfds
+        # We allow reversing list of dict => dict of list for compatibility with tfds
         if isinstance(schema.feature, dict):
             # dict of list to fill
             list_dict = {}
@@ -1045,7 +1045,7 @@ def decode_nested_example(schema, obj):
                     return [decode_nested_example(sub_schema, o) for o in obj]
             return list(obj)
     elif isinstance(schema, Sequence):
-        # We allow to reverse list of dict => dict of list for compatiblity with tfds
+        # We allow reversing list of dict => dict of list for compatibility with tfds
         if isinstance(schema.feature, dict):
             return {k: decode_nested_example([schema.feature[k]], obj[k]) for k in schema.feature}
         else:
@@ -1070,7 +1070,7 @@ def generate_from_dict(obj: Any):
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(obj, list):
         return [generate_from_dict(value) for value in obj]
-    # Otherwise we have a dict or a dataclass
+    # Otherwise, we have a dict or a dataclass
     if "_type" not in obj or isinstance(obj["_type"], dict):
         return {key: generate_from_dict(value) for key, value in obj.items()}
     class_type = globals()[obj.pop("_type")]
@@ -1167,7 +1167,7 @@ class Features(dict):
         - a :class:`datasets.Value` feature specifies a single typed value, e.g. ``int64`` or ``string``
         - a :class:`datasets.ClassLabel` feature specifies a field with a predefined set of classes which can have labels
           associated to them and will be stored as integers in the dataset
-        - a python :obj:`dict` which specifies that the field is a nested field containing a mapping of sub-fields to sub-fields
+        - a python :obj:`dict` which specifies that the field is a nested field containing a mapping of subfields to subfields
           features. It's possible to have nested fields of nested fields in an arbitrary manner
         - a python :obj:`list` or a :class:`datasets.Sequence` specifies that the field contains a list of objects. The python
           :obj:`list` or :class:`datasets.Sequence` should be provided with a single sub-feature as an example of the feature
@@ -1175,8 +1175,8 @@ class Features(dict):
 
           .. note::
 
-           A :class:`datasets.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of
-           lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be
+           A :class:`datasets.Sequence` with an internal dictionary feature will be automatically converted into a dictionary of
+           lists. This behavior is implemented to have a compatibility layer with the TensorFlow Datasets library but may be
            un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the
            :class:`datasets.Sequence`.
 

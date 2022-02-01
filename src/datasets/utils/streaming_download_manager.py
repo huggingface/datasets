@@ -328,7 +328,7 @@ def _prepare_http_url_kwargs(url: str, use_auth_token: Optional[Union[str, bool]
     """
     Prepare the URL and the kwargs that must be passed to the HttpFileSystem or to requests.get/head
 
-    In particular it resolves google drive URLs and it adds the authentication headers for the Hugging Face Hub.
+    In particular, it resolves Google Drive URLs, and it adds the authentication headers for the Hugging Face Hub.
     """
     kwargs = {"headers": get_authentication_headers_for_url(url, use_auth_token=use_auth_token)}
     if "drive.google.com" in url:

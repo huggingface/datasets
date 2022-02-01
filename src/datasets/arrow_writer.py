@@ -128,7 +128,7 @@ class TypedSequence:
     def _infer_custom_type_and_encode(data: Iterable) -> Tuple[Iterable, Optional[FeatureType]]:
         """Implement type inference for custom objects like PIL.Image.Image -> Image type.
 
-        This function is only used for custom python objects that can't be direclty passed to build
+        This function is only used for custom python objects that can't be directly passed to build
         an Arrow array. In such cases is infers the feature type to use, and it encodes the data so
         that they can be passed to an Arrow array.
 
@@ -195,7 +195,7 @@ class TypedSequence:
                         out = array_cast(out, pa.list_(optimized_int_pa_type))
                     elif pa.types.is_list(out.type.value_type) and pa.types.is_int64(out.type.value_type.value_type):
                         out = array_cast(out, pa.list_(pa.list_(optimized_int_pa_type)))
-            # otherwise we can finally use the user's type
+            # otherwise, we can finally use the user's type
             elif type is not None:
                 # We use array_cast_to_feature to support casting to custom types like Audio and Image
                 # Also, when trying type "string", we don't want to convert integers or floats to "string".
@@ -320,7 +320,7 @@ class ArrowWriter:
         self.hkey_record = []
 
     def __len__(self):
-        """Return the number of writed and staged examples"""
+        """Return the number of written and staged examples"""
         return self._num_examples + len(self.current_examples) + len(self.current_rows)
 
     def __enter__(self):
@@ -343,7 +343,7 @@ class ArrowWriter:
         schema = self.schema
         inferred_features = Features.from_arrow_schema(inferred_schema)
         if self._features is not None:
-            if self.update_features:  # keep original features it they match, or update them
+            if self.update_features:  # keep original features if they match, or update them
                 fields = {field.name: field for field in self._features.type}
                 for inferred_field in inferred_features.type:
                     name = inferred_field.name
@@ -403,7 +403,7 @@ class ArrowWriter:
         self.current_examples = []
 
     def write_rows_on_file(self):
-        """Write stored rows from the write-pool of rows. It concatenates the single-row tables and it writes the resulting table."""
+        """Write stored rows from the write-pool of rows. It concatenates the single-row tables, and it writes the resulting table."""
         if not self.current_rows:
             return
         table = pa.concat_tables(self.current_rows).combine_chunks()
@@ -430,7 +430,7 @@ class ArrowWriter:
             # Maintain record of keys and their respective hashes for checking duplicates
             self.hkey_record.append((hash, key))
         else:
-            # Store example as a tuple so as to keep the structure of `self.current_examples` uniform
+            # Store example as a tuple to keep the structure of `self.current_examples` uniform
             self.current_examples.append((example, ""))
 
         if writer_batch_size is None:
@@ -438,7 +438,7 @@ class ArrowWriter:
         if writer_batch_size is not None and len(self.current_examples) >= writer_batch_size:
             if self._check_duplicates:
                 self.check_duplicate_keys()
-                # Re-intializing to empty list for next batch
+                # Re-initializing to empty list for next batch
                 self.hkey_record = []
 
             self.write_examples_on_file()
@@ -520,7 +520,7 @@ class ArrowWriter:
         # In case current_examples < writer_batch_size, but user uses finalize()
         if self._check_duplicates:
             self.check_duplicate_keys()
-            # Re-intializing to empty list for next batch
+            # Re-initializing to empty list for next batch
             self.hkey_record = []
         self.write_examples_on_file()
         if self.pa_writer is None:
@@ -594,7 +594,7 @@ class BeamWriter:
     def finalize(self, metrics_query_result: dict):
         """
         Run after the pipeline has finished.
-        It converts the resulting parquet files to arrow and it completes the info from the pipeline metrics.
+        It converts the resulting parquet files to arrow, and it completes the info from the pipeline metrics.
 
         Args:
             metrics_query_result: `dict` obtained from pipeline_results.metrics().query(m_filter). Make sure

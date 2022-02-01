@@ -72,8 +72,8 @@ class BaseIndex:
             queries (`Union[List[str], np.ndarray]`): The queries as a list of strings if `column` is a text index or as a numpy array if `column` is a vector index.
             k (`int`): The number of examples to retrieve per query.
 
-        Ouput:
-            total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+        Output:
+            total_scores (`List[List[float]]`): The retrieval scores of the retrieved examples per query.
             total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
         total_scores, total_indices = [], []
@@ -186,8 +186,8 @@ class ElasticSearchIndex(BaseIndex):
             query (`str`): The query as a string.
             k (`int`): The number of examples to retrieve.
 
-        Ouput:
-            scores (`List[List[float]`): The retrieval scores of the retrieved examples.
+        Output:
+            scores (`List[List[float]]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
         response = self.es_client.search(
@@ -310,8 +310,8 @@ class FaissIndex(BaseIndex):
             query (`np.array`): The query as a numpy array.
             k (`int`): The number of examples to retrieve.
 
-        Ouput:
-            scores (`List[List[float]`): The retrieval scores of the retrieved examples.
+        Output:
+            scores (`List[List[float]]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
         if len(query.shape) != 1 and (len(query.shape) != 2 or query.shape[0] != 1):
@@ -330,8 +330,8 @@ class FaissIndex(BaseIndex):
             queries (`np.array`): The queries as a numpy array.
             k (`int`): The number of examples to retrieve.
 
-        Ouput:
-            total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+        Output:
+            total_scores (`List[List[float]]`): The retrieval scores of the retrieved examples per query.
             total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
         if len(queries.shape) != 2:
@@ -392,11 +392,11 @@ class IndexableMixin:
             )
 
     def list_indexes(self) -> List[str]:
-        """List the colindex_nameumns/identifiers of all the attached indexes."""
+        """List the index_names/identifiers of all the attached indexes."""
         return list(self._indexes)
 
     def get_index(self, index_name: str) -> BaseIndex:
-        """List the index_name/identifiers of all the attached indexes.
+        """Get the index of a given index_name.
 
         Args:
             index_name (:obj:`str`): Index name.
@@ -427,8 +427,8 @@ class IndexableMixin:
         Args:
             column (:obj:`str`): The column of the vectors to add to the index.
             index_name (Optional :obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                By defaul it corresponds to `column`.
-            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+                By default, it corresponds to `column`.
+            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default, it uses the CPU.
             string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
             metric_type (Optional :obj:`int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
             custom_index (Optional :obj:`faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
@@ -463,7 +463,7 @@ class IndexableMixin:
             external_arrays (:obj:`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
                 It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
             index_name (:obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default, it uses the CPU.
             string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
             metric_type (Optional :obj:`int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
             custom_index (Optional :obj:`faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
@@ -504,7 +504,7 @@ class IndexableMixin:
             index_name (:obj:`str`): The index_name/identifier of the index. This is the index_name that is used to
                 call `.get_nearest` or `.search`.
             file (:obj:`str`): The path to the serialized faiss index on disk.
-            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default, it uses the CPU.
         """
         index = FaissIndex.load(file, device=device)
         if index.faiss_index.ntotal != len(self):
@@ -529,7 +529,7 @@ class IndexableMixin:
         Args:
             column (:obj:`str`): The column of the documents to add to the index.
             index_name (Optional :obj:`str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
-                By defaul it corresponds to `column`.
+                By default, it corresponds to `column`.
             host (Optional :obj:`str`, defaults to localhost):
                 host of where ElasticSearch is running
             port (Optional :obj:`str`, defaults to 9200):
@@ -627,7 +627,7 @@ class IndexableMixin:
             k (:obj:`int`): The number of examples to retrieve.
 
         Returns:
-            scores (:obj:`List[List[float]`): The retrieval scores of the retrieved examples.
+            scores (:obj:`List[List[float]]`): The retrieval scores of the retrieved examples.
             indices (:obj:`List[List[int]]`): The indices of the retrieved examples.
         """
         self._check_index_is_initialized(index_name)
@@ -642,7 +642,7 @@ class IndexableMixin:
             k (:obj:`int`): The number of examples to retrieve per query.
 
         Returns:
-            total_scores (:obj:`List[List[float]`): The retrieval scores of the retrieved examples per query.
+            total_scores (:obj:`List[List[float]]`): The retrieval scores of the retrieved examples per query.
             total_indices (:obj:`List[List[int]]`): The indices of the retrieved examples per query.
         """
         self._check_index_is_initialized(index_name)
@@ -677,7 +677,7 @@ class IndexableMixin:
             k (:obj:`int`): The number of examples to retrieve per query.
 
         Returns:
-            total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+            total_scores (`List[List[float]]`): The retrieval scores of the retrieved examples per query.
             total_examples (`List[dict]`): The retrieved examples per query.
         """
         self._check_index_is_initialized(index_name)

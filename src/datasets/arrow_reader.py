@@ -68,7 +68,7 @@ class DatasetNotOnHfGcsError(ConnectionError):
 
 
 class MissingFilesOnHfGcsError(ConnectionError):
-    """When some files are missing on the Hf oogle cloud storage"""
+    """When some files are missing on the Hf Google cloud storage"""
 
     pass
 
@@ -79,8 +79,8 @@ class FileInstructions:
 
     Attributes:
         num_examples: `int`, The total number of examples
-        file_instructions: List[dict(filename, skip, take)], the files information.
-            The filenames contains the relative path, not absolute.
+        file_instructions: List[dict(filename, skip, take)], the files' information.
+            The filenames contain the relative path, not absolute.
             skip/take indicates which example read in the file: `ds.slice(skip, take)`
     """
 
@@ -98,7 +98,7 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None)
         filetype_suffix: `Optional[str]` suffix of dataset files, e.g. 'arrow' or 'parquet'
 
     Returns:
-        file_intructions: FileInstructions instance
+        file_instructions: FileInstructions instance
     """
     name2len = {info.name: info.num_examples for info in split_infos}
     if not isinstance(instruction, ReadInstruction):
@@ -113,7 +113,7 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None)
 
 def _make_file_instructions_from_absolutes(name, name2len, absolute_instructions, filetype_suffix=None):
     """Returns the files instructions from the absolute instructions list."""
-    # For each split, return the files instruction (skip/take)
+    # For each split, return the files' instruction (skip/take)
     file_instructions = []
     num_examples = 0
     for abs_instr in absolute_instructions:
@@ -156,13 +156,13 @@ class BaseReader:
         """Returns Dataset for given file instructions.
 
         Args:
-            files: List[dict(filename, skip, take)], the files information.
+            files: List[dict(filename, skip, take)], the files' information.
                 The filenames contain the absolute path, not relative.
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
             in_memory (bool, default False): Whether to copy the data in-memory.
         """
         if len(files) == 0 or not all(isinstance(f, dict) for f in files):
-            raise ValueError("please provide valid file informations")
+            raise ValueError("please provide valid file information")
         pa_tables = []
         files = copy.deepcopy(files)
         for f in files:
@@ -223,8 +223,8 @@ class BaseReader:
         """Returns single Dataset instance for the set of file instructions.
 
         Args:
-            files: List[dict(filename, skip, take)], the files information.
-                The filenames contains the relative path, not absolute.
+            files: List[dict(filename, skip, take)], the files' information.
+                The filenames contain the relative path, not absolute.
                 skip/take indicates which example read in the file: `ds.skip().take()`
             original_instructions: store the original instructions used to build the dataset split in the dataset.
             in_memory (bool, default False): Whether to copy the data in-memory.
@@ -502,7 +502,7 @@ class ReadInstruction:
     @classmethod
     def _read_instruction_from_relative_instructions(cls, relative_instructions):
         """Returns ReadInstruction obj initialized with relative_instructions."""
-        # Use __new__ to bypass __init__ used by public API and not conveniant here.
+        # Use __new__ to bypass __init__ used by public API and not convenient here.
         result = cls.__new__(cls)
         result._init(relative_instructions)  # pylint: disable=protected-access
         return result

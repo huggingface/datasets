@@ -339,20 +339,20 @@ def test_fingerprint_when_transform_version_changes():
         def func(self, new_fingerprint):
             return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
 
-    fingeprint_no_version = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+    fingerprint_no_version = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
 
     class DummyDatasetChild(datasets.Dataset):
         @fingerprint_transform(inplace=False, version="1.0.0")
         def func(self, new_fingerprint):
             return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
 
-    fingeprint_1 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+    fingerprint_1 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
 
     class DummyDatasetChild(datasets.Dataset):
         @fingerprint_transform(inplace=False, version="2.0.0")
         def func(self, new_fingerprint):
             return DummyDatasetChild(self.data, fingerprint=new_fingerprint)
 
-    fingeprint_2 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
+    fingerprint_2 = DummyDatasetChild(InMemoryTable.from_pydict(data)).func()
 
-    assert len({fingeprint_no_version, fingeprint_1, fingeprint_2}) == 3
+    assert len({fingerprint_no_version, fingerprint_1, fingerprint_2}) == 3

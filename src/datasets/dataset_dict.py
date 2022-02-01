@@ -115,7 +115,7 @@ class DatasetDict(dict):
             dataset.flatten_(max_depth=max_depth)
 
     def flatten(self, max_depth=16) -> "DatasetDict":
-        """Flatten the Apache Arrow Table of each split (nested features are flatten).
+        """Flatten the Apache Arrow Table of each split (nested features are flattened).
         Each column with a struct type is flattened into one column per struct field.
         Other columns are left unchanged.
         """
@@ -140,7 +140,7 @@ class DatasetDict(dict):
 
     def cleanup_cache_files(self) -> Dict[str, int]:
         """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is one.
-        Be carefull when running this command that no other process is currently using other cache files.
+        Be careful when running this command that no other process is currently using other cache files.
 
         Return:
             Dict with the number of removed files for each split
@@ -452,7 +452,7 @@ class DatasetDict(dict):
         desc: Optional[str] = None,
     ) -> "DatasetDict":
         """Apply a function to all the elements in the table (individually or in batches)
-        and update the table (if function does updated examples).
+        and update the table (if the function does update the examples).
         The transformation is applied to all the datasets of the dataset dictionary.
 
         Args:
@@ -483,7 +483,7 @@ class DatasetDict(dict):
                 instead of the automatically generated one.
             disable_nullable (`bool`, defaults to `False`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
-            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default, it doesn't
                 use multiprocessing.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
@@ -558,7 +558,7 @@ class DatasetDict(dict):
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
-            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default, it doesn't
                 use multiprocessing.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while filtering examples.
         """
@@ -600,13 +600,13 @@ class DatasetDict(dict):
         """Create a new dataset sorted according to a column.
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
+        Currently, sorting according to a column name uses pandas sorting algorithm under the hood.
         The column should thus be a pandas compatible type (in particular not a nested type).
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
             column (:obj:`str`): column name to sort by.
-            reverse (:obj:`bool`, default `False`): If True, sort by descending order rather then ascending.
+            reverse (:obj:`bool`, default `False`): If True, sort by descending order rather than ascending.
             kind (:obj:`str`, optional): Pandas algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                 The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
@@ -656,7 +656,7 @@ class DatasetDict(dict):
 
         The transformation is applied to all the datasets of the dataset dictionary.
 
-        Currently shuffling uses numpy random generators.
+        Currently, shuffling uses numpy random generators.
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
         Args:
@@ -912,7 +912,7 @@ class DatasetDict(dict):
         shard_size: Optional[int] = 500 << 20,
     ):
         """Pushes the ``DatasetDict`` to the hub.
-        The ``DatasetDict`` is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+        The ``DatasetDict`` is pushed using HTTP requests and does not need to have neither git nor git-lfs installed.
 
         Each dataset split will be pushed independently. The pushed dataset will keep the original split names.
 
