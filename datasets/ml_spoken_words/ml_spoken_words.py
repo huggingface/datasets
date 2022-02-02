@@ -17,8 +17,6 @@
 
 
 import csv
-import json
-import os
 
 import datasets
 
@@ -85,26 +83,15 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         MlSpokenWordsConfig(languages=[lang]) for lang in _LANGUAGES
     ]
     BUILDER_CONFIG_CLASS = MlSpokenWordsConfig
-    # DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
         features = datasets.Features(
                 {
+                    "file": datasets.Value("string"),
                     "is_valid": datasets.Value("string"),
                     "language": datasets.ClassLabel(names=_LANGUAGES),
                     "speaker_id": datasets.Value("string"),
@@ -163,15 +150,14 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, audio_archive, splits_archive, split):
         metadata = dict()
-        from io import StringIO
 
         for split_filename, split_file in splits_archive:
             if split_filename.split(".csv")[0] == split:
-                csv_reader = csv.reader(StringIO(split_file.read().decode()), delimiter=",")  # TODO ?? 
-                for i, row in enumerate(csv_reader):
+                # TODO: how to correctly process csv files from tar?
+                csv_reader = csv.reader([line.decode("utf-8") for line in split_file.readlines()], delimiter=",")
+                for i, (link, word, is_valid, speaker, gender) in enumerate(csv_reader):
                     if i == 0:
                         continue
-                    link, word, is_valid, speaker, gender = row
                     audio_filename = "_".join(link.split("/"))
                     metadata[audio_filename] = {
                         "keyword": word,
