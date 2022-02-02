@@ -241,7 +241,7 @@ class DownloadConfig:
             for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
         ignore_url_params (:obj:`bool`, default ``False``): Whether to strip all query parameters and #fragments from
             the download URL before using it for caching the file.
-        download_description (:obj:`str`, optional): A description to be displayed alongside with the progress bar while downloading the files.
+        download_desc (:obj:`str`, optional): A description to be displayed alongside with the progress bar while downloading the files.
     """
 
     cache_dir: Optional[Union[str, Path]] = None
