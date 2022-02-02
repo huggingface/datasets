@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2022 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,17 +49,17 @@ _LICENSE = ""
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLS = {
-    "first_domain": "https://huggingface.co/great-new-dataset-first_domain.zip",
-    "second_domain": "https://huggingface.co/great-new-dataset-second_domain.zip",
-}
 
-_GENDERS = ["MALE", "FEMALE", "OTHER", "NAN", "OTHER", None]  # TODO: I guess I need to replace Nones with NANs
+_AUDIO_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/{split}/audio/{n}.tar.gz"
+_SPLITS_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/splits.tar.gz"
+
+_GENDERS = ["MALE", "FEMALE", "OTHER", "NAN", None]  # TODO: I guess I need to replace Nones with NANs
 
 _LANGUAGES = [
     "en",
     "es",
-    "ru"
+    "ru",
+    "tt"
 ]  # TODO
 
 
@@ -103,95 +103,86 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
     # DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
-        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "all":  # This is the name of the configuration selected in BUILDER_CONFIGS above
-            features = datasets.Features(
-                {
-                    "sentence": datasets.Value("string"),
-                    "option1": datasets.Value("string"),
-                    "answer": datasets.Value("string")
-                    # These are the features of your dataset like images, labels ...
-                }
-            )
-        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
-            features = datasets.Features(
+        features = datasets.Features(
                 {
                     "is_valid": datasets.Value("string"),
                     "language": datasets.ClassLabel(names=_LANGUAGES),
                     "speaker_id": datasets.Value("string"),
                     "gender": datasets.ClassLabel(names=_GENDERS),
                     "keyword": datasets.Value("string"),  # seems that there are too many of them (340k unique keywords)
+                    "audio": datasets.Audio(sampling_rate=48_000)
                 }
             )
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
             features=features,  # Here we define them above because they are different between the two configurations
             # If there's a common (input, target) tuple from the features, uncomment supervised_keys line below and
             # specify them. They'll be used if as_supervised=True in builder.as_dataset.
             # supervised_keys=("sentence", "label"),
-            # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
+        lang=self.config.name
+        splits_archive_path = dl_manager.download(_SPLITS_URL.format(lang=lang))
 
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLS
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        urls = _URLS[self.config.name]
-        data_dir = dl_manager.download_and_extract(urls)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.jsonl"),
+                    "audio_archive": dl_manager.iter_archive(
+                        dl_manager.download(_AUDIO_URL.format(lang=lang, split="train", n=0))
+                    ),
+                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.jsonl"),
-                    "split": "test"
+                    "audio_archive": dl_manager.iter_archive(
+                        dl_manager.download(_AUDIO_URL.format(lang=lang, split="dev", n=0))
+                    ),
+                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
+                    "split": "dev",
                 },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
+                name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "dev.jsonl"),
-                    "split": "dev",
+                    "audio_archive": dl_manager.iter_archive(
+                        dl_manager.download(_AUDIO_URL.format(lang=lang, split="test", n=0))
+                    ),
+                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
+                    "split": "test",
                 },
             ),
         ]
 
-    # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
-    def _generate_examples(self, filepath, split):
-        # TODO: This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
-        # The `key` is for legacy reasons (tfds) and is not important in itself, but must be unique for each example.
-        with open(filepath, encoding="utf-8") as f:
-            for key, row in enumerate(f):
-                data = json.loads(row)
-                if self.config.name == "first_domain":
-                    # Yields examples as (key, example) tuples
-                    yield key, {
-                        "sentence": data["sentence"],
-                        "option1": data["option1"],
-                        "answer": "" if split == "test" else data["answer"],
+    def _generate_examples(self, audio_archive, splits_archive, split):
+        metadata = dict()
+        from io import StringIO
+
+        for split_filename, split_file in splits_archive:
+            if split_filename.split(".csv")[0] == split:
+                csv_reader = csv.reader(StringIO(split_file.read().decode()), delimiter=",")
+                for i, row in enumerate(csv_reader):
+                    if i == 0:
+                        continue
+                    link, word, is_valid, speaker, gender = row
+                    audio_filename = "_".join(link.split("/"))
+                    metadata[audio_filename] = {
+                        "keyword": word,
+                        "is_valid": is_valid,
+                        "speaker_id": speaker,
+                        "gender": gender,
                     }
-                else:
-                    yield key, {
-                        "sentence": data["sentence"],
-                        "option2": data["option2"],
-                        "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
-                    }
+
+        for audio_filename, audio_file in audio_archive:
+            yield audio_filename, {
+                "language": self.config.name,
+                "audio": {"path": audio_filename, "bytes": audio_file.read()},
+                **metadata[audio_filename],
+            }
