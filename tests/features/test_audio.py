@@ -131,7 +131,8 @@ def test_audio_decode_example_mp3(shared_datadir):
     assert decoded_example["path"] == audio_path
     assert decoded_example["array"].shape == (109440,)
     assert decoded_example["sampling_rate"] == 44100
-    
+
+
 @require_sox
 @require_torchaudio
 def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
