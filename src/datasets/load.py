@@ -173,7 +173,7 @@ def increase_load_count(name: str, resource_type: str):
 
 
 def get_imports(file_path: str) -> Tuple[str, str, str, str]:
-    r"""Find whether we should import or clone additional files for a given processing script.
+    """Find whether we should import or clone additional files for a given processing script.
         And list the import.
 
     We allow:
@@ -1026,7 +1026,7 @@ def dataset_module_factory(
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
     **download_kwargs,
 ) -> DatasetModule:
-    r"""
+    """
     Download/extract/cache a dataset module.
 
     Dataset codes are cached inside the the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
@@ -1216,7 +1216,7 @@ def metric_module_factory(
     dynamic_modules_path: Optional[str] = None,
     **download_kwargs,
 ) -> MetricModule:
-    r"""
+    """
     Download/extract/cache a metric module.
 
     Metrics codes are cached inside the the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
@@ -1297,6 +1297,25 @@ def metric_module_factory(
         raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
 
 
+def extend_dataset_builder_for_streaming(builder: DatasetBuilder, use_auth_token: Optional[Union[bool, str]] = None):
+    """Extend the dataset builder module and the modules imported by it to support streaming.
+
+    Args:
+        builder (:class:`DatasetBuilder`): Dataset builder instance.
+        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
+    """
+    # this extends the open and os.path.join functions for data streaming
+    extend_module_for_streaming(builder.__module__, use_auth_token=use_auth_token)
+    # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
+    if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
+        for imports in get_imports(inspect.getfile(builder.__class__)):
+            if imports[0] == "internal":
+                internal_import_name = imports[1]
+                internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
+                extend_module_for_streaming(internal_module_name, use_auth_token=use_auth_token)
+
+
 @deprecated("Use dataset_module_factory or metric_module_factory instead.")
 def prepare_module(
     path: str,
@@ -1359,7 +1378,7 @@ def load_metric(
     script_version="deprecated",
     **metric_init_kwargs,
 ) -> Metric:
-    r"""Load a `datasets.Metric`.
+    """Load a `datasets.Metric`.
 
     Args:
 
@@ -1669,17 +1688,7 @@ def load_dataset(
 
     # Return iterable dataset in case of streaming
     if streaming:
-        # this extends the open and os.path.join functions for data streaming
-        extend_module_for_streaming(builder_instance.__module__, use_auth_token=use_auth_token)
-        # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
-        if not builder_instance.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
-            for imports in get_imports(inspect.getfile(builder_instance.__class__)):
-                if imports[0] == "internal":
-                    internal_import_name = imports[1]
-                    internal_module_name = ".".join(
-                        builder_instance.__module__.split(".")[:-1] + [internal_import_name]
-                    )
-                    extend_module_for_streaming(internal_module_name, use_auth_token=use_auth_token)
+        extend_dataset_builder_for_streaming(builder_instance, use_auth_token=use_auth_token)
         return builder_instance.as_streaming_dataset(
             split=split,
             use_auth_token=use_auth_token,
