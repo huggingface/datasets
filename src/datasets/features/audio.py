@@ -174,7 +174,7 @@ class Audio:
 
         array, sampling_rate = torchaudio.load(path_or_file, format="mp3")
         if self.sampling_rate and self.sampling_rate != sampling_rate:
-            if not hasattr(self, "_resampler"):
+            if not hasattr(self, "_resampler") or self._resampler.orig_freq != sampling_rate:
                 self._resampler = T.Resample(sampling_rate, self.sampling_rate)
             array = self._resampler(array)
             sampling_rate = self.sampling_rate
