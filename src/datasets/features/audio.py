@@ -91,10 +91,11 @@ class Audio:
             raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
 
         path, file = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
+        extension = path.split(".")[-1]
         if path is None and file is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
-        elif path is not None and path.endswith("mp3"):
-            array, sampling_rate = self._decode_mp3(file if file else path)
+        elif path is not None and extension in ["mp3", "opus"]:
+            array, sampling_rate = self._decode_mp3(file if file else path, extension)
         else:
             if file:
                 array, sampling_rate = self._decode_non_mp3_file_like(file)
@@ -161,7 +162,7 @@ class Audio:
             sampling_rate = self.sampling_rate
         return array, sampling_rate
 
-    def _decode_mp3(self, path_or_file):
+    def _decode_mp3(self, path_or_file, extension):
         try:
             import torchaudio
             import torchaudio.transforms as T
@@ -172,7 +173,7 @@ class Audio:
         except RuntimeError as err:
             raise ImportError("To support decoding 'mp3' audio files, please install 'sox'.") from err
 
-        array, sampling_rate = torchaudio.load(path_or_file, format="mp3")
+        array, sampling_rate = torchaudio.load(path_or_file, format=extension)
         if self.sampling_rate and self.sampling_rate != sampling_rate:
             if not hasattr(self, "_resampler") or self._resampler.orig_freq != sampling_rate:
                 self._resampler = T.Resample(sampling_rate, self.sampling_rate)
