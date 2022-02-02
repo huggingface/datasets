@@ -167,7 +167,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
 
         for split_filename, split_file in splits_archive:
             if split_filename.split(".csv")[0] == split:
-                csv_reader = csv.reader(StringIO(split_file.read().decode()), delimiter=",")
+                csv_reader = csv.reader(StringIO(split_file.read().decode()), delimiter=",")  # TODO ?? 
                 for i, row in enumerate(csv_reader):
                     if i == 0:
                         continue
