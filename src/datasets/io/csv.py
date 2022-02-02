@@ -114,14 +114,14 @@ class CsvDatasetWriter:
                 written += file_obj.write(csv_str)
 
         else:
-            num_rows, bsz = len(self.dataset), self.batch_size
+            num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
                 for csv_str in utils.tqdm(
                     pool.imap(
                         self._batch_csv,
-                        [(offset, header, to_csv_kwargs) for offset in range(0, num_rows, bsz)],
+                        [(offset, header, to_csv_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
-                    total=(num_rows // bsz) + 1 if num_rows % bsz else num_rows // bsz,
+                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
                     disable=not utils.is_progress_bar_enabled(),
                     desc="Creating CSV from Arrow format",

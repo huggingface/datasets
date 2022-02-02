@@ -205,7 +205,7 @@ def _single_map_nested(args):
 
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
-    pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
+    pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
     pbar = utils.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
 
     if isinstance(data_struct, dict):

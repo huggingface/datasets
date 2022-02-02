@@ -129,14 +129,14 @@ class JsonDatasetWriter:
                 json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
                 written += file_obj.write(json_str)
         else:
-            num_rows, bsz = len(self.dataset), self.batch_size
+            num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
                 for json_str in utils.tqdm(
                     pool.imap(
                         self._batch_json,
-                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, bsz)],
+                        [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
-                    total=(num_rows // bsz) + 1 if num_rows % bsz else num_rows // bsz,
+                    total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
                     disable=not utils.is_progress_bar_enabled(),
                     desc="Creating json from Arrow format",
