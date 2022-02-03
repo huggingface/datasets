@@ -261,7 +261,7 @@ def _download_additional_modules(
     library_imports = []
     download_config = download_config.copy()
     if download_config.download_desc is None:
-        download_config.download_desc = "Downloading extra module"
+        download_config.download_desc = "Downloading extra modules"
     for import_type, import_name, import_path, sub_directory in imports:
         if import_type == "library":
             library_imports.append((import_name, import_path))  # Import from a library
