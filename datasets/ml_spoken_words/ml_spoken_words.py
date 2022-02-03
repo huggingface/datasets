@@ -168,6 +168,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
 
         for audio_filename, audio_file in audio_archive:
             yield audio_filename, {
+                "file": audio_filename,
                 "language": self.config.name,
                 "audio": {"path": audio_filename, "bytes": audio_file.read()},
                 **metadata[audio_filename],
