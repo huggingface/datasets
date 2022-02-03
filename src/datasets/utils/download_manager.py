@@ -192,6 +192,8 @@ class DownloadManager:
         # Note that if we have less than 16 files, multi-processing is not activated
         if download_config.num_proc is None:
             download_config.num_proc = 16
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading data"
 
         download_func = partial(self._download, download_config=download_config)
 

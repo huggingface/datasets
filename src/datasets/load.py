@@ -508,7 +508,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading builder script"
-        return cached_path(file_path, download_config=self.download_config)
+        return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self, revision: Optional[str]) -> str:
         dataset_infos = hf_github_url(path=self.name, name=config.DATASETDICT_INFOS_FILENAME, revision=revision)
@@ -519,7 +519,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         try:
             return cached_path(
                 dataset_infos,
-                download_config=self.download_config,
+                download_config=download_config,
             )
         except (FileNotFoundError, ConnectionError):
             return None
@@ -589,7 +589,7 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading builder script"
-        return cached_path(file_path, download_config=self.download_config)
+        return cached_path(file_path, download_config=download_config)
 
     def get_module(self) -> MetricModule:
         # get script and other files
@@ -889,7 +889,7 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         download_config = self.download_config.copy()
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading builder script"
-        return cached_path(file_path, download_config=self.download_config)
+        return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self) -> str:
         dataset_infos = hf_hub_url(path=self.name, name=config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
@@ -900,7 +900,7 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         try:
             return cached_path(
                 dataset_infos,
-                download_config=self.download_config,
+                download_config=download_config,
             )
         except (FileNotFoundError, ConnectionError):
             return None
