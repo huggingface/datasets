@@ -53,13 +53,59 @@ _SPLITS_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/reso
 
 _GENDERS = ["MALE", "FEMALE", "OTHER", "NAN", None]  # TODO: I guess I need to replace Nones with NANs
 
-_LANGUAGES = [
-    "en",
-    "es",
-    "ru",
-    "tt"
-]  # TODO
 
+_LANGUAGES = [
+    "ar",
+    "as",
+    "br",
+    "ca",
+    "cnh",
+    "cs",
+    "cv",
+    "cy",
+    "de",
+    "dv",
+    "el",
+    "en",
+    "eo",
+    "es",
+    "et",
+    "eu",
+    "fa",
+    "fr",
+    "fy-NL",
+    "ga-IE",
+    "gn",
+    "ha",
+    "ia",
+    "id",
+    "it",
+    "ka",
+    "ky",
+    "lt",
+    "lv",
+    "mn",
+    "mt",
+    "nl",
+    "or",
+    "pl",
+    "pt",
+    "rm-sursilv",
+    "rm-vallader",
+    "ro",
+    "ru",
+    "rw",
+    "tt",
+    "sah",
+    "sk",
+    "sl",
+    "sv-SE",
+    "ta",
+    "tr",
+    "uk",
+    "vi",
+    "zh-CN",
+]
 
 class MlSpokenWordsConfig(datasets.BuilderConfig):
     """BuilderConfig for MlSpokenWords."""
