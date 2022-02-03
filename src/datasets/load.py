@@ -259,6 +259,9 @@ def _download_additional_modules(
     """
     local_imports = []
     library_imports = []
+    download_config = download_config.copy()
+    if download_config.download_desc is None:
+        download_config.download_desc = "Downloading extra modules"
     for import_type, import_name, import_path, sub_directory in imports:
         if import_type == "library":
             library_imports.append((import_name, import_path))  # Import from a library
@@ -494,7 +497,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
     ):
         self.name = name
         self.revision = revision
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 0
@@ -502,15 +505,21 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
 
     def download_loading_script(self, revision: Optional[str]) -> str:
         file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=revision)
-        return cached_path(file_path, download_config=self.download_config)
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading builder script"
+        return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self, revision: Optional[str]) -> str:
         dataset_infos = hf_github_url(path=self.name, name=config.DATASETDICT_INFOS_FILENAME, revision=revision)
         # Download the dataset infos file if available
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading metadata"
         try:
             return cached_path(
                 dataset_infos,
-                download_config=self.download_config,
+                download_config=download_config,
             )
         except (FileNotFoundError, ConnectionError):
             return None
@@ -569,7 +578,7 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
     ):
         self.name = name
         self.revision = revision
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 0
@@ -577,7 +586,10 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
 
     def download_loading_script(self, revision: Optional[str]) -> str:
         file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=revision, dataset=False)
-        return cached_path(file_path, download_config=self.download_config)
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading builder script"
+        return cached_path(file_path, download_config=download_config)
 
     def get_module(self) -> MetricModule:
         # get script and other files
@@ -630,7 +642,7 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
     ):
         self.path = path
         self.name = Path(path).stem
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
 
@@ -671,7 +683,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     ):
         self.path = path
         self.name = Path(path).stem
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
 
@@ -836,6 +848,9 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "name": self.name.replace("/", "--"),
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
         }
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading metadata"
         try:
             dataset_infos_path = cached_path(
                 hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
@@ -863,7 +878,7 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     ):
         self.name = name
         self.revision = revision
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 1
@@ -871,15 +886,21 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
 
     def download_loading_script(self) -> str:
         file_path = hf_hub_url(path=self.name, name=self.name.split("/")[1] + ".py", revision=self.revision)
-        return cached_path(file_path, download_config=self.download_config)
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading builder script"
+        return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self) -> str:
         dataset_infos = hf_hub_url(path=self.name, name=config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
         # Download the dataset infos file if available
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading metadata"
         try:
             return cached_path(
                 dataset_infos,
-                download_config=self.download_config,
+                download_config=download_config,
             )
         except (FileNotFoundError, ConnectionError):
             return None
