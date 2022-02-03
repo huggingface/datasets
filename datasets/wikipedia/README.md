@@ -690,11 +690,11 @@ You can find the full list of languages and dates [here](https://dumps.wikimedia
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+The dataset is generally used for Language Modeling.
 
 ### Languages
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+You can find the list of languages [here](https://en.wikipedia.org/wiki/List_of_Wikipedias).
 
 ## Dataset Structure
 
@@ -826,9 +826,7 @@ Here are the sizes for several configurations:
     title  = "Wikimedia Downloads",
     url    = "https://dumps.wikimedia.org"
 }
-
 ```
-
 
 ### Contributions
 
