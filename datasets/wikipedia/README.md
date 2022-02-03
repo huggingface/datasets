@@ -670,7 +670,23 @@ The datasets are built from the Wikipedia dump
 contains the content of one full Wikipedia article with cleaning to strip
 markdown and unwanted sections (references, etc.).
 
-The articles have been parsed using the ``mwparserfromhell`` tool.
+The articles are parsed using the ``mwparserfromhell`` tool.
+
+To load this dataset you need to install Apache Beam and ``mwparserfromhell`` first:
+
+```
+pip install apache_beam mwparserfromhell
+```
+
+Then can load any subset of Wikipedia per language and per date this way:
+
+```python
+from datasets import load_dataset
+
+load_dataset("wikipedia", language="sw", date="20220120")
+```
+
+You can find the full list of languages and dates [here](https://dumps.wikimedia.org/backup-index.html).
 
 ### Supported Tasks and Leaderboards
 
@@ -686,6 +702,7 @@ We show detailed information for up to 5 configurations of the dataset.
 
 ### Data Instances
 
+Some subsets of Wikipedia have already been processed by Hugging face, as you can see below:
 
 #### 20200501.en
 
