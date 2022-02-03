@@ -27,7 +27,10 @@ from typing import Dict, Optional, Union
 
 from .. import config
 from .file_utils import (
+    BASE_KNOWN_EXTENSIONS,
+    COMPRESSION_EXTENSION_TO_PROTOCOL,
     DownloadConfig,
+    _get_extraction_protocol_with_magic_number,
     cached_path,
     get_from_cache,
     hash_url_to_filename,
@@ -37,11 +40,6 @@ from .file_utils import (
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
 from .py_utils import NestedDataStructure, map_nested, size_str
-from .streaming_download_manager import (
-    BASE_KNOWN_EXTENSIONS,
-    COMPRESSION_EXTENSION_TO_PROTOCOL,
-    _get_extraction_protocol_with_magic_number,
-)
 
 
 logger = get_logger(__name__)
@@ -71,7 +69,7 @@ class GenerateMode(enum.Enum):
     FORCE_REDOWNLOAD = "force_redownload"
 
 
-def _get_extraction_protocol_local(path: str) -> Optional[str]:
+def _get_extraction_protocol(path: str) -> Optional[str]:
     # Make sure tar.gz files are handled with tarfile library
     extension = "tar" if path.endswith(".tar.gz") else path.split(".")[-1]
     # Remove shards infos (".txt_1", ".txt-00000-of-00100"): txt_1 -> txt
@@ -247,7 +245,7 @@ class DownloadManager:
             Generator yielding tuple (path_within_archive, file_obj).
             File-Obj are opened in byte mode (io.BufferedReader)
         """
-        extension = _get_extraction_protocol_local(path)
+        extension = _get_extraction_protocol(path)
 
         if extension == "tar":
             with open(path, "rb") as f:
@@ -278,6 +276,10 @@ class DownloadManager:
                     continue
                 file_obj = io.BufferedReader(zipf.open(member, "r"))
                 yield (file_path, file_obj)
+        else:
+            raise NotImplementedError(
+                f"DownloadManager.iter_archive isn't implemented for '{extension}' file at {path}"
+            )
 
     def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).

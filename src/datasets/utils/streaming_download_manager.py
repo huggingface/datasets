@@ -548,3 +548,7 @@ class StreamingDownloadManager(object):
                     yield (file_path, file_obj)
                     stream.members = []
                 del stream
+        else:
+            raise NotImplementedError(
+                f"StreamingDownloadManager.iter_archive isn't implemented for '{extension}' file at {urlpath}"
+            )

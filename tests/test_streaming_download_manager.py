@@ -40,9 +40,9 @@ pokemon_name, type
 Charmander, fire
 Squirtle, water
 Bulbasaur, grass"""
-TEST_GG_DRIVE2_ZIPPED_URL = "https://drive.google.com/uc?export=download&id=1X4jyUBBbShyCRfD-vCO1ZvfqFXP3NEeU"
-TEST_GG_DRIVE2_FILENAME = ["atoz/test1.txt", "atoz/test2.txt", "atoz/test3/test3.txt"]
-TEST_GG_DRIVE2_CONTENT = ["Erwin is the best character", "this is test 2", "foo"]
+TEST_HOSTED_ZIPPED_URL = "https://huggingface.co/datasets/lhoestq/test_zip_txt/resolve/main/atoz.zip"
+TEST_HOSTED_FILENAME = ["atoz/test1.txt", "atoz/test2.txt", "atoz/test3/test3.txt"]
+TEST_HOSTED_CONTENT = ["Erwin is the best character", "this is test 2", "foo"]
 
 
 class DummyTestFS(AbstractFileSystem):
@@ -548,7 +548,7 @@ def test_streaming_gg_drive_zipped():
     "urlpath, yield_type, file_names, file_contents",
     [
         (TEST_GG_DRIVE_ZIPPED_URL, tuple, TEST_GG_DRIVE_FILENAME, TEST_GG_DRIVE_CONTENT),
-        (TEST_GG_DRIVE2_ZIPPED_URL, tuple, TEST_GG_DRIVE2_FILENAME, TEST_GG_DRIVE2_CONTENT),
+        (TEST_HOSTED_ZIPPED_URL, tuple, TEST_HOSTED_FILENAME, TEST_HOSTED_CONTENT),
     ],
 )
 def test_streaming_download_manager_iter_archive(urlpath, yield_type, file_names, file_contents):
@@ -567,7 +567,6 @@ def test_streaming_download_manager_iter_archive(urlpath, yield_type, file_names
     "urlpath",
     [(TEST_GG_DRIVE_GZIPPED_URL)],
 )
-@pytest.mark.xfail()
 def test_streaming_download_manager_iter_archive_exception(urlpath, file_names, file_contents):
     archive_iterator = StreamingDownloadManager().iter_archive(urlpath)
     with pytest.raises(zipfile.BadZipFile):
