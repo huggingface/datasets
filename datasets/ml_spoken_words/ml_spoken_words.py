@@ -232,9 +232,9 @@ def _download_audio_archives(dl_manager, lang, split):
     """
 
     n_files_url = _N_FILES_URL.format(lang=lang, split=split)
-    n_files_path = dl_manager.download_and_extract(n_files_url)
+    n_files_path = dl_manager.download(n_files_url)
 
-    with open(n_files_path, "r", encoding="utf-8") as file:
+    with xopen(n_files_path, "r", encoding="utf-8") as file:
         n_files = int(file.read().strip())  # the file contains a number of archives
 
     archive_urls = [_AUDIO_URL.format(lang=lang, split=split, n=i) for i in range(n_files)]
