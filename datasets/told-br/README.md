@@ -11,7 +11,7 @@ multilinguality:
 - monolingual
 pretty_name: ToLD-Br
 size_categories:
-- unknown
+- 10K<n<100K 
 source_datasets:
 - original
 task_categories:
