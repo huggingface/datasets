@@ -1,7 +1,7 @@
 import os
 from argparse import ArgumentParser
 from pathlib import Path
-from shutil import copyfile, rmtree
+from shutil import move, rmtree
 from typing import Generator
 
 import datasets.config
@@ -184,7 +184,7 @@ class TestCommand(BaseDatasetsCLICommand):
                 # Move dataset_info back to the user
                 if dataset_dir is not None:
                     user_dataset_infos_path = os.path.join(dataset_dir, datasets.config.DATASETDICT_INFOS_FILENAME)
-                    copyfile(dataset_infos_path, user_dataset_infos_path)
+                    move(dataset_infos_path, user_dataset_infos_path)
                     print(f"Dataset Infos file saved at {user_dataset_infos_path}")
 
             # If clear_cache=True, the download folder and the dataset builder cache directory are deleted
