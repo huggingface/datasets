@@ -25,7 +25,7 @@ import weakref
 from collections import Counter, UserDict
 from collections.abc import Mapping
 from copy import deepcopy
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from functools import partial, wraps
 from io import BytesIO
 from math import ceil, floor
@@ -59,14 +59,18 @@ from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import (
+    Audio,
     ClassLabel,
     Features,
     FeatureType,
+    Image,
     Sequence,
     Value,
     _ArrayXD,
+    _check_non_null_non_empty_recursive,
     decode_nested_example,
     pandas_types_mapper,
+    require_decoding,
 )
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
@@ -89,6 +93,7 @@ from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import unique_values
+from .utils.streaming_download_manager import xopen
 from .utils.typing import PathLike
 
 
@@ -3519,6 +3524,108 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         num_shards = int(dataset_nbytes / shard_size) + 1
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
+
+        decodable_columns = [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
+        if decodable_columns:
+
+            def adjust_and_capture_decodable_types(feature):
+                if hasattr(feature, "decode"):
+                    return replace(feature, decode=False), {type(feature)}
+                elif isinstance(feature, dict):
+                    feature_dict, decodable_types = {}, set()
+                    for k, v in feature.items():
+                        subfeature, sub_decodable_types = adjust_and_capture_decodable_types(v)
+                        feature_dict[k] = subfeature
+                        decodable_types |= sub_decodable_types
+                    return type(feature)(feature_dict), decodable_types
+                elif isinstance(feature, (list, tuple)):
+                    subfeature, sub_decodable_types = adjust_and_capture_decodable_types(feature[0])
+                    return type(feature)(subfeature), sub_decodable_types
+                elif isinstance(feature, Sequence):
+                    subfeature, sub_decodable_types = adjust_and_capture_decodable_types(feature.feature)
+                    return Sequence(subfeature), sub_decodable_types
+                else:
+                    return feature, set()
+
+            def save_file_data_as_bytes(batch, features, decodable_columns):
+                processed_batch = {}
+                for column_name, column in batch.items():
+                    processed_batch[column_name] = (
+                        [
+                            process_nested_example(features[column_name], value) if value is not None else None
+                            for value in batch[column_name]
+                        ]
+                        if column_name in decodable_columns
+                        else column
+                    )
+                return processed_batch
+
+            def process_nested_example(schema, obj):
+                if isinstance(schema, dict):
+                    return {
+                        k: process_nested_example(sub_schema, sub_obj)
+                        for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
+                    }
+                elif isinstance(schema, (list, tuple)):
+                    sub_schema = schema[0]
+                    if obj is None:
+                        return None
+                    else:
+                        if len(obj) > 0:
+                            for first_elmt in obj:
+                                if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
+                                    break
+                            if process_nested_example(sub_schema, first_elmt) != first_elmt:
+                                return [process_nested_example(sub_schema, o) for o in obj]
+                        return list(obj)
+                elif isinstance(schema, Sequence):
+                    # We allow to reverse list of dict => dict of list for compatiblity with tfds
+                    if isinstance(schema.feature, dict):
+                        return {k: process_nested_example([schema.feature[k]], obj[k]) for k in schema.feature}
+                    else:
+                        return process_nested_example([schema.feature], obj)
+                # Process objects with special decoding
+                elif isinstance(schema, (Audio, Image)):
+                    if obj is not None:
+                        path, bytes_ = obj["path"], obj["bytes"]
+                        if bytes_ is None:
+                            with xopen(path, "rb") as f:
+                                bytes_ = f.read()
+                        return {"path": None, "bytes": bytes_}
+                return obj
+
+            dset_features = self.features.copy()
+            features_no_dec, decodable_types = adjust_and_capture_decodable_types(dset_features)
+
+            decodable_type2desc = {
+                Audio: "audio",
+                Image: "image",
+            }
+            decodable_types = [decodable_type2desc[type] for type in decodable_types]
+            desc_types_str = (
+                ",".join(decodable_types[:-1]) + " and " + decodable_types[-1]
+                if len(decodable_types) > 1
+                else decodable_types[0]
+            )
+            desc = f"Reading bytes from {desc_types_str} files"
+
+            # Before map we call:
+            # `cast` to turn off decoding (restored after map) 
+            # `with_format` to disable formatting while in map (restoring the format is not neeeded, but it is done for consistency)
+            format = self.format
+            shards = (
+                shard.cast(features_no_dec)
+                .with_format(None)
+                .map(
+                    save_file_data_as_bytes,
+                    batched=True,
+                    features=dset_features,
+                    fn_kwargs={"features": dset_features, "decodable_columns": decodable_columns},
+                    desc=desc,
+                )
+                .with_format(**format)
+                for shard in shards
+            )
 
         files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
         files = [file for file in files if file.startswith("data/")]
