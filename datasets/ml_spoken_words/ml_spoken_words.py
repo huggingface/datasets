@@ -17,9 +17,10 @@
 
 
 import csv
+from functools import partial
 
 import datasets
-
+from datasets.utils.streaming_download_manager import xopen
 
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
@@ -48,8 +49,10 @@ _LICENSE = ""
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 
+# _BASE_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/"
 _AUDIO_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/{split}/audio/{n}.tar.gz"
 _SPLITS_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/splits.tar.gz"
+_N_FILES_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/{split}/n_files.txt"
 
 _GENDERS = ["MALE", "FEMALE", "OTHER", "NAN", None]  # TODO: I guess I need to replace Nones with NANs
 
@@ -95,17 +98,18 @@ _LANGUAGES = [
     "ro",
     "ru",
     "rw",
-    "tt",
     "sah",
     "sk",
     "sl",
     "sv-SE",
     "ta",
     "tr",
+    "tt",
     "uk",
     "vi",
     "zh-CN",
 ]
+
 
 class MlSpokenWordsConfig(datasets.BuilderConfig):
     """BuilderConfig for MlSpokenWords."""
@@ -160,41 +164,38 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         lang=self.config.name
         splits_archive_path = dl_manager.download(_SPLITS_URL.format(lang=lang))
+        splits_archive = dl_manager.iter_archive(splits_archive_path)
+
+        download_audio = partial(_download_audio_archives, dl_manager=dl_manager, lang=lang)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "audio_archive": dl_manager.iter_archive(
-                        dl_manager.download(_AUDIO_URL.format(lang=lang, split="train", n=0))
-                    ),
-                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
+                    "audio_archives": download_audio(split="train"),
+                    "splits_archive": splits_archive,
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "audio_archive": dl_manager.iter_archive(
-                        dl_manager.download(_AUDIO_URL.format(lang=lang, split="dev", n=0))
-                    ),
-                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
+                    "audio_archives": download_audio(split="dev"),
+                    "splits_archive": splits_archive,
                     "split": "dev",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "audio_archive": dl_manager.iter_archive(
-                        dl_manager.download(_AUDIO_URL.format(lang=lang, split="test", n=0))
-                    ),
-                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
+                    "audio_archives": download_audio(split="test"),
+                    "splits_archive": splits_archive,
                     "split": "test",
                 },
             ),
         ]
 
-    def _generate_examples(self, audio_archive, splits_archive, split):
+    def _generate_examples(self, audio_archives, splits_archive, split):
         metadata = dict()
 
         for split_filename, split_file in splits_archive:
@@ -212,10 +213,31 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
                         "gender": gender,
                     }
 
-        for audio_filename, audio_file in audio_archive:
-            yield audio_filename, {
-                "file": audio_filename,
-                "language": self.config.name,
-                "audio": {"path": audio_filename, "bytes": audio_file.read()},
-                **metadata[audio_filename],
-            }
+        for audio_archive in audio_archives:
+            for audio_filename, audio_file in audio_archive:
+                yield audio_filename, {
+                    "file": audio_filename,
+                    "language": self.config.name,
+                    "audio": {"path": audio_filename, "bytes": audio_file.read()},
+                    **metadata[audio_filename],
+                }
+
+
+def _download_audio_archives(dl_manager, lang, split):
+    """
+    All audio files are stored in several .tar.gz archives with names like 0.tar.gz, 1.tar.gz, ...
+    Number of archives stored in a separate .txt file (n_files.txt)
+
+    Prepare all the audio archives for iterating over them and their audio files.
+    """
+
+    n_files_url = _N_FILES_URL.format(lang=lang, split=split)
+    n_files_path = dl_manager.download(n_files_url)
+
+    with xopen(n_files_path, "r", encoding="utf-8") as file:
+        n_files = int(file.read().strip())  # the file contains a number of archives
+
+    archive_urls = [_AUDIO_URL.format(lang=lang, split=split, n=i) for i in range(n_files)]
+    archive_paths = dl_manager.download(archive_urls)
+
+    return [dl_manager.iter_archive(archive_path) for archive_path in archive_paths]
