@@ -177,6 +177,8 @@ class TestCommand(BaseDatasetsCLICommand):
                     dataset_dir = os.path.dirname(path)
                 elif os.path.isfile(combined_path):
                     dataset_dir = path
+                elif os.path.isdir(path):  # for local directories containing only data files
+                    dataset_dir = path
                 else:  # in case of a remote dataset
                     dataset_dir = None
                     print(f"Dataset Infos file saved at {dataset_infos_path}")
