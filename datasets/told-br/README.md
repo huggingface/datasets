@@ -50,6 +50,7 @@ task_ids:
     - [Dataset Curators](#dataset-curators)
     - [Licensing Information](#licensing-information)
     - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -223,3 +224,6 @@ ToLD-Br is licensed under a Creative Commons BY-SA 4.0
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 ```
+### Contributions
+
+Thanks to [@JAugusto97](https://github.com/JAugusto97) for adding this dataset.
