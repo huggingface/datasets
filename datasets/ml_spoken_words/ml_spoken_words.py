@@ -49,10 +49,10 @@ _LICENSE = ""
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 
-# _BASE_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/"
-_AUDIO_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/{split}/audio/{n}.tar.gz"
-_SPLITS_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/splits.tar.gz"
-_N_FILES_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/{split}/n_files.txt"
+_BASE_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/"
+_AUDIO_URL = _BASE_URL + "{split}/audio/{n}.tar.gz"
+_SPLITS_URL = _BASE_URL + "splits.tar.gz"
+_N_FILES_URL = _BASE_URL + "{split}/n_files.txt"
 
 _GENDERS = ["MALE", "FEMALE", "OTHER", "NAN", None]  # TODO: I guess I need to replace Nones with NANs
 
@@ -232,9 +232,9 @@ def _download_audio_archives(dl_manager, lang, split):
     """
 
     n_files_url = _N_FILES_URL.format(lang=lang, split=split)
-    n_files_path = dl_manager.download(n_files_url)
+    n_files_path = dl_manager.download_and_extract(n_files_url)
 
-    with xopen(n_files_path, "r", encoding="utf-8") as file:
+    with open(n_files_path, "r", encoding="utf-8") as file:
         n_files = int(file.read().strip())  # the file contains a number of archives
 
     archive_urls = [_AUDIO_URL.format(lang=lang, split=split, n=i) for i in range(n_files)]
