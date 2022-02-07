@@ -95,8 +95,10 @@ Binary:
 A data point consists of the tweet text (string) followed by a binary class "toxic" with values 0 or 1.
 
 An example from binary ToLD-Br looks as follows:  
+```
 {'text': '@user bandido dissimulado. esse sérgio moro é uma espécie de mal carater com ditadura e pitadas de atraso'
 'toxic': 1}
+```
 ### Data Fields
 
 Multilabel:  
