@@ -76,6 +76,7 @@ The text in the dataset is in Brazilian Portuguese, as spoken by Tweet users. Th
 
 ### Data Instances
 ToLD-Br has two versions: binary and multilabel.  
+
 Multilabel:
 A data point consists of the tweet text (string) followed by 6 categories that have values ranging from 0 to 3, meaning the amount of votes from annotators for that specific class on homophobia, obscene, insult, racism, misogyny and xenophobia.
 
