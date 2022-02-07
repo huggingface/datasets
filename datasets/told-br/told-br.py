@@ -166,7 +166,7 @@ class ToldBr(datasets.GeneratorBasedBuilder):
         for key, row in enumerate(df.itertuples()):
             if self.config.name == "multilabel":
                 yield key, {
-                    "text": row[0],
+                    "text": row.text,
                     "homophobia": int(float(row.homophobia)),
                     "obscene": int(float(row.obscene)),
                     "insult": int(float(row.insult)),
