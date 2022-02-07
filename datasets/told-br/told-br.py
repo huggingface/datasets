@@ -125,7 +125,7 @@ class ToldBr(datasets.GeneratorBasedBuilder):
                     "insult": ClassLabel(names=["not-insult", "insult"]),
                     "racism": ClassLabel(names=["not-racism", "racism"]),
                     "misogyny": ClassLabel(names=["not-misogyny", "misogyny"]),
-                    "xenophobia": ClassLabel(names=["not-xenophobia", "xenophobia"])
+                    "xenophobia": ClassLabel(names=["not-xenophobia", "xenophobia"]),
                 }
             )
 
