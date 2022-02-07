@@ -1,5 +1,72 @@
 ---
-TODO: Add YAML tags here. Copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
+annotations_creators:
+- machine-generated
+language_creators:
+- other
+languages:
+- ar
+- as
+- br
+- ca
+- cnh
+- cs
+- cv
+- cy
+- de
+- dv
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fa
+- fr
+- fy-NL
+- ga-IE
+- gn
+- ha
+- ia
+- id
+- it
+- ka
+- ky
+- lt
+- lv
+- mn
+- mt
+- nl
+- or
+- pl
+- pt
+- rm-sursilv
+- rm-vallader
+- ro
+- ru
+- rw
+- sah
+- sk
+- sl
+- sv-SE
+- ta
+- tr
+- tt
+- uk
+- vi
+- zh-CN
+licenses:
+- cc-by-4.0
+multilinguality:
+- multilingual
+pretty_name: MultilingualSpokenWords
+size_categories:
+- unknown
+source_datasets:
+- extended|common_voice
+task_categories:
+- speech-processing
+task_ids:
+- other-other-keyword-spotting
 ---
 
 # Dataset Card for [Dataset Name]
