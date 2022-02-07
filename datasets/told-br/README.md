@@ -113,7 +113,7 @@ Multilabel:
 
 Binary:  
 - text: A string representing the tweet posted by a user. Mentions to other users are anonymized by replacing the mention with a @user tag.
-- toxic: numerical binary value {0, 1} representing if the respecive text is toxic/abusive or not. 
+- label: numerical binary value {0, 1} representing if the respective text is toxic/abusive or not. 
 
 ### Data Splits
 Multilabel:  
