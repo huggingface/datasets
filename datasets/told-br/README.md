@@ -80,6 +80,7 @@ Multilabel:
 A data point consists of the tweet text (string) followed by 6 categories that have values ranging from 0 to 3, meaning the amount of votes from annotators for that specific class on homophobia, obscene, insult, racism, misogyny and xenophobia.
 
 An example from multilabel ToLD-Br looks as follows:
+```
 {'text': '@user bandido dissimulado. esse sérgio moro é uma espécie de mal carater com ditadura e pitadas de atraso'
 'homophobia': 0
 'obscene': 0
@@ -87,6 +88,7 @@ An example from multilabel ToLD-Br looks as follows:
 'racism': 0
 'misogyny': 0
 'xenophobia': 0}
+```
 
 Binary:  
 A data point consists of the tweet text (string) followed by a binary class "toxic" with values 0 or 1.
