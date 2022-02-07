@@ -175,4 +175,4 @@ class ToldBr(datasets.GeneratorBasedBuilder):
                     "xenophobia": int(float(row.xenophobia)),
                 }
             else:
-                yield key, {"text": row.text, "toxic": int(row.toxic)}
+                yield key, {"text": row.text, "label": int(row.toxic)}
