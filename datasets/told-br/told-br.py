@@ -120,12 +120,12 @@ class ToldBr(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "homophobia": datasets.Value("uint32"),
-                    "obscene": datasets.Value("uint32"),
-                    "insult": datasets.Value("uint32"),
-                    "racism": datasets.Value("uint32"),
-                    "misogyny": datasets.Value("uint32"),
-                    "xenophobia": datasets.Value("uint32"),
+                    "homophobia": ClassLabel(names=["not-homophobia", "homophobia"]),
+                    "obscene": ClassLabel(names=["not-obscene", "obscene"]),
+                    "insult": ClassLabel(names=["not-insult", "insult"]),
+                    "racism": ClassLabel(names=["not-racism", "racism"]),
+                    "misogyny": ClassLabel(names=["not-misogyny", "misogyny"]),
+                    "xenophobia": ClassLabel(names=["not-xenophobia", "xenophobia"])
                 }
             )
 
