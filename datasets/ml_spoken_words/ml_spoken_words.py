@@ -164,8 +164,6 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         lang=self.config.name
         splits_archive_path = dl_manager.download(_SPLITS_URL.format(lang=lang))
-        splits_archive = dl_manager.iter_archive(splits_archive_path)
-
         download_audio = partial(_download_audio_archives, dl_manager=dl_manager, lang=lang)
 
         return [
@@ -173,7 +171,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "audio_archives": download_audio(split="train"),
-                    "splits_archive": splits_archive,
+                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
                     "split": "train",
                 },
             ),
@@ -181,7 +179,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "audio_archives": download_audio(split="dev"),
-                    "splits_archive": splits_archive,
+                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
                     "split": "dev",
                 },
             ),
@@ -189,7 +187,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "audio_archives": download_audio(split="test"),
-                    "splits_archive": splits_archive,
+                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
                     "split": "test",
                 },
             ),
