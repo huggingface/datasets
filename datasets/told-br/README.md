@@ -193,7 +193,7 @@ A system that succeeds at this task would be able to identify hate speech tweets
 
 ### Discussion of Biases
 
-An effort was made to reduce annotation bias by selecting annotators with a diverse demographic background. In terms of data collection, by using keywords and user mentions, we are introducing some bias to the data, resctricing our scope to the list of keywords and users we created.
+An effort was made to reduce annotation bias by selecting annotators with a diverse demographic background. In terms of data collection, by using keywords and user mentions, we are introducing some bias to the data, restricting our scope to the list of keywords and users we created.
 
 ### Other Known Limitations
 
