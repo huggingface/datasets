@@ -127,7 +127,7 @@ The train set consists of 16.800 examples, validation set consists of 2.100 exam
 
 ### Curation Rationale
 
-Despite being the 5th most spoken language in the world, and Twitter having Brazilian as their 4th country with most unique users, Brazilian Portuguese was underrepresented in the hate-speech detection task. Only two other datasets were available, one of them being European Portuguese, and the other, Offcombr, with a very small sample size (1250). Also, none of them had multiple annotators per instance and finally, this work proposes a plural and diverse group of annotators carefully selected to avoid inserting bias into the annotation.
+Despite Portuguese being the 5th most spoken language in the world and Brazil being the 4th country with most unique users, Brazilian Portuguese was underrepresented in the hate-speech detection task. Only two other datasets were available, one of them being European Portuguese. ToLD-Br is 4x bigger than both these datasets combined. Also, none of them had multiple annotators per instance. Also, this work proposes a plural and diverse group of annotators carefully selected to avoid inserting bias into the annotation.
 
 ### Source Data
 
@@ -194,11 +194,12 @@ A system that succeeds at this task would be able to identify hate speech tweets
 
 ### Discussion of Biases
 
-An effort was made to reduce annotation bias by selection annotators with a diverse demographic background. In terms of data collection, since it was done by keywords and user mentions, this can be seen as bias introduced to the data.
+An effort was made to reduce annotation bias by selecting annotators with a diverse demographic background. In terms of data collection, since it was done using keywords and user mentions, this can be seen as bias introduced to the data.
 
 ### Other Known Limitations
 
-Because of the massive data skew for the multilabel classes, it is extremely hard to train a robust model for this version of the dataset. We advise using it for analysis or experimentation only. The binary version of the dataset is robust enough to train a classifier with up to 76% F1-score.
+Because of the massive data skew for the multilabel classes, it is extremely hard to train a robust model for this version of the dataset. We advise using it for analysis and experimentation only. The binary version of the dataset is robust enough to train a classifier with up to 76% F1-score.
+
 ## Additional Information
 
 ### Dataset Curators
