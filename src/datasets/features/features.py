@@ -1152,7 +1152,7 @@ def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False
     Args:
         feature (FeatureType): the feature type to be checked
         ignore_decode_attribute (:obj:`bool`, default ``False``): Whether to ignore the current value
-            of the `decode` attribute of the complex feature types.
+            of the `decode` attribute of the decodable feature types.
     Returns:
         :obj:`bool`
     """
