@@ -113,7 +113,7 @@ class ToldBr(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "toxic": datasets.Value("uint32"),
+                    "label": datasets.ClassLabel(names=["not-toxic", "toxic"]),
                 }
             )
         else:
