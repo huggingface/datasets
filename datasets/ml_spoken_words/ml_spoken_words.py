@@ -143,7 +143,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
                 {
                     "file": datasets.Value("string"),
                     "is_valid": datasets.Value("string"),
-                    "language": datasets.ClassLabel(names=_LANGUAGES),
+                    "language": datasets.ClassLabel(names=self.config.languages),
                     "speaker_id": datasets.Value("string"),
                     "gender": datasets.ClassLabel(names=_GENDERS),
                     "keyword": datasets.Value("string"),  # seems that there are too many of them (340k unique keywords)
@@ -162,32 +162,31 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        lang=self.config.name
-        splits_archive_path = dl_manager.download(_SPLITS_URL.format(lang=lang))
-        download_audio = partial(_download_audio_archives, dl_manager=dl_manager, lang=lang)
+        splits_archive_path = [dl_manager.download(_SPLITS_URL.format(lang=lang)) for lang in self.config.languages]
+        download_audio = partial(_download_audio_archives, dl_manager=dl_manager)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "audio_archives": download_audio(split="train"),
-                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
+                    "audio_archives": [download_audio(split="train", lang=lang) for lang in self.config.languages],
+                    "splits_archive": [dl_manager.iter_archive(path) for path in splits_archive_path],
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "audio_archives": download_audio(split="dev"),
-                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
+                    "audio_archives": [download_audio(split="dev", lang=lang) for lang in self.config.languages],
+                    "splits_archive": [dl_manager.iter_archive(path) for path in splits_archive_path],
                     "split": "dev",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "audio_archives": download_audio(split="test"),
-                    "splits_archive": dl_manager.iter_archive(splits_archive_path),
+                    "audio_archives": [download_audio(split="test", lang=lang) for lang in self.config.languages],
+                    "splits_archive": [dl_manager.iter_archive(path) for path in splits_archive_path],
                     "split": "test",
                 },
             ),
@@ -195,30 +194,30 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, audio_archives, splits_archive, split):
         metadata = dict()
+        for lang_idx, lang in enumerate(self.config.languages):
+            for split_filename, split_file in splits_archive[lang_idx]:
+                if split_filename.split(".csv")[0] == split:
+                    # TODO: how to correctly process csv files from tar?
+                    csv_reader = csv.reader([line.decode("utf-8") for line in split_file.readlines()], delimiter=",")
+                    for i, (link, word, is_valid, speaker, gender) in enumerate(csv_reader):
+                        if i == 0:
+                            continue
+                        audio_filename = "_".join(link.split("/"))
+                        metadata[audio_filename] = {
+                            "keyword": word,
+                            "is_valid": is_valid,
+                            "speaker_id": speaker,
+                            "gender": gender,
+                        }
 
-        for split_filename, split_file in splits_archive:
-            if split_filename.split(".csv")[0] == split:
-                # TODO: how to correctly process csv files from tar?
-                csv_reader = csv.reader([line.decode("utf-8") for line in split_file.readlines()], delimiter=",")
-                for i, (link, word, is_valid, speaker, gender) in enumerate(csv_reader):
-                    if i == 0:
-                        continue
-                    audio_filename = "_".join(link.split("/"))
-                    metadata[audio_filename] = {
-                        "keyword": word,
-                        "is_valid": is_valid,
-                        "speaker_id": speaker,
-                        "gender": gender,
+            for audio_archive in audio_archives[lang_idx]:
+                for audio_filename, audio_file in audio_archive:
+                    yield audio_filename, {
+                        "file": audio_filename,
+                        "language": lang,
+                        "audio": {"path": audio_filename, "bytes": audio_file.read()},
+                        **metadata[audio_filename],
                     }
-
-        for audio_archive in audio_archives:
-            for audio_filename, audio_file in audio_archive:
-                yield audio_filename, {
-                    "file": audio_filename,
-                    "language": self.config.name,
-                    "audio": {"path": audio_filename, "bytes": audio_file.read()},
-                    **metadata[audio_filename],
-                }
 
 
 def _download_audio_archives(dl_manager, lang, split):
