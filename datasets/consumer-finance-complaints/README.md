@@ -62,12 +62,6 @@ This database is a collection of complaints about consumer financial products an
 
 The Consumer Complaint Database is a collection of complaints about consumer financial products and services that we sent to companies for response. Complaints are published after the company responds, confirming a commercial relationship with the consumer, or after 15 days, whichever comes first. Complaints referred to other regulators, such as complaints about depository institutions with less than $10 billion in assets, are not published in the Consumer Complaint Database. The database generally updates daily.
 
-This database is not a statistical sample of consumers’ experiences in the marketplace. Complaints are not necessarily representative of all consumers’ experiences and complaints do not constitute “information” for purposes of the Information Quality Act .
-
-Complaint volume should be considered in the context of company size and/or market share. For example, companies with more customers may have more complaints than companies with fewer customers. We encourage you to pair complaint data with public and private data sets for additional context.
-
-The Bureau publishes the consumer’s narrative description of his or her experience if the consumer opts to share it publicly and after the Bureau takes steps to remove personal information. We don’t verify all the allegations in complaint narratives. Unproven allegations in consumer narratives should be regarded as opinion, not fact. We do not adopt the views expressed and make no representation that consumers’ allegations are accurate, clear, complete, or unbiased in substance or presentation. Users should consider what conclusions may be fairly drawn from complaints alone.
-
 Complaints can give us insights into problems people are experiencing in the marketplace and help us regulate consumer financial products and services under existing federal consumer financial laws, enforce those laws judiciously, and educate and empower consumers to make informed financial decisions. We also report on complaint trends annually in Consumer Response’s Annual Report to Congress.
 
 ### Supported Tasks and Leaderboards
@@ -96,11 +90,12 @@ English
 
 This dataset is a point in time extract of the database, the database increases in size every day
 
+An example of 'train' looks as follows.
+
 ```
 {
- "complaint-id": "4511031",
- "status": "Closed",
- "product": "Credit reporting, credit repair services, or other personal consumer reports",
+ "Complaint ID": "4511031",
+ "Product": "Credit reporting, credit repair services, or other personal consumer reports",
  "Sub Issue": "Credit inquiries on your report that you don't recognize",
  "Consumer Disputed": "N/A",
  "Sub Product": "Credit reporting",
@@ -189,7 +184,12 @@ N/A
 
 ### Discussion of Biases
 
-N/A
+This database is not a statistical sample of consumers’ experiences in the marketplace. Complaints are not necessarily representative of all consumers’ experiences and complaints do not constitute “information” for purposes of the Information Quality Act .
+
+Complaint volume should be considered in the context of company size and/or market share. For example, companies with more customers may have more complaints than companies with fewer customers. We encourage you to pair complaint data with public and private data sets for additional context.
+
+The Bureau publishes the consumer’s narrative description of his or her experience if the consumer opts to share it publicly and after the Bureau takes steps to remove personal information. We don’t verify all the allegations in complaint narratives. Unproven allegations in consumer narratives should be regarded as opinion, not fact. We do not adopt the views expressed and make no representation that consumers’ allegations are accurate, clear, complete, or unbiased in substance or presentation. Users should consider what conclusions may be fairly drawn from complaints alone.
+
 
 ### Other Known Limitations
 
