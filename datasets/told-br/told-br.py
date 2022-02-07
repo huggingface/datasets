@@ -19,7 +19,7 @@
 
 import os
 
-from pandas import read_csv
+import pandas as pd
 
 import datasets
 
@@ -162,7 +162,7 @@ class ToldBr(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath):
-        df = read_csv(filepath, engine="python")
+        df = pd.read_csv(filepath, engine="python")
         for key, row in enumerate(df.itertuples()):
             if self.config.name == "multilabel":
                 yield key, {
