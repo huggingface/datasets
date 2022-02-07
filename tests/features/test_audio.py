@@ -1,8 +1,5 @@
 import os
-import sys
 import tarfile
-from ctypes.util import find_library
-from importlib.util import find_spec
 
 import pyarrow as pa
 import pytest
@@ -10,23 +7,7 @@ import pytest
 from datasets import Dataset, concatenate_datasets, load_dataset
 from datasets.features import Audio, Features, Sequence, Value
 
-
-# pytestmark = pytest.mark.audio
-
-
-require_sndfile = pytest.mark.skipif(
-    # In Windows and OS X, soundfile installs sndfile
-    (sys.platform != "linux" and find_spec("soundfile") is None)
-    # In Linux, soundfile throws RuntimeError if sndfile not installed with distribution package manager
-    or (sys.platform == "linux" and find_library("sndfile") is None),
-    reason="Test requires 'sndfile': `pip install soundfile`; "
-    "Linux requires sndfile installed with distribution package manager, e.g.: `sudo apt-get install libsndfile1`",
-)
-require_sox = pytest.mark.skipif(
-    find_library("sox") is None,
-    reason="Test requires 'sox'; only available in non-Windows, e.g.: `sudo apt-get install sox`",
-)
-require_torchaudio = pytest.mark.skipif(find_spec("torchaudio") is None, reason="Test requires 'torchaudio'")
+from ..utils import require_sndfile, require_sox, require_torchaudio
 
 
 @pytest.fixture()
