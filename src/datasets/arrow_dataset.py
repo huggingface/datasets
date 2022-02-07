@@ -25,7 +25,7 @@ import weakref
 from collections import Counter, UserDict
 from collections.abc import Mapping
 from copy import deepcopy
-from dataclasses import asdict, replace
+from dataclasses import asdict
 from functools import partial, wraps
 from io import BytesIO
 from math import ceil, floor
@@ -67,7 +67,6 @@ from .features import (
     Sequence,
     Value,
     _ArrayXD,
-    _check_non_null_non_empty_recursive,
     decode_nested_example,
     pandas_types_mapper,
     require_decoding,
@@ -86,13 +85,22 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
-from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files, table_cast
+from .table import (
+    InMemoryTable,
+    MemoryMappedTable,
+    Table,
+    array_cast,
+    cast_table_to_features,
+    concat_tables,
+    list_table_cache_files,
+    table_cast,
+)
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
-from .utils.py_utils import unique_values
+from .utils.py_utils import temporary_assignment, unique_values
 from .utils.streaming_download_manager import xopen
 from .utils.typing import PathLike
 
@@ -3441,6 +3449,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
+        allow_cast: bool = True,
     ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -3465,6 +3474,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_size (Optional :obj:`int`):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
+            allow_cast (:obj:`bool`, default ``True``):
+                Whether to allow casting of the dataset storage to adjust its format for the hub.
+                In particular, this will do the following before the push for the fields of type:
+                In particular, this will do the following for the fields of type:
+
+                - :class:`Audio` and class:`Image`: remove local path information and store file content as bytes
 
         Returns:
             repo_id (:obj:`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format
@@ -3517,115 +3532,50 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 raise
 
-        if self._indices is not None:
-            dataset_nbytes = self.data.nbytes * len(self._indices) / len(self.data)
+        dataset = self
+        if allow_cast:
+            decodable_columns = [
+                k for k, v in dataset.features.items() if require_decoding(v, ignore_decode_attribute=True)
+            ]
+            if decodable_columns:
+                # Temporarily assign the modified version of `cast_storage` before the cast
+                # to the decodable feature types to delete path information and store file content as bytes.
+                def store_file_data_as_bytes(feature, storage):
+                    def path_to_bytes(path):
+                        with xopen(path, "rb") as f:
+                            bytes_ = f.read()
+                        return bytes_
+
+                    bytes_array = pa.array(
+                        [path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"] for x in storage.to_pylist()],
+                        type=pa.binary(),
+                    )
+                    path_array = pa.array([None] * len(storage), type=pa.string())
+                    storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+                    return array_cast(storage, feature.pa_type)
+
+                with contextlib.ExitStack() as stack:
+                    for decodable_feature_type in [Audio, Image]:
+                        stack.enter_context(
+                            temporary_assignment(decodable_feature_type, "cast_storage", store_file_data_as_bytes)
+                        )
+                    format = dataset.format
+                    dataset = dataset.with_format("arrow")
+                    dataset = dataset.map(
+                        partial(cast_table_to_features, features=dataset.features),
+                        batched=True,
+                        batch_size=1000,
+                        desc="Storing file data as bytes",
+                    )
+                    dataset = dataset.with_format(**format)
+
+        if dataset._indices is not None:
+            dataset_nbytes = dataset.data.nbytes * len(dataset._indices) / len(dataset.data)
         else:
-            dataset_nbytes = self.data.nbytes
+            dataset_nbytes = dataset.data.nbytes
 
         num_shards = int(dataset_nbytes / shard_size) + 1
-        shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
-
-        decodable_columns = [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
-        if decodable_columns:
-
-            def adjust_and_capture_decodable_types(feature):
-                if hasattr(feature, "decode"):
-                    return replace(feature, decode=False), {type(feature)}
-                elif isinstance(feature, dict):
-                    feature_dict, decodable_types = {}, set()
-                    for k, v in feature.items():
-                        subfeature, sub_decodable_types = adjust_and_capture_decodable_types(v)
-                        feature_dict[k] = subfeature
-                        decodable_types |= sub_decodable_types
-                    return type(feature)(feature_dict), decodable_types
-                elif isinstance(feature, (list, tuple)):
-                    subfeature, sub_decodable_types = adjust_and_capture_decodable_types(feature[0])
-                    return type(feature)(subfeature), sub_decodable_types
-                elif isinstance(feature, Sequence):
-                    subfeature, sub_decodable_types = adjust_and_capture_decodable_types(feature.feature)
-                    return Sequence(subfeature), sub_decodable_types
-                else:
-                    return feature, set()
-
-            def save_file_data_as_bytes(batch, features, decodable_columns):
-                processed_batch = {}
-                for column_name, column in batch.items():
-                    processed_batch[column_name] = (
-                        [
-                            process_nested_example(features[column_name], value) if value is not None else None
-                            for value in batch[column_name]
-                        ]
-                        if column_name in decodable_columns
-                        else column
-                    )
-                return processed_batch
-
-            def process_nested_example(schema, obj):
-                if isinstance(schema, dict):
-                    return {
-                        k: process_nested_example(sub_schema, sub_obj)
-                        for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
-                    }
-                elif isinstance(schema, (list, tuple)):
-                    sub_schema = schema[0]
-                    if obj is None:
-                        return None
-                    else:
-                        if len(obj) > 0:
-                            for first_elmt in obj:
-                                if _check_non_null_non_empty_recursive(first_elmt, sub_schema):
-                                    break
-                            if process_nested_example(sub_schema, first_elmt) != first_elmt:
-                                return [process_nested_example(sub_schema, o) for o in obj]
-                        return list(obj)
-                elif isinstance(schema, Sequence):
-                    # We allow to reverse list of dict => dict of list for compatiblity with tfds
-                    if isinstance(schema.feature, dict):
-                        return {k: process_nested_example([schema.feature[k]], obj[k]) for k in schema.feature}
-                    else:
-                        return process_nested_example([schema.feature], obj)
-                # Process objects with special decoding
-                elif isinstance(schema, (Audio, Image)):
-                    if obj is not None:
-                        path, bytes_ = obj["path"], obj["bytes"]
-                        if bytes_ is None:
-                            with xopen(path, "rb") as f:
-                                bytes_ = f.read()
-                        return {"path": None, "bytes": bytes_}
-                return obj
-
-            dset_features = self.features.copy()
-            features_no_dec, decodable_types = adjust_and_capture_decodable_types(dset_features)
-
-            decodable_type2desc = {
-                Audio: "audio",
-                Image: "image",
-            }
-            decodable_types = [decodable_type2desc[type] for type in decodable_types]
-            desc_types_str = (
-                ",".join(decodable_types[:-1]) + " and " + decodable_types[-1]
-                if len(decodable_types) > 1
-                else decodable_types[0]
-            )
-            desc = f"Reading bytes from {desc_types_str} files"
-
-            # Before map we call:
-            # `cast` to turn off decoding (restored after map) 
-            # `with_format` to disable formatting while in map (restoring the format is not neeeded, but it is done for consistency)
-            format = self.format
-            shards = (
-                shard.cast(features_no_dec)
-                .with_format(None)
-                .map(
-                    save_file_data_as_bytes,
-                    batched=True,
-                    features=dset_features,
-                    fn_kwargs={"features": dset_features, "decodable_columns": decodable_columns},
-                    desc=desc,
-                )
-                .with_format(**format)
-                for shard in shards
-            )
+        shards = (dataset.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
 
         files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
         files = [file for file in files if file.startswith("data/")]
@@ -3684,6 +3634,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
+        allow_cast: bool = True,
     ):
         """Pushes the dataset to the hub.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -3708,6 +3659,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_size (Optional :obj:`int`):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
+            allow_cast (:obj:`bool`, default ``True``):
+                Whether to allow casting of the dataset storage to adjust its format for the hub.
+                In particular, this will do the following before the push for the fields of type:
+
+                - :class:`Audio` and class:`Image`: remove local path information and store file content as bytes
 
         Example:
             .. code-block:: python
@@ -3715,7 +3671,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         """
         repo_id, split, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
-            repo_id=repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
+            repo_id=repo_id,
+            split=split,
+            private=private,
+            token=token,
+            branch=branch,
+            shard_size=shard_size,
+            allow_cast=allow_cast,
         )
         organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
