@@ -27,6 +27,7 @@ from datasets.utils.streaming_download_manager import (
     xpathrglob,
     xpathstem,
     xpathsuffix,
+    xrelpath,
     xsplitext,
 )
 
@@ -350,6 +351,29 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
             (tmp_path / file).touch()
     output_paths = sorted(xglob(input_path))
     assert output_paths == expected_paths
+
+
+@pytest.mark.parametrize(
+    "input_path, start_path, expected_path",
+    [
+        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1", "dir2/file.txt".replace("/", os.path.sep)),
+        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1/dir2".replace("/", os.path.sep), "file.txt"),
+        ("zip://file.txt::https://host.com/archive.zip", "zip://::https://host.com/archive.zip", "file.txt"),
+        (
+            "zip://folder/file.txt::https://host.com/archive.zip",
+            "zip://::https://host.com/archive.zip",
+            "folder/file.txt",
+        ),
+        (
+            "zip://folder/file.txt::https://host.com/archive.zip",
+            "zip://folder::https://host.com/archive.zip",
+            "file.txt",
+        ),
+    ],
+)
+def test_xrelpath(input_path, start_path, expected_path):
+    outut_path = xrelpath(input_path, start=start_path)
+    assert outut_path == expected_path
 
 
 @pytest.mark.parametrize(

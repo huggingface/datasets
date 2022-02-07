@@ -23,7 +23,7 @@ from datetime import datetime
 from functools import partial
 from typing import Dict, Optional, Union
 
-from .. import config
+from .. import config, utils
 from .file_utils import (
     DownloadConfig,
     cached_path,
@@ -122,7 +122,9 @@ class DownloadManager:
             return remote_file_path
 
         uploaded_path_or_paths = map_nested(
-            lambda local_file_path: upload(local_file_path), downloaded_path_or_paths, disable_tqdm=False
+            lambda local_file_path: upload(local_file_path),
+            downloaded_path_or_paths,
+            disable_tqdm=not utils.is_progress_bar_enabled(),
         )
         return uploaded_path_or_paths
 
@@ -152,7 +154,9 @@ class DownloadManager:
         def url_to_downloaded_path(url):
             return os.path.join(cache_dir, hash_url_to_filename(url))
 
-        downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls, disable_tqdm=False)
+        downloaded_path_or_paths = map_nested(
+            url_to_downloaded_path, url_or_urls, disable_tqdm=not utils.is_progress_bar_enabled()
+        )
         url_or_urls = NestedDataStructure(url_or_urls)
         downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
         for url, path in zip(url_or_urls.flatten(), downloaded_path_or_paths.flatten()):
@@ -188,12 +192,19 @@ class DownloadManager:
         # Note that if we have less than 16 files, multi-processing is not activated
         if download_config.num_proc is None:
             download_config.num_proc = 16
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading data"
 
         download_func = partial(self._download, download_config=download_config)
 
         start_time = datetime.now()
         downloaded_path_or_paths = map_nested(
-            download_func, url_or_urls, map_tuple=True, num_proc=download_config.num_proc, disable_tqdm=False
+            download_func,
+            url_or_urls,
+            map_tuple=True,
+            num_proc=download_config.num_proc,
+            disable_tqdm=not utils.is_progress_bar_enabled(),
+            desc="Downloading data files",
         )
         duration = datetime.now() - start_time
         logger.info(f"Downloading took {duration.total_seconds() // 60} min")
@@ -280,8 +291,15 @@ class DownloadManager:
         """
         download_config = self.download_config.copy()
         download_config.extract_compressed_file = True
+        # Extract downloads the file first if it is not already downloaded
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading data"
         extracted_paths = map_nested(
-            partial(cached_path, download_config=download_config), path_or_paths, num_proc=num_proc, disable_tqdm=False
+            partial(cached_path, download_config=download_config),
+            path_or_paths,
+            num_proc=num_proc,
+            disable_tqdm=not utils.is_progress_bar_enabled(),
+            desc="Extracting data files",
         )
         path_or_paths = NestedDataStructure(path_or_paths)
         extracted_paths = NestedDataStructure(extracted_paths)

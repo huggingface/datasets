@@ -435,11 +435,13 @@ class DatasetDict(dict):
 
     def map(
         self,
-        function,
+        function: Optional[Callable] = None,
         with_indices: bool = False,
+        with_rank: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
+        drop_last_batch: bool = False,
         remove_columns: Optional[Union[str, List[str]]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
@@ -462,11 +464,15 @@ class DatasetDict(dict):
                 - `function(batch: Dict[List]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
                 - `function(batch: Dict[List], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+            with_rank (:obj:`bool`, default `False`): Provide process rank to `function`. Note that in this case the
+                signature of `function` should be `def function(example[, idx], rank): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
+            drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
+                dropped instead of being processed by the function.
             remove_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
@@ -495,9 +501,11 @@ class DatasetDict(dict):
                 k: dataset.map(
                     function=function,
                     with_indices=with_indices,
+                    with_rank=with_rank,
                     input_columns=input_columns,
                     batched=batched,
                     batch_size=batch_size,
+                    drop_last_batch=drop_last_batch,
                     remove_columns=remove_columns,
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
