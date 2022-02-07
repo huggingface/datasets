@@ -54,7 +54,7 @@ _AUDIO_URL = _BASE_URL + "{split}/audio/{n}.tar.gz"
 _SPLITS_URL = _BASE_URL + "splits.tar.gz"
 _N_FILES_URL = _BASE_URL + "{split}/n_files.txt"
 
-_GENDERS = ["MALE", "FEMALE", "OTHER", "NAN", None]  # TODO: I guess I need to replace Nones with NANs
+_GENDERS = ["MALE", "FEMALE", "OTHER", "NAN"]
 
 
 _LANGUAGES = [
@@ -122,10 +122,10 @@ class MlSpokenWordsConfig(datasets.BuilderConfig):
         """
         super().__init__(
             *args,
-            name="+".join(languages),
+            name="+".join(languages) if isinstance(languages, list) else languages,
             **kwargs,
         )
-        self.languages = languages
+        self.languages = languages if isinstance(languages, list) else [languages]
 
 
 class MlSpokenWords(datasets.GeneratorBasedBuilder):
@@ -207,7 +207,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
                             "keyword": word,
                             "is_valid": is_valid,
                             "speaker_id": speaker,
-                            "gender": gender,
+                            "gender": gender if gender else "NAN",  # some values are None
                         }
 
             for audio_archive in audio_archives[lang_idx]:
