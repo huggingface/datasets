@@ -6,7 +6,6 @@ from .features import (
     _ArrayXDExtensionType,
     _arrow_to_datasets_dtype,
     _cast_to_python_objects,
-    _check_non_null_non_empty_recursive,
     _is_zero_copy_only,
 )
 from .image import Image, objects_to_list_of_image_dicts
