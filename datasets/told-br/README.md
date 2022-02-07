@@ -18,6 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - text-classification-other-hate-speech-detection
+paperswithcode_id: told-br
 ---
 
 # Dataset Card for "ToLD-Br"
