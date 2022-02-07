@@ -133,7 +133,13 @@ class MlSpokenWordsConfig(datasets.BuilderConfig):
 
 
 class MlSpokenWords(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """
+    Multilingual Spoken Words Corpus is a large and growing audio dataset of spoken
+    words in 50 languages collectively spoken by over 5 billion people, for academic
+    research and commercial applications in keyword spotting and spoken term search,
+    licensed under CC-BY 4.0. The dataset contains more than 340,000 keywords,
+    totaling 23.4 million 1-second spoken examples (over 6,000 hours).
+    """
 
     VERSION = datasets.Version("1.0.0")
 
