@@ -135,8 +135,7 @@ Despite Portuguese being the 5th most spoken language in the world and Brazil be
 
 Data was collected in 15 days in August 2019 using Gate Cloud's Tweet Collector. Ten million tweets were collected using two methods: a keyword-based method and a user-mention method. The first method collected tweets mentioning the following keywords: 
 
-viado,veado,viadinho,veadinho,viadao,veadao,bicha,bixa,bichinha,bixinha,bichona,bixona,baitola,sapatão,sapatao,traveco,bambi,biba,boiola,marica,gayzão,gayzao,flor,florzinha,vagabundo,vagaba,desgraçada,desgraçado,desgracado,arrombado,arrombada,foder,fuder,fudido,fodido,cú,cu,pinto,pau,pal,caralho,caraio,carai,pica,cacete,rola,porra,escroto,buceta,fdp,pqp,vsf,tnc,vtnc,puto,putinho,acéfalo,acefalo,burro,idiota,trouxa,estúpido,estupido,estúpida,canalha,demente,retardado,retardada,verme,maldito,maldita,ridículo,ridiculo,ridícula,ridicula,morfético,morfetico,morfética,morfetica,lazarento,lazarenta,lixo,mongolóide,mongoloide,mongol,asqueroso,asquerosa,cretino,cretina,babaca,pilantra,neguinho,neguinha,pretinho,pretinha,escurinho,escurinha,pretinha,pretinho,crioulo,criolo,crioula,criola,macaco,macaca,gorila
-misogino:puta,vagabunda,vagaba,mulherzinha,piranha,feminazi,putinha,piriguete,vaca,putinha,bahiano,baiano,baianagem,xingling,xing ling,xing-ling,carioca,paulista,sulista,mineiro,gringo
+viado,veado,viadinho,veadinho,viadao,veadao,bicha,bixa,bichinha,bixinha,bichona,bixona,baitola,sapatão,sapatao,traveco,bambi,biba,boiola,marica,gayzão,gayzao,flor,florzinha,vagabundo,vagaba,desgraçada,desgraçado,desgracado,arrombado,arrombada,foder,fuder,fudido,fodido,cú,cu,pinto,pau,pal,caralho,caraio,carai,pica,cacete,rola,porra,escroto,buceta,fdp,pqp,vsf,tnc,vtnc,puto,putinho,acéfalo,acefalo,burro,idiota,trouxa,estúpido,estupido,estúpida,canalha,demente,retardado,retardada,verme,maldito,maldita,ridículo,ridiculo,ridícula,ridicula,morfético,morfetico,morfética,morfetica,lazarento,lazarenta,lixo,mongolóide,mongoloide,mongol,asqueroso,asquerosa,cretino,cretina,babaca,pilantra,neguinho,neguinha,pretinho,pretinha,escurinho,escurinha,pretinha,pretinho,crioulo,criolo,crioula,criola,macaco,macaca,gorila,puta,vagabunda,vagaba,mulherzinha,piranha,feminazi,putinha,piriguete,vaca,putinha,bahiano,baiano,baianagem,xingling,xing ling,xing-ling,carioca,paulista,sulista,mineiro,gringo
 
 The list of most followed Brazilian Twitter accounts can be found [here](https://assuperlistas.com/2022/01/21/os-100-brasileiros-mais-seguidos-do-twitter/).
 
@@ -148,11 +147,11 @@ The language producers are Twitter users from Brazil, speakers of Portuguese.
 
 #### Annotation process
 
-A form was published at the Federal University of São Carlos asking for volunteers to annotate our dataset. 129 people volunteered and 42 were selected according to their demographics in order to create a diverse and plural annotation group. Guidelines were produced and presented to the annotators. The entire process was done asynchronously through because of the Covid-19 pandemic. The tool used was Google Sheets. Annotators were grouped into 14 teams of three annotators each. Each group annotated a respective file containing 1500 tweets. Annotators didn't have contact with each other, nor did they know that other annotators were labelling the same tweets as they were.
+A form was published at the Federal University of São Carlos asking for volunteers to annotate our dataset. 129 people volunteered and 42 were selected according to their demographics in order to create a diverse and plural annotation group. Guidelines were produced and presented to the annotators. The entire process was done asynchronously because of the Covid-19 pandemic. The tool used was Google Sheets. Annotators were grouped into 14 teams of three annotators each. Each group annotated a respective file containing 1500 tweets. Annotators didn't have contact with each other, nor did they know that other annotators were labelling the same tweets as they were.
 
 #### Who are the annotators?
 
-Annotators were people inside the Federal University of São Carlos' Facebook group. Their demographics are described below:  
+Annotators were people from the Federal University of São Carlos' Facebook group. Their demographics are described below:  
 
 | Gender |  |
 |--------|--------|
@@ -182,7 +181,7 @@ Annotators were paid R$50 ($10) to label 1500 examples each.
 
 The dataset contains sensitive information for homophobia, obscene, insult, racism, misogyny and xenophobia.
 
-Tweets were anonymized through replacing user mentions with a @user tag.
+Tweets were anonymized by replacing user mentions with a @user tag.
 
 ## Considerations for Using the Data
 
@@ -194,7 +193,7 @@ A system that succeeds at this task would be able to identify hate speech tweets
 
 ### Discussion of Biases
 
-An effort was made to reduce annotation bias by selecting annotators with a diverse demographic background. In terms of data collection, since it was done using keywords and user mentions, this can be seen as bias introduced to the data.
+An effort was made to reduce annotation bias by selecting annotators with a diverse demographic background. In terms of data collection, by using keywords and user mentions, we are introducing some bias to the data, resctricing our scope to the list of keywords and users we created.
 
 ### Other Known Limitations
 
