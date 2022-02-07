@@ -20,7 +20,6 @@ There are multiple Text Classification problems that can be solved with this dat
 )
 
 _CITATION = """\
-@Consumer Financial Protection Bureau
 """
 
 _BASE_DOWNLOAD_URL = "https://files.consumerfinance.gov/ccdb/complaints.csv.zip"

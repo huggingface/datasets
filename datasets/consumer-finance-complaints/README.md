@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- en-US
+- en
 licenses:
 - upl-1.0
 multilinguality:
