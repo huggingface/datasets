@@ -159,7 +159,7 @@ class Wikisource(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         WikisourceConfig(
             language=lang,
-            date="20200501",
+            date="20220120",
         )
         for lang in WIKISOURCE_LANGUAGES
     ]
