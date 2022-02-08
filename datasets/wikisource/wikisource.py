@@ -152,7 +152,7 @@ class WikisourceConfig(datasets.BuilderConfig):
         self.text_min_length = text_min_length
 
 
-class Wikisource(datasets.GeneratorBasedBuilder):
+class Wikisource(datasets.BeamBasedBuilder):
     """Wikisource dataset."""
 
     BUILDER_CONFIG_CLASS = WikisourceConfig
