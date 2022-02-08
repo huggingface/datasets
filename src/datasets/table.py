@@ -29,7 +29,8 @@ def inject_arrow_table_documentation(arrow_table_method):
         fn.__doc__ = fn.__doc__.replace(
             "pyarrow.Table", "Table"
         )  # TODO (pyarrow|pa).Table replace with fn.parent_class
-        fn.__annotations__ = arrow_table_method.__annotations__
+        if hasattr(arrow_table_method, "__annotations__"):
+            fn.__annotations__ = arrow_table_method.__annotations__
         return fn
 
     return wrapper
