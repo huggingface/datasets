@@ -128,7 +128,9 @@ WIKISOURCE_LANGUAGES = [
 class WikisourceConfig(datasets.BuilderConfig):
     """BuilderConfig for Wikisource."""
 
-    def __init__(self, language=None, date=None, text_min_length=100, **kwargs):
+    VERSION = datasets.Version("1.0.0")
+
+    def __init__(self, language=None, date=None, text_min_length=100, version=None, **kwargs):
         """BuilderConfig for Wikisource.
 
         Args:
@@ -142,6 +144,7 @@ class WikisourceConfig(datasets.BuilderConfig):
         super().__init__(
             name=f"{date}.{language}",
             description=f"Wikisource dataset for {language}, parsed from {date} dump.",
+            version=version or self.VERSION,
             **kwargs,
         )
         self.date = date
@@ -152,11 +155,9 @@ class WikisourceConfig(datasets.BuilderConfig):
 class Wikisource(datasets.GeneratorBasedBuilder):
     """Wikisource dataset."""
 
-    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIG_CLASS = WikisourceConfig
     BUILDER_CONFIGS = [
         WikisourceConfig(
-            version=VERSION,
             language=lang,
             date="20200501",
         )
