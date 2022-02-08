@@ -1450,6 +1450,19 @@ class Features(dict):
                     no_change = False
                     flattened.update({f"{column_name}.{k}": Sequence(v) for k, v in subfeature.feature.items()})
                     del flattened[column_name]
+                elif isinstance(subfeature, Translation):
+                    no_change = False
+                    flattened.update({f"{column_name}.{k}": Value("string") for k in sorted(subfeature.languages)})
+                    del flattened[column_name]
+                elif isinstance(subfeature, TranslationVariableLanguages):
+                    no_change = False
+                    flattened.update(
+                        {
+                            f"{column_name}.language": Sequence(Value("string")),
+                            f"{column_name}.translation": Sequence(Value("string")),
+                        }
+                    )
+                    del flattened[column_name]
             self = flattened
             if no_change:
                 break
