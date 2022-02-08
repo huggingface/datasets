@@ -6,7 +6,6 @@ Main classes
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: datasets.DatasetInfo
-    :members:
 
 ``Dataset``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -33,7 +32,7 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         description, download_checksums, download_size, features, homepage,
         license, size_in_bytes, supervised_keys, version,
         from_csv, from_json, from_parquet, from_text,
-        prepare_for_task, align_labels_with_mapping,
+        prepare_for_task, align_labels_with_mapping
 
 .. autofunction:: datasets.concatenate_datasets
 
@@ -62,7 +61,7 @@ It also has dataset transform methods like map or filter, to process all the spl
         flatten, cast, cast_column, remove_columns, rename_column, class_encode_column,
         push_to_hub, save_to_disk, load_from_disk,
         from_csv, from_json, from_parquet, from_text,
-        prepare_for_task, align_labels_with_mapping
+        prepare_for_task
 
 .. _package_reference_features:
 
@@ -78,7 +77,7 @@ The base class :class:`datasets.IterableDataset` implements an iterable Dataset 
         map, shuffle, skip, take,
         info, split, builder_name, citation, config_name, dataset_size,
         description, download_checksums, download_size, features, homepage,
-        license, size_in_bytes, supervised_keys, version,
+        license, size_in_bytes, supervised_keys, version
 
 
 ``IterableDatasetDict``
@@ -93,46 +92,33 @@ Dictionary with split names as keys ('train', 'test' for example), and :obj:`dat
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: datasets.Features
-    :members:
 
 .. autoclass:: datasets.Sequence
-    :members:
 
 .. autoclass:: datasets.ClassLabel
-    :members:
 
 .. autoclass:: datasets.Value
-    :members:
 
 .. autoclass:: datasets.Translation
-    :members:
 
 .. autoclass:: datasets.TranslationVariableLanguages
-    :members:
 
 .. autoclass:: datasets.Array2D
-    :members:
 
 .. autoclass:: datasets.Array3D
-    :members:
 
 .. autoclass:: datasets.Array4D
-    :members:
 
 .. autoclass:: datasets.Array5D
-    :members:
 
 .. autoclass:: datasets.Audio
-    :members:
 
 .. autoclass:: datasets.Image
-    :members:
 
 ``MetricInfo``
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: datasets.MetricInfo
-    :members:
 
 ``Metric``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -140,8 +126,6 @@ Dictionary with split names as keys ('train', 'test' for example), and :obj:`dat
 The base class ``Metric`` implements a Metric backed by one or several :class:`datasets.Dataset`.
 
 .. autoclass:: datasets.Metric
-    :members:
-
 
 ``Filesystems``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -157,4 +141,3 @@ The base class ``Metric`` implements a Metric backed by one or several :class:`d
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: datasets.fingerprint.Hasher
-    :members:

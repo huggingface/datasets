@@ -24,10 +24,10 @@ IS_PYARROW_AT_LEAST_4 = config.PYARROW_VERSION.major >= 4
 
 
 def inject_arrow_table_documentation(arrow_table_method):
-    def wrapper(method):
-        out = wraps(arrow_table_method)(method)
-        out.__doc__ = out.__doc__.replace("pyarrow.Table", "Table")
-        return out
+    def wrapper(fn):
+        fn.__doc__ = arrow_table_method.__doc__ + (fn.__doc__ if fn.__doc__ is not None else "")
+        fn.__doc__ = fn.__doc__.replace("pyarrow.Table", "Table") # TODO (pyarrow|pa).Table replace with fn.parent_class
+        return fn
 
     return wrapper
 
@@ -384,7 +384,7 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_arrays(*args, **kwargs))
 
     @classmethod
-    @inject_arrow_table_documentation(pa.Table.from_pydict)
+    # @inject_arrow_table_documentation(pa.Table.from_pydict)
     def from_pydict(cls, *args, **kwargs):
         return cls(pa.Table.from_pydict(*args, **kwargs))
 

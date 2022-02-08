@@ -27,6 +27,6 @@ Builder classes
 
 .. autoclass:: datasets.ReadInstruction
 
-.. autoclass:: datasets.utils::DownloadConfig
+.. autoclass:: datasets.utils.DownloadConfig
 
-.. autoclass:: datasets.utils::Version
+.. autoclass:: datasets.utils.Version
