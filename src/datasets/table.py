@@ -26,7 +26,9 @@ IS_PYARROW_AT_LEAST_4 = config.PYARROW_VERSION.major >= 4
 def inject_arrow_table_documentation(arrow_table_method):
     def wrapper(fn):
         fn.__doc__ = arrow_table_method.__doc__ + (fn.__doc__ if fn.__doc__ is not None else "")
-        fn.__doc__ = fn.__doc__.replace("pyarrow.Table", "Table") # TODO (pyarrow|pa).Table replace with fn.parent_class
+        fn.__doc__ = fn.__doc__.replace(
+            "pyarrow.Table", "Table"
+        )  # TODO (pyarrow|pa).Table replace with fn.parent_class
         return fn
 
     return wrapper
