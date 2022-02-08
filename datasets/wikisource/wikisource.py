@@ -146,6 +146,7 @@ class WikisourceConfig(datasets.BuilderConfig):
         )
         self.date = date
         self.language = language
+        self.text_min_length = text_min_length
 
 
 class Wikisource(datasets.GeneratorBasedBuilder):
