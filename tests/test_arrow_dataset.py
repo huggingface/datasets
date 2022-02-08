@@ -805,7 +805,9 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with Dataset.from_dict(
                 {"a": [{"en": "the cat", "fr": ["le chat", "la chatte"], "de": "die katze"}] * 10, "foo": [1] * 10},
-                features=Features({"a": TranslationVariableLanguages(languages=["en", "fr", "de"]), "foo": Value("int64")}),
+                features=Features(
+                    {"a": TranslationVariableLanguages(languages=["en", "fr", "de"]), "foo": Value("int64")}
+                ),
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
                     fingerprint = dset._fingerprint
@@ -814,7 +816,13 @@ class BaseDatasetTest(TestCase):
                     self.assertListEqual(sorted(dset.features.keys()), ["a.language", "a.translation", "foo"])
                     self.assertDictEqual(
                         dset.features,
-                        Features({"a.language": Sequence(Value("string")), "a.translation": Sequence(Value("string")), "foo": Value("int64")}),
+                        Features(
+                            {
+                                "a.language": Sequence(Value("string")),
+                                "a.translation": Sequence(Value("string")),
+                                "foo": Value("int64"),
+                            }
+                        ),
                     )
                     self.assertNotEqual(dset._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(dset)
