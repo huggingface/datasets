@@ -52,7 +52,6 @@ languages:
 - mk
 - ml
 - mr
-- mul
 - nap
 - nl
 - "no"

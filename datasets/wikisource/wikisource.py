@@ -169,7 +169,6 @@ class Wikisource(datasets.BeamBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features({"title": datasets.Value("string"), "text": datasets.Value("string")}),
-            supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
