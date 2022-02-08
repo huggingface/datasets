@@ -69,19 +69,27 @@ class FRUGALSCORE(datasets.Metric):
             homepage="https://github.com/moussaKam/FrugalScore",
         )
 
+    def _download_and_prepare(self, dl_manager):
+        if self.config_name == "default":
+            checkpoint = "moussaKam/frugalscore_tiny_bert-base_bert-score"
+        else:
+            checkpoint = self.config_name
+        self.model = AutoModelForSequenceClassification.from_pretrained(checkpoint)
+        self.tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+
     def _compute(
         self,
         predictions,
         references,
-        pretrained_model_name_or_path="moussaKam/frugalscore_tiny_bert-base_bert-score",
         batch_size=32,
         max_length=128,
         device="gpu",
     ):
         """Returns the scores"""
-        model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path)
-        tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path)
-        assert device in ["gpu", "cpu"], "device should be either gpu or cpu"
+        assert device in ["gpu", "cpu"], "device should be either gpu or cpu."
+        assert len(predictions) == len(
+            references
+        ), "predictions and references should have the same number of sentences."
         training_args = TrainingArguments(
             "trainer",
             fp16=(device == "gpu"),
@@ -93,12 +101,12 @@ class FRUGALSCORE(datasets.Metric):
         raw_datasets = datasets.Dataset.from_dict(dataset)
 
         def tokenize_function(data):
-            return tokenizer(
+            return self.tokenizer(
                 data["sentence1"], data["sentence2"], max_length=max_length, truncation=True, padding=True
             )
 
         tokenized_datasets = raw_datasets.map(tokenize_function, batched=True)
         tokenized_datasets.remove_columns(["sentence1", "sentence2"])
-        trainer = Trainer(model, training_args, tokenizer=tokenizer)
+        trainer = Trainer(self.model, training_args, tokenizer=self.tokenizer)
         predictions = trainer.predict(tokenized_datasets)
         return {"scores": list(predictions.predictions.squeeze(-1))}
