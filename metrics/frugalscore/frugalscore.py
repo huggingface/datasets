@@ -42,6 +42,7 @@ Args:
     pretrained_model_name_or_path (str): the pretrained model used to generate the scores.
     batch_size (int): the batch size for predictions.
     max_length (int): maximum sequence length.
+    device (str): either gpu or cpu
 Returns:
     scores (list of int): list of scores.
 Examples:
@@ -75,12 +76,19 @@ class FRUGALSCORE(datasets.Metric):
         pretrained_model_name_or_path="moussaKam/frugalscore_tiny_bert-base_bert-score",
         batch_size=32,
         max_length=128,
+        device="gpu",
     ):
         """Returns the scores"""
         model = AutoModelForSequenceClassification.from_pretrained(pretrained_model_name_or_path)
         tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path)
-
-        training_args = TrainingArguments("trainer", fp16=True, per_device_eval_batch_size=batch_size, report_to=None)
+        assert device in ["gpu", "cpu"], "device should be either gpu or cpu"
+        training_args = TrainingArguments(
+            "trainer",
+            fp16=(device == "gpu"),
+            per_device_eval_batch_size=batch_size,
+            report_to=None,
+            no_cuda=(device == "cpu"),
+        )
         dataset = {"sentence1": predictions, "sentence2": references}
         raw_datasets = datasets.Dataset.from_dict(dataset)
 
