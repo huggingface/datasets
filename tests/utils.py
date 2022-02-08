@@ -277,8 +277,6 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     HF_DATASETS_OFFLINE_SET_TO_1: the HF_DATASETS_OFFLINE environment variable is set to 1.
         This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEmabled error.
     """
-    import socket
-
     from requests import request as online_request
 
     def timeout_request(method, url, **kwargs):
@@ -300,7 +298,7 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
             raise
 
     def offline_socket(*args, **kwargs):
-        raise socket.error("Offline mode is enabled.")
+        raise OSError("Offline mode is enabled.")
 
     if mode is OfflineSimulationMode.CONNECTION_FAILS:
         # inspired from https://stackoverflow.com/a/18601897
