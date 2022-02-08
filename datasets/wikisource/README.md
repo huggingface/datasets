@@ -55,7 +55,7 @@ languages:
 - mul
 - nap
 - nl
-- no
+- "no"
 - or
 - pa
 - pl
