@@ -150,7 +150,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
         features = datasets.Features(
             {
                 "file": datasets.Value("string"),
-                "is_valid": datasets.Value("string"),
+                "is_valid": datasets.Value("bool"),
                 "language": datasets.ClassLabel(names=self.config.languages),
                 "speaker_id": datasets.Value("string"),
                 "gender": datasets.ClassLabel(names=_GENDERS),
