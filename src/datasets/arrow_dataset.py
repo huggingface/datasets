@@ -2096,7 +2096,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
-        disable_tqdm = bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
+        disable_tqdm = not utils.is_progress_bar_enabled()
 
         if num_proc is None or num_proc == 1:
             return self._map_single(
@@ -2300,7 +2300,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             logging.set_verbosity_warning()
         # Print at least one thing to fix tqdm in notebooks in multiprocessing
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-        if rank is not None and not disable_tqdm and "notebook" in tqdm.__name__:
+        if rank is not None and not disable_tqdm and any("notebook" in tqdm_cls.__name__ for tqdm_cls in tqdm.__mro__):
             print(" ", end="", flush=True)
 
         if fn_kwargs is None:
@@ -2443,13 +2443,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     input_dataset = self
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                pbar_iterable = (
-                    input_dataset._iter(decoded=False) if not batched else range(0, len(input_dataset), batch_size)
-                )
+                if not batched:
+                    pbar_iterable = input_dataset._iter(decoded=False)
+                    pbar_total = len(input_dataset)
+                else:
+                    num_rows = (
+                        len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
+                    )
+                    pbar_iterable = range(0, num_rows, batch_size)
+                    pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
                 pbar_unit = "ex" if not batched else "ba"
-                pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
+                pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
                 pbar = utils.tqdm(
                     pbar_iterable,
+                    total=pbar_total,
                     disable=disable_tqdm,
                     position=rank,
                     unit=pbar_unit,
@@ -2468,8 +2475,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write(example)
                 else:
                     for i in pbar:
-                        if drop_last_batch and i + batch_size > input_dataset.num_rows:
-                            continue
                         batch = input_dataset._getitem(
                             slice(i, i + batch_size),
                             decoded=False,
@@ -3539,7 +3544,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 file_shards_to_delete,
                 desc="Deleting unused files from dataset repository",
                 total=len(file_shards_to_delete),
-                disable=bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled(),
+                disable=not utils.is_progress_bar_enabled(),
             ):
                 delete_file(file)
 
@@ -3548,7 +3553,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             enumerate(shards),
             desc="Pushing dataset shards to the dataset hub",
             total=num_shards,
-            disable=bool(logging.get_verbosity() == logging.NOTSET),
+            disable=not utils.is_progress_bar_enabled(),
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)

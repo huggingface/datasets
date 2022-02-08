@@ -675,7 +675,7 @@ class DatasetBuilder:
                     "._split_generator()."
                 )
 
-            logger.info(f"Generating split {split_generator.split_info.name}")
+            logger.info(f"Generating {split_generator.split_info.name} split")
             split_dict.add(split_generator.split_info)
 
             try:
@@ -769,7 +769,7 @@ class DatasetBuilder:
             ),
             split,
             map_tuple=True,
-            disable_tqdm=False,
+            disable_tqdm=not utils.is_progress_bar_enabled(),
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
@@ -1055,7 +1055,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(self, split_generator):
-        split_info = split_generator.split_info
+        if self.info.splits is not None:
+            split_info = self.info.splits[split_generator.name]
+        else:
+            split_info = split_generator.split_info
 
         fname = f"{self.name}-{split_generator.name}.arrow"
         fpath = os.path.join(self._cache_dir, fname)
@@ -1075,7 +1078,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     unit=" examples",
                     total=split_info.num_examples,
                     leave=False,
-                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    disable=not utils.is_progress_bar_enabled(),
+                    desc=f"Generating {split_info.name} split",
                 ):
                     example = self.info.features.encode_example(record)
                     writer.write(example, key)
@@ -1131,7 +1135,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         generator = self._generate_tables(**split_generator.gen_kwargs)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
             for key, table in utils.tqdm(
-                generator, unit=" tables", leave=False, disable=True  # bool(logging.get_verbosity() == logging.NOTSET)
+                generator, unit=" tables", leave=False, disable=True  # not utils.is_progress_bar_enabled()
             ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()

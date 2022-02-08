@@ -16,7 +16,7 @@ licenses:
 - cc0-1.0
 multilinguality:
 - multilingual
-pretty_name: BnL newspapers
+pretty_name: BnL Historical Newspapers
 size_categories:
 - 100K<n<1M
 source_datasets:
@@ -27,7 +27,7 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for BnL Newspapers 
+# Dataset Card for BnL Historical Newspapers
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -96,7 +96,9 @@ An example instance from the datasets:
  'source': 'newspaper/luxwort/1853-03-23',
  'text': 'Asien. Eine neue Nedcrland-Post ist angekommen mil Nachrichten aus Calcutta bis zum 5. Febr.; Vom» vay, 12. Febr. ; Nangun und HongKong, 13. Jan. Die durch die letzte Post gebrachle Nachricht, der König von Ava sei durch seinen Bruder enlhronl worden, wird bestätigt. (K. Z.) Verantwortl. Herausgeber, F. Schümann.',
  'title': 'Asien.',
- 'url': 'http://www.eluxemburgensia.lu/webclient/DeliveryManager?pid=209701#panel:pp|issue:209701|article:DTL47'}
+ 'url': 'http://www.eluxemburgensia.lu/webclient/DeliveryManager?pid=209701#panel:pp|issue:209701|article:DTL47',
+ 'language': 'de'
+}
 ```
 
 

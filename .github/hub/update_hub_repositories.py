@@ -104,7 +104,7 @@ def check_authorizations(user_info: dict):
 
 def apply_hacks_for_moon_landing(dataset_repo_path: Path):
     if (dataset_repo_path / "README.md").is_file():
-        with (dataset_repo_path / "README.md").open("r") as f:
+        with (dataset_repo_path / "README.md").open() as f:
             readme_content = f.read()
         if readme_content.count("---\n") > 1:
             _, tags, content = readme_content.split("---\n", 2)
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     datasets_lib_path = Path(os.environ["DATASETS_LIB_PATH"]).expanduser().resolve()
 
     if Path(token).expanduser().is_file():
-        with Path(token).expanduser().open("r") as f:
+        with Path(token).expanduser().open() as f:
             token = f.read().strip()
     user_info = whoami(token)
     check_authorizations(user_info)

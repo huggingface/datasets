@@ -1011,6 +1011,21 @@ class BaseDatasetTest(TestCase):
                     )
                     assert_arrow_metadata_are_synced_with_dataset_features(dset_test_batched)
 
+        # change batch size and drop the last batch
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                batch_size = 4
+                with dset.map(
+                    map_batched, batched=True, batch_size=batch_size, drop_last_batch=True
+                ) as dset_test_batched:
+                    self.assertEqual(len(dset_test_batched), 30 // batch_size * batch_size)
+                    self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                    self.assertDictEqual(
+                        dset_test_batched.features,
+                        Features({"filename": Value("string"), "filename_new": Value("string")}),
+                    )
+                    assert_arrow_metadata_are_synced_with_dataset_features(dset_test_batched)
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 with dset.formatted_as("numpy", columns=["filename"]):
