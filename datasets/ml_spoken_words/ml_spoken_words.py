@@ -53,6 +53,8 @@ _HOMEPAGE = "https://mlcommons.org/en/multilingual-spoken-words/"
 
 _LICENSE = "CC-BY 4.0."
 
+_VERSION = datasets.Version("1.0.0")
+
 _BASE_URL = "https://huggingface.co/datasets/polinaeterna/ml_spoken_words/resolve/main/data/{lang}/"
 _AUDIO_URL = _BASE_URL + "{split}/audio/{n}.tar.gz"
 _SPLITS_URL = _BASE_URL + "splits.tar.gz"
@@ -141,9 +143,8 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
     totaling 23.4 million 1-second spoken examples (over 6,000 hours).
     """
 
-    VERSION = datasets.Version("1.0.0")
-
-    BUILDER_CONFIGS = [MlSpokenWordsConfig(languages=[lang], version=VERSION) for lang in _LANGUAGES]
+    VERSION = _VERSION
+    BUILDER_CONFIGS = [MlSpokenWordsConfig(languages=[lang], version=_VERSION) for lang in _LANGUAGES]
     BUILDER_CONFIG_CLASS = MlSpokenWordsConfig
 
     def _info(self):
