@@ -1463,6 +1463,15 @@ class Features(dict):
                         }
                     )
                     del flattened[column_name]
+                elif isinstance(subfeature, (Audio, Image)) and not subfeature.decode:
+                    no_change = False
+                    flattened.update(
+                        {
+                            f"{column_name}.bytes": Value("binary"),
+                            f"{column_name}.path": Value("string"),
+                        }
+                    )
+                    del flattened[column_name]
             self = flattened
             if no_change:
                 break

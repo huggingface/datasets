@@ -404,7 +404,7 @@ class InMemoryTable(TableBlock):
 
     @inject_arrow_table_documentation(pa.Table.flatten)
     def flatten(self, *args, **kwargs):
-        return InMemoryTable(self.table.flatten(*args, **kwargs))
+        return InMemoryTable(table_flatten(self.table, *args, **kwargs))
 
     @inject_arrow_table_documentation(pa.Table.combine_chunks)
     def combine_chunks(self, *args, **kwargs):
@@ -495,6 +495,8 @@ class MemoryMappedTable(TableBlock):
             for name, args, kwargs in replays:
                 if name == "cast":
                     table = table_cast(table, *args, **kwargs)
+                elif name == "flatten":
+                    table = table_flatten(table, *args, **kwargs)
                 else:
                     table = getattr(table, name)(*args, **kwargs)
         return table
@@ -521,7 +523,7 @@ class MemoryMappedTable(TableBlock):
     def flatten(self, *args, **kwargs):
         replay = ("flatten", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
-        return MemoryMappedTable(self.table.flatten(*args, **kwargs), self.path, replays)
+        return MemoryMappedTable(table_flatten(self.table, *args, **kwargs), self.path, replays)
 
     @inject_arrow_table_documentation(pa.Table.combine_chunks)
     def combine_chunks(self, *args, **kwargs):
@@ -783,7 +785,7 @@ class ConcatenationTable(Table):
 
     @inject_arrow_table_documentation(pa.Table.flatten)
     def flatten(self, *args, **kwargs):
-        table = self.table.flatten(*args, **kwargs)
+        table = table_flatten(self.table, *args, **kwargs)
         blocks = []
         for tables in self.blocks:
             blocks.append([t.flatten(*args, **kwargs) for t in tables])
@@ -1104,7 +1106,7 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
 
 
 def table_cast(table: pa.Table, schema: pa.Schema):
-    """Improved version of pa.Table.cast
+    """Improved version of pa.Table.cast.
 
     It supports casting to feature types stored in the schema metadata.
 
@@ -1123,3 +1125,35 @@ def table_cast(table: pa.Table, schema: pa.Schema):
         return table.replace_schema_metadata(schema.metadata)
     else:
         return table
+
+
+def table_flatten(table: pa.Table):
+    """Improved version of pa.Table.flatten.
+
+    It behaves as pa.Table.flatten, but skips decodable features
+    unless the `decode` attribute of these features is set to False.
+
+    Args:
+        table (Table): PyArrow table to flatten
+
+    Returns:
+        Table: the flattened table
+    """
+    from .features import Audio, Features, Image
+
+    features = Features.from_arrow_schema(table.schema)
+    if any(isinstance(feature, (Audio, Image)) and feature.decode for feature in features.values()):
+        flattened_arrays, flattened_names = [], []
+        for name, feature in features.items():
+            array = table.column(name)
+            if pa.types.is_struct(feature.pa_type) and (not feature.decode if hasattr(feature, "decode") else True):
+                flattened_array = array.flatten()
+                flattened_name = [f"{name}.{field.name}" for field in feature.pa_type]
+            else:
+                flattened_array = [array]
+                flattened_name = [name]
+            flattened_arrays.extend(flattened_array)
+            flattened_names.extend(flattened_name)
+        return pa.Table.from_arrays(flattened_arrays, schema=features.flatten(max_depth=1).arrow_schema)
+    else:
+        return table.flatten()
