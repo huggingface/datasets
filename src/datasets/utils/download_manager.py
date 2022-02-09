@@ -30,7 +30,6 @@ from .file_utils import (
     cached_path,
     get_from_cache,
     hash_url_to_filename,
-    is_local_path,
     is_relative_path,
     url_or_path_join,
 )
