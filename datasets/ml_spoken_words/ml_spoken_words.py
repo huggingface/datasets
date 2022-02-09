@@ -143,7 +143,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
-    BUILDER_CONFIGS = [MlSpokenWordsConfig(languages=[lang]) for lang in _LANGUAGES]
+    BUILDER_CONFIGS = [MlSpokenWordsConfig(languages=[lang], version=VERSION) for lang in _LANGUAGES]
     BUILDER_CONFIG_CLASS = MlSpokenWordsConfig
 
     def _info(self):
