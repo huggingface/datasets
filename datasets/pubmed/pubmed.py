@@ -146,7 +146,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
     """Pubmed citations records"""
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="2021", description="The 2021 annual record", version=datasets.Version("1.0.0")),
+        datasets.BuilderConfig(name="2022", description="The 2022 annual record", version=datasets.Version("2.0.0")),
     ]
 
     # FILLED automatically from features
