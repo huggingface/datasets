@@ -753,6 +753,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                     result = {key: value for key, value in zip(data_fields, field_values)}
 
                     # set audio feature
+                    result["path"] = path
                     result["audio"] = {"path": path, "bytes": f.read() if not os.path.isfile(path) else None}
 
                     yield path, result
