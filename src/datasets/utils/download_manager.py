@@ -21,6 +21,7 @@ import os
 import tarfile
 from datetime import datetime
 from functools import partial
+from pathlib import Path
 from typing import Dict, Optional, Union
 
 from .. import config, utils
@@ -29,6 +30,7 @@ from .file_utils import (
     cached_path,
     get_from_cache,
     hash_url_to_filename,
+    is_local_path,
     is_relative_path,
     url_or_path_join,
 )
@@ -227,17 +229,34 @@ class DownloadManager:
         return cached_path(url_or_filename, download_config=download_config)
 
     def iter_archive(self, path_or_buf: Union[str, io.BufferedReader]):
-        """Iterate over files within an archive.
+        """Iterate over files within an archive, and yield tuples (path, file_object)
+
+        If possible, the archive is extracted locally.
+        In this case, the paths that are returned are local paths to the extracted files.
+
+        In streaming mode or if the input is a archive binary file object, then the archive is
+        not extracted locally.
+        In this case, the path corresponds to the path of the file within the archive.
+
+        Paths are always returned in the posix format, even on Windows.
 
         Args:
             path_or_buf (:obj:`str` or :obj:`io.BufferedReader`): Archive path or archive binary file object.
 
         Yields:
-            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path_within_archive, file_object).
+            :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path, file_object).
                 File object is opened in binary mode.
         """
+        if isinstance(path_or_buf, str):
+            return self._iter_archive_by_extracting_local_file(path_or_buf)
+        else:
+            return self._iter_archive_by_iterating_on_file_object(path_or_buf)
 
-        def _iter_archive(f):
+    def _iter_archive_by_extracting_local_file(self, path: str):
+        extracted_path = Path(self.extract(path))
+        with open(path, "rb") as f:
+            # we use the original TAR archive to get the order of the files
+            # but we actually open the files in extracted_path
             stream = tarfile.open(fileobj=f, mode="r|*")
             for tarinfo in stream:
                 file_path = tarinfo.name
@@ -248,16 +267,26 @@ class DownloadManager:
                 if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
                     # skipping hidden files
                     continue
-                file_obj = stream.extractfile(tarinfo)
-                yield file_path, file_obj
+                filename = (extracted_path / file_path).as_posix()
+                yield filename, open(filename, "rb")
                 stream.members = []
             del stream
 
-        if hasattr(path_or_buf, "read"):
-            yield from _iter_archive(path_or_buf)
-        else:
-            with open(path_or_buf, "rb") as f:
-                yield from _iter_archive(f)
+    def _iter_archive_by_iterating_on_file_object(self, f: io.BufferedReader):
+        stream = tarfile.open(fileobj=f, mode="r|*")
+        for tarinfo in stream:
+            file_path = tarinfo.name
+            if not tarinfo.isreg():
+                continue
+            if file_path is None:
+                continue
+            if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                # skipping hidden files
+                continue
+            file_obj = stream.extractfile(tarinfo)
+            yield file_path, file_obj
+            stream.members = []
+        del stream
 
     def iter_files(self, paths):
         """Iterate over file paths.

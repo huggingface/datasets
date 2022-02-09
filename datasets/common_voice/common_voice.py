@@ -14,6 +14,7 @@
 # limitations under the License.
 """ Common Voice Dataset"""
 
+import os
 
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
@@ -723,7 +724,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
         all_field_values = {}
         metadata_found = False
         for path, f in files:
-            if path == filepath:
+            if path.endswith(filepath):
                 metadata_found = True
                 lines = f.readlines()
                 headline = lines[0].decode("utf-8")
@@ -737,12 +738,13 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                     # set full path for mp3 audio file
                     audio_path = "/".join([path_to_clips, field_values[path_idx]])
                     all_field_values[audio_path] = field_values
-            elif path.startswith(path_to_clips):
+            elif path.rsplit("/", 1)[0].endswith(path_to_clips):
                 assert metadata_found, "Found audio clips before the metadata TSV file."
                 if not all_field_values:
                     break
-                if path in all_field_values:
-                    field_values = all_field_values[path]
+                path_within_archive = path_to_clips + "/" + path.split("/")[-1]
+                if path_within_archive in all_field_values:
+                    field_values = all_field_values[path_within_archive]
 
                     # if data is incomplete, fill with empty values
                     if len(field_values) < len(data_fields):
@@ -751,6 +753,6 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                     result = {key: value for key, value in zip(data_fields, field_values)}
 
                     # set audio feature
-                    result["audio"] = {"path": path, "bytes": f.read()}
+                    result["audio"] = {"path": path, "bytes": f.read() if not os.path.isfile(path) else None}
 
                     yield path, result
