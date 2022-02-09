@@ -89,7 +89,6 @@ from .table import (
     InMemoryTable,
     MemoryMappedTable,
     Table,
-    array_cast,
     cast_table_to_features,
     concat_tables,
     list_table_cache_files,
@@ -101,7 +100,6 @@ from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
-from .utils.streaming_download_manager import xopen
 from .utils.typing import PathLike
 
 
@@ -3477,9 +3475,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             allow_cast (:obj:`bool`, default ``True``):
                 Whether to allow casting of the dataset storage to adjust its format for the hub.
                 In particular, this will do the following before the push for the fields of type:
-                In particular, this will do the following for the fields of type:
 
-                - :class:`Audio` and class:`Image`: remove local path information and store file content as bytes
+                - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
 
         Returns:
             repo_id (:obj:`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format
@@ -3538,26 +3535,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 k for k, v in dataset.features.items() if require_decoding(v, ignore_decode_attribute=True)
             ]
             if decodable_columns:
-                # Temporarily assign the modified version of `cast_storage` before the cast
-                # to the decodable feature types to delete path information and store file content as bytes.
-                def store_file_data_as_bytes(feature, storage):
-                    def path_to_bytes(path):
-                        with xopen(path, "rb") as f:
-                            bytes_ = f.read()
-                        return bytes_
-
-                    bytes_array = pa.array(
-                        [path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"] for x in storage.to_pylist()],
-                        type=pa.binary(),
-                    )
-                    path_array = pa.array([None] * len(storage), type=pa.string())
-                    storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
-                    return array_cast(storage, feature.pa_type)
-
+                # Temporarily assign the modified version of `cast_storage` before the cast to the decodable
+                # feature types to delete path information and embed file content in the arrow file.
                 with contextlib.ExitStack() as stack:
                     for decodable_feature_type in [Audio, Image]:
                         stack.enter_context(
-                            temporary_assignment(decodable_feature_type, "cast_storage", store_file_data_as_bytes)
+                            temporary_assignment(
+                                decodable_feature_type, "cast_storage", decodable_feature_type.embed_storage
+                            )
                         )
                     format = dataset.format
                     dataset = dataset.with_format("arrow")
