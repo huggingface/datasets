@@ -147,9 +147,10 @@ class Audio:
                 array, sampling_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
         except RuntimeError as err:
             if extension == "opus":
-                raise RuntimeError("Decoding .opus files requires 'libsndfile'>=1.0.30, " +
-                                   "it can be installed via conda: `conda install -c conda-forge libsndfile==1.0.30`") \
-                    from err
+                raise RuntimeError(
+                    "Decoding .opus files requires 'libsndfile'>=1.0.30, "
+                    + "it can be installed via conda: `conda install -c conda-forge libsndfile==1.0.30`"
+                ) from err
             else:
                 raise err
 
@@ -166,9 +167,10 @@ class Audio:
             array, sampling_rate = sf.read(file)
         except RuntimeError as err:
             if extension == "opus":
-                raise RuntimeError("Decoding .opus files requires 'libsndfile'>=1.0.30, " +
-                                   "it can be installed via conda: `conda install -c conda-forge libsndfile==1.0.30`") \
-                    from err
+                raise RuntimeError(
+                    "Decoding .opus files requires 'libsndfile'>=1.0.30, "
+                    + "it can be installed via conda: `conda install -c conda-forge libsndfile==1.0.30`"
+                ) from err
             else:
                 raise err
 
