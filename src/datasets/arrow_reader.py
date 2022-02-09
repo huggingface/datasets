@@ -43,7 +43,7 @@ logger = logging.get_logger(__name__)
 HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets"
 
 _SUB_SPEC_RE = re.compile(
-    fr"""
+    rf"""
 ^
  (?P<split>{_split_re[1:-1]})
  (\[

@@ -140,21 +140,21 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
         SPLITS = {}
         for split in ["train", "test", "validation"]:
             filename = os.path.join(dl_dir, "splits", f"{split}_article_ids.txt")
-            with open(filename, "r", encoding="utf-8") as f:
+            with open(filename, encoding="utf-8") as f:
                 for line in f:
                     id_ = int(line.strip())
                     SPLITS[id_] = split
 
         ALL_PROMPTS = {}
         prompts_filename = os.path.join(dl_dir, "prompts_merged.csv")
-        with open(prompts_filename, "r", encoding="utf-8") as f:
+        with open(prompts_filename, encoding="utf-8") as f:
             data = csv.DictReader(f)
             for item in data:
                 prompt_id = int(item["PromptID"])
                 ALL_PROMPTS[prompt_id] = {"Prompt": item, "Annotations": []}
 
         annotations_filename = os.path.join(dl_dir, "annotations_merged.csv")
-        with open(annotations_filename, "r", encoding="utf-8") as f:
+        with open(annotations_filename, encoding="utf-8") as f:
             data = csv.DictReader(f)
             for item in data:
                 prompt_id = int(item["PromptID"])
