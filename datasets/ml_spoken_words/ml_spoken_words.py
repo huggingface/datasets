@@ -62,7 +62,6 @@ _N_FILES_URL = _BASE_URL + "{split}/n_files.txt"
 
 _GENDERS = ["MALE", "FEMALE", "OTHER", "NAN"]
 
-
 _LANGUAGES = [
     "ar",
     "as",
@@ -213,7 +212,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
                             "keyword": word,
                             "is_valid": is_valid,
                             "speaker_id": speaker,
-                            "gender": gender if gender else "NAN",  # some values are None
+                            "gender": gender if gender and gender != "NA" else "NAN",  # some values are "NA"
                         }
 
             for audio_archive in audio_archives[lang_idx]:
