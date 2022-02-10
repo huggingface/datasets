@@ -211,7 +211,7 @@ class MockDownloadManager:
         path = Path(path)
         for file_path in path.rglob("*"):
             if file_path.is_file() and not file_path.name.startswith(".") and not file_path.name.startswith("__"):
-                yield file_path.relative_to(path).as_posix(), file_path.open("rb")
+                yield file_path.as_posix(), file_path.open("rb")
 
     def iter_files(self, paths):
         for path in paths:
