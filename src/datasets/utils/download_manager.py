@@ -21,7 +21,7 @@ import os
 import tarfile
 from datetime import datetime
 from functools import partial
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Dict, Optional, Union
 
 from .. import config, utils
@@ -246,6 +246,8 @@ class DownloadManager:
             :obj:`tuple`[:obj:`str`, :obj:`io.BufferedReader`]: 2-tuple (path, file_object).
                 File object is opened in binary mode.
         """
+        if isinstance(path_or_buf, PurePath):
+            path_or_buf = str(path_or_buf)
         if isinstance(path_or_buf, str):
             return self._iter_archive_by_extracting_local_file(path_or_buf)
         else:
