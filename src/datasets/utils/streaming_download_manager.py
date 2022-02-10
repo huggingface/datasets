@@ -77,6 +77,10 @@ MAGIC_NUMBER_MAX_LENGTH = max(
 )
 
 
+class NonStreamableDatasetError(Exception):
+    pass
+
+
 def xjoin(a, *p):
     """
     This function extends os.path.join to support the "::" hop separator. It supports both paths and urls.
@@ -366,7 +370,16 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     else:
         new_kwargs = {}
     kwargs = {**kwargs, **new_kwargs}
-    file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+    try:
+        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+    except ValueError as e:
+        if str(e) == "Cannot seek streaming HTTP file":
+            raise NonStreamableDatasetError(
+                "Streaming is not possible for this dataset because data host server doesn't support HTTP range "
+                "requests. You can still load this dataset in non-streaming mode by passing `streaming=False` (default)"
+            ) from e
+        else:
+            raise
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
 
