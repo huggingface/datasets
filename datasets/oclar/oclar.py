@@ -78,13 +78,7 @@ class Oclar(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         data_path = dl_manager.download_and_extract(_URL)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": data_path,
-                    "split": "train",
-                },
-            )
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_path, "split": "train",},)
         ]
 
     def _generate_examples(self, filepath, split):

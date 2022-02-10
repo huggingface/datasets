@@ -126,10 +126,7 @@ def _make_file_instructions_from_absolutes(name, name2len, absolute_instructions
         num_examples += to - from_
         single_file_instructions = [{"filename": filename, "skip": from_, "take": to - from_}]
         file_instructions.extend(single_file_instructions)
-    return FileInstructions(
-        num_examples=num_examples,
-        file_instructions=file_instructions,
-    )
+    return FileInstructions(num_examples=num_examples, file_instructions=file_instructions,)
 
 
 class BaseReader:
@@ -188,11 +185,7 @@ class BaseReader:
         return files
 
     def read(
-        self,
-        name,
-        instructions,
-        split_infos,
-        in_memory=False,
+        self, name, instructions, split_infos, in_memory=False,
     ):
         """Returns Dataset instance(s).
 
@@ -266,9 +259,7 @@ class BaseReader:
         try:
             for split in self._info.splits:
                 file_instructions = self.get_file_instructions(
-                    name=self._info.builder_name,
-                    instruction=split,
-                    split_infos=self._info.splits.values(),
+                    name=self._info.builder_name, instruction=split, split_infos=self._info.splits.values(),
                 )
                 for file_instruction in file_instructions:
                     remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])

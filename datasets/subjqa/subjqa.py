@@ -145,13 +145,7 @@ class Subjqa(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {
-                                **{
-                                    "answer_start": answer_starts,
-                                    "text": answers,
-                                },
-                                **answer_meta,
-                            },
+                            "answers": {**{"answer_start": answer_starts, "text": answers,}, **answer_meta,},
                         },
                         **question_meta,
                     }

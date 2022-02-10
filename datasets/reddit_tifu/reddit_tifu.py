@@ -75,16 +75,8 @@ class RedditTifu(datasets.GeneratorBasedBuilder):
     """Reddit TIFU Dataset."""
 
     BUILDER_CONFIGS = [
-        RedditTifuConfig(
-            name="short",
-            summary_key=_TITLE,
-            description="Using title as summary.",
-        ),
-        RedditTifuConfig(
-            name="long",
-            summary_key=_TLDR,
-            description="Using TLDR as summary.",
-        ),
+        RedditTifuConfig(name="short", summary_key=_TITLE, description="Using title as summary.",),
+        RedditTifuConfig(name="long", summary_key=_TLDR, description="Using TLDR as summary.",),
     ]
 
     def _info(self):
@@ -106,12 +98,7 @@ class RedditTifu(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         dl_path = dl_manager.download_and_extract(_URL)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"path": dl_path},
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": dl_path},)]
 
     def _generate_examples(self, path=None):
         """Yields examples."""

@@ -322,32 +322,27 @@ class Eli5(datasets.GeneratorBasedBuilder):
                 gen_kwargs={"split": "validation", "subreddit_name": "explainlikeimfive"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("test_eli5"),
-                gen_kwargs={"split": "test", "subreddit_name": "explainlikeimfive"},
+                name=datasets.Split("test_eli5"), gen_kwargs={"split": "test", "subreddit_name": "explainlikeimfive"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("train_asks"),
-                gen_kwargs={"split": "train", "subreddit_name": "askscience"},
+                name=datasets.Split("train_asks"), gen_kwargs={"split": "train", "subreddit_name": "askscience"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split("validation_asks"),
                 gen_kwargs={"split": "validation", "subreddit_name": "askscience"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("test_asks"),
-                gen_kwargs={"split": "test", "subreddit_name": "askscience"},
+                name=datasets.Split("test_asks"), gen_kwargs={"split": "test", "subreddit_name": "askscience"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("train_askh"),
-                gen_kwargs={"split": "train", "subreddit_name": "AskHistorians"},
+                name=datasets.Split("train_askh"), gen_kwargs={"split": "train", "subreddit_name": "AskHistorians"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split("validation_askh"),
                 gen_kwargs={"split": "validation", "subreddit_name": "AskHistorians"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("test_askh"),
-                gen_kwargs={"split": "test", "subreddit_name": "AskHistorians"},
+                name=datasets.Split("test_askh"), gen_kwargs={"split": "test", "subreddit_name": "AskHistorians"},
             ),
         ]
 

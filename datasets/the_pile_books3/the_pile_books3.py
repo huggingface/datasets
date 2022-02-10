@@ -53,24 +53,14 @@ class Books3Config(datasets.BuilderConfig):
 class ThePileBooks3(datasets.GeneratorBasedBuilder):
     """Books3 dataset."""
 
-    BUILDER_CONFIGS = [
-        Books3Config(
-            name="plain_text",
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [Books3Config(name="plain_text", description="Plain text",)]
     # Every example is a whole book thus big, adjust writer_batch_size to avoid OOM at the cost of writing speed
     DEFAULT_WRITER_BATCH_SIZE = 500
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "title": datasets.Value("string"),
-                    "text": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"title": datasets.Value("string"), "text": datasets.Value("string"),}),
             supervised_keys=None,
             homepage=_PROJECT_URL,
             citation=_CITATION,
@@ -81,10 +71,7 @@ class ThePileBooks3(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "files": dl_manager.iter_archive(archive),
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_archive(archive),},
             )
         ]
 

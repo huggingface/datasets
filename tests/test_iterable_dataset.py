@@ -294,12 +294,7 @@ def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_example
 def test_iterable_dataset_map_complex_features(dataset: IterableDataset, generate_examples_fn):
     # https://github.com/huggingface/datasets/issues/3505
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": "positive"})
-    features = Features(
-        {
-            "id": Value("int64"),
-            "label": Value("string"),
-        }
-    )
+    features = Features({"id": Value("int64"), "label": Value("string"),})
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
     dataset = dataset.cast_column("label", ClassLabel(names=["negative", "positive"]))
     dataset = dataset.map(lambda x: {"id+1": x["id"] + 1, **x})
@@ -341,18 +336,8 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn
     "features",
     [
         None,
-        Features(
-            {
-                "id": Value("int64"),
-                "label": Value("int64"),
-            }
-        ),
-        Features(
-            {
-                "id": Value("int64"),
-                "label": ClassLabel(names=["negative", "positive"]),
-            }
-        ),
+        Features({"id": Value("int64"), "label": Value("int64"),}),
+        Features({"id": Value("int64"), "label": ClassLabel(names=["negative", "positive"]),}),
     ],
 )
 def test_iterable_dataset_features(generate_examples_fn, features):
@@ -463,12 +448,7 @@ def test_interleave_datasets(dataset: IterableDataset, probas, seed, expected_le
 
 
 def test_interleave_datasets_with_features(dataset: IterableDataset, generate_examples_fn):
-    features = Features(
-        {
-            "id": Value("int64"),
-            "label": ClassLabel(names=["negative", "positive"]),
-        }
-    )
+    features = Features({"id": Value("int64"), "label": ClassLabel(names=["negative", "positive"]),})
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 0})
     dataset_with_features = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
 

@@ -77,13 +77,7 @@ class UM005Config(datasets.BuilderConfig):
 class UM005(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         UM005Config(name=source, sources=[source], description=f"Source: {source}.") for source in _SOURCES
-    ] + [
-        UM005Config(
-            name=_ALL,
-            sources=_SOURCES,
-            description="All sources included: bible, quran",
-        )
-    ]
+    ] + [UM005Config(name=_ALL, sources=_SOURCES, description="All sources included: bible, quran",)]
     BUILDER_CONFIG_CLASS = UM005Config
     DEFAULT_CONFIG_NAME = _ALL
 
@@ -104,18 +98,9 @@ class UM005(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         path = dl_manager.download_and_extract(_URL)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": path, "datatype": "train"},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"datapath": path, "datatype": "dev"},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"datapath": path, "datatype": "test"},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path, "datatype": "train"},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"datapath": path, "datatype": "dev"},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"datapath": path, "datatype": "test"},),
         ]
 
     def _generate_examples(self, datapath, datatype):
@@ -140,10 +125,7 @@ class UM005(datasets.GeneratorBasedBuilder):
                     y = y.strip()
                     result = (
                         sentence_counter,
-                        {
-                            "id": str(sentence_counter),
-                            "translation": {"ur": x, "en": y},
-                        },
+                        {"id": str(sentence_counter), "translation": {"ur": x, "en": y},},
                     )
                     sentence_counter += 1
                     yield result

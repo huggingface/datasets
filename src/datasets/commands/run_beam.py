@@ -31,10 +31,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
         run_beam_parser = parser.add_parser("run_beam", help="Run a Beam dataset processing pipeline.")
         run_beam_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         run_beam_parser.add_argument(
-            "--cache_dir",
-            type=str,
-            default=None,
-            help="Cache directory where the datasets are stored.",
+            "--cache_dir", type=str, default=None, help="Cache directory where the datasets are stored.",
         )
         run_beam_parser.add_argument(
             "--beam_pipeline_options",

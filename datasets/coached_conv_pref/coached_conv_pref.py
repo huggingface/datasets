@@ -128,10 +128,7 @@ class CoachedConvPref(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir["dataset"]),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir["dataset"]), "split": "train",},
             ),
         ]
 
@@ -141,14 +138,7 @@ class CoachedConvPref(datasets.GeneratorBasedBuilder):
         # Empty Segment list with annotations dictionary
         # First prompt of a conversation does not contain the segment dictionary
         # We are setting it to None values
-        segments_empty = [
-            {
-                "startIndex": 0,
-                "endIndex": 0,
-                "text": "",
-                "annotations": [],
-            }
-        ]
+        segments_empty = [{"startIndex": 0, "endIndex": 0, "text": "", "annotations": [],}]
 
         with open(filepath, encoding="utf-8") as f:
             dataset = json.load(f)

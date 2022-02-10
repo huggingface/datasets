@@ -177,13 +177,7 @@ class MultiWozV22(datasets.GeneratorBasedBuilder):
         data_files = dl_manager.download_and_extract(_URLs)
         self.stored_dialogue_acts = json.load(open(data_files["dialogue_acts"]))
         return [
-            datasets.SplitGenerator(
-                name=spl_enum,
-                gen_kwargs={
-                    "filepaths": data_files,
-                    "split": spl,
-                },
-            )
+            datasets.SplitGenerator(name=spl_enum, gen_kwargs={"filepaths": data_files, "split": spl,},)
             for spl, spl_enum in [
                 ("train", datasets.Split.TRAIN),
                 ("dev", datasets.Split.VALIDATION),

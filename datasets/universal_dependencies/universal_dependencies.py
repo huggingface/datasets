@@ -398,21 +398,11 @@ _UD_DATASETS = {
         "dev": "UD_Afrikaans-AfriBooms/r2.7/af_afribooms-ud-dev.conllu",
         "test": "UD_Afrikaans-AfriBooms/r2.7/af_afribooms-ud-test.conllu",
     },
-    "akk_pisandub": {
-        "test": "UD_Akkadian-PISANDUB/r2.7/akk_pisandub-ud-test.conllu",
-    },
-    "akk_riao": {
-        "test": "UD_Akkadian-RIAO/r2.7/akk_riao-ud-test.conllu",
-    },
-    "aqz_tudet": {
-        "test": "UD_Akuntsu-TuDeT/r2.7/aqz_tudet-ud-test.conllu",
-    },
-    "sq_tsa": {
-        "test": "UD_Albanian-TSA/r2.7/sq_tsa-ud-test.conllu",
-    },
-    "am_att": {
-        "test": "UD_Amharic-ATT/r2.7/am_att-ud-test.conllu",
-    },
+    "akk_pisandub": {"test": "UD_Akkadian-PISANDUB/r2.7/akk_pisandub-ud-test.conllu",},
+    "akk_riao": {"test": "UD_Akkadian-RIAO/r2.7/akk_riao-ud-test.conllu",},
+    "aqz_tudet": {"test": "UD_Akuntsu-TuDeT/r2.7/aqz_tudet-ud-test.conllu",},
+    "sq_tsa": {"test": "UD_Albanian-TSA/r2.7/sq_tsa-ud-test.conllu",},
+    "am_att": {"test": "UD_Amharic-ATT/r2.7/am_att-ud-test.conllu",},
     "grc_perseus": {
         "train": "UD_Ancient_Greek-Perseus/r2.7/grc_perseus-ud-train.conllu",
         "dev": "UD_Ancient_Greek-Perseus/r2.7/grc_perseus-ud-dev.conllu",
@@ -423,9 +413,7 @@ _UD_DATASETS = {
         "dev": "UD_Ancient_Greek-PROIEL/r2.7/grc_proiel-ud-dev.conllu",
         "test": "UD_Ancient_Greek-PROIEL/r2.7/grc_proiel-ud-test.conllu",
     },
-    "apu_ufpa": {
-        "test": "UD_Apurina-UFPA/r2.7/apu_ufpa-ud-test.conllu",
-    },
+    "apu_ufpa": {"test": "UD_Apurina-UFPA/r2.7/apu_ufpa-ud-test.conllu",},
     "ar_nyuad": {
         "train": "UD_Arabic-NYUAD/r2.7/ar_nyuad-ud-train.conllu",
         "dev": "UD_Arabic-NYUAD/r2.7/ar_nyuad-ud-dev.conllu",
@@ -436,20 +424,14 @@ _UD_DATASETS = {
         "dev": "UD_Arabic-PADT/r2.7/ar_padt-ud-dev.conllu",
         "test": "UD_Arabic-PADT/r2.7/ar_padt-ud-test.conllu",
     },
-    "ar_pud": {
-        "test": "UD_Arabic-PUD/r2.7/ar_pud-ud-test.conllu",
-    },
+    "ar_pud": {"test": "UD_Arabic-PUD/r2.7/ar_pud-ud-test.conllu",},
     "hy_armtdp": {
         "train": "UD_Armenian-ArmTDP/r2.7/hy_armtdp-ud-train.conllu",
         "dev": "UD_Armenian-ArmTDP/r2.7/hy_armtdp-ud-dev.conllu",
         "test": "UD_Armenian-ArmTDP/r2.7/hy_armtdp-ud-test.conllu",
     },
-    "aii_as": {
-        "test": "UD_Assyrian-AS/r2.7/aii_as-ud-test.conllu",
-    },
-    "bm_crb": {
-        "test": "UD_Bambara-CRB/r2.7/bm_crb-ud-test.conllu",
-    },
+    "aii_as": {"test": "UD_Assyrian-AS/r2.7/aii_as-ud-test.conllu",},
+    "bm_crb": {"test": "UD_Bambara-CRB/r2.7/bm_crb-ud-test.conllu",},
     "eu_bdt": {
         "train": "UD_Basque-BDT/r2.7/eu_bdt-ud-train.conllu",
         "dev": "UD_Basque-BDT/r2.7/eu_bdt-ud-dev.conllu",
@@ -460,12 +442,8 @@ _UD_DATASETS = {
         "dev": "UD_Belarusian-HSE/r2.7/be_hse-ud-dev.conllu",
         "test": "UD_Belarusian-HSE/r2.7/be_hse-ud-test.conllu",
     },
-    "bho_bhtb": {
-        "test": "UD_Bhojpuri-BHTB/r2.7/bho_bhtb-ud-test.conllu",
-    },
-    "br_keb": {
-        "test": "UD_Breton-KEB/r2.7/br_keb-ud-test.conllu",
-    },
+    "bho_bhtb": {"test": "UD_Bhojpuri-BHTB/r2.7/bho_bhtb-ud-test.conllu",},
+    "br_keb": {"test": "UD_Breton-KEB/r2.7/br_keb-ud-test.conllu",},
     "bg_btb": {
         "train": "UD_Bulgarian-BTB/r2.7/bg_btb-ud-train.conllu",
         "dev": "UD_Bulgarian-BTB/r2.7/bg_btb-ud-dev.conllu",
@@ -475,17 +453,13 @@ _UD_DATASETS = {
         "train": "UD_Buryat-BDT/r2.7/bxr_bdt-ud-train.conllu",
         "test": "UD_Buryat-BDT/r2.7/bxr_bdt-ud-test.conllu",
     },
-    "yue_hk": {
-        "test": "UD_Cantonese-HK/r2.7/yue_hk-ud-test.conllu",
-    },
+    "yue_hk": {"test": "UD_Cantonese-HK/r2.7/yue_hk-ud-test.conllu",},
     "ca_ancora": {
         "train": "UD_Catalan-AnCora/r2.7/ca_ancora-ud-train.conllu",
         "dev": "UD_Catalan-AnCora/r2.7/ca_ancora-ud-dev.conllu",
         "test": "UD_Catalan-AnCora/r2.7/ca_ancora-ud-test.conllu",
     },
-    "zh_cfl": {
-        "test": "UD_Chinese-CFL/r2.7/zh_cfl-ud-test.conllu",
-    },
+    "zh_cfl": {"test": "UD_Chinese-CFL/r2.7/zh_cfl-ud-test.conllu",},
     "zh_gsd": {
         "train": "UD_Chinese-GSD/r2.7/zh_gsd-ud-train.conllu",
         "dev": "UD_Chinese-GSD/r2.7/zh_gsd-ud-dev.conllu",
@@ -496,15 +470,9 @@ _UD_DATASETS = {
         "dev": "UD_Chinese-GSDSimp/r2.7/zh_gsdsimp-ud-dev.conllu",
         "test": "UD_Chinese-GSDSimp/r2.7/zh_gsdsimp-ud-test.conllu",
     },
-    "zh_hk": {
-        "test": "UD_Chinese-HK/r2.7/zh_hk-ud-test.conllu",
-    },
-    "zh_pud": {
-        "test": "UD_Chinese-PUD/r2.7/zh_pud-ud-test.conllu",
-    },
-    "ckt_hse": {
-        "test": "UD_Chukchi-HSE/r2.7/ckt_hse-ud-test.conllu",
-    },
+    "zh_hk": {"test": "UD_Chinese-HK/r2.7/zh_hk-ud-test.conllu",},
+    "zh_pud": {"test": "UD_Chinese-PUD/r2.7/zh_pud-ud-test.conllu",},
+    "ckt_hse": {"test": "UD_Chukchi-HSE/r2.7/ckt_hse-ud-test.conllu",},
     "lzh_kyoto": {
         "train": "UD_Classical_Chinese-Kyoto/r2.7/lzh_kyoto-ud-train.conllu",
         "dev": "UD_Classical_Chinese-Kyoto/r2.7/lzh_kyoto-ud-dev.conllu",
@@ -545,9 +513,7 @@ _UD_DATASETS = {
         "dev": "UD_Czech-PDT/r2.7/cs_pdt-ud-dev.conllu",
         "test": "UD_Czech-PDT/r2.7/cs_pdt-ud-test.conllu",
     },
-    "cs_pud": {
-        "test": "UD_Czech-PUD/r2.7/cs_pud-ud-test.conllu",
-    },
+    "cs_pud": {"test": "UD_Czech-PUD/r2.7/cs_pud-ud-test.conllu",},
     "da_ddt": {
         "train": "UD_Danish-DDT/r2.7/da_ddt-ud-train.conllu",
         "dev": "UD_Danish-DDT/r2.7/da_ddt-ud-dev.conllu",
@@ -593,15 +559,9 @@ _UD_DATASETS = {
         "dev": "UD_English-ParTUT/r2.7/en_partut-ud-dev.conllu",
         "test": "UD_English-ParTUT/r2.7/en_partut-ud-test.conllu",
     },
-    "en_pronouns": {
-        "test": "UD_English-Pronouns/r2.7/en_pronouns-ud-test.conllu",
-    },
-    "en_pud": {
-        "test": "UD_English-PUD/r2.7/en_pud-ud-test.conllu",
-    },
-    "myv_jr": {
-        "test": "UD_Erzya-JR/r2.7/myv_jr-ud-test.conllu",
-    },
+    "en_pronouns": {"test": "UD_English-Pronouns/r2.7/en_pronouns-ud-test.conllu",},
+    "en_pud": {"test": "UD_English-PUD/r2.7/en_pud-ud-test.conllu",},
+    "myv_jr": {"test": "UD_Erzya-JR/r2.7/myv_jr-ud-test.conllu",},
     "et_edt": {
         "train": "UD_Estonian-EDT/r2.7/et_edt-ud-train.conllu",
         "dev": "UD_Estonian-EDT/r2.7/et_edt-ud-dev.conllu",
@@ -617,28 +577,20 @@ _UD_DATASETS = {
         "dev": "UD_Faroese-FarPaHC/r2.7/fo_farpahc-ud-dev.conllu",
         "test": "UD_Faroese-FarPaHC/r2.7/fo_farpahc-ud-test.conllu",
     },
-    "fo_oft": {
-        "test": "UD_Faroese-OFT/r2.7/fo_oft-ud-test.conllu",
-    },
+    "fo_oft": {"test": "UD_Faroese-OFT/r2.7/fo_oft-ud-test.conllu",},
     "fi_ftb": {
         "train": "UD_Finnish-FTB/r2.7/fi_ftb-ud-train.conllu",
         "dev": "UD_Finnish-FTB/r2.7/fi_ftb-ud-dev.conllu",
         "test": "UD_Finnish-FTB/r2.7/fi_ftb-ud-test.conllu",
     },
-    "fi_ood": {
-        "test": "UD_Finnish-OOD/r2.7/fi_ood-ud-test.conllu",
-    },
-    "fi_pud": {
-        "test": "UD_Finnish-PUD/r2.7/fi_pud-ud-test.conllu",
-    },
+    "fi_ood": {"test": "UD_Finnish-OOD/r2.7/fi_ood-ud-test.conllu",},
+    "fi_pud": {"test": "UD_Finnish-PUD/r2.7/fi_pud-ud-test.conllu",},
     "fi_tdt": {
         "train": "UD_Finnish-TDT/r2.7/fi_tdt-ud-train.conllu",
         "dev": "UD_Finnish-TDT/r2.7/fi_tdt-ud-dev.conllu",
         "test": "UD_Finnish-TDT/r2.7/fi_tdt-ud-test.conllu",
     },
-    "fr_fqb": {
-        "test": "UD_French-FQB/r2.7/fr_fqb-ud-test.conllu",
-    },
+    "fr_fqb": {"test": "UD_French-FQB/r2.7/fr_fqb-ud-test.conllu",},
     "fr_ftb": {
         "train": "UD_French-FTB/r2.7/fr_ftb-ud-train.conllu",
         "dev": "UD_French-FTB/r2.7/fr_ftb-ud-dev.conllu",
@@ -654,9 +606,7 @@ _UD_DATASETS = {
         "dev": "UD_French-ParTUT/r2.7/fr_partut-ud-dev.conllu",
         "test": "UD_French-ParTUT/r2.7/fr_partut-ud-test.conllu",
     },
-    "fr_pud": {
-        "test": "UD_French-PUD/r2.7/fr_pud-ud-test.conllu",
-    },
+    "fr_pud": {"test": "UD_French-PUD/r2.7/fr_pud-ud-test.conllu",},
     "fr_sequoia": {
         "train": "UD_French-Sequoia/r2.7/fr_sequoia-ud-train.conllu",
         "dev": "UD_French-Sequoia/r2.7/fr_sequoia-ud-dev.conllu",
@@ -691,12 +641,8 @@ _UD_DATASETS = {
         "dev": "UD_German-HDT/r2.7/de_hdt-ud-dev.conllu",
         "test": "UD_German-HDT/r2.7/de_hdt-ud-test.conllu",
     },
-    "de_lit": {
-        "test": "UD_German-LIT/r2.7/de_lit-ud-test.conllu",
-    },
-    "de_pud": {
-        "test": "UD_German-PUD/r2.7/de_pud-ud-test.conllu",
-    },
+    "de_lit": {"test": "UD_German-LIT/r2.7/de_lit-ud-test.conllu",},
+    "de_pud": {"test": "UD_German-PUD/r2.7/de_pud-ud-test.conllu",},
     "got_proiel": {
         "train": "UD_Gothic-PROIEL/r2.7/got_proiel-ud-train.conllu",
         "dev": "UD_Gothic-PROIEL/r2.7/got_proiel-ud-dev.conllu",
@@ -722,9 +668,7 @@ _UD_DATASETS = {
         "dev": "UD_Hindi-HDTB/r2.7/hi_hdtb-ud-dev.conllu",
         "test": "UD_Hindi-HDTB/r2.7/hi_hdtb-ud-test.conllu",
     },
-    "hi_pud": {
-        "test": "UD_Hindi-PUD/r2.7/hi_pud-ud-test.conllu",
-    },
+    "hi_pud": {"test": "UD_Hindi-PUD/r2.7/hi_pud-ud-test.conllu",},
     "hu_szeged": {
         "train": "UD_Hungarian-Szeged/r2.7/hu_szeged-ud-train.conllu",
         "dev": "UD_Hungarian-Szeged/r2.7/hu_szeged-ud-dev.conllu",
@@ -735,9 +679,7 @@ _UD_DATASETS = {
         "dev": "UD_Icelandic-IcePaHC/r2.7/is_icepahc-ud-dev.conllu",
         "test": "UD_Icelandic-IcePaHC/r2.7/is_icepahc-ud-test.conllu",
     },
-    "is_pud": {
-        "test": "UD_Icelandic-PUD/r2.7/is_pud-ud-test.conllu",
-    },
+    "is_pud": {"test": "UD_Icelandic-PUD/r2.7/is_pud-ud-test.conllu",},
     "id_csui": {
         "train": "UD_Indonesian-CSUI/r2.7/id_csui-ud-train.conllu",
         "test": "UD_Indonesian-CSUI/r2.7/id_csui-ud-test.conllu",
@@ -747,9 +689,7 @@ _UD_DATASETS = {
         "dev": "UD_Indonesian-GSD/r2.7/id_gsd-ud-dev.conllu",
         "test": "UD_Indonesian-GSD/r2.7/id_gsd-ud-test.conllu",
     },
-    "id_pud": {
-        "test": "UD_Indonesian-PUD/r2.7/id_pud-ud-test.conllu",
-    },
+    "id_pud": {"test": "UD_Indonesian-PUD/r2.7/id_pud-ud-test.conllu",},
     "ga_idt": {
         "train": "UD_Irish-IDT/r2.7/ga_idt-ud-train.conllu",
         "dev": "UD_Irish-IDT/r2.7/ga_idt-ud-dev.conllu",
@@ -770,9 +710,7 @@ _UD_DATASETS = {
         "dev": "UD_Italian-PoSTWITA/r2.7/it_postwita-ud-dev.conllu",
         "test": "UD_Italian-PoSTWITA/r2.7/it_postwita-ud-test.conllu",
     },
-    "it_pud": {
-        "test": "UD_Italian-PUD/r2.7/it_pud-ud-test.conllu",
-    },
+    "it_pud": {"test": "UD_Italian-PUD/r2.7/it_pud-ud-test.conllu",},
     "it_twittiro": {
         "train": "UD_Italian-TWITTIRO/r2.7/it_twittiro-ud-train.conllu",
         "dev": "UD_Italian-TWITTIRO/r2.7/it_twittiro-ud-dev.conllu",
@@ -793,31 +731,17 @@ _UD_DATASETS = {
         "dev": "UD_Japanese-GSD/r2.7/ja_gsd-ud-dev.conllu",
         "test": "UD_Japanese-GSD/r2.7/ja_gsd-ud-test.conllu",
     },
-    "ja_modern": {
-        "test": "UD_Japanese-Modern/r2.7/ja_modern-ud-test.conllu",
-    },
-    "ja_pud": {
-        "test": "UD_Japanese-PUD/r2.7/ja_pud-ud-test.conllu",
-    },
-    "krl_kkpp": {
-        "test": "UD_Karelian-KKPP/r2.7/krl_kkpp-ud-test.conllu",
-    },
+    "ja_modern": {"test": "UD_Japanese-Modern/r2.7/ja_modern-ud-test.conllu",},
+    "ja_pud": {"test": "UD_Japanese-PUD/r2.7/ja_pud-ud-test.conllu",},
+    "krl_kkpp": {"test": "UD_Karelian-KKPP/r2.7/krl_kkpp-ud-test.conllu",},
     "kk_ktb": {
         "train": "UD_Kazakh-KTB/r2.7/kk_ktb-ud-train.conllu",
         "test": "UD_Kazakh-KTB/r2.7/kk_ktb-ud-test.conllu",
     },
-    "kfm_aha": {
-        "test": "UD_Khunsari-AHA/r2.7/kfm_aha-ud-test.conllu",
-    },
-    "koi_uh": {
-        "test": "UD_Komi_Permyak-UH/r2.7/koi_uh-ud-test.conllu",
-    },
-    "kpv_ikdp": {
-        "test": "UD_Komi_Zyrian-IKDP/r2.7/kpv_ikdp-ud-test.conllu",
-    },
-    "kpv_lattice": {
-        "test": "UD_Komi_Zyrian-Lattice/r2.7/kpv_lattice-ud-test.conllu",
-    },
+    "kfm_aha": {"test": "UD_Khunsari-AHA/r2.7/kfm_aha-ud-test.conllu",},
+    "koi_uh": {"test": "UD_Komi_Permyak-UH/r2.7/koi_uh-ud-test.conllu",},
+    "kpv_ikdp": {"test": "UD_Komi_Zyrian-IKDP/r2.7/kpv_ikdp-ud-test.conllu",},
+    "kpv_lattice": {"test": "UD_Komi_Zyrian-Lattice/r2.7/kpv_lattice-ud-test.conllu",},
     "ko_gsd": {
         "train": "UD_Korean-GSD/r2.7/ko_gsd-ud-train.conllu",
         "dev": "UD_Korean-GSD/r2.7/ko_gsd-ud-dev.conllu",
@@ -828,9 +752,7 @@ _UD_DATASETS = {
         "dev": "UD_Korean-Kaist/r2.7/ko_kaist-ud-dev.conllu",
         "test": "UD_Korean-Kaist/r2.7/ko_kaist-ud-test.conllu",
     },
-    "ko_pud": {
-        "test": "UD_Korean-PUD/r2.7/ko_pud-ud-test.conllu",
-    },
+    "ko_pud": {"test": "UD_Korean-PUD/r2.7/ko_pud-ud-test.conllu",},
     "kmr_mg": {
         "train": "UD_Kurmanji-MG/r2.7/kmr_mg-ud-train.conllu",
         "test": "UD_Kurmanji-MG/r2.7/kmr_mg-ud-test.conllu",
@@ -878,34 +800,22 @@ _UD_DATASETS = {
         "dev": "UD_Maltese-MUDT/r2.7/mt_mudt-ud-dev.conllu",
         "test": "UD_Maltese-MUDT/r2.7/mt_mudt-ud-test.conllu",
     },
-    "gv_cadhan": {
-        "test": "UD_Manx-Cadhan/r2.7/gv_cadhan-ud-test.conllu",
-    },
+    "gv_cadhan": {"test": "UD_Manx-Cadhan/r2.7/gv_cadhan-ud-test.conllu",},
     "mr_ufal": {
         "train": "UD_Marathi-UFAL/r2.7/mr_ufal-ud-train.conllu",
         "dev": "UD_Marathi-UFAL/r2.7/mr_ufal-ud-dev.conllu",
         "test": "UD_Marathi-UFAL/r2.7/mr_ufal-ud-test.conllu",
     },
-    "gun_dooley": {
-        "test": "UD_Mbya_Guarani-Dooley/r2.7/gun_dooley-ud-test.conllu",
-    },
-    "gun_thomas": {
-        "test": "UD_Mbya_Guarani-Thomas/r2.7/gun_thomas-ud-test.conllu",
-    },
-    "mdf_jr": {
-        "test": "UD_Moksha-JR/r2.7/mdf_jr-ud-test.conllu",
-    },
-    "myu_tudet": {
-        "test": "UD_Munduruku-TuDeT/r2.7/myu_tudet-ud-test.conllu",
-    },
+    "gun_dooley": {"test": "UD_Mbya_Guarani-Dooley/r2.7/gun_dooley-ud-test.conllu",},
+    "gun_thomas": {"test": "UD_Mbya_Guarani-Thomas/r2.7/gun_thomas-ud-test.conllu",},
+    "mdf_jr": {"test": "UD_Moksha-JR/r2.7/mdf_jr-ud-test.conllu",},
+    "myu_tudet": {"test": "UD_Munduruku-TuDeT/r2.7/myu_tudet-ud-test.conllu",},
     "pcm_nsc": {
         "train": "UD_Naija-NSC/r2.7/pcm_nsc-ud-train.conllu",
         "dev": "UD_Naija-NSC/r2.7/pcm_nsc-ud-dev.conllu",
         "test": "UD_Naija-NSC/r2.7/pcm_nsc-ud-test.conllu",
     },
-    "nyq_aha": {
-        "test": "UD_Nayini-AHA/r2.7/nyq_aha-ud-test.conllu",
-    },
+    "nyq_aha": {"test": "UD_Nayini-AHA/r2.7/nyq_aha-ud-test.conllu",},
     "sme_giella": {
         "train": "UD_North_Sami-Giella/r2.7/sme_giella-ud-train.conllu",
         "test": "UD_North_Sami-Giella/r2.7/sme_giella-ud-test.conllu",
@@ -944,9 +854,7 @@ _UD_DATASETS = {
         "dev": "UD_Old_Russian-TOROT/r2.7/orv_torot-ud-dev.conllu",
         "test": "UD_Old_Russian-TOROT/r2.7/orv_torot-ud-test.conllu",
     },
-    "otk_tonqq": {
-        "test": "UD_Old_Turkish-Tonqq/r2.7/otk_tonqq-ud-test.conllu",
-    },
+    "otk_tonqq": {"test": "UD_Old_Turkish-Tonqq/r2.7/otk_tonqq-ud-test.conllu",},
     "fa_perdt": {
         "train": "UD_Persian-PerDT/r2.7/fa_perdt-ud-train.conllu",
         "dev": "UD_Persian-PerDT/r2.7/fa_perdt-ud-dev.conllu",
@@ -967,9 +875,7 @@ _UD_DATASETS = {
         "dev": "UD_Polish-PDB/r2.7/pl_pdb-ud-dev.conllu",
         "test": "UD_Polish-PDB/r2.7/pl_pdb-ud-test.conllu",
     },
-    "pl_pud": {
-        "test": "UD_Polish-PUD/r2.7/pl_pud-ud-test.conllu",
-    },
+    "pl_pud": {"test": "UD_Polish-PUD/r2.7/pl_pud-ud-test.conllu",},
     "pt_bosque": {
         "train": "UD_Portuguese-Bosque/r2.7/pt_bosque-ud-train.conllu",
         "dev": "UD_Portuguese-Bosque/r2.7/pt_bosque-ud-dev.conllu",
@@ -980,9 +886,7 @@ _UD_DATASETS = {
         "dev": "UD_Portuguese-GSD/r2.7/pt_gsd-ud-dev.conllu",
         "test": "UD_Portuguese-GSD/r2.7/pt_gsd-ud-test.conllu",
     },
-    "pt_pud": {
-        "test": "UD_Portuguese-PUD/r2.7/pt_pud-ud-test.conllu",
-    },
+    "pt_pud": {"test": "UD_Portuguese-PUD/r2.7/pt_pud-ud-test.conllu",},
     "ro_nonstandard": {
         "train": "UD_Romanian-Nonstandard/r2.7/ro_nonstandard-ud-train.conllu",
         "dev": "UD_Romanian-Nonstandard/r2.7/ro_nonstandard-ud-dev.conllu",
@@ -1003,9 +907,7 @@ _UD_DATASETS = {
         "dev": "UD_Russian-GSD/r2.7/ru_gsd-ud-dev.conllu",
         "test": "UD_Russian-GSD/r2.7/ru_gsd-ud-test.conllu",
     },
-    "ru_pud": {
-        "test": "UD_Russian-PUD/r2.7/ru_pud-ud-test.conllu",
-    },
+    "ru_pud": {"test": "UD_Russian-PUD/r2.7/ru_pud-ud-test.conllu",},
     "ru_syntagrus": {
         "train": "UD_Russian-SynTagRus/r2.7/ru_syntagrus-ud-train.conllu",
         "dev": "UD_Russian-SynTagRus/r2.7/ru_syntagrus-ud-dev.conllu",
@@ -1016,9 +918,7 @@ _UD_DATASETS = {
         "dev": "UD_Russian-Taiga/r2.7/ru_taiga-ud-dev.conllu",
         "test": "UD_Russian-Taiga/r2.7/ru_taiga-ud-test.conllu",
     },
-    "sa_ufal": {
-        "test": "UD_Sanskrit-UFAL/r2.7/sa_ufal-ud-test.conllu",
-    },
+    "sa_ufal": {"test": "UD_Sanskrit-UFAL/r2.7/sa_ufal-ud-test.conllu",},
     "sa_vedic": {
         "train": "UD_Sanskrit-Vedic/r2.7/sa_vedic-ud-train.conllu",
         "test": "UD_Sanskrit-Vedic/r2.7/sa_vedic-ud-test.conllu",
@@ -1033,9 +933,7 @@ _UD_DATASETS = {
         "dev": "UD_Serbian-SET/r2.7/sr_set-ud-dev.conllu",
         "test": "UD_Serbian-SET/r2.7/sr_set-ud-test.conllu",
     },
-    "sms_giellagas": {
-        "test": "UD_Skolt_Sami-Giellagas/r2.7/sms_giellagas-ud-test.conllu",
-    },
+    "sms_giellagas": {"test": "UD_Skolt_Sami-Giellagas/r2.7/sms_giellagas-ud-test.conllu",},
     "sk_snk": {
         "train": "UD_Slovak-SNK/r2.7/sk_snk-ud-train.conllu",
         "dev": "UD_Slovak-SNK/r2.7/sk_snk-ud-dev.conllu",
@@ -1050,12 +948,8 @@ _UD_DATASETS = {
         "train": "UD_Slovenian-SST/r2.7/sl_sst-ud-train.conllu",
         "test": "UD_Slovenian-SST/r2.7/sl_sst-ud-test.conllu",
     },
-    "soj_aha": {
-        "test": "UD_Soi-AHA/r2.7/soj_aha-ud-test.conllu",
-    },
-    "ajp_madar": {
-        "test": "UD_South_Levantine_Arabic-MADAR/r2.7/ajp_madar-ud-test.conllu",
-    },
+    "soj_aha": {"test": "UD_Soi-AHA/r2.7/soj_aha-ud-test.conllu",},
+    "ajp_madar": {"test": "UD_South_Levantine_Arabic-MADAR/r2.7/ajp_madar-ud-test.conllu",},
     "es_ancora": {
         "train": "UD_Spanish-AnCora/r2.7/es_ancora-ud-train.conllu",
         "dev": "UD_Spanish-AnCora/r2.7/es_ancora-ud-dev.conllu",
@@ -1066,9 +960,7 @@ _UD_DATASETS = {
         "dev": "UD_Spanish-GSD/r2.7/es_gsd-ud-dev.conllu",
         "test": "UD_Spanish-GSD/r2.7/es_gsd-ud-test.conllu",
     },
-    "es_pud": {
-        "test": "UD_Spanish-PUD/r2.7/es_pud-ud-test.conllu",
-    },
+    "es_pud": {"test": "UD_Spanish-PUD/r2.7/es_pud-ud-test.conllu",},
     "swl_sslc": {
         "train": "UD_Swedish_Sign_Language-SSLC/r2.7/swl_sslc-ud-train.conllu",
         "dev": "UD_Swedish_Sign_Language-SSLC/r2.7/swl_sslc-ud-dev.conllu",
@@ -1079,26 +971,16 @@ _UD_DATASETS = {
         "dev": "UD_Swedish-LinES/r2.7/sv_lines-ud-dev.conllu",
         "test": "UD_Swedish-LinES/r2.7/sv_lines-ud-test.conllu",
     },
-    "sv_pud": {
-        "test": "UD_Swedish-PUD/r2.7/sv_pud-ud-test.conllu",
-    },
+    "sv_pud": {"test": "UD_Swedish-PUD/r2.7/sv_pud-ud-test.conllu",},
     "sv_talbanken": {
         "train": "UD_Swedish-Talbanken/r2.7/sv_talbanken-ud-train.conllu",
         "dev": "UD_Swedish-Talbanken/r2.7/sv_talbanken-ud-dev.conllu",
         "test": "UD_Swedish-Talbanken/r2.7/sv_talbanken-ud-test.conllu",
     },
-    "gsw_uzh": {
-        "test": "UD_Swiss_German-UZH/r2.7/gsw_uzh-ud-test.conllu",
-    },
-    "tl_trg": {
-        "test": "UD_Tagalog-TRG/r2.7/tl_trg-ud-test.conllu",
-    },
-    "tl_ugnayan": {
-        "test": "UD_Tagalog-Ugnayan/r2.7/tl_ugnayan-ud-test.conllu",
-    },
-    "ta_mwtt": {
-        "test": "UD_Tamil-MWTT/r2.7/ta_mwtt-ud-test.conllu",
-    },
+    "gsw_uzh": {"test": "UD_Swiss_German-UZH/r2.7/gsw_uzh-ud-test.conllu",},
+    "tl_trg": {"test": "UD_Tagalog-TRG/r2.7/tl_trg-ud-test.conllu",},
+    "tl_ugnayan": {"test": "UD_Tagalog-Ugnayan/r2.7/tl_ugnayan-ud-test.conllu",},
+    "ta_mwtt": {"test": "UD_Tamil-MWTT/r2.7/ta_mwtt-ud-test.conllu",},
     "ta_ttb": {
         "train": "UD_Tamil-TTB/r2.7/ta_ttb-ud-train.conllu",
         "dev": "UD_Tamil-TTB/r2.7/ta_ttb-ud-dev.conllu",
@@ -1109,12 +991,8 @@ _UD_DATASETS = {
         "dev": "UD_Telugu-MTG/r2.7/te_mtg-ud-dev.conllu",
         "test": "UD_Telugu-MTG/r2.7/te_mtg-ud-test.conllu",
     },
-    "th_pud": {
-        "test": "UD_Thai-PUD/r2.7/th_pud-ud-test.conllu",
-    },
-    "tpn_tudet": {
-        "test": "UD_Tupinamba-TuDeT/r2.7/tpn_tudet-ud-test.conllu",
-    },
+    "th_pud": {"test": "UD_Thai-PUD/r2.7/th_pud-ud-test.conllu",},
+    "tpn_tudet": {"test": "UD_Tupinamba-TuDeT/r2.7/tpn_tudet-ud-test.conllu",},
     "qtd_sagt": {
         "train": "UD_Turkish_German-SAGT/r2.7/qtd_sagt-ud-train.conllu",
         "dev": "UD_Turkish_German-SAGT/r2.7/qtd_sagt-ud-dev.conllu",
@@ -1125,17 +1003,13 @@ _UD_DATASETS = {
         "dev": "UD_Turkish-BOUN/r2.7/tr_boun-ud-dev.conllu",
         "test": "UD_Turkish-BOUN/r2.7/tr_boun-ud-test.conllu",
     },
-    "tr_gb": {
-        "test": "UD_Turkish-GB/r2.7/tr_gb-ud-test.conllu",
-    },
+    "tr_gb": {"test": "UD_Turkish-GB/r2.7/tr_gb-ud-test.conllu",},
     "tr_imst": {
         "train": "UD_Turkish-IMST/r2.7/tr_imst-ud-train.conllu",
         "dev": "UD_Turkish-IMST/r2.7/tr_imst-ud-dev.conllu",
         "test": "UD_Turkish-IMST/r2.7/tr_imst-ud-test.conllu",
     },
-    "tr_pud": {
-        "test": "UD_Turkish-PUD/r2.7/tr_pud-ud-test.conllu",
-    },
+    "tr_pud": {"test": "UD_Turkish-PUD/r2.7/tr_pud-ud-test.conllu",},
     "uk_iu": {
         "train": "UD_Ukrainian-IU/r2.7/uk_iu-ud-train.conllu",
         "dev": "UD_Ukrainian-IU/r2.7/uk_iu-ud-dev.conllu",
@@ -1160,9 +1034,7 @@ _UD_DATASETS = {
         "dev": "UD_Vietnamese-VTB/r2.7/vi_vtb-ud-dev.conllu",
         "test": "UD_Vietnamese-VTB/r2.7/vi_vtb-ud-test.conllu",
     },
-    "wbp_ufal": {
-        "test": "UD_Warlpiri-UFAL/r2.7/wbp_ufal-ud-test.conllu",
-    },
+    "wbp_ufal": {"test": "UD_Warlpiri-UFAL/r2.7/wbp_ufal-ud-test.conllu",},
     "cy_ccg": {
         "train": "UD_Welsh-CCG/r2.7/cy_ccg-ud-train.conllu",
         "test": "UD_Welsh-CCG/r2.7/cy_ccg-ud-test.conllu",
@@ -1172,9 +1044,7 @@ _UD_DATASETS = {
         "dev": "UD_Wolof-WTB/r2.7/wo_wtb-ud-dev.conllu",
         "test": "UD_Wolof-WTB/r2.7/wo_wtb-ud-test.conllu",
     },
-    "yo_ytb": {
-        "test": "UD_Yoruba-YTB/r2.7/yo_ytb-ud-test.conllu",
-    },
+    "yo_ytb": {"test": "UD_Yoruba-YTB/r2.7/yo_ytb-ud-test.conllu",},
 }
 
 

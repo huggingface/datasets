@@ -177,17 +177,11 @@ class SuperGlue(datasets.Metric):
         if self.config_name == "record":
             return {
                 "predictions": {
-                    "idx": {
-                        "passage": datasets.Value("int64"),
-                        "query": datasets.Value("int64"),
-                    },
+                    "idx": {"passage": datasets.Value("int64"), "query": datasets.Value("int64"),},
                     "prediction_text": datasets.Value("string"),
                 },
                 "references": {
-                    "idx": {
-                        "passage": datasets.Value("int64"),
-                        "query": datasets.Value("int64"),
-                    },
+                    "idx": {"passage": datasets.Value("int64"), "query": datasets.Value("int64"),},
                     "answers": datasets.Sequence(datasets.Value("string")),
                 },
             }

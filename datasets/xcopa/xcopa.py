@@ -58,18 +58,9 @@ class Xcopa(datasets.GeneratorBasedBuilder):
 
     # TODO(xcopa): Set up version.
     VERSION = datasets.Version("0.1.0")
-    BUILDER_CONFIGS = [
-        XcopaConfig(
-            name=lang,
-            description=f"Xcopa language {lang}",
-        )
-        for lang in _LANG
-    ]
+    BUILDER_CONFIGS = [XcopaConfig(name=lang, description=f"Xcopa language {lang}",) for lang in _LANG]
     BUILDER_CONFIGS += [
-        XcopaConfig(
-            name=f"translation-{lang}",
-            description=f"Xcopa English translation for language {lang}",
-        )
+        XcopaConfig(name=f"translation-{lang}", description=f"Xcopa English translation for language {lang}",)
         for lang in _LANG
         if lang != "qu"
     ]

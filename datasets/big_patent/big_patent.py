@@ -92,16 +92,10 @@ class BigPatent(datasets.GeneratorBasedBuilder):
     """BigPatent datasets."""
 
     BUILDER_CONFIGS = [
-        BigPatentConfig(
-            cpc_codes=list(_CPC_DESCRIPTION),
-            name="all",
-            description="Patents under all categories.",
-        ),
+        BigPatentConfig(cpc_codes=list(_CPC_DESCRIPTION), name="all", description="Patents under all categories.",),
     ] + [
         BigPatentConfig(  # pylint:disable=g-complex-comprehension
-            cpc_codes=[k],
-            name=k,
-            description=("Patents under Cooperative Patent Classification (CPC)" f"{k}: {v}"),
+            cpc_codes=[k], name=k, description=("Patents under Cooperative Patent Classification (CPC)" f"{k}: {v}"),
         )
         for k, v in sorted(_CPC_DESCRIPTION.items())
     ]
@@ -127,18 +121,9 @@ class BigPatent(datasets.GeneratorBasedBuilder):
         extract_paths = {k: os.path.join(extract_paths[k], k) for k in split_types}
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"path": extract_paths["train"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"path": extract_paths["val"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"path": extract_paths["test"]},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": extract_paths["train"]},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"path": extract_paths["val"]},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"path": extract_paths["test"]},),
         ]
 
     def _generate_examples(self, path=None):

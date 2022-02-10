@@ -42,10 +42,7 @@ def test_download_manager_download(urls_type, tmp_path, monkeypatch):
     dataset_name = "dummy"
     cache_subdir = "downloads"
     cache_dir_root = str(tmp_path)
-    download_config = DownloadConfig(
-        cache_dir=os.path.join(cache_dir_root, cache_subdir),
-        use_etag=False,
-    )
+    download_config = DownloadConfig(cache_dir=os.path.join(cache_dir_root, cache_subdir), use_etag=False,)
     dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
     downloaded_paths = dl_manager.download(urls)
     input_urls = urls
@@ -85,10 +82,7 @@ def test_download_manager_extract(paths_type, xz_file, text_file):
     dataset_name = "dummy"
     cache_dir = xz_file.parent
     extracted_subdir = "extracted"
-    download_config = DownloadConfig(
-        cache_dir=cache_dir,
-        use_etag=False,
-    )
+    download_config = DownloadConfig(cache_dir=cache_dir, use_etag=False,)
     dl_manager = DownloadManager(dataset_name=dataset_name, download_config=download_config)
     extracted_paths = dl_manager.extract(paths)
     input_paths = paths

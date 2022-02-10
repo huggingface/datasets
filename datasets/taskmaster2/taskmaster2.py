@@ -108,10 +108,7 @@ class Taskmaster2(datasets.GeneratorBasedBuilder):
         url = f"{_BASE_URL}/{self.config.name}.json"
         dialogs_file = dl_manager.download(url)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": dialogs_file},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": dialogs_file},),
         ]
 
     def _generate_examples(self, filepath):

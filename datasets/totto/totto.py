@@ -81,17 +81,11 @@ class Totto(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "datapath": os.path.join(path, "totto_data/totto_train_data.jsonl"),
-                    "datatype": "train",
-                },
+                gen_kwargs={"datapath": os.path.join(path, "totto_data/totto_train_data.jsonl"), "datatype": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "datapath": os.path.join(path, "totto_data/totto_dev_data.jsonl"),
-                    "datatype": "valid",
-                },
+                gen_kwargs={"datapath": os.path.join(path, "totto_data/totto_dev_data.jsonl"), "datatype": "valid",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,

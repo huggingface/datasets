@@ -100,18 +100,9 @@ class SOStackSample(datasets.GeneratorBasedBuilder):
                 }
             )
         else:
-            features = datasets.Features(
-                {
-                    "Id": datasets.Value("int32"),
-                    "Tag": datasets.Value("string"),
-                }
-            )
+            features = datasets.Features({"Id": datasets.Value("int32"), "Tag": datasets.Value("string"),})
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            supervised_keys=None,
-            homepage=_HOMEPAGE,
-            license=_LICENSE,
+            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, license=_LICENSE,
         )
 
     def _split_generators(self, dl_manager):
@@ -126,11 +117,7 @@ class SOStackSample(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=self.config.name,
-                gen_kwargs={
-                    "filepath": path_to_manual_file,
-                    "split": self.config.name,
-                },
+                name=self.config.name, gen_kwargs={"filepath": path_to_manual_file, "split": self.config.name,},
             ),
         ]
 

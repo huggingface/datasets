@@ -72,10 +72,7 @@ class DisflQA(datasets.GeneratorBasedBuilder):
                 "title": datasets.Value("string"),
                 "context": datasets.Value("string"),
                 "answers": datasets.features.Sequence(
-                    {
-                        "text": datasets.Value("string"),
-                        "answer_start": datasets.Value("int32"),
-                    }
+                    {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
                 ),
             }
         )
@@ -191,9 +188,6 @@ def _helper_dict(row_squad_v2: dict):  # creates dict with id as key for combine
                     "context": context,
                     "question": question,
                     "id": id_,
-                    "answers": {
-                        "answer_start": answer_starts,
-                        "text": answers,
-                    },
+                    "answers": {"answer_start": answer_starts, "text": answers,},
                 }
     return squad_v2_dict

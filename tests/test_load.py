@@ -259,8 +259,7 @@ class ModuleFactoryTest(TestCase):
         for offline_mode in OfflineSimulationMode:
             with offline(offline_mode):
                 factory = CachedDatasetModuleFactory(
-                    DATASET_LOADING_SCRIPT_NAME,
-                    dynamic_modules_path=self.dynamic_modules_path,
+                    DATASET_LOADING_SCRIPT_NAME, dynamic_modules_path=self.dynamic_modules_path,
                 )
                 module_factory_result = factory.get_module()
                 assert importlib.import_module(module_factory_result.module_path) is not None
@@ -274,8 +273,7 @@ class ModuleFactoryTest(TestCase):
         for offline_mode in OfflineSimulationMode:
             with offline(offline_mode):
                 factory = CachedMetricModuleFactory(
-                    METRIC_LOADING_SCRIPT_NAME,
-                    dynamic_modules_path=self.dynamic_modules_path,
+                    METRIC_LOADING_SCRIPT_NAME, dynamic_modules_path=self.dynamic_modules_path,
                 )
                 module_factory_result = factory.get_module()
                 assert importlib.import_module(module_factory_result.module_path) is not None
@@ -386,8 +384,7 @@ class LoadTest(TestCase):
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("lhoestq/_dummy")
         self.assertIn(
-            "lhoestq/_dummy",
-            str(context.exception),
+            "lhoestq/_dummy", str(context.exception),
         )
         for offline_simulation_mode in list(OfflineSimulationMode):
             with offline(offline_simulation_mode):

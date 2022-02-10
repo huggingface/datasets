@@ -69,15 +69,7 @@ class Counter(datasets.GeneratorBasedBuilder):
                     "number_of_words_with_swr": datasets.Value("int64"),
                     "newspaper": datasets.Value("string"),
                     "newsdate": datasets.Value("string"),
-                    "domain": datasets.ClassLabel(
-                        names=[
-                            "business",
-                            "sports",
-                            "national",
-                            "foreign",
-                            "showbiz",
-                        ]
-                    ),
+                    "domain": datasets.ClassLabel(names=["business", "sports", "national", "foreign", "showbiz",]),
                     "classification": datasets.ClassLabel(
                         names=["wholly_derived", "partially_derived", "not_derived"]
                     ),
@@ -91,15 +83,7 @@ class Counter(datasets.GeneratorBasedBuilder):
                     "number_of_words_with_swr": datasets.Value("int64"),
                     "newspaper": datasets.Value("string"),
                     "newsdate": datasets.Value("string"),
-                    "domain": datasets.ClassLabel(
-                        names=[
-                            "business",
-                            "sports",
-                            "national",
-                            "foreign",
-                            "showbiz",
-                        ]
-                    ),
+                    "domain": datasets.ClassLabel(names=["business", "sports", "national", "foreign", "showbiz",]),
                     "classification": datasets.ClassLabel(
                         names=["wholly_derived", "partially_derived", "not_derived"]
                     ),
@@ -118,12 +102,7 @@ class Counter(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"data_dir": data_dir},
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir},)]
 
     def _generate_examples(self, data_dir):
         """Yields examples."""

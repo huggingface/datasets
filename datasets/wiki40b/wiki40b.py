@@ -113,10 +113,7 @@ class Wiki40b(datasets.BeamBasedBuilder):
     """Wiki40B: A Clean Wikipedia Dataset for Mutlilingual Language Modeling."""
 
     BUILDER_CONFIGS = [
-        Wiki40bConfig(
-            version=_VERSION,
-            language=lang,
-        )  # pylint:disable=g-complex-comprehension
+        Wiki40bConfig(version=_VERSION, language=lang,)  # pylint:disable=g-complex-comprehension
         for lang in WIKIPEDIA_LANGUAGES
     ]
 
@@ -142,16 +139,13 @@ class Wiki40b(datasets.BeamBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepaths": f"{_DATA_DIRECTORY}/train/{lang}_examples-*"},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepaths": f"{_DATA_DIRECTORY}/train/{lang}_examples-*"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepaths": f"{_DATA_DIRECTORY}/dev/{lang}_examples-*"},
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": f"{_DATA_DIRECTORY}/dev/{lang}_examples-*"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepaths": f"{_DATA_DIRECTORY}/test/{lang}_examples-*"},
+                name=datasets.Split.TEST, gen_kwargs={"filepaths": f"{_DATA_DIRECTORY}/test/{lang}_examples-*"},
             ),
         ]
 

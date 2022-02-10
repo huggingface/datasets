@@ -94,12 +94,7 @@ class BianetConfig(datasets.BuilderConfig):
 
 class Bianet(datasets.GeneratorBasedBuilder):
 
-    BUILDER_CONFIGS = [
-        BianetConfig(
-            language_pair=pair,
-        )
-        for pair in _VALID_LANGUAGE_PAIRS.keys()
-    ]
+    BUILDER_CONFIGS = [BianetConfig(language_pair=pair,) for pair in _VALID_LANGUAGE_PAIRS.keys()]
 
     BUILDER_CONFIG_CLASS = BianetConfig
 
@@ -120,12 +115,7 @@ class Bianet(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         download_url = _VALID_LANGUAGE_PAIRS.get(tuple(self.config.language_pair))
         path = dl_manager.download_and_extract(download_url)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": path},
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path},)]
 
     def _generate_examples(self, datapath):
         lang1, lang2 = self.config.language_pair
@@ -140,9 +130,6 @@ class Bianet(datasets.GeneratorBasedBuilder):
                 y = y.strip()
                 result = (
                     sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "translation": {lang1: x, lang2: y},
-                    },
+                    {"id": str(sentence_counter), "translation": {lang1: x, lang2: y},},
                 )
                 yield result

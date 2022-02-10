@@ -141,14 +141,7 @@ class SiliconeConfig(datasets.BuilderConfig):
     """BuilderConfig for SILICONE."""
 
     def __init__(
-        self,
-        text_features,
-        label_column,
-        data_url,
-        citation,
-        url,
-        label_classes=None,
-        **kwargs,
+        self, text_features, label_column, data_url, citation, url, label_classes=None, **kwargs,
     ):
         """BuilderConfig for SILICONE.
         Args:
@@ -185,11 +178,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
             communication by covering topics about daily life. The dataset is manually labelled with
              dialog act and emotions. It is the third biggest corpus of SILICONE with 102k utterances."""
             ),
-            text_features={
-                "Utterance": "Utterance",
-                "Dialogue_Act": "Dialogue_Act",
-                "Dialogue_ID": "Dialogue_ID",
-            },
+            text_features={"Utterance": "Utterance", "Dialogue_Act": "Dialogue_Act", "Dialogue_ID": "Dialogue_ID",},
             label_classes=["commissive", "directive", "inform", "question"],
             label_column="Dialogue_Act",
             data_url={
@@ -216,11 +205,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
             communication by covering topics about daily life. The dataset is manually labelled with
              dialog act and emotions. It is the third biggest corpus of SILICONE with 102k utterances."""
             ),
-            text_features={
-                "Utterance": "Utterance",
-                "Emotion": "Emotion",
-                "Dialogue_ID": "Dialogue_ID",
-            },
+            text_features={"Utterance": "Utterance", "Emotion": "Emotion", "Dialogue_ID": "Dialogue_ID",},
             label_classes=["anger", "disgust", "fear", "happiness", "no emotion", "sadness", "surprise"],
             label_column="Emotion",
             data_url={
@@ -285,11 +270,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
              in order to construct a map route. This corpus is small (27k utterances). As there is
              no standard train/dev/test split performance depends on the split."""
             ),
-            text_features={
-                "Speaker": "Speaker",
-                "Utterance": "Utterance",
-                "Dialogue_Act": "Dialogue_Act",
-            },
+            text_features={"Speaker": "Speaker", "Utterance": "Utterance", "Dialogue_Act": "Dialogue_Act",},
             label_classes=[
                 "acknowledge",
                 "align",
@@ -427,11 +408,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
             operator services. This corpus is rather small (15k utterances). There is no standard
             train/dev/test split."""
             ),
-            text_features={
-                "Speaker": "Speaker",
-                "Utterance": "Utterance",
-                "Dialogue_Act": "Dialogue_Act",
-            },
+            text_features={"Speaker": "Speaker", "Utterance": "Utterance", "Dialogue_Act": "Dialogue_Act",},
             label_classes=[
                 "accept",
                 "ackn",
@@ -516,11 +493,7 @@ class Silicone(datasets.GeneratorBasedBuilder):
             },
             label_classes=["Negative", "Neutral", "Positive"],
             label_column="Sentiment",
-            data_url={
-                "train": _URL + "/sem/train.csv",
-                "dev": _URL + "/sem/dev.csv",
-                "test": _URL + "/sem/test.csv",
-            },
+            data_url={"train": _URL + "/sem/train.csv", "dev": _URL + "/sem/dev.csv", "test": _URL + "/sem/test.csv",},
             citation=textwrap.dedent(
                 """\
             @article{mckeown2011semaine,
@@ -597,29 +570,17 @@ class Silicone(datasets.GeneratorBasedBuilder):
         splits = []
         splits.append(
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "data_file": data_files["train"],
-                    "split": "train",
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"data_file": data_files["train"], "split": "train",},
             )
         )
         splits.append(
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "data_file": data_files["dev"],
-                    "split": "dev",
-                },
+                name=datasets.Split.VALIDATION, gen_kwargs={"data_file": data_files["dev"], "split": "dev",},
             )
         )
         splits.append(
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "data_file": data_files["test"],
-                    "split": "test",
-                },
+                name=datasets.Split.TEST, gen_kwargs={"data_file": data_files["test"], "split": "test",},
             )
         )
         return splits

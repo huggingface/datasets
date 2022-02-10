@@ -20,12 +20,7 @@ class TextDatasetReader(AbstractDatasetReader):
             path_or_paths, split=split, features=features, cache_dir=cache_dir, keep_in_memory=keep_in_memory, **kwargs
         )
         path_or_paths = path_or_paths if isinstance(path_or_paths, dict) else {self.split: path_or_paths}
-        self.builder = Text(
-            cache_dir=cache_dir,
-            data_files=path_or_paths,
-            features=features,
-            **kwargs,
-        )
+        self.builder = Text(cache_dir=cache_dir, data_files=path_or_paths, features=features, **kwargs,)
 
     def read(self):
         download_config = None

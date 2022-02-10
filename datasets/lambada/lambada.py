@@ -67,23 +67,12 @@ class Lambada(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.1.0")
 
-    BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="plain_text",
-            description="Plain text",
-            version=VERSION,
-        )
-    ]
+    BUILDER_CONFIGS = [datasets.BuilderConfig(name="plain_text", description="Plain text", version=VERSION,)]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "text": datasets.Value("string"),
-                    "domain": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"text": datasets.Value("string"), "domain": datasets.Value("string"),}),
             supervised_keys=None,
             homepage="https://zenodo.org/record/2630551#.X8UP76pKiIa",
             citation=_CITATION,
@@ -101,10 +90,7 @@ class Lambada(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train-novels"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "train-novels"), "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -112,10 +98,7 @@ class Lambada(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "lambada_development_plain_text.txt"),
-                    "split": "dev",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "lambada_development_plain_text.txt"), "split": "dev",},
             ),
         ]
 

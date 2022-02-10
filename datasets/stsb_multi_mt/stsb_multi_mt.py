@@ -51,56 +51,22 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="en",
-            version=VERSION,
-            description="This is the original English STS benchmark data set.",
+            name="en", version=VERSION, description="This is the original English STS benchmark data set.",
         ),
-        datasets.BuilderConfig(
-            name="de",
-            version=VERSION,
-            description="This is the German STS benchmark data set.",
-        ),
-        datasets.BuilderConfig(
-            name="es",
-            version=VERSION,
-            description="This is the Spanish STS benchmark data set.",
-        ),
-        datasets.BuilderConfig(
-            name="fr",
-            version=VERSION,
-            description="This is the French STS benchmark data set.",
-        ),
-        datasets.BuilderConfig(
-            name="it",
-            version=VERSION,
-            description="This is the Italian STS benchmark data set.",
-        ),
+        datasets.BuilderConfig(name="de", version=VERSION, description="This is the German STS benchmark data set.",),
+        datasets.BuilderConfig(name="es", version=VERSION, description="This is the Spanish STS benchmark data set.",),
+        datasets.BuilderConfig(name="fr", version=VERSION, description="This is the French STS benchmark data set.",),
+        datasets.BuilderConfig(name="it", version=VERSION, description="This is the Italian STS benchmark data set.",),
         # here seems to be an issue - see https://github.com/PhilipMay/stsb-multi-mt/issues/1
         # datasets.BuilderConfig(name="ja", version=VERSION, description="This is the Japanese STS benchmark data set."),
+        datasets.BuilderConfig(name="nl", version=VERSION, description="This is the Dutch STS benchmark data set.",),
+        datasets.BuilderConfig(name="pl", version=VERSION, description="This is the Polish STS benchmark data set.",),
         datasets.BuilderConfig(
-            name="nl",
-            version=VERSION,
-            description="This is the Dutch STS benchmark data set.",
+            name="pt", version=VERSION, description="This is the Portuguese STS benchmark data set.",
         ),
+        datasets.BuilderConfig(name="ru", version=VERSION, description="This is the Russian STS benchmark data set.",),
         datasets.BuilderConfig(
-            name="pl",
-            version=VERSION,
-            description="This is the Polish STS benchmark data set.",
-        ),
-        datasets.BuilderConfig(
-            name="pt",
-            version=VERSION,
-            description="This is the Portuguese STS benchmark data set.",
-        ),
-        datasets.BuilderConfig(
-            name="ru",
-            version=VERSION,
-            description="This is the Russian STS benchmark data set.",
-        ),
-        datasets.BuilderConfig(
-            name="zh",
-            version=VERSION,
-            description="This is the Chinese (simplified) STS benchmark data set.",
+            name="zh", version=VERSION, description="This is the Chinese (simplified) STS benchmark data set.",
         ),
     ]
 
@@ -141,38 +107,29 @@ class StsbMultiMt(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": downloaded_files["train"],
-                },
+                gen_kwargs={"filepath": downloaded_files["train"],},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": downloaded_files["test"],
-                },
+                gen_kwargs={"filepath": downloaded_files["test"],},
             ),
             datasets.SplitGenerator(
                 name=datasets.NamedSplit("dev"),
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": downloaded_files["dev"],
-                },
+                gen_kwargs={"filepath": downloaded_files["dev"],},
             ),
         ]
 
     def _generate_examples(
-        self,
-        filepath,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+        self, filepath,  # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     ):
         """Yields examples as (key, example) tuples."""
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
         with open(filepath, newline="", encoding="utf-8") as csvfile:
             csv_dict_reader = csv.DictReader(
-                csvfile,
-                fieldnames=["sentence1", "sentence2", "similarity_score"],
-                dialect="excel",
+                csvfile, fieldnames=["sentence1", "sentence2", "similarity_score"], dialect="excel",
             )
             for id_, row in enumerate(csv_dict_reader):
                 # do asserts

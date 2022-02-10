@@ -38,10 +38,7 @@ class TestCommand(BaseDatasetsCLICommand):
         test_parser = parser.add_parser("test", help="Test dataset implementation.")
         test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         test_parser.add_argument(
-            "--cache_dir",
-            type=str,
-            default=None,
-            help="Cache directory where the datasets are stored.",
+            "--cache_dir", type=str, default=None, help="Cache directory where the datasets are stored.",
         )
         test_parser.add_argument(
             "--data_dir",
@@ -61,16 +58,10 @@ class TestCommand(BaseDatasetsCLICommand):
             help="Remove downloaded files and cached datasets after each config test",
         )
         test_parser.add_argument(
-            "--proc_rank",
-            type=int,
-            default=0,
-            help="Rank of the current process for multiprocessing testing.",
+            "--proc_rank", type=int, default=0, help="Rank of the current process for multiprocessing testing.",
         )
         test_parser.add_argument(
-            "--num_proc",
-            type=int,
-            default=1,
-            help="Number of processes to use for multiprocessing testing",
+            "--num_proc", type=int, default=1, help="Number of processes to use for multiprocessing testing",
         )
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=test_command_factory)
@@ -131,9 +122,7 @@ class TestCommand(BaseDatasetsCLICommand):
                     if i % self._num_proc == self._proc_rank:
                         if "name" in module.builder_kwargs:
                             yield builder_cls(
-                                cache_dir=self._cache_dir,
-                                data_dir=self._data_dir,
-                                **module.builder_kwargs,
+                                cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs,
                             )
                         else:
                             yield builder_cls(

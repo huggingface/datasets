@@ -59,13 +59,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         return self.file.open().read()
 
     def _open(
-        self,
-        path: str,
-        mode: str = "rb",
-        block_size=None,
-        autocommit=True,
-        cache_options=None,
-        **kwargs,
+        self, path: str, mode: str = "rb", block_size=None, autocommit=True, cache_options=None, **kwargs,
     ):
         path = self._strip_protocol(path)
         if mode != "rb":

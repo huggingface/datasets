@@ -114,14 +114,8 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
             files = dl_manager.ship_files_with_pipeline(files, pipeline)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepaths": files["train"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepaths": files["validation"]},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": files["train"]},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": files["validation"]},),
         ]
 
     def _build_pcollection(self, pipeline, filepaths):

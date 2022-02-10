@@ -59,12 +59,7 @@ class MetRecConfig(datasets.BuilderConfig):
 class Metrec(datasets.GeneratorBasedBuilder):
     """Metrec dataset."""
 
-    BUILDER_CONFIGS = [
-        MetRecConfig(
-            name="plain_text",
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [MetRecConfig(name="plain_text", description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(

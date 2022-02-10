@@ -165,9 +165,7 @@ class ElasticSearchIndex(BaseIndex):
         import elasticsearch as es
 
         for ok, action in es.helpers.streaming_bulk(
-            client=self.es_client,
-            index=index_name,
-            actions=passage_generator(),
+            client=self.es_client, index=index_name, actions=passage_generator(),
         ):
             progress.update(1)
             successes += ok
@@ -349,11 +347,7 @@ class FaissIndex(BaseIndex):
         faiss.write_index(index, str(file))
 
     @classmethod
-    def load(
-        cls,
-        file: Union[str, PurePath],
-        device: Optional[int] = None,
-    ) -> "FaissIndex":
+    def load(cls, file: Union[str, PurePath], device: Optional[int] = None,) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         import faiss  # noqa: F811
 
@@ -486,10 +480,7 @@ class IndexableMixin:
         logger.info(f"Saved FaissIndex {index_name} at {file}")
 
     def load_faiss_index(
-        self,
-        index_name: str,
-        file: Union[str, PurePath],
-        device: Optional[int] = None,
+        self, index_name: str, file: Union[str, PurePath], device: Optional[int] = None,
     ):
         """Load a FaissIndex from disk.
 

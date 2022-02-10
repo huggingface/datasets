@@ -69,17 +69,9 @@ class IgboNer(datasets.GeneratorBasedBuilder):
                 }
             )
         else:
-            features = datasets.Features(
-                {
-                    "sentences": datasets.Value("string"),
-                }
-            )
+            features = datasets.Features({"sentences": datasets.Value("string"),})
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            supervised_keys=None,
-            homepage=_HOMEPAGE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -87,13 +79,7 @@ class IgboNer(datasets.GeneratorBasedBuilder):
         my_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": data_dir,
-                    "split": "train",
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir, "split": "train",},),
         ]
 
     def _generate_examples(self, filepath, split):

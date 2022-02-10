@@ -50,21 +50,13 @@ class Srwac(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.1.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="srwac",
-            version=VERSION,
-            description="The SrWac dataset.",
-        ),
+        datasets.BuilderConfig(name="srwac", version=VERSION, description="The SrWac dataset.",),
     ]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "sentence": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"sentence": datasets.Value("string"),}),
             supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,
@@ -74,12 +66,7 @@ class Srwac(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         downloaded_file = dl_manager.download_and_extract(_URLS)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": downloaded_file,
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_file,},),
         ]
 
     def _generate_examples(self, filepath):

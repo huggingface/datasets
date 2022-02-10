@@ -29,11 +29,7 @@ class ConvAi_2(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="conv_ai_2",
-            version=datasets.Version("1.0.0"),
-            description="Full training set",
-        ),
+        datasets.BuilderConfig(name="conv_ai_2", version=datasets.Version("1.0.0"), description="Full training set",),
     ]
 
     def _info(self):
@@ -66,10 +62,7 @@ class ConvAi_2(datasets.GeneratorBasedBuilder):
         downloaded_file = dl_manager.download(_URL)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_file},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_file},),
         ]
 
     def _generate_examples(self, filepath):

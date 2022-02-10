@@ -49,11 +49,7 @@ def test_dataset_from_json_features(features, jsonl_path, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "features",
-    [
-        None,
-        {"col_3": "float64", "col_1": "string", "col_2": "int64"},
-    ],
+    "features", [None, {"col_3": "float64", "col_1": "string", "col_2": "int64"},],
 )
 def test_dataset_from_json_with_unsorted_column_names(features, jsonl_312_path, tmp_path):
     cache_dir = tmp_path / "cache"

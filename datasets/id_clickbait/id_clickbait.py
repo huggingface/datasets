@@ -116,10 +116,7 @@ class IdClickbait(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "article_dir": os.path.join(data_dir, self.config.path),
-                    "split": "train",
-                },
+                gen_kwargs={"article_dir": os.path.join(data_dir, self.config.path), "split": "train",},
             )
         ]
 

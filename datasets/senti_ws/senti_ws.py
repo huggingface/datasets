@@ -69,10 +69,7 @@ class SentiWS(datasets.GeneratorBasedBuilder):
             )
         else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
             features = datasets.Features(
-                {
-                    "word": datasets.Value("string"),
-                    "sentiment-score": datasets.Value("float32"),
-                }
+                {"word": datasets.Value("string"), "sentiment-score": datasets.Value("float32"),}
             )
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.

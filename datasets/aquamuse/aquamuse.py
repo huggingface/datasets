@@ -87,26 +87,17 @@ class Aquamuse(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "v2.3/abstractive/train/"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "v2.3/abstractive/train/"), "split": "train",},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "v2.3/abstractive/test/"),
-                        "split": "test",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "v2.3/abstractive/test/"), "split": "test",},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "v2.3/abstractive/dev/"),
-                        "split": "dev",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "v2.3/abstractive/dev/"), "split": "dev",},
                 ),
             ]
 
@@ -116,26 +107,17 @@ class Aquamuse(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "v2.3/extractive/train/"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "v2.3/extractive/train/"), "split": "train",},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "v2.3/extractive/test/"),
-                        "split": "test",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "v2.3/extractive/test/"), "split": "test",},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "v2.3/extractive/dev/"),
-                        "split": "dev",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir, "v2.3/extractive/dev/"), "split": "dev",},
                 ),
             ]
 

@@ -135,10 +135,7 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
             or self.config.name == "auto_full_with_split"
         ):
             features = datasets.Features(
-                {
-                    "normal_sentence": datasets.Value("string"),
-                    "simple_sentence": datasets.Value("string"),
-                }
+                {"normal_sentence": datasets.Value("string"), "simple_sentence": datasets.Value("string"),}
             )
         else:
             features = datasets.Features(
@@ -194,22 +191,11 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(my_urls)
         if self.config.name in ["manual", "auto"]:
             return [
-                datasets.SplitGenerator(
-                    name=spl,
-                    gen_kwargs={
-                        "filepaths": data_dir,
-                        "split": spl,
-                    },
-                )
+                datasets.SplitGenerator(name=spl, gen_kwargs={"filepaths": data_dir, "split": spl,},)
                 for spl in data_dir
             ]
         else:
-            return [
-                datasets.SplitGenerator(
-                    name="full",
-                    gen_kwargs={"filepaths": data_dir, "split": "full"},
-                )
-            ]
+            return [datasets.SplitGenerator(name="full", gen_kwargs={"filepaths": data_dir, "split": "full"},)]
 
     def _generate_examples(self, filepaths, split):
         if self.config.name == "manual":

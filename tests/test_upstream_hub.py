@@ -27,15 +27,9 @@ def with_staging_testing(func):
         ENDPOINT_STAGING + "/{repo_id}/resolve/{revision}/{filename}",
     )
 
-    hfh_hf_api = patch(
-        "huggingface_hub.hf_api.ENDPOINT",
-        ENDPOINT_STAGING,
-    )
+    hfh_hf_api = patch("huggingface_hub.hf_api.ENDPOINT", ENDPOINT_STAGING,)
 
-    repository = patch(
-        "huggingface_hub.repository.ENDPOINT",
-        ENDPOINT_STAGING,
-    )
+    repository = patch("huggingface_hub.repository.ENDPOINT", ENDPOINT_STAGING,)
 
     config = patch.multiple(
         "datasets.config",
@@ -55,10 +49,7 @@ class TestPushToHub(TestCase):
         """
         Share this valid token in all tests below.
         """
-        cls._hf_folder_patch = patch(
-            "huggingface_hub.hf_api.HfFolder.path_token",
-            TOKEN_PATH_STAGING,
-        )
+        cls._hf_folder_patch = patch("huggingface_hub.hf_api.HfFolder.path_token", TOKEN_PATH_STAGING,)
         cls._hf_folder_patch.start()
 
         cls._token = cls._api.login(username=USER, password=PASS)

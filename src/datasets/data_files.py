@@ -296,9 +296,7 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
 
 
 def _resolve_single_pattern_in_dataset_repository(
-    dataset_info: huggingface_hub.hf_api.DatasetInfo,
-    pattern: str,
-    allowed_extensions: Optional[list] = None,
+    dataset_info: huggingface_hub.hf_api.DatasetInfo, pattern: str, allowed_extensions: Optional[list] = None,
 ) -> List[PurePath]:
     data_files_ignore = FILES_TO_IGNORE
     fs = HfFileSystem(repo_info=dataset_info)
@@ -330,9 +328,7 @@ def _resolve_single_pattern_in_dataset_repository(
 
 
 def resolve_patterns_in_dataset_repository(
-    dataset_info: huggingface_hub.hf_api.DatasetInfo,
-    patterns: List[str],
-    allowed_extensions: Optional[list] = None,
+    dataset_info: huggingface_hub.hf_api.DatasetInfo, patterns: List[str], allowed_extensions: Optional[list] = None,
 ) -> List[Url]:
     """
     Resolve the URLs of the data files from the patterns passed by the user.

@@ -62,21 +62,13 @@ class YorubaTextC3(datasets.GeneratorBasedBuilder):
     """Yoruba Text C3 dataset."""
 
     BUILDER_CONFIGS = [
-        YorubaTextC3Config(
-            name="yoruba_text_c3",
-            version=datasets.Version("1.0.0"),
-            description="Yoruba Texts C3 ",
-        )
+        YorubaTextC3Config(name="yoruba_text_c3", version=datasets.Version("1.0.0"), description="Yoruba Texts C3 ",)
     ]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "text": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"text": datasets.Value("string"),}),
             supervised_keys=None,
             homepage="https://www.aclweb.org/anthology/2020.lrec-1.335/",
             citation=_CITATION,

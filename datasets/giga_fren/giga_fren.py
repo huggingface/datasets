@@ -50,9 +50,7 @@ _URL = "https://object.pouta.csc.fi/OPUS-giga-fren/v2/moses/en-fr.txt.zip"
 class GigaFrenConfig(datasets.BuilderConfig):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            *args,
-            name="en-fr",
-            **kwargs,
+            *args, name="en-fr", **kwargs,
         )
 
     @property
@@ -84,12 +82,7 @@ class GigaFren(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         path = dl_manager.download_and_extract(_URL)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": path},
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path},)]
 
     def _generate_examples(self, datapath):
         l1, l2 = self.config.lang1, self.config.lang2
@@ -104,9 +97,6 @@ class GigaFren(datasets.GeneratorBasedBuilder):
                 y = y.strip()
                 result = (
                     sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "translation": {l1: x, l2: y},
-                    },
+                    {"id": str(sentence_counter), "translation": {l1: x, l2: y},},
                 )
                 yield result

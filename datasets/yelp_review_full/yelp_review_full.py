@@ -74,15 +74,7 @@ class YelpReviewFull(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "label": datasets.features.ClassLabel(
-                    names=[
-                        "1 star",
-                        "2 star",
-                        "3 stars",
-                        "4 stars",
-                        "5 stars",
-                    ]
-                ),
+                "label": datasets.features.ClassLabel(names=["1 star", "2 star", "3 stars", "4 stars", "5 stars",]),
                 "text": datasets.Value("string"),
             }
         )

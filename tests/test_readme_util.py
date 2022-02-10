@@ -380,10 +380,7 @@ EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1 = "The following issues were found
 
 @pytest.mark.parametrize(
     "readme_md, expected_dict",
-    [
-        (README_CORRECT, CORRECT_DICT),
-        (README_CORRECT_FOUR_LEVEL, CORRECT_DICT_FOUR_LEVEL),
-    ],
+    [(README_CORRECT, CORRECT_DICT), (README_CORRECT_FOUR_LEVEL, CORRECT_DICT_FOUR_LEVEL),],
 )
 def test_readme_from_string_correct(readme_md, expected_dict):
     assert ReadMe.from_string(readme_md, example_yaml_structure).to_dict() == expected_dict
@@ -412,10 +409,7 @@ def test_readme_from_string_validation_errors(readme_md, expected_error):
 
 
 @pytest.mark.parametrize(
-    "readme_md, expected_error",
-    [
-        (README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),
-    ],
+    "readme_md, expected_error", [(README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),],
 )
 def test_readme_from_string_parsing_errors(readme_md, expected_error):
     with pytest.raises(ValueError, match=re.escape(expected_error.format(path="root"))):
@@ -423,10 +417,7 @@ def test_readme_from_string_parsing_errors(readme_md, expected_error):
 
 
 @pytest.mark.parametrize(
-    "readme_md,",
-    [
-        (README_MULTIPLE_SAME_HEADING_1),
-    ],
+    "readme_md,", [(README_MULTIPLE_SAME_HEADING_1),],
 )
 def test_readme_from_string_suppress_parsing_errors(readme_md):
     ReadMe.from_string(readme_md, example_yaml_structure, suppress_parsing_errors=True)
@@ -434,10 +425,7 @@ def test_readme_from_string_suppress_parsing_errors(readme_md):
 
 @pytest.mark.parametrize(
     "readme_md, expected_dict",
-    [
-        (README_CORRECT, CORRECT_DICT),
-        (README_CORRECT_FOUR_LEVEL, CORRECT_DICT_FOUR_LEVEL),
-    ],
+    [(README_CORRECT, CORRECT_DICT), (README_CORRECT_FOUR_LEVEL, CORRECT_DICT_FOUR_LEVEL),],
 )
 def test_readme_from_readme_correct(readme_md, expected_dict):
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -479,10 +467,7 @@ def test_readme_from_readme_error(readme_md, expected_error):
 
 
 @pytest.mark.parametrize(
-    "readme_md, expected_error",
-    [
-        (README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),
-    ],
+    "readme_md, expected_error", [(README_MULTIPLE_SAME_HEADING_1, EXPECTED_ERROR_README_MULTIPLE_SAME_HEADING_1),],
 )
 def test_readme_from_readme_parsing_errors(readme_md, expected_error):
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -495,10 +480,7 @@ def test_readme_from_readme_parsing_errors(readme_md, expected_error):
 
 
 @pytest.mark.parametrize(
-    "readme_md,",
-    [
-        (README_MULTIPLE_SAME_HEADING_1),
-    ],
+    "readme_md,", [(README_MULTIPLE_SAME_HEADING_1),],
 )
 def test_readme_from_readme_suppress_parsing_errors(readme_md):
     with tempfile.TemporaryDirectory() as tmp_dir:

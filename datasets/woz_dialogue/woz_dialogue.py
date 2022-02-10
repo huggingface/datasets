@@ -48,11 +48,7 @@ class WozDialogue(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="en",
-            version=datasets.Version("1.0.0"),
-            description="WOZ English dataset",
-        ),
+        datasets.BuilderConfig(name="en", version=datasets.Version("1.0.0"), description="WOZ English dataset",),
         datasets.BuilderConfig(name="de", version=datasets.Version("1.0.0"), description="WOZ German dataset"),
         datasets.BuilderConfig(
             name="de_en",
@@ -104,18 +100,9 @@ class WozDialogue(datasets.GeneratorBasedBuilder):
         }
         downloaded_paths = dl_manager.download(urls)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_paths["train"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": downloaded_paths["dev"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": downloaded_paths["test"]},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_paths["train"]},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_paths["dev"]},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_paths["test"]},),
         ]
 
     def _generate_examples(self, filepath):

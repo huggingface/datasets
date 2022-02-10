@@ -60,9 +60,7 @@ class IsixhosaNerCorpus(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         IsixhosaNerCorpusConfig(
-            name="isixhosa_ner_corpus",
-            version=datasets.Version("1.0.0"),
-            description="IsixhosaNerCorpus dataset",
+            name="isixhosa_ner_corpus", version=datasets.Version("1.0.0"), description="IsixhosaNerCorpus dataset",
         ),
     ]
 
@@ -75,17 +73,7 @@ class IsixhosaNerCorpus(datasets.GeneratorBasedBuilder):
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
-                            names=[
-                                "OUT",
-                                "B-PERS",
-                                "I-PERS",
-                                "B-ORG",
-                                "I-ORG",
-                                "B-LOC",
-                                "I-LOC",
-                                "B-MISC",
-                                "I-MISC",
-                            ]
+                            names=["OUT", "B-PERS", "I-PERS", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "B-MISC", "I-MISC",]
                         )
                     ),
                 }
@@ -99,8 +87,7 @@ class IsixhosaNerCorpus(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, _EXTRACTED_FILE)},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, _EXTRACTED_FILE)},
             ),
         ]
 

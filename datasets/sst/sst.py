@@ -86,18 +86,10 @@ class Sst(datasets.GeneratorBasedBuilder):
         elif self.config.name == "dictionary":
             features = datasets.Features({"phrase": datasets.Value("string"), "label": datasets.Value("float")})
         else:
-            features = datasets.Features(
-                {
-                    "ptb_tree": datasets.Value("string"),
-                }
-            )
+            features = datasets.Features({"ptb_tree": datasets.Value("string"),})
 
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            supervised_keys=None,
-            homepage=_HOMEPAGE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):

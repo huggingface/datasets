@@ -96,24 +96,15 @@ class Atomic(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": "v4_atomic_trn.csv",
-                    "files": dl_manager.iter_archive(archive),
-                },
+                gen_kwargs={"filepath": "v4_atomic_trn.csv", "files": dl_manager.iter_archive(archive),},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": "v4_atomic_tst.csv",
-                    "files": dl_manager.iter_archive(archive),
-                },
+                gen_kwargs={"filepath": "v4_atomic_tst.csv", "files": dl_manager.iter_archive(archive),},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": "v4_atomic_dev.csv",
-                    "files": dl_manager.iter_archive(archive),
-                },
+                gen_kwargs={"filepath": "v4_atomic_dev.csv", "files": dl_manager.iter_archive(archive),},
             ),
         ]
 

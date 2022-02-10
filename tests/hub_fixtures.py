@@ -35,11 +35,7 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     hf_api.create_repo(token=hf_token, name=repo_name, repo_type="dataset", private=True)
     repo_id = f"{USER}/{repo_name}"
     hf_api.upload_file(
-        token=hf_token,
-        path_or_fileobj=str(text_file),
-        path_in_repo="data.txt",
-        repo_id=repo_id,
-        repo_type="dataset",
+        token=hf_token, path_or_fileobj=str(text_file), path_in_repo="data.txt", repo_id=repo_id, repo_type="dataset",
     )
     yield repo_id
     try:

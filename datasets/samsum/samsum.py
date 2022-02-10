@@ -81,26 +81,17 @@ class Samsum(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": (path, "train.json"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": (path, "train.json"), "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": (path, "test.json"),
-                    "split": "test",
-                },
+                gen_kwargs={"filepath": (path, "test.json"), "split": "test",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": (path, "val.json"),
-                    "split": "val",
-                },
+                gen_kwargs={"filepath": (path, "val.json"), "split": "val",},
             ),
         ]
 

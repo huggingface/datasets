@@ -281,10 +281,7 @@ def _download_additional_modules(
         else:
             raise ValueError("Wrong import_type")
 
-        local_import_path = cached_path(
-            url_or_filename,
-            download_config=download_config,
-        )
+        local_import_path = cached_path(url_or_filename, download_config=download_config,)
         if sub_directory is not None:
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
@@ -517,10 +514,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"
         try:
-            return cached_path(
-                dataset_infos,
-                download_config=download_config,
-            )
+            return cached_path(dataset_infos, download_config=download_config,)
         except (FileNotFoundError, ConnectionError):
             return None
 
@@ -817,10 +811,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         else:
             token = self.download_config.use_auth_token
         hfh_dataset_info = HfApi(config.HF_ENDPOINT).dataset_info(
-            self.name,
-            revision=self.revision,
-            token=token,
-            timeout=100.0,
+            self.name, revision=self.revision, token=token, timeout=100.0,
         )
         patterns = (
             sanitize_patterns(self.data_files)
@@ -828,9 +819,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             else get_patterns_in_dataset_repository(hfh_dataset_info)
         )
         data_files = DataFilesDict.from_hf_repo(
-            patterns,
-            dataset_info=hfh_dataset_info,
-            allowed_extensions=ALL_ALLOWED_EXTENSIONS,
+            patterns, dataset_info=hfh_dataset_info, allowed_extensions=ALL_ALLOWED_EXTENSIONS,
         )
         infered_module_names = {
             key: infer_module_for_data_files(data_files_list, use_auth_token=self.download_config.use_auth_token)
@@ -898,10 +887,7 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         if download_config.download_desc is None:
             download_config.download_desc = "Downloading metadata"
         try:
-            return cached_path(
-                dataset_infos,
-                download_config=download_config,
-            )
+            return cached_path(dataset_infos, download_config=download_config,)
         except (FileNotFoundError, ConnectionError):
             return None
 
@@ -945,9 +931,7 @@ class CachedDatasetModuleFactory(_DatasetModuleFactory):
     """
 
     def __init__(
-        self,
-        name: str,
-        dynamic_modules_path: Optional[str] = None,
+        self, name: str, dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
         self.dynamic_modules_path = dynamic_modules_path
@@ -1002,9 +986,7 @@ class CachedMetricModuleFactory(_MetricModuleFactory):
     """
 
     def __init__(
-        self,
-        name: str,
-        dynamic_modules_path: Optional[str] = None,
+        self, name: str, dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
         self.dynamic_modules_path = dynamic_modules_path
@@ -1173,12 +1155,7 @@ def dataset_module_factory(
                         token = HfFolder.get_token() if download_config.use_auth_token else None
                     else:
                         token = download_config.use_auth_token
-                    dataset_info = hf_api.dataset_info(
-                        repo_id=path,
-                        revision=revision,
-                        token=token,
-                        timeout=100.0,
-                    )
+                    dataset_info = hf_api.dataset_info(repo_id=path, revision=revision, token=token, timeout=100.0,)
                 except Exception as e:  # noqa: catch any exception of hf_hub and consider that the dataset doesn't exist
                     if isinstance(
                         e,
@@ -1710,10 +1687,7 @@ def load_dataset(
     # Return iterable dataset in case of streaming
     if streaming:
         extend_dataset_builder_for_streaming(builder_instance, use_auth_token=use_auth_token)
-        return builder_instance.as_streaming_dataset(
-            split=split,
-            use_auth_token=use_auth_token,
-        )
+        return builder_instance.as_streaming_dataset(split=split, use_auth_token=use_auth_token,)
 
     # Some datasets are already processed on the HF google storage
     # Don't try downloading from google storage for the packaged datasets as text, json, csv or pandas

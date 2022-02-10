@@ -70,11 +70,7 @@ class Squad(datasets.GeneratorBasedBuilder):
     """SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
 
     BUILDER_CONFIGS = [
-        SquadConfig(
-            name="plain_text",
-            version=datasets.Version("1.0.0", ""),
-            description="Plain text",
-        ),
+        SquadConfig(name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text",),
     ]
 
     def _info(self):
@@ -87,10 +83,7 @@ class Squad(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {
-                            "text": datasets.Value("string"),
-                            "answer_start": datasets.Value("int32"),
-                        }
+                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
                     ),
                 }
             ),
@@ -134,9 +127,6 @@ class Squad(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": qa["question"],
                             "id": qa["id"],
-                            "answers": {
-                                "answer_start": answer_starts,
-                                "text": answers,
-                            },
+                            "answers": {"answer_start": answer_starts, "text": answers,},
                         }
                         key += 1

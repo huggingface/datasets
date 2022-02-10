@@ -57,12 +57,7 @@ def dataset():
         {
             "tokens": Sequence(Value("string")),
             "labels": Sequence(ClassLabel(names=["negative", "positive"])),
-            "answers": Sequence(
-                {
-                    "text": Value("string"),
-                    "answer_start": Value("int32"),
-                }
-            ),
+            "answers": Sequence({"text": Value("string"), "answer_start": Value("int32"),}),
             "id": Value("int64"),
         }
     )
@@ -288,13 +283,7 @@ def zip_csv_with_dir_path(csv_path, csv2_path, tmp_path_factory):
 @pytest.fixture(scope="session")
 def parquet_path(tmp_path_factory):
     path = str(tmp_path_factory.mktemp("data") / "dataset.parquet")
-    schema = pa.schema(
-        {
-            "col_1": pa.string(),
-            "col_2": pa.int64(),
-            "col_3": pa.float64(),
-        }
-    )
+    schema = pa.schema({"col_1": pa.string(), "col_2": pa.int64(), "col_3": pa.float64(),})
     with open(path, "wb") as f:
         writer = pq.ParquetWriter(f, schema=schema)
         pa_table = pa.Table.from_pydict({k: [DATA[i][k] for i in range(len(DATA))] for k in DATA[0]}, schema=schema)

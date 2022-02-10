@@ -297,9 +297,13 @@ def _cast_to_python_objects(obj: Any, only_1d_for_numpy: bool) -> Tuple[Any, boo
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj.detach().cpu().numpy(), True
         else:
-            return [
-                _cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0] for x in obj.detach().cpu().numpy()
-            ], True
+            return (
+                [
+                    _cast_to_python_objects(x, only_1d_for_numpy=only_1d_for_numpy)[0]
+                    for x in obj.detach().cpu().numpy()
+                ],
+                True,
+            )
     elif config.TF_AVAILABLE and "tensorflow" in sys.modules and isinstance(obj, tf.Tensor):
         if not only_1d_for_numpy or obj.ndim == 1:
             return obj.numpy(), True
@@ -489,10 +493,7 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
         pa.PyExtensionType.__init__(self, self.storage_dtype)
 
     def __reduce__(self):
-        return self.__class__, (
-            self.shape,
-            self.value_type,
-        )
+        return self.__class__, (self.shape, self.value_type,)
 
     def __arrow_ext_class__(self):
         return ArrayExtensionArray

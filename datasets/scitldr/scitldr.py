@@ -132,16 +132,13 @@ class Scitldr(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download(urls)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir["train"])},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir["train"])},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir["test"])},
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir["test"])},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir["valid"])},
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir["valid"])},
             ),
         ]
 

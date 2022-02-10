@@ -58,10 +58,7 @@ class AllocineDataset(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "review": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(names=["neg", "pos"]),
-                }
+                {"review": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["neg", "pos"]),}
             ),
             supervised_keys=None,
             homepage="https://github.com/TheophileBlard/french-sentiment-analysis-with-bert",

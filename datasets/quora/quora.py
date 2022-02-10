@@ -36,10 +36,7 @@ class Quora(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "questions": datasets.features.Sequence(
-                        {
-                            "id": datasets.Value("int32"),
-                            "text": datasets.Value("string"),
-                        }
+                        {"id": datasets.Value("int32"), "text": datasets.Value("string"),}
                     ),
                     "is_duplicate": datasets.Value("bool"),
                 }

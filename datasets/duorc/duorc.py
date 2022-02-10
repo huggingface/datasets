@@ -101,24 +101,11 @@ class Duorc(datasets.GeneratorBasedBuilder):
         my_urls = _URLs[self.config.name]
         downloaded_files = dl_manager.download_and_extract(my_urls)
         return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"],},),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": downloaded_files["train"],
-                },
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"],},
             ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": downloaded_files["dev"],
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": downloaded_files["test"],
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"],},),
         ]
 
     def _generate_examples(self, filepath):

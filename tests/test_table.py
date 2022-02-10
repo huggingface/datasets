@@ -325,18 +325,7 @@ def test_in_memory_table_cast(in_memory_pa_table):
 
 
 def test_in_memory_table_cast_reorder_struct():
-    table = InMemoryTable(
-        pa.Table.from_pydict(
-            {
-                "top": [
-                    {
-                        "foo": "a",
-                        "bar": "b",
-                    }
-                ]
-            }
-        )
-    )
+    table = InMemoryTable(pa.Table.from_pydict({"top": [{"foo": "a", "bar": "b",}]}))
     schema = pa.schema({"top": pa.struct({"bar": pa.string(), "foo": pa.string()})})
     assert table.cast(schema).schema == schema
 

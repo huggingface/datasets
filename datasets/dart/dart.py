@@ -57,10 +57,7 @@ class Dart(datasets.GeneratorBasedBuilder):
                     "tripleset": datasets.Sequence(datasets.Sequence(datasets.Value("string"))),
                     "subtree_was_extended": datasets.Value("bool"),
                     "annotations": datasets.Sequence(
-                        {
-                            "source": datasets.Value("string"),
-                            "text": datasets.Value("string"),
-                        }
+                        {"source": datasets.Value("string"), "text": datasets.Value("string"),}
                     ),
                 }
             ),

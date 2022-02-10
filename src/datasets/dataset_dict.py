@@ -355,10 +355,7 @@ class DatasetDict(dict):
             dataset.set_format()
 
     def set_transform(
-        self,
-        transform: Optional[Callable],
-        columns: Optional[List] = None,
-        output_all_columns: bool = False,
+        self, transform: Optional[Callable], columns: Optional[List] = None, output_all_columns: bool = False,
     ):
         """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
         The transform is set for every dataset in the dataset dictionary
@@ -407,10 +404,7 @@ class DatasetDict(dict):
         return dataset
 
     def with_transform(
-        self,
-        transform: Optional[Callable],
-        columns: Optional[List] = None,
-        output_all_columns: bool = False,
+        self, transform: Optional[Callable], columns: Optional[List] = None, output_all_columns: bool = False,
     ) -> "DatasetDict":
         """Set __getitem__ return format using this transform. The transform is applied on-the-fly on batches when __getitem__ is called.
         The transform is set for every dataset in the dataset dictionary

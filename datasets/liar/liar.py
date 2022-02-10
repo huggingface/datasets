@@ -60,14 +60,7 @@ class Liar(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "label": datasets.ClassLabel(
-                        names=[
-                            "false",
-                            "half-true",
-                            "mostly-true",
-                            "true",
-                            "barely-true",
-                            "pants-fire",
-                        ]
+                        names=["false", "half-true", "mostly-true", "true", "barely-true", "pants-fire",]
                     ),
                     "statement": datasets.Value("string"),
                     "subject": datasets.Value("string"),
@@ -96,21 +89,14 @@ class Liar(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.tsv"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "train.tsv"), "split": "train",},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(data_dir, "test.tsv"), "split": "test"},
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "test.tsv"), "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "valid.tsv"),
-                    "split": "valid",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "valid.tsv"), "split": "valid",},
             ),
         ]
 

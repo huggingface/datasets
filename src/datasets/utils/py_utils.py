@@ -71,7 +71,7 @@ def size_str(size_in_bytes):
     if not size_in_bytes:
         return "Unknown size"
 
-    _NAME_LIST = [("PiB", 2**50), ("TiB", 2**40), ("GiB", 2**30), ("MiB", 2**20), ("KiB", 2**10)]
+    _NAME_LIST = [("PiB", 2 ** 50), ("TiB", 2 ** 40), ("GiB", 2 ** 30), ("MiB", 2 ** 20), ("KiB", 2 ** 10)]
 
     size_in_bytes = float(size_in_bytes)
     for (name, size_bytes) in _NAME_LIST:
@@ -161,10 +161,7 @@ class NonMutableDict(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        self._error_msg = kwargs.pop(
-            "error_msg",
-            "Try to overwrite existing key: {key}",
-        )
+        self._error_msg = kwargs.pop("error_msg", "Try to overwrite existing key: {key}",)
         if kwargs:
             raise ValueError("NonMutableDict cannot be initialized with kwargs.")
         super().__init__(*args, **kwargs)
@@ -633,6 +630,7 @@ try:
         pickler.save_reduce(regex.compile, args, obj=obj)
         dill._dill.log.info("# Re")
         return
+
 
 except ImportError:
     pass

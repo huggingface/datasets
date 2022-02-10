@@ -90,10 +90,7 @@ class PolevalMTConfig(datasets.BuilderConfig):
 
         description = ("Translation dataset between Polish and %s") % (_SUPPORTED_LANGUAGES[non_pl])
         super(PolevalMTConfig, self).__init__(
-            name=name,
-            description=description,
-            version=datasets.Version("1.0.0", ""),
-            **kwargs,
+            name=name, description=description, version=datasets.Version("1.0.0", ""), **kwargs,
         )
 
         self.language_pair = language_pair

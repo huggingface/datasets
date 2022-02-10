@@ -48,11 +48,7 @@ class LibrispeechLm(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "text": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"text": datasets.Value("string"),}),
             supervised_keys=("text", "text"),
             homepage=_URL,
             citation=_CITATION,

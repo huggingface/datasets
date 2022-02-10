@@ -75,10 +75,7 @@ class Lm1b(datasets.GeneratorBasedBuilder):
     """1 Billion Word Language Model Benchmark dataset."""
 
     BUILDER_CONFIGS = [
-        Lm1bConfig(
-            name="plain_text",
-            description="Plain text",
-        ),
+        Lm1bConfig(name="plain_text", description="Plain text",),
     ]
 
     def _info(self):

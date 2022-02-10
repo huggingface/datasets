@@ -47,12 +47,7 @@ class DanishPoliticalComments(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         path = dl_manager.download_and_extract(_URL)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": path},
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path},)]
 
     def _generate_examples(self, datapath):
         sentence_counter = 0
@@ -62,11 +57,7 @@ class DanishPoliticalComments(datasets.GeneratorBasedBuilder):
                 target, sentence = row.split("\t")
                 result = (
                     sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "sentence": sentence,
-                        "target": target,
-                    },
+                    {"id": str(sentence_counter), "sentence": sentence, "target": target,},
                 )
                 sentence_counter += 1
                 yield result

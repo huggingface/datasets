@@ -81,15 +81,11 @@ class Spider(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "data_filepath": os.path.join(downloaded_filepath, "spider/train_spider.json"),
-                },
+                gen_kwargs={"data_filepath": os.path.join(downloaded_filepath, "spider/train_spider.json"),},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "data_filepath": os.path.join(downloaded_filepath, "spider/dev.json"),
-                },
+                gen_kwargs={"data_filepath": os.path.join(downloaded_filepath, "spider/dev.json"),},
             ),
         ]
 

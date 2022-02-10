@@ -671,11 +671,7 @@ class BuilderTest(TestCase):
 
 @pytest.mark.parametrize(
     "split, expected_dataset_class, expected_dataset_length",
-    [
-        (None, DatasetDict, 10),
-        ("train", Dataset, 10),
-        ("train+test[:30%]", Dataset, 13),
-    ],
+    [(None, DatasetDict, 10), ("train", Dataset, 10), ("train+test[:30%]", Dataset, 13),],
 )
 @pytest.mark.parametrize("in_memory", [False, True])
 def test_builder_as_dataset(split, expected_dataset_class, expected_dataset_length, in_memory, tmp_path):

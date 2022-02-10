@@ -91,18 +91,9 @@ class Gap(datasets.GeneratorBasedBuilder):
             {"train": _TRAINURL, "validation": _VALIDATIONURL, "test": _TESTURL}
         )
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": directory["train"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": directory["validation"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": directory["test"]},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": directory["train"]},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": directory["validation"]},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": directory["test"]},),
         ]
 
     def _generate_examples(self, filepath):

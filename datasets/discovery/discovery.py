@@ -231,11 +231,7 @@ class DiscoveryConfig(datasets.BuilderConfig):
     """BuilderConfig for Discovery."""
 
     def __init__(
-        self,
-        text_features,
-        label_classes=None,
-        process_label=lambda x: x,
-        **kwargs,
+        self, text_features, label_classes=None, process_label=lambda x: x, **kwargs,
     ):
         """BuilderConfig for Discovery.
         Args:
@@ -275,14 +271,8 @@ class Discovery(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = DiscoveryConfig
 
     BUILDER_CONFIGS = [
-        DiscoveryConfig(
-            name="discovery",
-            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
-        ),
-        DiscoveryConfig(
-            name="discoverysmall",
-            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
-        ),
+        DiscoveryConfig(name="discovery", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},),
+        DiscoveryConfig(name="discoverysmall", text_features={"sentence1": "sentence1", "sentence2": "sentence2"},),
     ]
 
     def _info(self):
@@ -306,24 +296,15 @@ class Discovery(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "data_file": os.path.join(data_dir or "", "train.tsv"),
-                    "split": "train",
-                },
+                gen_kwargs={"data_file": os.path.join(data_dir or "", "train.tsv"), "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "data_file": os.path.join(data_dir or "", "dev.tsv"),
-                    "split": "dev",
-                },
+                gen_kwargs={"data_file": os.path.join(data_dir or "", "dev.tsv"), "split": "dev",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "data_file": os.path.join(data_dir or "", "test.tsv"),
-                    "split": "test",
-                },
+                gen_kwargs={"data_file": os.path.join(data_dir or "", "test.tsv"), "split": "test",},
             ),
         ]
 

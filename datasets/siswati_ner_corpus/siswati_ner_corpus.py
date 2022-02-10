@@ -72,9 +72,7 @@ class SiswatiNerCorpus(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         SiswatiNerCorpusConfig(
-            name="siswati_ner_corpus",
-            version=datasets.Version("1.0.0"),
-            description="SiswatiNerCorpus dataset",
+            name="siswati_ner_corpus", version=datasets.Version("1.0.0"), description="SiswatiNerCorpus dataset",
         ),
     ]
 
@@ -87,17 +85,7 @@ class SiswatiNerCorpus(datasets.GeneratorBasedBuilder):
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
-                            names=[
-                                "OUT",
-                                "B-PERS",
-                                "I-PERS",
-                                "B-ORG",
-                                "I-ORG",
-                                "B-LOC",
-                                "I-LOC",
-                                "B-MISC",
-                                "I-MISC",
-                            ]
+                            names=["OUT", "B-PERS", "I-PERS", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "B-MISC", "I-MISC",]
                         )
                     ),
                 }
@@ -112,8 +100,7 @@ class SiswatiNerCorpus(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, _EXTRACTED_FILE)},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, _EXTRACTED_FILE)},
             ),
         ]
 

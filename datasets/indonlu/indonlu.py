@@ -45,15 +45,7 @@ class IndonluConfig(datasets.BuilderConfig):
     """BuilderConfig for IndoNLU"""
 
     def __init__(
-        self,
-        text_features,
-        label_column,
-        label_classes,
-        train_url,
-        valid_url,
-        test_url,
-        citation,
-        **kwargs,
+        self, text_features, label_column, label_classes, train_url, valid_url, test_url, citation, **kwargs,
     ):
         """BuilderConfig for IndoNLU.
 
@@ -218,11 +210,7 @@ class Indonlu(datasets.GeneratorBasedBuilder):
             relations between the pairs. The data are labeled as entailed when the meaning of the second sentence can be
             derived from the first one, and not entailed otherwise."""
             ),
-            text_features={
-                "premise": "premise",
-                "hypothesis": "hypothesis",
-                "category": "category",
-            },
+            text_features={"premise": "premise", "hypothesis": "hypothesis", "category": "category",},
             # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
             label_classes=["NotEntail", "Entail_or_Paraphrase"],
             label_column="label",

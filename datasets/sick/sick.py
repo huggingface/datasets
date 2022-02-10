@@ -78,16 +78,14 @@ class SICK(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(dl_dir, "SICK.txt"), "key": "TRAIN"},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "SICK.txt"), "key": "TRAIN"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={"filepath": os.path.join(dl_dir, "SICK.txt"), "key": "TRIAL"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(dl_dir, "SICK.txt"), "key": "TEST"},
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "SICK.txt"), "key": "TEST"},
             ),
         ]
 

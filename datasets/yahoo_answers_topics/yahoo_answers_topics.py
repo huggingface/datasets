@@ -49,10 +49,7 @@ class YahooAnswersTopics(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="yahoo_answers_topics",
-            version=datasets.Version("1.0.0", ""),
-        ),
+        datasets.BuilderConfig(name="yahoo_answers_topics", version=datasets.Version("1.0.0", ""),),
     ]
 
     def _info(self):

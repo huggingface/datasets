@@ -75,11 +75,7 @@ class RomanUrdu(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir),
-                    "split": "train",
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir), "split": "train",},
             ),
         ]
 

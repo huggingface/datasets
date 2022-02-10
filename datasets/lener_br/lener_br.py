@@ -112,16 +112,14 @@ class LenerBr(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_files["train"], "split": "train"},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"], "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={"filepath": downloaded_files["dev"], "split": "validation"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": downloaded_files["test"], "split": "test"},
+                name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"], "split": "test"},
             ),
         ]
 

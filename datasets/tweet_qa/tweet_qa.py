@@ -72,25 +72,11 @@ class TweetQA(datasets.GeneratorBasedBuilder):
         dev_path = os.path.join(data_dir, "TweetQA_data", "dev.json")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": train_path,
-                    "split": "train",
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path, "split": "train",},
             ),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path, "split": "test",},),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": test_path,
-                    "split": "test",
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": dev_path,
-                    "split": "dev",
-                },
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": dev_path, "split": "dev",},
             ),
         ]
 

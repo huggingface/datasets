@@ -64,12 +64,7 @@ class CCNewsConfig(datasets.BuilderConfig):
 class CCNews(datasets.GeneratorBasedBuilder):
     """CC-News dataset."""
 
-    BUILDER_CONFIGS = [
-        CCNewsConfig(
-            name="plain_text",
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [CCNewsConfig(name="plain_text", description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(

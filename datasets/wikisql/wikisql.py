@@ -140,10 +140,7 @@ class WikiSQL(datasets.GeneratorBasedBuilder):
 
                 # Get human-readable version
                 row["sql"]["human_readable"] = self._convert_to_human_readable(
-                    row["sql"]["sel"],
-                    row["sql"]["agg"],
-                    row["table"]["header"],
-                    row["sql"]["conds"],
+                    row["sql"]["sel"], row["sql"]["agg"], row["table"]["header"], row["sql"]["conds"],
                 )
 
                 # Restructure sql->conds

@@ -90,20 +90,9 @@ class FreebaseQA(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URLs)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": data_dir["train"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": data_dir["eval"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": data_dir["dev"],
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"]},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["eval"]},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["dev"],},),
         ]
 
     def _generate_examples(self, filepath):

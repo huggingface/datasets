@@ -55,12 +55,7 @@ class Eduge(datasets.GeneratorBasedBuilder):
                 }
             ),
             homepage="http://eduge.mn",
-            task_templates=[
-                TextClassification(
-                    text_column="news",
-                    label_column="label",
-                )
-            ],
+            task_templates=[TextClassification(text_column="news", label_column="label",)],
         )
 
     def _split_generators(self, dl_manager):

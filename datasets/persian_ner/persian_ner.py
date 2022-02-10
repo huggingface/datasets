@@ -125,10 +125,7 @@ class PersianNER(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, f"train_{self.config.name}.txt"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, f"train_{self.config.name}.txt"), "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,

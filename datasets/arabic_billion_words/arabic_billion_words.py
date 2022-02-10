@@ -118,10 +118,7 @@ class ArabicBillionWords(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            homepage=_HOMEPAGE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, homepage=_HOMEPAGE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -131,10 +128,7 @@ class ArabicBillionWords(datasets.GeneratorBasedBuilder):
         my_file_name = f"{self.config.name}_utf_8.xml"
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, my_file_name),
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, my_file_name),},
             ),
         ]
 

@@ -76,10 +76,7 @@ class Squad(datasets.Metric):
                     "references": {
                         "id": datasets.Value("string"),
                         "answers": datasets.features.Sequence(
-                            {
-                                "text": datasets.Value("string"),
-                                "answer_start": datasets.Value("int32"),
-                            }
+                            {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
                         ),
                     },
                 }

@@ -264,11 +264,7 @@ class DownloadConfig:
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
 
-def cached_path(
-    url_or_filename,
-    download_config=None,
-    **download_kwargs,
-) -> str:
+def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> str:
     """
     Given something that might be a URL (or might be a local path),
     determine which. If it's a URL, download the file and cache it, and

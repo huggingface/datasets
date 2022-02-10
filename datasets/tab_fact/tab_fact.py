@@ -56,14 +56,9 @@ class TabFact(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
+        datasets.BuilderConfig(name="tab_fact", version=datasets.Version("1.0.0"),),
         datasets.BuilderConfig(
-            name="tab_fact",
-            version=datasets.Version("1.0.0"),
-        ),
-        datasets.BuilderConfig(
-            name="blind_test",
-            version=datasets.Version("1.0.0"),
-            description="Blind test dataset",
+            name="blind_test", version=datasets.Version("1.0.0"), description="Blind test dataset",
         ),
     ]
 

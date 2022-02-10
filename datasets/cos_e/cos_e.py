@@ -109,16 +109,8 @@ class CosE(datasets.GeneratorBasedBuilder):
     """CoS-E: Common Sense Explanations corpus."""
 
     BUILDER_CONFIGS = [
-        CosEConfig(
-            name="v1.0",
-            description="cos-e version 1.0",
-            version=datasets.Version("1.0.0", ""),
-        ),
-        CosEConfig(
-            name="v1.11",
-            description="cos-e version 1.11",
-            version=datasets.Version("1.11.0", ""),
-        ),
+        CosEConfig(name="v1.0", description="cos-e version 1.0", version=datasets.Version("1.0.0", ""),),
+        CosEConfig(name="v1.11", description="cos-e version 1.11", version=datasets.Version("1.11.0", ""),),
     ]
 
     def _info(self):
@@ -166,12 +158,10 @@ class CosE(datasets.GeneratorBasedBuilder):
         # We use the CoS-E/CQA dev set as our validation set.
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"files": files["train"], "cqa_indexed": cqa_indexed},
+                name=datasets.Split.TRAIN, gen_kwargs={"files": files["train"], "cqa_indexed": cqa_indexed},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"files": files["dev"], "cqa_indexed": cqa_indexed},
+                name=datasets.Split.VALIDATION, gen_kwargs={"files": files["dev"], "cqa_indexed": cqa_indexed},
             ),
         ]
 

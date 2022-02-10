@@ -102,12 +102,7 @@ class Factckbr(datasets.GeneratorBasedBuilder):
 
         data_file = dl_manager.download_and_extract(_URL)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": data_file,
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_file,},),
         ]
 
     def _generate_examples(self, filepath):

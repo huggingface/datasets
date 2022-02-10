@@ -75,18 +75,9 @@ class MultiXScienceSum(datasets.GeneratorBasedBuilder):
         val_path = dl_manager.download_and_extract(_URL_VAL)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"path": train_path},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"path": test_path},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"path": val_path},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": train_path},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"path": test_path},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"path": val_path},),
         ]
 
     def _generate_examples(self, path=None):

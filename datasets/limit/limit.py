@@ -65,12 +65,7 @@ class Limit(datasets.GeneratorBasedBuilder):
             "id": datasets.Value("int32"),
             "sentence": datasets.Value("string"),
             "motion": datasets.Value("string"),
-            "motion_entities": [
-                {
-                    "entity": datasets.Value("string"),
-                    "start_index": datasets.Value("int32"),
-                }
-            ],
+            "motion_entities": [{"entity": datasets.Value("string"), "start_index": datasets.Value("int32"),}],
         }
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -83,14 +78,8 @@ class Limit(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         downloaded_files = dl_manager.download(_URLS)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_files["train"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": downloaded_files["test"]},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]},),
         ]
 
     def _generate_examples(self, filepath):

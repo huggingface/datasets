@@ -85,10 +85,7 @@ class CovidQaCastorini(datasets.GeneratorBasedBuilder):
         downloaded_filepath = dl_manager.download_and_extract(url)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_filepath},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_filepath},),
         ]
 
     def _generate_examples(self, filepath):
@@ -110,9 +107,5 @@ class CovidQaCastorini(datasets.GeneratorBasedBuilder):
                         "category_name": category_name,
                         "question_query": question_query,
                         "keyword_query": keyword_query,
-                        "answers": {
-                            "id": ids,
-                            "title": titles,
-                            "exact_answer": exact_answers,
-                        },
+                        "answers": {"id": ids, "title": titles, "exact_answer": exact_answers,},
                     }

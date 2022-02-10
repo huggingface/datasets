@@ -81,9 +81,7 @@ class EuroparlBilingualConfig(datasets.BuilderConfig):
 
     def __init__(self, *args, lang1=None, lang2=None, **kwargs):
         super().__init__(
-            *args,
-            name=f"{lang1}-{lang2}",
-            **kwargs,
+            *args, name=f"{lang1}-{lang2}", **kwargs,
         )
         self.lang1 = lang1
         self.lang2 = lang2
@@ -109,9 +107,7 @@ class EuroparlBilingual(datasets.GeneratorBasedBuilder):
     def _info(self):
         """This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset."""
         features = datasets.Features(
-            {
-                "translation": datasets.Translation(languages=(self.config.lang1, self.config.lang2)),
-            }
+            {"translation": datasets.Translation(languages=(self.config.lang1, self.config.lang2)),}
         )
 
         return datasets.DatasetInfo(

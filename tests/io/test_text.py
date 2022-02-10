@@ -25,13 +25,7 @@ def test_dataset_from_text_keep_in_memory(keep_in_memory, text_path, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "features",
-    [
-        None,
-        {"text": "string"},
-        {"text": "int32"},
-        {"text": "float32"},
-    ],
+    "features", [None, {"text": "string"}, {"text": "int32"}, {"text": "float32"},],
 )
 def test_dataset_from_text_features(features, text_path, tmp_path):
     cache_dir = tmp_path / "cache"
@@ -86,13 +80,7 @@ def test_datasetdict_from_text_keep_in_memory(keep_in_memory, text_path, tmp_pat
 
 
 @pytest.mark.parametrize(
-    "features",
-    [
-        None,
-        {"text": "string"},
-        {"text": "int32"},
-        {"text": "float32"},
-    ],
+    "features", [None, {"text": "string"}, {"text": "int32"}, {"text": "float32"},],
 )
 def test_datasetdict_from_text_features(features, text_path, tmp_path):
     cache_dir = tmp_path / "cache"

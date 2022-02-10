@@ -131,10 +131,7 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
 
     @staticmethod
     def _iter_random_indices(
-        rng: np.random.Generator,
-        num_sources: int,
-        random_batch_size=1000,
-        p: Optional[List[float]] = None,
+        rng: np.random.Generator, num_sources: int, random_batch_size=1000, p: Optional[List[float]] = None,
     ) -> Iterator[int]:
         """Get an infinite iterator that randomly samples the index of the source to pick examples from."""
         if p is None:
@@ -295,10 +292,7 @@ class TypedExamplesIterable(_BaseExamplesIterable):
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "TypedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
-        return TypedExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(seed),
-            features=self.features,
-        )
+        return TypedExamplesIterable(self.ex_iterable.shuffle_data_sources(seed), features=self.features,)
 
     @property
     def n_shards(self) -> int:
@@ -372,10 +366,7 @@ class IterableDataset(DatasetInfoMixin):
             else:
                 yield example
 
-    def with_format(
-        self,
-        type: Optional[str] = None,
-    ) -> "IterableDataset":
+    def with_format(self, type: Optional[str] = None,) -> "IterableDataset":
         """
         Return a dataset with the specified format.
         This method only supports the "torch" format for now.
@@ -560,10 +551,4 @@ def iterable_dataset(
         cls = TorchIterableDataset
     else:
         cls = IterableDataset
-    return cls(
-        ex_iterable=ex_iterable,
-        info=info,
-        split=split,
-        format_type=format_type,
-        shuffling=shuffling,
-    )
+    return cls(ex_iterable=ex_iterable, info=info, split=split, format_type=format_type, shuffling=shuffling,)

@@ -76,10 +76,7 @@ class CRD3(datasets.GeneratorBasedBuilder):
                     "alignment_score": datasets.Value("float32"),
                     "turn_num": datasets.Value("int32"),
                     "turns": datasets.features.Sequence(
-                        {
-                            "names": datasets.Value("string"),
-                            "utterances": datasets.Value("string"),
-                        }
+                        {"names": datasets.Value("string"), "utterances": datasets.Value("string"),}
                     ),
                 }
             ),
@@ -109,18 +106,9 @@ class CRD3(datasets.GeneratorBasedBuilder):
         test_files, train_files, dev_files = get_train_test_dev_files(files, test_splits, train_splits, dev_splits)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"files_path": train_files},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"files_path": test_files},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"files_path": dev_files},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files_path": train_files},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"files_path": test_files},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"files_path": dev_files},),
         ]
 
     def _generate_examples(self, files_path):
@@ -146,8 +134,5 @@ class CRD3(datasets.GeneratorBasedBuilder):
                             "turn_end": turn_end,
                             "alignment_score": score,
                             "turn_num": turn_num,
-                            "turns": {
-                                "names": turn_names,
-                                "utterances": turn_utterances,
-                            },
+                            "turns": {"names": turn_names, "utterances": turn_utterances,},
                         }

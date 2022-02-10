@@ -69,16 +69,13 @@ class MultiNews(datasets.GeneratorBasedBuilder):
         extract_path = os.path.join(dl_manager.download_and_extract(_URL), "multi-news-original")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"path": os.path.join(extract_path, "train")},
+                name=datasets.Split.TRAIN, gen_kwargs={"path": os.path.join(extract_path, "train")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"path": os.path.join(extract_path, "val")},
+                name=datasets.Split.VALIDATION, gen_kwargs={"path": os.path.join(extract_path, "val")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"path": os.path.join(extract_path, "test")},
+                name=datasets.Split.TEST, gen_kwargs={"path": os.path.join(extract_path, "test")},
             ),
         ]
 
