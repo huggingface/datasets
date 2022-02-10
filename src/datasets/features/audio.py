@@ -95,12 +95,16 @@ class Audio:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
         elif path is not None and path.endswith("mp3"):
             array, sampling_rate = self._decode_mp3(file if file else path)
-        else:
-            extension = "opus" if path.endswith("opus") else None
+        elif path is not None and path.endswith("opus"):
             if file:
-                array, sampling_rate = self._decode_non_mp3_file_like(file, extension)
+                array, sampling_rate = self._decode_non_mp3_file_like(file, "opus")
             else:
-                array, sampling_rate = self._decode_non_mp3_path_like(path, extension)
+                array, sampling_rate = self._decode_non_mp3_path_like(path, "opus")
+        else:
+            if file:
+                array, sampling_rate = self._decode_non_mp3_file_like(file)
+            else:
+                array, sampling_rate = self._decode_non_mp3_path_like(path)
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray]) -> pa.StructArray:
@@ -136,7 +140,7 @@ class Audio:
             storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
         return array_cast(storage, self.pa_type)
 
-    def _decode_non_mp3_path_like(self, path, extension):
+    def _decode_non_mp3_path_like(self, path, format=None):
         try:
             import librosa
         except ImportError as err:
@@ -146,7 +150,7 @@ class Audio:
             with xopen(path, "rb") as f:
                 array, sampling_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
         except RuntimeError as err:
-            if extension == "opus":
+            if format == "opus":
                 raise RuntimeError(
                     "Decoding .opus files requires 'libsndfile'>=1.0.30, "
                     + "it can be installed via conda: `conda install -c conda-forge libsndfile==1.0.30`"
@@ -156,7 +160,7 @@ class Audio:
 
         return array, sampling_rate
 
-    def _decode_non_mp3_file_like(self, file, extension=None):
+    def _decode_non_mp3_file_like(self, file, format=None):
         try:
             import librosa
             import soundfile as sf
@@ -166,7 +170,7 @@ class Audio:
         try:
             array, sampling_rate = sf.read(file)
         except RuntimeError as err:
-            if extension == "opus":
+            if format == "opus":
                 raise RuntimeError(
                     "Decoding .opus files requires 'libsndfile'>=1.0.30, "
                     + "it can be installed via conda: `conda install -c conda-forge libsndfile==1.0.30`"
