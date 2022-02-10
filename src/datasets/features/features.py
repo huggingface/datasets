@@ -19,7 +19,7 @@ import json
 import re
 import sys
 from collections.abc import Iterable
-from dataclasses import _asdict_inner, dataclass, field, fields
+from dataclasses import InitVar, _asdict_inner, dataclass, field, fields
 from functools import reduce
 from operator import mul
 from typing import Any, ClassVar, Dict, List, Optional
@@ -761,7 +761,7 @@ class ClassLabel:
 
     num_classes: int = None
     names: List[str] = None
-    names_file: Optional[str] = None
+    names_file: InitVar[Optional[str]] = None
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
@@ -770,7 +770,8 @@ class ClassLabel:
     _int2str: ClassVar[Dict[int, int]] = None
     _type: str = field(default="ClassLabel", init=False, repr=False)
 
-    def __post_init__(self):
+    def __post_init__(self, names_file):
+        self.names_file = names_file
         if self.names_file is not None and self.names is not None:
             raise ValueError("Please provide either names or names_file but not both.")
         # Set self.names
