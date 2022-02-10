@@ -383,15 +383,7 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     else:
         new_kwargs = {}
     kwargs = {**kwargs, **new_kwargs}
-    try:
-        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
-    except ValueError as e:
-        if str(e) == "Cannot seek streaming HTTP file":  # Workaround for servers not supporting HTTP range requests
-            file = file.split("::")
-            file = "::".join(file[:-1] + ["simplecache", file[-1]])
-            file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
-        else:
-            raise
+    file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
 
