@@ -357,6 +357,8 @@ WIKIPEDIA_LANGUAGES = [
     "zu",
 ]
 
+# Source: for each Wikipedia language code (example shown for "ab"), aliases for namespaces -2 and 6 accessed via this API call:
+# https://ab.wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=namespacealiases|namespaces&format=json&formatversion=2 (accessed 12/21/2021)
 MEDIA_ALIASES = {
     "ab": ["Медиа", "Файл", "Афаил", "Амедиа", "Изображение"],
     "ace": ["Beureukaih", "Gambar", "Alat", "Berkas"],
@@ -612,6 +614,8 @@ MEDIA_ALIASES = {
     "zh-yue": ["檔", "档", "文件", "图", "媒體", "圖", "档案", "图像", "圖像", "媒体", "檔案"],
 }
 
+# Source: for each Wikipedia language code (example shown for "ab"), aliases for namespace 14 accessed via this API call:
+# https://ab.wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=namespacealiases|namespaces&format=json&formatversion=2 (accessed 12/21/2021)
 CAT_ALIASES = {
     "ab": ["Категория", "Акатегориа"],
     "ace": ["Kawan", "Kategori"],
