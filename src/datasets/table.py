@@ -1136,8 +1136,10 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
 
     features = Features.from_arrow_schema(table.schema)
 
-    @_wrap_for_chunked_arrays
     def _visit(array, feature):
+        if isinstance(array, pa.ChunkedArray):
+            for chunk in array.chunks:
+                _visit(chunk, feature)
         if isinstance(array, pa.ExtensionArray):
             array = array.storage
         function(array, feature)
@@ -1153,7 +1155,6 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
                 _visit(array.values, feature[0])
             elif isinstance(feature, Sequence):
                 _visit(array.values, feature.feature)
-        return [None]  # allows us to use the _wrap_for_chunked_arrays decorator
 
     for name, feature in features.items():
         _visit(table[name], feature)
