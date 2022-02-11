@@ -1140,21 +1140,23 @@ def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
         if isinstance(array, pa.ChunkedArray):
             for chunk in array.chunks:
                 _visit(chunk, feature)
-        if isinstance(array, pa.ExtensionArray):
-            array = array.storage
-        function(array, feature)
-        if pa.types.is_struct(array.type) and not hasattr(feature, "cast_storage"):
-            if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
-                feature = {
-                    name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
-                }
-            for name, subfeature in feature.items():
-                _visit(array.field(name), subfeature)
-        elif pa.types.is_list(array.type):
-            if isinstance(feature, list):
-                _visit(array.values, feature[0])
-            elif isinstance(feature, Sequence):
-                _visit(array.values, feature.feature)
+        else:
+            if isinstance(array, pa.ExtensionArray):
+                array = array.storage
+            function(array, feature)
+            if pa.types.is_struct(array.type) and not hasattr(feature, "cast_storage"):
+                if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
+                    feature = {
+                        name: Sequence(subfeature, length=feature.length)
+                        for name, subfeature in feature.feature.items()
+                    }
+                for name, subfeature in feature.items():
+                    _visit(array.field(name), subfeature)
+            elif pa.types.is_list(array.type):
+                if isinstance(feature, list):
+                    _visit(array.values, feature[0])
+                elif isinstance(feature, Sequence):
+                    _visit(array.values, feature.feature)
 
     for name, feature in features.items():
         _visit(table[name], feature)
