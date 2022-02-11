@@ -19,7 +19,6 @@ from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import huggingface_hub
 
-from .features import Features
 from .info import DatasetInfo
 from .load import (
     dataset_module_factory,
