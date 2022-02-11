@@ -19,7 +19,7 @@ def to_dict(
             return float("{0:.6f}".format(float(x)))
 
     res = {
-        "start": str(start),
+        "start": start,
         "target": [serialize(x) for x in target_values],
     }
 

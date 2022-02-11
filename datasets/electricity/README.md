@@ -4,7 +4,7 @@ language_creators: []
 languages: []
 licenses: []
 multilinguality: []
-pretty_name: Electricity
+pretty_name: ElectricityLoadDiagrams20112014
 size_categories:
 - unknown
 source_datasets: []
@@ -12,7 +12,7 @@ task_categories: []
 task_ids: []
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for ElectricityLoadDiagrams20112014
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -77,23 +77,25 @@ A sample from the training set is provided below:
 }
 ```
 
-We have two configurations `uci` and `lstnet`, which are specificed as as follows. 
+We have two configurations `uci` and `lstnet`, which are specificed as follows. 
 
-The time series are resampled to hourly frequency. We test on 7 rolling windows of prediction lenght of 24. 
+The time series are resampled to hourly frequency. We test on 7 rolling windows of prediction length of 24. 
 
 The `uci` validation therefore ends 24*7 time steps before the end of each time series. The training split ends 24 time steps before the end of the validation split. 
 
-For the `lsnet` configuration we split the training window to be 0.6 of the full time series and the validation is the 0.8-th time series and the last 0.2 time windows are used as the test set of 7 rolling windows of the 24 time steps. Finally as in the LSTNet paper we only consider time series which are active in the year 2012-2014 which leaves us with 320 time series.
+For the `lsnet` configuration we split the training window to be 0.6 of the full time series and the validation is the 0.8-th time series and the last 0.2 time windows are used as the test set of 7 rolling windows of the 24 time steps. Finally, as in the LSTNet paper, we only consider time series that are active in the year 2012--2014, which leaves us with 320 time series.
 
 
 ### Data Fields
 
 For this univariate regular time series we have:
 
-- `start`: a `datetime` as string of the first entry of each time serie in the dataset
+- `start`: a `datetime` of the first entry of each time serie in the dataset
 - `target`: an `array[float32]` of the actual target values
+- `feat_static_cat`: an `array[uint64]` which contains a categorical identifier of each time series in the dataset
+- `item_id`: a string identifier of each time series in a dataset for reference
 
-Given the `freq` and the `start` date, we can assign a datetime to each entry in the target array. Each time serie is also assigned a unique `feat_static_cat` integer id as well as an identifier `item_id`.
+Given the `freq` and the `start` datetime, we can assign a datetime to each entry in the target array.
 
 
 ### Data Splits

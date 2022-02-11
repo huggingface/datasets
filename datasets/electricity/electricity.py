@@ -12,9 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Electricity time series dataset."""
-
-
+"""Electricity Load Diagrams 2011-2014 time series dataset."""
 from pathlib import Path
 
 import pandas as pd
@@ -56,18 +54,26 @@ _LICENSE = ""
 _URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/00321/LD2011_2014.txt.zip"
 
 
+class ElectrictyConfig(datasets.BuilderConfig):
+    """A builder config with some added meta data."""
+
+    freq: str = "1H"
+    prediction_length: int = 24
+    rolling_evaluations: int = 7
+
+
 class Electricty(datasets.GeneratorBasedBuilder):
     """Hourly electricity consumption of 370 points/clients."""
 
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
+        ElectrictyConfig(
             name="uci",
             version=VERSION,
             description="Original UCI time series.",
         ),
-        datasets.BuilderConfig(
+        ElectrictyConfig(
             name="lstnet",
             version=VERSION,
             description="Electricity time series preporcessed as in LSTNet paper.",
@@ -79,7 +85,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "start": datasets.Value("string"),
+                "start": datasets.Value("timestamp[s]"),
                 "target": datasets.Sequence(datasets.Value("float32")),
                 "feat_static_cat": datasets.Sequence(datasets.Value("uint64")),
                 # "feat_static_real":  datasets.Sequence(datasets.Value("float32")),
@@ -110,11 +116,6 @@ class Electricty(datasets.GeneratorBasedBuilder):
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         data_dir = dl_manager.download_and_extract(_URL)
 
-        # define the prediction problem # TODO save these in metadata
-        freq = "1H"
-        prediction_length = 24
-        rolling_evaluations = 7
-
         train_ts = []
         val_ts = []
         test_ts = []
@@ -127,11 +128,15 @@ class Electricty(datasets.GeneratorBasedBuilder):
                 decimal=",",
             )
         df.sort_index(inplace=True)
-        df = df.resample(freq).sum()
-            
+        df = df.resample(self.config.freq).sum()
+
         if self.config.name == "uci":
-            val_end_date = df.index.max() - pd.Timedelta(prediction_length * rolling_evaluations, "H")
-            train_end_date = val_end_date - pd.Timedelta(prediction_length, "H")
+            val_end_date = df.index.max() - pd.Timedelta(
+                self.config.prediction_length * self.config.rolling_evaluations, "H"
+            )
+            train_end_date = val_end_date - pd.Timedelta(
+                self.config.prediction_length, "H"
+            )
         else:
             # concate the time series to be from 2012 till 2014
             df = df[(df.index.year >= 2012) & (df.index.year <= 2014)]
@@ -167,11 +172,13 @@ class Electricty(datasets.GeneratorBasedBuilder):
                 )
             )
 
-        for i in range(rolling_evaluations):
+        for i in range(self.config.rolling_evaluations):
             for cat, (ts_id, ts) in enumerate(df.iteritems()):
                 start_date = ts.ne(0).idxmax()
 
-                test_end_date = val_end_date + pd.Timedelta(prediction_length * (i + 1), "H")
+                test_end_date = val_end_date + pd.Timedelta(
+                    self.config.prediction_length * (i + 1), "H"
+                )
                 sliced_ts = ts[start_date:test_end_date]
                 test_ts.append(
                     to_dict(
