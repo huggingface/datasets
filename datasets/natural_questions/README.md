@@ -123,7 +123,7 @@ The data fields are the same among all splits.
 | name    |  train |validation|
 |---------|-------:|---------:|
 | default | 307373 |      7830|
-| dev     |      0 |      7830|
+| dev     |    N/A |      7830|
 
 ## Dataset Creation
 
