@@ -122,7 +122,14 @@ Keyword spotting, Spoken term search
 
 ### Languages
 
-The dataset is multilingual. It contains data for the following languages:
+The dataset is multilingual. To specify several languages to downloading pass a list of them to the
+`language` argument:
+
+```python
+ds = load_dataset("datasets/ml_spoken_words", languages=["ar", "tt", "br"])
+```
+
+The dataset contains data for the following languages:
 
 Low-resourced (<10 hours):
 * Arabic (0.1G, 7.6h)
@@ -276,12 +283,14 @@ research and commercial applications in keyword spotting and spoken term search.
 
 ### Citation Information
 
+```
 @inproceedings{mazumder2021multilingual,
   title={Multilingual Spoken Words Corpus},
   author={Mazumder, Mark and Chitlangia, Sharad and Banbury, Colby and Kang, Yiping and Ciro, Juan Manuel and Achorn, Keith and Galvez, Daniel and Sabini, Mark and Mattson, Peter and Kanter, David and others},
   booktitle={Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track (Round 2)},
   year={2021}
 }
+```
 
 ### Contributions
 
