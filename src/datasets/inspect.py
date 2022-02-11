@@ -124,14 +124,12 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
 
 def get_dataset_infos(
     path: str,
-    revision: Optional[Union[str, Version]] = None,
+    data_files: Optional[Union[Dict, List, str]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
-    force_local_path: Optional[str] = None,
-    dynamic_modules_path: Optional[str] = None,
-    data_files: Optional[Union[Dict, List, str]] = None,
+    revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
-    **download_kwargs,
+    **config_kwargs,
 ):
     """Get the meta information about a dataset, returned as a dict mapping config name to DatasetInfoDict.
 
@@ -150,15 +148,10 @@ def get_dataset_infos(
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-            Used to inspect or modify the script folder.
-        dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
-            Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
-            By default the datasets and metrics are stored inside the `datasets_modules` module.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
-        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied
+        config_kwargs: optional attributes for builder class which will override the attributes if supplied.
     """
     config_names = get_dataset_config_names(
         path=path,
@@ -166,23 +159,17 @@ def get_dataset_infos(
         download_config=download_config,
         download_mode=download_mode,
         data_files=data_files,
-        force_local_path=force_local_path,
-        dynamic_modules_path=dynamic_modules_path,
-        **download_kwargs,
     )
     return {
         config_name: get_dataset_config_info(
             path=path,
-            revision=revision,
+            config_name=config_name,
+            data_files=data_files,
             download_config=download_config,
             download_mode=download_mode,
-            data_files=data_files,
-            config_name=config_name,
-            data_dir=None,
-            cache_dir=None,
-            features=None,
+            revision=revision,
             use_auth_token=use_auth_token,
-            # **download_kwargs,
+            **config_kwargs,
         )
         for config_name in config_names
     }
@@ -241,10 +228,7 @@ def get_dataset_config_names(
 def get_dataset_config_info(
     path: str,
     config_name: Optional[str] = None,
-    data_dir: Optional[str] = None,
     data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
-    cache_dir: Optional[str] = None,
-    features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     revision: Optional[Union[str, Version]] = None,
@@ -261,10 +245,7 @@ def get_dataset_config_info(
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
-        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
-        features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
@@ -281,10 +262,7 @@ def get_dataset_config_info(
     builder = load_dataset_builder(
         path,
         name=config_name,
-        data_dir=data_dir,
         data_files=data_files,
-        cache_dir=cache_dir,
-        features=features,
         download_config=download_config,
         download_mode=download_mode,
         revision=revision,
@@ -312,10 +290,7 @@ def get_dataset_config_info(
 def get_dataset_split_names(
     path: str,
     config_name: Optional[str] = None,
-    data_dir: Optional[str] = None,
     data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
-    cache_dir: Optional[str] = None,
-    features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     revision: Optional[Union[str, Version]] = None,
@@ -332,10 +307,7 @@ def get_dataset_split_names(
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
-        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
-        features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
@@ -352,10 +324,7 @@ def get_dataset_split_names(
     info = get_dataset_config_info(
         path,
         name=config_name,
-        data_dir=data_dir,
         data_files=data_files,
-        cache_dir=cache_dir,
-        features=features,
         download_config=download_config,
         download_mode=download_mode,
         revision=revision,
