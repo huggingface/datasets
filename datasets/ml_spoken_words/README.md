@@ -118,7 +118,7 @@ All alignments are included in the dataset.
 
 ### Supported Tasks and Leaderboards
 
-Keyword spotting
+Keyword spotting, Spoken term search
 
 ### Languages
 
@@ -184,15 +184,39 @@ Hig-resourced (>100 hours):
 
 ### Data Instances
 
-[More Information Needed]
+```python
+{'file': 'абзар_common_voice_tt_17737010.opus',
+ 'is_valid': True,
+ 'language': 0,
+ 'speaker_id': '687025afd5ce033048472754c8d2cb1cf8a617e469866bbdb3746e2bb2194202094a715906f91feb1c546893a5d835347f4869e7def2e360ace6616fb4340e38',
+ 'gender': 0,
+ 'keyword': 'абзар',
+ 'audio': {'path': 'абзар_common_voice_tt_17737010.opus',
+  'array': array([2.03458695e-34, 2.03458695e-34, 2.03458695e-34, ...,
+         2.03458695e-34, 2.03458695e-34, 2.03458695e-34]),
+  'sampling_rate': 48000}}
+```
 
 ### Data Fields
 
-[More Information Needed]
+* file: strinrelative audio path inside the archive **#TODO: change according to the new local path schema?**
+* is_valid: if a sample is valid
+* language: language of an instance. Makes sense only when providing multiple languages to the 
+dataset loader (for example, `load_dataset("ml_spoken_words", languages=["ar", "tt"])`)
+* speaker_id: unique id of a speaker. Can be "NA" if an instance is invalid
+* gender: speaker gender. Can be one of `["MALE", "FEMALE", "OTHER", "NAN"]`
+* keyword: word spoken in a current sample
+* audio: a dictionary containing the relative path to the audio file, 
+the decoded audio array, and the sampling rate. 
+Note that when accessing the audio column: `dataset[0]["audio"]` the audio file is automatically 
+decoded and resampled to `dataset.features["audio"].sampling_rate`. Decoding and resampling of 
+a large number of audio files might take a significant amount of time. 
+Thus, it is important to first query the sample index before the "audio" column, 
+i.e. `dataset[0]["audio"]` should always be preferred over `dataset["audio"][0]`
 
 ### Data Splits
 
-[More Information Needed]
+The data for each language is splitted into train / validation / test parts.
 
 ## Dataset Creation
 
@@ -204,7 +228,7 @@ Hig-resourced (>100 hours):
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+The data comes form Common Voice dataset.
 
 #### Who are the source language producers?
 
@@ -222,7 +246,8 @@ Hig-resourced (>100 hours):
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+he dataset consists of people who have donated their voice online. 
+You agree to not attempt to determine the identity of speakers.
 
 ## Considerations for Using the Data
 
@@ -246,12 +271,18 @@ Hig-resourced (>100 hours):
 
 ### Licensing Information
 
-[More Information Needed]
+The dataset is licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/) and can be used for academic
+research and commercial applications in keyword spotting and spoken term search.
 
 ### Citation Information
 
-[More Information Needed]
+@inproceedings{mazumder2021multilingual,
+  title={Multilingual Spoken Words Corpus},
+  author={Mazumder, Mark and Chitlangia, Sharad and Banbury, Colby and Kang, Yiping and Ciro, Juan Manuel and Achorn, Keith and Galvez, Daniel and Sabini, Mark and Mattson, Peter and Kanter, David and others},
+  booktitle={Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track (Round 2)},
+  year={2021}
+}
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+Thanks to [@polinaeterna](https://github.com/polinaeterna) for adding this dataset.
