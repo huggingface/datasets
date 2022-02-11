@@ -189,7 +189,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert module_factory_result.builder_kwargs.get("base_path").startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
     def test_CanonicalMetricModuleFactory_with_internal_import(self):
         # "squad_v2" requires additional imports (internal)
@@ -222,13 +222,13 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert os.path.isdir(module_factory_result.builder_kwargs.get("base_path"))
+        assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
 
     def test_LocalDatasetModuleFactoryWithoutScript(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir)
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert os.path.isdir(module_factory_result.builder_kwargs.get("base_path"))
+        assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
 
     def test_PackagedDatasetModuleFactory(self):
         factory = PackagedDatasetModuleFactory(
@@ -243,7 +243,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert module_factory_result.builder_kwargs.get("base_path").startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
     def test_CommunityDatasetModuleFactoryWithScript(self):
         factory = CommunityDatasetModuleFactoryWithScript(
@@ -253,7 +253,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
-        assert module_factory_result.builder_kwargs.get("base_path").startswith(config.HF_ENDPOINT)
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
     def test_CachedDatasetModuleFactory(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
