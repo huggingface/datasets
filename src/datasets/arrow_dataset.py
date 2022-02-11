@@ -3530,6 +3530,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 raise
 
+        # Find decodable columns, because if there are any, we need to:
+        # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
+        # (2) embed the bytes from the files in the shards
         decodable_columns = (
             [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
             if embed_external_files
@@ -3582,7 +3585,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             batched=True,
                             batch_size=1000,
                             keep_in_memory=True,
-                            desc="Embedding external files in the shard",
                         )
                         shard = shard.with_format(**format)
                         yield shard
