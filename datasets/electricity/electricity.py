@@ -144,6 +144,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
             # drop time series which are zero at the start
             df = df.T[df.iloc[0] > 0].T
 
+            # tran/val/test split from LSTNet paper
             # validation ends at 8/10-th of the time series
             val_end_date = df.index[int(len(df) * (8 / 10)) - 1]
             # training ends at 6/10-th of the time series
