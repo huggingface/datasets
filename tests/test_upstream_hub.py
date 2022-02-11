@@ -329,10 +329,10 @@ class TestPushToHub(TestCase):
         features = Features({"x": Audio(), "y": Value("int32")})
         ds = Dataset.from_dict(data, features=features)
 
-        for allow_cast in [True, False]:
+        for embed_external_files in [True, False]:
             ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
             try:
-                ds.push_to_hub(ds_name, allow_cast=allow_cast, token=self._token)
+                ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
                 hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
                 self.assertListEqual(ds.column_names, hub_ds.column_names)
@@ -342,8 +342,8 @@ class TestPushToHub(TestCase):
                 hub_ds = hub_ds.cast_column("x", Audio(decode=False))
                 elem = hub_ds[0]["x"]
                 path, bytes_ = elem["path"], elem["bytes"]
-                self.assertTrue(bool(path) == (not allow_cast))
-                self.assertTrue(bool(bytes_) == allow_cast)
+                self.assertTrue(bool(path) == (not embed_external_files))
+                self.assertTrue(bool(bytes_) == embed_external_files)
             finally:
                 self._api.delete_repo(
                     ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"
@@ -356,10 +356,10 @@ class TestPushToHub(TestCase):
         features = Features({"x": Image(), "y": Value("int32")})
         ds = Dataset.from_dict(data, features=features)
 
-        for allow_cast in [True, False]:
+        for embed_external_files in [True, False]:
             ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
             try:
-                ds.push_to_hub(ds_name, allow_cast=allow_cast, token=self._token)
+                ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
                 hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
                 self.assertListEqual(ds.column_names, hub_ds.column_names)
@@ -369,8 +369,8 @@ class TestPushToHub(TestCase):
                 hub_ds = hub_ds.cast_column("x", Image(decode=False))
                 elem = hub_ds[0]["x"]
                 path, bytes_ = elem["path"], elem["bytes"]
-                self.assertTrue(bool(path) == (not allow_cast))
-                self.assertTrue(bool(bytes_) == allow_cast)
+                self.assertTrue(bool(path) == (not embed_external_files))
+                self.assertTrue(bool(bytes_) == embed_external_files)
             finally:
                 self._api.delete_repo(
                     ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"

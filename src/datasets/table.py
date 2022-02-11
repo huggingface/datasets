@@ -3,7 +3,7 @@ import os
 import tempfile
 from functools import partial, wraps
 from itertools import groupby
-from typing import TYPE_CHECKING, List, Optional, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 import pyarrow as pa
@@ -1123,3 +1123,37 @@ def table_cast(table: pa.Table, schema: pa.Schema):
         return table.replace_schema_metadata(schema.metadata)
     else:
         return table
+
+
+def table_visitor(table: pa.Table, function: Callable[[pa.Array], None]):
+    """Visit all arrays in a table and apply a function to them.
+
+    Args:
+        table (pa.Table): PyArrow table to visit
+        function (Callable[[pa.Array], None]): function to apply to each array
+    """
+    from .features import Features, Sequence
+
+    features = Features.from_arrow_schema(table.schema)
+
+    @_wrap_for_chunked_arrays
+    def _visit(array, feature):
+        if isinstance(array, pa.ExtensionArray):
+            array = array.storage
+        function(array, feature)
+        if pa.types.is_struct(array.type) and not hasattr(feature, "cast_storage"):
+            if isinstance(feature, Sequence) and isinstance(feature.feature, dict):
+                feature = {
+                    name: Sequence(subfeature, length=feature.length) for name, subfeature in feature.feature.items()
+                }
+            for name, subfeature in feature.items():
+                _visit(array.field(name), subfeature)
+        elif pa.types.is_list(array.type):
+            if isinstance(feature, list):
+                _visit(array.values, feature[0])
+            elif isinstance(feature, Sequence):
+                _visit(array.values, feature.feature)
+        return [None]  # allows us to use the _wrap_for_chunked_arrays decorator
+
+    for name, feature in features.items():
+        _visit(table[name], feature)

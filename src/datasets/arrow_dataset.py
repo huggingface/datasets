@@ -93,6 +93,7 @@ from .table import (
     concat_tables,
     list_table_cache_files,
     table_cast,
+    table_visitor,
 )
 from .tasks import TaskTemplate
 from .utils import logging
@@ -3447,7 +3448,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
-        allow_cast: bool = True,
+        embed_external_files: bool = True,
     ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -3472,8 +3473,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_size (Optional :obj:`int`):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
-            allow_cast (:obj:`bool`, default ``True``):
-                Whether to allow casting of the dataset storage to adjust its format for the hub.
+            embed_external_files (:obj:`bool`, default ``True``):
+                Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
 
                 - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
@@ -3498,7 +3499,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
         if split is None:
-            split = self.split or "train"
+            split = str(self.split) or "train"
 
         identifier = repo_id.split("/")
 
@@ -3529,12 +3530,41 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 raise
 
-        dataset = self
-        if allow_cast:
-            decodable_columns = [
-                k for k, v in dataset.features.items() if require_decoding(v, ignore_decode_attribute=True)
-            ]
-            if decodable_columns:
+        decodable_columns = (
+            [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
+            if embed_external_files
+            else []
+        )
+
+        dataset_nbytes = self.data.nbytes
+
+        if decodable_columns:
+            # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
+            extra_nbytes = 0
+
+            def extra_nbytes_visitor(array, feature):
+                nonlocal extra_nbytes
+                if isinstance(feature, (Audio, Image)):
+                    for x in array.to_pylist():
+                        if x["bytes"] is None and x["path"] is not None:
+                            extra_nbytes += os.path.getsize(x["path"])
+                    extra_nbytes -= array.field("path").nbytes
+
+            table = self.with_format("arrow")[:1000]
+            table_visitor(table, extra_nbytes_visitor)
+
+            extra_nbytes = extra_nbytes * len(self.data) / len(table)
+            dataset_nbytes = dataset_nbytes + extra_nbytes
+
+        if self._indices is not None:
+            dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
+
+        num_shards = int(dataset_nbytes / shard_size) + 1
+        shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
+
+        if decodable_columns:
+
+            def shards_with_embedded_external_files(shards):
                 # Temporarily assign the modified version of `cast_storage` before the cast to the decodable
                 # feature types to delete path information and embed file content in the arrow file.
                 with contextlib.ExitStack() as stack:
@@ -3544,23 +3574,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 decodable_feature_type, "cast_storage", decodable_feature_type.embed_storage
                             )
                         )
-                    format = dataset.format
-                    dataset = dataset.with_format("arrow")
-                    dataset = dataset.map(
-                        partial(cast_table_to_features, features=dataset.features),
-                        batched=True,
-                        batch_size=1000,
-                        desc="Storing file data as bytes",
-                    )
-                    dataset = dataset.with_format(**format)
+                    for shard in shards:
+                        format = shard.format
+                        shard = shard.with_format("arrow")
+                        shard = shard.map(
+                            partial(cast_table_to_features, features=shard.features),
+                            batched=True,
+                            batch_size=1000,
+                            keep_in_memory=True,
+                            desc="Embedding external files in the shard",
+                        )
+                        shard = shard.with_format(**format)
+                        yield shard
 
-        if dataset._indices is not None:
-            dataset_nbytes = dataset.data.nbytes * len(dataset._indices) / len(dataset.data)
-        else:
-            dataset_nbytes = dataset.data.nbytes
-
-        num_shards = int(dataset_nbytes / shard_size) + 1
-        shards = (dataset.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
+            shards = shards_with_embedded_external_files(shards)
 
         files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
         files = [file for file in files if file.startswith("data/")]
@@ -3619,7 +3646,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
-        allow_cast: bool = True,
+        embed_external_files: bool = True,
     ):
         """Pushes the dataset to the hub.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -3644,11 +3671,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_size (Optional :obj:`int`):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
-            allow_cast (:obj:`bool`, default ``True``):
-                Whether to allow casting of the dataset storage to adjust its format for the hub.
+            embed_external_files (:obj:`bool`, default ``True``):
+                Whether to embed file bytes in the shards.
                 In particular, this will do the following before the push for the fields of type:
 
-                - :class:`Audio` and class:`Image`: remove local path information and store file content as bytes
+                - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
 
         Example:
             .. code-block:: python
@@ -3662,7 +3689,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             token=token,
             branch=branch,
             shard_size=shard_size,
-            allow_cast=allow_cast,
+            embed_external_files=embed_external_files,
         )
         organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
