@@ -76,15 +76,14 @@ class ExamplesIterable(_BaseExamplesIterable):
         self.kwargs = kwargs
 
     def __iter__(self):
-        for key, example in self.generate_examples_fn(**self.kwargs):
-            yield key, example
+        yield from self.generate_examples_fn(**self.kwargs)
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "ExamplesIterable":
         return ShardShuffledExamplesIterable(self.generate_examples_fn, self.kwargs, seed)
 
     @property
     def n_shards(self) -> int:
-        max_length = max([len(value) for value in self.kwargs.values() if isinstance(value, list)], default=0)
+        max_length = max((len(value) for value in self.kwargs.values() if isinstance(value, list)), default=0)
         return max(1, max_length)
 
 
@@ -97,8 +96,7 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
         """Shuffle the kwargs order to shuffle shards"""
         rng = np.random.default_rng(self.seed)
         kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
-        for key, example in self.generate_examples_fn(**kwargs_with_shuffled_shards):
-            yield key, example
+        yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
 
 
 class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):

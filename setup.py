@@ -124,7 +124,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "apache-beam>=2.26.0",
-    "elasticsearch",
+    "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElastictSearch()
     "aiobotocore",
     "boto3",
     "botocore",
@@ -188,7 +188,7 @@ if os.name != "nt":
         ]
     )
 
-QUALITY_REQUIRE = ["black==21.4b0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
@@ -228,9 +228,9 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.18.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.18.4.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
-    long_description=open("README.md", "r", encoding="utf-8").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",

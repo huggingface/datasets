@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +19,7 @@ import json
 import re
 import sys
 from collections.abc import Iterable
-from dataclasses import _asdict_inner, dataclass, field, fields
+from dataclasses import InitVar, _asdict_inner, dataclass, field, fields
 from functools import reduce
 from operator import mul
 from typing import Any, ClassVar, Dict, List, Optional
@@ -762,7 +761,7 @@ class ClassLabel:
 
     num_classes: int = None
     names: List[str] = None
-    names_file: Optional[str] = None
+    names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
@@ -771,7 +770,8 @@ class ClassLabel:
     _int2str: ClassVar[Dict[int, int]] = None
     _type: str = field(default="ClassLabel", init=False, repr=False)
 
-    def __post_init__(self):
+    def __post_init__(self, names_file):
+        self.names_file = names_file
         if self.names_file is not None and self.names is not None:
             raise ValueError("Please provide either names or names_file but not both.")
         # Set self.names
@@ -868,7 +868,7 @@ class ClassLabel:
 
     @staticmethod
     def _load_names_from_file(names_filepath):
-        with open(names_filepath, "r", encoding="utf-8") as f:
+        with open(names_filepath, encoding="utf-8") as f:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 
@@ -1079,7 +1079,7 @@ def generate_from_dict(obj: Any):
     if class_type == Sequence:
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
 
-    field_names = set(f.name for f in fields(class_type))
+    field_names = {f.name for f in fields(class_type)}
     return class_type(**{k: v for k, v in obj.items() if k in field_names})
 
 
@@ -1155,7 +1155,7 @@ def require_decoding(feature: FeatureType) -> bool:
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
     else:
-        return hasattr(feature, "decode_example")
+        return hasattr(feature, "decode_example") and feature.decode
 
 
 class Features(dict):
@@ -1335,7 +1335,7 @@ class Features(dict):
             :obj:`list[Any]`
         """
         return (
-            [self[column_name].decode_example(value) if value is not None else None for value in column]
+            [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
             if self._column_requires_decoding[column_name]
             else column
         )
@@ -1352,7 +1352,7 @@ class Features(dict):
         decoded_batch = {}
         for column_name, column in batch.items():
             decoded_batch[column_name] = (
-                [self[column_name].decode_example(value) if value is not None else None for value in column]
+                [decode_nested_example(self[column_name], value) if value is not None else None for value in column]
                 if self._column_requires_decoding[column_name]
                 else column
             )

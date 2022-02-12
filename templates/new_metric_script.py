@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,7 +83,7 @@ class NewMetric(datasets.Metric):
         """Optional: download external resources useful to compute the scores"""
         # TODO: Download external resources if needed
         bad_words_path = dl_manager.download_and_extract(BAD_WORDS_URL)
-        self.bad_words = set([w.strip() for w in open(bad_words_path, "r", encoding="utf-8")])
+        self.bad_words = {w.strip() for w in open(bad_words_path, encoding="utf-8")}
 
     def _compute(self, predictions, references):
         """Returns the scores"""

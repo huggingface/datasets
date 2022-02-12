@@ -27,6 +27,7 @@ from datasets.utils.streaming_download_manager import (
     xpathrglob,
     xpathstem,
     xpathsuffix,
+    xrelpath,
     xsplitext,
 )
 
@@ -353,6 +354,29 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
 
 
 @pytest.mark.parametrize(
+    "input_path, start_path, expected_path",
+    [
+        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1", "dir2/file.txt".replace("/", os.path.sep)),
+        ("dir1/dir2/file.txt".replace("/", os.path.sep), "dir1/dir2".replace("/", os.path.sep), "file.txt"),
+        ("zip://file.txt::https://host.com/archive.zip", "zip://::https://host.com/archive.zip", "file.txt"),
+        (
+            "zip://folder/file.txt::https://host.com/archive.zip",
+            "zip://::https://host.com/archive.zip",
+            "folder/file.txt",
+        ),
+        (
+            "zip://folder/file.txt::https://host.com/archive.zip",
+            "zip://folder::https://host.com/archive.zip",
+            "file.txt",
+        ),
+    ],
+)
+def test_xrelpath(input_path, start_path, expected_path):
+    outut_path = xrelpath(input_path, start=start_path)
+    assert outut_path == expected_path
+
+
+@pytest.mark.parametrize(
     "input_path, pattern, expected_paths",
     [
         ("tmp_path", "*.txt", ["file1.txt", "file2.txt"]),
@@ -644,14 +668,30 @@ def _test_jsonl(path, file):
 
 def test_iter_archive_path(tar_jsonl_path):
     dl_manager = StreamingDownloadManager()
-    for num_jsonl, (path, file) in enumerate(dl_manager.iter_archive(str(tar_jsonl_path)), start=1):
+    archive_iterable = dl_manager.iter_archive(str(tar_jsonl_path))
+    num_jsonl = 0
+    for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
+        _test_jsonl(path, file)
+    assert num_jsonl == 2
+    # do it twice to make sure it's reset correctly
+    num_jsonl = 0
+    for num_jsonl, (path, file) in enumerate(archive_iterable, start=1):
         _test_jsonl(path, file)
     assert num_jsonl == 2
 
 
 def test_iter_archive_file(tar_nested_jsonl_path):
     dl_manager = StreamingDownloadManager()
-    for num_tar, (path, file) in enumerate(dl_manager.iter_archive(str(tar_nested_jsonl_path)), start=1):
+    files_iterable = dl_manager.iter_archive(str(tar_nested_jsonl_path))
+    num_tar, num_jsonl = 0, 0
+    for num_tar, (path, file) in enumerate(files_iterable, start=1):
+        for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
+            _test_jsonl(subpath, subfile)
+    assert num_tar == 1
+    assert num_jsonl == 2
+    # do it twice to make sure it's reset correctly
+    num_tar, num_jsonl = 0, 0
+    for num_tar, (path, file) in enumerate(files_iterable, start=1):
         for num_jsonl, (subpath, subfile) in enumerate(dl_manager.iter_archive(file), start=1):
             _test_jsonl(subpath, subfile)
     assert num_tar == 1

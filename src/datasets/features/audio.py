@@ -8,7 +8,7 @@ from ..table import array_cast
 from ..utils.streaming_download_manager import xopen
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class Audio:
     """Audio Feature to extract audio data from an audio file.
 
@@ -33,10 +33,13 @@ class Audio:
         sampling_rate (:obj:`int`, optional): Target sampling rate. If `None`, the native sampling rate is used.
         mono (:obj:`bool`, default ``True``): Whether to convert the audio signal to mono by averaging samples across
             channels.
+        decode (:obj:`bool`, default ``True``): Whether to decode the audio data. If `False`,
+            returns the underlying dictionary in the format {"path": audio_path, "bytes": audio_bytes}.
     """
 
     sampling_rate: Optional[int] = None
     mono: bool = True
+    decode: bool = True
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
@@ -84,6 +87,9 @@ class Audio:
         Returns:
             dict
         """
+        if not self.decode:
+            raise RuntimeError("Decoding is disabled for this feature. Please use Audio(decode=True) instead.")
+
         path, file = (value["path"], BytesIO(value["bytes"])) if value["bytes"] is not None else (value["path"], None)
         if path is None and file is None:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
@@ -168,7 +174,7 @@ class Audio:
 
         array, sampling_rate = torchaudio.load(path_or_file, format="mp3")
         if self.sampling_rate and self.sampling_rate != sampling_rate:
-            if not hasattr(self, "_resampler"):
+            if not hasattr(self, "_resampler") or self._resampler.orig_freq != sampling_rate:
                 self._resampler = T.Resample(sampling_rate, self.sampling_rate)
             array = self._resampler(array)
             sampling_rate = self.sampling_rate

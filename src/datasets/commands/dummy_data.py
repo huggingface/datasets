@@ -123,7 +123,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
             # Line by line text file (txt, csv etc.)
             if is_line_by_line_text_file:
                 Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
-                with open(src_path, "r", encoding=encoding) as src_file:
+                with open(src_path, encoding=encoding) as src_file:
                     with open(dst_path, "w", encoding=encoding) as dst_file:
                         first_lines = []
                         for i, line in enumerate(src_file):
@@ -134,7 +134,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 return 1
             # json file
             elif ".json" in dst_path_extensions:
-                with open(src_path, "r", encoding=encoding) as src_file:
+                with open(src_path, encoding=encoding) as src_file:
                     json_data = json.load(src_file)
                     if json_field is not None:
                         json_data = json_data[json_field]
@@ -187,7 +187,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
     @staticmethod
     def _create_xml_dummy_data(src_path, dst_path, xml_tag, n_lines=5, encoding=DEFAULT_ENCODING):
         Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
-        with open(src_path, "r", encoding=encoding) as src_file:
+        with open(src_path, encoding=encoding) as src_file:
             n_line = 0
             parents = []
             for event, elem in ET.iterparse(src_file, events=("start", "end")):

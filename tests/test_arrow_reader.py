@@ -58,7 +58,7 @@ class BaseReaderTest(TestCase):
             instructions2 = [Split.TRAIN, ReadInstruction.from_spec("test[:33%]")]
             for instructions in [instructions1, instructions2]:
                 datasets_kwargs = [reader.read(name, instr, split_infos) for instr in instructions]
-                train_dset, test_dset = [Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs]
+                train_dset, test_dset = (Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs)
                 self.assertEqual(train_dset["filename"][0], f"{name}-train")
                 self.assertEqual(train_dset.num_rows, 100)
                 self.assertEqual(train_dset.num_columns, 1)
@@ -108,7 +108,7 @@ def test_read_files(in_memory, dataset, arrow_file):
     reader = ArrowReader("", None)
     with assert_arrow_memory_increases() if in_memory else assert_arrow_memory_doesnt_increase():
         dataset_kwargs = reader.read_files([{"filename": filename}], in_memory=in_memory)
-    assert dataset_kwargs.keys() == set(["arrow_table", "info", "split"])
+    assert dataset_kwargs.keys() == {"arrow_table", "info", "split"}
     table = dataset_kwargs["arrow_table"]
     assert table.shape == dataset.data.shape
     assert set(table.column_names) == set(dataset.data.column_names)
