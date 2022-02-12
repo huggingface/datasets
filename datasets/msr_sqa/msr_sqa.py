@@ -60,13 +60,16 @@ def _load_table_data(table_file):
 
     Returns:
         header: a list of headers in the table.
-        data: 2d array of data in the table.
+        rows: 2d array of data in the table.
     """
-    with open(table_file, encoding="utf-8") as f:
-        lines = f.readlines()
-    header = lines[0].strip().split(",")
-    data = [line.strip().split(",") for line in lines[1:]]
-    return header, data
+    rows = []
+    table_data = pd.read_csv(table_file)
+    # the first line is header
+    header = list(table_data.columns)
+    for row_data in table_data.values:
+        rows.append([str(_) for _ in list(row_data)])
+
+    return header, rows
 
 
 def _parse_answer_coordinates(answer_coordinate_str):
