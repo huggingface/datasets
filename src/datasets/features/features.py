@@ -761,7 +761,7 @@ class ClassLabel:
 
     num_classes: int = None
     names: List[str] = None
-    names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict and fields when converting to/from dict
+    names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
