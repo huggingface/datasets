@@ -65,7 +65,7 @@ def _load_table_data(table_file):
     """
     rows = []
     table_data = pd.read_csv(table_file)
-    
+
     header = list(table_data.columns)
     for row_data in table_data.values:
         rows.append([str(_) for _ in list(row_data)])
@@ -160,11 +160,11 @@ class MsrSQA(datasets.GeneratorBasedBuilder):
 
         with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t")
-            for row in reader:
+            for i, row in enumerate(reader):
                 item = dict(row)
                 item["answer_text"] = _parse_answer_text(item["answer_text"])
                 item["answer_coordinates"] = _parse_answer_coordinates(item["answer_coordinates"])
                 header, table_data = _load_table_data(os.path.join(data_dir, item["table_file"]))
                 item["table_header"] = header
                 item["table_data"] = table_data
-                yield item["id"], item
+                yield i, item
