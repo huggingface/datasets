@@ -44,7 +44,7 @@ def interleave_datasets(
         parameter. `Dataset` if the input is a list of `Dataset`, `IterableDataset` if the input is a list of
         `IterableDataset`.
 
-    Examples:
+    Example::
 
         For regular datasets (map-style):
 
@@ -126,7 +126,7 @@ def _interleave_map_style_datasets(
     lengths = [len(dset) for dset in datasets]
     offsets = np.cumsum([0] + lengths[:-1])
     if probabilities is None:
-        # Example: If lengths of the datasets are [3, 4, 5]
+        # Example:: If lengths of the datasets are [3, 4, 5]
         # Then the resulting indices should be [0, 3, 7, 1, 4, 8, 2, 6, 9]
         # Note that we only have 3 examples per dataset since the first dataset ran out of examples
         indices = (offsets.reshape(1, -1) + np.arange(min(lengths)).reshape(-1, 1)).flatten().tolist()

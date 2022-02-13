@@ -137,7 +137,7 @@ class SplitBase(metaclass=abc.ABCMeta):
         dataset with `datasets.percent`), and `weighted` (get subsplits with proportions
         specified by `weighted`).
 
-        Examples:
+        Example::
 
         ```
         # 50% train, 50% test
@@ -303,7 +303,7 @@ class _SubSplit(SplitBase):
 class NamedSplit(SplitBase):
     """Descriptor corresponding to a named split (train, test, ...).
 
-    Examples:
+    Example::
         Each descriptor can be composed with other using addition or slice. Ex::
 
             split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST

@@ -942,7 +942,7 @@ class DatasetDict(dict):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes.
 
-        Example:
+        Example::
             .. code-block:: python
 
                 >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
