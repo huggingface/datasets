@@ -939,7 +939,7 @@ class DatasetBuilder:
         This function returns a list of `SplitGenerator`s defining how to generate
         data and what splits to use.
 
-        Example:
+        Example::
 
             return [
                     datasets.SplitGenerator(
@@ -1191,7 +1191,7 @@ class BeamBasedBuilder(DatasetBuilder):
         can be accessed by the workers jobs. The data should be located in a
         shared filesystem, like GCS.
 
-        Example:
+        Example::
 
         ```
         def _build_pcollection(pipeline, extracted_dir):

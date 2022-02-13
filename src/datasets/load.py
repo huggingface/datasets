@@ -186,7 +186,7 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
     Note that only direct import in the dataset processing script will be handled
     We don't recursively explore the additional import to download further files.
 
-    Examples::
+    Example::
 
         import tensorflow
         import .c4_utils

@@ -8,7 +8,7 @@ class S3FileSystem(s3fs.S3FileSystem):
     unify various projects and classes to work with remote filesystems
     and file-system-like abstractions using a standard pythonic interface.
 
-    Examples:
+    Example::
       Listing files from public s3 bucket.
 
       >>> import datasets

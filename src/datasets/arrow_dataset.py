@@ -3467,7 +3467,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             uploaded_size (:obj:`int`): number of uploaded bytes
             dataset_nbytes (:obj:`int`): approximate size in bytes of the uploaded dataset afer uncompression
 
-        Example:
+        Example::
             .. code-block:: python
 
                 >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
@@ -3602,7 +3602,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
 
-        Example:
+        Example::
             .. code-block:: python
 
                 >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
@@ -3701,7 +3701,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dtype (data-type): The dtype of the numpy arrays that are indexed.
                 Default is ``np.float32``.
 
-        Example:
+        Example::
             .. code-block:: python
 
                 ds = datasets.load_dataset('crime_and_punish', split='train')
@@ -3831,7 +3831,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         },
                     }
 
-        Example:
+        Example::
             .. code-block:: python
 
                 es_client = elasticsearch.Elasticsearch()
@@ -3903,7 +3903,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             label_column (:obj:`str`):
                 The column name of labels to align on.
 
-        Example:
+        Example::
             .. code-block:: python
 
                 # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}

@@ -1263,7 +1263,7 @@ class Features(dict):
         Returns:
             :class:`Features`
 
-        Examples:
+        Example::
             >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
             {'_type': Value(dtype='string', id=None)}
         """
@@ -1379,7 +1379,7 @@ class Features(dict):
         Returns:
             :class:`Features`
 
-        Examples:
+        Example::
 
             >>> from datasets import Features, Sequence, Value
             >>> # let's say we have to features with a different order of nested fields (for a and b for example)
