@@ -109,9 +109,7 @@ class MultiBooked(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "dirpath": os.path.join(data_dir, "multibooked-master", "corpora", self.config.name),
-                },
+                gen_kwargs={"dirpath": os.path.join(data_dir, "multibooked-master", "corpora", self.config.name),},
             ),
         ]
 

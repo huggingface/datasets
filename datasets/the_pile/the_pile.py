@@ -68,66 +68,16 @@ _DATA_URLS = {
 }
 
 _FEATURES = {
-    "all": datasets.Features(
-        {
-            "text": datasets.Value("string"),
-            "meta": {"pile_set_name": datasets.Value("string")},
-        }
-    ),
-    "enron_emails": datasets.Features(
-        {
-            "text": datasets.Value("string"),
-            "meta": datasets.Value("string"),
-        }
-    ),
-    "europarl": datasets.Features(
-        {
-            "text": datasets.Value("string"),
-            "meta": datasets.Value("string"),
-        }
-    ),
-    "free_law": datasets.Features(
-        {
-            "text": datasets.Value("string"),
-            "meta": datasets.Value("string"),
-        }
-    ),
-    "hacker_news": datasets.Features(
-        {
-            "text": datasets.Value("string"),
-            "meta": datasets.Value("string"),
-        }
-    ),
-    "nih_exporter": datasets.Features(
-        {
-            "text": datasets.Value("string"),
-            "meta": datasets.Value("string"),
-        }
-    ),
-    "pubmed": datasets.Features(
-        {
-            "text": datasets.Value("string"),
-            "meta": datasets.Value("string"),
-        }
-    ),
-    "pubmed_central": datasets.Features(
-        {
-            "text": datasets.Value("string"),
-            "meta": datasets.Value("string"),
-        }
-    ),
-    "ubuntu_irc": datasets.Features(
-        {
-            "text": datasets.Value("string"),
-            "meta": datasets.Value("string"),
-        }
-    ),
-    "uspto": datasets.Features(
-        {
-            "text": datasets.Value("string"),
-            "meta": datasets.Value("string"),
-        }
-    ),
+    "all": datasets.Features({"text": datasets.Value("string"), "meta": {"pile_set_name": datasets.Value("string")},}),
+    "enron_emails": datasets.Features({"text": datasets.Value("string"), "meta": datasets.Value("string"),}),
+    "europarl": datasets.Features({"text": datasets.Value("string"), "meta": datasets.Value("string"),}),
+    "free_law": datasets.Features({"text": datasets.Value("string"), "meta": datasets.Value("string"),}),
+    "hacker_news": datasets.Features({"text": datasets.Value("string"), "meta": datasets.Value("string"),}),
+    "nih_exporter": datasets.Features({"text": datasets.Value("string"), "meta": datasets.Value("string"),}),
+    "pubmed": datasets.Features({"text": datasets.Value("string"), "meta": datasets.Value("string"),}),
+    "pubmed_central": datasets.Features({"text": datasets.Value("string"), "meta": datasets.Value("string"),}),
+    "ubuntu_irc": datasets.Features({"text": datasets.Value("string"), "meta": datasets.Value("string"),}),
+    "uspto": datasets.Features({"text": datasets.Value("string"), "meta": datasets.Value("string"),}),
 }
 
 
@@ -142,9 +92,7 @@ class ThePileConfig(datasets.BuilderConfig):
             **kwargs: keyword arguments forwarded to super.
         """
         super().__init__(
-            *args,
-            name="+".join(subsets),
-            **kwargs,
+            *args, name="+".join(subsets), **kwargs,
         )
         self.subsets = subsets
 
@@ -182,12 +130,7 @@ class ThePile(datasets.GeneratorBasedBuilder):
         if self.config.name == "all":
             data_dir = dl_manager.download(_DATA_URLS[self.config.name])
             return [
-                datasets.SplitGenerator(
-                    name=split,
-                    gen_kwargs={
-                        "files": data_dir[split],
-                    },
-                )
+                datasets.SplitGenerator(name=split, gen_kwargs={"files": data_dir[split],},)
                 for split in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]
             ]
         else:

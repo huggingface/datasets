@@ -79,9 +79,7 @@ reverse_mapped_sentences = [
 class CcalignedMultilingualConfig(datasets.BuilderConfig):
     def __init__(self, *args, type=None, language_code=None, **kwargs):
         super().__init__(
-            *args,
-            name=f"{type}-{language_code}",
-            **kwargs,
+            *args, name=f"{type}-{language_code}", **kwargs,
         )
         self.type = type
         self.language_code = language_code

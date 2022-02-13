@@ -62,12 +62,7 @@ class AllegroReviews(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "text": datasets.Value("string"),
-                    "rating": datasets.Value("float"),
-                }
-            ),
+            features=datasets.Features({"text": datasets.Value("string"), "rating": datasets.Value("float"),}),
             supervised_keys=None,
             homepage=_HOMEPAGE,
             license=_LICENSE,
@@ -80,10 +75,7 @@ class AllegroReviews(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.tsv"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "train.tsv"), "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -91,10 +83,7 @@ class AllegroReviews(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "dev.tsv"),
-                    "split": "dev",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "dev.tsv"), "split": "dev",},
             ),
         ]
 

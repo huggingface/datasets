@@ -95,12 +95,7 @@ class Cfq(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    _QUESTION: datasets.Value("string"),
-                    _QUERY: datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({_QUESTION: datasets.Value("string"), _QUERY: datasets.Value("string"),}),
             supervised_keys=(_QUESTION, _QUERY),
             homepage="https://github.com/google-research/google-research/tree/master/cfq",
             citation=_CITATION,

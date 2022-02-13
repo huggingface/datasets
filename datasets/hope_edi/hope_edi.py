@@ -130,18 +130,10 @@ class HopeEdi(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": train_path,
-                    "split": "train",
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path, "split": "train",},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": validation_path,
-                    "split": "validation",
-                },
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": validation_path, "split": "validation",},
             ),
         ]
 

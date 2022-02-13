@@ -134,25 +134,10 @@ class AmericasNLI(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager: DownloadManager):
-        dl_paths = dl_manager.download(
-            {
-                "dev_data": _DEV_DATA_URL,
-                "test_data": _TEST_DATA_URL,
-            }
-        )
+        dl_paths = dl_manager.download({"dev_data": _DEV_DATA_URL, "test_data": _TEST_DATA_URL,})
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": dl_paths["dev_data"],
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": dl_paths["test_data"],
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": dl_paths["dev_data"],},),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": dl_paths["test_data"],},),
         ]
 
     def _generate_examples(self, filepath: str):

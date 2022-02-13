@@ -52,14 +52,10 @@ class AmbigQa(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="light",
-            version=VERSION,
-            description="AmbigNQ light version with only inputs and outputs",
+            name="light", version=VERSION, description="AmbigNQ light version with only inputs and outputs",
         ),
         datasets.BuilderConfig(
-            name="full",
-            version=VERSION,
-            description="AmbigNQ full version with all annotation metadata",
+            name="full", version=VERSION, description="AmbigNQ full version with all annotation metadata",
         ),
     ]
     DEFAULT_CONFIG_NAME = "full"
@@ -89,10 +85,7 @@ class AmbigQa(datasets.GeneratorBasedBuilder):
                     {
                         "query": datasets.Value("string"),
                         "results": datasets.features.Sequence(
-                            {
-                                "title": datasets.Value("string"),
-                                "snippet": datasets.Value("string"),
-                            }
+                            {"title": datasets.Value("string"), "snippet": datasets.Value("string"),}
                         ),
                     }
                 ),

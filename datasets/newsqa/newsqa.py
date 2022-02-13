@@ -191,10 +191,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": combined_file_csv,
-                        "split": "combined",
-                    },
+                    gen_kwargs={"filepath": combined_file_csv, "split": "combined",},
                 )
             ]
         elif self.config.name == "combined-json":
@@ -202,10 +199,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": combined_file_json,
-                        "split": "combined",
-                    },
+                    gen_kwargs={"filepath": combined_file_json, "split": "combined",},
                 )
             ]
         else:
@@ -213,10 +207,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(split_files, "train.csv"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(split_files, "train.csv"), "split": "train",},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
@@ -226,10 +217,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(split_files, "dev.csv"),
-                        "split": "dev",
-                    },
+                    gen_kwargs={"filepath": os.path.join(split_files, "dev.csv"), "split": "dev",},
                 ),
             ]
 

@@ -102,11 +102,7 @@ class XGlueConfig(datasets.BuilderConfig):
     """BuilderConfig for XGLUE."""
 
     def __init__(
-        self,
-        data_dir,
-        citation,
-        url,
-        **kwargs,
+        self, data_dir, citation, url, **kwargs,
     ):
         """BuilderConfig for XGLUE.
 
@@ -353,17 +349,7 @@ Portuguese. BLEU-4 score should be used as the metric.
                 "words": datasets.Sequence(datasets.Value("string")),
                 "ner": datasets.Sequence(
                     datasets.features.ClassLabel(
-                        names=[
-                            "O",
-                            "B-PER",
-                            "I-PER",
-                            "B-ORG",
-                            "I-ORG",
-                            "B-LOC",
-                            "I-LOC",
-                            "B-MISC",
-                            "I-MISC",
-                        ]
+                        names=["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "B-MISC", "I-MISC",]
                     )
                 ),
             }

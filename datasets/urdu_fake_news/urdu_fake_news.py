@@ -64,12 +64,10 @@ class UrduFakeNews(datasets.GeneratorBasedBuilder):
         input_path = os.path.join(dl_path, "1.Corpus")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"pattern": os.path.join(input_path, "Train", "*", "*.txt")},
+                name=datasets.Split.TRAIN, gen_kwargs={"pattern": os.path.join(input_path, "Train", "*", "*.txt")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"pattern": os.path.join(input_path, "Test", "*", "*.txt")},
+                name=datasets.Split.TEST, gen_kwargs={"pattern": os.path.join(input_path, "Test", "*", "*.txt")},
             ),
         ]
 

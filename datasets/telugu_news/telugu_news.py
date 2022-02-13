@@ -90,17 +90,11 @@ class TeluguNews(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train_telugu_news.csv"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "train_telugu_news.csv"), "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test_telugu_news.csv"),
-                    "split": "test",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "test_telugu_news.csv"), "split": "test",},
             ),
         ]
 

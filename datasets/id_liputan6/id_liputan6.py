@@ -65,16 +65,8 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        IdLiputan6Config(
-            name="canonical",
-            version=VERSION,
-            description="Canonical Liputan6 dataset",
-        ),
-        IdLiputan6Config(
-            name="xtreme",
-            version=VERSION,
-            description="Xtreme Liputan6 dataset",
-        ),
+        IdLiputan6Config(name="canonical", version=VERSION, description="Canonical Liputan6 dataset",),
+        IdLiputan6Config(name="xtreme", version=VERSION, description="Xtreme Liputan6 dataset",),
     ]
 
     @property
@@ -115,27 +107,18 @@ class IdLiputan6(datasets.GeneratorBasedBuilder):
         split_generators = [
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "article_dir": os.path.join(data_dir, f"{self.config.name}/dev"),
-                    "split": "dev",
-                },
+                gen_kwargs={"article_dir": os.path.join(data_dir, f"{self.config.name}/dev"), "split": "dev",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "article_dir": os.path.join(data_dir, f"{self.config.name}/test"),
-                    "split": "test",
-                },
+                gen_kwargs={"article_dir": os.path.join(data_dir, f"{self.config.name}/test"), "split": "test",},
             ),
         ]
         if self.config.name == "canonical":
             split_generators.append(
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "article_dir": os.path.join(data_dir, f"{self.config.name}/train"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"article_dir": os.path.join(data_dir, f"{self.config.name}/train"), "split": "train",},
                 )
             )
         return split_generators

@@ -186,10 +186,7 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
 
-        wikipedia = datasets.load_dataset(
-            path=self.config.wikipedia_name,
-            name=self.config.wikipedia_version_name,
-        )
+        wikipedia = datasets.load_dataset(path=self.config.wikipedia_name, name=self.config.wikipedia_version_name,)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"wikipedia": wikipedia}),

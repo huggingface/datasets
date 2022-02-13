@@ -67,10 +67,7 @@ class Opinosis(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         extract_path = dl_manager.download_and_extract(_URL)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"path": extract_path},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": extract_path},),
         ]
 
     def _generate_examples(self, path=None):

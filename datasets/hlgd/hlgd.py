@@ -85,10 +85,7 @@ class HLGD(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.json"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "train.json"), "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -96,10 +93,7 @@ class HLGD(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "dev.json"),
-                    "split": "dev",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "dev.json"), "split": "dev",},
             ),
         ]
 

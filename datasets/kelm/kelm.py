@@ -49,12 +49,7 @@ class KELM(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "triple": datasets.Value("string"),
-                    "sentence": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"triple": datasets.Value("string"), "sentence": datasets.Value("string"),}),
             homepage=_WEBPAGE,
             citation=_CITATION,
         )

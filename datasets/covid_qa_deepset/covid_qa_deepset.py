@@ -63,10 +63,7 @@ class CovidQADeepset(datasets.GeneratorBasedBuilder):
                 "is_impossible": datasets.Value("bool"),
                 "id": datasets.Value("int32"),
                 "answers": datasets.features.Sequence(
-                    {
-                        "text": datasets.Value("string"),
-                        "answer_start": datasets.Value("int32"),
-                    }
+                    {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
                 ),
             }
         )
@@ -89,10 +86,7 @@ class CovidQADeepset(datasets.GeneratorBasedBuilder):
         downloaded_filepath = dl_manager.download_and_extract(url)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_filepath},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_filepath},),
         ]
 
     def _generate_examples(self, filepath):
@@ -120,8 +114,5 @@ class CovidQADeepset(datasets.GeneratorBasedBuilder):
                             "question": question,
                             "is_impossible": is_impossible,
                             "id": id_,
-                            "answers": {
-                                "answer_start": answer_starts,
-                                "text": answers,
-                            },
+                            "answers": {"answer_start": answer_starts, "text": answers,},
                         }

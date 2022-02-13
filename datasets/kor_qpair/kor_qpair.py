@@ -68,25 +68,14 @@ class KorQpair(datasets.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(_URLs)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": downloaded_files["train"],
-                    "split": "train",
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"], "split": "train",},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": downloaded_files["test"],
-                    "split": "test",
-                },
+                name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"], "split": "test",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": downloaded_files["validation"],
-                    "split": "validation",
-                },
+                gen_kwargs={"filepath": downloaded_files["validation"], "split": "validation",},
             ),
         ]
 

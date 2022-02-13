@@ -43,11 +43,7 @@ class HrenwacPara(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="hrenWaC",
-            version=VERSION,
-            description="The hrenWaC dataset.",
-        ),
+        datasets.BuilderConfig(name="hrenWaC", version=VERSION, description="The hrenWaC dataset.",),
     ]
 
     def _info(self):
@@ -63,12 +59,7 @@ class HrenwacPara(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         downloaded_file = dl_manager.download_and_extract({"train": _URLS})
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": downloaded_file["train"],
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_file["train"],},),
         ]
 
     def _generate_examples(self, filepath):
@@ -83,9 +74,4 @@ class HrenwacPara(datasets.GeneratorBasedBuilder):
                     hr = row.strip()
                 if id_ % 3 == 2:
                     i = i + 1
-                    yield i, {
-                        "translation": {
-                            "en": en,
-                            "hr": hr,
-                        }
-                    }
+                    yield i, {"translation": {"en": en, "hr": hr,}}

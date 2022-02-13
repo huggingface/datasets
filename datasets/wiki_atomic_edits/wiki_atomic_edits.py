@@ -129,12 +129,7 @@ class WikiAtomicEdits(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         datapath = dl_manager.download_and_extract(_URL[self.config.language][self.config.edit_type])
 
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": datapath},
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": datapath},)]
 
     def _generate_examples(self, datapath):
         with open(datapath, "r", encoding="utf-8") as data_file:

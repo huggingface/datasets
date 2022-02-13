@@ -93,12 +93,7 @@ class Scan(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    _COMMANDS: datasets.Value("string"),
-                    _ACTIONS: datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({_COMMANDS: datasets.Value("string"), _ACTIONS: datasets.Value("string"),}),
             supervised_keys=None,
             homepage="https://github.com/brendenlake/SCAN",
             citation=_CITATION,

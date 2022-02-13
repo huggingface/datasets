@@ -75,11 +75,7 @@ class RecipeNlg(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            supervised_keys=None,
-            homepage=_HOMEPAGE,
-            citation=_CITATION,
+            description=_DESCRIPTION, features=features, supervised_keys=None, homepage=_HOMEPAGE, citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -91,10 +87,7 @@ class RecipeNlg(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(path_to_manual_file, "full_dataset.csv"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(path_to_manual_file, "full_dataset.csv"), "split": "train",},
             ),
         ]
 

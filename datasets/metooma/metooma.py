@@ -96,11 +96,7 @@ class Metooma(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
-                csv_file,
-                quotechar='"',
-                delimiter=",",
-                quoting=csv.QUOTE_ALL,
-                skipinitialspace=True,
+                csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True,
             )
             for id_, row in enumerate(csv_reader):
                 (

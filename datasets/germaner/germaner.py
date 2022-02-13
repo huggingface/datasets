@@ -46,17 +46,7 @@ class GermaNER(datasets.GeneratorBasedBuilder):
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
-                            names=[
-                                "B-LOC",
-                                "B-ORG",
-                                "B-OTH",
-                                "B-PER",
-                                "I-LOC",
-                                "I-ORG",
-                                "I-OTH",
-                                "I-PER",
-                                "O",
-                            ]
+                            names=["B-LOC", "B-ORG", "B-OTH", "B-PER", "I-LOC", "I-ORG", "I-OTH", "I-PER", "O",]
                         )
                     ),
                 },
@@ -68,12 +58,7 @@ class GermaNER(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         path = dl_manager.download_and_extract(_URL)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": path},
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path},)]
 
     def _generate_examples(self, datapath):
         sentence_counter = 0
@@ -93,11 +78,7 @@ class GermaNER(datasets.GeneratorBasedBuilder):
                     assert len(current_words) == len(current_labels), "word len doesnt match label length"
                     sentence = (
                         sentence_counter,
-                        {
-                            "id": str(sentence_counter),
-                            "tokens": current_words,
-                            "ner_tags": current_labels,
-                        },
+                        {"id": str(sentence_counter), "tokens": current_words, "ner_tags": current_labels,},
                     )
                     sentence_counter += 1
                     current_words = []
@@ -108,10 +89,6 @@ class GermaNER(datasets.GeneratorBasedBuilder):
             if current_words:
                 sentence = (
                     sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "tokens": current_words,
-                        "ner_tags": current_labels,
-                    },
+                    {"id": str(sentence_counter), "tokens": current_words, "ner_tags": current_labels,},
                 )
                 yield sentence

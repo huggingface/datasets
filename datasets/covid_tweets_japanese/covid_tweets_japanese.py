@@ -72,10 +72,7 @@ class CovidTweetsJapanese(datasets.GeneratorBasedBuilder):
         data_url = dl_manager.download(my_urls)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": data_url, "split": "train"},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_url, "split": "train"},),
         ]
 
     def _generate_examples(self, filepath, split):

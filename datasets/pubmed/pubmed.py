@@ -114,9 +114,7 @@ def default_inline_article():
         # 'Pagination': {'MedlinePgn': datasets.Value('string')},
         "AuthorList": {"Author": []},
         "Language": "",
-        "GrantList": {
-            "Grant": [],
-        },
+        "GrantList": {"Grant": [],},
         "PublicationTypeList": {"PublicationType": []},
     }
 
@@ -277,9 +275,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
             # 'Pagination': {'MedlinePgn': datasets.Value('string')},
             "AuthorList": {"Author": datasets.Sequence(Author)},
             "Language": datasets.Value("string"),
-            "GrantList": {
-                "Grant": datasets.Sequence(Grant),
-            },
+            "GrantList": {"Grant": datasets.Sequence(Grant),},
             "PublicationTypeList": {"PublicationType": datasets.Sequence(datasets.Value("string"))},
         }
         features = datasets.Features(
@@ -293,9 +289,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
                     "MedlineJournalInfo": MedlineJournalInfo,
                     "ChemicalList": {"Chemical": datasets.Sequence(Chemical)},
                     "CitationSubset": datasets.Value("string"),
-                    "MeshHeadingList": {
-                        "MeshHeading": datasets.Sequence(MeshHeading),
-                    },
+                    "MeshHeadingList": {"MeshHeading": datasets.Sequence(MeshHeading),},
                 },
                 "PubmedData": {
                     "ArticleIdList": datasets.Sequence({"ArticleId": datasets.Sequence(datasets.Value("string"))}),

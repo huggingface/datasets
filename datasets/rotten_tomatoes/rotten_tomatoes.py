@@ -72,8 +72,7 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
                 gen_kwargs={"split_key": "validation", "files": dl_manager.iter_archive(archive)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"split_key": "test", "files": dl_manager.iter_archive(archive)},
+                name=datasets.Split.TEST, gen_kwargs={"split_key": "test", "files": dl_manager.iter_archive(archive)},
             ),
         ]
 

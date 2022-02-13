@@ -106,8 +106,7 @@ class GrailQA(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(dl_path, "grailqa_v1.0_train.json")},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_path, "grailqa_v1.0_train.json")},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,

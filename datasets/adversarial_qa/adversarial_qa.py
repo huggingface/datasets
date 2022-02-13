@@ -53,22 +53,10 @@ _LICENSE = "CC BY-SA 3.0"
 _URL = "https://adversarialqa.github.io/data/aqa_v1.0.zip"
 
 _CONFIG_NAME_MAP = {
-    "adversarialQA": {
-        "dir": "combined",
-        "model": "Combined",
-    },
-    "dbidaf": {
-        "dir": "1_dbidaf",
-        "model": "BiDAF",
-    },
-    "dbert": {
-        "dir": "2_dbert",
-        "model": "BERT-Large",
-    },
-    "droberta": {
-        "dir": "3_droberta",
-        "model": "RoBERTa-Large",
-    },
+    "adversarialQA": {"dir": "combined", "model": "Combined",},
+    "dbidaf": {"dir": "1_dbidaf", "model": "BiDAF",},
+    "dbert": {"dir": "2_dbert", "model": "BERT-Large",},
+    "droberta": {"dir": "3_droberta", "model": "RoBERTa-Large",},
 }
 
 
@@ -112,15 +100,9 @@ class AdversarialQA(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {
-                            "text": datasets.Value("string"),
-                            "answer_start": datasets.Value("int32"),
-                        }
+                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
                     ),
-                    "metadata": {
-                        "split": datasets.Value("string"),
-                        "model_in_the_loop": datasets.Value("string"),
-                    },
+                    "metadata": {"split": datasets.Value("string"), "model_in_the_loop": datasets.Value("string"),},
                 }
             ),
             # No default supervised_keys (as we have to pass both question
@@ -190,10 +172,7 @@ class AdversarialQA(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": qid,
-                            "answers": {
-                                "answer_start": answer_starts,
-                                "text": answers,
-                            },
+                            "answers": {"answer_start": answer_starts, "text": answers,},
                             "metadata": {"split": split, "model_in_the_loop": model_in_the_loop},
                         }
 

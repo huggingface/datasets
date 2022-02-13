@@ -76,10 +76,7 @@ class CrawlDomain(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": train_path,
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": train_path, "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -89,10 +86,7 @@ class CrawlDomain(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": dev_path,
-                    "split": "dev",
-                },
+                gen_kwargs={"filepath": dev_path, "split": "dev",},
             ),
         ]
 

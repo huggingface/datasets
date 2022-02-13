@@ -83,16 +83,9 @@ class ClickbaitNewsBG(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=spl_enum,
-                gen_kwargs={
-                    "filepath": data_dir[f"{self.config.name}_{spl}"],
-                    "split": spl,
-                },
+                name=spl_enum, gen_kwargs={"filepath": data_dir[f"{self.config.name}_{spl}"], "split": spl,},
             )
-            for spl, spl_enum in [
-                ("train", datasets.Split.TRAIN),
-                ("validation", datasets.Split.VALIDATION),
-            ]
+            for spl, spl_enum in [("train", datasets.Split.TRAIN), ("validation", datasets.Split.VALIDATION),]
         ]
 
     def _generate_examples(self, filepath, split):

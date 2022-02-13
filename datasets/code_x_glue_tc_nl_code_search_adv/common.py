@@ -50,10 +50,7 @@ class Child:
             downloaded_files[k] = dl_manager.download_and_extract(v)
 
         return [
-            datasets.SplitGenerator(
-                name=SPLITS[k],
-                gen_kwargs={"split_name": k, "file_paths": downloaded_files[k]},
-            )
+            datasets.SplitGenerator(name=SPLITS[k], gen_kwargs={"split_name": k, "file_paths": downloaded_files[k]},)
             for k in SPLITS
         ]
 

@@ -31,9 +31,7 @@ _BASE_URL = "https://raw.githubusercontent.com/microsoft/BingCoronavirusQuerySet
 class BingCoronavirusQuerySetConfig(datasets.BuilderConfig):
     def __init__(self, *args, queries_by=None, start_date=None, end_date=None, **kwargs):
         super().__init__(
-            *args,
-            name=f"{queries_by}_{start_date}_{end_date}",
-            **kwargs,
+            *args, name=f"{queries_by}_{start_date}_{end_date}", **kwargs,
         )
         self.queries_by = queries_by
         self.start_date = start_date
@@ -96,12 +94,7 @@ class BingCoronavirusQuerySet(datasets.GeneratorBasedBuilder):
 
         download_url = _base_url(self.config.queries_by, self.config.start_date, self.config.end_date)
         path = dl_manager.download_and_extract(download_url)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": path},
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path},)]
 
     def _generate_examples(self, datapath):
         with open(datapath, encoding="utf-8") as f:

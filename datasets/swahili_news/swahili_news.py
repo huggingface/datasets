@@ -61,9 +61,7 @@ class SwahiliNews(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="swahili_news",
-            version=VERSION,
-            description="Swahili : News Classification Dataset",
+            name="swahili_news", version=VERSION, description="Swahili : News Classification Dataset",
         )
     ]
 

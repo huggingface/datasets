@@ -80,10 +80,7 @@ class YoutubeCaptionCorrections(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         downloaded_filepaths = dl_manager.download_and_extract(_URLS)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepaths": downloaded_filepaths},
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": downloaded_filepaths},),
         ]
 
     def _generate_examples(self, filepaths):

@@ -70,26 +70,17 @@ class BlendedSkillTalk(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": "train.json",
-                    "files": dl_manager.iter_archive(archive),
-                },
+                gen_kwargs={"filepath": "train.json", "files": dl_manager.iter_archive(archive),},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": "valid.json",
-                    "files": dl_manager.iter_archive(archive),
-                },
+                gen_kwargs={"filepath": "valid.json", "files": dl_manager.iter_archive(archive),},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": "test.json",
-                    "files": dl_manager.iter_archive(archive),
-                },
+                gen_kwargs={"filepath": "test.json", "files": dl_manager.iter_archive(archive),},
             ),
         ]
 

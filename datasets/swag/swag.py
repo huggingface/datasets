@@ -132,25 +132,16 @@ class Swag(datasets.GeneratorBasedBuilder):
 
         splits = [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": data_dir["train"],
-                    "split": "train",
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"], "split": "train",},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": data_dir["val"],
-                    "split": "val",
-                },
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["val"], "split": "val",},
             ),
         ]
         if self.config.name == "regular":
             splits.append(
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    gen_kwargs={"filepath": data_dir["test"], "split": "test"},
+                    name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["test"], "split": "test"},
                 )
             )
 

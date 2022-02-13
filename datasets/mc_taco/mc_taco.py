@@ -53,11 +53,7 @@ class McTaco(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="plain_text",
-            description="Plain text",
-            version=VERSION,
-        ),
+        datasets.BuilderConfig(name="plain_text", description="Plain text", version=VERSION,),
     ]
 
     def _info(self):
@@ -84,27 +80,14 @@ class McTaco(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URLs)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": data_dir["test"],
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": data_dir["dev"],
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["test"],},),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["dev"],},),
         ]
 
     def _generate_examples(self, filepath):
         """Yields examples."""
         with open(filepath, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(
-                csv_file,
-                delimiter="\t",
-            )
+            csv_reader = csv.reader(csv_file, delimiter="\t",)
             for id_, row in enumerate(csv_reader):
                 yield id_, {
                     "sentence": row[0],

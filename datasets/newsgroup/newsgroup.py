@@ -108,11 +108,7 @@ class Newsgroups(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION + "\n" + self.config.description,
-            features=datasets.Features(
-                {
-                    "text": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"text": datasets.Value("string"),}),
             homepage="http://qwone.com/~jason/20Newsgroups/",
             citation=_CITATION,
         )

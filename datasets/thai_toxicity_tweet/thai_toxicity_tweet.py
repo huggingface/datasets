@@ -61,9 +61,7 @@ class ThaiToxicityTweet(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         ThaiToxicityTweetConfig(
-            name="thai_toxicity_tweet",
-            version=datasets.Version("1.0.0"),
-            description=_DESCRIPTION,
+            name="thai_toxicity_tweet", version=datasets.Version("1.0.0"), description=_DESCRIPTION,
         ),
     ]
 
@@ -89,8 +87,7 @@ class ThaiToxicityTweet(datasets.GeneratorBasedBuilder):
         data_dir = os.path.join(arch_path, "data")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, self._TRAIN_FILE)},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, self._TRAIN_FILE)},
             ),
         ]
 

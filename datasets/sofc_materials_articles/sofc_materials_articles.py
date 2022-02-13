@@ -257,11 +257,7 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "names": names["train"],
-                    "data_dir": data_dir,
-                    "split": "train",
-                },
+                gen_kwargs={"names": names["train"], "data_dir": data_dir, "split": "train",},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -271,11 +267,7 @@ class SOFCMaterialsArticles(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "names": names["dev"],
-                    "data_dir": data_dir,
-                    "split": "validation",
-                },
+                gen_kwargs={"names": names["dev"], "data_dir": data_dir, "split": "validation",},
             ),
         ]
 

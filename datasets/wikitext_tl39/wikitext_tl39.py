@@ -36,10 +36,7 @@ class WikitextTl39Config(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(WikitextTl39Config, self).__init__(
-            version=datasets.Version(
-                "1.0.0",
-            ),
-            **kwargs,
+            version=datasets.Version("1.0.0",), **kwargs,
         )
         self.data_url = data_url
 
@@ -48,9 +45,7 @@ class WikitextTl39(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
         WikitextTl39Config(
-            name="wikitext-tl-39",
-            data_url=_DATA_URL + "/" + "wikitext-tl-39.zip",
-            description=_DESCRIPTION,
+            name="wikitext-tl-39", data_url=_DATA_URL + "/" + "wikitext-tl-39.zip", description=_DESCRIPTION,
         ),
     ]
     BUILDER_CONFIG_CLASS = WikitextTl39Config

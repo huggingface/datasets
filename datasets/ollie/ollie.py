@@ -121,13 +121,7 @@ class Ollie(datasets.GeneratorBasedBuilder):
         my_urls = _URLs[self.config.name]
         data_dir = dl_manager.download_and_extract(my_urls)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": data_dir,
-                    "split": "train",
-                },
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir, "split": "train",},),
         ]
 
     def _generate_examples(self, filepath, split):

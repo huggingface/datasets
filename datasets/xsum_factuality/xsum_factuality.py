@@ -124,20 +124,14 @@ class XsumFactuality(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir["factuality"]),
-                        "split": "factuality",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir["factuality"]), "split": "factuality",},
                 ),
             ]
         else:
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir["hallucination"]),
-                        "split": "hallucination",
-                    },
+                    gen_kwargs={"filepath": os.path.join(data_dir["hallucination"]), "split": "hallucination",},
                 ),
             ]
 

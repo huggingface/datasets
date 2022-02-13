@@ -144,12 +144,8 @@ _TASKS = {
         "totto": ["totto"],
         "web_nlg": ["web_nlg_en", "web_nlg_ru"],
     },
-    "simplification": {
-        "wiki_auto_asset_turk": ["wiki_auto_asset_turk"],
-    },
-    "dialog": {
-        "schema_guided_dialog": ["schema_guided_dialog"],
-    },
+    "simplification": {"wiki_auto_asset_turk": ["wiki_auto_asset_turk"],},
+    "dialog": {"schema_guided_dialog": ["schema_guided_dialog"],},
 }
 
 _URLs = {
@@ -339,9 +335,7 @@ class Gem(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name=conf,
-            version=datasets.Version("1.1.0"),
-            description=f"GEM benchmark: {task} task, {conf} subset",
+            name=conf, version=datasets.Version("1.1.0"), description=f"GEM benchmark: {task} task, {conf} subset",
         )
         for task, dset_confs in _TASKS.items()
         for conf_list in dset_confs.values()
@@ -545,10 +539,7 @@ class Gem(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(dl_dir["data"], "commongen.train.jsonl"),
-                        "split": "train",
-                    },
+                    gen_kwargs={"filepath": os.path.join(dl_dir["data"], "commongen.train.jsonl"), "split": "train",},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
@@ -780,18 +771,11 @@ class Gem(datasets.GeneratorBasedBuilder):
             ]
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": dl_dir["train"],
-                        "split": "train",
-                    },
+                    name=datasets.Split.TRAIN, gen_kwargs={"filepath": dl_dir["train"], "split": "train",},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": dl_dir["validation"],
-                        "split": "validation",
-                    },
+                    gen_kwargs={"filepath": dl_dir["validation"], "split": "validation",},
                 ),
                 datasets.SplitGenerator(
                     name="test_asset",
@@ -802,11 +786,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                     },
                 ),
                 datasets.SplitGenerator(
-                    name="test_turk",
-                    gen_kwargs={
-                        "filepath": dl_dir["test_turk"],
-                        "split": "test_turk",
-                    },
+                    name="test_turk", gen_kwargs={"filepath": dl_dir["test_turk"], "split": "test_turk",},
                 ),
             ] + [
                 datasets.SplitGenerator(
@@ -824,25 +804,13 @@ class Gem(datasets.GeneratorBasedBuilder):
                 base_dir = os.path.join(dl_dir["data"], "GEM_data_crosslingual", f"{lang}_en")
                 return [
                     datasets.SplitGenerator(
-                        name=datasets.Split.TRAIN,
-                        gen_kwargs={
-                            "filepath": base_dir,
-                            "split": "train",
-                        },
+                        name=datasets.Split.TRAIN, gen_kwargs={"filepath": base_dir, "split": "train",},
                     ),
                     datasets.SplitGenerator(
-                        name=datasets.Split.VALIDATION,
-                        gen_kwargs={
-                            "filepath": base_dir,
-                            "split": "val",
-                        },
+                        name=datasets.Split.VALIDATION, gen_kwargs={"filepath": base_dir, "split": "val",},
                     ),
                     datasets.SplitGenerator(
-                        name=datasets.Split.TEST,
-                        gen_kwargs={
-                            "filepath": base_dir,
-                            "split": "test",
-                        },
+                        name=datasets.Split.TEST, gen_kwargs={"filepath": base_dir, "split": "test",},
                     ),
                 ]
             else:
@@ -851,28 +819,14 @@ class Gem(datasets.GeneratorBasedBuilder):
                 base_dir = os.path.join(dl_dir["data"], lang_name)
                 return [
                     datasets.SplitGenerator(
-                        name=datasets.Split.TRAIN,
-                        gen_kwargs={
-                            "filepath": base_dir,
-                            "split": "train",
-                            "lang": lang,
-                        },
+                        name=datasets.Split.TRAIN, gen_kwargs={"filepath": base_dir, "split": "train", "lang": lang,},
                     ),
                     datasets.SplitGenerator(
                         name=datasets.Split.VALIDATION,
-                        gen_kwargs={
-                            "filepath": base_dir,
-                            "split": "val",
-                            "lang": lang,
-                        },
+                        gen_kwargs={"filepath": base_dir, "split": "val", "lang": lang,},
                     ),
                     datasets.SplitGenerator(
-                        name=datasets.Split.TEST,
-                        gen_kwargs={
-                            "filepath": base_dir,
-                            "split": "test",
-                            "lang": lang,
-                        },
+                        name=datasets.Split.TEST, gen_kwargs={"filepath": base_dir, "split": "test", "lang": lang,},
                     ),
                 ]
         elif self.config.name == "xsum":
@@ -1101,12 +1055,7 @@ class Gem(datasets.GeneratorBasedBuilder):
                         "gem_id": f"{self.config.name}-{split}-{id_}",
                         "gem_parent_id": f"{self.config.name}-{split}-{id_}",
                         "dialog_acts": [
-                            {
-                                "act": act_id,
-                                "slot": slot,
-                                "values": values,
-                            }
-                            for act_id, slot, values in example["da"]
+                            {"act": act_id, "slot": slot, "values": values,} for act_id, slot, values in example["da"]
                         ],
                         "context": example["context"],
                         "dialog_id": example["dialog_id"],

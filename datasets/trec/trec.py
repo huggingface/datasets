@@ -141,16 +141,12 @@ class Trec(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": dl_files["train"],
-                },
+                gen_kwargs={"filepath": dl_files["train"],},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": dl_files["test"],
-                },
+                gen_kwargs={"filepath": dl_files["test"],},
             ),
         ]
 

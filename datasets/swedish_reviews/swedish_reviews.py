@@ -58,16 +58,13 @@ class SwedishReviews(datasets.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(dl_dir, _TEST_FILE)},
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, _TEST_FILE)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(dl_dir, _VAL_FILE)},
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dl_dir, _VAL_FILE)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(dl_dir, _TRAIN_FILE)},
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, _TRAIN_FILE)},
             ),
         ]
 

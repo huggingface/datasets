@@ -56,21 +56,9 @@ class Fever(datasets.GeneratorBasedBuilder):
     """Fact Extraction and VERification Dataset."""
 
     BUILDER_CONFIGS = [
-        FeverConfig(
-            name="v1.0",
-            description="FEVER  V1.0",
-            version=datasets.Version("1.0.0", ""),
-        ),
-        FeverConfig(
-            name="v2.0",
-            description="FEVER  V2.0",
-            version=datasets.Version("2.0.0", ""),
-        ),
-        FeverConfig(
-            name="wiki_pages",
-            description="Wikipedia pages",
-            version=datasets.Version("1.0.0", ""),
-        ),
+        FeverConfig(name="v1.0", description="FEVER  V1.0", version=datasets.Version("1.0.0", ""),),
+        FeverConfig(name="v2.0", description="FEVER  V2.0", version=datasets.Version("2.0.0", ""),),
+        FeverConfig(name="wiki_pages", description="Wikipedia pages", version=datasets.Version("1.0.0", ""),),
     ]
 
     def _info(self):
@@ -103,14 +91,7 @@ class Fever(datasets.GeneratorBasedBuilder):
         if self.config.name == "v2.0":
             urls = "https://s3-eu-west-1.amazonaws.com/fever.public/fever2-fixers-dev.jsonl"
             dl_path = dl_manager.download_and_extract(urls)
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": dl_path,
-                    },
-                )
-            ]
+            return [datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": dl_path,},)]
         elif self.config.name == "v1.0":
             urls = {
                 "train": "https://s3-eu-west-1.amazonaws.com/fever.public/train.jsonl",
@@ -122,42 +103,12 @@ class Fever(datasets.GeneratorBasedBuilder):
             }
             dl_path = dl_manager.download_and_extract(urls)
             return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": dl_path["train"],
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="unlabelled_test",
-                    gen_kwargs={
-                        "filepath": dl_path["unlabelled_test"],
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="unlabelled_dev",
-                    gen_kwargs={
-                        "filepath": dl_path["unlabelled_dev"],
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="labelled_dev",
-                    gen_kwargs={
-                        "filepath": dl_path["labelled_dev"],
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="paper_dev",
-                    gen_kwargs={
-                        "filepath": dl_path["paper_dev"],
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name="paper_test",
-                    gen_kwargs={
-                        "filepath": dl_path["paper_test"],
-                    },
-                ),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": dl_path["train"],},),
+                datasets.SplitGenerator(name="unlabelled_test", gen_kwargs={"filepath": dl_path["unlabelled_test"],},),
+                datasets.SplitGenerator(name="unlabelled_dev", gen_kwargs={"filepath": dl_path["unlabelled_dev"],},),
+                datasets.SplitGenerator(name="labelled_dev", gen_kwargs={"filepath": dl_path["labelled_dev"],},),
+                datasets.SplitGenerator(name="paper_dev", gen_kwargs={"filepath": dl_path["paper_dev"],},),
+                datasets.SplitGenerator(name="paper_test", gen_kwargs={"filepath": dl_path["paper_test"],},),
             ]
         elif self.config.name == "wiki_pages":
             urls = "https://s3-eu-west-1.amazonaws.com/fever.public/wiki-pages.zip"
@@ -165,12 +116,7 @@ class Fever(datasets.GeneratorBasedBuilder):
             files = sorted(os.listdir(os.path.join(dl_path, "wiki-pages")))
             file_paths = [os.path.join(dl_path, "wiki-pages", file) for file in files]
             return [
-                datasets.SplitGenerator(
-                    name="wikipedia_pages",
-                    gen_kwargs={
-                        "filepath": file_paths,
-                    },
-                ),
+                datasets.SplitGenerator(name="wikipedia_pages", gen_kwargs={"filepath": file_paths,},),
             ]
         else:
             raise ValueError("config name not found")

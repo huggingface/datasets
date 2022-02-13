@@ -364,10 +364,7 @@ class Clue(datasets.GeneratorBasedBuilder):
                 "context": datasets.Value("string"),
                 "question": datasets.Value("string"),
                 "answers": datasets.Sequence(
-                    {
-                        "text": datasets.Value("string"),
-                        "answer_start": datasets.Value("int32"),
-                    }
+                    {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
                 ),
             }
         elif self.config.name == "chid":
@@ -376,10 +373,7 @@ class Clue(datasets.GeneratorBasedBuilder):
                 "candidates": datasets.Sequence(datasets.Value("string")),
                 "content": datasets.Sequence(datasets.Value("string")),
                 "answers": datasets.features.Sequence(
-                    {
-                        "text": datasets.Value("string"),
-                        "candidate_id": datasets.Value("int32"),
-                    }
+                    {"text": datasets.Value("string"), "candidate_id": datasets.Value("int32"),}
                 ),
             }
         elif self.config.name == "c3":
@@ -416,11 +410,7 @@ class Clue(datasets.GeneratorBasedBuilder):
             test_file = "test.json"
 
         test_split = datasets.SplitGenerator(
-            name=datasets.Split.TEST,
-            gen_kwargs={
-                "data_file": os.path.join(data_dir, test_file),
-                "split": "test",
-            },
+            name=datasets.Split.TEST, gen_kwargs={"data_file": os.path.join(data_dir, test_file), "split": "test",},
         )
 
         split_list = [test_split]
@@ -450,10 +440,7 @@ class Clue(datasets.GeneratorBasedBuilder):
             split_list.append(
                 datasets.SplitGenerator(
                     name=datasets.Split("trial"),
-                    gen_kwargs={
-                        "data_file": os.path.join(data_dir or "", "trial.json"),
-                        "split": "trial",
-                    },
+                    gen_kwargs={"data_file": os.path.join(data_dir or "", "trial.json"), "split": "trial",},
                 )
             )
 
@@ -506,10 +493,7 @@ class Clue(datasets.GeneratorBasedBuilder):
                                     "context": context,
                                     "question": question,
                                     "id": id_,
-                                    "answers": {
-                                        "answer_start": answer_starts,
-                                        "text": answers,
-                                    },
+                                    "answers": {"answer_start": answer_starts, "text": answers,},
                                 }
 
                 else:

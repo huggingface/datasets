@@ -111,22 +111,13 @@ class BsdJaEn(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": data_dir["train"],
-                    "split": "train",
-                },
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir["train"], "split": "train",},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"filepath": data_dir["test"], "split": "test"},
+                name=datasets.Split.TEST, gen_kwargs={"filepath": data_dir["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": data_dir["dev"],
-                    "split": "dev",
-                },
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": data_dir["dev"], "split": "dev",},
             ),
         ]
 

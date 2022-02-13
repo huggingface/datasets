@@ -19,10 +19,7 @@ class CrimeAndPunishConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(CrimeAndPunishConfig, self).__init__(
-            version=datasets.Version(
-                "1.0.0",
-            ),
-            **kwargs,
+            version=datasets.Version("1.0.0",), **kwargs,
         )
         self.data_url = data_url
 
@@ -43,11 +40,7 @@ class CrimeAndPunish(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # datasets.features.FeatureConnectors
-            features=datasets.Features(
-                {
-                    "line": datasets.Value("string"),
-                }
-            ),
+            features=datasets.Features({"line": datasets.Value("string"),}),
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
@@ -62,10 +55,7 @@ class CrimeAndPunish(datasets.GeneratorBasedBuilder):
             data = dl_manager.download_and_extract(self.config.data_url)
 
             return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={"data_file": data, "split": "train"},
-                ),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_file": data, "split": "train"},),
             ]
         else:
             raise ValueError(f"{self.config.name} does not exist")

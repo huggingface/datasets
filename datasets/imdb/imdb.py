@@ -60,12 +60,7 @@ class IMDBReviewsConfig(datasets.BuilderConfig):
 class Imdb(datasets.GeneratorBasedBuilder):
     """IMDB movie reviews dataset."""
 
-    BUILDER_CONFIGS = [
-        IMDBReviewsConfig(
-            name="plain_text",
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [IMDBReviewsConfig(name="plain_text", description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(

@@ -59,12 +59,7 @@ class HardConfig(datasets.BuilderConfig):
 class Hard(datasets.GeneratorBasedBuilder):
     """Hard dataset."""
 
-    BUILDER_CONFIGS = [
-        HardConfig(
-            name="plain_text",
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [HardConfig(name="plain_text", description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -72,15 +67,7 @@ class Hard(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(
-                        names=[
-                            "1",
-                            "2",
-                            "3",
-                            "4",
-                            "5",
-                        ]
-                    ),
+                    "label": datasets.features.ClassLabel(names=["1", "2", "3", "4", "5",]),
                 }
             ),
             supervised_keys=None,

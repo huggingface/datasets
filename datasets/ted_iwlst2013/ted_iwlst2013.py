@@ -86,12 +86,7 @@ class TedIwlst2013(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         download_url = _LANGUAGE_PAIRS.get(tuple(self.config.name.split("-")))
         path = dl_manager.download_and_extract(download_url)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": path},
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path},)]
 
     def _generate_examples(self, datapath):
         l1, l2 = self.config.name.split("-")
@@ -106,9 +101,6 @@ class TedIwlst2013(datasets.GeneratorBasedBuilder):
                 y = y.strip()
                 result = (
                     sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "translation": {l1: x, l2: y},
-                    },
+                    {"id": str(sentence_counter), "translation": {l1: x, l2: y},},
                 )
                 yield result

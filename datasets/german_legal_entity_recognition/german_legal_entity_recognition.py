@@ -135,11 +135,7 @@ class GermanLegalEntityRecognition(datasets.GeneratorBasedBuilder):
                         assert len(current_words) == len(current_labels), "word len doesnt match label length"
                         sentence = (
                             sentence_counter,
-                            {
-                                "id": str(sentence_counter),
-                                "tokens": current_words,
-                                "ner_tags": current_labels,
-                            },
+                            {"id": str(sentence_counter), "tokens": current_words, "ner_tags": current_labels,},
                         )
                         sentence_counter += 1
                         current_words = []
@@ -150,10 +146,6 @@ class GermanLegalEntityRecognition(datasets.GeneratorBasedBuilder):
                 if current_words:
                     sentence = (
                         sentence_counter,
-                        {
-                            "id": str(sentence_counter),
-                            "tokens": current_words,
-                            "ner_tags": current_labels,
-                        },
+                        {"id": str(sentence_counter), "tokens": current_words, "ner_tags": current_labels,},
                     )
                     yield sentence

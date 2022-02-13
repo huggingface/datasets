@@ -123,24 +123,15 @@ class MacMorpho(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": "macmorpho-train.txt",
-                    "files": dl_manager.iter_archive(archive),
-                },
+                gen_kwargs={"filepath": "macmorpho-train.txt", "files": dl_manager.iter_archive(archive),},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": "macmorpho-test.txt",
-                    "files": dl_manager.iter_archive(archive),
-                },
+                gen_kwargs={"filepath": "macmorpho-test.txt", "files": dl_manager.iter_archive(archive),},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": "macmorpho-dev.txt",
-                    "files": dl_manager.iter_archive(archive),
-                },
+                gen_kwargs={"filepath": "macmorpho-dev.txt", "files": dl_manager.iter_archive(archive),},
             ),
         ]
 

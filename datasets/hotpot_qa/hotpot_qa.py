@@ -86,10 +86,7 @@ class HotpotQA(datasets.GeneratorBasedBuilder):
                     "type": datasets.Value("string"),
                     "level": datasets.Value("string"),
                     "supporting_facts": datasets.features.Sequence(
-                        {
-                            "title": datasets.Value("string"),
-                            "sent_id": datasets.Value("int32"),
-                        }
+                        {"title": datasets.Value("string"), "sent_id": datasets.Value("int32"),}
                     ),
                     "context": datasets.features.Sequence(
                         {

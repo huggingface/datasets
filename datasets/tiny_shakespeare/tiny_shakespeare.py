@@ -94,12 +94,10 @@ class TinyShakespeare(datasets.GeneratorBasedBuilder):
                 gen_kwargs={"split_key": "train", "split_text": train_text},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"split_key": "validation", "split_text": validation_text},
+                name=datasets.Split.VALIDATION, gen_kwargs={"split_key": "validation", "split_text": validation_text},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"split_key": "test", "split_text": test_text},
+                name=datasets.Split.TEST, gen_kwargs={"split_key": "test", "split_text": test_text},
             ),
         ]
 

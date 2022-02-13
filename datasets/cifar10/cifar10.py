@@ -70,10 +70,7 @@ class Cifar10(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "img": datasets.Image(),
-                    "label": datasets.features.ClassLabel(names=_NAMES),
-                }
+                {"img": datasets.Image(), "label": datasets.features.ClassLabel(names=_NAMES),}
             ),
             supervised_keys=("img", "label"),
             homepage="https://www.cs.toronto.edu/~kriz/cifar.html",

@@ -73,12 +73,10 @@ class TSAC(datasets.GeneratorBasedBuilder):
         test_neg_path = dl_manager.download_and_extract(_TEST_NEG_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"pospath": train_pos_path, "negpath": train_neg_path},
+                name=datasets.Split.TRAIN, gen_kwargs={"pospath": train_pos_path, "negpath": train_neg_path},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"pospath": test_pos_path, "negpath": test_neg_path},
+                name=datasets.Split.TEST, gen_kwargs={"pospath": test_pos_path, "negpath": test_neg_path},
             ),
         ]
 
@@ -90,11 +88,7 @@ class TSAC(datasets.GeneratorBasedBuilder):
                 row = row.strip()
                 result = (
                     sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "sentence": row,
-                        "target": "1",
-                    },
+                    {"id": str(sentence_counter), "sentence": row, "target": "1",},
                 )
                 yield result
                 sentence_counter += 1
@@ -104,11 +98,7 @@ class TSAC(datasets.GeneratorBasedBuilder):
                 row = row.strip()
                 result = (
                     sentence_counter,
-                    {
-                        "id": str(sentence_counter),
-                        "sentence": row,
-                        "target": "-1",
-                    },
+                    {"id": str(sentence_counter), "sentence": row, "target": "-1",},
                 )
                 yield result
                 sentence_counter += 1
