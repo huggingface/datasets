@@ -489,7 +489,7 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
     m_combined_path = re.search(
-        fr"http\S*{re.escape(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '/' + SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py')}\b",
+        rf"http\S*{re.escape(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '/' + SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py')}\b",
         str(exc_info.value),
     )
     assert m_combined_path is not None and is_remote_url(m_combined_path.group())
