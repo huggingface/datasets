@@ -567,6 +567,13 @@ def _check_column_names(column_names: List[str]):
         raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
 
 
+def _check_valid_indices_value(value, size):
+    if (value < 0 and value + size < 0) or (value >= size):
+        raise IndexError(
+            f"Invalid value {value} in indices iterable. All values must be within range [-{size}, {size - 1}]."
+        )
+
+
 def _check_if_features_can_be_aligned(features_list: List[Features]):
     """Check if the dictionaries of features can be aligned.
 
@@ -2747,6 +2754,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer = ArrowWriter(
                 path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
             )
+
+        indices = list(indices)
+
+        size = len(self)
+        _check_valid_indices_value(int(max(indices)), size=size)
+        _check_valid_indices_value(int(min(indices)), size=size)
 
         indices_array = pa.array(indices, type=pa.uint64())
         # Check if we need to convert indices
