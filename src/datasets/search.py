@@ -302,7 +302,7 @@ class FaissIndex(BaseIndex):
         """
         Sends a faiss index to a device.
         A device can either be a positive integer (GPU id), a negative integer (all GPUs),
-        or a list of positive integers (select GPUs to use).
+            or a list of positive integers (select GPUs to use), or `None` for CPU.
         """
 
         # If device is not specified, then it runs on CPU.
@@ -322,7 +322,7 @@ class FaissIndex(BaseIndex):
         elif isinstance(device, (list, tuple)):
             index = faiss.index_cpu_to_gpus_list(index, gpus=list(device))
         else:
-            raise TypeError("The argument type: {typ} is not expected.".format(typ=type(device)) +
+            raise TypeError("The argument type: {typ} is not expected. ".format(typ=type(device)) +
                             "Please pass in either nothing, a positive int, a negative int, or a list of positive ints.")
 
     def search(self, query: np.array, k=10) -> SearchResults:
@@ -367,7 +367,7 @@ class FaissIndex(BaseIndex):
         """Serialize the FaissIndex on disk"""
         import faiss  # noqa: F811
 
-        if self.device is not None and self.device > -1:
+        if self.device is not None:
             index = faiss.index_gpu_to_cpu(self.faiss_index)
         else:
             index = self.faiss_index
@@ -440,7 +440,7 @@ class IndexableMixin:
     ):
         """Add a dense index using Faiss for fast retrieval.
         The index is created using the vectors of the specified column.
-        You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+        You can specify `device` if you want to run it on GPU (`device` must be the GPU index, see more below).
         You can find more information about Faiss here:
         - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
 
@@ -448,7 +448,8 @@ class IndexableMixin:
             column (:obj:`str`): The column of the vectors to add to the index.
             index_name (Optional :obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
                 By defaul it corresponds to `column`.
-            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+                If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
             metric_type (Optional :obj:`int`): Type of metric. Ex: `faiss.METRIC_INNER_PRODUCT` or `faiss.METRIC_L2`.
             custom_index (Optional :obj:`faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
@@ -483,9 +484,10 @@ class IndexableMixin:
             external_arrays (:obj:`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
                 It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
             index_name (:obj:`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+                If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-            metric_type (Optional :obj:`int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+            metric_type (Optional :obj:`int`): Type of metric. Ex: `faiss.METRIC_INNER_PRODUCT` or `faiss.METRIC_L2`.
             custom_index (Optional :obj:`faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
             train_size (Optional :obj:`int`): If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
@@ -524,7 +526,8 @@ class IndexableMixin:
             index_name (:obj:`str`): The index_name/identifier of the index. This is the index_name that is used to
                 call `.get_nearest` or `.search`.
             file (:obj:`str`): The path to the serialized faiss index on disk.
-            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+                If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
         """
         index = FaissIndex.load(file, device=device)
         if index.faiss_index.ntotal != len(self):
