@@ -207,7 +207,7 @@ class SpeechCommands(datasets.GeneratorBasedBuilder):
             if not path.endswith(".wav"):
                 continue
 
-            word, audio_filename = path.split("/")
+            word, audio_filename = path.rsplit("/", 2)[-2:]
             is_unknown = False
 
             if word == SILENCE:
