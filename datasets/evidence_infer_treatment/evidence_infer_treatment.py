@@ -158,10 +158,10 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
             data = csv.DictReader(f)
             for item in data:
                 prompt_id = int(item["PromptID"])
-
+                if "" in item:  # Remove unnamed column with row index value
+                    del item[""]
                 if "Annotations" not in ALL_PROMPTS[prompt_id]:
                     ALL_PROMPTS[prompt_id]["Annotations"] = []
-
                 ALL_PROMPTS[prompt_id]["Annotations"].append(item)
 
         # Simplify everything

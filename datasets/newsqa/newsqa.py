@@ -244,7 +244,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 _ = next(csv_reader)
                 for id_, row in enumerate(csv_reader):
                     if row:
-                        yield row[0], {
+                        yield id_, {
                             "story_id": row[0],
                             "story_text": row[-1],
                             "question": row[1],
@@ -256,7 +256,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 d = json.load(f)
                 data = d["data"]
 
-                for iter in data:
+                for id_, iter in enumerate(data):
 
                     questions = []
 
@@ -306,7 +306,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                         dict1["validated_answers"] = validated_answers
                         questions.append(dict1)
 
-                    yield iter["storyId"], {
+                    yield id_, {
                         "storyId": iter["storyId"],
                         "text": iter["text"],
                         "type": iter["type"],
@@ -321,8 +321,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 _ = next(csv_reader)
                 for id_, row in enumerate(csv_reader):
                     if row:
-                        # print (row)
-                        yield row[0], {
+                        yield id_, {
                             "story_id": row[0],
                             "story_text": row[1],
                             "question": row[2],
