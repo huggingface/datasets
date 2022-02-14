@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+"""MEDLINE/PubMed data."""
 
 
 import copy
@@ -24,11 +24,10 @@ import datasets
 logger = datasets.logging.get_logger(__name__)
 
 
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
+Courtesy of the U.S. National Library of Medicine.
 """
 
-# You can copy an official description
 _DESCRIPTION = """\
 NLM produces a baseline set of MEDLINE/PubMed citation records in XML format for download on an annual basis. The annual baseline is released in December of each year. Each day, NLM produces update files that include new, revised and deleted citations. See our documentation page for more information.
 """
@@ -306,19 +305,10 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         )
         self.fill_keys_from_features(features)
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
+            features=features,
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
@@ -328,7 +318,6 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filenames": dl_dir},
             ),
         ]
