@@ -221,7 +221,7 @@ class FaissIndex(BaseIndex):
 
     def __init__(
         self,
-        device: Optional[int] = None,
+        device: Optional[Union[int, List[int]]] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
@@ -269,10 +269,8 @@ class FaissIndex(BaseIndex):
                     index = faiss.IndexFlat(size)
                 else:
                     index = faiss.IndexFlat(size, self.metric_type)
-            if self.device is not None and self.device > -1:
-                self.faiss_res = faiss.StandardGpuResources()
-                index = faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
-            self.faiss_index = index
+
+            self.faiss_index = self._faiss_index_to_device(index, self.device)
             logger.info(f"Created faiss index of type {type(self.faiss_index)}")
 
         # Set verbosity level
@@ -298,6 +296,29 @@ class FaissIndex(BaseIndex):
         for i in utils.tqdm(range(0, len(vectors), batch_size), disable=not utils.is_progress_bar_enabled()):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
+
+    @staticmethod
+    def _faiss_index_to_device(index: "faiss.Index", device: Optional[Union[int, List[int]]] = None) -> "faiss.Index":
+        """
+        Sends a faiss index to a device.
+        A device can either be a positive integer (GPU id), a negative integer (all GPUs),
+        or a list of positive integers (select GPUs to use).
+        """
+
+        # If device is specified
+        if device is not None:
+            # If the device id is given as an integer
+            if isinstance(device, int):
+                # Positive integers are directly mapped to GPU ids
+                if device > -1:
+                    faiss_res = faiss.StandardGpuResources()
+                    index = faiss.index_cpu_to_gpu(faiss_res, device, index)
+                # And negative integers mean using all GPUs
+                else:
+                    index = faiss.index_cpu_to_all_gpus(index)
+            # Device ids given as a list mean mapping to those devices specified.
+            elif isinstance(device, (list, tuple)):
+                index = faiss.index_cpu_to_gpus_list(index, gpus=list(device))
 
     def search(self, query: np.array, k=10) -> SearchResults:
         """Find the nearest examples indices to the query.
@@ -352,18 +373,16 @@ class FaissIndex(BaseIndex):
     def load(
         cls,
         file: Union[str, PurePath],
-        device: Optional[int] = None,
+        device: Optional[Union[int, List[int]]] = None,
     ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         import faiss  # noqa: F811
 
-        faiss_index = cls(device=device)
+        # Instances of FaissIndex is essentially just a wrapper for faiss indices.
+        wrapper = cls(device=device)
         index = faiss.read_index(str(file))
-        if faiss_index.device is not None and faiss_index.device > -1:
-            faiss_index.faiss_res = faiss.StandardGpuResources()
-            index = faiss.index_cpu_to_gpu(faiss_index.faiss_res, faiss_index.device, index)
-        faiss_index.faiss_index = index
-        return faiss_index
+        wrapper.faiss_index = wrapper._faiss_index_to_device(index, wrapper.device)
+        return wrapper
 
 
 class IndexableMixin:
@@ -407,7 +426,7 @@ class IndexableMixin:
         self,
         column: str,
         index_name: Optional[str] = None,
-        device: Optional[int] = None,
+        device: Optional[Union[int, List[int]]] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
@@ -426,7 +445,7 @@ class IndexableMixin:
                 By defaul it corresponds to `column`.
             device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
             string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-            metric_type (Optional :obj:`int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+            metric_type (Optional :obj:`int`): Type of metric. Ex: `faiss.METRIC_INNER_PRODUCT` or `faiss.METRIC_L2`.
             custom_index (Optional :obj:`faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
             train_size (Optional :obj:`int`): If the index needs a training step, specifies how many vectors will be used to train the index.
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
@@ -442,7 +461,7 @@ class IndexableMixin:
         self,
         external_arrays: np.array,
         index_name: str,
-        device: Optional[int] = None,
+        device: Optional[Union[int, List[int]]] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
         custom_index: Optional["faiss.Index"] = None,
@@ -489,7 +508,7 @@ class IndexableMixin:
         self,
         index_name: str,
         file: Union[str, PurePath],
-        device: Optional[int] = None,
+        device: Optional[Union[int, List[int]]] = None,
     ):
         """Load a FaissIndex from disk.
 
