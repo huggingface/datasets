@@ -127,12 +127,17 @@ class VivosDataset(datasets.GeneratorBasedBuilder):
                 }
         inside_clips_dir = False
         id_ = 0
-        for path, f in audio_files:
-            if path.startswith(path_to_clips):
+        for path, f in audio_files:  # path - full local path
+            root_dir, speaker_id, audio_filename = path.rsplit("/", 2)
+            if root_dir.endswith(path_to_clips):
                 inside_clips_dir = True
-                if path in examples:
+                # audio_path_within_archive looks like 'vivos/train/waves/VIVOSSPK01/VIVOSSPK01_R001.wav'
+                audio_path_within_archive = path_to_clips + "/" + speaker_id + "/" + audio_filename
+                if audio_path_within_archive in examples:
                     audio = {"path": path, "bytes": f.read()}
-                    yield id_, {**examples[path], "audio": audio}
+                    result = {**examples[audio_path_within_archive], "audio": audio}
+                    result["path"] = path
+                    yield id_, result
                     id_ += 1
             elif inside_clips_dir:
                 break
