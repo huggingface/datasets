@@ -218,7 +218,7 @@ class AirDialogue(datasets.GeneratorBasedBuilder):
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
         for path, f in files:
-            if path == filepath:
+            if path.endswith(filepath):
                 for id_, row in enumerate(f):
                     row = row.decode("utf-8")
                     data = json.loads(row)
