@@ -305,20 +305,25 @@ class FaissIndex(BaseIndex):
         or a list of positive integers (select GPUs to use).
         """
 
-        # If device is specified
-        if device is not None:
-            # If the device id is given as an integer
-            if isinstance(device, int):
-                # Positive integers are directly mapped to GPU ids
-                if device > -1:
-                    faiss_res = faiss.StandardGpuResources()
-                    index = faiss.index_cpu_to_gpu(faiss_res, device, index)
-                # And negative integers mean using all GPUs
-                else:
-                    index = faiss.index_cpu_to_all_gpus(index)
-            # Device ids given as a list mean mapping to those devices specified.
-            elif isinstance(device, (list, tuple)):
-                index = faiss.index_cpu_to_gpus_list(index, gpus=list(device))
+        # If device is not specified, then it runs on CPU.
+        if device is None:
+            return index
+
+        # If the device id is given as an integer
+        if isinstance(device, int):
+            # Positive integers are directly mapped to GPU ids
+            if device > -1:
+                faiss_res = faiss.StandardGpuResources()
+                index = faiss.index_cpu_to_gpu(faiss_res, device, index)
+            # And negative integers mean using all GPUs
+            else:
+                index = faiss.index_cpu_to_all_gpus(index)
+        # Device ids given as a list mean mapping to those devices specified.
+        elif isinstance(device, (list, tuple)):
+            index = faiss.index_cpu_to_gpus_list(index, gpus=list(device))
+        else:
+            raise TypeError("The argument type: {typ} is not expected.".format(typ=type(device)) +
+                            "Please pass in either nothing, a positive int, a negative int, or a list of positive ints.")
 
     def search(self, query: np.array, k=10) -> SearchResults:
         """Find the nearest examples indices to the query.
