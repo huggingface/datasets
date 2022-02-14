@@ -59,6 +59,7 @@ from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import (
+    Audio,
     ClassLabel,
     Features,
     FeatureType,
@@ -1269,11 +1270,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             Use :meth:`Dataset.flatten` instead.
         """
         for depth in range(1, max_depth):
-            if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
+            has_struct_type = False
+            for field in self._data.schema:
+                if isinstance(field.type, pa.StructType):
+                    has_struct_type = True
+                    if isinstance(self.info.features[field.name], Audio):
+                        raise ValueError(
+                            f"Cannot flatten table with Audio feature in column {field.name} at depth {depth}."
+                        )
+            if has_struct_type:
                 self._data = self._data.flatten()
+                self.info.features = self.info.features.flatten(max_depth=2)
             else:
                 break
-        self.info.features = self.features.flatten(max_depth=max_depth)
         self._data = update_metadata_with_features(self._data, self.features)
         logger.info(f'Flattened dataset from depth {depth} to depth { 1 if depth + 1 < max_depth else "unknown"}.')
 
@@ -1288,11 +1297,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         dataset = copy.deepcopy(self)
         for depth in range(1, max_depth):
-            if any(isinstance(field.type, pa.StructType) for field in dataset._data.schema):
+            has_struct_type = False
+            for field in dataset._data.schema:
+                if isinstance(field.type, pa.StructType):
+                    has_struct_type = True
+                    if isinstance(dataset.info.features[field.name], Audio):
+                        raise ValueError(
+                            f"Cannot flatten table with Audio feature in column {field.name} at depth {depth}."
+                        )
+            if has_struct_type:
                 dataset._data = dataset._data.flatten()
+                dataset.info.features = dataset.info.features.flatten(max_depth=2)
             else:
                 break
-        dataset.info.features = self.features.flatten(max_depth=max_depth)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
         dataset._fingerprint = new_fingerprint

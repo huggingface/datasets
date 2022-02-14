@@ -1139,21 +1139,35 @@ def table_flatten(table: pa.Table):
     Returns:
         Table: the flattened table
     """
-    from .features import Audio, Features, Image
+    from .features import Audio, Features
 
+    has_decodable_feature = False
+    has_audio_feature = False
     features = Features.from_arrow_schema(table.schema)
-    if any(isinstance(feature, (Audio, Image)) and feature.decode for feature in features.values()):
-        flattened_arrays, flattened_names = [], []
-        for name, feature in features.items():
-            array = table.column(name)
-            if pa.types.is_struct(feature.pa_type) and (not feature.decode if hasattr(feature, "decode") else True):
-                flattened_array = array.flatten()
-                flattened_name = [f"{name}.{field.name}" for field in feature.pa_type]
+    for column_name, subfeature in features.items():
+        if hasattr(subfeature, "decode_example") and subfeature.decode:
+            has_decodable_feature = True
+            if isinstance(subfeature, Audio):
+                has_audio_feature = True
+    if has_audio_feature:
+        raise ValueError("Cannot flatten table with decodable Audio feature")
+    if has_decodable_feature:
+        flat_arrays = []
+        flat_column_names = []
+        for column_name, subfeature in features.items():
+            array = table.column(column_name)
+            if pa.types.is_struct(subfeature.pa_type) and (
+                not subfeature.decode if hasattr(subfeature, "decode_example") else True
+            ):
+                flat_arrays.extend(array.flatten())
+                flat_column_names.extend([f"{column_name}.{field.name}" for field in subfeature.pa_type])
             else:
-                flattened_array = [array]
-                flattened_name = [name]
-            flattened_arrays.extend(flattened_array)
-            flattened_names.extend(flattened_name)
-        return pa.Table.from_arrays(flattened_arrays, schema=features.flatten(max_depth=1).arrow_schema)
+                flat_arrays.append(array)
+                flat_column_names.append(column_name)
+        flat_features = features.flatten(max_depth=2)
+        flat_features = Features({column_name: flat_features[column_name] for column_name in flat_column_names})
+        return pa.Table.from_arrays(
+            flat_arrays, schema=flat_features.arrow_schema
+        )  # use `schema` and not `names` to preserve complex types in metadata
     else:
         return table.flatten()
