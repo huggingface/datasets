@@ -322,8 +322,10 @@ class FaissIndex(BaseIndex):
         elif isinstance(device, (list, tuple)):
             index = faiss.index_cpu_to_gpus_list(index, gpus=list(device))
         else:
-            raise TypeError("The argument type: {typ} is not expected. ".format(typ=type(device)) +
-                            "Please pass in either nothing, a positive int, a negative int, or a list of positive ints.")
+            raise TypeError(
+                "The argument type: {typ} is not expected. ".format(typ=type(device))
+                + "Please pass in either nothing, a positive int, a negative int, or a list of positive ints."
+            )
 
     def search(self, query: np.array, k=10) -> SearchResults:
         """Find the nearest examples indices to the query.
