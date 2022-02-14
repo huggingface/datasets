@@ -1,11 +1,27 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- crowdsourced
 languages:
 - en
-paperswithcode_id: natural-questions
+licenses:
+- cc-by-sa-3.0
+multilinguality:
+- monolingual
 pretty_name: Natural Questions
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- question-answering
+task_ids:
+- open-domain-qa
+paperswithcode_id: natural-questions
 ---
 
-# Dataset Card for "natural_questions"
+# Dataset Card for Natural Questions
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -104,9 +120,10 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-| name  |train |validation|
-|-------|-----:|---------:|
-|default|307373|      7830|
+| name    |  train |validation|
+|---------|-------:|---------:|
+| default | 307373 |      7830|
+| dev     |    N/A |      7830|
 
 ## Dataset Creation
 
@@ -160,7 +177,7 @@ The data fields are the same among all splits.
 
 ### Licensing Information
 
-[More Information Needed](https://github.com/huggingface/datasets/blob/master/CONTRIBUTING.md#how-to-contribute-to-the-dataset-cards)
+[Creative Commons Attribution-ShareAlike 3.0 Unported](https://creativecommons.org/licenses/by-sa/3.0/).
 
 ### Citation Information
 

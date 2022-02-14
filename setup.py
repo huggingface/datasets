@@ -124,7 +124,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "apache-beam>=2.26.0",
-    "elasticsearch",
+    "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElastictSearch()
     "aiobotocore",
     "boto3",
     "botocore",
@@ -188,7 +188,7 @@ if os.name != "nt":
         ]
     )
 
-QUALITY_REQUIRE = ["black==21.4b0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
