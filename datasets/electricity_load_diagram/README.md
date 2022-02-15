@@ -96,7 +96,7 @@ For the `lsnet` configuration we split the training window so that it is 0.6-th 
 
 For this univariate regular time series we have:
 
-- `start`: a `datetime` of the first entry of each time serie in the dataset
+- `start`: a `datetime` of the first entry of each time series in the dataset
 - `target`: an `array[float32]` of the actual target values
 - `feat_static_cat`: an `array[uint64]` which contains a categorical identifier of each time series in the dataset
 - `item_id`: a string identifier of each time series in a dataset for reference

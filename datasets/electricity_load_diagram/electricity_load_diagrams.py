@@ -54,7 +54,7 @@ _LICENSE = ""
 _URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/00321/LD2011_2014.txt.zip"
 
 
-class ElectrictyLoadDiagramConfig(datasets.BuilderConfig):
+class ElectricityLoadDiagramsConfig(datasets.BuilderConfig):
     """A builder config with some added meta data."""
 
     freq: str = "1H"
@@ -62,18 +62,18 @@ class ElectrictyLoadDiagramConfig(datasets.BuilderConfig):
     rolling_evaluations: int = 7
 
 
-class ElectrictyLoadDiagram(datasets.GeneratorBasedBuilder):
+class ElectricityLoadDiagrams(datasets.GeneratorBasedBuilder):
     """Hourly electricity consumption of 370 points/clients."""
 
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        ElectrictyLoadDiagramConfig(
+        ElectricityLoadDiagramsConfig(
             name="uci",
             version=VERSION,
             description="Original UCI time series.",
         ),
-        ElectrictyLoadDiagramConfig(
+        ElectricityLoadDiagramsConfig(
             name="lstnet",
             version=VERSION,
             description="Electricity time series preprocessed as in LSTNet paper.",
