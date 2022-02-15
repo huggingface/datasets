@@ -1,16 +1,21 @@
 ---
-annotations_creators: []
-language_creators: []
+annotations_creators:
+- no-annotation
+language_creators:
+- found
 languages: []
 licenses:
 - unknown
 multilinguality: []
-pretty_name: Electricity-Load-Diagrams
+pretty_name: Electricity Load Diagram
 size_categories:
 - unknown
-source_datasets: []
-task_categories: []
-task_ids: []
+source_datasets:
+- original
+task_categories:
+- other
+task_ids:
+- other-other-time-series-forecasting
 ---
 
 # Dataset Card for Electricity Load Diagrams
