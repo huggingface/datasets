@@ -76,7 +76,7 @@ class ElectrictyLoadDiagram(datasets.GeneratorBasedBuilder):
         ElectrictyLoadDiagramConfig(
             name="lstnet",
             version=VERSION,
-            description="Electricity time series preporcessed as in LSTNet paper.",
+            description="Electricity time series preprocessed as in LSTNet paper.",
         ),
     ]
 
