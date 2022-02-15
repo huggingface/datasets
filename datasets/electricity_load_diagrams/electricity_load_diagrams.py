@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2022 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ _CITATION = """\
 }
 """
 
-# You can copy an official description
 _DESCRIPTION = """\
 This new dataset contains hourly kW electricity consumption time series of 370 Portuguese clients from 2011 to 2014.
 """
@@ -49,8 +48,6 @@ _HOMEPAGE = "https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams2011
 
 _LICENSE = ""
 
-# The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/00321/LD2011_2014.txt.zip"
 
 
@@ -95,25 +92,14 @@ class ElectricityLoadDiagrams(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features, uncomment supervised_keys line below and
-            # specify them. They'll be used if as_supervised=True in builder.as_dataset.
-            # supervised_keys=("sentence", "label"),
-            # Homepage of the dataset for documentation
+            features=features,
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLS
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         data_dir = dl_manager.download_and_extract(_URL)
 
         train_ts = []
@@ -190,33 +176,24 @@ class ElectricityLoadDiagrams(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "split": train_ts,
-                    "filepath": None,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "split": test_ts,
-                    "filepath": None,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "split": val_ts,
-                    "filepath": None,
                 },
             ),
         ]
 
-    # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
-    def _generate_examples(self, filepath, split):
-        # The `key` is for legacy reasons (tfds) and is not important in itself, but must be unique for each example.
+    def _generate_examples(self, split):
         for key, row in enumerate(split):
-            # Yields examples as (key, example) tuples
             yield key, row
