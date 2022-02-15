@@ -224,7 +224,8 @@ class Lama(datasets.GeneratorBasedBuilder):
             id_ = -1
             inside_trec_directory = False
             for path, f in files:
-                if any(fnmatch(path, pattern) for pattern in filepaths):
+                path_inside_archive = "/".join(path.split("/")[-2:])
+                if any(fnmatch(path_inside_archive, pattern) for pattern in filepaths):
                     inside_trec_directory = True
                     for row in f:
                         data = json.loads(row)
@@ -254,7 +255,8 @@ class Lama(datasets.GeneratorBasedBuilder):
             for path, f in files:
                 if not filepaths:
                     break
-                if path in list(filepaths):
+                path_within_archive = "/".join(path.split("/")[-2:])
+                if path_within_archive in list(filepaths):
                     for row in f:
                         data = json.loads(row)
                         if data.get("negated") is not None:
@@ -281,13 +283,14 @@ class Lama(datasets.GeneratorBasedBuilder):
                                     "masked_sentence": str(masked_sentence),
                                     "negated": str(""),
                                 }
-                    filepaths.remove(path)
+                    filepaths.remove(path_within_archive)
         elif self.config.name == "squad":
             id_ = -1
             for path, f in files:
                 if not filepaths:
                     break
-                if path in filepaths:
+                path_within_archive = "/".join(path.split("/")[-2:])
+                if path_within_archive in filepaths:
                     for row in f:
                         data = json.loads(row)
                         for masked_sentence in data["masked_sentences"]:
@@ -299,52 +302,52 @@ class Lama(datasets.GeneratorBasedBuilder):
                                 "negated": str(data.get("negated", "")),
                                 "masked_sentence": str(masked_sentence),
                             }
-                    filepaths.remove(path)
+                    filepaths.remove(path_within_archive)
         elif self.config.name == "google_re":
             id_ = -1
             for path, f in files:
-                if path in filepaths:
-                    if not filepaths:
-                        break
-                    if path in filepaths:
-                        # from https://github.com/facebookresearch/LAMA/blob/master/scripts/run_experiments.py
-                        if "place_of_birth" in path:
-                            pred = {
-                                "relation": "place_of_birth",
-                                "template": "[X] was born in [Y] .",
-                                "template_negated": "[X] was not born in [Y] .",
+                path_within_archive = "/".join(path.split("/")[-2:])
+                if not filepaths:
+                    break
+                if path_within_archive in filepaths:
+                    # from https://github.com/facebookresearch/LAMA/blob/master/scripts/run_experiments.py
+                    if "place_of_birth" in path:
+                        pred = {
+                            "relation": "place_of_birth",
+                            "template": "[X] was born in [Y] .",
+                            "template_negated": "[X] was not born in [Y] .",
+                        }
+                    elif "date_of_birth" in path:
+                        pred = {
+                            "relation": "date_of_birth",
+                            "template": "[X] (born [Y]).",
+                            "template_negated": "[X] (not born [Y]).",
+                        }
+                    else:
+                        pred = {
+                            "relation": "place_of_death",
+                            "template": "[X] died in [Y] .",
+                            "template_negated": "[X] did not die in [Y] .",
+                        }
+                    for row in f:
+                        data = json.loads(row)
+                        for masked_sentence in data["masked_sentences"]:
+                            id_ += 1
+                            yield id_, {
+                                "pred": str(data["pred"]),
+                                "sub": str(data["sub"]),
+                                "obj": str(data["obj"]),
+                                "evidences": str(data["evidences"]),
+                                "judgments": str(data["judgments"]),
+                                "sub_w": str(data["sub_w"]),
+                                "sub_label": str(data["sub_label"]),
+                                "sub_aliases": str(data["sub_aliases"]),
+                                "obj_w": str(data["obj_w"]),
+                                "obj_label": str(data["obj_label"]),
+                                "obj_aliases": str(data["obj_aliases"]),
+                                "uuid": str(data["uuid"]),
+                                "masked_sentence": str(masked_sentence),
+                                "template": str(pred["template"]),
+                                "template_negated": str(pred["template_negated"]),
                             }
-                        elif "date_of_birth" in path:
-                            pred = {
-                                "relation": "date_of_birth",
-                                "template": "[X] (born [Y]).",
-                                "template_negated": "[X] (not born [Y]).",
-                            }
-                        else:
-                            pred = {
-                                "relation": "place_of_death",
-                                "template": "[X] died in [Y] .",
-                                "template_negated": "[X] did not die in [Y] .",
-                            }
-                        for row in f:
-                            data = json.loads(row)
-                            for masked_sentence in data["masked_sentences"]:
-                                id_ += 1
-                                yield id_, {
-                                    "pred": str(data["pred"]),
-                                    "sub": str(data["sub"]),
-                                    "obj": str(data["obj"]),
-                                    "evidences": str(data["evidences"]),
-                                    "judgments": str(data["judgments"]),
-                                    "sub_w": str(data["sub_w"]),
-                                    "sub_label": str(data["sub_label"]),
-                                    "sub_aliases": str(data["sub_aliases"]),
-                                    "obj_w": str(data["obj_w"]),
-                                    "obj_label": str(data["obj_label"]),
-                                    "obj_aliases": str(data["obj_aliases"]),
-                                    "uuid": str(data["uuid"]),
-                                    "masked_sentence": str(masked_sentence),
-                                    "template": str(pred["template"]),
-                                    "template_negated": str(pred["template_negated"]),
-                                }
-                        filepaths.remove(path)
+                    filepaths.remove(path_within_archive)
