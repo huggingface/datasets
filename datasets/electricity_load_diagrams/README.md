@@ -96,7 +96,7 @@ A sample from the training set is provided below:
 
 ```
 {
-  'start': datetime.datetime(2012, 1, 1, 0, 0)
+  'start': datetime.datetime(2012, 1, 1, 0, 0),
   'target': [14.0, 18.0, 21.0, 20.0, 22.0, 20.0, 20.0, 20.0, 13.0, 11.0], # <= this target array is a concatenated sample
   'feat_static_cat': [0], 
   'item_id': '0'
