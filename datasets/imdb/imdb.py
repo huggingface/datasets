@@ -100,12 +100,14 @@ class Imdb(datasets.GeneratorBasedBuilder):
         if labeled:
             label_mapping = {"pos": 1, "neg": 0}
             for path, f in files:
-                if path.startswith(f"aclImdb/{split}"):
-                    label = label_mapping.get(path.split("/")[2])
+                # if path.startswith(f"aclImdb/{split}"):
+                if path.split("/")[-4:-2] == ["aclImdb", split]:
+                    label = label_mapping.get(path.split("/")[-2])
                     if label is not None:
                         yield path, {"text": f.read().decode("utf-8"), "label": label}
         else:
             for path, f in files:
-                if path.startswith(f"aclImdb/{split}"):
-                    if path.split("/")[2] == "unsup":
+                # if path.startswith(f"aclImdb/{split}"):
+                if path.split("/")[-4:-2] == ["aclImdb", split]:
+                    if path.split("/")[-2] == "unsup":
                         yield path, {"text": f.read().decode("utf-8"), "label": -1}
