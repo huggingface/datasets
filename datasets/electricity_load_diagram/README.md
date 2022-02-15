@@ -2,9 +2,10 @@
 annotations_creators: []
 language_creators: []
 languages: []
-licenses: []
+licenses:
+- unknown
 multilinguality: []
-pretty_name: ElectricityLoadDiagrams20112014
+pretty_name: Electricity-Load-Diagrams
 size_categories:
 - unknown
 source_datasets: []
@@ -12,7 +13,7 @@ task_categories: []
 task_ids: []
 ---
 
-# Dataset Card for ElectricityLoadDiagrams20112014
+# Dataset Card for Electricity Load Diagrams
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -41,18 +42,18 @@ task_ids: []
 
 ## Dataset Description
 
-- **Homepage:** [Electricity Load 2011-2014](https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014)
+- **Homepage:** [Electricity Load Diagrams 2011-2014](https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014)
 - **Paper:** [Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks
 ](https://dl.acm.org/doi/10.1145/3209978.3210006)
 - **Point of Contact:** [Artur Trindade](mailto:artur.trindade@elergone.pt)
 
 ### Dataset Summary
 
-This new dataset contains hourly kW electricity consumption time series of 370 Portuguese clients from 2011 to 2014.
+This dataset contains hourly kW electricity consumption time series of 370 Portuguese clients from 2011 to 2014.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `time-series-forecasting`: [Explain how to do regression and clustering (listed here: https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014#) on this time-series dataset]
 
 ### Languages
 
@@ -60,8 +61,8 @@ This new dataset contains hourly kW electricity consumption time series of 370 P
 
 ## Dataset Structure
 
-Data set has no missing values. Values are in kW of each 15 min and are resampled to hourly frequency. 
-Each column represent one client. Some clients were created after 2011. In these cases consumption were considered zero. All time labels report to Portuguese hour. However all days present 96 measures (24*4). Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
+Data set has no missing values. The raw values are in kW of each 15 min interval and are resampled to hourly frequency. 
+Each time series represent one client. Some clients were created after 2011. In these cases consumption were considered zero. All time labels report to Portuguese hour, however all days contain 96 measurements (24*4). Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
 
 
 ### Data Instances
@@ -70,8 +71,8 @@ A sample from the training set is provided below:
 
 ```python
 {
-  'start': '2012-01-01 00:00:00', 
-  'target': [14.0, 18.0, 21.0, 20.0, 22.0, 20.0, 20.0, 20.0, 13.0, 11.0], # <= this target value is a concatenated sample
+  'start': '2012-01-01 00:00:00',
+  'target': [14.0, 18.0, 21.0, 20.0, 22.0, 20.0, 20.0, 20.0, 13.0, 11.0], # <= this target array is a concatenated sample
   'feat_static_cat': [0], 
   'item_id': '0'
 }
@@ -83,8 +84,7 @@ The time series are resampled to hourly frequency. We test on 7 rolling windows 
 
 The `uci` validation therefore ends 24*7 time steps before the end of each time series. The training split ends 24 time steps before the end of the validation split. 
 
-For the `lsnet` configuration we split the training window to be 0.6 of the full time series and the validation is the 0.8-th time series and the last 0.2 time windows are used as the test set of 7 rolling windows of the 24 time steps. Finally, as in the LSTNet paper, we only consider time series that are active in the year 2012--2014, which leaves us with 320 time series.
-
+For the `lsnet` configuration we split the training window so that it is 0.6-th of the full time series and the validation is  0.8-th of the full time series and the last 0.2-th length time windows is used as the test set of 7 rolling windows of the 24 time steps each. Finally, as in the LSTNet paper, we only consider time series that are active in the year 2012--2014, which leaves us with 320 time series.
 
 ### Data Fields
 
@@ -102,7 +102,7 @@ Given the `freq` and the `start` datetime, we can assign a datetime to each entr
 
 #### UCI configuration
 
-```
+```python
 DatasetDict({
     train: Dataset({
         features: ['start', 'target', 'feat_static_cat', 'item_id'],

@@ -54,7 +54,7 @@ _LICENSE = ""
 _URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/00321/LD2011_2014.txt.zip"
 
 
-class ElectrictyConfig(datasets.BuilderConfig):
+class ElectrictyLoadDiagramConfig(datasets.BuilderConfig):
     """A builder config with some added meta data."""
 
     freq: str = "1H"
@@ -62,18 +62,18 @@ class ElectrictyConfig(datasets.BuilderConfig):
     rolling_evaluations: int = 7
 
 
-class Electricty(datasets.GeneratorBasedBuilder):
+class ElectrictyLoadDiagram(datasets.GeneratorBasedBuilder):
     """Hourly electricity consumption of 370 points/clients."""
 
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        ElectrictyConfig(
+        ElectrictyLoadDiagramConfig(
             name="uci",
             version=VERSION,
             description="Original UCI time series.",
         ),
-        ElectrictyConfig(
+        ElectrictyLoadDiagramConfig(
             name="lstnet",
             version=VERSION,
             description="Electricity time series preporcessed as in LSTNet paper.",
@@ -121,12 +121,12 @@ class Electricty(datasets.GeneratorBasedBuilder):
         test_ts = []
 
         df = pd.read_csv(
-                Path(data_dir) / "LD2011_2014.txt",
-                sep=";",
-                index_col=0,
-                parse_dates=True,
-                decimal=",",
-            )
+            Path(data_dir) / "LD2011_2014.txt",
+            sep=";",
+            index_col=0,
+            parse_dates=True,
+            decimal=",",
+        )
         df.sort_index(inplace=True)
         df = df.resample(self.config.freq).sum()
 
@@ -134,9 +134,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
             val_end_date = df.index.max() - pd.Timedelta(
                 self.config.prediction_length * self.config.rolling_evaluations, "H"
             )
-            train_end_date = val_end_date - pd.Timedelta(
-                self.config.prediction_length, "H"
-            )
+            train_end_date = val_end_date - pd.Timedelta(self.config.prediction_length, "H")
         else:
             # concate the time series to be from 2012 till 2014
             df = df[(df.index.year >= 2012) & (df.index.year <= 2014)]
@@ -177,9 +175,7 @@ class Electricty(datasets.GeneratorBasedBuilder):
             for cat, (ts_id, ts) in enumerate(df.iteritems()):
                 start_date = ts.ne(0).idxmax()
 
-                test_end_date = val_end_date + pd.Timedelta(
-                    self.config.prediction_length * (i + 1), "H"
-                )
+                test_end_date = val_end_date + pd.Timedelta(self.config.prediction_length * (i + 1), "H")
                 sliced_ts = ts[start_date:test_end_date]
                 test_ts.append(
                     to_dict(
