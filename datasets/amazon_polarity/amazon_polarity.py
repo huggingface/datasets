@@ -114,7 +114,7 @@ class AmazonPolarity(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, files):
         """Yields examples."""
         for path, f in files:
-            if path == filepath:
+            if path.endswith(filepath):
                 lines = (line.decode("utf-8") for line in f)
                 data = csv.reader(lines, delimiter=",", quoting=csv.QUOTE_ALL)
                 for id_, row in enumerate(data):
