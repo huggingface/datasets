@@ -3,19 +3,21 @@ annotations_creators:
 - no-annotation
 language_creators:
 - found
-languages: []
+languages:
+- pt
 licenses:
 - unknown
-multilinguality: []
+multilinguality:
+- monolingual
 pretty_name: Electricity Load Diagrams
 size_categories:
-- unknown
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
-- other
+- time-series-forecasting
 task_ids:
-- other-other-time-series-forecasting
+- univariate-time-series-forecasting
 ---
 
 # Dataset Card for Electricity Load Diagrams
@@ -56,28 +58,45 @@ task_ids:
 
 This dataset contains hourly kW electricity consumption time series of 370 Portuguese clients from 2011 to 2014.
 
+### Dataset Usage
+
+The dataset has the following configuration parameters:
+
+- `freq` is the time series frequency at which we resample (default: `"1H"`)
+- `prediction_length` is the forecast horizon for this task which is used to make the validation and test splits (default: `24`)
+- `rolling_evaluations` is the number of rolling window time series in the test split for evaluation purposes (default: `7`)
+
+For example, you can specify your own configuration different from those used in the papers as follows:
+
+```python
+load_dataset("electricity_load_diagrams", "uci", rolling_evaluations=10)
+```
+
+> Notes:
+> - Data set has no missing values.
+> - Values are in kW of each 15 min rescaled to hourly. To convert values in kWh values must be divided by 4.
+> - All time labels report to Portuguese hour, however all days present 96 measures (24*4). 
+> - Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. 
+> - Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
+
 ### Supported Tasks and Leaderboards
 
-- `time-series-forecasting`: The time series forecasting tasks involves learning the future `target` values of time series in a dataset for the `prediction_length` time steps. The results of the forecasts can then be validated via the ground truth in the `validation` split and tested via the `test` split.
-
+- `univariate-time-series-forecasting`: The time series forecasting tasks involves learning the future `target` values of time series in a dataset for the `prediction_length` time steps. The results of the forecasts can then be validated via the ground truth in the `validation` split and tested via the `test` split.
 
 ### Languages
-
-[More Information Needed]
 
 ## Dataset Structure
 
 Data set has no missing values. The raw values are in kW of each 15 min interval and are resampled to hourly frequency. 
 Each time series represent one client. Some clients were created after 2011. In these cases consumption were considered zero. All time labels report to Portuguese hour, however all days contain 96 measurements (24*4). Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
 
-
 ### Data Instances
 
 A sample from the training set is provided below:
 
-```python
+```
 {
-  'start': '2012-01-01 00:00:00',
+  'start': datetime.datetime(2012, 1, 1, 0, 0)
   'target': [14.0, 18.0, 21.0, 20.0, 22.0, 20.0, 20.0, 20.0, 13.0, 11.0], # <= this target array is a concatenated sample
   'feat_static_cat': [0], 
   'item_id': '0'
@@ -103,47 +122,12 @@ For this univariate regular time series we have:
 
 Given the `freq` and the `start` datetime, we can assign a datetime to each entry in the target array.
 
-
 ### Data Splits
 
-#### UCI configuration
-
-```python
-DatasetDict({
-    train: Dataset({
-        features: ['start', 'target', 'feat_static_cat', 'item_id'],
-        num_rows: 370
-    })
-    test: Dataset({
-        features: ['start', 'target', 'feat_static_cat', 'item_id'],
-        num_rows: 2590
-    })
-    validation: Dataset({
-        features: ['start', 'target', 'feat_static_cat', 'item_id'],
-        num_rows: 370
-    })
-})
-```
-
-### LSTNet configuration
-
-
-```python
-DatasetDict({
-    train: Dataset({
-        features: ['start', 'target', 'feat_static_cat', 'item_id'],
-        num_rows: 320
-    })
-    test: Dataset({
-        features: ['start', 'target', 'feat_static_cat', 'item_id'],
-        num_rows: 2240
-    })
-    validation: Dataset({
-        features: ['start', 'target', 'feat_static_cat', 'item_id'],
-        num_rows: 320
-    })
-})
-```
+|   name   |train|unsupervised|test |
+|----------|----:|-----------:|----:|
+|uci|370|       2590|370|
+|lstnet|320|       2240|320|
 
 ## Dataset Creation
 
@@ -181,60 +165,6 @@ This dataset covers the electricity load of 370 sub-stations in Portugal from th
 
 ## Considerations for Using the Data
 
-The default metadata for each configuration is:
-
-### UCI Metadata:
-
-```json
-{
-    "freq": "1H",
-    "prediction_length": 24,
-    "feat_static_cat": [
-        {
-            "name": "feat_static_cat",
-            "cardinality": "370"
-        }
-    ]
-}
-```
-
-### LSTNet Metadata:
-
-```json
-{
-    "freq": "1H",
-    "prediction_length": 24,
-    "feat_static_cat": [
-        {
-            "name": "feat_static_cat",
-            "cardinality": "320"
-        }
-    ]
-}
-```
-
-### Notes
-
-- Data set has no missing values.
-- Values are in kW of each 15 min rescaled to hourly. To convert values in kWh values must be divided by 4.
-- All time labels report to Portuguese hour, however all days present 96 measures (24*4). 
-- Every year in March time change day (which has only 23 hours) the values between 1:00 am and 2:00 am are zero for all points. 
-- Every year in October time change day (which has 25 hours) the values between 1:00 am and 2:00 am aggregate the consumption of two hours.
-
-### Dataset Usage
-
-We have the following configuration parameters corresponding to the default setting:
-
-- `freq` is the time series frequency at which we resample (default: `"1H"`)
-- `prediction_length` is the forecast horizon for this task which is used to make the validation and test splits (default: `24`)
-- `rolling_evaluations` is the number of rolling window time series in the test split for evaluation purposes (default: `7`)
-
-To define your own configuration different from those used in the papers you can always specify it, for example:
-
-```python
-load_dataset("electricity_load_diagrams", "uci", rolling_evaluations=10)
-```
-
 ### Social Impact of Dataset
 
 [More Information Needed]
@@ -259,7 +189,7 @@ load_dataset("electricity_load_diagrams", "uci", rolling_evaluations=10)
 
 ### Citation Information
 
-```tex
+```bibtex
 @inproceedings{10.1145/3209978.3210006,
     author = {Lai, Guokun and Chang, Wei-Cheng and Yang, Yiming and Liu, Hanxiao},
     title = {Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks},
