@@ -21,6 +21,7 @@ import json
 import os
 import shutil
 import tempfile
+import textwrap
 import weakref
 from collections import Counter, UserDict
 from collections.abc import Mapping
@@ -1274,9 +1275,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for field in self._data.schema:
                 if isinstance(field.type, pa.StructType):
                     has_struct_type = True
-                    if isinstance(self.info.features[field.name], Audio):
+                    subfeature = self.info.features[field.name]
+                    if isinstance(subfeature, Audio) and subfeature.decode:
+                        instructions = f"""\
+                            ```
+                            {f'self.flatten(max_depth={depth})' if depth > 1 else ''}
+                            dataset = dataset.map(lambda batch: {{"{field.name}": batch["{field.name}"]}}, batched=True)
+                            dataset.flatten_(max_depth={max_depth - depth + 1})
+                            ```
+                        """
+                        instructions = textwrap.dedent(instructions)
                         raise ValueError(
-                            f"Cannot flatten table with Audio feature in column {field.name} at depth {depth}."
+                            f"Cannot flatten table with Audio feature in column {field.name} at depth {depth}. Use\n\n{instructions}\nto flatten the dataset."
                         )
             if has_struct_type:
                 self._data = self._data.flatten()
@@ -1301,9 +1311,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             for field in dataset._data.schema:
                 if isinstance(field.type, pa.StructType):
                     has_struct_type = True
-                    if isinstance(dataset.info.features[field.name], Audio):
+                    subfeature = dataset.info.features[field.name]
+                    if isinstance(subfeature, Audio) and subfeature.decode:
+                        instructions = f"""\
+                            ```
+                            {f'dataset = dataset.flatten(max_depth={depth})' if depth > 1 else ''}
+                            dataset = dataset.map(lambda batch: {{"{field.name}": batch["{field.name}"]}}, batched=True)
+                            dataset = dataset.flatten(max_depth={max_depth - depth + 1})
+                            ```
+                        """
+                        instructions = textwrap.dedent(instructions)
                         raise ValueError(
-                            f"Cannot flatten table with Audio feature in column {field.name} at depth {depth}."
+                            f"Cannot flatten table with decodable Audio feature in column {field.name} at depth {depth}. Use\n\n{instructions}\nto flatten the dataset."
                         )
             if has_struct_type:
                 dataset._data = dataset._data.flatten()

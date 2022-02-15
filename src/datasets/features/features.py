@@ -1199,6 +1199,20 @@ class Features(dict):
         super().__setitem__(column_name, feature)
         self._column_requires_decoding[column_name] = require_decoding(feature)
 
+    def __delitem__(self, column_name: str):
+        super().__delitem__(column_name)
+        del self._column_requires_decoding[column_name]
+
+    def update(self, iterable, **kwds):
+        if hasattr(iterable, "keys"):
+            for key in iterable.keys():
+                self[key] = iterable[key]
+        else:
+            for key, value in iterable:
+                self[key] = value
+        for key in kwds:
+            self[key] = kwds[key]
+
     def __reduce__(self):
         return Features, (dict(self),)
 
@@ -1464,6 +1478,8 @@ class Features(dict):
                         }
                     )
                     del flattened[column_name]
+                elif isinstance(subfeature, Audio) and subfeature.decode:
+                    raise ValueError("Cannot flatten decodable Audio feature")
                 elif isinstance(subfeature, (Audio, Image)) and not subfeature.decode:
                     no_change = False
                     flattened.update(
