@@ -259,7 +259,23 @@ load_dataset("electricity_load_diagrams", "uci", rolling_evaluations=10)
 
 ### Citation Information
 
-[More Information Needed]
+```tex
+@inproceedings{10.1145/3209978.3210006,
+    author = {Lai, Guokun and Chang, Wei-Cheng and Yang, Yiming and Liu, Hanxiao},
+    title = {Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks},
+    year = {2018},
+    isbn = {9781450356572},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3209978.3210006},
+    doi = {10.1145/3209978.3210006},
+    booktitle = {The 41st International ACM SIGIR Conference on Research & Development in Information Retrieval},
+    pages = {95--104},
+    numpages = {10},
+    location = {Ann Arbor, MI, USA},
+    series = {SIGIR '18}
+}
+```
 
 ### Contributions
 
