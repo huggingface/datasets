@@ -395,7 +395,7 @@ class Klue(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, data_file, files):
         if self.config.name in ["ynat", "sts", "re"]:
             for path, f in files:
-                if path == data_file:
+                if path.endswith(data_file):
                     f = json.load(f)
                     for id_, row in enumerate(f):
                         features = {key: row[key] for key in row if key in self.config.features}
@@ -404,7 +404,7 @@ class Klue(datasets.GeneratorBasedBuilder):
 
         if self.config.name == "nli":
             for path, f in files:
-                if path == data_file:
+                if path.endswith(data_file):
                     f = json.load(f)
                     for id_, row in enumerate(f):
                         # In train file, "source" is written as "genre"
@@ -420,7 +420,7 @@ class Klue(datasets.GeneratorBasedBuilder):
 
         if self.config.name == "ner":
             for path, f in files:
-                if path == data_file:
+                if path.endswith(data_file):
                     f = (line.decode("utf-8") for line in f)
                     reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                     for _ in range(5):  # skip headers
@@ -442,7 +442,7 @@ class Klue(datasets.GeneratorBasedBuilder):
 
         if self.config.name == "dp":
             for path, f in files:
-                if path == data_file:
+                if path.endswith(data_file):
                     f = (line.decode("utf-8") for line in f)
                     reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                     for _ in range(5):  # skip headers
@@ -481,7 +481,7 @@ class Klue(datasets.GeneratorBasedBuilder):
 
         if self.config.name == "mrc":
             for path, f in files:
-                if path == data_file:
+                if path.endswith(data_file):
                     f = json.load(f)
                     id_ = -1
                     for example in f["data"]:
@@ -520,7 +520,7 @@ class Klue(datasets.GeneratorBasedBuilder):
 
         if self.config.name == "wos":
             for path, f in files:
-                if path == data_file:
+                if path.endswith(data_file):
                     f = json.load(f)
                     for id_, row in enumerate(f):
                         guid = row["guid"]
