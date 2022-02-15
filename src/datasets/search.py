@@ -326,6 +326,7 @@ class FaissIndex(BaseIndex):
                 "The argument type: {typ} is not expected. ".format(typ=type(device))
                 + "Please pass in either nothing, a positive int, a negative int, or a list of positive ints."
             )
+        return index
 
     def search(self, query: np.array, k=10) -> SearchResults:
         """Find the nearest examples indices to the query.
