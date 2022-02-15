@@ -695,6 +695,14 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 },
             ),
             datasets.SplitGenerator(
+                name="validated",
+                gen_kwargs={
+                    "files": dl_manager.iter_archive(archive),
+                    "filepath": "/".join([path_to_data, "validated.tsv"]),
+                    "path_to_clips": path_to_clips,
+                },
+            ),
+            datasets.SplitGenerator(
                 name="invalidated",
                 gen_kwargs={
                     "files": dl_manager.iter_archive(archive),

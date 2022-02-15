@@ -129,17 +129,27 @@ class TestCommand(BaseDatasetsCLICommand):
             if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
                 for i, config in enumerate(builder_cls.BUILDER_CONFIGS):
                     if i % self._num_proc == self._proc_rank:
-                        yield builder_cls(
-                            name=config.name,
-                            cache_dir=self._cache_dir,
-                            data_dir=self._data_dir,
-                            **module.builder_kwargs,
-                        )
+                        if "name" in module.builder_kwargs:
+                            yield builder_cls(
+                                cache_dir=self._cache_dir,
+                                data_dir=self._data_dir,
+                                **module.builder_kwargs,
+                            )
+                        else:
+                            yield builder_cls(
+                                name=config.name,
+                                cache_dir=self._cache_dir,
+                                data_dir=self._data_dir,
+                                **module.builder_kwargs,
+                            )
             else:
                 if self._proc_rank == 0:
-                    yield builder_cls(
-                        name=name, cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs
-                    )
+                    if "name" in module.builder_kwargs:
+                        yield builder_cls(cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs)
+                    else:
+                        yield builder_cls(
+                            name=name, cache_dir=self._cache_dir, data_dir=self._data_dir, **module.builder_kwargs
+                        )
 
         for j, builder in enumerate(get_builders()):
             print(f"Testing builder '{builder.config.name}' ({j + 1}/{n_builders})")
@@ -166,6 +176,8 @@ class TestCommand(BaseDatasetsCLICommand):
                 if os.path.isfile(path):
                     dataset_dir = os.path.dirname(path)
                 elif os.path.isfile(combined_path):
+                    dataset_dir = path
+                elif os.path.isdir(path):  # for local directories containing only data files
                     dataset_dir = path
                 else:  # in case of a remote dataset
                     dataset_dir = None

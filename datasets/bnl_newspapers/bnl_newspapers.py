@@ -14,9 +14,9 @@
 # limitations under the License.
 """Digitised historic newspapers from the BNL"""
 
+import os
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from pathlib import Path
 
 import datasets
 from datasets.tasks import LanguageModeling
@@ -113,78 +113,71 @@ These newspapers cover 38 years of news (1841-1878) and include 510,505 extracte
             }
         )
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
+            features=features,
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
             task_templates=[LanguageModeling(text_column="text")],
         )
 
     def _split_generators(self, dl_manager):
-        """Returns SplitGenerators."""
         _URL = self.config.data_url
         data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "dirpath": data_dir,
+                    "paths": dl_manager.iter_files([data_dir]),
                 },
             ),
         ]
 
-    def _generate_examples(
-        self,
-        dirpath,
-    ):
-        """Yields examples as (key, example) tuples."""
-        ns = {
-            "": "http://www.openarchives.org/OAI/2.0/",
-            "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-            "oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
-            "dc": "http://purl.org/dc/elements/1.1/",
-            "dcterms": "http://purl.org/dc/terms/",
-        }
-        for id_, xml in enumerate(Path(dirpath).rglob("**/*.xml")):
-            tree = ET.parse(open(xml, encoding="utf-8"))
-            source = tree.find(".//dc:source", ns).text
-            ark_id = tree.find(".//dc:identifier", ns).text
-            ispartof = tree.find(".//dcterms:isPartOf", ns).text
-            date = tree.find(".//dc:date", ns).text
-            if date:
-                date = datetime.strptime(date, "%Y-%m-%d")
-            publisher = tree.find(".//dc:publisher", ns)
-            if publisher is not None:
-                publisher = publisher.text
-            hasversion = tree.find(".//dcterms:hasVersion", ns).text
-            description = tree.find(".//dc:description", ns).text
-            title = tree.find(".//dc:title", ns).text
-            article_type = tree.find(".//dc:type", ns).text
-            extent = tree.find(".//dcterms:extent", ns).text
-            language = tree.find(".//dc:language", ns)
-            if language is not None:
-                language = language.text
-            yield id_, {
-                "id": ark_id,
-                "source": source,
-                "url": hasversion,
-                "title": title,
-                "text": description,
-                "pub_date": date,
-                "publisher": publisher,
-                "article_type": article_type,
-                "extent": extent,
-                "ispartof": ispartof,
-                "language": language,
-            }
+    def _generate_examples(self, paths):
+        key = 0
+        for path in paths:
+            if os.path.basename(path).endswith(".xml"):
+                data = parse_xml(path)
+                yield key, data
+                key += 1
+
+
+def parse_xml(path):
+    ns = {
+        "": "http://www.openarchives.org/OAI/2.0/",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
+        "dc": "http://purl.org/dc/elements/1.1/",
+        "dcterms": "http://purl.org/dc/terms/",
+    }
+    tree = ET.parse(path)
+    source = tree.find(".//dc:source", ns).text
+    ark_id = tree.find(".//dc:identifier", ns).text
+    ispartof = tree.find(".//dcterms:isPartOf", ns).text
+    date = tree.find(".//dc:date", ns).text
+    if date:
+        date = datetime.strptime(date, "%Y-%m-%d")
+    publisher = tree.find(".//dc:publisher", ns)
+    if publisher is not None:
+        publisher = publisher.text
+    hasversion = tree.find(".//dcterms:hasVersion", ns).text
+    description = tree.find(".//dc:description", ns).text
+    title = tree.find(".//dc:title", ns).text
+    article_type = tree.find(".//dc:type", ns).text
+    extent = tree.find(".//dcterms:extent", ns).text
+    language = tree.find(".//dc:language", ns)
+    if language is not None:
+        language = language.text
+    return {
+        "id": ark_id,
+        "source": source,
+        "url": hasversion,
+        "title": title,
+        "text": description,
+        "pub_date": date,
+        "publisher": publisher,
+        "article_type": article_type,
+        "extent": extent,
+        "ispartof": ispartof,
+        "language": language,
+    }
