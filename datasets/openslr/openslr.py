@@ -613,14 +613,15 @@ class OpenSlr(datasets.GeneratorBasedBuilder):
                         if len(field_values) != 2:
                             continue
                         filename, sentence = field_values
-                        # set absolute path for audio file
+                        # set absolute path for audio f ile
                         path = f"{path_to_data}/{filename}.wav"
                         sentences[path] = sentence
                 for path, f in files:
-                    if path.startswith(path_to_data):
+                    if path.rsplit("/", 1)[0].endswith(path_to_data):
                         counter += 1
+                        path_within_archive = path_to_data + "/" + path.split("/")[-1]
                         audio = {"path": path, "bytes": f.read()}
-                        yield counter, {"path": path, "audio": audio, "sentence": sentences[path]}
+                        yield counter, {"path": path, "audio": audio, "sentence": sentences[path_within_archive]}
         else:
             for i, path_to_index in enumerate(path_to_indexs):
                 with open(path_to_index, encoding="utf-8") as f:
