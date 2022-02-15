@@ -326,6 +326,7 @@ class FaissIndex(BaseIndex):
                 "The argument type: {typ} is not expected. ".format(typ=type(device))
                 + "Please pass in either nothing, a positive int, a negative int, or a list of positive ints."
             )
+
         return index
 
     def search(self, query: np.array, k=10) -> SearchResults:
@@ -370,7 +371,7 @@ class FaissIndex(BaseIndex):
         """Serialize the FaissIndex on disk"""
         import faiss  # noqa: F811
 
-        if self.device is not None:
+        if self.device is not None and isinstance(self.device, (int, list, tuple)):
             index = faiss.index_gpu_to_cpu(self.faiss_index)
         else:
             index = self.faiss_index
@@ -387,10 +388,10 @@ class FaissIndex(BaseIndex):
         import faiss  # noqa: F811
 
         # Instances of FaissIndex is essentially just a wrapper for faiss indices.
-        wrapper = cls(device=device)
+        faiss_index = cls(device=device)
         index = faiss.read_index(str(file))
-        wrapper.faiss_index = wrapper._faiss_index_to_device(index, wrapper.device)
-        return wrapper
+        faiss_index.faiss_index = faiss_index._faiss_index_to_device(index, faiss_index.device)
+        return faiss_index
 
 
 class IndexableMixin:
