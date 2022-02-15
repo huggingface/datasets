@@ -208,7 +208,7 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split, files):
         for path, f in files:
-            if path == filepath:
+            if path.endswith(filepath):
                 guid = 0
                 tokens = []
                 ner_tags = []
