@@ -21,7 +21,6 @@ import json
 import os
 import shutil
 import tempfile
-import textwrap
 import weakref
 from collections import Counter, UserDict
 from collections.abc import Mapping
@@ -615,6 +614,27 @@ def _align_features(features_list: List[Features]) -> List[Features]:
                 name2feature[k] = v
 
     return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
+
+
+def _check_if_trying_to_flatten_audio_feature(feature, column_name, depth, max_depth, inplace: bool = False):
+    """Check if the user is trying to flatten an audio feature."""
+    if isinstance(feature, Audio) and feature.decode:
+        instructions = (
+            (f"dataset = dataset.flatten(max_depth={depth})" if not inplace else f"self.flatten_(max_depth={depth})")
+            if depth > 1
+            else ""
+        )
+        instructions += "\n"
+        instructions += (
+            f"dataset = dataset.map(lambda batch: {{'{column_name}': batch['{column_name}']}}, batched=True)"
+        )
+        instructions += "\n"
+        instructions += (
+            "dataset = dataset.flatten" if not inplace else "dataset.flatten_"
+        ) + f"(max_depth={max_depth - depth + 1})"
+        raise ValueError(
+            f"Cannot flatten table with Audio feature in column {column_name} at depth {depth}. Use\n\n{instructions}\n\nto flatten the dataset."
+        )
 
 
 class NonExistentDatasetError(Exception):
@@ -1294,18 +1314,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if isinstance(field.type, pa.StructType):
                     has_struct_type = True
                     subfeature = self.info.features[field.name]
-                    if isinstance(subfeature, Audio) and subfeature.decode:
-                        instructions = f"""\
-                            ```
-                            {f'self.flatten(max_depth={depth})' if depth > 1 else ''}
-                            dataset = dataset.map(lambda batch: {{"{field.name}": batch["{field.name}"]}}, batched=True)
-                            dataset.flatten_(max_depth={max_depth - depth + 1})
-                            ```
-                        """
-                        instructions = textwrap.dedent(instructions)
-                        raise ValueError(
-                            f"Cannot flatten table with Audio feature in column {field.name} at depth {depth}. Use\n\n{instructions}\nto flatten the dataset."
-                        )
+                    _check_if_trying_to_flatten_audio_feature(subfeature, field.name, depth, max_depth, inplace=True)
+
             if has_struct_type:
                 self._data = self._data.flatten()
                 self.info.features = self.info.features.flatten(max_depth=2)
@@ -1330,18 +1340,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if isinstance(field.type, pa.StructType):
                     has_struct_type = True
                     subfeature = dataset.info.features[field.name]
-                    if isinstance(subfeature, Audio) and subfeature.decode:
-                        instructions = f"""\
-                            ```
-                            {f'dataset = dataset.flatten(max_depth={depth})' if depth > 1 else ''}
-                            dataset = dataset.map(lambda batch: {{"{field.name}": batch["{field.name}"]}}, batched=True)
-                            dataset = dataset.flatten(max_depth={max_depth - depth + 1})
-                            ```
-                        """
-                        instructions = textwrap.dedent(instructions)
-                        raise ValueError(
-                            f"Cannot flatten table with decodable Audio feature in column {field.name} at depth {depth}. Use\n\n{instructions}\nto flatten the dataset."
-                        )
+                    _check_if_trying_to_flatten_audio_feature(subfeature, field.name, depth, max_depth, inplace=False)
             if has_struct_type:
                 dataset._data = dataset._data.flatten()
                 dataset.info.features = dataset.info.features.flatten(max_depth=2)
