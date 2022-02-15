@@ -7,7 +7,7 @@ languages: []
 licenses:
 - unknown
 multilinguality: []
-pretty_name: Electricity Load Diagram
+pretty_name: Electricity Load Diagrams
 size_categories:
 - unknown
 source_datasets:
@@ -232,7 +232,7 @@ We have the following configuration parameters corresponding to the default sett
 To define your own configuration different from those used in the papers you can always specify it, for example:
 
 ```python
-load_dataset("electricity_load_diagram", "uci", rolling_evaluations=10)
+load_dataset("electricity_load_diagrams", "uci", rolling_evaluations=10)
 ```
 
 ### Social Impact of Dataset
