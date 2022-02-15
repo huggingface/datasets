@@ -102,6 +102,7 @@ from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
 from .utils.typing import PathLike
+from .utils.streaming_download_manager import xgetsize
 
 
 if TYPE_CHECKING:
@@ -3563,7 +3564,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if isinstance(feature, (Audio, Image)):
                     for x in array.to_pylist():
                         if x["bytes"] is None and x["path"] is not None:
-                            extra_nbytes += os.path.getsize(x["path"])
+                            extra_nbytes += xsize(x["path"])
                     extra_nbytes -= array.field("path").nbytes
 
             table = self.with_format("arrow")[:1000]
