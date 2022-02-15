@@ -58,7 +58,8 @@ This dataset contains hourly kW electricity consumption time series of 370 Portu
 
 ### Supported Tasks and Leaderboards
 
-- `time-series-forecasting`: [Explain how to do regression and clustering (listed here: https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014#) on this time-series dataset]
+- `time-series-forecasting`: The time series forecasting tasks involves learning the future `target` values of time series in a dataset for the `prediction_length` time steps. The results of the forecasts can then be validated via the ground truth in the `validation` split and tested via the `test` split.
+
 
 ### Languages
 
