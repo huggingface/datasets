@@ -650,7 +650,7 @@ class LexGLUE(datasets.GeneratorBasedBuilder):
             else:
                 SPLIT_RANGES = {"train": (1, 45001), "dev": (45001, 48901), "test": (48901, 52501)}
             for path, f in files:
-                if path == filepath:
+                if path.endswith(filepath):
                     f = (line.decode("utf-8") for line in f)
                     for id_, row in enumerate(list(csv.reader(f))[SPLIT_RANGES[split][0] : SPLIT_RANGES[split][1]]):
                         yield id_, {
@@ -661,7 +661,7 @@ class LexGLUE(datasets.GeneratorBasedBuilder):
                     break
         elif self.config.multi_label:
             for path, f in files:
-                if path == filepath:
+                if path.endswith(filepath):
                     for id_, row in enumerate(f):
                         data = json.loads(row.decode("utf-8"))
                         labels = sorted(
@@ -675,7 +675,7 @@ class LexGLUE(datasets.GeneratorBasedBuilder):
                     break
         else:
             for path, f in files:
-                if path == filepath:
+                if path.endswith(filepath):
                     for id_, row in enumerate(f):
                         data = json.loads(row.decode("utf-8"))
                         if data["data_type"] == split:
