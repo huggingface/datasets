@@ -112,14 +112,12 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                             "q": datasets.Value("string"),
                             "isAnswerAbsent": datasets.Value("int32"),
                             "isQuestionBad": datasets.Value("int32"),
-                            "consensus": datasets.Features(
-                                {
-                                    "s": datasets.Value("int32"),
-                                    "e": datasets.Value("int32"),
-                                    "badQuestion": datasets.Value("bool"),
-                                    "noAnswer": datasets.Value("bool"),
-                                }
-                            ),
+                            "consensus": {
+                                "s": datasets.Value("int32"),
+                                "e": datasets.Value("int32"),
+                                "badQuestion": datasets.Value("bool"),
+                                "noAnswer": datasets.Value("bool"),
+                            },
                             "answers": datasets.features.Sequence(
                                 {
                                     "sourcerAnswers": datasets.features.Sequence(
