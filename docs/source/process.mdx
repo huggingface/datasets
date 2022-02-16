@@ -213,8 +213,6 @@ Use [`datasets.Dataset.cast_column`] to change the feature type of just one colu
 {'audio': Audio(sampling_rate=16000, mono=True, id=None)}
 ```
 
-<a id='flatten'></a>
-
 ### `Flatten`
 
 Sometimes a column can be a nested structure of several types. Use [`datasets.Dataset.flatten`] to extract the subfields into their own separate columns. Take a look at the nested structure below from the SQuAD dataset:
@@ -242,8 +240,6 @@ Dataset({
 ```
 
 Notice how the subfields are now their own independent columns: `answers.text` and `answers.answer_start`.
-
-<a id='map'></a>
 
 ## `Map`
 
@@ -527,8 +523,6 @@ You can also concatenate two datasets horizontally (axis=1) as long as they have
 >>> bookcorpus_ids = Dataset.from_dict({"ids": list(range(len(bookcorpus)))})
 >>> bookcorpus_with_ids = concatenate_datasets([bookcorpus, bookcorpus_ids], axis=1)
 ```
-
-<a id='format'></a>
 
 ## Format
 
