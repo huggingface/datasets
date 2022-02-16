@@ -657,24 +657,42 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             ],
         )
 
-    def _split_generators(self, dl_manager):
+    def _split_generators(self, dl_manager, streaming):
         """Returns SplitGenerators."""
         archive_path = dl_manager.download(_DATA_URL.format(self.config.name))
-        if archive_path.startswith("https://"):
-            path_to_data = "/".join(["cv-corpus-6.1-2020-12-11", self.config.name])
+        if streaming:
+            # Here we use iter_archive in streaming mode because dl_manager.download_and_extract
+            # doesn't work to stream TAR archives (we have to stream the files in the archive one by one).
+            #
+            # The iter_archive method returns an iterable of (path_within_archive, file_obj) for every
+            # file in the TAR archive.
+            #
             archive_iterator = dl_manager.iter_archive(archive_path)
+            # we locate the data using the path within the archive
+            path_to_data = "/".join(["cv-corpus-6.1-2020-12-11", self.config.name])
+            path_to_clips = "/".join([path_to_data, "clips"])
+            metadata_filepaths = {
+                split: "/".join([path_to_data, f"{split}.tsv"])
+                for split in ["train", "test", "dev", "other", "validated", "invalidated"]
+            }
         else:
-            archive_path = dl_manager.extract(archive_path)
-            path_to_data = os.path.join(archive_path, "cv-corpus-6.1-2020-12-11", self.config.name)
+            # In non-streaming we can extract the archive locally as usual
+            extracted_dir = dl_manager.extract(archive_path)
             archive_iterator = None
-        path_to_clips = "/".join([path_to_data, "clips"])
+            # we locate the data using the local path
+            path_to_data = os.path.join(extracted_dir, "cv-corpus-6.1-2020-12-11", self.config.name)
+            path_to_clips = os.path.join(path_to_data, "clips")
+            metadata_filepaths = {
+                split: os.path.join(path_to_data, f"{split}.tsv")
+                for split in ["train", "test", "dev", "other", "validated", "invalidated"]
+            }
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "archive_iterator": archive_iterator,
-                    "filepath": "/".join([path_to_data, "train.tsv"]),
+                    "filepath": metadata_filepaths["train"],
                     "path_to_clips": path_to_clips,
                 },
             ),
@@ -682,7 +700,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "archive_iterator": archive_iterator,
-                    "filepath": "/".join([path_to_data, "test.tsv"]),
+                    "filepath": metadata_filepaths["test"],
                     "path_to_clips": path_to_clips,
                 },
             ),
@@ -690,7 +708,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "archive_iterator": archive_iterator,
-                    "filepath": "/".join([path_to_data, "dev.tsv"]),
+                    "filepath": metadata_filepaths["dev"],
                     "path_to_clips": path_to_clips,
                 },
             ),
@@ -698,15 +716,15 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name="other",
                 gen_kwargs={
                     "archive_iterator": archive_iterator,
-                    "filepath": "/".join([path_to_data, "other.tsv"]),
+                    "filepath": metadata_filepaths["other"],
                     "path_to_clips": path_to_clips,
                 },
             ),
             datasets.SplitGenerator(
                 name="validated",
                 gen_kwargs={
-                    "files": dl_manager.iter_archive(archive),
-                    "filepath": "/".join([path_to_data, "validated.tsv"]),
+                    "archive_iterator": archive_iterator,
+                    "filepath": metadata_filepaths["validated"],
                     "path_to_clips": path_to_clips,
                 },
             ),
@@ -714,7 +732,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name="invalidated",
                 gen_kwargs={
                     "archive_iterator": archive_iterator,
-                    "filepath": "/".join([path_to_data, "invalidated.tsv"]),
+                    "filepath": metadata_filepaths["invalidated"],
                     "path_to_clips": path_to_clips,
                 },
             ),
@@ -797,5 +815,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
                     # set audio feature
                     result["audio"] = {"path": path, "bytes": f.read()}
+                    # set path to None since the path doesn't exist locally in streaming mode
+                    result["path"] = None
 
                     yield path, result
