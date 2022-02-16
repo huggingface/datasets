@@ -124,7 +124,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "apache-beam>=2.26.0",
-    "elasticsearch",
+    "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElastictSearch()
     "aiobotocore",
     "boto3",
     "botocore",
@@ -136,6 +136,7 @@ TESTS_REQUIRE = [
     "tensorflow>=2.3,!=2.6.0,!=2.6.1",
     "torch",
     "torchaudio",
+    "soundfile",
     "transformers",
     # datasets dependencies
     "bs4",
@@ -159,6 +160,7 @@ TESTS_REQUIRE = [
     "jiwer",
     "sentencepiece",  # for bleurt
     "torchmetrics==0.6.0",  # for comet: https://github.com/PyTorchLightning/metrics/issues/770
+    "mauve-text",
     # to speed up pip backtracking
     "toml>=0.10.1",
     "requests_file>=1.5.1",
@@ -171,6 +173,7 @@ TESTS_REQUIRE = [
 ]
 
 TESTS_REQUIRE.extend(VISION_REQURE)
+TESTS_REQUIRE.extend(AUDIO_REQUIRE)
 
 if os.name != "nt":
     # dependencies of unbabel-comet
@@ -185,7 +188,7 @@ if os.name != "nt":
         ]
     )
 
-QUALITY_REQUIRE = ["black==21.4b0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
@@ -225,9 +228,9 @@ EXTRAS_REQUIRE = {
 
 setup(
     name="datasets",
-    version="1.17.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.18.4.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
-    long_description=open("README.md", "r", encoding="utf-8").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",

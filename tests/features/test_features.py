@@ -17,6 +17,7 @@ from datasets.features import (
     _cast_to_python_objects,
     cast_to_python_objects,
     encode_nested_example,
+    generate_from_dict,
     string_to_arrow,
 )
 from datasets.info import DatasetInfo
@@ -47,8 +48,15 @@ class FeaturesTest(TestCase):
 
     def test_string_to_arrow_bijection_for_primitive_types(self):
         supported_pyarrow_datatypes = [
+            pa.time32("s"),
+            pa.time64("us"),
             pa.timestamp("s"),
             pa.timestamp("ns", tz="America/New_York"),
+            pa.date32(),
+            pa.date64(),
+            pa.duration("s"),
+            pa.decimal128(10, 2),
+            pa.decimal256(40, -3),
             pa.string(),
             pa.int32(),
             pa.float64(),
@@ -61,11 +69,27 @@ class FeaturesTest(TestCase):
             with self.assertRaises(ValueError):
                 string_to_arrow(_arrow_to_datasets_dtype(dt))
 
-        supported_datasets_dtypes = ["timestamp[ns]", "timestamp[ns, tz=+07:30]", "int32", "float64"]
+        supported_datasets_dtypes = [
+            "time32[s]",
+            "timestamp[ns]",
+            "timestamp[ns, tz=+07:30]",
+            "duration[us]",
+            "decimal128(30, -4)",
+            "int32",
+            "float64",
+        ]
         for sdt in supported_datasets_dtypes:
             self.assertEqual(sdt, _arrow_to_datasets_dtype(string_to_arrow(sdt)))
 
-        unsupported_datasets_dtypes = ["timestamp[blob]", "timestamp[[ns]]", "timestamp[ns, tz=[ns]]", "int"]
+        unsupported_datasets_dtypes = [
+            "time32[ns]",
+            "timestamp[blob]",
+            "timestamp[[ns]]",
+            "timestamp[ns, tz=[ns]]",
+            "duration[[us]]",
+            "decimal20(30, -4)",
+            "int",
+        ]
         for sdt in unsupported_datasets_dtypes:
             with self.assertRaises(ValueError):
                 string_to_arrow(sdt)
@@ -197,6 +221,13 @@ class FeaturesTest(TestCase):
         self.assertEqual(reordered_features.type, expected.type)
         self.assertNotEqual(reordered_features.type, features.type)
 
+    def test_flatten(self):
+        features = Features({"foo": {"bar1": Value("int32"), "bar2": {"foobar": Value("string")}}})
+        _features = features.copy()
+        flattened_features = features.flatten()
+        assert flattened_features == {"foo.bar1": Value("int32"), "foo.bar2.foobar": Value("string")}
+        assert features == _features, "calling flatten shouldn't alter the current features"
+
 
 def test_classlabel_init(tmp_path_factory):
     names = ["negative", "positive"]
@@ -237,6 +268,20 @@ def test_classlabel_int2str():
         assert classlabel.int2str(i) == names[i]
     with pytest.raises(ValueError):
         classlabel.int2str(len(names))
+
+
+@pytest.mark.parametrize("class_label_arg", ["names", "names_file"])
+def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
+    names = ["negative", "positive"]
+    names_file = str(tmp_path_factory.mktemp("features") / "labels.txt")
+    with open(names_file, "w", encoding="utf-8") as f:
+        f.write("\n".join(names))
+    if class_label_arg == "names":
+        class_label = ClassLabel(names=names)
+    elif class_label_arg == "names_file":
+        class_label = ClassLabel(names_file=names_file)
+    generated_class_label = generate_from_dict(asdict(class_label))
+    assert generated_class_label == class_label
 
 
 def test_encode_nested_example_sequence_with_none():

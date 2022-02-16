@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2021 HuggingFace Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,11 +37,11 @@ def get_changed_datasets(repo_path: Path) -> List[Path]:
 
     datasets_dir_path = repo_path / "datasets"
 
-    changed_datasets = set(
+    changed_datasets = {
         f.resolve().relative_to(datasets_dir_path).parts[0]
         for f in changed_files
-        if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path))
-    )
+        if f.exists() and str(f.resolve()).startswith(str(datasets_dir_path)) and not f.name == "dummy_data.zip"
+    }
 
     return sorted(dataset_name for dataset_name in changed_datasets if dataset_name not in _PACKAGED_DATASETS_MODULES)
 

@@ -20,6 +20,7 @@ import re
 from xml.dom.minidom import parseString
 
 import datasets
+from datasets.tasks import TextClassification
 
 
 # no BibTeX citation
@@ -43,7 +44,7 @@ class Muchocine(datasets.GeneratorBasedBuilder):
             {
                 "review_body": datasets.Value("string"),
                 "review_summary": datasets.Value("string"),
-                "star_rating": datasets.Value("int32"),
+                "star_rating": datasets.ClassLabel(names=[str(i) for i in range(1, 6)]),
             }
         )
         return datasets.DatasetInfo(
@@ -53,6 +54,10 @@ class Muchocine(datasets.GeneratorBasedBuilder):
             homepage="http://www.lsi.us.es/~fermin/index.php/Datasets",
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[
+                TextClassification(text_column="review_body", label_column="star_rating"),
+                TextClassification(text_column="review_summary", label_column="star_rating"),
+            ],
         )
 
     def _split_generators(self, dl_manager):
@@ -102,5 +107,5 @@ class Muchocine(datasets.GeneratorBasedBuilder):
                 yield id, {
                     "review_body": btxt,
                     "review_summary": rtxt,
-                    "star_rating": int(doc.documentElement.attributes["rank"].value),
+                    "star_rating": doc.documentElement.attributes["rank"].value,
                 }

@@ -1,5 +1,4 @@
 # flake8: noqa
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +17,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "1.17.1.dev0"
+__version__ = "1.18.4.dev0"
 
 import pyarrow
 from packaging import version as _version
