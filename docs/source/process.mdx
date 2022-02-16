@@ -522,9 +522,11 @@ You can also mix several datasets together by taking alternating examples from e
 
 You can also concatenate two datasets horizontally (axis=1) as long as they have the same number of rows:
 
+```py
 >>> from datasets import Dataset
 >>> bookcorpus_ids = Dataset.from_dict({"ids": list(range(len(bookcorpus)))})
 >>> bookcorpus_with_ids = concatenate_datasets([bookcorpus, bookcorpus_ids], axis=1)
+```
 
 <a id='format'></a>
 
