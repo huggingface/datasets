@@ -196,8 +196,11 @@ Dataset({
 'idx': Value(dtype='int64', id=None)}
 ```
 
-tip,None
+<Tip>
+
 Casting only works if the original feature type and new feature type are compatible. For example, you can cast a column with the feature type `Value('int32')` to `Value('bool')` if the original column only contains ones and zeros.
+
+</Tip>
 
 Use [`datasets.Dataset.cast_column`] to change the feature type of just one column. Pass the column name and its new feature type as arguments:
 
@@ -266,8 +269,11 @@ Next, apply this function to the dataset with [`datasets.Dataset.map`]:
 ]
 ```
 
-tip,None
+<Tip>
+
 To disable `tqdm` progress bar printed by default, pass `False` as an argument to [`datasets.set_progress_bar_enabled`].
+
+</Tip>
 
 Let's take a look at another example, except this time, you will remove a column with [`datasets.Dataset.map`]. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed.
 
@@ -279,8 +285,11 @@ Specify the column to remove with the `remove_columns` argument in [`datasets.Da
 ['sentence2', 'label', 'idx', 'new_sentence']
 ```
 
-tip,None
+<Tip>
+
 🤗 Datasets also has a [`datasets.Dataset.remove_columns`] method that is functionally identical, but faster, because it doesn't copy the data of the remaining columns.
+
+</Tip>
 
 You can also use [`datasets.Dataset.map`] with indices if you set `with_indices=True`. The example below adds the index to the beginning of each sentence:
 
@@ -540,8 +549,11 @@ Then you can wrap the dataset with `tf.data.Dataset`. This method gives you more
 >>> dataset = dataset.with_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
 ```
 
-tip,None
+<Tip>
+
 🤗 Datasets also provides support for other common data formats such as NumPy, PyTorch, Pandas, and JAX.
+
+</Tip>
 
 Use [`datasets.Dataset.reset_format`] if you need to reset the dataset to the original format:
 
@@ -589,8 +601,11 @@ When you want to use your dataset again, use [`datasets.load_from_disk`] to relo
 >>> reloaded_encoded_dataset = load_from_disk("path/of/my/dataset/directory")
 ```
 
-tip,None
+<Tip>
+
 Want to save your dataset to a cloud storage provider? Read our [Cloud Storage](./filesystems) guide on how to save your dataset to AWS or Google Cloud Storage!
+
+</Tip>
 
 ## Export
 

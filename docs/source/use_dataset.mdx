@@ -124,7 +124,10 @@ means they can be passed directly to methods like *model.fit()*. [`datasets.Data
 }
 ```
 
-tip,None
+<Tip>
+
 [`datasets.Dataset.to_tf_dataset`] is the easiest way to create a TensorFlow compatible dataset. If you don't want a `tf.data.Dataset` and would rather the dataset emit `tf.Tensor` objects, take a look at the [format](#format) section instead!
+
+</Tip>
 
 Your dataset is now ready for use in a training loop!

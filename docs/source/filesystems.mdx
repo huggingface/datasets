@@ -84,8 +84,11 @@ After you have processed your dataset, you can save it to S3 with [`datasets.Dat
 >>> encoded_dataset.save_to_disk('s3://my-private-datasets/imdb/train', fs=s3)
 ```
 
-tip,None
+<Tip>
+
 Remember to include your `aws_access_key_id` and `aws_secret_access_key` whenever you are interacting with a private S3 bucket.
+
+</Tip>
 
 Save your dataset with `botocore.session.Session` and a custom AWS profile:
 

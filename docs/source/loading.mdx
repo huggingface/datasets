@@ -386,8 +386,11 @@ For example, imagine you are training and evaluating on eight parallel processes
 >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=rank)
 ```
 
-tip,None
+<Tip>
+
 Once you've loaded a metric for distributed usage, you can compute the metric as usual. Behind the scenes, [`datasets.Metric.compute`] gathers all the predictions and references from the nodes, and computes the final metric.
+
+</Tip>
 
 In some instances, you may be simultaneously running multiple independent distributed evaluations on the same server and files. To avoid any conflicts, it is important to provide an `experiment_id` to distinguish the separate evaluations:
 

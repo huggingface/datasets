@@ -65,8 +65,11 @@ There are three main methods in [`datasets.DatasetBuilder`]:
 
    Once the files are downloaded, [`datasets.SplitGenerator`] organizes them into splits. The [`datasets.SplitGenerator`] contains the name of the split, and any keyword arguments that are provided to the [`datasets.DatasetBuilder._generate_examples`] method. The keyword arguments can be specific to each split, and typically comprise at least the local path to the data files for each split.
 
-tip,None
+<Tip>
+
 [`datasets.DownloadManager.download_and_extract`] can download files from a wide range of sources. If the data files are hosted on a special access server, you should use [`datasets.DownloadManger.download_custom`]. Refer to the reference of [`datasets.DownloadManager`] for more details.
+
+</Tip>
 
 3. [`datasets.DatasetBuilder._generate_examples`] reads and parses the data files for a split. Then it yields dataset examples according to the format specified in the `features` from [`datasets.DatasetBuilder._info`]. The input of [`datasets.DatasetBuilder._generate_examples`] is actually the `filepath` provided in the keyword arguments of the last method.
 

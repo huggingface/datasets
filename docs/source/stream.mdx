@@ -18,8 +18,11 @@ For example, the English split of the [OSCAR](https://huggingface.co/datasets/os
 
 Loading a dataset in streaming mode creates a new dataset type instance (instead of the classic [`datasets.Dataset`] object), known as an [`datasets.IterableDataset`]. This special type of dataset has its own set of processing methods shown below.
 
-tip,None
+<Tip>
+
 An [`datasets.IterableDataset`] is useful for iterative jobs like training a model. You shouldn't use a [`datasets.IterableDataset`] for jobs that require random access to examples because you have to iterate all over it using a for loop. Getting the last example in an iterable dataset would require you to iterate over all the previous examples.
+
+</Tip>
 
 ## `Shuffle`
 
@@ -33,8 +36,11 @@ The `buffer_size` argument controls the size of the buffer to randomly sample ex
 >>> shuffled_dataset = dataset.shuffle(buffer_size=10_000, seed=42)
 ```
 
-tip,None
+<Tip>
+
 [`datasets.IterableDataset.shuffle`] will also shuffle the order of the shards if the dataset is sharded into multiple sets.
+
+</Tip>
 
 ## Reshuffle
 

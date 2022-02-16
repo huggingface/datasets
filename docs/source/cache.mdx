@@ -71,8 +71,11 @@ Disable caching on a global scale with [`datasets.set_caching_enabled`]:
 
 When you disable caching, 🤗 Datasets will no longer reload cached files when applying transforms to datasets. Any transform you apply on your dataset will be need to be reapplied.
 
-tip,None
+<Tip>
+
 If you want to reuse a dataset from scratch, try setting the `download_mode` parameter in [`datasets.load_dataset`] instead.
+
+</Tip>
 
 You can also avoid caching your metric entirely, and keep it in CPU memory instead:
 

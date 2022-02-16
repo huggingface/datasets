@@ -78,8 +78,11 @@ Write a metric loading script to use your own custom metric (or one that is not 
 
 To help you get started, open the [SQuAD metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/squad/squad.py) and follow along.
 
-tip,None
+<Tip>
+
 Get jump started with our metric loading script [template](https://github.com/huggingface/datasets/blob/master/templates/new_metric_script.py)!
+
+</Tip>
 
 ### Add metric attributes
 
@@ -138,8 +141,11 @@ CHECKPOINT_URLS = {
 }
 ```
 
-tip,None
+<Tip>
+
 If the files are stored locally, provide a dictionary of path(s) instead of URLs.
+
+</Tip>
 
 2. [`datasets.Metric._download_and_prepare`] will take the URLs and download the metric files specified:
 

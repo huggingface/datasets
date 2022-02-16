@@ -44,8 +44,11 @@ If your data type contains a list of objects, then you want to use the [`dataset
 
 The `answers` field is constructed using the [`datasets.Sequence`] feature because it contains two subfields, `text` and `answer_start`, which are lists of `string` and `int32`, respectively.
 
-tip,None
+<Tip>
+
 See the [flatten](#flatten) section to learn how you can extract the nested subfields as their own independent columns.
+
+</Tip>
 
 The array feature type is useful for creating arrays of various sizes. You can create arrays with two dimensions using [`datasets.Array2D`], and even arrays with five dimensions using [`datasets.Array5D`]. 
 

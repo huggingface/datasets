@@ -20,8 +20,11 @@ The following guide includes instructions for dataset scripts for how to:
 
 Open the [SQuAD dataset loading script](https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py) template to follow along on how to share a dataset.
 
-tip,None
+<Tip>
+
 To help you get started, try beginning with the dataset loading script [template](https://github.com/huggingface/datasets/blob/master/templates/new_dataset_script.py)!
+
+</Tip>
 
 ## Add dataset attributes
 
@@ -186,8 +189,11 @@ _URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
     }
 ```
 
-tip,None
+<Tip>
+
 If the data files live in the same folder or repository of the dataset script, you can just pass the relative paths to the files instead of URLs.
+
+</Tip>
 
 2. [`datasets.DownloadManager.download_and_extract`] takes this dictionary and downloads the data files. Once the files are downloaded, use [`datasets.SplitGenerator`] to organize each split in the dataset. This is a simple class that contains:
 
@@ -315,8 +321,11 @@ datasets-cli dummy_data datasets/<your-dataset-folder>
 ===================================================================================
 ```
 
-tip,None
+<Tip>
+
 Manually creating dummy data can be tricky. Make sure you follow the instructions from the command `datasets-cli dummy_data datasets/<your-dataset-folder>`. If you are still unable to successfully generate dummy data, open a [Pull Request](https://github.com/huggingface/datasets/pulls) and we will be happy to help you out!
+
+</Tip>
 
 There should be two new files in your dataset folder:
 
