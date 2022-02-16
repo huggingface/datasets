@@ -280,11 +280,11 @@ def get_dataset_split_names(
             download_config = download_config.copy() if download_config else DownloadConfig()
             if use_auth_token is not None:
                 download_config.use_auth_token = use_auth_token
+            dl_manager = StreamingDownloadManager(base_path=builder.base_path, download_config=download_config)
+            split_generators_kwargs = builder._make_split_generators_kwargs({"dl_manager": dl_manager})
             return [
                 split_generator.name
-                for split_generator in builder._split_generators(
-                    StreamingDownloadManager(base_path=builder.base_path, download_config=download_config)
-                )
+                for split_generator in builder._split_generators(dl_manager, **split_generators_kwargs)
             ]
         except Exception as err:
             raise SplitsNotFoundError("The split names could not be parsed from the dataset config.") from err

@@ -657,7 +657,9 @@ class DatasetBuilder:
         """
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.name)
-        split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
+        split_generators_kwargs = self._make_split_generators_kwargs(
+            {"dl_manager": dl_manager, **prepare_split_kwargs}
+        )
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
 
         # Checksums verification
@@ -727,8 +729,12 @@ class DatasetBuilder:
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
-        del prepare_split_kwargs
-        return {}
+        split_generators_kwargs = {}
+        split_generators_arg_names = inspect.signature(self._split_generators).parameters.keys()
+        if "streaming" in split_generators_arg_names:
+            streaming = isinstance(prepare_split_kwargs.get("dl_manager"), StreamingDownloadManager)
+            split_generators_kwargs["streaming"] = streaming
+        return split_generators_kwargs
 
     def as_dataset(
         self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False, in_memory=False
@@ -892,7 +898,8 @@ class DatasetBuilder:
             data_dir=self.config.data_dir,
         )
         self._check_manual_download(dl_manager)
-        splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager)}
+        split_generators_kwargs = self._make_split_generators_kwargs({"dl_manager": dl_manager})
+        splits_generators = {sg.name: sg for sg in self._split_generators(dl_manager, **split_generators_kwargs)}
         # By default, return all splits
         if split is None:
             splits_generator = splits_generators
