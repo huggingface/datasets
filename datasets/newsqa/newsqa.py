@@ -133,14 +133,10 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                             ),
                             "validated_answers": datasets.features.Sequence(
                                 {
-                                    "sourcerAnswers": datasets.features.Sequence(
-                                        {
-                                            "s": datasets.Value("int32"),
-                                            "e": datasets.Value("int32"),
-                                            "noAnswer": datasets.Value("bool"),
-                                            "count": datasets.Value("int32"),
-                                        }
-                                    ),
+                                    "s": datasets.Value("int32"),
+                                    "e": datasets.Value("int32"),
+                                    "noAnswer": datasets.Value("bool"),
+                                    "count": datasets.Value("int32"),
                                 }
                             ),
                         }
@@ -290,20 +286,11 @@ class Newsqa(datasets.GeneratorBasedBuilder):
 
                         dict1["answers"] = answers
 
-                        validated_answers = []
-                        for ans in ques["answers"]:
-                            dict2 = {}
-                            dict2["sourcerAnswers"] = []
-                            for index, i in enumerate(ans["sourcerAnswers"]):
-                                dict_temp = {"s": 0, "e": 0, "noAnswer": False, "count": 0}
-                                for keys in i.keys():
-                                    dict_temp[keys] = i[keys]
-
-                                dict2["sourcerAnswers"].append(dict_temp)
-
-                            validated_answers.append(dict2)
-
+                        default_validated_answer = {"s": 0, "e": 0, "noAnswer": False, "count": 0}
+                        validated_answers = ques.get("validatedAnswers", [])  # not always present
+                        validated_answers = [{**default_validated_answer, **val_ans} for val_ans in validated_answers]
                         dict1["validated_answers"] = validated_answers
+
                         questions.append(dict1)
 
                     yield id_, {
