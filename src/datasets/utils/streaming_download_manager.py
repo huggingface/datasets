@@ -215,7 +215,7 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
         return fs.isfile(main_hop)
 
 
-def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> Optional[int]:
+def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> int:
     """Extend `os.path.getsize` function to support remote files.
 
     Args:
@@ -235,7 +235,11 @@ def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> Optiona
         else:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
-        return fs.size(main_hop)
+        size = fs.size(main_hop)
+        if size is None:
+            with fs.open(path, "rb") as f:
+                size = len(f.read())
+        return size
 
 
 def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:

@@ -101,7 +101,7 @@ from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
-from .utils.streaming_download_manager import xgetsize, xopen
+from .utils.streaming_download_manager import xgetsize
 from .utils.typing import PathLike
 
 
@@ -3565,9 +3565,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     for x in array.to_pylist():
                         if x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])
-                            if size is None:
-                                with xopen(x["path"], "rb") as f:
-                                    size = len(f.read())
                             extra_nbytes += size
                     extra_nbytes -= array.field("path").nbytes
 
