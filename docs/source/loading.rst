@@ -175,9 +175,11 @@ Parquet files are stored in a columnar format unlike row-based files like CSV. L
 
 To load remote parquet files via HTTP, you can pass the URLs:
 
-   >>> base_url = "https://storage.googleapis.com/huggingface-nlp/cache/datasets/wikipedia/20200501.en/1.0.0/"
-   >>> data_files = {"train": base_url + "wikipedia-train.parquet"}
-   >>> wiki = load_dataset("parquet", data_files=data_files, split="train")
+```py
+>>> base_url = "https://storage.googleapis.com/huggingface-nlp/cache/datasets/wikipedia/20200501.en/1.0.0/"
+>>> data_files = {"train": base_url + "wikipedia-train.parquet"}
+>>> wiki = load_dataset("parquet", data_files=data_files, split="train")
+```
 
 In-memory data
 --------------
@@ -225,71 +227,61 @@ For even greater control over how to load a split, you can choose to only load s
 
 Concatenate the ``train`` and ``test`` split by:
 
-.. tab:: String API
-
-   >>> train_test_ds = datasets.load_dataset('bookcorpus', split='train+test')
-
-.. tab:: ReadInstruction
-
-   >>> ri = datasets.ReadInstruction('train') + datasets.ReadInstruction('test')
-   >>> train_test_ds = datasets.load_dataset('bookcorpus', split=ri)
+```py
+>>> train_test_ds = datasets.load_dataset('bookcorpus', split='train+test')
+===STRINGAPI-READINSTRUCTION-SPLIT===
+>>> ri = datasets.ReadInstruction('train') + datasets.ReadInstruction('test')
+>>> train_test_ds = datasets.load_dataset('bookcorpus', split=ri)
+```
 
 Select specific rows of the ``train`` split:
 
-.. tab:: String API
-
-   >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split='train[10:20]')
-
-.. tab:: ReadInstruction
-
-   >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', from_=10, to=20, unit='abs'))
+```py
+>>> train_10_20_ds = datasets.load_dataset('bookcorpus', split='train[10:20]')
+===STRINGAPI-READINSTRUCTION-SPLIT===
+>>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', from_=10, to=20, unit='abs'))
+```
 
 Or select a percentage of the split with:
 
-.. tab:: String API
-
-   >>> train_10pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]')
-
-.. tab:: ReadInstruction
-
-   >>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', to=10, unit='%'))
+```py
+>>> train_10pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]')
+===STRINGAPI-READINSTRUCTION-SPLIT===
+>>> train_10_20_ds = datasets.load_dataset('bookcorpus', split=datasets.ReadInstruction('train', to=10, unit='%'))
+```
 
 You can even select a combination of percentages from each split:
 
-.. tab:: String API
-
-   >>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]+train[-80%:]')
-
-.. tab:: ReadInstruction
-
-   >>> ri = (datasets.ReadInstruction('train', to=10, unit='%') + datasets.ReadInstruction('train', from_=-80, unit='%'))
-   >>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split=ri)
+```py
+>>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split='train[:10%]+train[-80%:]')
+===STRINGAPI-READINSTRUCTION-SPLIT===
+>>> ri = (datasets.ReadInstruction('train', to=10, unit='%') + datasets.ReadInstruction('train', from_=-80, unit='%'))
+>>> train_10_80pct_ds = datasets.load_dataset('bookcorpus', split=ri)
+```
 
 Finally, create cross-validated dataset splits by:
 
-.. tab:: String API
-
-   >>> # 10-fold cross-validation (see also next section on rounding behavior):
-   >>> # The validation datasets are each going to be 10%:
-   >>> # [0%:10%], [10%:20%], ..., [90%:100%].
-   >>> # And the training datasets are each going to be the complementary 90%:
-   >>> # [10%:100%] (for a corresponding validation set of [0%:10%]),
-   >>> # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
-   >>> # [0%:90%] (for a validation set of [90%:100%]).
-   >>> vals_ds = datasets.load_dataset('bookcorpus', split=[f'train[{k}%:{k+10}%]' for k in range(0, 100, 10)])
-   >>> trains_ds = datasets.load_dataset('bookcorpus', split=[f'train[:{k}%]+train[{k+10}%:]' for k in range(0, 100, 10)])
-
-.. tab:: ReadInstruction
-
-   >>> # 10-fold cross-validation (see also next section on rounding behavior):
-   >>> # The validation datasets are each going to be 10%:
-   >>> # [0%:10%], [10%:20%], ..., [90%:100%].
-   >>> # And the training datasets are each going to be the complementary 90%:
-   >>> # [10%:100%] (for a corresponding validation set of [0%:10%]),
-   >>> # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
-   >>> # [0%:90%] (for a validation set of [90%:100%]).
-   >>> vals_ds = datasets.load_dataset('bookcorpus', [datasets.ReadInstruction('train', from_=k, to=k+10, unit='%') for k in range(0, 100, 10)])
-   >>> trains_ds = datasets.load_dataset('bookcorpus', [(datasets.ReadInstruction('train', to=k, unit='%') + datasets.ReadInstruction('train', from_=k+10, unit='%')) for k in range(0, 100, 10)])
+```py
+>>> # 10-fold cross-validation (see also next section on rounding behavior):
+>>> # The validation datasets are each going to be 10%:
+>>> # [0%:10%], [10%:20%], ..., [90%:100%].
+>>> # And the training datasets are each going to be the complementary 90%:
+>>> # [10%:100%] (for a corresponding validation set of [0%:10%]),
+>>> # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
+>>> # [0%:90%] (for a validation set of [90%:100%]).
+>>> vals_ds = datasets.load_dataset('bookcorpus', split=[f'train[{k}%:{k+10}%]' for k in range(0, 100, 10)])
+>>> trains_ds = datasets.load_dataset('bookcorpus', split=[f'train[:{k}%]+train[{k+10}%:]' for k in range(0, 100, 10)])
+===STRINGAPI-READINSTRUCTION-SPLIT===
+>>> # 10-fold cross-validation (see also next section on rounding behavior):
+>>> # The validation datasets are each going to be 10%:
+>>> # [0%:10%], [10%:20%], ..., [90%:100%].
+>>> # And the training datasets are each going to be the complementary 90%:
+>>> # [10%:100%] (for a corresponding validation set of [0%:10%]),
+>>> # [0%:10%] + [20%:100%] (for a validation set of [10%:20%]), ...,
+>>> # [0%:90%] (for a validation set of [90%:100%]).
+>>> vals_ds = datasets.load_dataset('bookcorpus', [datasets.ReadInstruction('train', from_=k, to=k+10, unit='%') for k in range(0, 100, 10)])
+>>> trains_ds = datasets.load_dataset('bookcorpus', [(datasets.ReadInstruction('train', to=k, unit='%') + datasets.ReadInstruction('train', from_=k+10, unit='%')) for k in range(0, 100, 10)])
+```
 
 Percent slicing and rounding
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -334,13 +326,14 @@ Certain datasets require you to manually download the dataset files due to licen
 
 For example, if you try to download a configuration from the `MATINF <https://huggingface.co/datasets/matinf>`_ dataset:
 
-.. code-block::
+```py
+>>> dataset = load_dataset("matinf", "summarization")
+Downloading and preparing dataset matinf/summarization (download: Unknown size, generated: 246.89 MiB, post-processed: Unknown size, total: 246.89 MiB) to /root/.cache/huggingface/datasets/matinf/summarization/1.0.0/82eee5e71c3ceaf20d909bca36ff237452b4e4ab195d3be7ee1c78b53e6f540e...
+AssertionError: The dataset matinf with config summarization requires manual data. 
+Please follow the manual download instructions: To use MATINF you have to download it manually. Please fill this google form (https://forms.gle/nkH4LVE4iNQeDzsc9). You will receive a download link and a password once you complete the form. Please extract all files in one folder and load the dataset with: `datasets.load_dataset('matinf', data_dir='path/to/folder/folder_name')`. 
+Manual data can be loaded with `datasets.load_dataset(matinf, data_dir='<path/to/manual/data>')
+```
 
-   >>> dataset = load_dataset("matinf", "summarization")
-   Downloading and preparing dataset matinf/summarization (download: Unknown size, generated: 246.89 MiB, post-processed: Unknown size, total: 246.89 MiB) to /root/.cache/huggingface/datasets/matinf/summarization/1.0.0/82eee5e71c3ceaf20d909bca36ff237452b4e4ab195d3be7ee1c78b53e6f540e...
-   AssertionError: The dataset matinf with config summarization requires manual data. 
-   Please follow the manual download instructions: To use MATINF you have to download it manually. Please fill this google form (https://forms.gle/nkH4LVE4iNQeDzsc9). You will receive a download link and a password once you complete the form. Please extract all files in one folder and load the dataset with: `datasets.load_dataset('matinf', data_dir='path/to/folder/folder_name')`. 
-   Manual data can be loaded with `datasets.load_dataset(matinf, data_dir='<path/to/manual/data>')
 
 Specify features
 ^^^^^^^^^^^^^^^^
@@ -349,24 +342,24 @@ When you create a dataset from local files, the :class:`datasets.Features` are a
 
 The following example shows how you can add custom labels with :class:`datasets.ClassLabel`. First, define your own labels using the :class:`datasets.Features` class:
 
-.. code-block::
-
-   >>> class_names = ["sadness", "joy", "love", "anger", "fear", "surprise"]
-   >>> emotion_features = Features({'text': Value('string'), 'label': ClassLabel(names=class_names)})
+```py
+>>> class_names = ["sadness", "joy", "love", "anger", "fear", "surprise"]
+>>> emotion_features = Features({'text': Value('string'), 'label': ClassLabel(names=class_names)})
+```
 
 Next, specify the ``features`` argument in :func:`datasets.load_dataset` with the features you just created:
 
-.. code::
-
-   >>> dataset = load_dataset('csv', data_files=file_dict, delimiter=';', column_names=['text', 'label'], features=emotion_features)
+```py
+>>> dataset = load_dataset('csv', data_files=file_dict, delimiter=';', column_names=['text', 'label'], features=emotion_features)
+```
 
 Now when you look at your dataset features, you can see it uses the custom labels you defined:
 
-.. code::
-
-   >>> dataset['train'].features
-   {'text': Value(dtype='string', id=None),
-   'label': ClassLabel(num_classes=6, names=['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'], names_file=None, id=None)}
+```py
+>>> dataset['train'].features
+{'text': Value(dtype='string', id=None),
+'label': ClassLabel(num_classes=6, names=['sadness', 'joy', 'love', 'anger', 'fear', 'surprise'], names_file=None, id=None)}
+```
 
 Metrics
 -------
