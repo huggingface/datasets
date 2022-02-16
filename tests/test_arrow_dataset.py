@@ -1492,7 +1492,21 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 bad_indices = list(range(5))
-                bad_indices[3] = "foo"
+                bad_indices[-1] = len(dset) + 10  # out of bounds
+                tmp_file = os.path.join(tmp_dir, "test.arrow")
+                self.assertRaises(
+                    Exception,
+                    dset.select,
+                    indices=bad_indices,
+                    indices_cache_file_name=tmp_file,
+                    writer_batch_size=2,
+                )
+                self.assertFalse(os.path.exists(tmp_file))
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
+                bad_indices = list(range(5))
+                bad_indices[3] = "foo"  # wrong type
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 self.assertRaises(
                     Exception,

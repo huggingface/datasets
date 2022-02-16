@@ -1690,6 +1690,12 @@ def load_dataset(
             "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
         )
         revision = script_version
+    if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
+        raise ValueError(
+            "You are trying to load a dataset that was saved using `save_to_disk`. "
+            "Please use `load_from_disk` instead."
+        )
+
     ignore_verifications = ignore_verifications or save_infos
 
     # Create a dataset builder

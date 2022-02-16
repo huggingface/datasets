@@ -17,6 +17,7 @@ from datasets.features import (
     _cast_to_python_objects,
     cast_to_python_objects,
     encode_nested_example,
+    generate_from_dict,
     string_to_arrow,
 )
 from datasets.info import DatasetInfo
@@ -267,6 +268,20 @@ def test_classlabel_int2str():
         assert classlabel.int2str(i) == names[i]
     with pytest.raises(ValueError):
         classlabel.int2str(len(names))
+
+
+@pytest.mark.parametrize("class_label_arg", ["names", "names_file"])
+def test_class_label_to_and_from_dict(class_label_arg, tmp_path_factory):
+    names = ["negative", "positive"]
+    names_file = str(tmp_path_factory.mktemp("features") / "labels.txt")
+    with open(names_file, "w", encoding="utf-8") as f:
+        f.write("\n".join(names))
+    if class_label_arg == "names":
+        class_label = ClassLabel(names=names)
+    elif class_label_arg == "names_file":
+        class_label = ClassLabel(names_file=names_file)
+    generated_class_label = generate_from_dict(asdict(class_label))
+    assert generated_class_label == class_label
 
 
 def test_encode_nested_example_sequence_with_none():
