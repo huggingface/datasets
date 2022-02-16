@@ -237,7 +237,8 @@ def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> int:
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         size = fs.size(main_hop)
         if size is None:
-            with fs.open(main_hop, "rb") as f:
+            # use xopen instead of fs.open to make data fetching more robust
+            with xopen(path, use_auth_token=use_auth_token) as f:
                 size = len(f.read())
         return size
 
