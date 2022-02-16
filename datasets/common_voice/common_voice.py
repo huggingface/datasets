@@ -691,6 +691,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
+                    "streaming": streaming,
                     "archive_iterator": archive_iterator,
                     "filepath": metadata_filepaths["train"],
                     "path_to_clips": path_to_clips,
@@ -699,6 +700,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
+                    "streaming": streaming,
                     "archive_iterator": archive_iterator,
                     "filepath": metadata_filepaths["test"],
                     "path_to_clips": path_to_clips,
@@ -707,6 +709,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
+                    "streaming": streaming,
                     "archive_iterator": archive_iterator,
                     "filepath": metadata_filepaths["dev"],
                     "path_to_clips": path_to_clips,
@@ -715,6 +718,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name="other",
                 gen_kwargs={
+                    "streaming": streaming,
                     "archive_iterator": archive_iterator,
                     "filepath": metadata_filepaths["other"],
                     "path_to_clips": path_to_clips,
@@ -723,6 +727,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name="validated",
                 gen_kwargs={
+                    "streaming": streaming,
                     "archive_iterator": archive_iterator,
                     "filepath": metadata_filepaths["validated"],
                     "path_to_clips": path_to_clips,
@@ -731,6 +736,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name="invalidated",
                 gen_kwargs={
+                    "streaming": streaming,
                     "archive_iterator": archive_iterator,
                     "filepath": metadata_filepaths["invalidated"],
                     "path_to_clips": path_to_clips,
@@ -738,10 +744,14 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_examples(self, archive_iterator, filepath, path_to_clips):
+    def _generate_examples(self, streaming, archive_iterator, filepath, path_to_clips):
         """Yields examples."""
-        if archive_iterator is not None:
+        if streaming:
             yield from self._generate_examples_streaming(archive_iterator, filepath, path_to_clips)
+        else:
+            yield from self._generate_examples_non_streaming(filepath, path_to_clips)
+
+    def _generate_examples_non_streaming(self, filepath, path_to_clips):
 
         data_fields = list(self._info().features.keys())
 
