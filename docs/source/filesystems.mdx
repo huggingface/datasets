@@ -2,23 +2,14 @@
 
 🤗 Datasets supports access to cloud storage providers through a S3 filesystem implementation: [`datasets.filesystems.S3FileSystem`]. You can save and load datasets from your Amazon S3 bucket in a Pythonic way. Take a look at the following table for other supported cloud storage providers:
 
-list-table,None
-:header-rows: 1
-
-- - Storage provider
-  - Filesystem implementation
-- - Amazon S3
-  - [s3fs](https://s3fs.readthedocs.io/en/latest/)
-- - Google Cloud Storage
-  - [gcsfs](https://gcsfs.readthedocs.io/en/latest/)
-- - Azure DataLake
-  - [adl](https://github.com/dask/adlfs)
-- - Azure Blob
-  - [abfs](https://github.com/dask/adlfs)
-- - Dropbox
-  - [dropboxdrivefs](https://github.com/MarineChap/dropboxdrivefs)
-- - Google Drive
-  - [gdrivefs](https://github.com/intake/gdrivefs)
+| Storage provider     | Filesystem implementation                                     |
+|----------------------|---------------------------------------------------------------|
+| Amazon S3            | [s3fs](https://s3fs.readthedocs.io/en/latest/)                |
+| Google Cloud Storage | [gcsfs](https://gcsfs.readthedocs.io/en/latest/)              |
+| Azure DataLake       | [adl](https://github.com/dask/adlfs)                          |
+| Azure Blob           | [abfs](https://github.com/dask/adlfs)                         |
+| Dropbox              | [dropboxdrivefs](https://github.com/MarineChap/dropboxdrivefs)|
+| Google Drive         | [gdrivefs](https://github.com/intake/gdrivefs)                |
 
 This guide will show you how to save and load datasets with **s3fs** to a S3 bucket, but other filesystem implementations can be used similarly.
 

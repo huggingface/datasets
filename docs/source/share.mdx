@@ -20,21 +20,13 @@ Both options offer the same features such as:
 
 The main differences between the two are highlighted in the table below:
 
-list-table,None
-:header-rows: 1
-
-- - Community datasets
-  - Canonical datasets
-- - Faster to share, no review process.
-  - Slower to add, needs to be reviewed.
-- - Data files can be stored on the Hub.
-  - Data files are typically retrieved from the original host URLs.
-- - Identified by a user or organization namespace like **thomwolf/my_dataset** or **huggingface/our_dataset**.
-  - Identified by a root namespace. Need to select a short name that is available.
-- - Requires data files and/or a dataset loading script.
-  - Always requires a dataset loading script.
-- - Flagged as **unsafe** because the dataset contains executable code.
-  - Flagged as **safe** because the dataset has been reviewed.
+| Community datasets                                                                                          | Canonical datasets                                                             |
+|-------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| Faster to share, no review process.                                                                         | Slower to add, needs to be reviewed.                                           |
+| Data files can be stored on the Hub.                                                                        | Data files are typically retrieved from the original host URLs.                |
+| Identified by a user or organization namespace like **thomwolf/my_dataset** or **huggingface/our_dataset**. | Identified by a root namespace. Need to select a short name that is available. |
+| Requires data files and/or a dataset loading script.                                                        | Always requires a dataset loading script.                                      |
+| Flagged as **unsafe** because the dataset contains executable code.                                         | Flagged as **safe** because the dataset has been reviewed.                     |
 
 For community datasets, if your dataset is in a supported format, you can skip directly below to learn how to upload your files and add a [dataset card](dataset_card). There is no need to write your own dataset loading script (unless you want more control over how to load your dataset). However, if the dataset isn't in one of the supported formats, you will need to write a [dataset loading script](dataset_script). The dataset loading script is a Python script that defines the dataset splits, feature types, and how to download and process the data.
 

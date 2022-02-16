@@ -611,19 +611,12 @@ Want to save your dataset to a cloud storage provider? Read our [Cloud Storage](
 
 🤗 Datasets supports exporting as well, so you can work with your dataset in other applications. The following table shows currently supported file formats you can export to:
 
-list-table,None
-:header-rows: 1
-
-- - File type
-  - Export method
-- - CSV
-  - [`datasets.Dataset.to_csv`]
-- - JSON
-  - [`datasets.Dataset.to_json`]
-- - Parquet
-  - [`datasets.Dataset.to_parquet`]
-- - In-memory Python object
-  - [`datasets.Dataset.to_pandas`] or [`datasets.Dataset.to_dict`]
+| File type               | Export method                                                  |
+|-------------------------|----------------------------------------------------------------|
+| CSV                     | [`datasets.Dataset.to_csv`]                                    |
+| JSON                    | [`datasets.Dataset.to_json`]                                   |
+| Parquet                 | [`datasets.Dataset.to_parquet`]                                |
+| In-memory Python object | [`datasets.Dataset.to_pandas`] or [`datasets.Dataset.to_dict`] |
 
 For example, export your dataset to a CSV file like this:
 

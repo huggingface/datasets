@@ -27,21 +27,13 @@ When you load a dataset for the first time, 🤗 Datasets takes the raw data fil
 
 [`datasets.BuilderConfig`] is the configuration class of [`datasets.DatasetBuilder`]. The [`datasets.BuilderConfig`] contains the following basic attributes about a dataset:
 
-list-table,None
-:header-rows: 1
-
-- - Attribute
-  - Description
-- - `name`
-  - Short name of the dataset.
-- - `version`
-  - Dataset version identifier.
-- - `data_dir`
-  - Stores the path to a local folder containing the data files.
-- - `data_files`
-  - Stores paths to local data files.
-- - `description`
-  - Description of the dataset.
+| Attribute     | Description                                                  |
+|---------------|--------------------------------------------------------------|
+| `name`        | Short name of the dataset.                                   |
+| `version`     | Dataset version identifier.                                  |
+| `data_dir`    | Stores the path to a local folder containing the data files. |
+| `data_files`  | Stores paths to local data files.                            |
+| `description` | Description of the dataset.                                  |
 
 If you want to add additional attributes to your dataset such as the class labels, you can subclass the base [`datasets.BuilderConfig`] class. There are two ways to populate the attributes of a [`datasets.BuilderConfig`] class or subclass:
 
