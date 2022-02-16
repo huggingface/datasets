@@ -82,7 +82,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     # allow checks on paths
     patch_submodule(module, "os.path.isdir", wrap_auth(xisdir)).start()
     patch_submodule(module, "os.path.isfile", wrap_auth(xisfile)).start()
-    patch_submodule(module, "os.path.isfile", wrap_auth(xgetsize)).start()
+    patch_submodule(module, "os.path.getsize", wrap_auth(xgetsize)).start()
     if hasattr(module, "Path"):
         patch.object(module.Path, "joinpath", xpathjoin).start()
         patch.object(module.Path, "__truediv__", xpathjoin).start()

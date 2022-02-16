@@ -322,7 +322,6 @@ def test_xisfile(input_path, isfile, tmp_path, mock_fsspec):
 @pytest.mark.parametrize(
     "input_path, size",
     [
-        ("tmp_path", 0),
         ("tmp_path/file.txt", 100),
         ("mock://", 0),
         ("mock://top_level/second_level/date=2019-10-01/a.parquet", 100),
