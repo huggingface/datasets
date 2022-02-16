@@ -126,6 +126,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                                         {
                                             "s": datasets.Value("int32"),
                                             "e": datasets.Value("int32"),
+                                            "badQuestion": datasets.Value("bool"),
                                             "noAnswer": datasets.Value("bool"),
                                         }
                                     ),
@@ -135,6 +136,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                                 {
                                     "s": datasets.Value("int32"),
                                     "e": datasets.Value("int32"),
+                                    "badQuestion": datasets.Value("bool"),
                                     "noAnswer": datasets.Value("bool"),
                                     "count": datasets.Value("int32"),
                                 }
@@ -277,16 +279,14 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                             dict2 = {}
                             dict2["sourcerAnswers"] = []
                             for index, i in enumerate(ans["sourcerAnswers"]):
-                                dict_temp = {"s": 0, "e": 0, "noAnswer": False}
+                                dict_temp = {"s": 0, "e": 0, "badQuestion": False, "noAnswer": False}
                                 for keys in i.keys():
                                     dict_temp[keys] = i[keys]
                                 dict2["sourcerAnswers"].append(dict_temp)
-
                             answers.append(dict2)
-
                         dict1["answers"] = answers
 
-                        default_validated_answer = {"s": 0, "e": 0, "noAnswer": False, "count": 0}
+                        default_validated_answer = {"s": 0, "e": 0, "badQuestion": False, "noAnswer": False, "count": 0}
                         validated_answers = ques.get("validatedAnswers", [])  # not always present
                         validated_answers = [{**default_validated_answer, **val_ans} for val_ans in validated_answers]
                         dict1["validated_answers"] = validated_answers
