@@ -43,7 +43,7 @@ T = TypeVar("T", str, Path)
 def init_hf_modules(hf_modules_cache: Optional[Union[Path, str]] = None) -> str:
     """
     Add hf_modules_cache to the python path.
-    By default hf_modules_cache='~/.cache/huggingface/modules'.
+    By default, hf_modules_cache='~/.cache/huggingface/modules'.
     It can also be set with the environment variable HF_MODULES_CACHE.
     This is used to add modules such as `datasets_modules`
     """
@@ -120,8 +120,8 @@ def is_remote_url(url_or_filename: str) -> bool:
 
 def is_local_path(url_or_filename: str) -> bool:
     # On unix the scheme of a local path is empty (for both absolute and relative),
-    # while on windows the scheme is the drive name (ex: "c") for absolute paths.
-    # for details on the windows behavior, see https://bugs.python.org/issue42215
+    # while on Windows the scheme is the drive name (ex: "c") for absolute paths.
+    # for details on the Windows' behavior, see https://bugs.python.org/issue42215
     return urlparse(url_or_filename).scheme == "" or os.path.ismount(urlparse(url_or_filename).scheme + ":/")
 
 
@@ -194,7 +194,7 @@ def url_or_path_parent(url_or_path: str) -> str:
 def hash_url_to_filename(url, etag=None):
     """
     Convert `url` into a hashed filename in a repeatable way.
-    If `etag` is specified, append its hash to the url's, delimited
+    If `etag` is specified, append its hash to the URL's, delimited
     by a period.
     If the url ends with .h5 (Keras HDF5 weights) adds '.h5' to the name
     so that TF 2.0 can identify it as a HDF5 file
@@ -222,9 +222,9 @@ class DownloadConfig:
     Attributes:
         cache_dir (:obj:`str` or :obj:`Path`, optional): Specify a cache directory to save the file to (overwrite the
             default cache dir).
-        force_download (:obj:`bool`, default ``False``): If True, re-dowload the file even if it's already cached in
+        force_download (:obj:`bool`, default ``False``): If True, re-download the file even if it's already cached in
             the cache dir.
-        resume_download (:obj:`bool`, default ``False``): If True, resume the download if incompletly recieved file is
+        resume_download (:obj:`bool`, default ``False``): If True, resume the download if incompletely received file is
             found.
         proxies (:obj:`dict`, optional):
         user_agent (:obj:`str`, optional): Optional string or dict that will be appended to the user-agent on remote
@@ -557,7 +557,7 @@ def get_from_cache(
     if user_agent is not None:
         headers["user-agent"] = user_agent
 
-    # We don't have the file locally or we need an eTag
+    # We don't have the file locally, or we need an eTag
     if not local_files_only:
         if url.startswith("ftp://"):
             connected = ftp_head(url)
@@ -652,7 +652,7 @@ def get_from_cache(
             resume_size = 0
 
         # Download to temporary file, then copy to cache dir once finished.
-        # Otherwise you get corrupt cache entries if the download gets interrupted.
+        # Otherwise, you get corrupt cache entries if the download gets interrupted.
         with temp_file_manager() as temp_file:
             logger.info(f"{url} not found in cache or force_download set to True, downloading to {temp_file.name}")
 

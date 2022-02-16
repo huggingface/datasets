@@ -255,7 +255,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         yield from ex_iterator
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "SkipExamplesIterable":
-        """Doesn't shuffle the wrapped examples iterable since it would skip exampels from other shards instead."""
+        """Doesn't shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
         return self
 
     @property
@@ -450,7 +450,7 @@ class IterableDataset(DatasetInfoMixin):
         maintaining the 1,000 element buffer.
 
         If the dataset is made of several shards, it also does shuffle the order of the shards.
-        However if the order has been fixed by using :func:`datasets.IterableDataset.skip` or :func:`datasets.IterableDataset.take`
+        However, if the order has been fixed by using :func:`datasets.IterableDataset.skip` or :func:`datasets.IterableDataset.take`
         then the order of the shards is kept unchanged.
 
         Args:

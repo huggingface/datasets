@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -112,7 +112,7 @@ logger = logging.get_logger(__name__)
 
 class LazyDict(UserDict):
     def __init__(self, data, features=None):
-        self.data = data
+        super().__init__(data)
         self.features = (
             {key: feature for key, feature in features.items() if features._column_requires_decoding[key]}
             if features
@@ -589,7 +589,7 @@ def _check_valid_indices_value(value, size):
 def _check_if_features_can_be_aligned(features_list: List[Features]):
     """Check if the dictionaries of features can be aligned.
 
-    Two dictonaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
+    Two dictionaries of features can be aligned if the keys they share have the same type or some of them is of type `Value("null")`.
     """
     name2feature = {}
     for features in features_list:
@@ -1004,7 +1004,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         else:
             fs = fsspec.filesystem("file")
             cache_files_paths = [Path(cache_filename["filename"]) for cache_filename in self.cache_files]
-            # Check that the dataset doesn't overwrite iself. It can cause a permission error on Windows and a segfault on linux.
+            # Check that the dataset doesn't overwrite itself. It can cause a permission error on Windows and a segfault on linux.
             if Path(dataset_path, config.DATASET_ARROW_FILENAME) in cache_files_paths:
                 raise PermissionError(
                     f"Tried to overwrite {Path(dataset_path, config.DATASET_ARROW_FILENAME)} but a dataset can't overwrite itself."
@@ -2312,7 +2312,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
             disable_tqdm (:obj:`bool`, defaults to `False`): Whether to silence tqdm's output.
             desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
-            cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
+            cache_only (`bool`, defaults to `False`): Flag in order to notify the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
         """
         # Reduce logging to keep things readable in multiprocessing with tqdm
         if rank is not None and logging.get_verbosity() < logging.WARNING:
@@ -2445,7 +2445,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 )
             return buf_writer, writer, tmp_file
 
-        # If `update_data` is True after processing the first example/batch, initalize these resources with `init_buffer_and_writer`
+        # If `update_data` is True after processing the first example/batch, initialize these resources with `init_buffer_and_writer`
         buf_writer, writer, tmp_file = None, None, None
 
         # Optionally initialize the writer as a context manager
@@ -2521,7 +2521,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                             else:
                                 writer.write_batch(batch)
                 if update_data and writer is not None:
-                    writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
+                    writer.finalize()  # close_stream=bool(buf_writer is None)  # We only close if we are writing in a file
             except (Exception, KeyboardInterrupt):
                 if update_data:
                     if writer is not None:
@@ -2601,7 +2601,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
             fn_kwargs (:obj:`dict`, optional): Keyword arguments to be passed to `function`
-            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
+            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default, it doesn't
                 use multiprocessing.
             suffix_template (:obj:`str`):
                 If `cache_file_name` is specified, then this suffix will be added at the end of the base name of each.
@@ -2783,7 +2783,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         with writer:
             try:
                 writer.write_table(indices_table)
-                writer.finalize()  # close_stream=bool(buf_writer is None))  We only close if we are writing in a file
+                writer.finalize()  # close_stream=bool(buf_writer is None)  We only close if we are writing in a file
             except (Exception, KeyboardInterrupt):
                 if tmp_file is not None:
                     tmp_file.close()
@@ -2822,13 +2822,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> "Dataset":
         """Create a new dataset sorted according to a column.
 
-        Currently sorting according to a column name uses pandas sorting algorithm under the hood.
+        Currently, sorting according to a column name uses pandas sorting algorithm under the hood.
         The column should thus be a pandas compatible type (in particular not a nested type).
         This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
         Args:
             column (:obj:`str`): column name to sort by.
-            reverse (:obj:`bool`, default `False`): If True, sort by descending order rather then ascending.
+            reverse (:obj:`bool`, default `False`): If True, sort by descending order rather than ascending.
             kind (:obj:`str`, optional): Pandas algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                 The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
@@ -2904,7 +2904,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     ) -> "Dataset":
         """Create a new Dataset where the rows are shuffled.
 
-        Currently shuffling uses numpy random generators.
+        Currently, shuffling uses numpy random generators.
         You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
         Args:
@@ -2988,7 +2988,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         train_new_fingerprint: Optional[str] = None,
         test_new_fingerprint: Optional[str] = None,
     ) -> "DatasetDict":
-        """Return a dictionary (:obj:`datasets.DatsetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
+        """Return a dictionary (:obj:`datasets.DatasetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
         Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
 
         This method is similar to scikit-learn `train_test_split` with the omission of the stratified options.
@@ -3003,7 +3003,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the train split.
                 If int, represents the absolute number of train samples.
                 If None, the value is automatically set to the complement of the test size.
-            shuffle (:obj:`bool`, optional, default `True`): Whether or not to shuffle the data before splitting.
+            shuffle (:obj:`bool`, optional, default `True`): Whether to shuffle the data before splitting.
             seed (:obj:`int`, optional): A seed to initialize the default BitGenerator if ``generator=None``.
                 If None, then fresh, unpredictable entropy will be pulled from the OS.
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
@@ -3012,9 +3012,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory (:obj:`bool`, default `False`): Keep the splits indices in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the splits indices
                 can be identified, use it instead of recomputing.
-            train_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
+            train_indices_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
                 train split indices instead of the automatically generated cache file name.
-            test_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
+            test_indices_cache_file_name (:obj:`str`, optional): Provide the name of a path for the cache file. It is used to store the
                 test split indices instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
@@ -3233,7 +3233,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             filename (:obj:`str`): The filename, including the `.tfrecord` extension, to write to.
-            format (`str`, optional, default `"tfrecord"`): The type of output file. Currently this is a no-op, as
+            format (`str`, optional, default `"tfrecord"`): The type of output file. Currently, this is a no-op, as
                 TFRecords are the only option. This enables a more flexible function signature later.
         """
         try:
@@ -3318,11 +3318,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
             batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
+            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default, it doesn't
                 use multiprocessing. ``batch_size`` in this case defaults to
                 :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
-            to_csv_kwargs: Parameters to pass to pandas's :func:`pandas.DataFrame.to_csv`
+            to_csv_kwargs: Parameters to pass to Pandas' :func:`pandas.DataFrame.to_csv`
 
         Returns:
             int: The number of characters or bytes written
@@ -3337,7 +3337,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
-                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole dataset at once)
             batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -3374,7 +3374,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
             batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
-            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
+            num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default, it doesn't
                 use multiprocessing. ``batch_size`` in this case defaults to
                 :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE` but feel free to make it 5x or 10x of the default
                 value if you have sufficient compute power.
@@ -3383,13 +3383,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ``"records"``, since the others are not list-like.
             orient (:obj:`str`, default ``"records"``): Format of the JSON:
 
-                - ``"records"``: list like ``[{column -> value}, … , {column -> value}]``
+                - ``"records"``: list like ``[{column -> value}, …, {column -> value}]``
                 - ``"split"``: dict like ``{"index" -> [index], "columns" -> [columns], "data" -> [values]}``
                 - ``"index"``: dict like ``{index -> {column -> value}}``
                 - ``"columns"``: dict like ``{column -> {index -> value}}``
                 - ``"values"``: just the values array
                 - ``"table"``: dict like ``{"schema": {schema}, "data": {data}}``
-            **to_json_kwargs: Parameters to pass to pandas's `pandas.DataFrame.to_json
+            **to_json_kwargs: Parameters to pass to Pandas' `pandas.DataFrame.to_json
                 <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html>`_.
 
         Returns:
@@ -3407,7 +3407,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
-                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
+                of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole dataset at once)
             batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
@@ -3464,7 +3464,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         embed_external_files: bool = True,
     ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
-        The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+        The dataset is pushed using HTTP requests and does not need to have neither git nor git-lfs installed.
 
         Args:
             repo_id (:obj:`str`):
@@ -3664,7 +3664,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         embed_external_files: bool = True,
     ):
         """Pushes the dataset to the hub.
-        The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
+        The dataset is pushed using HTTP requests and does not need to have neither git nor git-lfs installed.
 
         Args:
             repo_id (:obj:`str`):
@@ -3767,7 +3767,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dtype=np.float32,
     ):
         """Add a dense index using Faiss for fast retrieval.
-        By default the index is done over the vectors of the specified column.
+        By default, the index is done over the vectors of the specified column.
         You can specify :obj:`device` if you want to run it on GPU (:obj:`device` must be the GPU index).
         You can find more information about Faiss here:
 
@@ -3779,10 +3779,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             index_name (Optional :obj:`str`):
                 The index_name/identifier of the index.
                 This is the index_name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
-                By default it corresponds to `column`.
+                By default, it corresponds to `column`.
             device (Optional :obj:`int`):
                 If not None, this is the index of the GPU to use.
-                By default it uses the CPU.
+                By default, it uses the CPU.
             string_factory (Optional :obj:`str`):
                 This is passed to the index factory of Faiss to create the index.
                 Default index class is ``IndexFlat``.
@@ -3801,7 +3801,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             .. code-block:: python
 
                 ds = datasets.load_dataset('crime_and_punish', split='train')
-                ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
+                ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line'])})
                 ds_with_embeddings.add_faiss_index(column='embeddings')
                 # query
                 scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
@@ -3855,7 +3855,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 This is the index_name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
             device (Optional :obj:`int`):
                 If not None, this is the index of the GPU to use.
-                By default it uses the CPU.
+                By default, it uses the CPU.
             string_factory (Optional :obj:`str`):
                 This is passed to the index factory of Faiss to create the index.
                 Default index class is ``IndexFlat``.
@@ -3898,7 +3898,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             index_name (Optional :obj:`str`):
                 The index_name/identifier of the index.
                 This is the index name that is used to call :meth:`Dataset.get_nearest_examples` or :meth:`Dataset.search`.
-                By default it corresponds to :obj:`column`.
+                By default, it corresponds to :obj:`column`.
             host (Optional :obj:`str`, defaults to localhost):
                 host of where ElasticSearch is running
             port (Optional :obj:`str`, defaults to 9200):
@@ -4021,7 +4021,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         # Sort input mapping by ID value to ensure the label names are aligned
         label2id = dict(sorted(label2id.items(), key=lambda item: item[1]))
         label_names = list(label2id.keys())
-        # Some label mappings use uppercase label names so we lowercase them during alignment
+        # Some label mappings use uppercase label names, so we lowercase them during alignment
         label2id = {k.lower(): v for k, v in label2id.items()}
         int2str_function = label_feature.int2str
 
@@ -4066,7 +4066,7 @@ def concatenate_datasets(
         # Return first dataset if all datasets are empty
         return dsets[0]
 
-    # Perform checks (and a potentional cast if axis=0)
+    # Perform checks (and a potential cast if axis=0)
     if axis == 0:
         _check_if_features_can_be_aligned([dset.features for dset in dsets])
     else:

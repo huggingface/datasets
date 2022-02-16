@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,7 +67,7 @@ class TFFormatter(Formatter[dict, "tf.Tensor", dict]):
         if isinstance(data_struct, (list, np.ndarray)):
             if (
                 data_struct.dtype == np.object
-            ):  # tensorflow tensors can sometimes be instantied from an array of objects
+            ):  # tensorflow tensors can sometimes be instantiated from an array of objects
                 try:
                     return self._tensorize(data_struct)
                 except ValueError:

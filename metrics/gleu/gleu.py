@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,14 +33,14 @@ _CITATION = """\
   address   = {Beijing, China},
   publisher = {Association for Computational Linguistics},
   pages     = {588--593},
-  url       = {http://www.aclweb.org/anthology/P15-2097}
+  url       = {https://aclanthology.org/P15-2097/}
 }
 @Article{napoles2016gleu,
   author    = {Napoles, Courtney  and  Sakaguchi, Keisuke  and  Post, Matt  and  Tetreault, Joel},
   title     = {{GLEU} Without Tuning},
   journal   = {eprint arXiv:1605.02592 [cs.CL]},
   year      = {2016},
-  url       = {http://arxiv.org/abs/1605.02592}
+  url       = {https://arxiv.org/abs/1605.02592}
 }
 """
 

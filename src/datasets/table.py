@@ -340,9 +340,9 @@ class Table(IndexedTableMixin):
 
 class TableBlock(Table):
     """
-    TableBlock is the allowed class inside a ConcanetationTable.
+    TableBlock is the allowed class inside a ConcatenationTable.
     Only MemoryMappedTable and InMemoryTable are TableBlock.
-    This is because we don't want a ConcanetationTable made out of other ConcanetationTables.
+    This is because we don't want a ConcatenationTable made out of other ConcatenationTables.
     """
 
     pass
@@ -456,7 +456,7 @@ class MemoryMappedTable(TableBlock):
     Instead, only the path to the memory mapped arrow file is pickled, as well as the list
     of transforms to "replay" when reloading the table from the disk.
 
-    Its implementation requires to store an history of all the transforms that were applied
+    Its implementation requires to store a history of all the transforms that were applied
     to the underlying pyarrow Table, so that they can be "replayed" when reloading the Table
     from the disk.
 
@@ -882,7 +882,7 @@ def concat_tables(tables: List[Table], axis: int = 0) -> Table:
     Returns:
         :obj:`datasets.table.Table` that is the concatenated table:
             If the number of input tables is > 1, then the returned table is a :obj:`datasets.table.ConcatenationTable`.
-            Otherwise if there's only one table, it is returned as is.
+            Otherwise, if there's only one table, it is returned as is.
     """
     tables = list(tables)
     if len(tables) == 1:
@@ -969,7 +969,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             = if casting from numbers to strings and allow_number_to_str is False
 
     Returns:
-        pa.Array: the casted array
+        pa.Array: the cast array
     """
     _c = partial(array_cast, allow_number_to_str=allow_number_to_str)
     if isinstance(array, pa.ExtensionArray):
@@ -1040,7 +1040,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             = if casting from numbers to strings and allow_number_to_str is False
 
     Returns:
-        pa.Array: the casted array
+        pa.Array: the cast array
     """
     from .features import Sequence, get_nested_type
 
@@ -1088,14 +1088,14 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
 
 
 def cast_table_to_features(table: pa.Table, features: "Features"):
-    """Cast an table to the arrow schema that corresponds to the requested features.
+    """Cast a table to the arrow schema that corresponds to the requested features.
 
     Args:
         table (pa.Table): PyArrow table to cast
         features (Features): target features.
 
     Returns:
-        pa.Table: the casted table
+        pa.Table: the cast table
     """
     if sorted(table.column_names) != sorted(features):
         raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match")
@@ -1113,7 +1113,7 @@ def table_cast(table: pa.Table, schema: pa.Schema):
         schema (pa.Schema): target PyArrow schema.
 
     Returns:
-        pa.Table: the casted table
+        pa.Table: the cast table
     """
     if table.schema != schema:
         from .features import Features

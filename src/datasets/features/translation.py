@@ -7,7 +7,7 @@ import pyarrow as pa
 @dataclass
 class Translation:
     """`FeatureConnector` for translations with fixed languages per example.
-    Here for compatiblity with tfds.
+    Here for compatibility with tfds.
 
     Input: The Translate feature accepts a dictionary for each example mapping
         string language codes to string translations.
@@ -44,7 +44,7 @@ class Translation:
 @dataclass
 class TranslationVariableLanguages:
     """`FeatureConnector` for translations with variable languages per example.
-    Here for compatiblity with tfds.
+    Here for compatibility with tfds.
 
     Input: The TranslationVariableLanguages feature accepts a dictionary for each
         example mapping string language codes to one or more string translations.

@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,7 +54,7 @@ class JaxFormatter(Formatter[dict, "jnp.ndarray", dict]):
         # support for nested types like struct of list of struct
         if isinstance(data_struct, (list, np.ndarray)):
             data_struct = np.array(data_struct, copy=False)
-            if data_struct.dtype == np.object:  # jax arrays cannot be instantied from an array of objects
+            if data_struct.dtype == np.object:  # jax arrays cannot be instantiated from an array of objects
                 return [self.recursive_tensorize(substruct) for substruct in data_struct]
         return self._tensorize(data_struct)
 

@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,7 @@ authors={Xu, Wei and Napoles, Courtney and Pavlick, Ellie and Chen, Quanze and C
 journal = {Transactions of the Association for Computational Linguistics},
 volume = {4},
 year={2016},
-url = {https://www.aclweb.org/anthology/Q16-1029},
+url = {https://aclanthology.org/Q16-1029/},
 pages = {401--415},
 }
 """
@@ -273,7 +273,7 @@ class Sari(datasets.Metric):
                 "https://github.com/cocoxu/simplification/blob/master/SARI.py",
                 "https://github.com/tensorflow/tensor2tensor/blob/master/tensor2tensor/utils/sari_hook.py",
             ],
-            reference_urls=["https://www.aclweb.org/anthology/Q16-1029.pdf"],
+            reference_urls=["https://aclanthology.org/Q16-1029.pdf"],
         )
 
     def _compute(self, sources, predictions, references):

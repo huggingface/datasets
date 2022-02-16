@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,7 +34,7 @@ _CITATION = """\
   year      = {2005},
   address   = {Ann Arbor, Michigan},
   publisher = {Association for Computational Linguistics},
-  url       = {https://www.aclweb.org/anthology/W05-0909},
+  url       = {https://aclanthology.org/W05-0909/},
   pages     = {65--72},
 }
 """

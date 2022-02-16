@@ -241,7 +241,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
         test_parser.add_argument(
             "--keep_uncompressed",
             action="store_true",
-            help="Whether to leave the dummy data folders uncompressed when auto-generating dummy data. Useful for debugging for to do manual adjustements before compressing.",
+            help="Whether to leave the dummy data folders uncompressed when auto-generating dummy data. Useful for debugging for to do manual adjustments before compressing.",
         )
         test_parser.add_argument(
             "--cache_dir",

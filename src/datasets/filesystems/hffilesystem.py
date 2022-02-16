@@ -9,7 +9,7 @@ from ..utils.file_utils import get_authentication_headers_for_url, hf_hub_url
 
 
 class HfFileSystem(AbstractFileSystem):
-    """Interface to files in a Hugging face repository"""
+    """Interface to the files in a Hugging face repository"""
 
     root_marker = ""
     protocol = "hf"
@@ -24,7 +24,7 @@ class HfFileSystem(AbstractFileSystem):
         The compressed file system can be instantiated from any compressed file.
         It reads the contents of compressed file as a filesystem with one file inside, as if it was an archive.
 
-        The single file inside the filesystem is named after the compresssed file,
+        The single file inside the filesystem is named after the compressed file,
         without the compression extension at the end of the filename.
 
         Args:

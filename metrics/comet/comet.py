@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,7 +63,7 @@ _CITATION = """\
    year = "2020",
    address = "Online",
    publisher = "Association for Computational Linguistics",
-   url = "https://www.aclweb.org/anthology/2020.emnlp-main.213",
+   url = "https://aclanthology.org/2020.emnlp-main.213/",
    pages = "2685--2702",
 }
 """
@@ -123,8 +123,8 @@ class COMET(datasets.Metric):
             codebase_urls=["https://github.com/Unbabel/COMET"],
             reference_urls=[
                 "https://github.com/Unbabel/COMET",
-                "https://www.aclweb.org/anthology/2020.emnlp-main.213/",
-                "http://www.statmt.org/wmt20/pdf/2020.wmt-1.101.pdf6",
+                "https://aclanthology.org/2020.emnlp-main.213/",
+                "https://www.statmt.org/wmt20/pdf/2020.wmt-1.101.pdf",
             ],
         )
 

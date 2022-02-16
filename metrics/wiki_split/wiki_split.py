@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,7 @@ _CITATION = """
     journal = {Transactions of the Association for Computational Linguistics},
     volume = {4},
     year={2016},
-    url = {https://www.aclweb.org/anthology/Q16-1029},
+    url = {https://aclanthology.org/Q16-1029/},
     pages = {401--415
 },
 @inproceedings{post-2018-call,
@@ -42,7 +42,7 @@ _CITATION = """
     year = "2018",
     address = "Belgium, Brussels",
     publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/W18-6319",
+    url = "https://aclanthology.org/W18-6319/",
     pages = "186--191",
 }
 """
@@ -339,7 +339,7 @@ class WikiSplit(datasets.Metric):
                 "https://github.com/mjpost/sacreBLEU",
             ],
             reference_urls=[
-                "https://www.aclweb.org/anthology/Q16-1029.pdf",
+                "https://aclanthology.org/Q16-1029.pdf",
                 "https://github.com/mjpost/sacreBLEU",
                 "https://en.wikipedia.org/wiki/BLEU",
                 "https://towardsdatascience.com/evaluating-text-output-in-nlp-bleu-at-your-own-risk-e8609665a213",

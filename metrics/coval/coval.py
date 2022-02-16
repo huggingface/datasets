@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -75,7 +75,7 @@ series = {MUC6 ’95}
     year = "2016",
     address = "Berlin, Germany",
     publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/P16-1060",
+    url = "https://aclanthology.org/P16-1060/",
     doi = "10.18653/v1/P16-1060",
     pages = "632--642",
 }
@@ -106,7 +106,7 @@ Column	Type	Description
 11	Named Entities	These columns identifies the spans representing various named entities.
 12:N	Predicate Arguments	There is one column each of predicate argument structure information for the predicate mentioned in Column 7.
 N	Coreference	Coreference chain information encoded in a parenthesis structure.
-More informations on the format can be found here (section "*_conll File Format"): http://www.conll.cemantix.org/2012/data.html
+More information on the format can be found here (section "*_conll File Format"): https://www.conll.cemantix.org/2012/data.html
 
 Details on the evaluation on CoNLL can be found here: https://github.com/ns-moosavi/coval/blob/master/conll/README.md
 
@@ -284,8 +284,8 @@ class Coval(datasets.Metric):
             codebase_urls=["https://github.com/ns-moosavi/coval"],
             reference_urls=[
                 "https://github.com/ns-moosavi/coval",
-                "https://www.aclweb.org/anthology/P16-1060",
-                "http://www.conll.cemantix.org/2012/data.html",
+                "https://aclanthology.org/P16-1060/",
+                "https://www.conll.cemantix.org/2012/data.html",
             ],
         )
 

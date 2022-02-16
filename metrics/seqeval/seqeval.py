@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ _CITATION = """\
       Marcus, Mitch",
     booktitle = "Third Workshop on Very Large Corpora",
     year = "1995",
-    url = "https://www.aclweb.org/anthology/W95-0107",
+    url = "https://aclanthology.org/W95-0107/",
 }
 @misc{seqeval,
   title={{seqeval}: A Python framework for sequence labeling evaluation},

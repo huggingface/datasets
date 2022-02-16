@@ -11,7 +11,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
 
     root_marker = ""
     protocol: str = (
-        None  # protocol passed in prefix to the url. ex: "gzip", for gzip://file.txt::http://foo.bar/file.txt.gz
+        None  # protocol passed in prefix to the url. ex: "gzip", for gzip://file.txt::https://foo.bar/file.txt.gz
     )
     compression: str = None  # compression type in fsspec. ex: "gzip"
     extension: str = None  # extension of the filename to strip. ex: "".gz" to get file.txt from file.txt.gz
@@ -23,7 +23,7 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         The compressed file system can be instantiated from any compressed file.
         It reads the contents of compressed file as a filesystem with one file inside, as if it was an archive.
 
-        The single file inside the filesystem is named after the compresssed file,
+        The single file inside the filesystem is named after the compressed file,
         without the compression extension at the end of the filename.
 
         Args:

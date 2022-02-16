@@ -55,7 +55,7 @@ FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data
 
 
 def contains_wildcards(pattern: str) -> bool:
-    return any(wilcard_character in pattern for wilcard_character in WILDCARD_CHARACTERS)
+    return any(wildcard_character in pattern for wildcard_character in WILDCARD_CHARACTERS)
 
 
 def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[str], "DataFilesList"]]:
@@ -65,7 +65,7 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
     The default split is "train".
 
     Returns:
-        patterns: dictionary of split_name -> list_of _atterns
+        patterns: dictionary of split_name -> list_of_patterns
     """
     if isinstance(patterns, dict):
         return {str(key): value if isinstance(value, list) else [value] for key, value in patterns.items()}
@@ -115,7 +115,7 @@ def _resolve_single_pattern_locally(
     """
     Return the absolute paths to all the files that match the given patterns.
     It also supports absolute paths in patterns.
-    If an URL is passed, it is returned as is.
+    If a URL is passed, it is returned as is.
     """
     pattern = os.path.join(base_path, pattern)
     data_files_ignore = FILES_TO_IGNORE
@@ -508,7 +508,7 @@ class DataFilesList(List[Union[Path, Url]]):
     - ``from_hf_repo``: resolve patterns inside a dataset repository
     - ``from_local_or_remote``: resolve patterns from a local path
 
-    Moreover DataFilesList has an additional attribute ``origin_metadata``.
+    Moreover, DataFilesList has an additional attribute ``origin_metadata``.
     It can store:
     - the last modified time of local files
     - ETag of remote files
@@ -555,7 +555,7 @@ class DataFilesDict(Dict[str, DataFilesList]):
     - ``from_hf_repo``: resolve patterns inside a dataset repository
     - ``from_local_or_remote``: resolve patterns from a local path
 
-    Moreover each list is a DataFilesList. It is possible to hash the dictionary
+    Moreover, each list is a DataFilesList. It is possible to hash the dictionary
     and get a different hash if and only if at least one file changed.
     For more info, see ``DataFilesList``.
 

@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,7 +58,7 @@ memoize = functools.lru_cache
 
 
 def size_str(size_in_bytes):
-    """Returns a human readable size string.
+    """Returns a human-readable size string.
 
     If size_in_bytes is None, then returns "Unknown size".
 
@@ -233,7 +233,7 @@ def map_nested(
     desc: Optional[str] = None,
 ):
     """Apply a function recursively to each element of a nested data struct.
-    If num_proc > 1 and the length of data_struct is longer than num_proc: use multi-processing
+    If num_proc > 1 and the length of data_struct is longer than num_proc: use multiprocessing
     """
     if types is None:
         types = []
@@ -261,7 +261,7 @@ def map_nested(
             for obj in utils.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
-        split_kwds = []  # We organize the splits ourselve (contiguous splits)
+        split_kwds = []  # We organize the splits ourselves (contiguous splits)
         for index in range(num_proc):
             div = len(iterable) // num_proc
             mod = len(iterable) % num_proc
@@ -431,7 +431,7 @@ class _CloudPickleTypeHintFix:
         return origin[args]
 
     def _save_parametrized_type_hint(pickler, obj):
-        # The distorted type check sematic for typing construct becomes:
+        # The distorted type check semantic for typing construct becomes:
         # ``type(obj) is type(TypeHint)``, which means "obj is a
         # parametrized TypeHint"
         if type(obj) is type(Literal):  # pragma: no branch

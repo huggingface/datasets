@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,7 +43,7 @@ _CITATION = """\
     year = "2018",
     address = "Belgium, Brussels",
     publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/W18-6319",
+    url = "https://aclanthology.org/W18-6319/",
     pages = "186--191",
 }
 """
@@ -99,7 +99,7 @@ class Ter(datasets.Metric):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
-            homepage="http://www.cs.umd.edu/~snover/tercom/",
+            homepage="https://www.cs.umd.edu/~snover/tercom/",
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {

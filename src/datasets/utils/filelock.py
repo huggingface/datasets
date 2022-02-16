@@ -21,7 +21,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-# For more information, please refer to <http://unlicense.org>
+# For more information, please refer to <https://unlicense.org>
 
 """
 A platform independent file lock that supports the with-statement.
@@ -218,7 +218,7 @@ class BaseFileLock:
         """
         return self._lock_file_fd is not None
 
-    def acquire(self, timeout=None, poll_intervall=0.05):
+    def acquire(self, timeout=None, poll_interval=0.05):
         """
         Acquires the file lock or fails with a :exc:`Timeout` error.
 
@@ -241,8 +241,8 @@ class BaseFileLock:
             block until the lock could be acquired.
             If ``timeout`` is None, the default :attr:`~timeout` is used.
 
-        :arg float poll_intervall:
-            We check once in *poll_intervall* seconds if we can acquire the
+        :arg float poll_interval:
+            We check once in *poll_interval* seconds if we can acquire the
             file lock.
 
         :raises Timeout:
@@ -280,9 +280,9 @@ class BaseFileLock:
                     raise Timeout(self._lock_file)
                 else:
                     logger().debug(
-                        f"Lock {lock_id} not acquired on {lock_filename}, waiting {poll_intervall} seconds ..."
+                        f"Lock {lock_id} not acquired on {lock_filename}, waiting {poll_interval} seconds ..."
                     )
-                    time.sleep(poll_intervall)
+                    time.sleep(poll_interval)
         except:  # noqa
             # Something did go wrong, so decrement the counter.
             with self._thread_lock:
@@ -295,7 +295,7 @@ class BaseFileLock:
         """
         Releases the file lock.
 
-        Please note, that the lock is only completly released, if the lock
+        Please note, that the lock is only completely released, if the lock
         counter is 0.
 
         Also note, that the lock file itself is not automatically deleted.
@@ -350,7 +350,7 @@ class BaseFileLock:
 class WindowsFileLock(BaseFileLock):
     """
     Uses the :func:`msvcrt.locking` function to hard lock the lock file on
-    windows systems.
+    Windows systems.
     """
 
     def __init__(self, lock_file, timeout=-1, max_filename_length=None):

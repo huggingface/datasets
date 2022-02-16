@@ -311,7 +311,7 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     """
     Simulate offline mode.
 
-    There are three offline simulatiom modes:
+    There are three offline simulation modes:
 
     CONNECTION_FAILS (default mode): a ConnectionError is raised for each network call.
         Connection errors are created by mocking socket.socket
@@ -319,7 +319,7 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
         The default timeout value is low (1e-16) to speed up the tests.
         Timeout errors are created by mocking requests.request
     HF_DATASETS_OFFLINE_SET_TO_1: the HF_DATASETS_OFFLINE environment variable is set to 1.
-        This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEmabled error.
+        This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEnabled error.
     """
     from requests import request as online_request
 

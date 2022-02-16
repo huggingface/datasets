@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -113,7 +113,7 @@ def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
     """
     Factory function to get a Formatter given its type name and keyword arguments.
     A formatter is an object that extracts and formats data from pyarrow table.
-    It defines the formatting for rows, colums and batches.
+    It defines the formatting for rows, columns and batches.
     If the formatter for a given type name doesn't exist or is not available, an error is raised.
     """
     format_type = get_format_type_from_alias(format_type)
