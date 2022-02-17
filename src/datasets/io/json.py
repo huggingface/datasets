@@ -2,13 +2,14 @@ import multiprocessing
 import os
 from typing import BinaryIO, Optional, Union
 
+import fsspec
+
 from .. import Dataset, Features, NamedSplit, config, utils
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
 from ..utils import logging
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
-from .handler import FileWriteHandler
 
 
 class JsonDatasetReader(AbstractDatasetReader):
@@ -76,12 +77,6 @@ class JsonDatasetWriter:
         self.batch_size = batch_size if batch_size else config.DEFAULT_MAX_BATCH_SIZE
         self.num_proc = num_proc
         self.encoding = "utf-8"
-        self._compression_to_extension = {
-            "gzip": ".gz",
-            "bz2": ".bz2",
-            "zip": ".zip",
-            "xz": ".xz",
-        }
         self.to_json_kwargs = to_json_kwargs
 
     def write(self) -> int:
@@ -90,17 +85,11 @@ class JsonDatasetWriter:
         lines = self.to_json_kwargs.pop("lines", True)
         compression = self.to_json_kwargs.pop("compression", None)
 
-        if compression not in [None, "infer", "gzip", "bz2", "xz", "zip"]:
+        if compression not in [None, "infer", "gzip", "bz2", "xz"]:
             raise NotImplementedError(f"`datasets` currently does not support {compression} compression")
 
-        # Infer compression from the filename/URL extension
-        if compression == "infer":
-            for compression_format, extension in self._compression_to_extension.items():
-                if self.path_or_buf.lower().endswith(extension):
-                    compression = compression_format
-
         if isinstance(self.path_or_buf, (str, bytes, os.PathLike)):
-            with FileWriteHandler(self.path_or_buf, "wb", compression) as buffer:
+            with fsspec.open(self.path_or_buf, "wb", compression=compression) as buffer:
                 written = self._write(file_obj=buffer, orient=orient, lines=lines, **self.to_json_kwargs)
         else:
             written = self._write(file_obj=self.path_or_buf, orient=orient, lines=lines, **self.to_json_kwargs)
