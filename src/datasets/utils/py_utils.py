@@ -29,7 +29,7 @@ from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
 from types import CodeType, FunctionType
-from typing import Callable, ClassVar, Dict, Generic, Optional, Tuple, Union
+from typing import Callable, ClassVar, Dict, Generic, Optional, Tuple, Type, Union
 
 import dill
 import numpy as np
@@ -45,9 +45,7 @@ try:  # pragma: no branch
 except ImportError:
     _typing_extensions = Literal = Final = None
 
-
 logger = logging.get_logger(__name__)
-
 
 # NOTE: When used on an instance method, the cache is shared across all
 # instances and IS NOT per-instance.
@@ -349,10 +347,30 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
     return needed_bytes < free_bytes
 
 
+@contextlib.contextmanager
+def temp_pickle_registry():
+    """Use as a context manager to temporarily register a reduction function within context."""
+    prev_dispatch = Pickler.dispatch.copy()
+    prev_subclass_dispatch = Pickler.sublcass_dispatch.copy()
+    try:
+        yield
+    finally:
+        Pickler.dispatch = dill._dill.MetaCatchingDict(prev_dispatch)
+        Pickler.sublcass_dispatch = prev_subclass_dispatch
+
+
 class Pickler(dill.Pickler):
     """Same Pickler as the one from dill, but improved for notebooks and shells"""
 
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
+    sublcass_dispatch: Dict = {}
+
+    def save(self, obj):
+        """Overwrites the underyling pickle's save. To dynamically, potentially, set custom functions
+        we do this right before actually saving with pickle. `dump` is not the right place for this,
+        as it is iteratively called in this subclass directly. For more, see :func:`Pickler.maybe_register_superfunc`."""
+        self.maybe_register_superfunc(obj)
+        return super(Pickler, self).save(obj)
 
     def save_global(self, obj, name=None):
         if sys.version_info[:2] < (3, 7) and _CloudPickleTypeHintFix._is_parametrized_type_hint(
@@ -371,6 +389,25 @@ class Pickler(dill.Pickler):
         # don't memoize strings since two identical strings can have different python ids
         if type(obj) != str:
             dill.Pickler.memoize(self, obj)
+
+    @classmethod
+    def maybe_register_superfunc(cls, obj):
+        """Dynamically registers a custom pickling function for the type of this object `obj`
+        by checking the `Pickler.sublcass_dispatch` table. All super-classes of `obj` are
+        traversed through mro() and checked against the table. If there is a match between
+        a super-class and the table, then we add the type() of the object along with the function
+        of the found super-class to Pickler.dispatch. This will internally tell Pickle to use
+        this function, originally related to the super-class, for this function as well."""
+        t = type(obj)
+        if t not in cls.dispatch and t not in cls.sublcass_dispatch:
+            for supercls in t.__mro__:
+                if supercls in cls.sublcass_dispatch:
+                    pklregister(t)(cls.sublcass_dispatch[supercls])
+                    # Break as soon as one match is found. We only want to most direct
+                    # ancestor class. _Some_ caution is needed here because the order
+                    # that we traverse is that of MRO, which is depth-first with some quirks
+                    # see # https://stackoverflow.com/a/2010732/1150683
+                    break
 
 
 def dump(obj, file):
@@ -404,8 +441,15 @@ def dumps(obj):
     return file.getvalue()
 
 
-def pklregister(t):
+def pklregister(t: Type, allow_subclasses: bool = False):
+    """Register custom pickling functions for specific objects. When an object of the given
+    type is encountered, it will be pickled with the provided function instead of the default.
+    When `allow_subclasses=True, the type and function will also be saved in a special table so
+    that future objects who are a subclass of `t` will also use the given function."""
+
     def proxy(func):
+        if allow_subclasses:
+            Pickler.sublcass_dispatch[t] = func
         Pickler.dispatch[t] = func
         return func
 
