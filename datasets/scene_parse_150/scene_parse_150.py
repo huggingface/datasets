@@ -283,7 +283,7 @@ class SceneParse150(datasets.GeneratorBasedBuilder):
                 for idx, (path, file) in enumerate(data):
                     if path.endswith(".jpg"):
                         yield idx, {
-                            "image": {"path": path, "file": file.read()},
+                            "image": {"path": path, "bytes": file.read()},
                             "annotation": None,
                         }
             else:

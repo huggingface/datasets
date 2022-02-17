@@ -79,7 +79,7 @@ English.
 
 ### Data Instances
 
-A data point comprises an image and its annotation mask. The `scene_parsing` configuration has an additional `scene_category` field.
+A data point comprises an image and its annotation mask, which is `None` in the testing set. The `scene_parsing` configuration has an additional `scene_category` field.
 
 #### `scene_parsing`
 
