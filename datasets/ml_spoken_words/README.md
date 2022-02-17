@@ -60,7 +60,7 @@ multilinguality:
 - multilingual
 pretty_name: MultilingualSpokenWords
 size_categories:
-- unknown
+- 10M<n<100M
 source_datasets:
 - extended|common_voice
 task_categories:
