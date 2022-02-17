@@ -58,7 +58,7 @@ licenses:
 - cc-by-4.0
 multilinguality:
 - multilingual
-pretty_name: MultilingualSpokenWords
+pretty_name: Multilingual Spoken Words
 size_categories:
 - 10M<n<100M
 source_datasets:
@@ -69,7 +69,7 @@ task_ids:
 - other-other-keyword-spotting
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Multilingual Spoken Words
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
