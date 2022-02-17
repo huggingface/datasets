@@ -24,7 +24,7 @@ Now that you have a high-level understanding about how datasets are built, let's
 
 When you load a dataset for the first time, 🤗 Datasets takes the raw data file and builds it into a table of rows and typed columns. There are two main classes responsible for building a dataset: [`datasets.BuilderConfig`] and [`datasets.DatasetBuilder`].
 
-<img align="center" src="/docs/datasets/master/en/imgs/builderconfig.png"/>
+<img align="center" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/builderconfig.png"/>
 
 ### [`datasets.BuilderConfig`]
 
@@ -40,17 +40,17 @@ When you load a dataset for the first time, 🤗 Datasets takes the raw data fil
 
 If you want to add additional attributes to your dataset such as the class labels, you can subclass the base [`datasets.BuilderConfig`] class. There are two ways to populate the attributes of a [`datasets.BuilderConfig`] class or subclass:
 
-- Provide a list of predefined [`datasets.BuilderConfig`] class (or subclass) instances in the datasets :attr:*datasets.DatasetBuilder.BUILDER_CONFIGS* attribute.
+- Provide a list of predefined [`datasets.BuilderConfig`] class (or subclass) instances in the datasets [`datasets.DatasetBuilder.BUILDER_CONFIGS`] attribute.
 
 - When you call [`datasets.load_dataset`], any keyword arguments that are not specific to the method will be used to set the associated attributes of the [`datasets.BuilderConfig`] class. This will override the predefined attributes if a specific configuration was selected.
 
-You can also set the :attr:*datasets.DatasetBuilder.BUILDER_CONFIG_CLASS* to any custom subclass of [`datasets.BuilderConfig`].
+You can also set the [`datasets.DatasetBuilder.BUILDER_CONFIG_CLASS`] to any custom subclass of [`datasets.BuilderConfig`].
 
 ### [`datasets.DatasetBuilder`]
 
 [`datasets.DatasetBuilder`] accesses all the attributes inside [`datasets.BuilderConfig`] to build the actual dataset.
 
-<img align="center" src="/docs/datasets/master/en/imgs/datasetbuilder.png"/>
+<img align="center" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/datasetbuilder.png"/>
 
 There are three main methods in [`datasets.DatasetBuilder`]:
 

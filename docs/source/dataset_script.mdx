@@ -157,7 +157,7 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
 
 ### Default configurations
 
-Users must specify a configuration name when they load a dataset with multiple configurations. Otherwise, 🤗 Datasets will raise a `ValueError`, and prompt the user to select a configuration name. You can avoid this by setting a default dataset configuration with the :attr:*datasets.DatasetBuilder.DEFAULT_CONFIG_NAME* attribute:
+Users must specify a configuration name when they load a dataset with multiple configurations. Otherwise, 🤗 Datasets will raise a `ValueError`, and prompt the user to select a configuration name. You can avoid this by setting a default dataset configuration with the ['datasets.DatasetBuilder.DEFAULT_CONFIG_NAME'] attribute:
 
 ```py
 class NewDataset(datasets.GeneratorBasedBuilder):

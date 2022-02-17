@@ -88,13 +88,13 @@ Get jump started with our metric loading script [template](https://github.com/hu
 
 Start by adding some information about your metric in [`datasets.Metric._info`]. The most important attributes you should specify are:
 
-1. :attr:*datasets.MetricInfo.description* provides a brief description about your metric.
+1. [`datasets.MetricInfo.description`] provides a brief description about your metric.
 
-2. :attr:*datasets.MetricInfo.citation* contains a BibTex citation for the metric.
+2. [`datasets.MetricInfo.citation`] contains a BibTex citation for the metric.
 
-3. :attr:*datasets.MetricInfo.inputs_description* describes the expected inputs and outputs. It may also provide an example usage of the metric.
+3. [`datasets.MetricInfo.inputs_description`] describes the expected inputs and outputs. It may also provide an example usage of the metric.
 
-4. :attr:*datasets.MetricInfo.features* defines the name and type of the predictions and references.
+4. [`datasets.MetricInfo.features`] defines the name and type of the predictions and references.
 
 After you've filled out all these fields in the template, it should look like the following example from the SQuAD metric script:
 
