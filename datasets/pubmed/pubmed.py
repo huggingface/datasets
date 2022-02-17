@@ -16,7 +16,7 @@
 
 
 import copy
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as ET
 
 import datasets
 
@@ -170,7 +170,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
             # XXX
             # Very special case, it will contain html leading to having very odd structure
             tag = parentElement.tag
-            string = etree.tostring(parentElement).decode("utf-8").strip()
+            string = ET.tostring(parentElement).decode("utf-8").strip()
             inner_string = string[len(f"<{tag}>") : -len(f"</{tag}>")]
             return {parentElement.tag: inner_string}
 
@@ -358,29 +358,28 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         id_ = 0
         for filename in filenames:
-            with open(filename, "rt", encoding="utf-8") as f:
-                xml_str = f.read()
+            try:
+                tree = ET.parse(filename)
+                root = tree.getroot()
+                xmldict = self.xml_to_dictionnary(root)
+            except ET.ParseError:
+                logger.warning(f"Ignoring file {filename}, it is malformed")
+                continue
+
+            for article in xmldict["PubmedArticleSet"]["PubmedArticle"]:
+                self.update_citation(article)
+                new_article = default_article()
+
                 try:
-                    root = etree.fromstring(xml_str)
-                    xmldict = self.xml_to_dictionnary(root)
-                except etree.ParseError:
-                    logger.warning(f"Ignoring file {filename}, it is malformed")
+                    deepupdate(new_article, article)
+                except Exception:
+                    logger.warning(f"Ignoring article {article}, it is malformed")
                     continue
 
-                for article in xmldict["PubmedArticleSet"]["PubmedArticle"]:
-                    self.update_citation(article)
-                    new_article = default_article()
-
-                    try:
-                        deepupdate(new_article, article)
-                    except Exception:
-                        logger.warning(f"Ignoring article {article}, it is malformed")
-                        continue
-
-                    try:
-                        _ = self.info.features.encode_example(new_article)
-                    except Exception as e:
-                        logger.warning(f"Ignore example because {e}")
-                        continue
-                    yield id_, new_article
-                    id_ += 1
+                try:
+                    _ = self.info.features.encode_example(new_article)
+                except Exception as e:
+                    logger.warning(f"Ignore example because {e}")
+                    continue
+                yield id_, new_article
+                id_ += 1
