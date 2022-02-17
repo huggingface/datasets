@@ -69,7 +69,7 @@ task_ids:
 - other-other-keyword-spotting
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Multilingual Spoken Words
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
