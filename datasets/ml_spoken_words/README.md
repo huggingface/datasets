@@ -58,7 +58,7 @@ licenses:
 - cc-by-4.0
 multilinguality:
 - multilingual
-pretty_name: MultilingualSpokenWords
+pretty_name: Multilingual Spoken Words
 size_categories:
 - unknown
 source_datasets:
