@@ -167,40 +167,49 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        splits_archive_path = [dl_manager.download(_SPLITS_URL.format(lang=lang)) for lang in self.config.languages]
+        splits_archive_paths = [dl_manager.download(_SPLITS_URL.format(lang=lang)) for lang in self.config.languages]
         download_audio = partial(_download_audio_archives, dl_manager=dl_manager)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "audio_archives": [download_audio(split="train", lang=lang) for lang in self.config.languages],
-                    "splits_archive": [dl_manager.iter_archive(path) for path in splits_archive_path],
+                    # we pass zipped lists here so that they are shuffled in the same way in streaming mode
+                    "audio_and_splits_archives": zip(
+                        [download_audio(split="train", lang=lang) for lang in self.config.languages],
+                        [dl_manager.iter_archive(path) for path in splits_archive_paths],
+                    ),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "audio_archives": [download_audio(split="dev", lang=lang) for lang in self.config.languages],
-                    "splits_archive": [dl_manager.iter_archive(path) for path in splits_archive_path],
+                    "audio_and_splits_archives": zip(
+                        [download_audio(split="dev", lang=lang) for lang in self.config.languages],
+                        [dl_manager.iter_archive(path) for path in splits_archive_paths],
+                    ),
                     "split": "dev",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "audio_archives": [download_audio(split="test", lang=lang) for lang in self.config.languages],
-                    "splits_archive": [dl_manager.iter_archive(path) for path in splits_archive_path],
+                    "audio_and_splits_archives": zip(
+                        [download_audio(split="test", lang=lang) for lang in self.config.languages],
+                        [dl_manager.iter_archive(path) for path in splits_archive_paths],
+                    ),
                     "split": "test",
                 },
             ),
         ]
 
-    def _generate_examples(self, audio_archives, splits_archive, split):
+    def _generate_examples(self, audio_and_splits_archives, split):
         metadata = dict()
+        audio_archives, splits_archives = list(zip(*audio_and_splits_archives))
+
         for lang_idx, lang in enumerate(self.config.languages):
-            for split_filename, split_file in splits_archive[lang_idx]:
+            for split_filename, split_file in splits_archives[lang_idx]:
                 if split_filename.split(".csv")[0] == split:
                     # TODO: how to correctly process csv files from tar?
                     csv_reader = csv.reader([line.decode("utf-8") for line in split_file.readlines()], delimiter=",")
