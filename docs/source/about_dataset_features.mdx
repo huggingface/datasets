@@ -24,8 +24,11 @@ The [`datasets.Value`] feature tells 🤗 Datasets:
 
 🤗 Datasets supports many other data types such as `bool`, `float32` and `binary` to name just a few.
 
-seealso,None
+<Tip>
+
 Refer to [`datasets.Value`] for a full list of supported data types.
+
+</Tip>
 
 The [`datasets.ClassLabel`] feature informs 🤗 Datasets the `label` column contains two classes. The classes are labeled `not_equivalent` and `equivalent`. Labels are stored as integers in the dataset. When you retrieve the labels, [`datasets.ClassLabel.int2str`] and [`datasets.ClassLabel.str2int`] carries out the conversion from integer value to label name, and vice versa.
 

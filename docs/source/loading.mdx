@@ -36,8 +36,11 @@ Some datasets may have more than one version, based on Git tags, branches or com
 >>> )
 ```
 
-seealso,None
+<Tip>
+
 Refer to the [upload_dataset_repo](#upload_dataset_repo) guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
+
+</Tip>
 
 If the dataset doesn't have a dataset loading script, then by default, all the data will be loaded in the `train` split. Use the `data_files` parameter to map data files to splits like `train`, `validation` and `test`:
 
@@ -357,8 +360,11 @@ When the metric you want to use is not supported by 🤗 Datasets, you can write
 >>> score = metric.compute()
 ```
 
-seealso,None
+<Tip>
+
 See the [metric_script](#metric_script) guide for more details on how to write your own metric loading script.
+
+</Tip>
 
 ### Load configurations
 

@@ -84,8 +84,11 @@ You can also avoid caching your metric entirely, and keep it in CPU memory inste
 >>> metric = load_metric('glue', 'mrpc', keep_in_memory=True)
 ```
 
-caution,None
+<Tip warning={true}>
+
 Keeping the predictions in-memory is not possible in a distributed setting since the CPU memory spaces of the various processes are not shared.
+
+</Tip>
 
 <a id='load_dataset_enhancing_performance'></a>
 
