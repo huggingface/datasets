@@ -45,16 +45,16 @@ _LICENSE = "The Creative Commons Attribution 4.0 International License. https://
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLS = {
-    "first_domain": "https://huggingface.co/great-new-dataset-first_domain.zip",
-    "second_domain": "https://huggingface.co/great-new-dataset-second_domain.zip",
+    "oikolab_weather": "https://zenodo.org/record/5184708/files/oikolab_weather_dataset.zip",
+    "temperature_rain": "https://zenodo.org/record/5129091/files/temperature_rain_dataset_without_missing_values.zip",
 }
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class MonashTSF(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """Builder of Monash Time Series Forecasting repository of datasets."""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.0.0")
 
     # This is an example of a dataset with multiple configurations.
     # If you don't want/need to define several sub-sets in your dataset,
@@ -69,16 +69,20 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"
+            name="oikolab_weather",
+            version=VERSION,
+            description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
         ),
         datasets.BuilderConfig(
-            name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"
+            name="temperature_rain",
+            version=VERSION,
+            description="32072 daily time series showing the temperature observations and rain forecasts, gathered by the Australian Bureau of Meteorology for 422 weather stations across Australia, between 02/05/2015 and 26/04/2017",
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = (
-        "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-    )
+    # DEFAULT_CONFIG_NAME = (
+    #     "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    # )
 
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
