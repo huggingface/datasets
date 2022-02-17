@@ -22,7 +22,7 @@ However, remember that all values in the output dictionary must contain the **sa
 For example, from a dataset of 1 column and 3 rows, if you use `map` to return a new column with twice as many rows, then you will have an error.
 In this case, you end up with one column with 3 rows, and one column with 6 rows. As you can see, the table will not be valid:
 
-```
+```py
 >>> from datasets import Dataset
 >>> dataset = Dataset.from_dict({"a": [0, 1, 2]})
 >>> dataset.map(lambda batch: {"b": batch["a"] * 2}, batched=True)  # new column with 6 elements: [0, 1, 2, 0, 1, 2]
@@ -31,7 +31,7 @@ In this case, you end up with one column with 3 rows, and one column with 6 rows
 
 To make it valid, you have to drop one of the columns:
 
-```
+```py
 >>> from datasets import Dataset
 >>> dataset = Dataset.from_dict({"a": [0, 1, 2]})
 >>> dataset_with_duplicates = dataset.map(lambda batch: {"b": batch["a"] * 2}, remove_columns=["a"], batched=True)

@@ -17,14 +17,14 @@ pip install transformers
 
 Next, import a tokenizer. It is important to use the tokenizer that is associated with the model you are using, so the text is split in the same way. In this example, load the [BERT tokenizer](https://huggingface.co/transformers/model_doc/bert#berttokenizerfast) because you are using the [BERT](https://huggingface.co/bert-base-cased) model:
 
-```
+```py
 >>> from transformers import BertTokenizerFast
 >>> tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
 ```
 
 Now you can tokenize `sentence1` field of the dataset:
 
-```
+```py
 >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True)
 >>> encoded_dataset.column_names
 ['sentence1', 'sentence2', 'label', 'idx', 'input_ids', 'token_type_ids', 'attention_mask']
@@ -55,7 +55,7 @@ If you are using PyTorch, set the format with [`datasets.Dataset.set_format`], w
 
 After you set the format, wrap the dataset with `torch.utils.data.DataLoader`. Your dataset is now ready for use in a training loop!
 
-```
+```py
 >>> import torch
 >>> from datasets import load_dataset
 >>> from transformers import AutoTokenizer
@@ -91,7 +91,7 @@ means they can be passed directly to methods like *model.fit()*. [`datasets.Data
 
 4. `collate_fn` specifies a data collator that will batch each processed example and apply padding. If you are using a `DataCollator`, make sure you set `return_tensors="tf"` when you initialize it to return `tf.Tensor` outputs.
 
-```
+```py
 >>> import tensorflow as tf
 >>> from datasets import load_dataset
 >>> from transformers import AutoTokenizer

@@ -4,7 +4,7 @@
 
 You can see what metrics are available with [`datasets.list_metrics`]:
 
-```
+```py
 >>> from datasets import list_metrics
 >>> metrics_list = list_metrics()
 >>> len(metrics_list)
@@ -17,7 +17,7 @@ You can see what metrics are available with [`datasets.list_metrics`]:
 
 It is very easy to load a metric with 🤗 Datasets. In fact, you will notice that it is very similar to loading a dataset! Load a metric from the Hub with [`datasets.load_metric`]:
 
-```
+```py
 >>> from datasets import load_metric
 >>> metric = load_metric('glue', 'mrpc')
 ```
@@ -28,7 +28,7 @@ This will load the metric associated with the MRPC dataset from the GLUE benchma
 
 If you are using a benchmark dataset, you need to select a metric that is associated with the configuration you are using. Select a metric configuration by providing the configuration name:
 
-```
+```py
 >>> metric = load_metric('glue', 'mrpc')
 ```
 
@@ -36,7 +36,7 @@ If you are using a benchmark dataset, you need to select a metric that is associ
 
 Before you begin using a [`datasets.Metric`] object, you should get to know it a little better. As with a dataset, you can return some basic information about a metric. For example, use `datasets.Metric.inputs_descriptions` to get more information about a metrics expected input format and some usage examples:
 
-```
+```py
 >>> print(metric.inputs_description)
 Compute GLUE evaluation metric associated to each GLUE dataset.
 Args:
@@ -73,7 +73,7 @@ Notice for the MRPC configuration, the metric expects the input format to be zer
 
 Once you have loaded a metric, you are ready to use it to evaluate a models predictions. Provide the model predictions and references to `datasets.Metric.compute`:
 
-```
+```py
 >>> model_predictions = model(model_inputs)
 >>> final_score = metric.compute(predictions=model_predictions, references=gold_references)
 ```

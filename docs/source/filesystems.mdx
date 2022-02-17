@@ -23,7 +23,7 @@ This guide will show you how to save and load datasets with **s3fs** to a S3 buc
 
 2. List files from a public S3 bucket with `s3.ls`:
 
-```
+```py
 >>> import datasets
 >>> s3 = datasets.filesystems.S3FileSystem(anon=True)  
 >>> s3.ls('public-datasets/imdb/train')
@@ -32,7 +32,7 @@ This guide will show you how to save and load datasets with **s3fs** to a S3 buc
 
 Access a private S3 bucket by entering your `aws_access_key_id` and `aws_secret_access_key`:
 
-```
+```py
 >>> import datasets
 >>> s3 = datasets.filesystems.S3FileSystem(key=aws_access_key_id, secret=aws_secret_access_key)  
 >>> s3.ls('my-private-datasets/imdb/train')  
@@ -53,7 +53,7 @@ Other filesystem implementations, like Google Cloud Storage, are used similarly:
 
 2. Load your dataset:
 
-```
+```py
 >>> import gcsfs
 >>> gcs = gcsfs.GCSFileSystem(project='my-google-project') 
 
@@ -65,7 +65,7 @@ Other filesystem implementations, like Google Cloud Storage, are used similarly:
 
 After you have processed your dataset, you can save it to S3 with [`datasets.Dataset.save_to_disk`]:
 
-```
+```py
 >>> from datasets.filesystems import S3FileSystem
 
 >>> # create S3FileSystem instance
@@ -83,7 +83,7 @@ Remember to include your `aws_access_key_id` and `aws_secret_access_key` wheneve
 
 Save your dataset with `botocore.session.Session` and a custom AWS profile:
 
-```
+```py
 >>> import botocore
 >>> from datasets.filesystems import S3FileSystem
 
@@ -101,7 +101,7 @@ Save your dataset with `botocore.session.Session` and a custom AWS profile:
 
 When you are ready to use your dataset again, reload it with `datasets.load_from_disk`:
 
-```
+```py
 >>> from datasets import load_from_disk
 >>> from datasets.filesystems import S3FileSystem
 
@@ -117,7 +117,7 @@ When you are ready to use your dataset again, reload it with `datasets.load_from
 
 Load with `botocore.session.Session` and custom AWS profile:
 
-```
+```py
 >>> import botocore
 >>> from datasets.filesystems import S3FileSystem
 

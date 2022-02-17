@@ -6,7 +6,7 @@ Now that you are all setup, the first step is to load a dataset. The easiest way
 
 Before you take the time to download a dataset, it is often helpful to quickly get all the relevant information about a dataset. The [`datasets.load_dataset_builder`] method allows you to inspect the attributes of a dataset without downloading it.
 
-```
+```py
 >>> from datasets import load_dataset_builder
 >>> dataset_builder = load_dataset_builder('imdb')
 >>> print(dataset_builder.cache_dir)
@@ -22,7 +22,7 @@ Take a look at [`datasets.DatasetInfo`] for a full list of attributes you can us
 
 Once you are happy with the dataset you want, load it in a single line with [`datasets.load_dataset`]:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('glue', 'mrpc', split='train')
 ```
@@ -33,7 +33,7 @@ Some datasets, like the [General Language Understanding Evaluation (GLUE)](https
 
 Use `get_dataset_config_names` to retrieve a list of all the possible configurations available to your dataset:
 
-```
+```py
 from datasets import get_dataset_config_names
 
 configs = get_dataset_config_names("glue")
@@ -43,7 +43,7 @@ print(configs)
 
 ❌ Incorrect way to load a configuration:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('glue')
 ValueError: Config name is missing.
@@ -54,7 +54,7 @@ Example of usage:
 
 ✅ Correct way to load a configuration:
 
-```
+```py
 >>> dataset = load_dataset('glue', 'sst2')
 Downloading and preparing dataset glue/sst2 (download: 7.09 MiB, generated: 4.81 MiB, total: 11.90 MiB) to /Users/thomwolf/.cache/huggingface/datasets/glue/sst2/1.0.0...
 Downloading: 100%|██████████████████████████████████████████████████████████████| 7.44M/7.44M [00:01<00:00, 7.03MB/s]
@@ -70,7 +70,7 @@ Dataset glue downloaded and prepared to /Users/thomwolf/.cache/huggingface/datas
 
 A split is a specific subset of the dataset like `train` and `test`. Make sure you select a split when you load a dataset. If you don't supply a `split` argument, 🤗 Datasets will only return a dictionary containing the subsets of the dataset.
 
-```
+```py
 >>> from datasets import load_dataset
 >>> datasets = load_dataset('glue', 'mrpc')
 >>> print(datasets)
@@ -91,7 +91,7 @@ test: Dataset({
 
 You can list the split names for a dataset, or a specific configuration, with the [`datasets.get_dataset_split_names`] method:
 
-```
+```py
 >>> from datasets import get_dataset_split_names
 >>> get_dataset_split_names('sent_comp')
 ['validation', 'train']

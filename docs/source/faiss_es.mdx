@@ -10,7 +10,7 @@ FAISS retrieves documents based on the similarity of their vector representation
 
 1. Download the DPR model from 🤗 Transformers:
 
-```
+```py
 >>> from transformers import DPRContextEncoder, DPRContextEncoderTokenizer
 >>> import torch
 >>> torch.set_grad_enabled(False)
@@ -20,7 +20,7 @@ FAISS retrieves documents based on the similarity of their vector representation
 
 2. Load your dataset and compute the vector representations:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> ds = load_dataset('crime_and_punish', split='train[:100]')
 >>> ds_with_embeddings = ds.map(lambda example: {'embeddings': ctx_encoder(**ctx_tokenizer(example["line"], return_tensors="pt"))[0][0].numpy()})
@@ -28,13 +28,13 @@ FAISS retrieves documents based on the similarity of their vector representation
 
 3. Create the index with [`datasets.Dataset.add_faiss_index`]:
 
-```
+```py
 >>> ds_with_embeddings.add_faiss_index(column='embeddings')
 ```
 
 4. Now you can query your dataset with the `embeddings` index. Load the DPR Question Encoder, and search for a question with [`datasets.Dataset.get_nearest_examples`]:
 
-```
+```py
 >>> from transformers import DPRQuestionEncoder, DPRQuestionEncoderTokenizer
 >>> q_encoder = DPRQuestionEncoder.from_pretrained("facebook/dpr-question_encoder-single-nq-base")
 >>> q_tokenizer = DPRQuestionEncoderTokenizer.from_pretrained("facebook/dpr-question_encoder-single-nq-base")
@@ -48,13 +48,13 @@ FAISS retrieves documents based on the similarity of their vector representation
 
 5. When you are done querying, save the index on disk with [`datasets.Dataset.save_faiss_index`]:
 
-```
+```py
 >>> ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
 ```
 
 6. Reload it at a later time with [`datasets.Dataset.load_faiss_index`]:
 
-```
+```py
 >>> ds = load_dataset('crime_and_punish', split='train[:100]')
 >>> ds.load_faiss_index('embeddings', 'my_index.faiss')
 ```
@@ -67,20 +67,20 @@ Start ElasticSearch on your machine, or see the [ElasticSearch installation guid
 
 1. Load the dataset you want to index:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> squad = load_dataset('squad', split='validation')
 ```
 
 2. Build the index with [`datasets.Dataset.add_elasticsearch_index`]:
 
-```
+```py
 >>> squad.add_elasticsearch_index("context", host="localhost", port="9200")
 ```
 
 3. Then you can query the `context` index with [`datasets.Dataset.get_nearest_examples`]:
 
-```
+```py
 >>> query = "machine"
 >>> scores, retrieved_examples = squad.get_nearest_examples("context", query, k=10)
 >>> retrieved_examples["title"][0]
@@ -89,7 +89,7 @@ Start ElasticSearch on your machine, or see the [ElasticSearch installation guid
 
 4. If you want to reuse the index, define the `es_index_name` parameter when you build the index:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> squad = load_dataset('squad', split='validation')
 >>> squad.add_elasticsearch_index("context", host="localhost", port="9200", es_index_name="hf_squad_val_context")
@@ -99,7 +99,7 @@ hf_squad_val_context
 
 5. Reload it later with the index name when you call [`datasets.Dataset.load_elasticsearch_index`]:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> squad = load_dataset('squad', split='validation')
 >>> squad.load_elasticsearch_index("context", host="localhost", port="9200", es_index_name="hf_squad_val_context")
@@ -109,7 +109,7 @@ hf_squad_val_context
 
 For more advanced ElasticSearch usage, you can specify your own configuration with custom settings:
 
-```
+```py
 >>> import elasticsearch as es
 >>> import elasticsearch.helpers
 >>> from elasticsearch import Elasticsearch

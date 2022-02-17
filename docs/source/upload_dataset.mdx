@@ -49,7 +49,7 @@ For a detailed example of what a good Dataset card should look like, refer to th
 
 Your dataset can now be loaded by anyone in a single line of code! 
 
-```
+```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("stevhliu/demo")
 >>> dataset
@@ -77,7 +77,7 @@ huggingface-cli login
 
 2. Upload the dataset:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("stevhliu/demo")
 >>> # dataset = dataset.map(...)  # do all your processing here
@@ -86,7 +86,7 @@ huggingface-cli login
 
 With the `private` parameter you can choose whether your dataset is public or private:
 
-```
+```py
 >>> dataset.push_to_hub("stevhliu/private_processed_demo", private=True)
 ```
 
@@ -102,7 +102,7 @@ huggingface-cli login
 
 2. Load the dataset with your authentication token:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("stevhliu/demo", use_auth_token=True)
 ```
@@ -117,7 +117,7 @@ huggingface-cli login
 
 2. Load the dataset with your authentication token:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset("organization/dataset_name", use_auth_token=True)
 ```

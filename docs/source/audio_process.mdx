@@ -26,7 +26,7 @@ torchaudio's `sox_io` [backend](https://pytorch.org/audio/stable/backend.html#) 
 
 Then you can load an audio dataset the same way you would load a text dataset. For example, load the [Common Voice](https://huggingface.co/datasets/common_voice) dataset with the Turkish configuration:
 
-```
+```py
 >>> from datasets import load_dataset, load_metric, Audio
 >>> common_voice = load_dataset("common_voice", "tr", split="train")
 ```
@@ -37,7 +37,7 @@ Audio datasets commonly have an `audio` and `path` or `file` column.
 
 `audio` is the actual audio file that is loaded and resampled on-the-fly upon calling it.
 
-```
+```py
 >>> common_voice[0]["audio"]
 {'array': array([ 0.0000000e+00,  0.0000000e+00,  0.0000000e+00, ...,
     -8.8930130e-05, -3.8027763e-05, -2.9146671e-05], dtype=float32),
@@ -49,14 +49,14 @@ When you access an audio file, it is automatically decoded and resampled. Genera
 
 `path` or `file` is an absolute path to an audio file.
 
-```
+```py
 >>> common_voice[0]["path"]
 /root/.cache/huggingface/datasets/downloads/extracted/05be0c29807a73c9b099873d2f5975dae6d05e9f7d577458a2466ecb9a2b0c6b/cv-corpus-6.1-2020-12-11/tr/clips/common_voice_tr_21921195.mp3
 ```
 
 The `path` is useful if you want to load your own audio dataset. In this case, provide a column of audio file paths to [`datasets.Dataset.cast_column`]:
 
-```
+```py
 >>> my_audio_dataset = my_audio_dataset.cast_column("paths_to_my_audio_files", Audio())
 ```
 
@@ -64,17 +64,19 @@ The `path` is useful if you want to load your own audio dataset. In this case, p
 
 Some models expect the audio data to have a certain sampling rate due to how the model was pretrained. For example, the [XLSR-Wav2Vec2](https://huggingface.co/facebook/wav2vec2-large-xlsr-53) model expects the input to have a sampling rate of 16kHz, but an audio file from the Common Voice dataset has a sampling rate of 48kHz. You can use [`datasets.Dataset.cast_column`] to downsample the sampling rate to 16kHz:
 
-```
+```py
 >>> common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16_000))
 ```
 
 The next time you load the audio file, the [`datasets.Audio`] feature will load and resample it to 16kHz:
 
+```py
 >>> common_voice_train[0]["audio"]
 {'array': array([ 0.0000000e+00,  0.0000000e+00,  0.0000000e+00, ...,
 -7.4556941e-05, -1.4621433e-05, -5.7861507e-05], dtype=float32),
 'path': '/root/.cache/huggingface/datasets/downloads/extracted/05be0c29807a73c9b099873d2f5975dae6d05e9f7d577458a2466ecb9a2b0c6b/cv-corpus-6.1-2020-12-11/tr/clips/common_voice_tr_21921195.mp3',
 'sampling_rate': 16000}
+```
 
 <img align="center" src="/docs/datasets/master/en/imgs/resample.gif"/>
 
@@ -88,7 +90,7 @@ Just like text datasets, you can apply a preprocessing function over an entire d
 
    For pretrained speech recognition models, such as [facebook/wav2vec2-large-xlsr-53](https://huggingface.co/facebook/wav2vec2-large-xlsr-53), a tokenizer needs to be created from the target text as explained [here](https://huggingface.co/blog/fine-tune-wav2vec2-english). The following example demonstrates how to load a feature extractor, tokenizer and processor for a pretrained speech recognition model:
 
-```
+```py
 >>> from transformers import AutoTokenizer, AutoFeatureExtractor, Wav2Vec2Processor
 >>> model_checkpoint = "facebook/wav2vec2-large-xlsr-53"
 >>> # after defining a vocab.json file you can instantiate a tokenizer object:
@@ -99,14 +101,14 @@ Just like text datasets, you can apply a preprocessing function over an entire d
 
 For fine-tuned speech recognition models, you can simply load a predefined `processor` object with:
 
-```
+```py
 >>> from transformers import Wav2Vec2Processor
 >>> processor = Wav2Vec2Processor.from_pretrained("facebook/wav2vec2-base-960h")
 ```
 
 Make sure to include the `audio` key in your preprocessing function when you call [`datasets.Dataset.map`] so that you are actually resampling the audio data:
 
-```
+```py
 >>> def prepare_dataset(batch):
 ...     audio = batch["audio"]
 ...     batch["input_values"] = processor(audio["array"], sampling_rate=audio["sampling_rate"]).input_values[0]

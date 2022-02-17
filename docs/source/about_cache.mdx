@@ -14,7 +14,7 @@ Transforms are any of the processing methods from the [How-to Process](./process
 
 Here are what the actual fingerprints look like:
 
-```
+```py
 >>> from datasets import Dataset
 >>> dataset1 = Dataset.from_dict({"a": [0, 1, 2]})
 >>> dataset2 = dataset1.map(lambda x: {"a": x["a"] + 1})
@@ -40,7 +40,7 @@ The fingerprint of a dataset is updated by hashing the function passed to `map` 
 
 You can check the hash of any Python object using the [`datasets.fingerprint.Hasher`]:
 
-```
+```py
 >>> from datasets.fingerprint import Hasher
 >>> my_func = lambda example: {"length": len(example["text"])}
 >>> print(Hasher.hash(my_func))

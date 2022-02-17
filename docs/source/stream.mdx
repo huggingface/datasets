@@ -9,7 +9,7 @@ Dataset streaming lets you get started with a dataset without waiting for the en
 
 For example, the English split of the [OSCAR](https://huggingface.co/datasets/oscar) dataset is 1.2 terabytes, but you can use it instantly with streaming. Stream a dataset by setting `streaming=True` in [`datasets.load_dataset`] as shown below:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
 >>> print(next(iter(dataset)))
@@ -30,7 +30,7 @@ Like a regular [`datasets.Dataset`] object, you can also shuffle a [`datasets.It
 
 The `buffer_size` argument controls the size of the buffer to randomly sample examples from. Let's say your dataset has one million examples, and you set the `buffer_size` to ten thousand. [`datasets.IterableDataset.shuffle`] will randomly select examples from the first ten thousand examples in the buffer. Selected examples in the buffer are replaced with new examples.
 
-```
+```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
 >>> shuffled_dataset = dataset.shuffle(buffer_size=10_000, seed=42)
@@ -48,7 +48,7 @@ Sometimes you may want to reshuffle the dataset after each epoch. This will requ
 
 Your seed effectively becomes: `initial seed + current epoch`.
 
-```
+```py
 >>> for epoch in range(epochs):
 ...     shuffled_dataset.set_epoch(epoch)
 ...     for example in shuffled_dataset:
@@ -61,7 +61,7 @@ You can split your dataset one of two ways:
 
 - [`datasets.IterableDataset.take`] returns the first `n` examples in a dataset:
 
-```
+```py
 >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
 >>> dataset_head = dataset.take(2)
 >>> list(dataset_head)
@@ -70,7 +70,7 @@ You can split your dataset one of two ways:
 
 - [`datasets.IterableDataset.skip`] omits the first `n` examples in a dataset and returns the remaining examples:
 
-```
+```py
 >>> train_dataset = shuffled_dataset.skip(1000)
 ```
 
@@ -83,7 +83,7 @@ important,None
 
 [`datasets.interleave_datasets`] can combine an [`datasets.IterableDataset`] with other datasets. The combined dataset returns alternating examples from each of the original datasets. 
 
-```
+```py
 >>> from datasets import interleave_datasets
 >>> from itertools import islice
 >>> en_dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
@@ -96,7 +96,7 @@ important,None
 
 Define sampling probabilities from each of the original datasets for more control over how each of them are sampled and combined. Set the `probabilities` argument with your desired sampling probabilities:
 
-```
+```py
 >>> multilingual_dataset_with_oversampling = interleave_datasets([en_dataset, fr_dataset], probabilities=[0.8, 0.2], seed=42)
 >>> print(list(islice(multilingual_dataset_with_oversampling, 2)))
 [{'text': 'Mtendere Village was inspired by the vision...}, {'text': 'Lily James cannot fight the music...}]
@@ -108,7 +108,7 @@ Around 80% of the final dataset is made of the `en_dataset`, and 20% of the `fr_
 
 Remove columns on-the-fly with [`datasets.IterableDataset.remove_columns`]. Specify the name of the column to remove:
 
-```
+```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('m4', 'en', streaming=True, split='train')
 >>> dataset = dataset.remove_columns('timestamp')
@@ -124,7 +124,7 @@ It allows you to apply a processing function to each example in a dataset, indep
 The following example demonstrates how to tokenize a [`datasets.IterableDataset`]. The function needs to accept and output a `dict`:
 
 
-```
+```py
 >>> from datasets import load_dataset
 >>> from transformers import AutoTokenizer
 >>> dataset = load_dataset("mc4", "en", streaming=True, split="train")
@@ -141,7 +141,7 @@ The following example demonstrates how to tokenize a [`datasets.IterableDataset`
 
 [`datasets.IterableDataset`] can be integrated into a training loop. First, shuffle the dataset:
 
-```
+```py
 >>> buffer_size, seed = 10_000, 42
 >>> dataset = dataset.shuffle(buffer_size, seed)
 ```
