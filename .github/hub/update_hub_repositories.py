@@ -211,7 +211,7 @@ if __name__ == "__main__":
         for diff in datasets_lib_repo.index.diff(prev_commit)
         for path in [diff.a_path, diff.b_path]
         if path.startswith(DATASETS_LIB_CATALOG_DIR_NAME)
-        and path.count("/") > 2
+        and path.count("/") >= 2
     ]
 
     changed_datasets_names_since_last_commit = {path.split("/")[1] for path in changed_files_since_last_commit}
