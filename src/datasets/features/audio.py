@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 from io import BytesIO
-from packaging import version
 from typing import Any, ClassVar, Optional, Union
 
 import pyarrow as pa
+from packaging import version
 
 from ..table import array_cast
 from ..utils.py_utils import no_op_if_value_is_null
@@ -176,6 +176,7 @@ class Audio:
 
         if format == "opus":
             import soundfile
+
             if version.parse(soundfile.__libsndfile_version__) < version.parse("1.0.30"):
                 raise RuntimeError(
                     "Decoding .opus files requires 'libsndfile'>=1.0.30, "
