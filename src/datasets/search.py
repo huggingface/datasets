@@ -35,15 +35,24 @@ class MissingIndex(Exception):
     pass
 
 
-SearchResults = NamedTuple("SearchResults", [("scores", List[float]), ("indices", List[int])])
-BatchedSearchResults = NamedTuple(
-    "BatchedSearchResults", [("total_scores", List[List[float]]), ("total_indices", List[List[int]])]
-)
+class SearchResults(NamedTuple):
+    scores: List[float]
+    indices: List[int]
 
-NearestExamplesResults = NamedTuple("NearestExamplesResults", [("scores", List[float]), ("examples", dict)])
-BatchedNearestExamplesResults = NamedTuple(
-    "BatchedNearestExamplesResults", [("total_scores", List[List[float]]), ("total_examples", List[dict])]
-)
+
+class BatchedSearchResults(NamedTuple):
+    total_scores: List[List[float]]
+    total_indices: List[List[int]]
+
+
+class NearestExamplesResults(NamedTuple):
+    scores: List[float]
+    examples: dict
+
+
+class BatchedNearestExamplesResults(NamedTuple):
+    total_scores: List[List[float]]
+    total_examples: List[dict]
 
 
 class BaseIndex:
@@ -141,9 +150,7 @@ class ElasticSearchIndex(BaseIndex):
         index_config = self.es_index_config
         self.es_client.indices.create(index=index_name, body=index_config)
         number_of_docs = len(documents)
-        progress = utils.tqdm(
-            unit="docs", total=number_of_docs, disable=bool(logging.get_verbosity() == logging.NOTSET)
-        )
+        progress = utils.tqdm(unit="docs", total=number_of_docs, disable=not utils.is_progress_bar_enabled())
         successes = 0
 
         def passage_generator():
@@ -288,9 +295,7 @@ class FaissIndex(BaseIndex):
 
         # Add vectors
         logger.info(f"Adding {len(vectors)} vectors to the faiss index")
-        for i in utils.tqdm(
-            range(0, len(vectors), batch_size), disable=bool(logging.get_verbosity() == logging.NOTSET)
-        ):
+        for i in utils.tqdm(range(0, len(vectors), batch_size), disable=not utils.is_progress_bar_enabled()):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
 

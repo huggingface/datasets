@@ -25,6 +25,7 @@ from .utils.streaming_download_manager import (
     xpathrglob,
     xpathstem,
     xpathsuffix,
+    xrelpath,
     xsio_loadmat,
     xsplitext,
     xwalk,
@@ -75,6 +76,7 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "os.path.join", xjoin).start()
     patch_submodule(module, "os.path.dirname", xdirname).start()
     patch_submodule(module, "os.path.basename", xbasename).start()
+    patch_submodule(module, "os.path.relpath", xrelpath).start()
     patch_submodule(module, "os.path.splitext", xsplitext).start()
     # allow checks on paths
     patch_submodule(module, "os.path.isdir", wrap_auth(xisdir)).start()

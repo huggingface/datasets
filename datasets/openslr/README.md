@@ -362,8 +362,8 @@ https://github.com/google/language-resources#license for license information.
 
 Copyright 2018, 2019 Google, Inc.
 
-#### SLR72: Crowdsourced high-quality Columbian Spanish speech data set
-This data set contains transcribed high-quality audio of Columbian Spanish sentences recorded by volunteers. The data set 
+#### SLR72: Crowdsourced high-quality Colombian Spanish speech data set
+This data set contains transcribed high-quality audio of Colombian Spanish sentences recorded by volunteers. The data set 
 consists of wave files, and a TSV file (line_index.tsv). The file line_index.tsv contains a anonymized FileID and 
 the transcription of audio in the file.
 

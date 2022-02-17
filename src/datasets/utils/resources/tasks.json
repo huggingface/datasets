@@ -92,6 +92,12 @@
             "emotion-recognition"
         ]
     },
+    "time-series-forecasting": {
+        "description": "tasks related to predicting future values of a time series",
+        "options": [
+            "univariate-time-series-forecasting"
+        ]
+    },
     "other": {
         "description": "other task family not mentioned here",
         "options": [

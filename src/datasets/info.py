@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +79,7 @@ class PostProcessedInfo:
 
     @classmethod
     def from_dict(cls, post_processed_info_dict: dict) -> "PostProcessedInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in post_processed_info_dict.items() if k in field_names})
 
 
@@ -246,13 +245,13 @@ class DatasetInfo:
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_info_dir, config.DATASET_INFO_FILENAME), encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 
     @classmethod
     def from_dict(cls, dataset_info_dict: dict) -> "DatasetInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in dataset_info_dict.items() if k in field_names})
 
     def update(self, other_dataset_info: "DatasetInfo", ignore_none=True):
@@ -285,7 +284,7 @@ class DatasetInfosDict(Dict[str, DatasetInfo]):
     @classmethod
     def from_directory(cls, dataset_infos_dir):
         logger.info(f"Loading Dataset Infos from {dataset_infos_dir}")
-        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(dataset_infos_dir, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
             dataset_infos_dict = {
                 config_name: DatasetInfo.from_dict(dataset_info_dict)
                 for config_name, dataset_info_dict in json.load(f).items()
@@ -353,11 +352,11 @@ class MetricInfo:
         if not metric_info_dir:
             raise ValueError("Calling MetricInfo.from_directory() with undefined metric_info_dir.")
 
-        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), "r", encoding="utf-8") as f:
+        with open(os.path.join(metric_info_dir, config.METRIC_INFO_FILENAME), encoding="utf-8") as f:
             metric_info_dict = json.load(f)
         return cls.from_dict(metric_info_dict)
 
     @classmethod
     def from_dict(cls, metric_info_dict: dict) -> "MetricInfo":
-        field_names = set(f.name for f in dataclasses.fields(cls))
+        field_names = {f.name for f in dataclasses.fields(cls)}
         return cls(**{k: v for k, v in metric_info_dict.items() if k in field_names})

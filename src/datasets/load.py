@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -140,7 +139,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     # Get the code from all these files
     lines = []
     for file_path in to_use_files:
-        with open(file_path, mode="r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             lines.extend(f.readlines())
     return hash_python_lines(lines)
 
@@ -174,7 +173,7 @@ def increase_load_count(name: str, resource_type: str):
 
 
 def get_imports(file_path: str) -> Tuple[str, str, str, str]:
-    r"""Find whether we should import or clone additional files for a given processing script.
+    """Find whether we should import or clone additional files for a given processing script.
         And list the import.
 
     We allow:
@@ -194,7 +193,7 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
         import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
     """
     lines = []
-    with open(file_path, mode="r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         lines.extend(f.readlines())
 
     logger.debug(f"Checking {file_path} for additional imports.")
@@ -260,6 +259,9 @@ def _download_additional_modules(
     """
     local_imports = []
     library_imports = []
+    download_config = download_config.copy()
+    if download_config.download_desc is None:
+        download_config.download_desc = "Downloading extra modules"
     for import_type, import_name, import_path, sub_directory in imports:
         if import_type == "library":
             library_imports.append((import_name, import_path))  # Import from a library
@@ -495,7 +497,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
     ):
         self.name = name
         self.revision = revision
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 0
@@ -503,15 +505,21 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
 
     def download_loading_script(self, revision: Optional[str]) -> str:
         file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=revision)
-        return cached_path(file_path, download_config=self.download_config)
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading builder script"
+        return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self, revision: Optional[str]) -> str:
         dataset_infos = hf_github_url(path=self.name, name=config.DATASETDICT_INFOS_FILENAME, revision=revision)
         # Download the dataset infos file if available
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading metadata"
         try:
             return cached_path(
                 dataset_infos,
-                download_config=self.download_config,
+                download_config=download_config,
             )
         except (FileNotFoundError, ConnectionError):
             return None
@@ -553,7 +561,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         )
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
-        builder_kwargs = {"hash": hash, "base_path": hf_github_url(self.name, "", revision=revision)}
+        builder_kwargs = {"hash": hash, "base_path": hf_hub_url(self.name, "", revision=self.revision)}
         return DatasetModule(module_path, hash, builder_kwargs)
 
 
@@ -570,7 +578,7 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
     ):
         self.name = name
         self.revision = revision
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 0
@@ -578,7 +586,10 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
 
     def download_loading_script(self, revision: Optional[str]) -> str:
         file_path = hf_github_url(path=self.name, name=self.name + ".py", revision=revision, dataset=False)
-        return cached_path(file_path, download_config=self.download_config)
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading builder script"
+        return cached_path(file_path, download_config=download_config)
 
     def get_module(self) -> MetricModule:
         # get script and other files
@@ -631,7 +642,7 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
     ):
         self.path = path
         self.name = Path(path).stem
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
 
@@ -672,7 +683,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     ):
         self.path = path
         self.name = Path(path).stem
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
 
@@ -837,6 +848,9 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
             "name": self.name.replace("/", "--"),
             "base_path": hf_hub_url(self.name, "", revision=self.revision),
         }
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading metadata"
         try:
             dataset_infos_path = cached_path(
                 hf_hub_url(self.name, config.DATASETDICT_INFOS_FILENAME, revision=self.revision),
@@ -864,7 +878,7 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
     ):
         self.name = name
         self.revision = revision
-        self.download_config = download_config
+        self.download_config = download_config or DownloadConfig()
         self.download_mode = download_mode
         self.dynamic_modules_path = dynamic_modules_path
         assert self.name.count("/") == 1
@@ -872,15 +886,21 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
 
     def download_loading_script(self) -> str:
         file_path = hf_hub_url(path=self.name, name=self.name.split("/")[1] + ".py", revision=self.revision)
-        return cached_path(file_path, download_config=self.download_config)
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading builder script"
+        return cached_path(file_path, download_config=download_config)
 
     def download_dataset_infos_file(self) -> str:
         dataset_infos = hf_hub_url(path=self.name, name=config.DATASETDICT_INFOS_FILENAME, revision=self.revision)
         # Download the dataset infos file if available
+        download_config = self.download_config.copy()
+        if download_config.download_desc is None:
+            download_config.download_desc = "Downloading metadata"
         try:
             return cached_path(
                 dataset_infos,
-                download_config=self.download_config,
+                download_config=download_config,
             )
         except (FileNotFoundError, ConnectionError):
             return None
@@ -1027,7 +1047,7 @@ def dataset_module_factory(
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
     **download_kwargs,
 ) -> DatasetModule:
-    r"""
+    """
     Download/extract/cache a dataset module.
 
     Dataset codes are cached inside the the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
@@ -1217,7 +1237,7 @@ def metric_module_factory(
     dynamic_modules_path: Optional[str] = None,
     **download_kwargs,
 ) -> MetricModule:
-    r"""
+    """
     Download/extract/cache a metric module.
 
     Metrics codes are cached inside the the dynamic modules cache to allow easy import (avoid ugly sys.path tweaks).
@@ -1298,6 +1318,25 @@ def metric_module_factory(
         raise FileNotFoundError(f"Couldn't find a metric script at {relative_to_absolute_path(combined_path)}.")
 
 
+def extend_dataset_builder_for_streaming(builder: DatasetBuilder, use_auth_token: Optional[Union[bool, str]] = None):
+    """Extend the dataset builder module and the modules imported by it to support streaming.
+
+    Args:
+        builder (:class:`DatasetBuilder`): Dataset builder instance.
+        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
+    """
+    # this extends the open and os.path.join functions for data streaming
+    extend_module_for_streaming(builder.__module__, use_auth_token=use_auth_token)
+    # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
+    if not builder.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
+        for imports in get_imports(inspect.getfile(builder.__class__)):
+            if imports[0] == "internal":
+                internal_import_name = imports[1]
+                internal_module_name = ".".join(builder.__module__.split(".")[:-1] + [internal_import_name])
+                extend_module_for_streaming(internal_module_name, use_auth_token=use_auth_token)
+
+
 @deprecated("Use dataset_module_factory or metric_module_factory instead.")
 def prepare_module(
     path: str,
@@ -1360,7 +1399,7 @@ def load_metric(
     script_version="deprecated",
     **metric_init_kwargs,
 ) -> Metric:
-    r"""Load a `datasets.Metric`.
+    """Load a `datasets.Metric`.
 
     Args:
 
@@ -1651,6 +1690,12 @@ def load_dataset(
             "'script_version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
         )
         revision = script_version
+    if Path(path, config.DATASET_STATE_JSON_FILENAME).exists():
+        raise ValueError(
+            "You are trying to load a dataset that was saved using `save_to_disk`. "
+            "Please use `load_from_disk` instead."
+        )
+
     ignore_verifications = ignore_verifications or save_infos
 
     # Create a dataset builder
@@ -1670,17 +1715,7 @@ def load_dataset(
 
     # Return iterable dataset in case of streaming
     if streaming:
-        # this extends the open and os.path.join functions for data streaming
-        extend_module_for_streaming(builder_instance.__module__, use_auth_token=use_auth_token)
-        # if needed, we also have to extend additional internal imports (like wmt14 -> wmt_utils)
-        if not builder_instance.__module__.startswith("datasets."):  # check that it's not a packaged builder like csv
-            for imports in get_imports(inspect.getfile(builder_instance.__class__)):
-                if imports[0] == "internal":
-                    internal_import_name = imports[1]
-                    internal_module_name = ".".join(
-                        builder_instance.__module__.split(".")[:-1] + [internal_import_name]
-                    )
-                    extend_module_for_streaming(internal_module_name, use_auth_token=use_auth_token)
+        extend_dataset_builder_for_streaming(builder_instance, use_auth_token=use_auth_token)
         return builder_instance.as_streaming_dataset(
             split=split,
             use_auth_token=use_auth_token,
