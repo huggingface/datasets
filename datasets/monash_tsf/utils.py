@@ -4,7 +4,9 @@ from distutils.util import strtobool
 import pandas as pd
 
 
-# Converts the contents in a .tsf file into a dataframe and returns it along with other meta-data of the dataset: frequency, horizon, whether the dataset contains missing values and whether the series have equal lengths
+# Converts the contents in a .tsf file into a dataframe and returns
+# it along with other meta-data of the dataset:
+# frequency, horizon, whether the dataset contains missing values and whether the series have equal lengths
 #
 # Parameters
 # full_file_path_and_name - complete .tsf file path
@@ -37,17 +39,13 @@ def convert_tsf_to_dataframe(
                     if not line.startswith("@data"):
                         line_content = line.split(" ")
                         if line.startswith("@attribute"):
-                            if (
-                                len(line_content) != 3
-                            ):  # Attributes have both name and type
+                            if len(line_content) != 3:  # Attributes have both name and type
                                 raise Exception("Invalid meta-data specification.")
 
                             col_names.append(line_content[1])
                             col_types.append(line_content[2])
                         else:
-                            if (
-                                len(line_content) != 2
-                            ):  # Other meta-data have only values
+                            if len(line_content) != 2:  # Other meta-data have only values
                                 raise Exception("Invalid meta-data specification.")
 
                             if line.startswith("@frequency"):
@@ -55,24 +53,18 @@ def convert_tsf_to_dataframe(
                             elif line.startswith("@horizon"):
                                 forecast_horizon = int(line_content[1])
                             elif line.startswith("@missing"):
-                                contain_missing_values = bool(
-                                    strtobool(line_content[1])
-                                )
+                                contain_missing_values = bool(strtobool(line_content[1]))
                             elif line.startswith("@equallength"):
                                 contain_equal_length = bool(strtobool(line_content[1]))
 
                     else:
                         if len(col_names) == 0:
-                            raise Exception(
-                                "Missing attribute section. Attribute section must come before data."
-                            )
+                            raise Exception("Missing attribute section. Attribute section must come before data.")
 
                         found_data_tag = True
                 elif not line.startswith("#"):
                     if len(col_names) == 0:
-                        raise Exception(
-                            "Missing attribute section. Attribute section must come before data."
-                        )
+                        raise Exception("Missing attribute section. Attribute section must come before data.")
                     elif not found_data_tag:
                         raise Exception("Missing @data tag.")
                     else:
@@ -105,9 +97,7 @@ def convert_tsf_to_dataframe(
                             else:
                                 numeric_series.append(float(val))
 
-                        if numeric_series.count(replace_missing_vals_with) == len(
-                            numeric_series
-                        ):
+                        if numeric_series.count(replace_missing_vals_with) == len(numeric_series):
                             raise Exception(
                                 "All series values are missing. A given series should contains a set of comma separated numeric values. At least one numeric value should be there in a series."
                             )
@@ -121,15 +111,13 @@ def convert_tsf_to_dataframe(
                             elif col_types[i] == "string":
                                 att_val = str(full_info[i])
                             elif col_types[i] == "date":
-                                att_val = datetime.strptime(
-                                    full_info[i], "%Y-%m-%d %H-%M-%S"
-                                )
+                                att_val = datetime.strptime(full_info[i], "%Y-%m-%d %H-%M-%S")
                             else:
                                 raise Exception(
                                     "Invalid attribute type."
                                 )  # Currently, the code supports only numeric, string and date types. Extend this as required.
 
-                            if att_val == None:
+                            if att_val is None:
                                 raise Exception("Invalid attribute value.")
                             else:
                                 all_data[col_names[i]].append(att_val)

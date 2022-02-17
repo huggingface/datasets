@@ -39,8 +39,7 @@ The first repository containing datasets of related time series for global forec
 
 _HOMEPAGE = "https://forecastingdata.org/"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "The Creative Commons Attribution 4.0 International License. https://creativecommons.org/licenses/by/4.0/"
 
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace Datasets library doesn't host the datasets but only points to the original files.
@@ -69,15 +68,23 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"),
-        datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
+        datasets.BuilderConfig(
+            name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"
+        ),
+        datasets.BuilderConfig(
+            name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"
+        ),
     ]
 
-    DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = (
+        "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    )
 
     def _info(self):
         # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above
+        if (
+            self.config.name == "first_domain"
+        ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
@@ -132,10 +139,7 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.jsonl"),
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl"), "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
