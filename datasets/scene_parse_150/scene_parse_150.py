@@ -228,9 +228,10 @@ class SceneParse150(datasets.GeneratorBasedBuilder):
             test_data = os.path.join(data_dirs["test"], "release_test")
         else:
             data_dirs = dl_manager.download(urls)
-            train_data = val_data = dl_manager.iter_archive(data_dirs["images"]), dl_manager.iter_archive(
+            train_data = dl_manager.iter_archive(data_dirs["images"]), dl_manager.iter_archive(
                 data_dirs["annotations"]
             )
+            val_data = dl_manager.iter_archive(data_dirs["images"]), dl_manager.iter_archive(data_dirs["annotations"])
             test_data = dl_manager.iter_archive(data_dirs["test"])
         return [
             datasets.SplitGenerator(
@@ -298,6 +299,6 @@ class SceneParse150(datasets.GeneratorBasedBuilder):
                         image_id = os.path.basename(path_img).split(".")[0]
                         path_annot, bytes_annot = image_id2annot[image_id]
                         yield idx, {
-                            "image": {"path": path_img, "file": file_img.read()},
-                            "annotation": {"path": path_annot, "file": bytes_annot},
+                            "image": {"path": path_img, "bytes": file_img.read()},
+                            "annotation": {"path": path_annot, "bytes": bytes_annot},
                         }
