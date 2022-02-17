@@ -28,7 +28,7 @@ def inject_arrow_table_documentation(arrow_table_method):
         fn.__doc__ = arrow_table_method.__doc__ + (fn.__doc__ if fn.__doc__ is not None else "")
         fn.__doc__ = fn.__doc__.replace(
             "pyarrow.Table", "Table"
-        )  # TODO (pyarrow|pa).Table replace with fn.parent_class
+        )
         if hasattr(arrow_table_method, "__annotations__"):
             fn.__annotations__ = arrow_table_method.__annotations__
         return fn
@@ -239,30 +239,37 @@ class Table(IndexedTableMixin):
         return self.table.itercolumns(*args, **kwargs)
 
     @property
+    @inject_arrow_table_documentation(pa.Table.schema)
     def schema(self):
         return self.table.schema
 
     @property
+    @inject_arrow_table_documentation(pa.Table.columns)
     def columns(self):
         return self.table.columns
 
     @property
+    @inject_arrow_table_documentation(pa.Table.num_columns)
     def num_columns(self):
         return self.table.num_columns
 
     @property
+    @inject_arrow_table_documentation(pa.Table.num_rows)
     def num_rows(self):
         return self.table.num_rows
 
     @property
+    @inject_arrow_table_documentation(pa.Table.shape)
     def shape(self):
         return self.table.shape
 
     @property
+    @inject_arrow_table_documentation(pa.Table.nbytes)
     def nbytes(self):
         return self.table.nbytes
 
     @property
+    @inject_arrow_table_documentation(pa.Table.column_names)
     def column_names(self):
         return self.table.column_names
 
