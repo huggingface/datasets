@@ -24,7 +24,10 @@ Now that you have a high-level understanding about how datasets are built, let's
 
 When you load a dataset for the first time, 🤗 Datasets takes the raw data file and builds it into a table of rows and typed columns. There are two main classes responsible for building a dataset: [`datasets.BuilderConfig`] and [`datasets.DatasetBuilder`].
 
-<img align="center" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/builderconfig.png"/>
+
+<div class="flex justify-center">
+   <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/builderconfig.png"/>
+</div>
 
 ### [`datasets.BuilderConfig`]
 
@@ -50,7 +53,9 @@ You can also set the [`datasets.DatasetBuilder.BUILDER_CONFIG_CLASS`] to any cus
 
 [`datasets.DatasetBuilder`] accesses all the attributes inside [`datasets.BuilderConfig`] to build the actual dataset.
 
-<img align="center" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/datasetbuilder.png"/>
+<div class="flex justify-center">
+   <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/datasetbuilder.png"/>
+</div>
 
 There are three main methods in [`datasets.DatasetBuilder`]:
 
