@@ -388,7 +388,7 @@ class InMemoryTable(TableBlock):
         return cls(pa.Table.from_arrays(*args, **kwargs))
 
     @classmethod
-    # @inject_arrow_table_documentation(pa.Table.from_pydict)
+    @inject_arrow_table_documentation(pa.Table.from_pydict)
     def from_pydict(cls, *args, **kwargs):
         return cls(pa.Table.from_pydict(*args, **kwargs))
 
