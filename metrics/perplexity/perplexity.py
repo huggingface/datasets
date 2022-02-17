@@ -48,20 +48,16 @@ Examples:
         >>> results = perplexity.compute(model_id='gpt2',
                                         input_text=input_text,
                                         stride=1)
-        {'perplexity': }
+        {'perplexity': 646.7385864257812}
 
     Example 2:
         >>> perplexity = datasets.load_metric("perplexity")
         >>> input_text = datasets.load_dataset("wikitext", "wikitext-2-raw-v1", "test")
         >>> results = perplexity.compute(model_id='gpt2',
                                         input_text=input_text,
-                                        stride=512)
-        {'perplexity': }
+                                        stride=256)
+        {'perplexity': 8542.330078125}
 
-    >>> perplexity = datasets.load_metric("perplexity")
-    >>> results = perplexity.compute(model='gpt2-large', stride=1024)
-    >>> print(results)
-    {'perplexity': 19.64}
 """
 
 
@@ -92,7 +88,7 @@ class Perplexity(datasets.Metric):
                         to the perplexity :meth:`_compute` method.
 
         Return:
-            perplexity (float)
+            {perplexity: (float)}
         """
 
         return self._compute(**kwargs)
@@ -104,7 +100,6 @@ class Perplexity(datasets.Metric):
         input_text,
         stride=512,
         device=None):
-        """ Compute Perplexity """
 
         model = AutoModelForCausalLM.from_pretrained(model_id)
         model = model.to(device)
