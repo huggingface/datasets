@@ -18,8 +18,11 @@ Load the MRPC dataset from the GLUE benchmark to follow along with our examples:
 >>> dataset = load_dataset('glue', 'mrpc', split='train')
 ```
 
-attention,None
+<Tip warning={true}>
+
 All the processing methods in this guide return a new [`datasets.Dataset`]. Modification is not done in-place. Be careful about overriding your previous dataset!
+
+</Tip>
 
 ## Sort, shuffle, select, split, and shard
 

@@ -21,8 +21,11 @@ Users should also install [torchaudio](https://pytorch.org/audio/stable/index.ht
 >>> pip install torchaudio
 ```
 
-important,None
+<Tip warning={true}>
+
 torchaudio's `sox_io` [backend](https://pytorch.org/audio/stable/backend.html#) supports decoding `mp3` files. Unfortunately, the `sox_io` backend is only available on Linux/macOS, and is not supported by Windows.
+
+</Tip>
 
 Then you can load an audio dataset the same way you would load a text dataset. For example, load the [Common Voice](https://huggingface.co/datasets/common_voice) dataset with the Turkish configuration:
 

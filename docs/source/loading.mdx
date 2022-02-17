@@ -49,8 +49,11 @@ If the dataset doesn't have a dataset loading script, then by default, all the d
 >>> dataset = load_dataset("namespace/your_dataset_name", data_files=data_files)
 ```
 
-important,None
+<Tip warning={true}>
+
 If you don't specify which data files to use, `load_dataset` will return all the data files. This can take a long time if you are loading a large dataset like C4, which is approximately 13TB of data.
+
+</Tip>
 
 You can also load a specific subset of the files with the `data_files` parameter. The example below loads files from the [C4 dataset](https://huggingface.co/datasets/allenai/c4):
 
@@ -200,8 +203,11 @@ Load Pandas DataFrames with [`datasets.Dataset.from_pandas`]:
 >>> dataset = Dataset.from_pandas(df)
 ```
 
-important,None
+<Tip warning={true}>
+
 An object data type in [pandas.Series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html) doesn't always carry enough information for Arrow to automatically infer a data type. For example, if a DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to null. Avoid potential errors by constructing an explicit schema with [`datasets.Features`] using the `from_dict` or `from_pandas` methods. See the [troubleshoot](#troubleshoot) for more details on how to explicitly specify your own features.
+
+</Tip>
 
 ## Offline
 
@@ -295,8 +301,11 @@ If you want equal sized splits, use `pct1_dropremainder` rounding instead. This 
 >>> train_52_54pct1_ds = datasets.load_dataset('bookcorpus', split='train[52%:54%](pct1_dropremainder)')
 ```
 
-important,None
+<Tip warning={true}>
+
 Using `pct1_dropremainder` rounding may truncate the last examples in a dataset if the number of examples in your dataset don't divide evenly by 100.
+
+</Tip>
 
 <a id='troubleshoot'></a>
 

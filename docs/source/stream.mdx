@@ -74,8 +74,11 @@ You can split your dataset one of two ways:
 >>> train_dataset = shuffled_dataset.skip(1000)
 ```
 
-important,None
+<Tip warning={true}>
+
 `take` and `skip` prevent future calls to `shuffle` because they lock in the order of the shards. You should `shuffle` your dataset before splitting it.
+
+</Tip>
 
 <a id='interleave_datasets'></a>
 

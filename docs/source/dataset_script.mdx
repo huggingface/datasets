@@ -172,8 +172,11 @@ BUILDER_CONFIGS = [
 DEFAULT_CONFIG_NAME = "first_domain"
 ```
 
-important,None
+<Tip warning={true}>
+
 Only use a default configuration when it makes sense. Don't set one because it may be more convenient for the user to not specify a configuration when they load your dataset. For example, multi-lingual datasets often have a separate configuration for each language. An appropriate default may be an aggregated configuration that loads all the languages of the dataset if the user doesn't request a particular one.
+
+</Tip>
 
 ## Download data files and organize splits
 
@@ -261,8 +264,11 @@ def _generate_examples(self, filepath):
 We strongly recommend adding testing data and checksum metadata to your dataset to verify and test its behavior. This ensures the generated dataset matches your expectations.
 Testing data and checksum metadata are mandatory for Canonical datasets stored in the GitHub repository of the 🤗 Datasets library.
 
-important,None
+<Tip warning={true}>
+
 Make sure you run all of the following commands **from the root** of your local `datasets` repository.
+
+</Tip>
 
 ### Dataset metadata
 
