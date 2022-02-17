@@ -13,6 +13,7 @@
 # limitations under the License.
 """FrugalScore metric."""
 
+import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer, TrainingArguments
 
 import datasets
@@ -83,13 +84,16 @@ class FRUGALSCORE(datasets.Metric):
         references,
         batch_size=32,
         max_length=128,
-        device="gpu",
+        device=None,
     ):
         """Returns the scores"""
-        assert device in ["gpu", "cpu"], "device should be either gpu or cpu."
         assert len(predictions) == len(
             references
         ), "predictions and references should have the same number of sentences."
+        if device is not None:
+            assert device in ["gpu", "cpu"], "device should be either gpu or cpu."
+        else:
+            device = "gpu" if torch.cuda.is_available() else "cpu"
         training_args = TrainingArguments(
             "trainer",
             fp16=(device == "gpu"),
