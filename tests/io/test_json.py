@@ -1,8 +1,6 @@
 import io
 import json
-import os
 
-import fsspec
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
