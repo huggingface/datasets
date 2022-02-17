@@ -39,7 +39,7 @@ _LICENSE = ""
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 # Note these URLs here are used by MockDownloadManager.create_dummy_data_list
-_URLs = [f"ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed22n{i:04d}.xml.gz" for i in range(1, 1115)]
+_URLs = [f"https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed22n{i:04d}.xml.gz" for i in range(1, 1115)]
 
 
 # Copyright Ferry Boender, released under the MIT license.
@@ -358,28 +358,29 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         id_ = 0
         for filename in filenames:
-            try:
-                tree = etree.parse(filename)
-                root = tree.getroot()
-                xmldict = self.xml_to_dictionnary(root)
-            except etree.ParseError:
-                logger.warning(f"Ignoring file {filename}, it is malformed")
-                continue
-
-            for article in xmldict["PubmedArticleSet"]["PubmedArticle"]:
-                self.update_citation(article)
-                new_article = default_article()
-
+            with open(filename, "rt", encoding="utf-8") as f:
+                xml_str = f.read()
                 try:
-                    deepupdate(new_article, article)
-                except Exception:
-                    logger.warning(f"Ignoring article {article}, it is malformed")
+                    root = etree.fromstring(xml_str)
+                    xmldict = self.xml_to_dictionnary(root)
+                except etree.ParseError:
+                    logger.warning(f"Ignoring file {filename}, it is malformed")
                     continue
 
-                try:
-                    _ = self.info.features.encode_example(new_article)
-                except Exception as e:
-                    logger.warning(f"Ignore example because {e}")
-                    continue
-                yield id_, new_article
-                id_ += 1
+                for article in xmldict["PubmedArticleSet"]["PubmedArticle"]:
+                    self.update_citation(article)
+                    new_article = default_article()
+
+                    try:
+                        deepupdate(new_article, article)
+                    except Exception:
+                        logger.warning(f"Ignoring article {article}, it is malformed")
+                        continue
+
+                    try:
+                        _ = self.info.features.encode_example(new_article)
+                    except Exception as e:
+                        logger.warning(f"Ignore example because {e}")
+                        continue
+                    yield id_, new_article
+                    id_ += 1
