@@ -90,10 +90,10 @@ Describe any criteria for splitting the data, if used. If there are differences 
 
 Provide the sizes of each split. As appropriate, provide any descriptive statistics for the features, such as average length.  For example:
 
-|                            | Train  | Valid | Test |
-| -----                      |--------| ----- | ---- |
-| Input Sentences            |        |       |      |
-| Average Sentence Length    |        |       |      |
+|                         | train | validation | test |
+|-------------------------|------:|-----------:|-----:|
+| Input Sentences         |       |            |      |
+| Average Sentence Length |       |            |      |
 
 ## Dataset Creation
 
