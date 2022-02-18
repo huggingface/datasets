@@ -94,9 +94,10 @@ Data has two fields:
 ### Data Splits
 
 The dataset is divided into two splits. All the headlines are scraped from news websites on the internet.
-|                            | Tain   | Valid | 
-| -----                      | ------ | ----- |
-| Input Sentences            |  5167  | 1293  |
+
+|                 |   train | validation | 
+|-----------------|--------:|-----------:|
+| Input Sentences |    5167 |       1293 |
 
 ## Dataset Creation
 

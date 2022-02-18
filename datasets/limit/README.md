@@ -109,9 +109,9 @@ Example of one instance in the dataset
 
 The dataset is split into a `train`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid |
-| -----                      | ------ | ----- |
-| Number of examples         | 23559  | 1000  |
+|                            | train | validation |
+| -----                      |------:|-----------:|
+| Number of examples         | 23559 |       1000 |
 
 ## Dataset Creation
 

@@ -109,9 +109,9 @@ The different fields are:
 
 There are three splits, train, validation and test:
 
-|                  | Tain    | Valid | Test |
-| -----            | ------- | ----- | ---- |
-| N. Examples      | 30526   | 2768  | 6959 |
+|                  | train | validation | test |
+| -----            |------:|-----------:|-----:|
+| N. Examples      | 30526 |       2768 | 6959 |
 
 ## Dataset Creation
 

@@ -124,11 +124,11 @@ Kannada
 
 ### Data Splits
 
-|              | Tain   | Valid |
-| -----        | ------: | -----: |
-| Tamil      |  35139 |  4388 |
-| Malayalam        |  16010 |  1999 |
-| Kannada    |  6217  |  777 |
+|           | train | validation |
+|-----------|------:|-----------:|
+| Tamil     | 35139 |       4388 |
+| Malayalam | 16010 |       1999 |
+| Kannada   |  6217 |        777 |
 
 ## Dataset Creation
 

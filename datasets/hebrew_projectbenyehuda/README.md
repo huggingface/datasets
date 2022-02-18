@@ -112,10 +112,9 @@ Sample:
 
 ### Data Splits
 
-|                          | train  | 
-|--------------------------|--------|
-| corpus                   | 10078  |
-
+|        | train | 
+|--------|------:|
+| corpus | 10078 |
 
 ## Dataset Creation
 

@@ -154,9 +154,10 @@ Example of one instance:
 ### Data Splits
 
 The dataset is split into training and validation splits.
-|                            | Tain   | Valid |
-| -----                      | ------ | ----- |
-| N. Instances               | 7638   | 1355  |
+
+|              | train | validation |
+|--------------|------:|-----------:|
+| N. Instances |  7638 |       1355 |
 
 ## Dataset Creation
 

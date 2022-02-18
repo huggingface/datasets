@@ -125,9 +125,9 @@ A typical example looks like this
 
 The dataset is split into `train`, `dev` and `test` splits.
 
-|                 | Tain   | Valid | Test  |
-| --------------- | ------ | ----- | ----- |
-| N. Instances    | 62682  | 3466  | 3463  |
+|                 | train | validation | test |
+| --------------- |------:|-----------:|-----:|
+| N. Instances    | 62682 |       3466 | 3463 |
 
 
 ## Dataset Creation

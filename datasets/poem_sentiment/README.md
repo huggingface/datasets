@@ -90,9 +90,9 @@ Example of one instance in the dataset.
 
 The dataset is split into a `train`, `validation`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid | Test  |
-| -----                      | ------ | ----- | ----- |
-| Number of examples         | 892    | 105   | 104   |
+|                    | train | validation | test |
+|--------------------|------:|-----------:|-----:|
+| Number of examples |   892 |        105 |  104 |
 
 
 

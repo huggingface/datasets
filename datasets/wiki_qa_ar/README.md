@@ -87,9 +87,9 @@ Each data point contains the question and whether the answer is a valid or not.
 
 The dataset is not split. 
 
-|           | Tain   | Dev   | Test  |
-|---------- | ------ | ------| ------|
-|Data split | 70,264 | 20,632| 10,387|
+|            |  train | validation |   test |
+|------------|-------:|-----------:|-------:|
+| Data split | 70,264 |     20,632 | 10,387 |
 
 ## Dataset Creation
 

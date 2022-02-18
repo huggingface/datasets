@@ -83,9 +83,9 @@ A typical data point comprises a label which is out of 13 classes and a verse pa
 
 The data is split into a training and testing. The split is organized as the following 
 
-|           | Tain   | Test |
-|---------- | ------ | ---- |
-|data split | 47,124 | 8,316|
+|            |  train |  test |
+|------------|-------:|------:|
+| data split | 47,124 | 8,316 |
 
 ## Dataset Creation
 

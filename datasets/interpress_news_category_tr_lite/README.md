@@ -85,9 +85,9 @@ Here is an example from the dataset:
 
 The data is split into a training and testing. The split is organized as the following 
 
-|           | Tain    | Test  |
-|---------- | ------- | ----- |
-|data split | 218,880 | 54,721|
+|            |   train |   test |
+|------------|--------:|-------:|
+| data split | 218,880 | 54,721 |
 
 ## Dataset Creation
 

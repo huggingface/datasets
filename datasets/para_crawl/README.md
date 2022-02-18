@@ -153,13 +153,13 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|name| train  |
-|----|-------:|
-|enbg| 1039885|
-|encs| 2981949|
-|enda| 2414895|
-|ende|16264448|
-|enel| 1985233|
+| name |    train |
+|------|---------:|
+| enbg |  1039885 |
+| encs |  2981949 |
+| enda |  2414895 |
+| ende | 16264448 |
+| enel |  1985233 |
 
 ## Dataset Creation
 

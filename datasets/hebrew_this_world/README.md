@@ -110,11 +110,9 @@ Sample:
 
 ### Data Splits
 
-|                          | train  | 
-|--------------------------|--------|
-| corpus                   | 2028  |
-
-
+|        | train | 
+|--------|------:|
+| corpus |  2028 |
 
 ## Dataset Creation
 

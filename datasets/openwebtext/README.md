@@ -83,9 +83,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|   name   | train |
-|----------|------:|
-|plain_text|8013769|
+| name       |   train |
+|------------|--------:|
+| plain_text | 8013769 |
 
 ## Dataset Creation
 

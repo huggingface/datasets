@@ -89,9 +89,9 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-| name  | train |validation| test |
-|-------|------:|---------:|-----:|
-|default|8400000|      6000|120000|
+| name    |   train | validation |   test |
+|---------|--------:|-----------:|-------:|
+| default | 8400000 |       6000 | 120000 |
 
 ## Dataset Creation
 

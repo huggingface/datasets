@@ -95,9 +95,9 @@ The text in the dataset is in English
 
 The data is split into a training, validation and test.
 
-| Tain   | Valid | Test |
-| ------ | ----- | ---- |
-| 30369  |  5066 | 5093 |
+| train | validation | test |
+|------:|-----------:|-----:|
+| 30369 |       5066 | 5093 |
 
 
 ## Dataset Creation

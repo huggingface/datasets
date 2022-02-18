@@ -102,9 +102,9 @@ In our annotation, we label a post as offensive (OFF) if it contains any form of
 
 ### Data Splits
 
-| Tain  | Test  | 
-|-------| ----- | 
-| 31756 | 3528  | 
+| train | test |
+|------:|-----:|
+| 31756 | 3528 |
 
 ## Dataset Creation
 

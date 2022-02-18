@@ -189,13 +189,13 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-|  name  | train  |
-|--------|-------:|
-|ar      |  339109|
-|bg      |  559694|
-|ca      |  372665|
-|combined|21070925|
-|cs      |  564462|
+| name     |    train |
+|----------|---------:|
+| ar       |   339109 |
+| bg       |   559694 |
+| ca       |   372665 |
+| combined | 21070925 |
+| cs       |   564462 |
 
 ## Dataset Creation
 
