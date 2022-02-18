@@ -106,7 +106,7 @@ A data point comprises an image and its annotation mask, which is `None` in the 
 
 - `image`: A `PIL.Image.Image` object containing the image. Note that when accessing the image column: `dataset[0]["image"]` the image file is automatically decoded. Decoding of a large number of image files might take a significant amount of time. Thus it is important to first query the sample index before the `"image"` column, *i.e.* `dataset[0]["image"]` should **always** be preferred over `dataset["image"][0]`.
 - `annotation`: A `PIL.Image.Image` object containing the annotation mask.
-- `scene_category`: A scene category for the image.
+- `scene_category`: A scene category for the image (e.g. `airport_terminal`, `canyon`, `mobile_home`).
 
 > **Note**: annotation masks contain labels ranging from 0 to 150, where 0 refers to "other objects". Those pixels are not considered in the official evaluation. Refer to [this file](https://github.com/CSAILVision/sceneparsing/blob/master/objectInfo150.csv) for the information about the labels of the 150 semantic categories, including indices, pixel ratios and names.
 

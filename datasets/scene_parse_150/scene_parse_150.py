@@ -195,6 +195,8 @@ class SceneParse150(datasets.GeneratorBasedBuilder):
         ),
     ]
 
+    DEFAULT_CONFIG_NAME = "scene_parsing"
+
     def _info(self):
         if self.config.name == "scene_parsing":
             features = datasets.Features(
