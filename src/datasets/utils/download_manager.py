@@ -34,7 +34,7 @@ from .file_utils import (
 )
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
-from .py_utils import NestedDataStructure, map_nested, size_str
+from .py_utils import DeprecatedEnum, NestedDataStructure, map_nested, size_str
 
 
 logger = get_logger(__name__)
@@ -62,6 +62,16 @@ class DownloadMode(enum.Enum):
     REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
     REUSE_CACHE_IF_EXISTS = "reuse_cache_if_exists"
     FORCE_REDOWNLOAD = "force_redownload"
+
+
+class GenerateMode(DeprecatedEnum):
+    REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
+    REUSE_CACHE_IF_EXISTS = "reuse_cache_if_exists"
+    FORCE_REDOWNLOAD = "force_redownload"
+
+    @property
+    def help_message(self):
+        return "Use 'DownloadMode' instead."
 
 
 class DownloadManager:
