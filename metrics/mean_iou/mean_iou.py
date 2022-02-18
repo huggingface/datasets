@@ -13,6 +13,8 @@
 # limitations under the License.
 """Mean IoU (Intersection-over-Union) metric."""
 
+from collections import OrderedDict
+
 import numpy as np
 
 import datasets
@@ -46,27 +48,14 @@ Examples:
 """
 
 _CITATION = """\
-authors:
-  - name: "MMSegmentation Contributors"
-title: "OpenMMLab Semantic Segmentation Toolbox and Benchmark"
-date-released: 2020-07-10
-url: "https://github.com/open-mmlab/mmsegmentation"
-license: Apache-2.0
-"""
-
-
-def f_score(precision, recall, beta=1):
-    """Calculate the f-score value.
-
-    Args:
-        precision (float): The precision value.
-        recall (float): The recall value.
-        beta (int): Determines the weight of recall in the combined score.
-    Returns:
-        [float]: The f-score value.
-    """
-    score = (1 + beta**2) * (precision * recall) / ((beta**2 * precision) + recall)
-    return score
+@software{MMSegmentation_Contributors_OpenMMLab_Semantic_Segmentation_2020,
+author = {{MMSegmentation Contributors}},
+license = {Apache-2.0},
+month = {7},
+title = {{OpenMMLab Semantic Segmentation Toolbox and Benchmark}},
+url = {https://github.com/open-mmlab/mmsegmentation},
+year = {2020}
+}"""
 
 
 def intersect_and_union(pred_label, label, num_classes, ignore_index, label_map=dict(), reduce_zero_label=False):
@@ -95,6 +84,7 @@ def intersect_and_union(pred_label, label, num_classes, ignore_index, label_map=
     if label_map is not None:
         for old_id, new_id in label_map.items():
             label[label == old_id] = new_id
+
     if reduce_zero_label:
         label[label == 0] = 255
         label = label - 1
@@ -179,17 +169,25 @@ def mean_iou(
             <Acc> ndarray: Per category accuracy, shape (num_classes, ).
             <IoU> ndarray: Per category IoU, shape (num_classes, ).
     """
-    iou_result = eval_metrics(
-        results=results,
-        gt_seg_maps=gt_seg_maps,
-        num_classes=num_classes,
-        ignore_index=ignore_index,
-        metrics=["mIoU"],
-        nan_to_num=nan_to_num,
-        label_map=label_map,
-        reduce_zero_label=reduce_zero_label,
+    total_area_intersect, total_area_union, total_area_pred_label, total_area_label = total_intersect_and_union(
+        results, gt_seg_maps, num_classes, ignore_index, label_map, reduce_zero_label
     )
-    return iou_result
+
+    # compute metrics
+    all_acc = total_area_intersect.sum() / total_area_label.sum()
+    ret_metrics = OrderedDict({"aAcc": all_acc})
+    iou = total_area_intersect / total_area_union
+    acc = total_area_intersect / total_area_label
+    ret_metrics["IoU"] = iou
+    ret_metrics["Acc"] = acc
+
+    ret_metrics = {metric: value.numpy() for metric, value in ret_metrics.items()}
+    if nan_to_num is not None:
+        ret_metrics = OrderedDict(
+            {metric: np.nan_to_num(metric_value, nan=nan_to_num) for metric, metric_value in ret_metrics.items()}
+        )
+
+    return ret_metrics
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
@@ -201,13 +199,10 @@ class Mean_IoU(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Sequence(datasets.Value("int32")),
-                    "gt_seg_maps": datasets.Sequence(datasets.Value("int32")),
-                    "num_classes": datasets.Value("int32"),
-                    "ignore_index:": datasets.Value("int32"),
-                    "nan_to_num": datasets.Value("int32"),
-                    "label_map": dict,
-                    "reduce_zero_label": datasets.Value("bool"),
+                    "predictions": datasets.Sequence(
+                        datasets.Sequence(datasets.Sequence(datasets.Value("uint8")))
+                    ),  # 1st Seq - batch dim, 2nd -  height dim, 3rd - width dim
+                    "references": datasets.Sequence(datasets.Sequence(datasets.Sequence(datasets.Value("uint8")))),
                 }
             ),
             reference_urls=[
@@ -218,16 +213,18 @@ class Mean_IoU(datasets.Metric):
     def _compute(
         self,
         predictions,
-        gt_seg_maps,
-        num_classes,
-        ignore_index,
-        nan_to_num=None,
-        label_map=dict(),
-        reduce_zero_label=False,
+        references,
+        num_classes: int,
+        ignore_index: bool,
+        nan_to_num: Optional[int] = None,
+        label_map: Optional[
+            Dict[int, int]
+        ] = None,  # in the body: label_map = label_map if label_map is not None else {}
+        reduce_zero_label: bool = False,
     ):
         iou_result = mean_iou(
             predictions,
-            gt_seg_maps,
+            references,
             num_classes=num_classes,
             ignore_index=ignore_index,
             nan_to_num=nan_to_num,
