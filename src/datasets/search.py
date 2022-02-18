@@ -323,7 +323,7 @@ class FaissIndex(BaseIndex):
             index = faiss.index_cpu_to_gpus_list(index, gpus=list(device))
         else:
             raise TypeError(
-                "The argument type: {typ} is not expected. ".format(typ=type(device))
+                f"The argument type: {type(device)} is not expected. "
                 + "Please pass in either nothing, a positive int, a negative int, or a list of positive ints."
             )
 
