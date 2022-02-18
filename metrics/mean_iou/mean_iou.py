@@ -1,4 +1,4 @@
-# Copyright 2022 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2022 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,19 +29,31 @@ the mean IoU of the image is calculated by taking the IoU of each class and aver
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions (List[ndarray]): List of predicted segmentation maps. Each segmentation map can be of a different size.
-    references (List[ndarray]): List of ground truth segmentation maps. Each segmentation map can be of a different size.
-    num_labels (int): Number of classes (categories).
-    ignore_index (int): Index that will be ignored during evaluation.
-    nan_to_num (int, optional): If specified, NaN values will be replaced by the numbers defined by the user. Default: None.
-    label_map (dict): Mapping old labels to new labels. Default: dict().
-    reduce_zero_label (bool): Whether to ignore the zero label. Default: False.
+    predictions (`List[ndarray]`):
+        List of predicted segmentation maps, each of shape (height, width). Each segmentation map can be of a different size.
+    references (`List[ndarray]`):
+        List of ground truth segmentation maps, each of shape (height, width). Each segmentation map can be of a different size.
+    num_labels (`int`):
+        Number of classes (categories).
+    ignore_index (`int`):
+        Index that will be ignored during evaluation.
+    nan_to_num (`int`, *optional*):
+        If specified, NaN values will be replaced by the number defined by the user.
+    label_map (`dict`, *optional*):
+        If specified, dictionary mapping old label indices to new label indices.
+    reduce_labels (`bool`, *optional*, defaults to `False`):
+        Whether or not to reduce all label values of segmentation maps by 1. Usually used for datasets where 0 is used for background,
+        and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
 
 Returns:
-    dict[str, float | ndarray]:
-            <aAcc> float: Overall accuracy on all images.
-            <Acc> ndarray: Per category accuracy, shape (num_labels, ).
-            <IoU> ndarray: Per category IoU, shape (num_labels, ).
+    `Dict[str, float | ndarray]` comprising various elements:
+    - *overall_accuracy* (`float`):
+        Overall accuracy on all images.
+    - *per_category_accuracy* (`ndarray` of shape `(num_labels,)`):
+        Per category accuracy.
+    - *per_category_iou* (`ndarray` of shape `(num_labels,)`):
+        Per category IoU.
+
 Examples:
 
     >>> from datasets import load_metric
@@ -49,8 +61,18 @@ Examples:
     
     >>> mean_iou_metric = datasets.load_metric("mean_iou")
 
-    >>> predicted = [np.random.randint(low=0, high=30, size=(3, 2), dtype=np.uint8)]
-    >>> ground_truth = [np.random.randint(low=0, high=30, size=(3,2), dtype=np.uint8)]
+    >>> # suppose one has 3 different segmentation maps predicted
+    >>> predicted_1 = np.array([[1, 2], [3, 4], [5, 6]])
+    >>> actual_1 = np.array([[1, 3], [5, 4], [6, 6]])
+
+    >>> predicted_2 = np.array([[2, 2], [9, 2], [3, 6]])
+    >>> actual_2 = np.array([[1, 2], [8, 2], [3, 6]])
+
+    >>> predicted_3 = np.array([[2, 2, 3], [8, 2, 4], [3, 6, 2]])
+    >>> actual_3 = np.array([[1, 2, 2], [8, 2, 1], [3, 6, 1]])
+
+    >>> predicted = [predicted_1, predicted_2, predicted_3]
+    >>> ground_truth = [actual_1, actual_2, actual_3]
 
     >>> results = metric.compute(predictions=predicted, references=ground_truth)
 """
@@ -66,37 +88,39 @@ year = {2020}
 }"""
 
 
-def intersect_and_union(pred_label, label, num_labels, ignore_index, label_map=dict(), reduce_zero_label=False):
+def intersect_and_union(pred_label, label, num_labels, ignore_index, label_map=dict(), reduce_labels=False):
     """Calculate intersection and Union.
 
     Args:
-        pred_label (ndarray):
-            Prediction segmentation map.
-        label (ndarray):
-            Ground truth segmentation map.
-        num_labels (int):
+        pred_label (`ndarray`):
+            Prediction segmentation map of shape (height, width).
+        label (`ndarray`):
+            Ground truth segmentation map of shape (height, width).
+        num_labels (`int`):
             Number of categories.
-        ignore_index (int):
-            Index that will be ignored in evaluation.
-        label_map (dict):
+        ignore_index (`int`):
+            Index that will be ignored during evaluation.
+        label_map (`dict`, *optional*):
             Mapping old labels to new labels. The parameter will work only when label is str. Default: dict().
-        reduce_zero_label (bool):
-            Whether ignore zero label. The parameter will work only when label is str. Default: False.
+        reduce_labels (`bool`, *optional*, defaults to `False`):
+            Whether or not to reduce all label values of segmentation maps by 1. Usually used for datasets where 0 is used for background,
+        and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
+
      Returns:
-         (ndarray): The intersection of prediction and ground truth histogram on all classes.
-         (ndarray): The union of prediction and ground truth histogram on all classes.
-         (ndarray): The prediction histogram on all classes.
-         (ndarray): The ground truth histogram on all classes.
+         area_intersect (`ndarray`):
+            The intersection of prediction and ground truth histogram on all classes.
+         area_union (`ndarray`):
+            The union of prediction and ground truth histogram on all classes.
+         area_pred_label (`ndarray`):
+            The prediction histogram on all classes.
+         area_label (`ndarray`):
+            The ground truth histogram on all classes.
     """
-
-    print("Predicted label:", pred_label)
-    print("Label:", label)
-
     if label_map is not None:
         for old_id, new_id in label_map.items():
             label[label == old_id] = new_id
 
-    if reduce_zero_label:
+    if reduce_labels:
         label[label == 0] = 255
         label = label - 1
         label[label == 254] = 255
@@ -112,41 +136,37 @@ def intersect_and_union(pred_label, label, num_labels, ignore_index, label_map=d
     area_pred_label = np.histogram(pred_label, bins=num_labels, range=(0, num_labels - 1))[0]
     area_label = np.histogram(label, bins=num_labels, range=(0, num_labels - 1))[0]
 
-    print("Area intersect:", area_intersect)
-    print("Area pred_label:", area_pred_label)
-    print("Area_label:", area_label)
-
     area_union = area_pred_label + area_label - area_intersect
-
-    print("Area intersect:", area_intersect)
-    print("Area pred_label:", area_pred_label)
-    print("Area_label:", area_label)
-    print("Area_union:", area_union)
 
     return area_intersect, area_union, area_pred_label, area_label
 
 
-def total_intersect_and_union(
-    results, gt_seg_maps, num_labels, ignore_index, label_map=dict(), reduce_zero_label=False
-):
-    """Calculate Total Intersection and Union.
+def total_intersect_and_union(results, gt_seg_maps, num_labels, ignore_index, label_map=dict(), reduce_labels=False):
+    """Calculate Total Intersection and Union, by calculating `intersect_and_union` for each (predicted, ground truth) pair.
 
     Args:
-        results (list[ndarray]): List of prediction segmentation maps.
-        gt_seg_maps (list[ndarray]): list of ground truth segmentation maps.
-        num_labels (int): Number of categories.
-        ignore_index (int): Index that will be ignored in evaluation.
-        label_map (dict): Mapping old labels to new labels. Default: dict().
-        reduce_zero_label (bool): Whether ignore zero label. Default: False.
+        results (`ndarray`):
+            List of prediction segmentation maps, each of shape (height, width).
+        gt_seg_maps (`ndarray`):
+            List of ground truth segmentation maps, each of shape (height, width).
+        num_labels (`int`):
+            Number of categories.
+        ignore_index (`int`):
+            Index that will be ignored during evaluation.
+        label_map (`dict`, *optional*):
+            Mapping old labels to new labels. The parameter will work only when label is str. Default: dict().
+        reduce_labels (`bool`, *optional*, defaults to `False`):
+            Whether or not to reduce all label values of segmentation maps by 1. Usually used for datasets where 0 is used for background,
+        and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
 
      Returns:
-         ndarray:
+         total_area_intersect (`ndarray`):
             The intersection of prediction and ground truth histogram on all classes.
-         ndarray:
+         total_area_union (`ndarray`):
             The union of prediction and ground truth histogram on all classes.
-         ndarray:
+         total_area_pred_label (`ndarray`):
             The prediction histogram on all classes.
-         ndarray:
+         total_area_label (`ndarray`):
             The ground truth histogram on all classes.
     """
     total_area_intersect = np.zeros((num_labels,), dtype=np.float64)
@@ -155,7 +175,7 @@ def total_intersect_and_union(
     total_area_label = np.zeros((num_labels,), dtype=np.float64)
     for result, gt_seg_map in zip(results, gt_seg_maps):
         area_intersect, area_union, area_pred_label, area_label = intersect_and_union(
-            result, gt_seg_map, num_labels, ignore_index, label_map, reduce_zero_label
+            result, gt_seg_map, num_labels, ignore_index, label_map, reduce_labels
         )
         total_area_intersect += area_intersect
         total_area_union += area_union
@@ -164,52 +184,53 @@ def total_intersect_and_union(
     return total_area_intersect, total_area_union, total_area_pred_label, total_area_label
 
 
-def mean_iou(
-    results, gt_seg_maps, num_labels, ignore_index, nan_to_num=None, label_map=dict(), reduce_zero_label=False
-):
-    """Calculate Mean Intersection and Union (mIoU)
+def mean_iou(results, gt_seg_maps, num_labels, ignore_index, nan_to_num=None, label_map=dict(), reduce_labels=False):
+    """Calculate Mean Intersection and Union (mIoU).
 
     Args:
-        results (list[ndarray]):
-            List of prediction segmentation maps.
-        gt_seg_maps (list[ndarray]):
-            List of ground truth segmentation maps.
-        num_labels (int):
+        results (`ndarray`):
+            List of prediction segmentation maps, each of shape (height, width).
+        gt_seg_maps (`ndarray`):
+            List of ground truth segmentation maps, each of shape (height, width).
+        num_labels (`int`):
             Number of categories.
-        ignore_index (int):
-            Index that will be ignored in evaluation.
-        nan_to_num (int, optional):
-            If specified, NaN values will be replaced by the numbers defined by the user. Default: None.
-        label_map (dict):
-            Mapping old labels to new labels. Default: dict().
-        reduce_zero_label (bool):
-            Whether to ignore the zero label. Default: False.
+        ignore_index (`int`):
+            Index that will be ignored during evaluation.
+        label_map (`dict`, *optional*):
+            Mapping old labels to new labels. The parameter will work only when label is str. Default: dict().
+        reduce_labels (`bool`, *optional*, defaults to `False`):
+            Whether or not to reduce all label values of segmentation maps by 1. Usually used for datasets where 0 is used for background,
+        and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
 
      Returns:
-        dict[str, float | ndarray]:
-            <aAcc> float: Overall accuracy on all images.
-            <Acc> ndarray: Per category accuracy, shape (num_labels, ).
-            <IoU> ndarray: Per category IoU, shape (num_labels, ).
+        `Dict[str, float | ndarray]` comprising various elements:
+        - *overall_accuracy* (`float`):
+            Overall accuracy on all images.
+        - *per_category_accuracy* (`ndarray` of shape `(num_labels,)`):
+            Per category accuracy.
+        - *per_category_iou* (`ndarray` of shape `(num_labels,)`):
+            Per category IoU.
     """
     total_area_intersect, total_area_union, total_area_pred_label, total_area_label = total_intersect_and_union(
-        results, gt_seg_maps, num_labels, ignore_index, label_map, reduce_zero_label
+        results, gt_seg_maps, num_labels, ignore_index, label_map, reduce_labels
     )
 
     # compute metrics
+    metrics = OrderedDict()
+
     all_acc = total_area_intersect.sum() / total_area_label.sum()
-    ret_metrics = OrderedDict({"aAcc": all_acc})
     iou = total_area_intersect / total_area_union
     acc = total_area_intersect / total_area_label
-    ret_metrics["IoU"] = iou
-    ret_metrics["Acc"] = acc
+    metrics["overall_accuracy"] = all_acc
+    metrics["per_category_iou"] = iou
+    metrics["per_category_accuracy"] = acc
 
-    ret_metrics = {metric: value for metric, value in ret_metrics.items()}
     if nan_to_num is not None:
-        ret_metrics = OrderedDict(
-            {metric: np.nan_to_num(metric_value, nan=nan_to_num) for metric, metric_value in ret_metrics.items()}
+        metrics = OrderedDict(
+            {metric: np.nan_to_num(metric_value, nan=nan_to_num) for metric, metric_value in metrics.items()}
         )
 
-    return ret_metrics
+    return metrics
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
@@ -241,7 +262,7 @@ class Mean_IoU(datasets.Metric):
         label_map: Optional[
             Dict[int, int]
         ] = None,  # in the body: label_map = label_map if label_map is not None else {}
-        reduce_zero_label: bool = False,
+        reduce_labels: bool = False,
     ):
         iou_result = mean_iou(
             results=predictions,
@@ -250,6 +271,6 @@ class Mean_IoU(datasets.Metric):
             ignore_index=ignore_index,
             nan_to_num=nan_to_num,
             label_map=label_map,
-            reduce_zero_label=reduce_zero_label,
+            reduce_labels=reduce_labels,
         )
         return iou_result
