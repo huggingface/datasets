@@ -40,7 +40,7 @@ from .py_utils import NestedDataStructure, map_nested, size_str
 logger = get_logger(__name__)
 
 
-class GenerateMode(enum.Enum):
+class DownloadMode(enum.Enum):
     """`Enum` for how to treat pre-existing downloads and data.
 
     The default mode is `REUSE_DATASET_IF_EXISTS`, which will reuse both

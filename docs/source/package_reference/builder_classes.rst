@@ -15,7 +15,7 @@ Builder classes
 
 .. autoclass:: datasets.DownloadManager
 
-.. autoclass:: datasets.GenerateMode
+.. autoclass:: datasets.DownloadMode
 
 .. autoclass:: datasets.SplitGenerator
 

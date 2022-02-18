@@ -28,7 +28,7 @@ from .load import (
     metric_module_factory,
 )
 from .utils import DownloadConfig
-from .utils.download_manager import GenerateMode
+from .utils.download_manager import DownloadMode
 from .utils.logging import get_logger
 from .utils.streaming_download_manager import StreamingDownloadManager
 from .utils.version import Version
@@ -125,7 +125,7 @@ def get_dataset_infos(
     path: str,
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str]] = None,
@@ -147,7 +147,7 @@ def get_dataset_infos(
             - it will also try to load it from the master branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
             Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
@@ -175,7 +175,7 @@ def get_dataset_config_names(
     path: str,
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str]] = None,
@@ -197,7 +197,7 @@ def get_dataset_config_names(
             - it will also try to load it from the master branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
             Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
@@ -229,7 +229,7 @@ def get_dataset_split_names(
     cache_dir: Optional[str] = None,
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     **config_kwargs,
@@ -249,7 +249,7 @@ def get_dataset_split_names(
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.

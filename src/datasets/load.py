@@ -54,7 +54,7 @@ from .splits import Split
 from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
 from .utils.deprecation_utils import deprecated
-from .utils.download_manager import GenerateMode
+from .utils.download_manager import DownloadMode
 from .utils.file_utils import (
     DownloadConfig,
     OfflineModeIsEnabled,
@@ -312,7 +312,7 @@ def _copy_script_and_other_resources_in_importable_dir(
     original_local_path: str,
     local_imports: List[Tuple[str, str]],
     additional_files: List[Tuple[str, str]],
-    download_mode: Optional[GenerateMode],
+    download_mode: Optional[DownloadMode],
 ) -> str:
     """Copy a script and its required imports to an importable directory
 
@@ -323,7 +323,7 @@ def _copy_script_and_other_resources_in_importable_dir(
         original_local_path (str): local path to the resource script
         local_imports (List[Tuple[str, str]]): list of (destination_filename, import_file_to_copy)
         additional_files (List[Tuple[str, str]]): list of (destination_filename, additional_file_to_copy)
-        download_mode (Optional[GenerateMode]): download mode
+        download_mode (Optional[DownloadMode]): download mode
 
     Return:
         importable_local_file: path to an importable module with importlib.import_module
@@ -339,7 +339,7 @@ def _copy_script_and_other_resources_in_importable_dir(
     lock_path = importable_directory_path + ".lock"
     with FileLock(lock_path):
         # Create main dataset/metrics folder if needed
-        if download_mode == GenerateMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
+        if download_mode == DownloadMode.FORCE_REDOWNLOAD and os.path.exists(importable_directory_path):
             shutil.rmtree(importable_directory_path)
         os.makedirs(importable_directory_path, exist_ok=True)
 
@@ -399,7 +399,7 @@ def _create_importable_file(
     dynamic_modules_path: str,
     module_namespace: str,
     name: str,
-    download_mode: GenerateMode,
+    download_mode: DownloadMode,
 ) -> Tuple[str, str]:
     importable_directory_path = os.path.join(dynamic_modules_path, module_namespace, name.replace("/", "--"))
     Path(importable_directory_path).mkdir(parents=True, exist_ok=True)
@@ -492,7 +492,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         name: str,
         revision: Optional[Union[str, Version]] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
@@ -573,7 +573,7 @@ class CanonicalMetricModuleFactory(_MetricModuleFactory):
         name: str,
         revision: Optional[Union[str, Version]] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
@@ -637,7 +637,7 @@ class LocalMetricModuleFactory(_MetricModuleFactory):
         self,
         path: str,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.path = path
@@ -678,7 +678,7 @@ class LocalDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         self,
         path: str,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.path = path
@@ -724,7 +724,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self,
         path: str,
         data_files: Optional[Union[str, List, Dict]] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
     ):
         self.path = path
         self.name = Path(path).stem
@@ -769,7 +769,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         name: str,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
     ):
         self.name = name
         self.data_files = data_files
@@ -801,7 +801,7 @@ class CommunityDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         revision: Optional[Union[str, Version]] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
     ):
         self.name = name
         self.revision = revision
@@ -873,7 +873,7 @@ class CommunityDatasetModuleFactoryWithScript(_DatasetModuleFactory):
         name: str,
         revision: Optional[Union[str, Version]] = None,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         dynamic_modules_path: Optional[str] = None,
     ):
         self.name = name
@@ -1041,7 +1041,7 @@ def dataset_module_factory(
     path: str,
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
@@ -1088,7 +1088,7 @@ def dataset_module_factory(
             - it will also try to load it from the master branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
             Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
@@ -1108,7 +1108,7 @@ def dataset_module_factory(
     download_config.extract_compressed_file = True
     download_config.force_extract = True
     download_config.force_download = download_mode = (
-        GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS) == GenerateMode.FORCE_REDOWNLOAD
+        DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS) == DownloadMode.FORCE_REDOWNLOAD
     )
 
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
@@ -1232,7 +1232,7 @@ def metric_module_factory(
     path: str,
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
     **download_kwargs,
@@ -1260,7 +1260,7 @@ def metric_module_factory(
             - it will also try to load it from the master branch if it's not available at the local version of the lib.
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
             Used to inspect or modify the script folder.
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
@@ -1342,7 +1342,7 @@ def prepare_module(
     path: str,
     revision: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     dataset: bool = True,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
@@ -1394,7 +1394,7 @@ def load_metric(
     experiment_id: Optional[str] = None,
     keep_in_memory: bool = False,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     revision: Optional[Union[str, Version]] = None,
     script_version="deprecated",
     **metric_init_kwargs,
@@ -1417,7 +1417,7 @@ def load_metric(
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         keep_in_memory (bool): Whether to store the temporary results in memory (defaults to False)
         download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         revision (Optional ``Union[str, datasets.Version]``): if specified, the module will be loaded from the datasets repository
             at this version. By default it is set to the local version of the lib. Specifying a version that is different from
             your local version of the lib might cause compatibility issues.
@@ -1461,7 +1461,7 @@ def load_dataset_builder(
     cache_dir: Optional[str] = None,
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     script_version="deprecated",
@@ -1505,7 +1505,7 @@ def load_dataset_builder(
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
 
             - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
@@ -1575,7 +1575,7 @@ def load_dataset(
     cache_dir: Optional[str] = None,
     features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
-    download_mode: Optional[GenerateMode] = None,
+    download_mode: Optional[DownloadMode] = None,
     ignore_verifications: bool = False,
     keep_in_memory: Optional[bool] = None,
     save_infos: bool = False,
@@ -1648,7 +1648,7 @@ def load_dataset(
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
-        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        download_mode (:class:`DownloadMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         ignore_verifications (:obj:`bool`, default ``False``): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...).
         keep_in_memory (:obj:`bool`, default ``None``): Whether to copy the dataset in-memory. If `None`, the dataset
             will not be copied in-memory unless explicitly enabled by setting `datasets.config.IN_MEMORY_MAX_SIZE` to
