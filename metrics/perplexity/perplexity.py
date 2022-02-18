@@ -34,13 +34,20 @@ For more information, see https://huggingface.co/docs/transformers/perplexity
 _KWARGS_DESCRIPTION = """
 Args:
     model_id (str): model used for calculating Perplexity
+            NOTE: Perplexity can only be calculated for causal langugae models. 
+                    This includes models such as gpt2, causal variations of bert, 
+                    causal versions of t5, and more (the full list can be found
+                    in the AutoModelForCausalLM documentation here:
+                    https://huggingface.co/docs/transformers/master/en/model_doc/auto#transformers.AutoModelForCausalLM )
+
     input_text (list of str): input text, each separate text snippet
         is one list entry. Perplexity returned will be an average of
         the perplexity for each list entry.
     stride (int): stride size, defaults to 512
-    device (str): device to run on, defaults to cuda
+    device (str): device to run on, defaults to 'cuda'
 Returns:
-    perplexity: average perplexity score for segment
+    perplexity: dictionary containing the average perplexity score for the text
+        in the input list.
 Examples:
     Example 1:
         >>> perplexity = datsets.load_meric("perplexity")
@@ -99,7 +106,7 @@ class Perplexity(datasets.Metric):
         model_id,
         input_text,
         stride=512,
-        device=None):
+        device='cuda'):
 
         model = AutoModelForCausalLM.from_pretrained(model_id)
         model = model.to(device)
