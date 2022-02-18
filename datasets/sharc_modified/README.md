@@ -59,7 +59,14 @@ pretty_name: SharcModified
 
 ### Dataset Summary
 
-[More Information Needed]
+ShARC, a conversational QA task, requires a system to answer user questions based on rules expressed in natural language text.
+However, it is found that in the ShARC dataset there are multiple spurious patterns that could be exploited by neural models.
+SharcModified is a new dataset which reduces the patterns identified in the original dataset.
+To reduce the sensitivity of neural models, for each occurence of an instance conforming to any of the patterns,
+we automatically construct alternatives where we choose to either replace the current instance with an alternative
+instance which does not exhibit the pattern; or retain the original instance.
+The modified ShARC has two versions sharc-mod and history-shuffled.
+
 
 ### Supported Tasks and Leaderboards
 
@@ -215,7 +222,7 @@ The dataset is split into training and validation splits.
 
 ### Licensing Information
 
-[More Information Needed]
+Unknown.
 
 ### Citation Information
 

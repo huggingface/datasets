@@ -39,7 +39,7 @@ languages:
 - hu
 - ja
 - lv
-- no
+- "no"
 - ro
 - sl
 - th

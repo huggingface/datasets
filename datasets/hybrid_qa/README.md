@@ -119,7 +119,24 @@ A typical example looks like this
 
 ### Data Fields
 
-[More Information Needed]
+- `question_id` (str)
+- `question` (str)
+- `table_id` (str)
+- `answer_text` (str)
+- `question_postag` (str)
+- `table` (dict):
+  - `url` (str)
+  - `title` (str)
+  - `header` (list of str)
+  - `data` (list of dict):
+    - `value` (str)
+    - `urls` (list of dict):
+      - `url` (str)
+      - `summary` (str)
+- `section_title` (str)
+- `section_text` (str)
+- `uid` (str)
+- `intro` (str)
 
 ### Data Splits
 
