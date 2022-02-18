@@ -14,6 +14,7 @@
 """Mean IoU (Intersection-over-Union) metric."""
 
 from collections import OrderedDict
+from typing import Dict, Optional
 
 import numpy as np
 
