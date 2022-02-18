@@ -120,10 +120,10 @@ The data fields are the same among all splits.
 
 ### Data Splits
 
-| name    |  train |validation|
-|---------|-------:|---------:|
-| default | 307373 |      7830|
-| dev     |    N/A |      7830|
+| name    |  train | validation |
+|---------|-------:|-----------:|
+| default | 307373 |       7830 |
+| dev     |    N/A |       7830 |
 
 ## Dataset Creation
 

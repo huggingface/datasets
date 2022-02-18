@@ -85,9 +85,9 @@ Trailer late ah parthavanga like podunga	Positive
 
 The entire dataset of 15,744 sentences was randomly shuffled and split into three parts as follows:
 
-|                             | Tain   | Valid | Test |
-| -----                       | ------ | ----- | ---- |
-| Tamilmixsentiment           |  11335 |  1260 | 3149 |
+|                              | train | validation | test |
+|------------------------------|------:|-----------:|-----:|
+| Tamilmixsentiment            | 11335 |       1260 | 3149 |
 
 
 ## Dataset Creation
