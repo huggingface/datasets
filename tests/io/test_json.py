@@ -1,3 +1,4 @@
+import fsspec
 import io
 import json
 
@@ -262,8 +263,8 @@ class TestJsonDatasetWriter:
         original_path = str(shared_datadir / f"test_file.json.{extension}")
         JsonDatasetWriter(dataset, path, compression=compression).write()
 
-        with open(path, "rb") as f:
+        with fsspec.open(path, "rb", compression="infer") as f:
             exported_content = f.read()
-        with open(original_path, "rb") as f:
+        with fsspec.open(original_path, "rb", compression="infer") as f:
             original_content = f.read()
         assert exported_content == original_content
