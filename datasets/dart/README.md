@@ -26,7 +26,7 @@ paperswithcode_id: dart
 pretty_name: DART
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for DART
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

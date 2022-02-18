@@ -6,7 +6,7 @@ language_creators:
 languages:
 - he
 licenses:
-- gpl
+- agpl-3.0-or-later
 multilinguality:
 - monolingual
 size_categories:

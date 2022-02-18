@@ -21,7 +21,7 @@ paperswithcode_id: e2e
 pretty_name: End-to-End NLG Challenge
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for End-to-End NLG Challenge
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

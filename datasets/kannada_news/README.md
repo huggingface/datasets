@@ -158,7 +158,7 @@ cc-by-sa-4.0
 
 ### Citation Information
 
-[More Information Needed]
+https://www.kaggle.com/disisbig/kannada-news-dataset
 
 ### Contributions
 

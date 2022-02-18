@@ -21,7 +21,7 @@ paperswithcode_id: hybridqa
 pretty_name: HybridQA
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for HybridQA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

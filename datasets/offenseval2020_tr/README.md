@@ -6,7 +6,7 @@ language_creators:
 languages:
 - tr
 licenses:
-- found
+- cc-by-2.0
 multilinguality:
 - monolingual
 size_categories:

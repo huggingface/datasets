@@ -56,6 +56,10 @@ pretty_name: Interpress Turkish News Category Dataset (270K - Lite Version)
 
 Turkish News Category Dataset (270K - Lite Version) is a Turkish news data set consisting of 273601 news in 10 categories ("kültürsanat", "ekonomi", "siyaset", "eğitim", "dünya", "spor", "teknoloji", "magazin", "sağlık", "gündem"), compiled from printed media and news websites between 2010 and 2017 by the Interpress (https://www.interpress.com/) media monitoring company. **It has been rearranged as easily separable and with fewer classes.**
 
+### Supported Tasks and Leaderboards
+
+[More Information Needed]
+
 ### Languages
 
 The dataset is based on Turkish.
@@ -126,7 +130,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 
@@ -146,7 +154,7 @@ The dataset does not contain any additional annotations.
 
 ### Citation Information
 
-[More Information Needed]
+https://www.interpress.com/
 
 ### Contributions
 

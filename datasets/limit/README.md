@@ -21,10 +21,10 @@ task_ids:
 - multi-class-classification
 - named-entity-recognition
 paperswithcode_id: limit
-pretty_name: Literal Motion in Text Dataset
+pretty_name: LiMiT
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for LiMiT
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

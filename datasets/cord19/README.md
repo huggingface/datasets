@@ -37,7 +37,7 @@ paperswithcode_id: cord-19
 pretty_name: CORD-19
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for CORD-19
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -156,7 +156,14 @@ The data is split into a training, validation and test.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@article{lu2020multi,
+  title={Multi-XScience: A Large-scale Dataset for Extreme Multi-document Summarization of Scientific Articles},
+  author={Lu, Yao and Dong, Yue and Charlin, Laurent},
+  journal={arXiv preprint arXiv:2010.14235},
+  year={2020}
+}
+```
 
 ### Contributions
 

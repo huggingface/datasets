@@ -5,7 +5,8 @@ language_creators:
 - expert-generated
 languages:
 - en
-licenses: []
+licenses:
+- other-non-commercial-research-purpose-only
 multilinguality:
 - monolingual
 size_categories:

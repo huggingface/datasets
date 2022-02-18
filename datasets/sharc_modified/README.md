@@ -23,7 +23,7 @@ paperswithcode_id: null
 pretty_name: SharcModified
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for SharcModified
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

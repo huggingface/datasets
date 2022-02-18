@@ -24,6 +24,7 @@ pretty_name: English-Arabic Wikipedia Question-Answering
 # Dataset Card for WikiQAar
 
 ## Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
   - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
@@ -127,7 +128,11 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
 
 [More Information Needed]
 
@@ -147,7 +152,16 @@ The dataset does not contain any additional annotations.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@InProceedings{YangYihMeek:EMNLP2015:WikiQA,
+       author = {{Yi}, Yang and {Wen-tau},  Yih and {Christopher} Meek},
+        title = "{WikiQA: A Challenge Dataset for Open-Domain Question Answering}",
+      journal = {Association for Computational Linguistics},
+         year = 2015,
+          doi = {10.18653/v1/D15-1237},
+        pages = {2013–2018},
+}
+```
 
 ### Contributions
 

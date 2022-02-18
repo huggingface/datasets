@@ -163,7 +163,17 @@ The organization details of PolEval is present in this [link](http://2019.poleva
 
 ### Citation Information
 
-[More Information Needed]
+```
+@proceedings{ogr:kob:19:poleval,
+  editor    = {Maciej Ogrodniczuk and Łukasz Kobyliński},
+  title     = {{Proceedings of the PolEval 2019 Workshop}},
+  year      = {2019},
+  address   = {Warsaw, Poland},
+  publisher = {Institute of Computer Science, Polish Academy of Sciences},
+  url       = {http://2019.poleval.pl/files/poleval2019.pdf},
+  isbn      = "978-83-63159-28-3"}
+}
+```
 
 ### Contributions
 
