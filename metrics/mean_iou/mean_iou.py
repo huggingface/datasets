@@ -29,13 +29,14 @@ the mean IoU of the image is calculated by taking the IoU of each class and aver
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Predicted segmentation maps.
-    references: Ground truth segmentation maps.
+    predictions (List[ndarray]): List of predicted segmentation maps. Each segmentation map can be of a different size.
+    references (List[ndarray]): List of ground truth segmentation maps. Each segmentation map can be of a different size.
     num_labels (int): Number of classes (categories).
-    ignore_index (int): Index that will be ignored in evaluation.
+    ignore_index (int): Index that will be ignored during evaluation.
     nan_to_num (int, optional): If specified, NaN values will be replaced by the numbers defined by the user. Default: None.
     label_map (dict): Mapping old labels to new labels. Default: dict().
-    reduce_zero_label (bool): Whether ignore zero label. Default: False.
+    reduce_zero_label (bool): Whether to ignore the zero label. Default: False.
+
 Returns:
     dict[str, float | ndarray]:
             <aAcc> float: Overall accuracy on all images.
@@ -43,9 +44,15 @@ Returns:
             <IoU> ndarray: Per category IoU, shape (num_labels, ).
 Examples:
 
+    >>> from datasets import load_metric
+    >>> import numpy as np
+    
     >>> mean_iou_metric = datasets.load_metric("mean_iou")
-    >>> results = mean_iou_metric.compute(references=[0, 1], predictions=[0, 1])
-    >>> print(results)
+
+    >>> predicted = [np.random.randint(low=0, high=30, size=(3, 2), dtype=np.uint8)]
+    >>> ground_truth = [np.random.randint(low=0, high=30, size=(3,2), dtype=np.uint8)]
+
+    >>> results = metric.compute(predictions=predicted, references=ground_truth)
 """
 
 _CITATION = """\
@@ -59,7 +66,7 @@ year = {2020}
 }"""
 
 
-def intersect_and_union(pred_label, label, num_classes, ignore_index, label_map=dict(), reduce_zero_label=False):
+def intersect_and_union(pred_label, label, num_labels, ignore_index, label_map=dict(), reduce_zero_label=False):
     """Calculate intersection and Union.
 
     Args:
@@ -67,7 +74,7 @@ def intersect_and_union(pred_label, label, num_classes, ignore_index, label_map=
             Prediction segmentation map.
         label (ndarray):
             Ground truth segmentation map.
-        num_classes (int):
+        num_labels (int):
             Number of categories.
         ignore_index (int):
             Index that will be ignored in evaluation.
@@ -82,6 +89,9 @@ def intersect_and_union(pred_label, label, num_classes, ignore_index, label_map=
          (ndarray): The ground truth histogram on all classes.
     """
 
+    print("Predicted label:", pred_label)
+    print("Label:", label)
+
     if label_map is not None:
         for old_id, new_id in label_map.items():
             label[label == old_id] = new_id
@@ -92,28 +102,39 @@ def intersect_and_union(pred_label, label, num_classes, ignore_index, label_map=
         label[label == 254] = 255
 
     mask = label != ignore_index
-    pred_label = pred_label[mask]
-    label = label[mask]
+    mask = np.not_equal(label, ignore_index)
+    pred_label = np.array(pred_label)[mask]
+    label = np.array(label)[mask]
 
     intersect = pred_label[pred_label == label]
 
-    area_intersect = np.histogram(intersect.float(), bins=num_classes, range=np.arange(0, num_classes - 1))
-    area_pred_label = np.histogram(pred_label.float(), bins=num_classes, range=np.arange(0, num_classes - 1))
-    area_label = np.histogram(label.float(), bins=num_classes, range=np.arange(0, num_classes - 1))
+    area_intersect = np.histogram(intersect, bins=num_labels, range=(0, num_labels - 1))[0]
+    area_pred_label = np.histogram(pred_label, bins=num_labels, range=(0, num_labels - 1))[0]
+    area_label = np.histogram(label, bins=num_labels, range=(0, num_labels - 1))[0]
+
+    print("Area intersect:", area_intersect)
+    print("Area pred_label:", area_pred_label)
+    print("Area_label:", area_label)
+
     area_union = area_pred_label + area_label - area_intersect
+
+    print("Area intersect:", area_intersect)
+    print("Area pred_label:", area_pred_label)
+    print("Area_label:", area_label)
+    print("Area_union:", area_union)
 
     return area_intersect, area_union, area_pred_label, area_label
 
 
 def total_intersect_and_union(
-    results, gt_seg_maps, num_classes, ignore_index, label_map=dict(), reduce_zero_label=False
+    results, gt_seg_maps, num_labels, ignore_index, label_map=dict(), reduce_zero_label=False
 ):
     """Calculate Total Intersection and Union.
 
     Args:
         results (list[ndarray]): List of prediction segmentation maps.
         gt_seg_maps (list[ndarray]): list of ground truth segmentation maps.
-        num_classes (int): Number of categories.
+        num_labels (int): Number of categories.
         ignore_index (int): Index that will be ignored in evaluation.
         label_map (dict): Mapping old labels to new labels. Default: dict().
         reduce_zero_label (bool): Whether ignore zero label. Default: False.
@@ -128,13 +149,13 @@ def total_intersect_and_union(
          ndarray:
             The ground truth histogram on all classes.
     """
-    total_area_intersect = np.zeros((num_classes,), dtype=np.float64)
-    total_area_union = np.zeros((num_classes,), dtype=np.float64)
-    total_area_pred_label = np.zeros((num_classes,), dtype=np.float64)
-    total_area_label = np.zeros((num_classes,), dtype=np.float64)
+    total_area_intersect = np.zeros((num_labels,), dtype=np.float64)
+    total_area_union = np.zeros((num_labels,), dtype=np.float64)
+    total_area_pred_label = np.zeros((num_labels,), dtype=np.float64)
+    total_area_label = np.zeros((num_labels,), dtype=np.float64)
     for result, gt_seg_map in zip(results, gt_seg_maps):
         area_intersect, area_union, area_pred_label, area_label = intersect_and_union(
-            result, gt_seg_map, num_classes, ignore_index, label_map, reduce_zero_label
+            result, gt_seg_map, num_labels, ignore_index, label_map, reduce_zero_label
         )
         total_area_intersect += area_intersect
         total_area_union += area_union
@@ -144,7 +165,7 @@ def total_intersect_and_union(
 
 
 def mean_iou(
-    results, gt_seg_maps, num_classes, ignore_index, nan_to_num=None, label_map=dict(), reduce_zero_label=False
+    results, gt_seg_maps, num_labels, ignore_index, nan_to_num=None, label_map=dict(), reduce_zero_label=False
 ):
     """Calculate Mean Intersection and Union (mIoU)
 
@@ -153,7 +174,7 @@ def mean_iou(
             List of prediction segmentation maps.
         gt_seg_maps (list[ndarray]):
             List of ground truth segmentation maps.
-        num_classes (int):
+        num_labels (int):
             Number of categories.
         ignore_index (int):
             Index that will be ignored in evaluation.
@@ -167,11 +188,11 @@ def mean_iou(
      Returns:
         dict[str, float | ndarray]:
             <aAcc> float: Overall accuracy on all images.
-            <Acc> ndarray: Per category accuracy, shape (num_classes, ).
-            <IoU> ndarray: Per category IoU, shape (num_classes, ).
+            <Acc> ndarray: Per category accuracy, shape (num_labels, ).
+            <IoU> ndarray: Per category IoU, shape (num_labels, ).
     """
     total_area_intersect, total_area_union, total_area_pred_label, total_area_label = total_intersect_and_union(
-        results, gt_seg_maps, num_classes, ignore_index, label_map, reduce_zero_label
+        results, gt_seg_maps, num_labels, ignore_index, label_map, reduce_zero_label
     )
 
     # compute metrics
@@ -182,7 +203,7 @@ def mean_iou(
     ret_metrics["IoU"] = iou
     ret_metrics["Acc"] = acc
 
-    ret_metrics = {metric: value.numpy() for metric, value in ret_metrics.items()}
+    ret_metrics = {metric: value for metric, value in ret_metrics.items()}
     if nan_to_num is not None:
         ret_metrics = OrderedDict(
             {metric: np.nan_to_num(metric_value, nan=nan_to_num) for metric, metric_value in ret_metrics.items()}
@@ -199,11 +220,10 @@ class Mean_IoU(datasets.Metric):
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
+                # 1st Seq - height dim, 2nd - width dim
                 {
-                    "predictions": datasets.Sequence(
-                        datasets.Sequence(datasets.Sequence(datasets.Value("uint8")))
-                    ),  # 1st Seq - batch dim, 2nd -  height dim, 3rd - width dim
-                    "references": datasets.Sequence(datasets.Sequence(datasets.Sequence(datasets.Value("uint8")))),
+                    "predictions": datasets.Sequence(datasets.Sequence(datasets.Value("uint8"))),
+                    "references": datasets.Sequence(datasets.Sequence(datasets.Value("uint8"))),
                 }
             ),
             reference_urls=[
@@ -215,7 +235,7 @@ class Mean_IoU(datasets.Metric):
         self,
         predictions,
         references,
-        num_classes: int,
+        num_labels: int,
         ignore_index: bool,
         nan_to_num: Optional[int] = None,
         label_map: Optional[
@@ -224,9 +244,9 @@ class Mean_IoU(datasets.Metric):
         reduce_zero_label: bool = False,
     ):
         iou_result = mean_iou(
-            predictions,
-            references,
-            num_classes=num_classes,
+            results=predictions,
+            gt_seg_maps=references,
+            num_labels=num_labels,
             ignore_index=ignore_index,
             nan_to_num=nan_to_num,
             label_map=label_map,
