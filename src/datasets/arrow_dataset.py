@@ -59,17 +59,14 @@ from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import (
-    Audio,
     ClassLabel,
     Features,
     FeatureType,
-    Image,
     Sequence,
     Value,
     _ArrayXD,
     decode_nested_example,
     pandas_types_mapper,
-    require_decoding,
 )
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
@@ -85,22 +82,13 @@ from .formatting import format_table, get_format_type_from_alias, get_formatter,
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit, Split, SplitInfo
-from .table import (
-    InMemoryTable,
-    MemoryMappedTable,
-    Table,
-    cast_table_to_features,
-    concat_tables,
-    list_table_cache_files,
-    table_cast,
-    table_visitor,
-)
+from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables, list_table_cache_files, table_cast
 from .tasks import TaskTemplate
 from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
-from .utils.py_utils import temporary_assignment, unique_values
+from .utils.py_utils import unique_values
 from .utils.typing import PathLike
 
 
@@ -577,13 +565,6 @@ def _check_column_names(column_names: List[str]):
     if not all(count == 1 for count in counter.values()):
         duplicated_columns = [col for col in counter if counter[col] > 1]
         raise ValueError(f"The table can't have duplicated columns but columns {duplicated_columns} are duplicated.")
-
-
-def _check_valid_indices_value(value, size):
-    if (value < 0 and value + size < 0) or (value >= size):
-        raise IndexError(
-            f"Invalid value {value} in indices iterable. All values must be within range [-{size}, {size - 1}]."
-        )
 
 
 def _check_if_features_can_be_aligned(features_list: List[Features]):
@@ -2000,6 +1981,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
+        tqdm_kwargs: Optional[dict] = None, 
         num_proc: Optional[int] = None,
         suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
@@ -2043,6 +2025,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `False`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
+            tqdm_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to tqdm progress bar.
             num_proc (`Optional[int]`, default `None`): Max number of processes when generating cache. Already cached shards are loaded sequentially
             suffix_template (:obj:`str`):
                 If cache_file_name is specified, then this suffix
@@ -2109,13 +2092,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         if fn_kwargs is None:
             fn_kwargs = {}
 
+        if tqdm_kwargs is None:
+            tqdm_kwargs = {}
+
         if num_proc is not None and num_proc > len(self):
             num_proc = len(self)
             logger.warning(
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
-        disable_tqdm = not utils.is_progress_bar_enabled()
+        disable_tqdm = bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled()
 
         if num_proc is None or num_proc == 1:
             return self._map_single(
@@ -2134,6 +2120,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 features=features,
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
+                tqdm_kwargs=tqdm_kwargs, 
                 new_fingerprint=new_fingerprint,
                 disable_tqdm=disable_tqdm,
                 desc=desc,
@@ -2192,6 +2179,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     features=features.copy() if features is not None else None,
                     disable_nullable=disable_nullable,
                     fn_kwargs=fn_kwargs,
+                    tqdm_kwargs=tqdm_kwargs, 
                     rank=rank,
                     offset=sum(len(s) for s in shards[:rank]),
                     disable_tqdm=disable_tqdm,
@@ -2265,6 +2253,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         features: Optional[Features] = None,
         disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
+        tqdm_kwargs: Optional[dict] = None, 
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
         offset: int = 0,
@@ -2306,6 +2295,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, defaults to `False`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
+            tqdm_kwargs (`Optional[Dict]`, default to `None`): Keyword arguments to be passed to tqdm progress bar.
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
             rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
@@ -2319,11 +2309,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             logging.set_verbosity_warning()
         # Print at least one thing to fix tqdm in notebooks in multiprocessing
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
-        if rank is not None and not disable_tqdm and any("notebook" in tqdm_cls.__name__ for tqdm_cls in tqdm.__mro__):
+        if rank is not None and not disable_tqdm and "notebook" in tqdm.__name__:
             print(" ", end="", flush=True)
 
         if fn_kwargs is None:
             fn_kwargs = {}
+
+        if tqdm_kwargs is None:
+            tqdm_kwargs = {}
 
         # If we do batch computation but no batch size is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
@@ -2462,24 +2455,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     input_dataset = self
 
                 # Loop over single examples or batches and write to buffer/file if examples are to be updated
-                if not batched:
-                    pbar_iterable = input_dataset._iter(decoded=False)
-                    pbar_total = len(input_dataset)
-                else:
-                    num_rows = (
-                        len(input_dataset) if not drop_last_batch else len(input_dataset) // batch_size * batch_size
-                    )
-                    pbar_iterable = range(0, num_rows, batch_size)
-                    pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
+                pbar_iterable = (
+                    input_dataset._iter(decoded=False) if not batched else range(0, len(input_dataset), batch_size)
+                )
                 pbar_unit = "ex" if not batched else "ba"
-                pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
+                pbar_desc = (desc or "") + " #" + str(rank) if rank is not None else desc
                 pbar = utils.tqdm(
                     pbar_iterable,
-                    total=pbar_total,
                     disable=disable_tqdm,
                     position=rank,
                     unit=pbar_unit,
                     desc=pbar_desc,
+                    **tqdm_kwargs
                 )
                 if not batched:
                     for i, example in enumerate(pbar):
@@ -2494,6 +2481,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                                 writer.write(example)
                 else:
                     for i in pbar:
+                        if drop_last_batch and i + batch_size > input_dataset.num_rows:
+                            continue
                         batch = input_dataset._getitem(
                             slice(i, i + batch_size),
                             decoded=False,
@@ -2766,12 +2755,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             writer = ArrowWriter(
                 path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
             )
-
-        indices = list(indices)
-
-        size = len(self)
-        _check_valid_indices_value(int(max(indices)), size=size)
-        _check_valid_indices_value(int(min(indices)), size=size)
 
         indices_array = pa.array(indices, type=pa.uint64())
         # Check if we need to convert indices
@@ -3461,7 +3444,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
-        embed_external_files: bool = True,
     ) -> Tuple[str, str, int, int]:
         """Pushes the dataset to the hub.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -3486,11 +3468,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_size (Optional :obj:`int`):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
-            embed_external_files (:obj:`bool`, default ``True``):
-                Whether to embed file bytes in the shards.
-                In particular, this will do the following before the push for the fields of type:
-
-                - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
 
         Returns:
             repo_id (:obj:`str`): ID of the repository in <user>/<dataset_name>` or `<org>/<dataset_name>` format
@@ -3512,7 +3489,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             )
 
         if split is None:
-            split = str(self.split) if self.split is not None else "train"
+            split = self.split or "train"
 
         identifier = repo_id.split("/")
 
@@ -3543,66 +3520,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 raise
 
-        # Find decodable columns, because if there are any, we need to:
-        # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
-        # (2) embed the bytes from the files in the shards
-        decodable_columns = (
-            [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
-            if embed_external_files
-            else []
-        )
-
-        dataset_nbytes = self.data.nbytes
-
-        if decodable_columns:
-            # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
-            extra_nbytes = 0
-
-            def extra_nbytes_visitor(array, feature):
-                nonlocal extra_nbytes
-                if isinstance(feature, (Audio, Image)):
-                    for x in array.to_pylist():
-                        if x["bytes"] is None and x["path"] is not None:
-                            extra_nbytes += os.path.getsize(x["path"])
-                    extra_nbytes -= array.field("path").nbytes
-
-            table = self.with_format("arrow")[:1000]
-            table_visitor(table, extra_nbytes_visitor)
-
-            extra_nbytes = extra_nbytes * len(self.data) / len(table)
-            dataset_nbytes = dataset_nbytes + extra_nbytes
-
         if self._indices is not None:
-            dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
+            dataset_nbytes = self.data.nbytes * len(self._indices) / len(self.data)
+        else:
+            dataset_nbytes = self.data.nbytes
 
         num_shards = int(dataset_nbytes / shard_size) + 1
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
-
-        if decodable_columns:
-
-            def shards_with_embedded_external_files(shards):
-                # Temporarily assign the modified version of `cast_storage` before the cast to the decodable
-                # feature types to delete path information and embed file content in the arrow file.
-                with contextlib.ExitStack() as stack:
-                    for decodable_feature_type in [Audio, Image]:
-                        stack.enter_context(
-                            temporary_assignment(
-                                decodable_feature_type, "cast_storage", decodable_feature_type.embed_storage
-                            )
-                        )
-                    for shard in shards:
-                        format = shard.format
-                        shard = shard.with_format("arrow")
-                        shard = shard.map(
-                            partial(cast_table_to_features, features=shard.features),
-                            batched=True,
-                            batch_size=1000,
-                            keep_in_memory=True,
-                        )
-                        shard = shard.with_format(**format)
-                        yield shard
-
-            shards = shards_with_embedded_external_files(shards)
 
         files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)
         files = [file for file in files if file.startswith("data/")]
@@ -3628,7 +3552,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 file_shards_to_delete,
                 desc="Deleting unused files from dataset repository",
                 total=len(file_shards_to_delete),
-                disable=not utils.is_progress_bar_enabled(),
+                disable=bool(logging.get_verbosity() == logging.NOTSET) or not utils.is_progress_bar_enabled(),
             ):
                 delete_file(file)
 
@@ -3637,7 +3561,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             enumerate(shards),
             desc="Pushing dataset shards to the dataset hub",
             total=num_shards,
-            disable=not utils.is_progress_bar_enabled(),
+            disable=bool(logging.get_verbosity() == logging.NOTSET),
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)
@@ -3661,7 +3585,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         token: Optional[str] = None,
         branch: Optional[str] = None,
         shard_size: Optional[int] = 500 << 20,
-        embed_external_files: bool = True,
     ):
         """Pushes the dataset to the hub.
         The dataset is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -3686,11 +3609,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             shard_size (Optional :obj:`int`):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes. Defaults to a shard size of 500MB.
-            embed_external_files (:obj:`bool`, default ``True``):
-                Whether to embed file bytes in the shards.
-                In particular, this will do the following before the push for the fields of type:
-
-                - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
 
         Example:
             .. code-block:: python
@@ -3698,13 +3616,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
         """
         repo_id, split, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
-            repo_id=repo_id,
-            split=split,
-            private=private,
-            token=token,
-            branch=branch,
-            shard_size=shard_size,
-            embed_external_files=embed_external_files,
+            repo_id=repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
         )
         organization, dataset_name = repo_id.split("/")
         info_to_dump = self.info.copy()
