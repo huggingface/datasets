@@ -47,6 +47,10 @@ Args:
 
 Returns:
     `Dict[str, float | ndarray]` comprising various elements:
+    - *mIoU* (`float`):
+        Mean Intersection-over-Union (IoU averaged over all categories).
+    - *mAcc* (`float`):
+        Mean accuracy (averaged over all categories).
     - *overall_accuracy* (`float`):
         Overall accuracy on all images.
     - *per_category_accuracy* (`ndarray` of shape `(num_labels,)`):
@@ -202,8 +206,12 @@ def mean_iou(results, gt_seg_maps, num_labels, ignore_index, nan_to_num=None, la
             Whether or not to reduce all label values of segmentation maps by 1. Usually used for datasets where 0 is used for background,
         and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
 
-     Returns:
+    Returns:
         `Dict[str, float | ndarray]` comprising various elements:
+        - *mIoU* (`float`):
+            Mean Intersection-over-Union (IoU averaged over all categories).
+        - *mAcc* (`float`):
+            Mean accuracy (averaged over all categories).
         - *overall_accuracy* (`float`):
             Overall accuracy on all images.
         - *per_category_accuracy* (`ndarray` of shape `(num_labels,)`):
@@ -221,6 +229,9 @@ def mean_iou(results, gt_seg_maps, num_labels, ignore_index, nan_to_num=None, la
     all_acc = total_area_intersect.sum() / total_area_label.sum()
     iou = total_area_intersect / total_area_union
     acc = total_area_intersect / total_area_label
+
+    metrics["mIoU"] = np.nanmean(iou)
+    metrics["mAcc"] = np.nanmean(acc)
     metrics["overall_accuracy"] = all_acc
     metrics["per_category_iou"] = iou
     metrics["per_category_accuracy"] = acc
