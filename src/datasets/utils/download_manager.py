@@ -24,6 +24,7 @@ from functools import partial
 from typing import Dict, Optional, Union
 
 from .. import config, utils
+from .deprecation_utils import DeprecatedEnum
 from .file_utils import (
     DownloadConfig,
     cached_path,
@@ -34,7 +35,7 @@ from .file_utils import (
 )
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
-from .py_utils import DeprecatedEnum, NestedDataStructure, map_nested, size_str
+from .py_utils import NestedDataStructure, map_nested, size_str
 
 
 logger = get_logger(__name__)
