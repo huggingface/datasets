@@ -1,7 +1,7 @@
-import fsspec
 import io
 import json
 
+import fsspec
 import pytest
 
 from datasets import Dataset, DatasetDict, Features, NamedSplit, Value
