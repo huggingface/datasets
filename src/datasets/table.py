@@ -715,7 +715,7 @@ class ConcatenationTable(Table):
             Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
             (horizontally).
 
-            .. versionadded:: 1.6.0
+            *New in version 1.6.0*
         """
 
         def to_blocks(table):
@@ -888,7 +888,7 @@ def concat_tables(tables: List[Table], axis: int = 0) -> Table:
             Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
             (horizontally).
 
-            .. versionadded:: 1.6.0
+            *New in version 1.6.0*
 
     Returns:
         :obj:`datasets.table.Table` that is the concatenated table:

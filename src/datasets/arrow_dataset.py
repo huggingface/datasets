@@ -1185,7 +1185,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             include_nulls (`bool`, default `False`):
                 Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
 
-                .. versionadded:: 1.14.2
+                *New in version 1.14.2*
         """
         # Sanity checks
         if column not in self._data.column_names:
@@ -2810,7 +2810,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             null_placement (:obj:`str`, default `last`):
                 Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
 
-                .. versionadded:: 1.14.2
+                *New in version 1.14.2*
             keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
@@ -3638,7 +3638,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def add_column(self, name: str, column: Union[list, np.array], new_fingerprint: str):
         """Add column to Dataset.
 
-        .. versionadded:: 1.7
+        *New in version 1.7.*
 
         Args:
             name (str): Column name.
@@ -3857,7 +3857,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def add_item(self, item: dict, new_fingerprint: str):
         """Add item to Dataset.
 
-        .. versionadded:: 1.7
+        *New in version 1.7.*
 
         Args:
             item (dict): Item data to be added.
@@ -3961,7 +3961,7 @@ def concatenate_datasets(
             Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
             (horizontally).
 
-            .. versionadded:: 1.6.0
+            *New in version 1.6.0*
     """
     # Ignore datasets with no rows
     if any(dset.num_rows > 0 for dset in dsets):

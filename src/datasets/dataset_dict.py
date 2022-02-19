@@ -276,8 +276,8 @@ class DatasetDict(dict):
             column (`str`): The name of the column to cast
             include_nulls (`bool`, default `False`):
                 Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
-
-                .. versionadded:: 1.14.2
+                
+                *New in version 1.14.2*
         """
         self._check_values_type()
         return DatasetDict(
@@ -621,7 +621,7 @@ class DatasetDict(dict):
             null_placement (:obj:`str`, default `last`):
                 Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
 
-                .. versionadded:: 1.14.2
+                *New in version 1.14.2*
             keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
