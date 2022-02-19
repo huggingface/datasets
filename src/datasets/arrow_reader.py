@@ -457,9 +457,7 @@ def _rel_to_abs_instr(rel_instr, name2len):
 class ReadInstruction:
     """Reading instruction for a dataset.
 
-    Examples of usage:
-
-    .. code:: python
+    Examples::
 
       # The following lines are equivalent:
       ds = datasets.load_dataset('mnist', split='test[:33%]')
