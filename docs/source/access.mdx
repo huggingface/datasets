@@ -2,7 +2,7 @@
 
 In the previous tutorial, you learned how to successfully load a dataset. This section will familiarize you with the [`Dataset`] object. You will learn about the metadata stored inside a Dataset object, and the basics of querying a Dataset object to return rows and columns.
 
-A [`datasets.Dataset`] object is returned when you load an instance of a dataset. This object behaves like a normal Python container.
+A [`Dataset`] object is returned when you load an instance of a dataset. This object behaves like a normal Python container.
 
 ```py
 >>> from datasets import load_dataset
@@ -11,7 +11,7 @@ A [`datasets.Dataset`] object is returned when you load an instance of a dataset
 
 ## Metadata
 
-The [`datasets.Dataset`] object contains a lot of useful information about your dataset. For example, call ['dataset.info'] to return a short description of the dataset, the authors, and even the dataset size. This will give you a quick snapshot of the datasets most important attributes.
+The [`Dataset`] object contains a lot of useful information about your dataset. For example, call ['dataset.info'] to return a short description of the dataset, the authors, and even the dataset size. This will give you a quick snapshot of the datasets most important attributes.
 
 ```py
 >>> dataset.info
@@ -119,7 +119,7 @@ Querying by the column name will return its values. For example, if you want to 
 ['Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .', "Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .", 'They had published an advertisement on the Internet on June 10 , offering the cargo for sale , he added .']
 ```
 
-Depending on how a [`datasets.Dataset`] object is queried, the format returned will be different:
+Depending on how a [`Dataset`] object is queried, the format returned will be different:
 
 - A single row like `dataset[0]` returns a Python dictionary of values.
 - A batch like `dataset[5:10]` returns a Python dictionary of lists of values.
