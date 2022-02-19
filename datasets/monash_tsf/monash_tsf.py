@@ -17,11 +17,14 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
+
+import numpy as np
+from pandas.tseries.frequencies import to_offset
 
 import datasets
 
-from .utils import convert_tsf_to_dataframe
+from .utils import convert_tsf_to_dataframe, frequency_converter
 
 
 # Find for instance the citation on arxiv or on the dataset repo/website
@@ -53,6 +56,11 @@ class MonashTSFBuilderConfig(datasets.BuilderConfig):
     record: Optional[str] = None
     freq: Optional[str] = None
     prediction_length: Optional[int] = None
+    item_id_column: Optional[str] = None
+    data_column: Optional[str] = None
+    target_fields: Optional[List[str]] = None
+    feat_dynamic_real_fields: Optional[List[str]] = None
+    multivariate: bool = False
     rolling_evaluations: int = 1
     ROOT: str = "https://zenodo.org/record"
 
@@ -82,14 +90,103 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             freq="1H",
             record="5184708",
             file_name="oikolab_weather_dataset.zip",
+            data_column="type",
+            target_fields=["temperature"],
+            feat_dynamic_real_fields=[
+                "dewpoint_temperature",
+                "wind_speed",
+                "mean_sea_level_pressure",
+                "relative_humidity",
+                "surface_solar_radiation",
+                "surface_thermal_radiation",
+                "total_cloud_cover",
+            ],
         ),
         MonashTSFBuilderConfig(
             name="temperature_rain",
             version=VERSION,
             description="32072 daily time series showing the temperature observations and rain forecasts, gathered by the Australian Bureau of Meteorology for 422 weather stations across Australia, between 02/05/2015 and 26/04/2017",
             freq="1D",
-            record="5129091",
-            file_name="temperature_rain_dataset_without_missing_values.zip",
+            record="5129073",
+            file_name="temperature_rain_dataset_with_missing_values.zip",
+            item_id_column="station_id",
+            data_column="obs_or_fcst",
+            target_fields=[
+                "fcst_0_DailyPoP",
+                "fcst_0_DailyPoP1",
+                "fcst_0_DailyPoP10",
+                "fcst_0_DailyPoP15",
+                "fcst_0_DailyPoP25",
+                "fcst_0_DailyPoP5",
+                "fcst_0_DailyPoP50",
+                "fcst_0_DailyPrecip",
+                "fcst_0_DailyPrecip10Pct",
+                "fcst_0_DailyPrecip25Pct",
+                "fcst_0_DailyPrecip50Pct",
+                "fcst_0_DailyPrecip75Pct",
+                "fcst_1_DailyPoP",
+                "fcst_1_DailyPoP1",
+                "fcst_1_DailyPoP10",
+                "fcst_1_DailyPoP15",
+                "fcst_1_DailyPoP25",
+                "fcst_1_DailyPoP5",
+                "fcst_1_DailyPoP50",
+                "fcst_1_DailyPrecip",
+                "fcst_1_DailyPrecip10Pct",
+                "fcst_1_DailyPrecip25Pct",
+                "fcst_1_DailyPrecip50Pct",
+                "fcst_1_DailyPrecip75Pct",
+                "fcst_2_DailyPoP",
+                "fcst_2_DailyPoP1",
+                "fcst_2_DailyPoP10",
+                "fcst_2_DailyPoP15",
+                "fcst_2_DailyPoP25",
+                "fcst_2_DailyPoP5",
+                "fcst_2_DailyPoP50",
+                "fcst_2_DailyPrecip",
+                "fcst_2_DailyPrecip10Pct",
+                "fcst_2_DailyPrecip25Pct",
+                "fcst_2_DailyPrecip50Pct",
+                "fcst_2_DailyPrecip75Pct",
+                "fcst_3_DailyPoP",
+                "fcst_3_DailyPoP1",
+                "fcst_3_DailyPoP10",
+                "fcst_3_DailyPoP15",
+                "fcst_3_DailyPoP25",
+                "fcst_3_DailyPoP5",
+                "fcst_3_DailyPoP50",
+                "fcst_3_DailyPrecip",
+                "fcst_3_DailyPrecip10Pct",
+                "fcst_3_DailyPrecip25Pct",
+                "fcst_3_DailyPrecip50Pct",
+                "fcst_3_DailyPrecip75Pct",
+                "fcst_4_DailyPoP",
+                "fcst_4_DailyPoP1",
+                "fcst_4_DailyPoP10",
+                "fcst_4_DailyPoP15",
+                "fcst_4_DailyPoP25",
+                "fcst_4_DailyPoP5",
+                "fcst_4_DailyPoP50",
+                "fcst_4_DailyPrecip",
+                "fcst_4_DailyPrecip10Pct",
+                "fcst_4_DailyPrecip25Pct",
+                "fcst_4_DailyPrecip50Pct",
+                "fcst_4_DailyPrecip75Pct",
+                "fcst_5_DailyPoP",
+                "fcst_5_DailyPoP1",
+                "fcst_5_DailyPoP10",
+                "fcst_5_DailyPoP15",
+                "fcst_5_DailyPoP25",
+                "fcst_5_DailyPoP5",
+                "fcst_5_DailyPoP50",
+                "fcst_5_DailyPrecip",
+                "fcst_5_DailyPrecip10Pct",
+                "fcst_5_DailyPrecip25Pct",
+                "fcst_5_DailyPrecip50Pct",
+                "fcst_5_DailyPrecip75Pct",
+            ],
+            feat_dynamic_real_fields=["T_MEAN", "PRCP_SUM", "T_MAX", "T_MIN"],
+            multivariate=True,
         ),
     ]
 
@@ -98,40 +195,36 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
     # )
 
     def _info(self):
-        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if (
-            self.config.name == "oikolab_weather"
-        ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
+        if self.config.multivariate:
             features = datasets.Features(
                 {
-                    "sentence": datasets.Value("string"),
-                    "option1": datasets.Value("string"),
-                    "answer": datasets.Value("string")
-                    # These are the features of your dataset like images, labels ...
+                    "start": datasets.Value("timestamp[s]"),
+                    "target": datasets.Sequence(datasets.Sequence(datasets.Value("float32"))),
+                    "feat_static_cat": datasets.Sequence(datasets.Value("uint64")),
+                    # "feat_static_real":  datasets.Sequence(datasets.Value("float32")),
+                    "feat_dynamic_real": datasets.Sequence(datasets.Sequence(datasets.Value("float32"))),
+                    # "feat_dynamic_cat": datasets.Sequence(datasets.Sequence(datasets.Value("uint64"))),
+                    "item_id": datasets.Value("string"),
                 }
             )
-        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
+        else:
             features = datasets.Features(
                 {
-                    "sentence": datasets.Value("string"),
-                    "option2": datasets.Value("string"),
-                    "second_domain_answer": datasets.Value("string")
-                    # These are the features of your dataset like images, labels ...
+                    "start": datasets.Value("timestamp[s]"),
+                    "target": datasets.Sequence(datasets.Value("float32")),
+                    "feat_static_cat": datasets.Sequence(datasets.Value("uint64")),
+                    # "feat_static_real":  datasets.Sequence(datasets.Value("float32")),
+                    "feat_dynamic_real": datasets.Sequence(datasets.Sequence(datasets.Value("float32"))),
+                    # "feat_dynamic_cat": datasets.Sequence(datasets.Sequence(datasets.Value("uint64"))),
+                    "item_id": datasets.Value("string"),
                 }
             )
+
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features, uncomment supervised_keys line below and
-            # specify them. They'll be used if as_supervised=True in builder.as_dataset.
-            # supervised_keys=("sentence", "label"),
-            # Homepage of the dataset for documentation
+            features=features,
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
@@ -165,7 +258,7 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": file_path,
-                    "split": "dev",
+                    "split": "val",
                 },
             ),
         ]
@@ -182,23 +275,48 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             contain_missing_values,
             contain_equal_length,
         ) = convert_tsf_to_dataframe(filepath, value_column_name="target")
-        import pdb
 
-        pdb.set_trace()
+        if forecast_horizon is None:
+            prediction_length_map = {
+                "T": 60,
+                "H": 48,
+                "D": 30,
+                "W": 8,
+                "M": 12,
+                "Y": 4,
+            }
+            freq = frequency_converter(frequency)
+            freq = to_offset(freq).name
+            forecast_horizon = prediction_length_map[freq]
 
-        with open(filepath, encoding="utf-8") as f:
-            for key, row in enumerate(f):
-                data = json.loads(row)
-                if self.config.name == "first_domain":
-                    # Yields examples as (key, example) tuples
-                    yield key, {
-                        "sentence": data["sentence"],
-                        "option1": data["option1"],
-                        "answer": "" if split == "test" else data["answer"],
-                    }
-                else:
-                    yield key, {
-                        "sentence": data["sentence"],
-                        "option2": data["option2"],
-                        "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
-                    }
+        if self.config.prediction_length is not None:
+            forecast_horizon = self.config.prediction_length
+
+        if self.config.item_id_column is not None:
+            loaded_data.set_index(self.config.item_id_column, inplace=True)
+            loaded_data.sort_index(inplace=True)
+
+            for cat, item_id in enumerate(loaded_data.index.unique()):
+                ts = loaded_data.loc[item_id]
+                start = ts.start_timestamp[0]
+
+                target_fields = ts[ts[self.config.data_column].isin(self.config.target_fields)]
+                feat_dynamic_real_fields = ts[ts[self.config.data_column].isin(self.config.feat_dynamic_real_fields)]
+
+                feat_dynamic_real = np.vstack(feat_dynamic_real_fields.target)
+                target = np.vstack(target_fields.target)
+
+                feat_static_cat = [cat]
+
+                if split in ["train", "val"]:
+                    offset = forecast_horizon * self.config.rolling_evaluations + forecast_horizon * (split == "train")
+                    target = target[..., :-offset]
+                    feat_dynamic_real = feat_dynamic_real[..., :-offset]
+
+                yield cat, {
+                    "start": start,
+                    "target": target,
+                    "feat_dynamic_real": feat_dynamic_real,
+                    "feat_static_cat": feat_static_cat,
+                    "item_id": item_id,
+                }
