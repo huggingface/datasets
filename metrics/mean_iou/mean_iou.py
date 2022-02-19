@@ -124,6 +124,10 @@ def intersect_and_union(pred_label, label, num_labels, ignore_index, label_map=d
         for old_id, new_id in label_map.items():
             label[label == old_id] = new_id
 
+    # turn into Numpy arrays
+    pred_label = np.array(pred_label)
+    label = np.array(label)
+
     if reduce_labels:
         label[label == 0] = 255
         label = label - 1
@@ -131,7 +135,7 @@ def intersect_and_union(pred_label, label, num_labels, ignore_index, label_map=d
 
     mask = label != ignore_index
     mask = np.not_equal(label, ignore_index)
-    pred_label = np.array(pred_label)[mask]
+    pred_label = pred_label[mask]
     label = np.array(label)[mask]
 
     intersect = pred_label[pred_label == label]

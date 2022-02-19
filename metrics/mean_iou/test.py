@@ -18,6 +18,8 @@ predicted = [predicted_1, predicted_2, predicted_3]
 ground_truth = [actual_1, actual_2, actual_3]
 # ground_truth = [np.random.randint(low=0, high=30, size=(3, 2), dtype=np.uint8)]
 
-results = metric.compute(predictions=predicted, references=ground_truth, num_labels=30, ignore_index=255)
+results = metric.compute(
+    predictions=predicted, references=ground_truth, num_labels=30, ignore_index=255, reduce_labels=False
+)
 for k, v in results.items():
     print(k, v)
