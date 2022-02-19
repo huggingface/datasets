@@ -1,6 +1,7 @@
 from datetime import datetime
 from distutils.util import strtobool
 
+import numpy as np
 import pandas as pd
 
 
@@ -102,7 +103,7 @@ def convert_tsf_to_dataframe(
                                 "All series values are missing. A given series should contains a set of comma separated numeric values. At least one numeric value should be there in a series."
                             )
 
-                        all_series.append(pd.Series(numeric_series).array)
+                        all_series.append(np.array(numeric_series, dtype=np.float32))
 
                         for i in range(len(col_names)):
                             att_val = None
@@ -142,6 +143,40 @@ def convert_tsf_to_dataframe(
             contain_equal_length,
         )
 
+
+def convert_multiple(text: str) -> str:
+    if text.isnumeric():
+        return text
+    if text == "half":
+        return "0.5"
+
+
+def frequency_converter(freq: str):
+    parts = freq.split("_")
+    if len(parts) == 1:
+        return BASE_FREQ_TO_PANDAS_OFFSET[parts[0]]
+    if len(parts) == 2:
+        return convert_multiple(parts[0]) + BASE_FREQ_TO_PANDAS_OFFSET[parts[1]]
+    raise ValueError(f"Invalid frequency string {freq}.")
+
+
+BASE_FREQ_TO_PANDAS_OFFSET = {
+    "seconds": "S",
+    "minutely": "T",
+    "minutes": "T",
+    "hourly": "H",
+    "hours": "H",
+    "daily": "D",
+    "days": "D",
+    "weekly": "W",
+    "weeks": "W",
+    "monthly": "M",
+    "months": "M",
+    "quarterly": "Q",
+    "quarters": "Q",
+    "yearly": "Y",
+    "years": "Y",
+}
 
 # Example of usage
 # loaded_data, frequency, forecast_horizon, contain_missing_values, contain_equal_length = convert_tsf_to_dataframe("TSForecasting/tsf_data/sample.tsf")
