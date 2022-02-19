@@ -320,3 +320,25 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
                     "feat_static_cat": feat_static_cat,
                     "item_id": item_id,
                 }
+        else:
+            target_fields = loaded_data[loaded_data[self.config.data_column].isin(self.config.target_fields)]
+            feat_dynamic_real_fields = loaded_data[loaded_data[self.config.data_column].isin(self.config.feat_dynamic_real_fields)]
+
+            for cat, ts in target_fields.iterrows():
+                start = ts.start_timestamp
+                target = ts.target
+                feat_dynamic_real = np.vstack(feat_dynamic_real_fields.target)
+                feat_static_cat = [cat]
+
+                if split in ["train", "val"]:
+                    offset = forecast_horizon * self.config.rolling_evaluations + forecast_horizon * (split == "train")
+                    target = target[..., :-offset]
+                    feat_dynamic_real = feat_dynamic_real[..., :-offset]
+
+                yield cat, {
+                    "start": start,
+                    "target": target,
+                    "feat_dynamic_real": feat_dynamic_real,
+                    "feat_static_cat": feat_static_cat,
+                    "item_id": ts.series_name,
+                }
