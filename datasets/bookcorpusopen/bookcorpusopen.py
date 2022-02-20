@@ -47,7 +47,8 @@ _CITATION = """\
 }
 """
 _PROJECT_URL = "https://github.com/soskek/bookcorpus/issues/27"
-_DOWNLOAD_URL = "https://the-eye.eu/public/AI/pile_preliminary_components/books1.tar.gz"
+_HOST_URL = "https://mystic.the-eye.eu"  # Before: "https://the-eye.eu"
+_DOWNLOAD_URL = f"{_HOST_URL}/public/AI/pile_preliminary_components/books1.tar.gz"
 
 
 class BookCorpusOpenConfig(datasets.BuilderConfig):
@@ -63,6 +64,8 @@ class BookCorpusOpenConfig(datasets.BuilderConfig):
 
 class BookCorpusOpen(datasets.GeneratorBasedBuilder):
     """BookCorpus dataset."""
+
+    DEFAULT_WRITER_BATCH_SIZE = 256  # documents are full books and are quite heavy
 
     BUILDER_CONFIGS = [
         BookCorpusOpenConfig(

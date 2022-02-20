@@ -35,15 +35,24 @@ class MissingIndex(Exception):
     pass
 
 
-SearchResults = NamedTuple("SearchResults", [("scores", List[float]), ("indices", List[int])])
-BatchedSearchResults = NamedTuple(
-    "BatchedSearchResults", [("total_scores", List[List[float]]), ("total_indices", List[List[int]])]
-)
+class SearchResults(NamedTuple):
+    scores: List[float]
+    indices: List[int]
 
-NearestExamplesResults = NamedTuple("NearestExamplesResults", [("scores", List[float]), ("examples", dict)])
-BatchedNearestExamplesResults = NamedTuple(
-    "BatchedNearestExamplesResults", [("total_scores", List[List[float]]), ("total_examples", List[dict])]
-)
+
+class BatchedSearchResults(NamedTuple):
+    total_scores: List[List[float]]
+    total_indices: List[List[int]]
+
+
+class NearestExamplesResults(NamedTuple):
+    scores: List[float]
+    examples: dict
+
+
+class BatchedNearestExamplesResults(NamedTuple):
+    total_scores: List[List[float]]
+    total_examples: List[dict]
 
 
 class BaseIndex:
@@ -102,12 +111,12 @@ class ElasticSearchIndex(BaseIndex):
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
     ):
-        assert (
-            _has_elasticsearch
-        ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
-        assert es_client is None or (
-            host is None and port is None
-        ), "Please specify either `es_client` or `(host, port)`, but not both."
+        if not _has_elasticsearch:
+            raise ImportError(
+                "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
+            )
+        if es_client is not None and (host is not None or port is not None):
+            raise ValueError("Please specify either `es_client` or `(host, port)`, but not both.")
         host = host or "localhost"
         port = port or 9200
 
@@ -141,9 +150,7 @@ class ElasticSearchIndex(BaseIndex):
         index_config = self.es_index_config
         self.es_client.indices.create(index=index_name, body=index_config)
         number_of_docs = len(documents)
-        progress = utils.tqdm(
-            unit="docs", total=number_of_docs, disable=bool(logging.get_verbosity() == logging.NOTSET)
-        )
+        progress = utils.tqdm(unit="docs", total=number_of_docs, disable=not utils.is_progress_bar_enabled())
         successes = 0
 
         def passage_generator():
@@ -168,7 +175,7 @@ class ElasticSearchIndex(BaseIndex):
             logger.warning(
                 f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}"
             )
-        logger.info("Indexed %d documents" % (successes,))
+        logger.info(f"Indexed {successes:d} documents")
 
     def search(self, query: str, k=10) -> SearchResults:
         """Find the nearest examples indices to the query.
@@ -224,9 +231,8 @@ class FaissIndex(BaseIndex):
         You can find more information about Faiss here:
         - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
         """
-        assert not (
-            string_factory is not None and custom_index is not None
-        ), "Please specify either `string_factory` or `custom_index` but not both."
+        if string_factory is not None and custom_index is not None:
+            raise ValueError("Please specify either `string_factory` or `custom_index` but not both.")
         self.device = device
         self.string_factory = string_factory
         self.metric_type = metric_type
@@ -267,7 +273,7 @@ class FaissIndex(BaseIndex):
                 self.faiss_res = faiss.StandardGpuResources()
                 index = faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
             self.faiss_index = index
-            logger.info("Created faiss index of type {}".format(type(self.faiss_index)))
+            logger.info(f"Created faiss index of type {type(self.faiss_index)}")
 
         # Set verbosity level
         if faiss_verbose is not None:
@@ -282,16 +288,14 @@ class FaissIndex(BaseIndex):
         # Train
         if train_size is not None:
             train_vecs = vectors[:train_size] if column is None else vectors[:train_size][column]
-            logger.info("Training the index with the first {} vectors".format(len(train_vecs)))
+            logger.info(f"Training the index with the first {len(train_vecs)} vectors")
             self.faiss_index.train(train_vecs)
         else:
             logger.info("Ignored the training step of the faiss index as `train_size` is None.")
 
         # Add vectors
-        logger.info("Adding {} vectors to the faiss index".format(len(vectors)))
-        for i in utils.tqdm(
-            range(0, len(vectors), batch_size), disable=bool(logging.get_verbosity() == logging.NOTSET)
-        ):
+        logger.info(f"Adding {len(vectors)} vectors to the faiss index")
+        for i in utils.tqdm(range(0, len(vectors), batch_size), disable=not utils.is_progress_bar_enabled()):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
 
@@ -306,7 +310,9 @@ class FaissIndex(BaseIndex):
             scores (`List[List[float]`): The retrieval scores of the retrieved examples.
             indices (`List[List[int]]`): The indices of the retrieved examples.
         """
-        assert len(query.shape) == 1 or (len(query.shape) == 2 and query.shape[0] == 1)
+        if len(query.shape) != 1 and (len(query.shape) != 2 or query.shape[0] != 1):
+            raise ValueError("Shape of query is incorrect, it has to be either a 1D array or 2D (1, N)")
+
         queries = query.reshape(1, -1)
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
@@ -324,7 +330,8 @@ class FaissIndex(BaseIndex):
             total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
             total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
-        assert len(queries.shape) == 2
+        if len(queries.shape) != 2:
+            raise ValueError("Shape of query must be 2D")
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k)
@@ -474,9 +481,9 @@ class IndexableMixin:
         """
         index = self.get_index(index_name)
         if not isinstance(index, FaissIndex):
-            raise ValueError("Index '{}' is not a FaissIndex but a '{}'".format(index_name, type(index)))
+            raise ValueError(f"Index '{index_name}' is not a FaissIndex but a '{type(index)}'")
         index.save(file)
-        logger.info("Saved FaissIndex {} at {}".format(index_name, file))
+        logger.info(f"Saved FaissIndex {index_name} at {file}")
 
     def load_faiss_index(
         self,
@@ -496,13 +503,12 @@ class IndexableMixin:
             device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
         """
         index = FaissIndex.load(file, device=device)
-        assert index.faiss_index.ntotal == len(
-            self
-        ), "Index size should match Dataset size, but Index '{}' at {} has {} elements while the dataset has {} examples.".format(
-            index_name, file, index.faiss_index.ntotal, len(self)
-        )
+        if index.faiss_index.ntotal != len(self):
+            raise ValueError(
+                f"Index size should match Dataset size, but Index '{index_name}' at {file} has {index.faiss_index.ntotal} elements while the dataset has {len(self)} examples."
+            )
         self._indexes[index_name] = index
-        logger.info("Loaded FaissIndex {} from {}".format(index_name, file))
+        logger.info(f"Loaded FaissIndex {index_name} from {file}")
 
     def add_elasticsearch_index(
         self,

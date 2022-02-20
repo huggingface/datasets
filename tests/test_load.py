@@ -13,7 +13,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
+from datasets import SCRIPTS_VERSION, config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
@@ -31,6 +31,7 @@ from datasets.load import (
     LocalDatasetModuleFactoryWithScript,
     LocalMetricModuleFactory,
     PackagedDatasetModuleFactory,
+    infer_module_for_data_files_in_archives,
 )
 from datasets.utils.file_utils import DownloadConfig, is_remote_url
 
@@ -156,6 +157,14 @@ def metric_loading_script_dir(tmp_path):
     return str(script_dir)
 
 
+@pytest.mark.parametrize("data_file, expected_module", [("zip_csv_path", "csv"), ("zip_csv_with_dir_path", "csv")])
+def test_infer_module_for_data_files_in_archives(data_file, expected_module, zip_csv_path, zip_csv_with_dir_path):
+    data_file_paths = {"zip_csv_path": zip_csv_path, "zip_csv_with_dir_path": zip_csv_with_dir_path}
+    data_files = [str(data_file_paths[data_file])]
+    inferred_module = infer_module_for_data_files_in_archives(data_files, False)
+    assert inferred_module == expected_module
+
+
 class ModuleFactoryTest(TestCase):
     @pytest.fixture(autouse=True)
     def inject_fixtures(self, jsonl_path, data_dir, dataset_loading_script_dir, metric_loading_script_dir):
@@ -180,6 +189,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
     def test_CanonicalMetricModuleFactory_with_internal_import(self):
         # "squad_v2" requires additional imports (internal)
@@ -212,11 +222,13 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
 
     def test_LocalDatasetModuleFactoryWithoutScript(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir)
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
 
     def test_PackagedDatasetModuleFactory(self):
         factory = PackagedDatasetModuleFactory(
@@ -231,6 +243,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
     def test_CommunityDatasetModuleFactoryWithScript(self):
         factory = CommunityDatasetModuleFactoryWithScript(
@@ -240,6 +253,7 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
     def test_CachedDatasetModuleFactory(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
@@ -444,14 +458,14 @@ def test_load_dataset_builder_for_community_dataset_with_script():
     assert builder.info.features == Features({"text": Value("string")})
     namespace = SAMPLE_DATASET_IDENTIFIER[: SAMPLE_DATASET_IDENTIFIER.index("/")]
     assert builder._relative_data_dir().startswith(namespace)
-    assert SAMPLE_DATASET_IDENTIFIER.replace("/", "___") in builder.__module__
+    assert SAMPLE_DATASET_IDENTIFIER.replace("/", "--") in builder.__module__
 
 
 def test_load_dataset_builder_for_community_dataset_without_script():
     builder = datasets.load_dataset_builder(SAMPLE_DATASET_IDENTIFIER2)
     assert isinstance(builder, DatasetBuilder)
     assert builder.name == "text"
-    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.replace("/", "___")
+    assert builder.config.name == SAMPLE_DATASET_IDENTIFIER2.replace("/", "--")
     assert isinstance(builder.config.data_files, DataFilesDict)
     assert len(builder.config.data_files["train"]) > 0
     assert len(builder.config.data_files["test"]) > 0
@@ -480,7 +494,7 @@ def test_load_dataset_local(dataset_loading_script_dir, data_dir, keep_in_memory
     with pytest.raises(FileNotFoundError) as exc_info:
         datasets.load_dataset(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST)
     m_combined_path = re.search(
-        fr"http\S*{re.escape(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '/' + SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py')}\b",
+        rf"http\S*{re.escape(SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '/' + SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST + '.py')}\b",
         str(exc_info.value),
     )
     assert m_combined_path is not None and is_remote_url(m_combined_path.group())
@@ -535,12 +549,78 @@ def test_load_dataset_streaming_csv(path_extension, streaming, csv_path, bz2_csv
     assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
 
 
-def test_load_dataset_zip_csv(zip_csv_path):
-    data_files = str(zip_csv_path)
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("data_file", ["zip_csv_path", "zip_csv_with_dir_path", "csv_path"])
+def test_load_dataset_zip_csv(data_file, streaming, zip_csv_path, zip_csv_with_dir_path, csv_path):
+    data_file_paths = {
+        "zip_csv_path": zip_csv_path,
+        "zip_csv_with_dir_path": zip_csv_with_dir_path,
+        "csv_path": csv_path,
+    }
+    data_files = str(data_file_paths[data_file])
+    expected_size = 8 if data_file.startswith("zip") else 4
     features = Features({"col_1": Value("string"), "col_2": Value("int32"), "col_3": Value("float32")})
-    ds = load_dataset("csv", split="train", data_files=data_files, features=features)
-    ds_item = next(iter(ds))
-    assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+    ds = load_dataset("csv", split="train", data_files=data_files, features=features, streaming=streaming)
+    if streaming:
+        ds_item_counter = 0
+        for ds_item in ds:
+            if ds_item_counter == 0:
+                assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+            ds_item_counter += 1
+        assert ds_item_counter == expected_size
+    else:
+        assert ds.shape[0] == expected_size
+        ds_item = next(iter(ds))
+        assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("data_file", ["zip_jsonl_path", "zip_jsonl_with_dir_path", "jsonl_path"])
+def test_load_dataset_zip_jsonl(data_file, streaming, zip_jsonl_path, zip_jsonl_with_dir_path, jsonl_path):
+    data_file_paths = {
+        "zip_jsonl_path": zip_jsonl_path,
+        "zip_jsonl_with_dir_path": zip_jsonl_with_dir_path,
+        "jsonl_path": jsonl_path,
+    }
+    data_files = str(data_file_paths[data_file])
+    expected_size = 8 if data_file.startswith("zip") else 4
+    features = Features({"col_1": Value("string"), "col_2": Value("int32"), "col_3": Value("float32")})
+    ds = load_dataset("json", split="train", data_files=data_files, features=features, streaming=streaming)
+    if streaming:
+        ds_item_counter = 0
+        for ds_item in ds:
+            if ds_item_counter == 0:
+                assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+            ds_item_counter += 1
+        assert ds_item_counter == expected_size
+    else:
+        assert ds.shape[0] == expected_size
+        ds_item = next(iter(ds))
+        assert ds_item == {"col_1": "0", "col_2": 0, "col_3": 0.0}
+
+
+@pytest.mark.parametrize("streaming", [False, True])
+@pytest.mark.parametrize("data_file", ["zip_text_path", "zip_text_with_dir_path", "text_path"])
+def test_load_dataset_zip_text(data_file, streaming, zip_text_path, zip_text_with_dir_path, text_path):
+    data_file_paths = {
+        "zip_text_path": zip_text_path,
+        "zip_text_with_dir_path": zip_text_with_dir_path,
+        "text_path": text_path,
+    }
+    data_files = str(data_file_paths[data_file])
+    expected_size = 8 if data_file.startswith("zip") else 4
+    ds = load_dataset("text", split="train", data_files=data_files, streaming=streaming)
+    if streaming:
+        ds_item_counter = 0
+        for ds_item in ds:
+            if ds_item_counter == 0:
+                assert ds_item == {"text": "0"}
+            ds_item_counter += 1
+        assert ds_item_counter == expected_size
+    else:
+        assert ds.shape[0] == expected_size
+        ds_item = next(iter(ds))
+        assert ds_item == {"text": "0"}
 
 
 def test_loading_from_the_datasets_hub():

@@ -130,10 +130,12 @@ class Section:
             else:
                 # If some subsections are present
                 structure_names = [subsection["name"] for subsection in structure["subsections"]]
+                has_missing_subsections = False
                 for idx, name in enumerate(structure_names):
                     if name not in self.content:
                         # If the expected subsection is not present
                         error_list.append(f"Section `{self.name}` is missing subsection: `{name}`.")
+                        has_missing_subsections = True
                     else:
                         # If the subsection is present, validate subsection, return the result
                         # and concat the errors from subsection to section error_list
@@ -148,12 +150,13 @@ class Section:
                         error_list += subsec_error_list
                         warning_list += subsec_warning_list
 
-                for name in self.content:
-                    if name not in structure_names:
-                        # If an extra subsection is present
-                        warning_list.append(
-                            f"`{self.name}` has an extra subsection: `{name}`. Skipping further validation checks for this subsection as expected structure is unknown."
-                        )
+                if has_missing_subsections:  # we only allow to have extra subsections if all the other ones are here
+                    for name in self.content:
+                        if name not in structure_names:
+                            # If an extra subsection is present
+                            warning_list.append(
+                                f"`{self.name}` has an extra subsection: `{name}`. Skipping further validation checks for this subsection as expected structure is unknown."
+                            )
         if error_list:
             # If there are errors, do not return the dictionary as it is invalid
             return {}, error_list, warning_list
@@ -243,7 +246,7 @@ class ReadMe(Section):  # Level 0
         elif num_first_level_keys < 1:
             # If less than one, append error.
             error_list.append(
-                f"The README has no first-level headings. One heading is expected. Skipping further validation for this README."
+                "The README has no first-level headings. One heading is expected. Skipping further validation for this README."
             )
 
         else:
@@ -260,7 +263,7 @@ class ReadMe(Section):  # Level 0
             else:
                 # If not found, append error
                 error_list.append(
-                    f"No first-level heading starting with `Dataset Card for` found in README. Skipping further validation for this README."
+                    "No first-level heading starting with `Dataset Card for` found in README. Skipping further validation for this README."
                 )
         if error_list:
             # If there are errors, do not return the dictionary as it is invalid

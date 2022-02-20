@@ -29,9 +29,9 @@ def upload_local_to_remote(local_file_path, remote_file_path, force_upload=False
     fs = FileSystems
     if fs.exists(remote_file_path):
         if force_upload:
-            logger.info("Remote path already exist: {}. Overwriting it as force_upload=True.".format(remote_file_path))
+            logger.info(f"Remote path already exist: {remote_file_path}. Overwriting it as force_upload=True.")
         else:
-            logger.info("Remote path already exist: {}. Skipping it as force_upload=False.".format(remote_file_path))
+            logger.info(f"Remote path already exist: {remote_file_path}. Skipping it as force_upload=False.")
             return
     with fs.create(remote_file_path) as remote_file:
         with open(local_file_path, "rb") as local_file:
@@ -46,9 +46,9 @@ def download_remote_to_local(remote_file_path, local_file_path, force_download=F
     fs = FileSystems
     if os.path.exists(local_file_path):
         if force_download:
-            logger.info("Local path already exist: {}. Overwriting it as force_upload=True.".format(remote_file_path))
+            logger.info(f"Local path already exist: {remote_file_path}. Overwriting it as force_upload=True.")
         else:
-            logger.info("Local path already exist: {}. Skipping it as force_upload=False.".format(remote_file_path))
+            logger.info(f"Local path already exist: {remote_file_path}. Skipping it as force_upload=False.")
             return
     with fs.open(remote_file_path) as remote_file:
         with open(local_file_path, "wb") as local_file:
@@ -112,7 +112,7 @@ class WriteToParquet(PTransform):
 
         .. testcleanup::
 
-            for output in glob.glob('{}*'.format(filename)):
+            for output in glob.glob(f'{filename}*'):
                 os.remove(output)
 
         For more information on supported types and schema, please see the pyarrow
@@ -157,7 +157,7 @@ class WriteToParquet(PTransform):
         Returns:
             A WriteToParquet transform usable for writing.
         """
-        super(WriteToParquet, self).__init__()
+        super().__init__()
         self._sink = _create_parquet_sink(
             file_path_prefix,
             schema,
@@ -220,7 +220,7 @@ class _ParquetSink(filebasedsink.FileBasedSink):
         shard_name_template,
         mime_type,
     ):
-        super(_ParquetSink, self).__init__(
+        super().__init__(
             file_path_prefix,
             file_name_suffix=file_name_suffix,
             num_shards=num_shards,
@@ -242,7 +242,7 @@ class _ParquetSink(filebasedsink.FileBasedSink):
         self._file_handle = None
 
     def open(self, temp_path):
-        self._file_handle = super(_ParquetSink, self).open(temp_path)
+        self._file_handle = super().open(temp_path)
         return pq.ParquetWriter(
             self._file_handle,
             self._schema,
@@ -273,7 +273,7 @@ class _ParquetSink(filebasedsink.FileBasedSink):
             self._file_handle = None
 
     def display_data(self):
-        res = super(_ParquetSink, self).display_data()
+        res = super().display_data()
         res["codec"] = str(self._codec)
         res["schema"] = str(self._schema)
         res["row_group_buffer_size"] = str(self._row_group_buffer_size)

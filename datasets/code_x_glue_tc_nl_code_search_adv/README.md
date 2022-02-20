@@ -18,6 +18,7 @@ task_categories:
 - text-retrieval
 task_ids:
 - document-retrieval
+pretty_name: CodeXGlueTcNlCodeSearchAdv
 ---
 # Dataset Card for "code_x_glue_tc_nl_code_search_adv"
 

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,8 +52,7 @@ It has been shown to correlate with human judgment on sentence-level and system-
 Moreover, BERTScore computes precision, recall, and F1 measure, which can be useful for evaluating different language
 generation tasks.
 
-See the `README.md` file at [https://github.com/Tiiiger/bert_score](https://github.com/Tiiiger/bert_score) for more
-information.
+See the project's README at https://github.com/Tiiiger/bert_score#readme for more information.
 """
 
 _KWARGS_DESCRIPTION = """

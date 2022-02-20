@@ -107,12 +107,14 @@ class FaissIndexTest(TestCase):
         query = np.zeros(5, dtype=np.float32)
         query[1] = 1
         scores, indices = index.search(query)
+        self.assertRaises(ValueError, index.search, query.reshape(-1, 1))
         self.assertGreater(scores[0], 0)
         self.assertEqual(indices[0], 1)
 
         # batched queries
         queries = np.eye(5, dtype=np.float32)[::-1]
         total_scores, total_indices = index.search_batch(queries)
+        self.assertRaises(ValueError, index.search_batch, queries[0])
         best_scores = [scores[0] for scores in total_scores]
         best_indices = [indices[0] for indices in total_indices]
         self.assertGreater(np.min(best_scores), 0)
@@ -127,6 +129,8 @@ class FaissIndexTest(TestCase):
         index = FaissIndex(string_factory="LSH")
         index.add_vectors(np.eye(5, dtype=np.float32))
         self.assertIsInstance(index.faiss_index, faiss.IndexLSH)
+        with self.assertRaises(ValueError):
+            _ = FaissIndex(string_factory="Flat", custom_index=faiss.IndexFlat(5))
 
     def test_custom(self):
         import faiss

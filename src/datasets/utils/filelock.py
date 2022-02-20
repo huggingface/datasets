@@ -99,7 +99,7 @@ class Timeout(TimeoutError):
         return None
 
     def __str__(self):
-        temp = "The file lock '{}' could not be acquired.".format(self.lock_file)
+        temp = f"The file lock '{self.lock_file}' could not be acquired."
         return temp
 
 
@@ -269,18 +269,18 @@ class BaseFileLock:
             while True:
                 with self._thread_lock:
                     if not self.is_locked:
-                        logger().debug("Attempting to acquire lock %s on %s", lock_id, lock_filename)
+                        logger().debug(f"Attempting to acquire lock {lock_id} on {lock_filename}")
                         self._acquire()
 
                 if self.is_locked:
-                    logger().debug("Lock %s acquired on %s", lock_id, lock_filename)
+                    logger().debug(f"Lock {lock_id} acquired on {lock_filename}")
                     break
                 elif timeout >= 0 and time.time() - start_time > timeout:
-                    logger().debug("Timeout on acquiring lock %s on %s", lock_id, lock_filename)
+                    logger().debug(f"Timeout on acquiring lock {lock_id} on {lock_filename}")
                     raise Timeout(self._lock_file)
                 else:
                     logger().debug(
-                        "Lock %s not acquired on %s, waiting %s seconds ...", lock_id, lock_filename, poll_intervall
+                        f"Lock {lock_id} not acquired on {lock_filename}, waiting {poll_intervall} seconds ..."
                     )
                     time.sleep(poll_intervall)
         except:  # noqa
@@ -313,10 +313,10 @@ class BaseFileLock:
                     lock_id = id(self)
                     lock_filename = self._lock_file
 
-                    logger().debug("Attempting to release lock %s on %s", lock_id, lock_filename)
+                    logger().debug(f"Attempting to release lock {lock_id} on {lock_filename}")
                     self._release()
                     self._lock_counter = 0
-                    logger().debug("Lock %s released on %s", lock_id, lock_filename)
+                    logger().debug(f"Lock {lock_id} released on {lock_filename}")
 
         return None
 
@@ -369,7 +369,7 @@ class WindowsFileLock(BaseFileLock):
         else:
             try:
                 msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
-            except (IOError, OSError):
+            except OSError:
                 os.close(fd)
             else:
                 self._lock_file_fd = fd
@@ -409,7 +409,7 @@ class UnixFileLock(BaseFileLock):
 
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except (IOError, OSError):
+        except OSError:
             os.close(fd)
         else:
             self._lock_file_fd = fd
@@ -440,7 +440,7 @@ class SoftFileLock(BaseFileLock):
         open_mode = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_TRUNC
         try:
             fd = os.open(self._lock_file, open_mode)
-        except (IOError, OSError):
+        except OSError:
             pass
         else:
             self._lock_file_fd = fd

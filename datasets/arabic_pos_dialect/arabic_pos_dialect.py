@@ -69,9 +69,7 @@ class ArabicPosDialect(datasets.GeneratorBasedBuilder):
         ArabicPosDialectConfig(
             name=dialect,
             dialect=dialect,
-            description="A set of 350 tweets in the {} dialect of Arabic that have been manually segmented and POS tagged.".format(
-                dialect
-            ),
+            description=f"A set of 350 tweets in the {dialect} dialect of Arabic that have been manually segmented and POS tagged.",
         )
         for dialect in _DIALECTS
     ]
@@ -101,7 +99,7 @@ class ArabicPosDialect(datasets.GeneratorBasedBuilder):
         # TODO: Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {dialect: _URL + "seg_plus_pos_{}.txt".format(dialect) for dialect in _DIALECTS}
+        urls_to_download = {dialect: _URL + f"seg_plus_pos_{dialect}.txt" for dialect in _DIALECTS}
         dl_dir = dl_manager.download_and_extract(urls_to_download)
         return [
             datasets.SplitGenerator(

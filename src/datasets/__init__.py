@@ -1,5 +1,4 @@
 # flake8: noqa
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,16 +17,16 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "1.15.2.dev0"
+__version__ = "1.18.4.dev0"
 
 import pyarrow
 from packaging import version as _version
 from pyarrow import total_allocated_bytes
 
 
-if _version.parse(pyarrow.__version__).major < 1:
+if _version.parse(pyarrow.__version__).major < 3:
     raise ImportWarning(
-        "To use `datasets`, the module `pyarrow>=1.0.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
+        "To use `datasets`, the module `pyarrow>=3.0.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
     )
 
@@ -45,6 +44,7 @@ from .features import (
     Audio,
     ClassLabel,
     Features,
+    Image,
     Sequence,
     Translation,
     TranslationVariableLanguages,
@@ -76,6 +76,7 @@ from .splits import (
     SubSplitInfo,
     percent,
 )
+from .tasks import *
 from .utils import *
 
 

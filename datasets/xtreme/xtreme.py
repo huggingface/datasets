@@ -156,20 +156,20 @@ _PAN_X_LANG = [
 
 _NAMES = ["XNLI", "tydiqa", "SQuAD"]
 for lang in _PAN_X_LANG:
-    _NAMES.append("PAN-X.{}".format(lang))
+    _NAMES.append(f"PAN-X.{lang}")
 for lang1 in _MLQA_LANG:
     for lang2 in _MLQA_LANG:
-        _NAMES.append("MLQA.{}.{}".format(lang1, lang2))
+        _NAMES.append(f"MLQA.{lang1}.{lang2}")
 for lang in _XQUAD_LANG:
-    _NAMES.append("XQuAD.{}".format(lang))
+    _NAMES.append(f"XQuAD.{lang}")
 for lang in _BUCC_LANG:
-    _NAMES.append("bucc18.{}".format(lang))
+    _NAMES.append(f"bucc18.{lang}")
 for lang in _PAWSX_LANG:
-    _NAMES.append("PAWS-X.{}".format(lang))
+    _NAMES.append(f"PAWS-X.{lang}")
 for lang in _TATOEBA_LANG:
-    _NAMES.append("tatoeba.{}".format(lang))
+    _NAMES.append(f"tatoeba.{lang}")
 for lang in _UD_POS_LANG:
-    _NAMES.append("udpos.{}".format(lang))
+    _NAMES.append(f"udpos.{lang}")
 
 _DESCRIPTIONS = {
     "tydiqa": textwrap.dedent(
@@ -405,7 +405,7 @@ _DATA_URLS = {
     "MLQA": "https://dl.fbaipublicfiles.com/MLQA/MLQA_V1.zip",
     "PAWS-X": "https://storage.googleapis.com/paws/pawsx/x-final.tar.gz",
     "bucc18": "https://comparable.limsi.fr/bucc2018/",
-    "tatoeba": "https://github.com/facebookresearch/LASER/raw/master/data/tatoeba/v1",
+    "tatoeba": "https://github.com/facebookresearch/LASER/raw/main/data/tatoeba/v1/",
     "udpos": "https://lindat.mff.cuni.cz/repository/xmlui/bitstream/handle/11234/1-3105/ud-treebanks-v2.5.tgz",
     "SQuAD": "https://rajpurkar.github.io/SQuAD-explorer/dataset/",
     "PAN-X": "https://s3.amazonaws.com/datasets.huggingface.co/wikiann/1.1.0/panx_dataset.zip",
@@ -418,7 +418,7 @@ _URLS = {
     "MLQA": "https://github.com/facebookresearch/MLQA",
     "PAWS-X": "https://github.com/google-research-datasets/paws/tree/master/pawsx",
     "bucc18": "https://comparable.limsi.fr/bucc2018/",
-    "tatoeba": "https://github.com/facebookresearch/LASER/blob/master/data/tatoeba/v1/README.md",
+    "tatoeba": "https://github.com/facebookresearch/LASER/blob/main/data/tatoeba/v1/README.md",
     "udpos": "https://universaldependencies.org/",
     "SQuAD": "https://rajpurkar.github.io/SQuAD-explorer/",
     "PAN-X": "https://github.com/afshinrahimi/mmner",
@@ -553,8 +553,8 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             train_url = "v1.1/tydiqa-goldp-v1.1-train.json"
             dev_url = "v1.1/tydiqa-goldp-v1.1-dev.json"
             urls_to_download = {
-                "train": os.path.join(self.config.data_url, train_url),
-                "dev": os.path.join(self.config.data_url, dev_url),
+                "train": self.config.data_url + train_url,
+                "dev": self.config.data_url + dev_url,
             }
             dl_dir = dl_manager.download_and_extract(urls_to_download)
             return [
@@ -594,7 +594,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "filepath": os.path.join(
                             os.path.join(mlqa_downloaded_files, "MLQA_V1/test"),
-                            "test-context-{}-question-{}.json".format(l1, l2),
+                            f"test-context-{l1}-question-{l2}.json",
                         )
                     },
                 ),
@@ -604,7 +604,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "filepath": os.path.join(
                             os.path.join(mlqa_downloaded_files, "MLQA_V1/dev"),
-                            "dev-context-{}-question-{}.json".format(l1, l2),
+                            f"dev-context-{l1}-question-{l2}.json",
                         )
                     },
                 ),
@@ -612,9 +612,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
 
         if self.config.name.startswith("XQuAD"):
             lang = self.config.name.split(".")[1]
-            xquad_downloaded_file = dl_manager.download_and_extract(
-                os.path.join(self.config.data_url, "xquad.{}.json".format(lang))
-            )
+            xquad_downloaded_file = dl_manager.download_and_extract(self.config.data_url + f"xquad.{lang}.json")
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
@@ -650,12 +648,8 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         elif self.config.name.startswith("tatoeba"):
             lang = self.config.name.split(".")[1]
 
-            tatoeba_source_data = dl_manager.download_and_extract(
-                os.path.join(self.config.data_url, "tatoeba.{}-eng.{}".format(lang, lang))
-            )
-            tatoeba_eng_data = dl_manager.download_and_extract(
-                os.path.join(self.config.data_url, "tatoeba.{}-eng.eng".format(lang))
-            )
+            tatoeba_source_data = dl_manager.download_and_extract(self.config.data_url + f"tatoeba.{lang}-eng.{lang}")
+            tatoeba_eng_data = dl_manager.download_and_extract(self.config.data_url + f"tatoeba.{lang}-eng.eng")
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
@@ -666,16 +660,10 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("bucc18"):
             lang = self.config.name.split(".")[1]
             bucc18_dl_test_dir = dl_manager.download_and_extract(
-                os.path.join(
-                    self.config.data_url,
-                    "bucc2018-{}-en.training-gold.tar.bz2".format(lang),
-                )
+                self.config.data_url + f"bucc2018-{lang}-en.training-gold.tar.bz2"
             )
             bucc18_dl_dev_dir = dl_manager.download_and_extract(
-                os.path.join(
-                    self.config.data_url,
-                    "bucc2018-{}-en.sample-gold.tar.bz2".format(lang),
-                )
+                self.config.data_url + f"bucc2018-{lang}-en.sample-gold.tar.bz2"
             )
             return [
                 datasets.SplitGenerator(
@@ -783,8 +771,8 @@ class Xtreme(datasets.GeneratorBasedBuilder):
         if self.config.name == "SQuAD":
 
             urls_to_download = {
-                "train": os.path.join(self.config.data_url, "train-v1.1.json"),
-                "dev": os.path.join(self.config.data_url, "dev-v1.1.json"),
+                "train": self.config.data_url + "train-v1.1.json",
+                "dev": self.config.data_url + "dev-v1.1.json",
             }
             downloaded_files = dl_manager.download_and_extract(urls_to_download)
 

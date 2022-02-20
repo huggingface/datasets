@@ -18,39 +18,46 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: labr
+pretty_name: LABR
 ---
 
-# Dataset Card for MetRec
+# Dataset Card for LABR
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-fields)
-  - [Data Splits](#data-splits)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
-  - [Contributions](#contributions)
+- [Dataset Card for LABR](#dataset-card-for-labr)
+  - [Table of Contents](#table-of-contents)
+  - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+    - [Languages](#languages)
+  - [Dataset Structure](#dataset-structure)
+    - [Data Instances](#data-instances)
+    - [Data Fields](#data-fields)
+    - [Data Splits](#data-splits)
+  - [|split|num examples|](#splitnum-examples)
+  - [Dataset Creation](#dataset-creation)
+    - [Curation Rationale](#curation-rationale)
+    - [Source Data](#source-data)
+      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+      - [Who are the source language producers?](#who-are-the-source-language-producers)
+    - [Annotations](#annotations)
+      - [Annotation process](#annotation-process)
+      - [Who are the annotators?](#who-are-the-annotators)
+    - [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Considerations for Using the Data](#considerations-for-using-the-data)
+    - [Social Impact of Dataset](#social-impact-of-dataset)
+    - [Discussion of Biases](#discussion-of-biases)
+    - [Other Known Limitations](#other-known-limitations)
+  - [Additional Information](#additional-information)
+    - [Dataset Curators](#dataset-curators)
+    - [Licensing Information](#licensing-information)
+    - [Citation Information](#citation-information)
+    - [Contributions](#contributions)
 
 ## Dataset Description
 
-- **Homepage:** [LABR](https://github.com/mohamedadaly/LABR)
 - **Repository:** [LABR](https://github.com/mohamedadaly/LABR)
-- **Paper:** [LABR: Large-scale Arabic Book Reviews Dataset](https://www.aclweb.org/anthology/P13-2088.pdf)
+- **Paper:** [LABR: Large-scale Arabic Book Reviews Dataset](https://aclanthology.org/P13-2088/)
 - **Point of Contact:** [Mohammed Aly](mailto:mohamed@mohamedaly.info)
 
 ### Dataset Summary
@@ -73,15 +80,16 @@ A typical data point comprises a rating from 1 to 5 where the higher the rating 
 
 ### Data Fields
 
-[More Information Needed]
+- `text` (str): Review text.
+- `label` (int): Review rating.
 
 ### Data Splits
 
 The data is split into a training and testing. The split is organized as the following 
 
-|           | Tain   | Test |
-|---------- | ------ | ---- |
-|data split | 11,760 | 2,935|
+|           |  train |  test |
+|---------- |-------:|------:|
+|data split | 11,760 | 2,935 |
 
 ## Dataset Creation
 
@@ -121,13 +129,17 @@ The dataset does not contain any additional annotations.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
 
-[More Information Needed]
+[Needs More Information]
+
+### Discussion of Biases
+
+[Needs More Information]
 
 ### Other Known Limitations
 
-[More Information Needed]
+[Needs More Information]
 
 ## Additional Information
 
@@ -141,7 +153,15 @@ The dataset does not contain any additional annotations.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{aly2013labr,
+  title={Labr: A large scale arabic book reviews dataset},
+  author={Aly, Mohamed and Atiya, Amir},
+  booktitle={Proceedings of the 51st Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers)},
+  pages={494--498},
+  year={2013}
+}
+```
 
 ### Contributions
 

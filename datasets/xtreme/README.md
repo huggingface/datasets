@@ -1,8 +1,467 @@
 ---
+annotations_creators:
+- found
+language_creators:
+- found
 languages:
-- en
+  XNLI:
+  - ar
+  - bg
+  - de
+  - el
+  - en
+  - es
+  - fr
+  - hi
+  - ru
+  - sw
+  - th
+  - tr
+  - ur
+  - vi
+  - zh
+  PAWS-X.en:
+  - en
+  PAWS-X.de:
+  - de
+  PAWS-X.es:
+  - es
+  PAWS-X.fr:
+  - fr
+  PAWS-X.ja:
+  - ja
+  PAWS-X.ko:
+  - ko
+  PAWS-X.zh:
+  - zh
+  udpos.Afrikans:
+  - af
+  udpos.Arabic:
+  - ar
+  udpos.Basque:
+  - eu
+  udpos.Bulgarian:
+  - bg
+  udpos.Dutch:
+  - nl
+  udpos.English:
+  - en
+  udpos.Estonian:
+  - et
+  udpos.Finnish:
+  - fi
+  udpos.French:
+  - fr
+  udpos.German:
+  - de
+  udpos.Greek:
+  - el
+  udpos.Hebrew:
+  - he
+  udpos.Hindi:
+  - hi
+  udpos.Hungarian:
+  - hu
+  udpos.Indonesian:
+  - id
+  udpos.Italian:
+  - it
+  udpos.Japanese:
+  - ja
+  udpos.Kazakh:
+  - kk
+  udpos.Korean:
+  - ko
+  udpos.Chinese:
+  - zh
+  udpos.Marathi:
+  - mr
+  udpos.Persian:
+  - fa
+  udpos.Portuguese:
+  - pt
+  udpos.Russian:
+  - ru
+  udpos.Spanish:
+  - es
+  udpos.Tagalog:
+  - tl
+  udpos.Tamil:
+  - ta
+  udpos.Telugu:
+  - te
+  udpos.Thai:
+  - th
+  udpos.Turkish:
+  - tr
+  udpos.Urdu:
+  - ur
+  udpos.Vietnamese:
+  - vi
+  udpos.Yoruba:
+  - yo
+  PAN-X.af:
+  - af
+  PAN-X.ar:
+  - ar
+  PAN-X.bg:
+  - bg
+  PAN-X.bn:
+  - bn
+  PAN-X.de:
+  - de
+  PAN-X.el:
+  - el
+  PAN-X.en:
+  - en
+  PAN-X.es:
+  - es
+  PAN-X.et:
+  - et
+  PAN-X.eu:
+  - eu
+  PAN-X.fa:
+  - fa
+  PAN-X.fi:
+  - fi
+  PAN-X.fr:
+  - fr
+  PAN-X.he:
+  - he
+  PAN-X.hi:
+  - hi
+  PAN-X.hu:
+  - hu
+  PAN-X.id:
+  - id
+  PAN-X.it:
+  - it
+  PAN-X.ja:
+  - ja
+  PAN-X.jv:
+  - jv
+  PAN-X.ka:
+  - ka
+  PAN-X.kk:
+  - kk
+  PAN-X.ko:
+  - ko
+  PAN-X.ml:
+  - ml
+  PAN-X.mr:
+  - mr
+  PAN-X.ms:
+  - ms
+  PAN-X.my:
+  - my
+  PAN-X.nl:
+  - nl
+  PAN-X.pt:
+  - pt
+  PAN-X.ru:
+  - ru
+  PAN-X.sw:
+  - sw
+  PAN-X.ta:
+  - ta
+  PAN-X.te:
+  - te
+  PAN-X.th:
+  - th
+  PAN-X.tl:
+  - tl
+  PAN-X.tr:
+  - tr
+  PAN-X.ur:
+  - ur
+  PAN-X.vi:
+  - vi
+  PAN-X.yo:
+  - yo
+  PAN-X.zh:
+  - zh
+  XQuAD:
+  - ar
+  - de
+  - vi
+  - zh
+  - en
+  - es
+  - hi
+  - el
+  - ru
+  - th
+  - tr
+  MLQA.ar.ar:
+  - ar
+  MLQA.ar.de:
+  - ar
+  - de
+  MLQA.ar.vi:
+  - ar
+  - vi
+  MLQA.ar.zh:
+  - ar
+  - zh
+  MLQA.ar.en:
+  - ar
+  - en
+  MLQA.ar.es:
+  - ar
+  - es
+  MLQA.ar.hi:
+  - ar
+  - hi
+  MLQA.de.ar:
+  - de
+  - ar
+  MLQA.de.de:
+  - de
+  MLQA.de.vi:
+  - de
+  - vi
+  MLQA.de.zh:
+  - de
+  - zh
+  MLQA.de.en:
+  - de
+  - en
+  MLQA.de.es:
+  - de
+  - es
+  MLQA.de.hi:
+  - de
+  - hi
+  MLQA.vi.ar:
+  - vi
+  - ar
+  MLQA.vi.de:
+  - vi
+  - de
+  MLQA.vi.vi:
+  - vi
+  MLQA.vi.zh:
+  - vi
+  - zh
+  MLQA.vi.en:
+  - vi
+  - en
+  MLQA.vi.es:
+  - vi
+  - es
+  MLQA.vi.hi:
+  - vi
+  - hi
+  MLQA.zh.ar:
+  - zh
+  - ar
+  MLQA.zh.de:
+  - zh
+  - de
+  MLQA.zh.vi:
+  - zh
+  - vi
+  MLQA.zh.zh:
+  - zh
+  MLQA.zh.en:
+  - zh
+  - en
+  MLQA.zh.es:
+  - zh
+  - es
+  MLQA.zh.hi:
+  - zh
+  - hi
+  MLQA.en.ar:
+  - en
+  - ar
+  MLQA.en.de:
+  - en
+  - de
+  MLQA.en.vi:
+  - en
+  - vi
+  MLQA.en.zh:
+  - en
+  - zh
+  MLQA.en.en:
+  - en
+  MLQA.en.es:
+  - en
+  - es
+  MLQA.en.hi:
+  - en
+  - hi
+  MLQA.es.ar:
+  - es
+  - ar
+  MLQA.es.de:
+  - es
+  - de
+  MLQA.es.vi:
+  - es
+  - vi
+  MLQA.es.zh:
+  - es
+  - zh
+  MLQA.es.en:
+  - es
+  - en
+  MLQA.es.es:
+  - es
+  MLQA.es.hi:
+  - es
+  - hi
+  MLQA.hi.ar:
+  - hi
+  - ar
+  MLQA.hi.de:
+  - hi
+  - de
+  MLQA.hi.vi:
+  - hi
+  - vi
+  MLQA.hi.zh:
+  - hi
+  - zh
+  MLQA.hi.en:
+  - hi
+  - en
+  MLQA.hi.es:
+  - hi
+  - es
+  MLQA.hi.hi:
+  - hi
+  tydiqa:
+  - fi
+  - te
+  - ru
+  - ar
+  - id
+  - en
+  - sw
+  - ko
+  - bn
+  bucc18.de:
+  - de
+  bucc18.fr:
+  - fr
+  bucc18.zh:
+  - zh
+  bucc18.ru:
+  - ru
+  tatoeba.afr:
+  - af
+  tatoeba.ara:
+  - ar
+  tatoeba.ben:
+  - bn
+  tatoeba.bul:
+  - bg
+  tatoeba.deu:
+  - de
+  tatoeba.cmn:
+  - zh
+  tatoeba.ell:
+  - el
+  tatoeba.est:
+  - et
+  tatoeba.eus:
+  - eu
+  tatoeba.fin:
+  - fi
+  tatoeba.fra:
+  - fr
+  tatoeba.heb:
+  - he
+  tatoeba.hin:
+  - hi
+  tatoeba.hun:
+  - hu
+  tatoeba.ind:
+  - id
+  tatoeba.ita:
+  - it
+  tatoeba.jav:
+  - jv
+  tatoeba.jpn:
+  - ja
+  tatoeba.kat:
+  - ka
+  tatoeba.kaz:
+  - kk
+  tatoeba.kor:
+  - ko
+  tatoeba.mal:
+  - ml
+  tatoeba.mar:
+  - mr
+  tatoeba.nld:
+  - nl
+  tatoeba.pes:
+  - fa-IR
+  tatoeba.por:
+  - pt
+  tatoeba.rus:
+  - ru
+  tatoeba.spa:
+  - es
+  tatoeba.swh:
+  - sw
+  tatoeba.tam:
+  - ta
+  tatoeba.tel:
+  - te
+  tatoeba.tgl:
+  - tl
+  tatoeba.tha:
+  - th
+  tatoeba.tur:
+  - tr
+  tatoeba.urd:
+  - ur
+  tatoeba.vie:
+  - vi
+  SQuAD:
+  - en
+licenses:
+- apache-2.0
+- cc-by-4.0
+- cc-by-2.0
+- cc-by-sa-4.0
+- other-Licence Universal Dependencies v2.5
+- cc-by-nc-4.0
 multilinguality:
 - multilingual
+- translation
+size_categories:
+- n<1K
+- 1K<n<10K
+- 10K<n<100K
+- 100K<n<1M
+source_datasets:
+- extended|xnli
+- extended|paws-x
+- extended|wikiann
+- extended|xquad
+- extended|mlqa
+- extended|tydiqa
+- extended|tatoeba
+- extended|squad
+task_categories:
+- question-answering
+- structure-prediction
+- text-classification
+- text-retrieval
+task_ids:
+- open-domain-qa
+- multiple-choice-qa
+- extractive-qa
+- named-entity-recognition
+- part-of-speech-tagging
+- natural-language-inference
+- text-classification-other-paraphrase-identification
+- text-retrieval-other-parallel-sentence-retrieval
 paperswithcode_id: xtreme
 pretty_name: XTREME
 ---

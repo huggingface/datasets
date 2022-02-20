@@ -34,12 +34,11 @@ _CITATION = """\
 }
 """
 
-_TRAIN_DOWNLOAD_URL = (
-    "https://datasets.appen.com/appen_datasets/disaster_response_data/disaster_response_messages_training.csv"
-)
-_TEST_DOWNLOAD_URL = (
-    "https://datasets.appen.com/appen_datasets/disaster_response_data/disaster_response_messages_test.csv"
-)
+_TRAIN_DOWNLOAD_URL = "https://s3.amazonaws.com/datasets.huggingface.co/disaster_response_messages_training.csv"
+
+_TEST_DOWNLOAD_URL = "https://s3.amazonaws.com/datasets.huggingface.co/disaster_response_messages_test.csv"
+
+_VALID_DOWNLOAD_URL = "https://s3.amazonaws.com/datasets.huggingface.co/disaster_response_messages_validation.csv"
 
 
 class DisasterResponseMessages(datasets.GeneratorBasedBuilder):
@@ -98,11 +97,13 @@ class DisasterResponseMessages(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
-        test_path = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
+        train_path, test_path, valid_path = dl_manager.download_and_extract(
+            [_TRAIN_DOWNLOAD_URL, _TEST_DOWNLOAD_URL, _VALID_DOWNLOAD_URL]
+        )
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
         ]
 
     def _generate_examples(self, filepath):

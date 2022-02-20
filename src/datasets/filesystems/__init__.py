@@ -4,6 +4,7 @@ from typing import List
 import fsspec
 
 from . import compression
+from .hffilesystem import HfFileSystem
 
 
 _has_s3fs = importlib.util.find_spec("s3fs") is not None
@@ -20,7 +21,7 @@ COMPRESSION_FILESYSTEMS: List[compression.BaseCompressedFileFileSystem] = [
 ]
 
 # Register custom filesystems
-for fs_class in COMPRESSION_FILESYSTEMS:
+for fs_class in COMPRESSION_FILESYSTEMS + [HfFileSystem]:
     fsspec.register_implementation(fs_class.protocol, fs_class)
 
 

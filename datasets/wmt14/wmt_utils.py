@@ -96,7 +96,7 @@ class SubDataset:
     def _inject_language(self, src, strings):
         """Injects languages into (potentially) template strings."""
         if src not in self.sources:
-            raise ValueError("Invalid source for '{0}': {1}".format(self.name, src))
+            raise ValueError(f"Invalid source for '{self.name}': {src}")
 
         def _format_string(s):
             if "{0}" in s and "{1}" and "{src}" in s:
@@ -658,9 +658,7 @@ class WmtConfig(datasets.BuilderConfig):
         # TODO(PVP): remove when manual dir works
         # +++++++++++++++++++++
         if language_pair[1] in ["cs", "hi", "ru"]:
-            assert NotImplementedError(
-                "The dataset for {}-en is currently not fully supported.".format(language_pair[1])
-            )
+            assert NotImplementedError(f"The dataset for {language_pair[1]}-en is currently not fully supported.")
         # +++++++++++++++++++++
 
 
@@ -730,7 +728,7 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
             if dataset.get_manual_dl_files(source):
                 # TODO(PVP): following two lines skip configs that are incomplete for now
                 # +++++++++++++++++++++
-                logger.info("Skipping {} for now. Incomplete dataset for {}".format(dataset.name, self.config.name))
+                logger.info(f"Skipping {dataset.name} for now. Incomplete dataset for {self.config.name}")
                 continue
                 # +++++++++++++++++++++
 
@@ -741,9 +739,7 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
                 ]
                 assert all(
                     os.path.exists(path) for path in manual_paths
-                ), "For {0}, you must manually download the following file(s) from {1} and place them in {2}: {3}".format(
-                    dataset.name, dataset.get_url(source), dl_manager.manual_dir, ", ".join(manual_dl_files)
-                )
+                ), f"For {dataset.name}, you must manually download the following file(s) from {dataset.get_url(source)} and place them in {dl_manager.manual_dir}: {', '.join(manual_dl_files)}"
 
                 # set manual path for correct subset
                 manual_paths_dict[ss_name] = manual_paths
@@ -792,12 +788,11 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
             dataset = DATASET_MAP[ss_name]
             source, _ = self.config.language_pair
             if dataset.get_manual_dl_files(source):
-                logger.info("Skipping {} for now. Incomplete dataset for {}".format(dataset.name, self.config.name))
+                logger.info(f"Skipping {dataset.name} for now. Incomplete dataset for {self.config.name}")
                 continue
             # +++++++++++++++++++++
 
             logger.info("Generating examples from: %s", ss_name)
-            print("Generating examples from: %s", ss_name)
             dataset = DATASET_MAP[ss_name]
             extract_dirs = extraction_map[ss_name]
             files = _get_local_paths(dataset, extract_dirs)
@@ -847,7 +842,7 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
                     continue
                 # TODO(adarob): Add subset feature.
                 # ex["subset"] = subset
-                key = "{}/{}".format(ss_name, sub_key)
+                key = f"{ss_name}/{sub_key}"
                 if with_translation is True:
                     ex = {"translation": ex}
                 yield key, ex
@@ -921,7 +916,7 @@ def _parse_parallel_sentences(f1, f2, filename1, filename2):
         l2_sentences, l2 = parse_file(f2_i, filename2)
 
         for line_id, (s1, s2) in enumerate(zip(l1_sentences, l2_sentences)):
-            key = "{}/{}".format(f_id, line_id)
+            key = f"{f_id}/{line_id}"
             yield key, {l1: s1, l2: s2}
 
 
@@ -1006,7 +1001,7 @@ def _parse_czeng(*paths, **kwargs):
                         block_match = re.match(re_block, id_)
                         if block_match and block_match.groups()[0] in bad_blocks:
                             continue
-                    sub_key = "{}/{}".format(filename, line_id)
+                    sub_key = f"{filename}/{line_id}"
                     yield sub_key, {
                         "cs": cs.strip(),
                         "en": en.strip(),

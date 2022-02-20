@@ -27,6 +27,7 @@ task_categories:
 task_ids:
 - text-simplification
 paperswithcode_id: null
+pretty_name: WikiAuto
 ---
 
 # Dataset Card for WikiAuto
@@ -86,18 +87,17 @@ The data in all of the configurations looks a little different.
 A `manual` config instance consists of a sentence from the Simple English Wikipedia article, one from the linked English Wikipedia article, IDs for each of them, and a label indicating whether they are  aligned. Sentences on either side can be repeated so that the aligned sentences are in the same instances. For example:
 ```
 {'alignment_label': 1,
- 'normal_sentence': 'The Local Government Act 1985 is an Act of Parliament in the United Kingdom.',
  'normal_sentence_id': '0_66252-1-0-0',
- 'simple_sentence': 'The Local Government Act 1985 was an Act of Parliament in the United Kingdom.',
- 'simple_sentence_id': '0_66252-0-0-0'}
+ 'simple_sentence_id': '0_66252-0-0-0',
+ 'normal_sentence': 'The Local Government Act 1985 is an Act of Parliament in the United Kingdom.', 'simple_sentence': 'The Local Government Act 1985 was an Act of Parliament in the United Kingdom', 'gleu_score': 0.800000011920929}
 ```
 Is followed by
 ```
 {'alignment_label': 0,
- 'normal_sentence': 'Its main effect was to abolish the six county councils of the metropolitan counties that had been set up in 1974, 11 years earlier, by the Local Government Act 1972, along with the Greater London Council that had been established in 1965.',
  'normal_sentence_id': '0_66252-1-0-1',
- 'simple_sentence': 'The Local Government Act 1985 was an Act of Parliament in the United Kingdom.',
- 'simple_sentence_id': '0_66252-0-0-0'}
+ 'simple_sentence_id': '0_66252-0-0-0',
+ 'normal_sentence': 'Its main effect was to abolish the six county councils of the metropolitan counties that had been set up in 1974, 11 years earlier, by the Local Government Act 1972, along with the Greater London Council that had been established in 1965.',
+ 'simple_sentence': 'The Local Government Act 1985 was an Act of Parliament in the United Kingdom', 'gleu_score': 0.08641975373029709}
 ```
 
 The `auto` config shows a pair of an English and corresponding Simple English Wikipedia as an instance, with an alignment at the paragraph and sentence level:
@@ -146,19 +146,21 @@ The data has the following field:
 - `normal_sentence_id`: a unique ID for each English Wikipedia sentence. The last two dash-separated numbers correspond to the paragraph number in the article and the sentence number in the paragraph.
 - `simple_sentence`: a sentence from Simple English Wikipedia.
 - `simple_sentence_id`: a unique ID for each Simple English Wikipedia sentence. The last two dash-separated numbers correspond to the paragraph number in the article and the sentence number in the paragraph.
-- `alignment_label`: signifies whether a pair of sentences is aligned: labels are `1:aligned` and `0:notAligned`
+- `alignment_label`: signifies whether a pair of sentences is aligned: labels are `2:partialAligned`, `1:aligned` and `0:notAligned`
 - `paragraph_alignment`: a first step of alignment mapping English and Simple English paragraphs from linked articles
 - `sentence_alignment`: the full alignment mapping English and Simple English sentences from linked articles
+- `gleu_score`: the sentence level GLEU (Google-BLEU) score for each pair.
 
 ### Data Splits
 
 In `auto`, the `part_2` split corresponds to the articles used in `manual`, and `part_1` has the rest of Wikipedia.
 
 The `manual` config is provided with a `train`/`dev`/`test` split with the following amounts of data:
-|                            | Tain   | Dev   | Test   |
-| -----                      | ------ | ----- | ----   |
-| Total sentence pairs       | 373801 | 73249 | 118074 |
-| Aligned sentence pairs     |  1889  |  346  | 677    |
+
+|                        |   train | validation |    test |
+|------------------------|--------:|-----------:|--------:|
+| Total sentence pairs   |  373801 |      73249 |  118074 |
+| Aligned sentence pairs |    1889 |        346 |     677 |
 
 ## Dataset Creation
 

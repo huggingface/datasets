@@ -114,12 +114,8 @@ class IdPanlBppt(datasets.GeneratorBasedBuilder):
         logger.info("⏳ Generating %s examples from = %s", split, data_dir)
         id = 0
         for topic in self.config.topics:
-            src_path = "PANL-BPPT-{}-{}-{}w.txt".format(
-                topic["name"][:3].upper(), self.config.src_tag.upper(), topic["words"]
-            )
-            tgt_path = "PANL-BPPT-{}-{}-{}w.txt".format(
-                topic["name"][:3].upper(), self.config.tgt_tag.upper(), topic["words"]
-            )
+            src_path = f"PANL-BPPT-{topic['name'][:3].upper()}-{self.config.src_tag.upper()}-{topic['words']}w.txt"
+            tgt_path = f"PANL-BPPT-{topic['name'][:3].upper()}-{self.config.tgt_tag.upper()}-{topic['words']}w.txt"
             with open(os.path.join(data_dir, src_path), encoding="utf-8") as f1, open(
                 os.path.join(data_dir, tgt_path), encoding="utf-8"
             ) as f2:

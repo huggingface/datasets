@@ -6,7 +6,7 @@ Datasets
 
 🤗 Datasets is a library for easily accessing and sharing datasets, and evaluation metrics for Natural Language Processing (NLP), computer vision, and audio tasks.
 
-Load a dataset in a single line of code, and use our powerful data processing methods to quickly get your dataset ready for training in a deep learning model. Backed by the Apache Arrow format, process large datasets with zero-copy reads without any memory constraints for optimal speed and efficiency. We also feature a deep integration with the `Hugging Face Hub <https://huggingface.co/datasets>`_, allowing you to easily load and share a dataset with the wider NLP community. There are currently over 900 datasets, and more than 25 metrics available. 
+Load a dataset in a single line of code, and use our powerful data processing methods to quickly get your dataset ready for training in a deep learning model. Backed by the Apache Arrow format, process large datasets with zero-copy reads without any memory constraints for optimal speed and efficiency. We also feature a deep integration with the `Hugging Face Hub <https://huggingface.co/datasets>`_, allowing you to easily load and share a dataset with the wider NLP community. There are currently over 2658 datasets, and more than 34 metrics available. 
 
 Find your dataset today on the `Hugging Face Hub <https://huggingface.co/datasets>`_, or take an in-depth look inside a dataset with the live `Datasets Viewer <https://huggingface.co/datasets/viewer/>`_.
 
@@ -71,6 +71,7 @@ Find your dataset today on the `Hugging Face Hub <https://huggingface.co/dataset
     how_to
     loading
     process
+    audio_process
     stream
     share
     dataset_script

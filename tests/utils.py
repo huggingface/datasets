@@ -1,9 +1,12 @@
 import os
+import sys
 import tempfile
 import unittest
 from contextlib import contextmanager
+from ctypes.util import find_library
 from distutils.util import strtobool
 from enum import Enum
+from importlib.util import find_spec
 from pathlib import Path
 from unittest.mock import patch
 
@@ -24,7 +27,7 @@ def parse_flag_from_env(key, default=False):
             _value = strtobool(value)
         except ValueError:
             # More values are supported, but let's keep the message simple.
-            raise ValueError("If set, {} must be yes or no.".format(key))
+            raise ValueError(f"If set, {key} must be yes or no.")
     return _value
 
 
@@ -32,19 +35,6 @@ _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
 _run_remote_tests = parse_flag_from_env("RUN_REMOTE", default=False)
 _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 _run_packaged_tests = parse_flag_from_env("RUN_PACKAGED", default=True)
-
-
-def require_pyarrow_at_least_3(test_case):
-    """
-    Decorator marking a test that requires PyArrow 3.0.0
-    to allow nested types in parquet, as well as batch iterators of parquet files.
-
-    These tests are skipped when the PyArrow version is outdated.
-
-    """
-    if config.PYARROW_VERSION.major < 3:
-        test_case = unittest.skip("test requires PyArrow>=3.0.0")(test_case)
-    return test_case
 
 
 def require_beam(test_case):
@@ -134,6 +124,59 @@ def require_jax(test_case):
     """
     if not config.JAX_AVAILABLE:
         test_case = unittest.skip("test requires JAX")(test_case)
+    return test_case
+
+
+def require_pil(test_case):
+    """
+    Decorator marking a test that requires Pillow.
+
+    These tests are skipped when Pillow isn't installed.
+
+    """
+    if not config.PIL_AVAILABLE:
+        test_case = unittest.skip("test requires Pillow")(test_case)
+    return test_case
+
+
+def require_sndfile(test_case):
+    """
+    Decorator marking a test that requires soundfile.
+
+    These tests are skipped when soundfile isn't installed.
+
+    """
+    if (sys.platform != "linux" and find_spec("soundfile") is None) or (
+        sys.platform == "linux" and find_library("sndfile") is None
+    ):
+        test_case = unittest.skip(
+            "test requires 'sndfile': `pip install soundfile`; "
+            "Linux requires sndfile installed with distribution package manager, e.g.: `sudo apt-get install libsndfile1`",
+        )(test_case)
+    return test_case
+
+
+def require_sox(test_case):
+    """
+    Decorator marking a test that requires sox.
+
+    These tests are skipped when sox isn't installed.
+    """
+    if find_library("sox") is None:
+        return unittest.skip("test requires 'sox'; only available in non-Windows, e.g.: `sudo apt-get install sox`")(
+            test_case
+        )
+    return test_case
+
+
+def require_torchaudio(test_case):
+    """
+    Decorator marking a test that requires torchaudio.
+
+    These tests are skipped when torchaudio isn't installed.
+    """
+    if find_spec("sox") is None:
+        return unittest.skip("test requires 'torchaudio'")(test_case)
     return test_case
 
 
@@ -278,8 +321,6 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
     HF_DATASETS_OFFLINE_SET_TO_1: the HF_DATASETS_OFFLINE environment variable is set to 1.
         This makes the http/ftp calls of the library instantly fail and raise an OfflineModeEmabled error.
     """
-    import socket
-
     from requests import request as online_request
 
     def timeout_request(method, url, **kwargs):
@@ -301,7 +342,7 @@ def offline(mode=OfflineSimulationMode.CONNECTION_FAILS, timeout=1e-16):
             raise
 
     def offline_socket(*args, **kwargs):
-        raise socket.error("Offline mode is enabled.")
+        raise OSError("Offline mode is enabled.")
 
     if mode is OfflineSimulationMode.CONNECTION_FAILS:
         # inspired from https://stackoverflow.com/a/18601897

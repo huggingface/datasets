@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: null
+pretty_name: StyleChangeDetection
 ---
 
 # Dataset Card for "style_change_detection"

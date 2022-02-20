@@ -1,17 +1,19 @@
-import glob
 import os
 from functools import partial
 from pathlib import Path, PurePath
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union
 
 import huggingface_hub
+from fsspec.implementations.local import LocalFileSystem
 from tqdm.contrib.concurrent import thread_map
+
+from datasets.filesystems.hffilesystem import HfFileSystem
 
 from .splits import Split
 from .utils import logging
-from .utils.file_utils import hf_hub_url, is_local_path, is_relative_path, is_remote_url, request_etag
+from .utils.file_utils import hf_hub_url, is_local_path, is_remote_url, request_etag
 from .utils.py_utils import string_to_dict
-from .utils.tqdm_utils import tqdm
+from .utils.tqdm_utils import is_progress_bar_enabled, tqdm
 
 
 DEFAULT_SPLIT = str(Split.TRAIN)
@@ -27,23 +29,27 @@ class Url(str):
 SPLIT_PATTERN_SHARDED = "data/{split}-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"
 
 DEFAULT_PATTERNS_SPLIT_IN_FILENAME = {
-    str(Split.TRAIN): ["*train*"],
-    str(Split.TEST): ["*test*", "*eval*"],
-    str(Split.VALIDATION): ["*dev*", "*valid*"],
+    str(Split.TRAIN): ["**train*"],
+    str(Split.TEST): ["**test*", "**eval*"],
+    str(Split.VALIDATION): ["**dev*", "**valid*"],
 }
 
 DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME = {
-    str(Split.TRAIN): ["*train*/*", "*train*/**/*"],
-    str(Split.TEST): ["*test*/*", "*test*/**/*", "*eval*/*", "*eval*/**/*"],
-    str(Split.VALIDATION): ["*dev*/*", "*dev*/**/*", "*valid*/*", "*valid*/**/*"],
+    str(Split.TRAIN): ["**train*/**"],
+    str(Split.TEST): ["**test*/**", "**eval*/**"],
+    str(Split.VALIDATION): ["**dev*/**", "**valid*/**"],
 }
 
 DEFAULT_PATTERNS_ALL = {
-    str(Split.TRAIN): ["*"],
+    str(Split.TRAIN): ["**"],
 }
 
 ALL_SPLIT_PATTERNS = [SPLIT_PATTERN_SHARDED]
-ALL_DEFAULT_PATTERNS = [DEFAULT_PATTERNS_SPLIT_IN_FILENAME, DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME, DEFAULT_PATTERNS_ALL]
+ALL_DEFAULT_PATTERNS = [
+    DEFAULT_PATTERNS_SPLIT_IN_FILENAME,
+    DEFAULT_PATTERNS_SPLIT_IN_DIR_NAME,
+    DEFAULT_PATTERNS_ALL,
+]
 WILDCARD_CHARACTERS = "*[]"
 FILES_TO_IGNORE = ["README.md", "config.json", "dataset_infos.json", "dummy_data.zip", "dataset_dict.json"]
 
@@ -105,7 +111,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
         data_files = pattern_resolver(pattern)
         if len(data_files) > 0:
             data_files = [p.as_posix() for p in data_files]
-            splits: Set[str] = set(string_to_dict(p, split_pattern)["split"] for p in data_files)
+            splits: Set[str] = {string_to_dict(p, split_pattern)["split"] for p in data_files}
             return {split: [split_pattern.format(split=split)] for split in splits}
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
@@ -132,20 +138,14 @@ def _resolve_single_pattern_locally(
     It also supports absolute paths in patterns.
     If an URL is passed, it is returned as is.
     """
+    pattern = os.path.join(base_path, pattern)
     data_files_ignore = FILES_TO_IGNORE
-    if is_relative_path(pattern):
-        glob_iter = (
-            list(Path(base_path).rglob(pattern)) if contains_wildcards(pattern) else [Path(base_path) / pattern]
-        )
-    else:
-        glob_iter = (
-            [Path(filepath) for filepath in glob.glob(pattern)] if contains_wildcards(pattern) else [Path(pattern)]
-        )
-
+    fs = LocalFileSystem()
+    glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
     matched_paths = [
-        filepath.resolve()
+        Path(filepath).resolve()
         for filepath in glob_iter
-        if filepath.name not in data_files_ignore and not filepath.name.startswith(".") and filepath.is_file()
+        if filepath.name not in data_files_ignore and not filepath.name.startswith(".")
     ]
     if allowed_extensions is not None:
         out = [
@@ -175,13 +175,29 @@ def resolve_patterns_locally_or_by_urls(
     Resolve the paths and URLs of the data files from the patterns passed by the user.
     URLs are just returned as is.
 
+    You can use patterns to resolve multiple local files. Here are a few examples:
+    - *.csv to match all the CSV files at the first level
+    - **.csv to match all the CSV files at any level
+    - data/* to match all the files inside "data"
+    - data/** to match all the files inside "data" and its subdirectories
+
+    The patterns are resolved using the fsspec glob.
+    Here are some behaviors specific to fsspec glob that are different from glob.glob, Path.glob, Path.match or fnmatch:
+    - '*' matches only first level items
+    - '**' matches all items
+    - '**/*' matches all at least second level items
+
+    More generally:
+    - '*' matches any character except a forward-slash (to match just the file or directory name)
+    - '**' matches any character including a forward-slash /
+
     Examples:
 
         >>> import huggingface_hub
-        >>> from datasets.data_files import resolve_patterns_in_dataset_repository
-        >>> base_path = /Users/username/Desktop/hf/datasets
+        >>> from datasets.data_files import resolve_patterns_locally_or_by_urls
+        >>> base_path = "."
         >>> resolve_patterns_locally_or_by_urls(base_path, ["src/**/*.yaml"])
-        [PosixPath('/Users/quentinlhoest/Desktop/hf/shirte/datasets/src/datasets/utils/resources/readme_structure.yaml')]
+        [PosixPath('/Users/quentinlhoest/Desktop/hf/datasets/src/datasets/utils/resources/readme_structure.yaml')]
 
     Args:
         base_path (str): Base path to use when resolving relative paths.
@@ -224,7 +240,7 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
 
     Output:
 
-        {"train": ["*"]}
+        {"train": ["**"]}
 
     Input:
 
@@ -250,7 +266,7 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
 
     Output:
 
-        {"train": [*train*], "test": ["*test*"]}
+        {"train": [**train*], "test": ["**test*"]}
 
     Input:
 
@@ -268,7 +284,7 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
 
     Output:
 
-        {"train": [*train*/*, "*train*/**/*"], "test": ["*test*/*", "*test*/**/*"]}
+        {"train": ["**train*/**"], "test": ["**test*/**"]}
 
     Input:
 
@@ -286,9 +302,9 @@ def get_patterns_locally(base_path: str) -> Dict[str, List[str]]:
     Output:
 
         {
-            "train": [data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*],
-            "test": [data/test-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*],
-            "random": [data/random-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*],
+            "train": ["data/train-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
+            "test": ["data/test-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
+            "random": ["data/random-[0-9][0-9][0-9][0-9][0-9]-of-[0-9][0-9][0-9][0-9][0-9].*"],
         }
 
     In order, it first tests if SPLIT_PATTERN_SHARDED works, otherwise it tests the patterns in ALL_DEFAULT_PATTERNS.
@@ -305,14 +321,13 @@ def _resolve_single_pattern_in_dataset_repository(
     pattern: str,
     allowed_extensions: Optional[list] = None,
 ) -> List[PurePath]:
-    all_data_files = [
-        PurePath("/" + dataset_file.rfilename) for dataset_file in dataset_info.siblings
-    ]  # add a / at the beginning to make the pattern **/* match files at the root
     data_files_ignore = FILES_TO_IGNORE
+    fs = HfFileSystem(repo_info=dataset_info)
+    glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
     matched_paths = [
-        filepath.relative_to("/")
-        for filepath in all_data_files
-        if filepath.name not in data_files_ignore and not filepath.name.startswith(".") and filepath.match(pattern)
+        filepath
+        for filepath in glob_iter
+        if filepath.name not in data_files_ignore and not filepath.name.startswith(".")
     ]
     if allowed_extensions is not None:
         out = [
@@ -343,12 +358,28 @@ def resolve_patterns_in_dataset_repository(
     """
     Resolve the URLs of the data files from the patterns passed by the user.
 
+    You can use patterns to resolve multiple files. Here are a few examples:
+    - *.csv to match all the CSV files at the first level
+    - **.csv to match all the CSV files at any level
+    - data/* to match all the files inside "data"
+    - data/** to match all the files inside "data" and its subdirectories
+
+    The patterns are resolved using the fsspec glob.
+    Here are some behaviors specific to fsspec glob that are different from glob.glob, Path.glob, Path.match or fnmatch:
+    - '*' matches only first level items
+    - '**' matches all items
+    - '**/*' matches all at least second level items
+
+    More generally:
+    - '*' matches any character except a forward-slash (to match just the file or directory name)
+    - '**' matches any character including a forward-slash /
+
     Examples:
 
         >>> import huggingface_hub
         >>> from datasets.data_files import resolve_patterns_in_dataset_repository
         >>> dataset_info = huggingface_hub.HfApi().dataset_info("lhoestq/demo1")
-        >>> resolve_patterns_in_dataset_repository(dataset_info, ["*.csv"])
+        >>> resolve_patterns_in_dataset_repository(dataset_info, ["data/*.csv"])
         ['https://huggingface.co/datasets/lhoestq/demo1/resolve/0ca0d9f35b390ad11516095aeb27fd30cfe72578/data/test.csv',
         'https://huggingface.co/datasets/lhoestq/demo1/resolve/0ca0d9f35b390ad11516095aeb27fd30cfe72578/data/train.csv']
 
@@ -389,7 +420,7 @@ def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.Data
 
     Output:
 
-        {"train": ["*"]}
+        {"train": ["**"]}
 
     Input:
 
@@ -415,7 +446,7 @@ def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.Data
 
     Output:
 
-        {"train": ["*train*"], "test": ["*test*"]}
+        {"train": ["**train*"], "test": ["**test*"]}
 
     Input:
 
@@ -433,7 +464,7 @@ def get_patterns_in_dataset_repository(dataset_info: huggingface_hub.hf_api.Data
 
     Output:
 
-        {"train": ["*train*/*", "*train*/**/*"], "test": ["*test*/*", "*test*/**/*"]}
+        {"train": ["**train*/**"], "test": ["**test*/**"]}
 
     Input:
 
@@ -487,7 +518,7 @@ def _get_origin_metadata_locally_or_by_urls(
         max_workers=max_workers,
         tqdm_class=tqdm,
         desc="Resolving data files",
-        disable=len(data_files) <= 16 or logging.get_verbosity() == logging.NOTSET,
+        disable=len(data_files) <= 16 or not is_progress_bar_enabled(),
     )
 
 

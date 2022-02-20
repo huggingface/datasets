@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: x-stance
+pretty_name: x-stance
 ---
 
 # Dataset Card for "x_stance"

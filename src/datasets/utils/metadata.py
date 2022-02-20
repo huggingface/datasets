@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from collections import Counter
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
@@ -37,6 +38,7 @@ known_task_ids, known_task_ids_url = load_json_resource("tasks.json")
 known_creators, known_creators_url = load_json_resource("creators.json")
 known_size_categories, known_size_categories_url = load_json_resource("size_categories.json")
 known_multilingualities, known_multilingualities_url = load_json_resource("multilingualities.json")
+known_source_datasets, known_source_datasets_url = ["original", "extended", r"extended\|.*"], this_url
 
 
 class NoDuplicateSafeLoader(yaml.SafeLoader):
@@ -84,24 +86,25 @@ def tagset_validator(
     url: str,
     escape_validation_predicate_fn: Optional[Callable[[Any], bool]] = None,
 ) -> ValidatorOutput:
+    reference_values = re.compile("^(?:" + "|".join(reference_values) + ")$")
     if isinstance(items, list):
         if escape_validation_predicate_fn is not None:
             invalid_values = [
-                v for v in items if v not in reference_values and escape_validation_predicate_fn(v) is False
+                v for v in items if not reference_values.match(v) and escape_validation_predicate_fn(v) is False
             ]
         else:
-            invalid_values = [v for v in items if v not in reference_values]
+            invalid_values = [v for v in items if not reference_values.match(v)]
 
     else:
         invalid_values = []
         if escape_validation_predicate_fn is not None:
             for config_name, values in items.items():
                 invalid_values += [
-                    v for v in values if v not in reference_values and escape_validation_predicate_fn(v) is False
+                    v for v in values if not reference_values.match(v) and escape_validation_predicate_fn(v) is False
                 ]
         else:
             for config_name, values in items.items():
-                invalid_values += [v for v in values if v not in reference_values]
+                invalid_values += [v for v in values if not reference_values.match(v)]
 
     if len(invalid_values) > 0:
         return [], f"{invalid_values} are not registered tags for '{name}', reference at {url}"
@@ -285,7 +288,13 @@ class DatasetMetadata:
 
     @staticmethod
     def validate_language_codes(languages: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
-        return tagset_validator(languages, known_language_codes.keys(), "languages", known_language_codes_url)
+        return tagset_validator(
+            languages,
+            known_language_codes.keys(),
+            "languages",
+            known_language_codes_url,
+            lambda lang: lang == "unknown",
+        )
 
     @staticmethod
     def validate_licences(licenses: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
@@ -335,18 +344,7 @@ class DatasetMetadata:
 
     @staticmethod
     def validate_source_datasets(sources: Union[List[str], Dict[str, List[str]]]) -> ValidatorOutput:
-        invalid_values = []
-        for src in sources:
-            is_ok = src in ["original", "extended"] or src.startswith("extended|")
-            if not is_ok:
-                invalid_values.append(src)
-        if len(invalid_values) > 0:
-            return (
-                [],
-                f"'source_datasets' has invalid values: {invalid_values}, refer to source code to understand {this_url}",
-            )
-
-        return sources, None
+        return tagset_validator(sources, known_source_datasets, "source_datasets", known_source_datasets_url)
 
     @staticmethod
     def validate_paperswithcode_id_errors(paperswithcode_id: Optional[str]) -> ValidatorOutput:
@@ -365,7 +363,7 @@ class DatasetMetadata:
     def validate_pretty_name(pretty_name: Union[str, Dict[str, str]]):
         if isinstance(pretty_name, str):
             if len(pretty_name) == 0:
-                return None, f"The pretty name must have a length greater than 0 but got an empty string."
+                return None, "The pretty name must have a length greater than 0 but got an empty string."
         else:
             error_string = ""
             for key, value in pretty_name.items():

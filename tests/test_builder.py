@@ -28,7 +28,7 @@ class DummyBuilder(DatasetBuilder):
         return [SplitGenerator(name=Split.TRAIN)]
 
     def _prepare_split(self, split_generator, **kwargs):
-        fname = "{}-{}.arrow".format(self.name, split_generator.name)
+        fname = f"{self.name}-{split_generator.name}.arrow"
         with ArrowWriter(features=self.info.features, path=os.path.join(self._cache_dir, fname)) as writer:
             writer.write_batch({"text": ["foo"] * 100})
             num_examples, num_bytes = writer.finalize()
@@ -203,7 +203,7 @@ class BuilderTest(TestCase):
             return dataset.map(char_tokenize, cache_file_name=resources_paths["tokenized_dataset"])
 
         def _post_processing_resources(self, split):
-            return {"tokenized_dataset": "tokenized_dataset-{split}.arrow".format(split=split)}
+            return {"tokenized_dataset": f"tokenized_dataset-{split}.arrow"}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
@@ -344,7 +344,7 @@ class BuilderTest(TestCase):
                 return dataset
 
         def _post_processing_resources(self, split):
-            return {"index": "Flat-{split}.faiss".format(split=split)}
+            return {"index": f"Flat-{split}.faiss"}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
@@ -412,7 +412,7 @@ class BuilderTest(TestCase):
             return dataset.map(char_tokenize, cache_file_name=resources_paths["tokenized_dataset"])
 
         def _post_processing_resources(self, split):
-            return {"tokenized_dataset": "tokenized_dataset-{split}.arrow".format(split=split)}
+            return {"tokenized_dataset": f"tokenized_dataset-{split}.arrow"}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
@@ -464,7 +464,7 @@ class BuilderTest(TestCase):
                 return dataset
 
         def _post_processing_resources(self, split):
-            return {"index": "Flat-{split}.faiss".format(split=split)}
+            return {"index": f"Flat-{split}.faiss"}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")

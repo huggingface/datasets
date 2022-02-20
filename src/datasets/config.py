@@ -38,6 +38,7 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 
 # Imports
+PANDAS_VERSION = version.parse(importlib_metadata.version("pandas"))
 PYARROW_VERSION = version.parse(importlib_metadata.version("pyarrow"))
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
@@ -116,11 +117,15 @@ if USE_BEAM in ENV_VARS_TRUE_AND_AUTO_VALUES:
     try:
         BEAM_VERSION = version.parse(importlib_metadata.version("apache_beam"))
         BEAM_AVAILABLE = True
-        logger.info("Apache Beam version {} available.".format(BEAM_VERSION))
+        logger.info(f"Apache Beam version {BEAM_VERSION} available.")
     except importlib_metadata.PackageNotFoundError:
         pass
 else:
     logger.info("Disabling Apache Beam because USE_BEAM is set to False")
+
+
+# Optional tools for feature decoding
+PIL_AVAILABLE = importlib.util.find_spec("PIL") is not None
 
 
 # Optional compression tools
@@ -187,6 +192,10 @@ MODULE_NAME_FOR_DYNAMIC_MODULES = "datasets_modules"
 MAX_DATASET_CONFIG_ID_READABLE_LENGTH = 255
 
 # Streaming
-
 STREAMING_READ_MAX_RETRIES = 20
 STREAMING_READ_RETRY_INTERVAL = 5
+
+# Datasets without script
+DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 200
+GLOBBED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 10
+ARCHIVED_DATA_FILES_MAX_NUMBER_FOR_MODULE_INFERENCE = 200

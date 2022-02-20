@@ -361,12 +361,12 @@ class AMI(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
 
         # multi-processing doesn't work for AMI
-        if hasattr(dl_manager, "_download_config") and dl_manager._download_config.num_proc != 1:
+        if hasattr(dl_manager, "download_config") and dl_manager.download_config.num_proc != 1:
             logger.warning(
                 "AMI corpus cannot be downloaded using multi-processing. "
                 "Setting number of downloaded processes `num_proc` to 1. "
             )
-            dl_manager._download_config.num_proc = 1
+            dl_manager.download_config.num_proc = 1
 
         annotation_path = dl_manager.download_and_extract(_DL_URL_ANNOTATIONS)
 
@@ -512,7 +512,7 @@ class AMI(datasets.GeneratorBasedBuilder):
 
         # words
         words_paths = {
-            _id: [os.path.join(annotation_path, "words/{}.{}.words.xml".format(_id, speaker)) for speaker in _SPEAKERS]
+            _id: [os.path.join(annotation_path, f"words/{_id}.{speaker}.words.xml") for speaker in _SPEAKERS]
             for _id in ids
         }
         words_paths = {_id: list(filter(lambda path: os.path.isfile(path), words_paths[_id])) for _id in ids}
@@ -520,10 +520,7 @@ class AMI(datasets.GeneratorBasedBuilder):
 
         # segments
         segments_paths = {
-            _id: [
-                os.path.join(annotation_path, "segments/{}.{}.segments.xml".format(_id, speaker))
-                for speaker in _SPEAKERS
-            ]
+            _id: [os.path.join(annotation_path, f"segments/{_id}.{speaker}.segments.xml") for speaker in _SPEAKERS]
             for _id in ids
         }
         segments_paths = {_id: list(filter(lambda path: os.path.isfile(path), segments_paths[_id])) for _id in ids}

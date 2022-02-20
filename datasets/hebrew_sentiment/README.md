@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: modern-hebrew-sentiment-dataset
+pretty_name: HebrewSentiment
 ---
 
 # Dataset Card for HebrewSentiment

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import partial
+
 # Lint as: python3
 from typing import Any, Callable, Dict, Generic, Iterable, List, MutableMapping, Optional, TypeVar, Union
 
@@ -20,8 +21,9 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import _ArrayXDExtensionType, _is_zero_copy_only, pandas_types_mapper
+from ..features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
+from ..utils import no_op_if_value_is_null
 
 
 T = TypeVar("T")
@@ -54,7 +56,7 @@ def _query_table_with_indices_mapping(
         key = indices.fast_slice(key % indices.num_rows, 1).column(0)[0].as_py()
         return _query_table(table, key)
     if isinstance(key, slice):
-        key = range(*key.indices(table.num_rows))
+        key = range(*key.indices(indices.num_rows))
     if isinstance(key, range):
         if _is_range_contiguous(key) and key.start >= 0:
             return _query_table(
@@ -94,6 +96,10 @@ def _query_table(table: Table, key: Union[int, slice, range, str, Iterable]) -> 
         return table.fast_gather(key % table.num_rows)
 
     _raise_bad_key_type(key)
+
+
+def _is_array_with_nulls(pa_array: pa.Array) -> bool:
+    return pa_array.null_count > 0
 
 
 class BaseArrowExtractor(Generic[RowFormat, ColumnFormat, BatchFormat]):
@@ -154,26 +160,44 @@ class NumpyArrowExtractor(BaseArrowExtractor[dict, np.ndarray, dict]):
         return {col: self._arrow_array_to_numpy(pa_table[col]) for col in pa_table.column_names}
 
     def _arrow_array_to_numpy(self, pa_array: pa.Array) -> np.ndarray:
-        zero_copy_only = _is_zero_copy_only(pa_array.type)
         if isinstance(pa_array, pa.ChunkedArray):
-            # don't call to_numpy() directly or we end up with a np.array with dtype object
-            # call to_numpy on the chunks instead
-            # for ArrayExtensionArray call py_list directly to support dynamic dimensions
             if isinstance(pa_array.type, _ArrayXDExtensionType):
-                array: List = [row for chunk in pa_array.chunks for row in chunk.to_pylist()]
+                # don't call to_pylist() to preserve dtype of the fixed-size array
+                zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+                if pa_array.type.shape[0] is None:
+                    array: List = [
+                        row
+                        for chunk in pa_array.chunks
+                        for row in chunk.to_list_of_numpy(zero_copy_only=zero_copy_only)
+                    ]
+                else:
+                    array: List = [
+                        row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
+                    ]
             else:
+                zero_copy_only = _is_zero_copy_only(pa_array.type) and all(
+                    not _is_array_with_nulls(chunk) for chunk in pa_array.chunks
+                )
                 array: List = [
                     row for chunk in pa_array.chunks for row in chunk.to_numpy(zero_copy_only=zero_copy_only)
                 ]
         else:
-            # cast to list of arrays or we end up with a np.array with dtype object
-            # for ArrayExtensionArray call py_list directly to support dynamic dimensions
             if isinstance(pa_array.type, _ArrayXDExtensionType):
-                array: List = pa_array.to_pylist()
+                # don't call to_pylist() to preserve dtype of the fixed-size array
+                zero_copy_only = _is_zero_copy_only(pa_array.type.storage_dtype, unnest=True)
+                if pa_array.type.shape[0] is None:
+                    array: List = pa_array.to_list_of_numpy(zero_copy_only=zero_copy_only)
+                else:
+                    array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only)
             else:
+                zero_copy_only = _is_zero_copy_only(pa_array.type) and not _is_array_with_nulls(pa_array)
                 array: List = pa_array.to_numpy(zero_copy_only=zero_copy_only).tolist()
         if len(array) > 0:
-            if any(isinstance(x, np.ndarray) and (x.dtype == np.object or x.shape != array[0].shape) for x in array):
+            if any(
+                (isinstance(x, np.ndarray) and (x.dtype == np.object or x.shape != array[0].shape))
+                or (isinstance(x, float) and np.isnan(x))
+                for x in array
+            ):
                 return np.array(array, copy=False, **{**self.np_array_kwargs, "dtype": np.object})
         return np.array(array, copy=False, **self.np_array_kwargs)
 
@@ -210,9 +234,9 @@ class PandasFeaturesDecoder:
     def decode_row(self, row: pd.DataFrame) -> pd.DataFrame:
         decode = (
             {
-                column_name: feature.decode_example
+                column_name: no_op_if_value_is_null(partial(decode_nested_example, feature))
                 for column_name, feature in self.features.items()
-                if column_name in row.columns and hasattr(feature, "decode_example")
+                if self.features._column_requires_decoding[column_name]
             }
             if self.features
             else {}
@@ -223,8 +247,8 @@ class PandasFeaturesDecoder:
 
     def decode_column(self, column: pd.Series, column_name: str) -> pd.Series:
         decode = (
-            self.features[column_name].decode_example
-            if self.features and column_name in self.features and hasattr(self.features[column_name], "decode_example")
+            no_op_if_value_is_null(partial(decode_nested_example, self.features[column_name]))
+            if self.features and column_name in self.features and self.features._column_requires_decoding[column_name]
             else None
         )
         if decode:
@@ -396,7 +420,7 @@ class CustomFormatter(Formatter[dict, ColumnFormat, dict]):
 
 def _check_valid_column_key(key: str, columns: List[str]) -> None:
     if key not in columns:
-        raise KeyError("Column {} not in the dataset. Current columns in the dataset: {}".format(key, columns))
+        raise KeyError(f"Column {key} not in the dataset. Current columns in the dataset: {columns}")
 
 
 def _check_valid_index_key(key: Union[int, slice, range, Iterable], size: int) -> None:

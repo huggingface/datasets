@@ -15,8 +15,6 @@
 """ Common Voice Dataset"""
 
 
-import os
-
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
 
@@ -613,6 +611,7 @@ class CommonVoiceConfig(datasets.BuilderConfig):
 
 class CommonVoice(datasets.GeneratorBasedBuilder):
 
+    DEFAULT_WRITER_BATCH_SIZE = 1000
     BUILDER_CONFIGS = [
         CommonVoiceConfig(
             name=lang_id,
@@ -632,7 +631,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             {
                 "client_id": datasets.Value("string"),
                 "path": datasets.Value("string"),
-                "audio": datasets.features.Audio(sampling_rate=48_000),
+                "audio": datasets.Audio(sampling_rate=48_000),
                 "sentence": datasets.Value("string"),
                 "up_votes": datasets.Value("int64"),
                 "down_votes": datasets.Value("int64"),
@@ -658,49 +657,62 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_path = dl_manager.download_and_extract(_DATA_URL.format(self.config.name))
-        abs_path_to_data = os.path.join(dl_path, "cv-corpus-6.1-2020-12-11", self.config.name)
-        abs_path_to_clips = os.path.join(abs_path_to_data, "clips")
+        archive = dl_manager.download(_DATA_URL.format(self.config.name))
+        path_to_data = "/".join(["cv-corpus-6.1-2020-12-11", self.config.name])
+        path_to_clips = "/".join([path_to_data, "clips"])
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "train.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "files": dl_manager.iter_archive(archive),
+                    "filepath": "/".join([path_to_data, "train.tsv"]),
+                    "path_to_clips": path_to_clips,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "test.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "files": dl_manager.iter_archive(archive),
+                    "filepath": "/".join([path_to_data, "test.tsv"]),
+                    "path_to_clips": path_to_clips,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "dev.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "files": dl_manager.iter_archive(archive),
+                    "filepath": "/".join([path_to_data, "dev.tsv"]),
+                    "path_to_clips": path_to_clips,
                 },
             ),
             datasets.SplitGenerator(
                 name="other",
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "other.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "files": dl_manager.iter_archive(archive),
+                    "filepath": "/".join([path_to_data, "other.tsv"]),
+                    "path_to_clips": path_to_clips,
+                },
+            ),
+            datasets.SplitGenerator(
+                name="validated",
+                gen_kwargs={
+                    "files": dl_manager.iter_archive(archive),
+                    "filepath": "/".join([path_to_data, "validated.tsv"]),
+                    "path_to_clips": path_to_clips,
                 },
             ),
             datasets.SplitGenerator(
                 name="invalidated",
                 gen_kwargs={
-                    "filepath": os.path.join(abs_path_to_data, "invalidated.tsv"),
-                    "path_to_clips": abs_path_to_clips,
+                    "files": dl_manager.iter_archive(archive),
+                    "filepath": "/".join([path_to_data, "invalidated.tsv"]),
+                    "path_to_clips": path_to_clips,
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, path_to_clips):
+    def _generate_examples(self, files, filepath, path_to_clips):
         """Yields examples."""
         data_fields = list(self._info().features.keys())
 
@@ -708,28 +720,37 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
         data_fields.remove("audio")
         path_idx = data_fields.index("path")
 
-        with open(filepath, encoding="utf-8") as f:
-            lines = f.readlines()
-            headline = lines[0]
+        all_field_values = {}
+        metadata_found = False
+        for path, f in files:
+            if path == filepath:
+                metadata_found = True
+                lines = f.readlines()
+                headline = lines[0].decode("utf-8")
 
-            column_names = headline.strip().split("\t")
-            assert (
-                column_names == data_fields
-            ), f"The file should have {data_fields} as column names, but has {column_names}"
+                column_names = headline.strip().split("\t")
+                assert (
+                    column_names == data_fields
+                ), f"The file should have {data_fields} as column names, but has {column_names}"
+                for line in lines[1:]:
+                    field_values = line.decode("utf-8").strip().split("\t")
+                    # set full path for mp3 audio file
+                    audio_path = "/".join([path_to_clips, field_values[path_idx]])
+                    all_field_values[audio_path] = field_values
+            elif path.startswith(path_to_clips):
+                assert metadata_found, "Found audio clips before the metadata TSV file."
+                if not all_field_values:
+                    break
+                if path in all_field_values:
+                    field_values = all_field_values[path]
 
-            for id_, line in enumerate(lines[1:]):
-                field_values = line.strip().split("\t")
+                    # if data is incomplete, fill with empty values
+                    if len(field_values) < len(data_fields):
+                        field_values += (len(data_fields) - len(field_values)) * ["''"]
 
-                # set absolute path for mp3 audio file
-                field_values[path_idx] = os.path.join(path_to_clips, field_values[path_idx])
+                    result = {key: value for key, value in zip(data_fields, field_values)}
 
-                # if data is incomplete, fill with empty values
-                if len(field_values) < len(data_fields):
-                    field_values += (len(data_fields) - len(field_values)) * ["''"]
+                    # set audio feature
+                    result["audio"] = {"path": path, "bytes": f.read()}
 
-                result = {key: value for key, value in zip(data_fields, field_values)}
-
-                # set audio feature
-                result["audio"] = field_values[path_idx]
-
-                yield id_, result
+                    yield path, result

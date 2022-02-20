@@ -88,6 +88,7 @@ task_categories:
 task_ids:
 - machine-translation
 paperswithcode_id: opensubtitles
+pretty_name: OpenSubtitles
 ---
 
 # Dataset Card Creation Guide

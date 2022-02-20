@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +25,12 @@ from .py_utils import (
     classproperty,
     copyfunc,
     dumps,
+    first_non_null_value,
     flatten_nest_dict,
     has_sufficient_disk_space,
     map_nested,
     memoize,
+    no_op_if_value_is_null,
     size_str,
     temporary_assignment,
     unique_values,

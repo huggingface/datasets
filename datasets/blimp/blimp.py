@@ -56,7 +56,7 @@ class BlimpConfig(datasets.BuilderConfig):
         name = paradigm_uid
 
         description = _DESCRIPTION
-        description += ("This configuration includes the paradigm {}.").format(name)
+        description += f"This configuration includes the paradigm {name}."
 
         super(BlimpConfig, self).__init__(
             name=name, description=description, version=datasets.Version("0.1.0"), **kwargs

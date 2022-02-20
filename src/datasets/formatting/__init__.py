@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -124,7 +123,5 @@ def get_formatter(format_type: Optional[str], **format_kwargs) -> Formatter:
         raise _FORMAT_TYPES_ALIASES_UNAVAILABLE[format_type]
     else:
         raise ValueError(
-            "Return type should be None or selected in {}, but got '{}'".format(
-                list(type for type in _FORMAT_TYPES.keys() if type != None), format_type
-            )
+            f"Return type should be None or selected in {list(type for type in _FORMAT_TYPES.keys() if type != None)}, but got '{format_type}'"
         )

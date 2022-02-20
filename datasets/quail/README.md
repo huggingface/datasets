@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: quail
+pretty_name: Question Answering for Artificial Intelligence
 ---
 
 # Dataset Card for "quail"

@@ -23,8 +23,8 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         flatten, cast, cast_column, remove_columns, rename_column, class_encode_column,
         __len__, __iter__, formatted_as, set_format, set_transform, reset_format, with_format, with_transform,
         __getitem__, cleanup_cache_files,
-        map, filter, select, sort, shuffle, train_test_split, shard, export,
-        save_to_disk, load_from_disk, flatten_indices,
+        map, filter, select, sort, shuffle, train_test_split, shard, export, to_tf_dataset,
+        push_to_hub, save_to_disk, load_from_disk, flatten_indices,
         to_csv, to_pandas, to_dict, to_json, to_parquet,
         add_faiss_index, add_faiss_index_from_external_arrays, save_faiss_index, load_faiss_index,
         add_elasticsearch_index, load_elasticsearch_index,
@@ -60,7 +60,7 @@ It also has dataset transform methods like map or filter, to process all the spl
         map, filter, sort, shuffle, set_format, reset_format, formatted_as, with_format, with_transform,
         flatten_, cast_, remove_columns_, rename_column_,
         flatten, cast, cast_column, remove_columns, rename_column, class_encode_column,
-        save_to_disk, load_from_disk,
+        push_to_hub, save_to_disk, load_from_disk,
         from_csv, from_json, from_parquet, from_text,
         prepare_for_task, align_labels_with_mapping
 
@@ -73,7 +73,7 @@ The base class :class:`datasets.IterableDataset` implements an iterable Dataset 
 
 .. autoclass:: datasets.IterableDataset
     :members:
-        remove_columns,
+        remove_columns, cast_column,
         __iter__,
         map, shuffle, skip, take,
         info, split, builder_name, citation, config_name, dataset_size,
@@ -123,6 +123,9 @@ Dictionary with split names as keys ('train', 'test' for example), and :obj:`dat
     :members:
 
 .. autoclass:: datasets.Audio
+    :members:
+
+.. autoclass:: datasets.Image
     :members:
 
 ``MetricInfo``

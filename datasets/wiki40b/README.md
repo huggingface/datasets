@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: wiki-40b
+pretty_name: Wiki-40B
 ---
 
 # Dataset Card for "wiki40b"

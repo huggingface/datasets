@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: sciq
+pretty_name: SciQ
 ---
 
 # Dataset Card for "sciq"

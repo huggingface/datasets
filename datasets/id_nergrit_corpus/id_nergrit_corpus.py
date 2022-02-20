@@ -183,7 +183,7 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": "nergrit-corpus/{}/data/train_corrected.txt".format(self.config.name),
+                    "filepath": f"nergrit-corpus/{self.config.name}/data/train_corrected.txt",
                     "split": "train",
                     "files": dl_manager.iter_archive(archive),
                 },
@@ -191,7 +191,7 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": "nergrit-corpus/{}/data/test_corrected.txt".format(self.config.name),
+                    "filepath": f"nergrit-corpus/{self.config.name}/data/test_corrected.txt",
                     "split": "test",
                     "files": dl_manager.iter_archive(archive),
                 },
@@ -199,7 +199,7 @@ class IdNergritCorpus(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": "nergrit-corpus/{}/data/valid_corrected.txt".format(self.config.name),
+                    "filepath": f"nergrit-corpus/{self.config.name}/data/valid_corrected.txt",
                     "split": "dev",
                     "files": dl_manager.iter_archive(archive),
                 },

@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - dialogue-modeling
 paperswithcode_id: taskmaster-1
+pretty_name: Taskmaster-1
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Taskmaster-1
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -180,17 +181,17 @@ Each annotation has a single field:
 
 The data in `one_person_dialogs` config is split into `train`, `dev` and `test` splits.
 
-|                            | Tain   | Valid | Test  |
-| -----                      | ------ | ----- | ----- |
-| N. Instances               | 6168   | 770   | 770   |
+|              |  train |  validation |  test |
+|--------------|-------:|------------:|------:|
+| N. Instances |   6168 |         770 |   770 |
 
 - woz_dialogs
 
 The data in `woz_dialogs` config has no default splits.
 
-|                            | Tain   |
-| -----                      | ------ |
-| N. Instances               | 5507   |
+|              |  train |
+|--------------|-------:|
+| N. Instances |   5507 |
 
 
 ## Dataset Creation

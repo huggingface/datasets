@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 HuggingFace Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +23,6 @@ from unittest import TestCase
 
 from absl.testing import parameterized
 
-import datasets
 from datasets.builder import BuilderConfig, DatasetBuilder
 from datasets.features import ClassLabel, Features, Value
 from datasets.load import dataset_module_factory, import_main_class, load_dataset
@@ -292,8 +290,6 @@ class LocalDatasetTest(parameterized.TestCase):
 
 def get_packaged_dataset_names():
     packaged_datasets = [{"testcase_name": x, "dataset_name": x} for x in _PACKAGED_DATASETS_MODULES.keys()]
-    if datasets.config.PYARROW_VERSION.major < 3:  # parquet is not supported for pyarrow<3.0.0
-        packaged_datasets = [pd for pd in packaged_datasets if pd["dataset_name"] != "parquet"]
     return packaged_datasets
 
 

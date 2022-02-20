@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 HuggingFace Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,7 +87,10 @@ class LocalMetricTest(parameterized.TestCase):
         # run doctest
         with self.patch_intensive_calls(metric_name, metric_module.__name__):
             with self.use_local_metrics():
-                results = doctest.testmod(metric_module, verbose=True, raise_on_error=True)
+                try:
+                    results = doctest.testmod(metric_module, verbose=True, raise_on_error=True)
+                except doctest.UnexpectedException as e:
+                    raise e.exc_info[1]  # raise the exception that doctest caught
         self.assertEqual(results.failed, 0)
         self.assertGreater(results.attempted, 1)
 

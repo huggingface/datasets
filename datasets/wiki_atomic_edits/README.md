@@ -81,6 +81,7 @@ task_ids:
 - explanation-generation
 - summarization
 paperswithcode_id: wikiatomicedits
+pretty_name: WikiAtomicEdits
 ---
 
 # Dataset Card Creation Guide

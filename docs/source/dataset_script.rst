@@ -95,32 +95,32 @@ Let's study the `SuperGLUE loading script <https://github.com/huggingface/datase
    class SuperGlueConfig(datasets.BuilderConfig):
        """BuilderConfig for SuperGLUE."""
 
-   def __init__(self, features, data_url, citation, url, label_classes=("False", "True"), **kwargs):
-       """BuilderConfig for SuperGLUE.
+       def __init__(self, features, data_url, citation, url, label_classes=("False", "True"), **kwargs):
+           """BuilderConfig for SuperGLUE.
 
-       Args:
-       features: `list[string]`, list of the features that will appear in the
-           feature dict. Should not include "label".
-       data_url: `string`, url to download the zip file from.
-       citation: `string`, citation for the data set.
-       url: `string`, url for information about the data set.
-       label_classes: `list[string]`, the list of classes for the label if the
-           label is present as a string. Non-string labels will be cast to either
-           'False' or 'True'.
-       **kwargs: keyword arguments forwarded to super.
-       """
-       # Version history:
-       # 1.0.2: Fixed non-nondeterminism in ReCoRD.
-       # 1.0.1: Change from the pre-release trial version of SuperGLUE (v1.9) to
-       #        the full release (v2.0).
-       # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
-       # 0.0.2: Initial version.
-       super(SuperGlueConfig, self).__init__(version=datasets.Version("1.0.2"), **kwargs)
-       self.features = features
-       self.label_classes = label_classes
-       self.data_url = data_url
-       self.citation = citation
-       self.url = url
+           Args:
+           features: `list[string]`, list of the features that will appear in the
+               feature dict. Should not include "label".
+           data_url: `string`, url to download the zip file from.
+           citation: `string`, citation for the data set.
+           url: `string`, url for information about the data set.
+           label_classes: `list[string]`, the list of classes for the label if the
+               label is present as a string. Non-string labels will be cast to either
+               'False' or 'True'.
+           **kwargs: keyword arguments forwarded to super.
+           """
+           # Version history:
+           # 1.0.2: Fixed non-nondeterminism in ReCoRD.
+           # 1.0.1: Change from the pre-release trial version of SuperGLUE (v1.9) to
+           #        the full release (v2.0).
+           # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
+           # 0.0.2: Initial version.
+           super(SuperGlueConfig, self).__init__(version=datasets.Version("1.0.2"), **kwargs)
+           self.features = features
+           self.label_classes = label_classes
+           self.data_url = data_url
+           self.citation = citation
+           self.url = url
 
 2. Create instances of your config to specify the values of the attributes of each configuration. This gives you the flexibility to specify all the name and description of each configuration. These sub-class instances should be listed under :obj:`datasets.DatasetBuilder.BUILDER_CONFIGS`:
 

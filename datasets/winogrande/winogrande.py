@@ -90,7 +90,7 @@ class Winogrande(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train_{}.jsonl".format(self.config.data_size)),
+                    "filepath": os.path.join(data_dir, f"train_{self.config.data_size}.jsonl"),
                     # 'labelpath': os.path.join(data_dir, 'train_{}-labels.lst'.format(self.config.data_size)),
                     "split": "train",
                 },

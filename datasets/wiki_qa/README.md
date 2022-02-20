@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: wikiqa
+pretty_name: Wikipedia open-domain Question Answering
 ---
 
 # Dataset Card for "wiki_qa"

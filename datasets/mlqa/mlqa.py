@@ -150,7 +150,7 @@ class Mlqa(datasets.GeneratorBasedBuilder):
                         gen_kwargs={
                             "filepath": os.path.join(
                                 os.path.join(dl_file, "MLQA_V1/test"),
-                                "test-context-{}-question-{}.json".format(l1, l2),
+                                f"test-context-{l1}-question-{l2}.json",
                             )
                         },
                     ),
@@ -159,7 +159,7 @@ class Mlqa(datasets.GeneratorBasedBuilder):
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": os.path.join(
-                                os.path.join(dl_file, "MLQA_V1/dev"), "dev-context-{}-question-{}.json".format(l1, l2)
+                                os.path.join(dl_file, "MLQA_V1/dev"), f"dev-context-{l1}-question-{l2}.json"
                             )
                         },
                     ),

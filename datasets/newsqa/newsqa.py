@@ -18,6 +18,7 @@
 import csv
 import json
 import os
+from textwrap import dedent
 
 import datasets
 
@@ -78,19 +79,17 @@ class Newsqa(datasets.GeneratorBasedBuilder):
 
     @property
     def manual_download_instructions(self):
-        return """ Due to legal restrictions with the CNN data and data extraction. The data has to be downloaded from several sources and compiled as per the instructions by Authors. \
-        Upon obtaining the resulting data folders, it can be loaded easily using the datasets API. \
-        Please refer to (https://github.com/Maluuba/newsqa) to download data from Microsoft Reseach site (https://msropendata.com/datasets/939b1042-6402-4697-9c15-7a28de7e1321) \
-        and a CNN datasource (https://cs.nyu.edu/~kcho/DMQA/) and run the scripts present here (https://github.com/Maluuba/newsqa).\
-        This will generate a folder named "split-data" and a file named "combined-newsqa-data-v1.csv".\
-        Copy the above folder and the file to a directory where you want to store them locally.\
-        They must be used to load the dataset via `datasets.load_dataset("narqa", data_dir="<path/to/folder>")."""
+        return dedent(
+            """\
+            Due to legal restrictions with the CNN data and data extraction. The data has to be downloaded from several sources and compiled as per the instructions by Authors.
+            Upon obtaining the resulting data folders, it can be loaded easily using the datasets API.
+            Please refer to (https://github.com/Maluuba/newsqa) to download data from Microsoft Reseach site (https://msropendata.com/datasets/939b1042-6402-4697-9c15-7a28de7e1321) and a CNN datasource (https://cs.nyu.edu/~kcho/DMQA/) and run the scripts present here (https://github.com/Maluuba/newsqa).
+            This will generate a folder named "split-data" and a file named "combined-newsqa-data-v1.csv".
+            Copy the above folder and the file to a directory where you want to store them locally."""
+        )
 
     def _info(self):
-
-        if (
-            self.config.name == "combined-csv"
-        ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
+        if self.config.name == "combined-csv":
             features = datasets.Features(
                 {
                     "story_id": datasets.Value("string"),
@@ -99,9 +98,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                     "answer_char_ranges": datasets.Value("string"),
                 }
             )
-        elif (
-            self.config.name == "combined-json"
-        ):  # This is an example to show how to have different features for "first_domain" and "second_domain"
+        elif self.config.name == "combined-json":
             features = datasets.Features(
                 {
                     "storyId": datasets.Value("string"),
@@ -112,20 +109,19 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                             "q": datasets.Value("string"),
                             "isAnswerAbsent": datasets.Value("int32"),
                             "isQuestionBad": datasets.Value("int32"),
-                            "consensus": datasets.Features(
-                                {
-                                    "s": datasets.Value("int32"),
-                                    "e": datasets.Value("int32"),
-                                    "badQuestion": datasets.Value("bool"),
-                                    "noAnswer": datasets.Value("bool"),
-                                }
-                            ),
+                            "consensus": {
+                                "s": datasets.Value("int32"),
+                                "e": datasets.Value("int32"),
+                                "badQuestion": datasets.Value("bool"),
+                                "noAnswer": datasets.Value("bool"),
+                            },
                             "answers": datasets.features.Sequence(
                                 {
                                     "sourcerAnswers": datasets.features.Sequence(
                                         {
                                             "s": datasets.Value("int32"),
                                             "e": datasets.Value("int32"),
+                                            "badQuestion": datasets.Value("bool"),
                                             "noAnswer": datasets.Value("bool"),
                                         }
                                     ),
@@ -133,21 +129,18 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                             ),
                             "validated_answers": datasets.features.Sequence(
                                 {
-                                    "sourcerAnswers": datasets.features.Sequence(
-                                        {
-                                            "s": datasets.Value("int32"),
-                                            "e": datasets.Value("int32"),
-                                            "noAnswer": datasets.Value("bool"),
-                                            "count": datasets.Value("int32"),
-                                        }
-                                    ),
+                                    "s": datasets.Value("int32"),
+                                    "e": datasets.Value("int32"),
+                                    "badQuestion": datasets.Value("bool"),
+                                    "noAnswer": datasets.Value("bool"),
+                                    "count": datasets.Value("int32"),
                                 }
                             ),
                         }
                     ),
                 }
             )
-        else:  # This is the name of the configuration selected in BUILDER_CONFIGS above
+        else:
             features = datasets.Features(
                 {
                     "story_id": datasets.Value("string"),
@@ -156,20 +149,12 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                     "answer_token_ranges": datasets.Value("string"),
                 }
             )
+
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
+            features=features,
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
@@ -177,24 +162,17 @@ class Newsqa(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         path_to_manual_folder = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        combined_file_csv = os.path.join(path_to_manual_folder, "combined-newsqa-data-v1.csv")
-        combined_file_json = os.path.join(path_to_manual_folder, "combined-newsqa-data-v1.json")
-        split_files = os.path.join(path_to_manual_folder, "split_data")
-
         if not os.path.exists(path_to_manual_folder):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('newsqa', data_dir=...)` that includes files from the Manual download instructions: {}".format(
-                    path_to_manual_folder, self.manual_download_instructions
-                )
+                f"{path_to_manual_folder} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('newsqa', data_dir=...)` that includes files from the Manual download instructions: {self.manual_download_instructions}"
             )
 
         if self.config.name == "combined-csv":
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    # These kwargs will be passed to _generate_examples
                     gen_kwargs={
-                        "filepath": combined_file_csv,
+                        "filepath": os.path.join(path_to_manual_folder, "combined-newsqa-data-v1.csv"),
                         "split": "combined",
                     },
                 )
@@ -203,18 +181,17 @@ class Newsqa(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    # These kwargs will be passed to _generate_examples
                     gen_kwargs={
-                        "filepath": combined_file_json,
+                        "filepath": os.path.join(path_to_manual_folder, "combined-newsqa-data-v1.json"),
                         "split": "combined",
                     },
                 )
             ]
         else:
+            split_files = os.path.join(path_to_manual_folder, "split_data")
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": os.path.join(split_files, "train.csv"),
                         "split": "train",
@@ -222,12 +199,10 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(split_files, "test.csv"), "split": "test"},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": os.path.join(split_files, "dev.csv"),
                         "split": "dev",
@@ -246,7 +221,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 _ = next(csv_reader)
                 for id_, row in enumerate(csv_reader):
                     if row:
-                        yield row[0], {
+                        yield id_, {
                             "story_id": row[0],
                             "story_text": row[-1],
                             "question": row[1],
@@ -257,61 +232,52 @@ class Newsqa(datasets.GeneratorBasedBuilder):
             with open(filepath, encoding="utf-8") as f:
                 d = json.load(f)
                 data = d["data"]
-
-                for iter in data:
-
+                for id_, item in enumerate(data):
+                    # questions
                     questions = []
-
-                    for ques in iter["questions"]:
-                        dict1 = {}
-                        dict1["q"] = ques["q"]
+                    for ques in item["questions"]:
+                        question = {"q": ques["q"]}
                         if "isAnswerAbsent" in ques.keys():
-                            dict1["isAnswerAbsent"] = ques["isAnswerAbsent"]
+                            question["isAnswerAbsent"] = ques["isAnswerAbsent"]
                         else:
-                            dict1["isAnswerAbsent"] = 0.0
+                            question["isAnswerAbsent"] = 0.0
                         if "isQuestionBad" in ques.keys():
-                            dict1["isQuestionBad"] = ques["isQuestionBad"]
+                            question["isQuestionBad"] = ques["isQuestionBad"]
                         else:
-                            dict1["isQuestionBad"] = 0.0
-                        dict1["consensus"] = {"s": 0, "e": 0, "badQuestion": False, "noAnswer": False}
-
-                        for keys in ques["consensus"]:
-                            dict1["consensus"][keys] = ques["consensus"][keys]
-
+                            question["isQuestionBad"] = 0.0
+                        question["consensus"] = {"s": 0, "e": 0, "badQuestion": False, "noAnswer": False}
+                        # consensus
+                        for key in ques["consensus"]:
+                            question["consensus"][key] = ques["consensus"][key]
+                        # answers
                         answers = []
                         for ans in ques["answers"]:
-                            dict2 = {}
-                            dict2["sourcerAnswers"] = []
-                            for index, i in enumerate(ans["sourcerAnswers"]):
-                                dict_temp = {"s": 0, "e": 0, "noAnswer": False}
-                                for keys in i.keys():
-                                    dict_temp[keys] = i[keys]
-                                dict2["sourcerAnswers"].append(dict_temp)
+                            answer = {"sourcerAnswers": []}
+                            for sourcer_answer in ans["sourcerAnswers"]:
+                                dict_temp = {"s": 0, "e": 0, "badQuestion": False, "noAnswer": False}
+                                for key in sourcer_answer.keys():
+                                    dict_temp[key] = sourcer_answer[key]
+                                answer["sourcerAnswers"].append(dict_temp)
+                            answers.append(answer)
+                        question["answers"] = answers
+                        # validated_answers
+                        default_validated_answer = {
+                            "s": 0,
+                            "e": 0,
+                            "badQuestion": False,
+                            "noAnswer": False,
+                            "count": 0,
+                        }
+                        validated_answers = ques.get("validatedAnswers", [])  # not always present
+                        validated_answers = [{**default_validated_answer, **val_ans} for val_ans in validated_answers]
+                        question["validated_answers"] = validated_answers
 
-                            answers.append(dict2)
+                        questions.append(question)
 
-                        dict1["answers"] = answers
-
-                        validated_answers = []
-                        for ans in ques["answers"]:
-                            dict2 = {}
-                            dict2["sourcerAnswers"] = []
-                            for index, i in enumerate(ans["sourcerAnswers"]):
-                                dict_temp = {"s": 0, "e": 0, "noAnswer": False, "count": 0}
-                                for keys in i.keys():
-                                    dict_temp[keys] = i[keys]
-
-                                dict2["sourcerAnswers"].append(dict_temp)
-
-                            validated_answers.append(dict2)
-
-                        dict1["validated_answers"] = validated_answers
-                        questions.append(dict1)
-
-                    yield iter["storyId"], {
-                        "storyId": iter["storyId"],
-                        "text": iter["text"],
-                        "type": iter["type"],
+                    yield id_, {
+                        "storyId": item["storyId"],
+                        "text": item["text"],
+                        "type": item["type"],
                         "questions": questions,
                     }
         else:
@@ -323,8 +289,7 @@ class Newsqa(datasets.GeneratorBasedBuilder):
                 _ = next(csv_reader)
                 for id_, row in enumerate(csv_reader):
                     if row:
-                        # print (row)
-                        yield row[0], {
+                        yield id_, {
                             "story_id": row[0],
                             "story_text": row[1],
                             "question": row[2],

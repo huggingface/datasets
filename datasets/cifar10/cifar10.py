@@ -22,6 +22,7 @@ import pickle
 import numpy as np
 
 import datasets
+from datasets.tasks import ImageClassification
 
 
 _CITATION = """\
@@ -40,6 +41,19 @@ per class. There are 50000 training images and 10000 test images.
 
 _DATA_URL = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
 
+_NAMES = [
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck",
+]
+
 
 class Cifar10(datasets.GeneratorBasedBuilder):
     """CIFAR-10 Data Set"""
@@ -57,26 +71,14 @@ class Cifar10(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "img": datasets.Array3D(shape=(32, 32, 3), dtype="uint8"),
-                    "label": datasets.features.ClassLabel(
-                        names=[
-                            "airplane",
-                            "automobile",
-                            "bird",
-                            "cat",
-                            "deer",
-                            "dog",
-                            "frog",
-                            "horse",
-                            "ship",
-                            "truck",
-                        ]
-                    ),
+                    "img": datasets.Image(),
+                    "label": datasets.features.ClassLabel(names=_NAMES),
                 }
             ),
             supervised_keys=("img", "label"),
             homepage="https://www.cs.toronto.edu/~kriz/cifar.html",
             citation=_CITATION,
+            task_templates=ImageClassification(image_column="img", label_column="label"),
         )
 
     def _split_generators(self, dl_manager):

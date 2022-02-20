@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +20,7 @@ import datasets
 
 _DESCRIPTION = """
 Recall is the fraction of the total amount of relevant examples that were actually retrieved. It can be computed with:
-Precision = TP / (TP + FN)
+Recall = TP / (TP + FN)
 TP: True positive
 FN: False negative
 """

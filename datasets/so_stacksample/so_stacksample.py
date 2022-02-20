@@ -121,9 +121,7 @@ class SOStackSample(datasets.GeneratorBasedBuilder):
         )
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('so_stacksample', '{}', data_dir=...)` that includes a file name {}. Manual download instructions: \n{})".format(
-                    path_to_manual_file, self.config.name, self.config.name + ".csv", self.manual_download_instructions
-                )
+                f"{path_to_manual_file} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('so_stacksample', '{self.config.name}', data_dir=...)` that includes a file name {self.config.name + '.csv'}. Manual download instructions: \n{self.manual_download_instructions})"
             )
 
         return [

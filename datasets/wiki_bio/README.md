@@ -19,6 +19,7 @@ task_ids:
 - explanation-generation
 - table-to-text
 paperswithcode_id: wikibio
+pretty_name: WikiBio
 ---
 
 # Dataset Card for [Dataset Name]
@@ -51,7 +52,7 @@ paperswithcode_id: wikibio
 
 - **Repository:** https://github.com/DavidGrangier/wikipedia-biography-dataset
 - **Paper:** https://arxiv.org/pdf/1603.07771.pdf
-- **GoogleDrive:** https://drive.google.com/uc?export=download&id=1L7aoUXzHPzyzQ0ns4ApBbYepsjFOtXil
+- **GitHub:** https://github.com/DavidGrangier/wikipedia-biography-dataset
 
 ### Dataset Summary
 
@@ -68,7 +69,7 @@ English.
 
 ### Data Instances
 
-[More Information Needed]
+More Information Needed
 
 ### Data Fields
 
@@ -131,7 +132,7 @@ where, in the `"table"` field, all the information of the Wikpedia infobox is st
 [More Information Needed]
 
 ### Source Data
-This dataset was announced in the paper <em>Neural Text Generation from Structured Data with Application to the Biography Domain</em> [(arxiv link)](https://arxiv.org/pdf/1603.07771.pdf) and is stored both in [this](https://github.com/DavidGrangier/wikipedia-biography-dataset) repo (owned by DavidGrangier) and in [Google Drive](https://drive.google.com/uc?export=download&id=1L7aoUXzHPzyzQ0ns4ApBbYepsjFOtXil) (zipped and mantained by the TensorFlow team).
+This dataset was announced in the paper <em>Neural Text Generation from Structured Data with Application to the Biography Domain</em> [(arxiv link)](https://arxiv.org/pdf/1603.07771.pdf) and is stored in [this](https://github.com/DavidGrangier/wikipedia-biography-dataset) repo (owned by DavidGrangier).
 #### Initial Data Collection and Normalization
 
 [More Information Needed]

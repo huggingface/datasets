@@ -8,7 +8,7 @@
             "table-to-text",
             "text-simplification",
             "explanation-generation",
-            "other-stuctured-to-text",
+            "other-structured-to-text",
             "other"
         ]
     },
@@ -90,6 +90,12 @@
             "intent-classification",
             "slot-filling",
             "emotion-recognition"
+        ]
+    },
+    "time-series-forecasting": {
+        "description": "tasks related to predicting future values of a time series",
+        "options": [
+            "univariate-time-series-forecasting"
         ]
     },
     "other": {

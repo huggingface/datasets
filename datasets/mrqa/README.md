@@ -24,6 +24,7 @@ task_categories:
 task_ids:
 - extractive-qa
 paperswithcode_id: mrqa-2019
+pretty_name: MRQA 2019
 ---
 
 # Dataset Card Creation Guide

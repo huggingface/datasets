@@ -113,7 +113,7 @@ def get_raw_scores(dataset, preds):
                     # For unanswerable questions, only correct answer is empty string
                     gold_answers = [""]
                 if qid not in preds:
-                    print("Missing prediction for %s" % qid)
+                    print(f"Missing prediction for {qid}")
                     continue
                 a_pred = preds[qid]
                 # Take max over all gold answers
@@ -156,7 +156,7 @@ def make_eval_dict(exact_scores, f1_scores, qid_list=None):
 
 def merge_eval(main_eval, new_eval, prefix):
     for k in new_eval:
-        main_eval["%s_%s" % (prefix, k)] = new_eval[k]
+        main_eval[f"{prefix}_{k}"] = new_eval[k]
 
 
 def plot_pr_curve(precisions, recalls, out_image, title):
@@ -238,8 +238,8 @@ def histogram_na_prob(na_probs, qid_list, image_dir, name):
     plt.hist(x, weights=weights, bins=20, range=(0.0, 1.0))
     plt.xlabel("Model probability of no-answer")
     plt.ylabel("Proportion of dataset")
-    plt.title("Histogram of no-answer probability: %s" % name)
-    plt.savefig(os.path.join(image_dir, "na_prob_hist_%s.png" % name))
+    plt.title(f"Histogram of no-answer probability: {name}")
+    plt.savefig(os.path.join(image_dir, f"na_prob_hist_{name}.png"))
     plt.clf()
 
 

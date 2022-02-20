@@ -92,10 +92,10 @@ Example:
 
 The data is split into a training, validation and test in both configuration.
 
-|          | Tain   | Valid | Test |
-| -----    | ------ | ----- | ---- |
-| Abstract | 21400  |  1500 | 1500 |
-| Title    | 30658  |  1500 | 1500 |
+|          | train | validation | test |
+|----------|------:|-----------:|-----:|
+| Abstract | 21400 |       1500 | 1500 |
+| Title    | 30658 |       1500 | 1500 |
 
 ## Dataset Creation
 

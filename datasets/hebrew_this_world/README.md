@@ -6,7 +6,7 @@ language_creators:
 languages:
 - he
 licenses:
-- gpl
+- agpl-3.0-or-later
 multilinguality:
 - monolingual
 size_categories:
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: null
+pretty_name: HebrewSentiment
 ---
 
 # Dataset Card for HebrewSentiment
@@ -109,11 +110,9 @@ Sample:
 
 ### Data Splits
 
-|                          | train  | 
-|--------------------------|--------|
-| corpus                   | 2028  |
-
-
+|        | train | 
+|--------|------:|
+| corpus |  2028 |
 
 ## Dataset Creation
 
@@ -190,7 +189,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ### Citation Information
 
-[More Information Needed]
+https://thisworld.online/
 
 ### Contributions
 

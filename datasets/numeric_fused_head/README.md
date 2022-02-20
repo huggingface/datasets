@@ -25,6 +25,7 @@ task_categories:
 task_ids:
 - structure-prediction-other-fused-head-identification
 paperswithcode_id: numeric-fused-head
+pretty_name: Numeric Fused Heads
 ---
 
 # Dataset Card for Numeric Fused Heads

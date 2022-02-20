@@ -201,6 +201,7 @@ task_ids:
   - dialogue-modeling
   - document-retrieval
 paperswithcode_id: kilt
+pretty_name: KILT
 ---
 
 # Dataset Card for KILT

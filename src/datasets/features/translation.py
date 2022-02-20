@@ -97,9 +97,7 @@ class TranslationVariableLanguages:
         lang_set = set(self.languages)
         if self.languages and set(translation_dict) - lang_set:
             raise ValueError(
-                "Some languages in example ({0}) are not in valid set ({1}).".format(
-                    ", ".join(sorted(set(translation_dict) - lang_set)), ", ".join(lang_set)
-                )
+                f'Some languages in example ({", ".join(sorted(set(translation_dict) - lang_set))}) are not in valid set ({", ".join(lang_set)}).'
             )
 
         # Convert dictionary into tuples, splitting out cases where there are

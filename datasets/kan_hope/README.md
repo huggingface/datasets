@@ -88,9 +88,9 @@ Kannada
 
 ### Data Splits
 
-|              | Tain   | Valid | Test |
-| -----        | ------: | -----: | ----:|
-| Kannada    |  4941  | 618  | 617 |
+|         | train | validation | test |
+|---------|------:|-----------:|-----:|
+| Kannada |  4941 |        618 |  617 |
 
 ## Dataset Creation
 
