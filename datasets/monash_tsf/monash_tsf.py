@@ -14,7 +14,7 @@
 """Monash Time Series Forecasting Repository Dataset."""
 
 
-import json
+from datetime import datetime
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -57,7 +57,7 @@ class MonashTSFBuilderConfig(datasets.BuilderConfig):
     freq: Optional[str] = None
     prediction_length: Optional[int] = None
     item_id_column: Optional[str] = None
-    data_column: Optional[str] = None
+    data_column: Optional[str] = "series_type"
     target_fields: Optional[List[str]] = None
     feat_dynamic_real_fields: Optional[List[str]] = None
     multivariate: bool = False
@@ -84,6 +84,14 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         MonashTSFBuilderConfig(
+            name="weather",
+            version=VERSION,
+            description="3010 daily time series representing the variations of four weather variables: rain, mintemp, maxtemp and solar radiation, measured at the weather stations in Australia.",
+            freq="1D",
+            record="4654822",
+            file_name="weather_dataset.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="oikolab_weather",
             version=VERSION,
             description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
@@ -91,16 +99,6 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             record="5184708",
             file_name="oikolab_weather_dataset.zip",
             data_column="type",
-            target_fields=["temperature"],
-            feat_dynamic_real_fields=[
-                "dewpoint_temperature",
-                "wind_speed",
-                "mean_sea_level_pressure",
-                "relative_humidity",
-                "surface_solar_radiation",
-                "surface_thermal_radiation",
-                "total_cloud_cover",
-            ],
         ),
         MonashTSFBuilderConfig(
             name="temperature_rain",
@@ -300,10 +298,17 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
                 ts = loaded_data.loc[item_id]
                 start = ts.start_timestamp[0]
 
-                target_fields = ts[ts[self.config.data_column].isin(self.config.target_fields)]
-                feat_dynamic_real_fields = ts[ts[self.config.data_column].isin(self.config.feat_dynamic_real_fields)]
+                if self.config.target_fields is not None:
+                    target_fields = ts[ts[self.config.data_column].isin(self.config.target_fields)]
+                else:
+                    target_fields = self.config.data_column.unique()
 
-                feat_dynamic_real = np.vstack(feat_dynamic_real_fields.target)
+                if self.config.feat_dynamic_real_fields is not None:
+                    feat_dynamic_real_fields = ts[ts[self.config.data_column].isin(self.config.feat_dynamic_real_fields)]
+                    feat_dynamic_real = np.vstack(feat_dynamic_real_fields.target)
+                else:
+                    feat_dynamic_real = None
+                
                 target = np.vstack(target_fields.target)
 
                 feat_static_cat = [cat]
@@ -311,7 +316,8 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
                 if split in ["train", "val"]:
                     offset = forecast_horizon * self.config.rolling_evaluations + forecast_horizon * (split == "train")
                     target = target[..., :-offset]
-                    feat_dynamic_real = feat_dynamic_real[..., :-offset]
+                    if self.config.feat_dynamic_real_fields is not None:
+                        feat_dynamic_real = feat_dynamic_real[..., :-offset]
 
                 yield cat, {
                     "start": start,
@@ -321,24 +327,35 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
                     "item_id": item_id,
                 }
         else:
-            target_fields = loaded_data[loaded_data[self.config.data_column].isin(self.config.target_fields)]
-            feat_dynamic_real_fields = loaded_data[loaded_data[self.config.data_column].isin(self.config.feat_dynamic_real_fields)]
+            if self.config.target_fields is not None:
+                target_fields = loaded_data[loaded_data[self.config.data_column].isin(self.config.target_fields)]
+            else: 
+                target_fields = loaded_data
+            if self.config.feat_dynamic_real_fields is not None:
+                feat_dynamic_real_fields = loaded_data[loaded_data[self.config.data_column].isin(self.config.feat_dynamic_real_fields)]
+            else:
+                feat_dynamic_real_fields = None
 
             for cat, ts in target_fields.iterrows():
-                start = ts.start_timestamp
+                start = ts.get("start_timestamp", datetime.strptime('1900-01-01 00-00-00', '%Y-%m-%d %H-%M-%S'))
                 target = ts.target
-                feat_dynamic_real = np.vstack(feat_dynamic_real_fields.target)
+                if feat_dynamic_real_fields is not None:
+                    feat_dynamic_real = np.vstack(feat_dynamic_real_fields.target)
+                else:
+                    feat_dynamic_real = None
+
                 feat_static_cat = [cat]
 
                 if split in ["train", "val"]:
                     offset = forecast_horizon * self.config.rolling_evaluations + forecast_horizon * (split == "train")
                     target = target[..., :-offset]
-                    feat_dynamic_real = feat_dynamic_real[..., :-offset]
+                    if feat_dynamic_real is not None:
+                        feat_dynamic_real = feat_dynamic_real[..., :-offset]
 
                 yield cat, {
                     "start": start,
                     "target": target,
                     "feat_dynamic_real": feat_dynamic_real,
                     "feat_static_cat": feat_static_cat,
-                    "item_id": ts.series_name,
+                    "item_id": f"{ts.series_name}-{ts[self.config.data_column]}",
                 }
