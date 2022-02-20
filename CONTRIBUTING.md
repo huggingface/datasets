@@ -124,7 +124,7 @@ A [more complete guide](https://github.com/huggingface/datasets/blob/master/ADD_
 	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
 	```
 
-6. Finally, take some time to document your dataset for other users. Each dataset should be accompanied by a `README.md` dataset card in its directory which describes the data and contains tags representing languages and tasks supported to be easily discoverable. You can find information on how to fill out the card either manually or by using our [web app](https://huggingface.co/datasets/card-creator/) in the following [guide](https://github.com/huggingface/datasets/blob/master/templates/README_guide.md).
+6. Finally, take some time to document your dataset for other users. Each dataset should be accompanied by a `README.md` dataset card in its directory which describes the data and contains tags representing languages and tasks supported to be easily discoverable. You can find information on how to fill out the card either manually or by using our [web app](https://huggingface.co/spaces/huggingface/datasets-tagging) in the following [guide](https://github.com/huggingface/datasets/blob/master/templates/README_guide.md).
 
 7. If all tests pass, your dataset works correctly. Awesome! You can now follow steps 6, 7 and 8 of the section [*How to contribute to 🤗 Datasets?*](#how-to-contribute-to-Datasets). If you experience problems with the dummy data tests, you might want to take a look at the section *Help for dummy data tests* below.
 
