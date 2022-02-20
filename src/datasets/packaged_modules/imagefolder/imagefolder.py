@@ -26,7 +26,7 @@ class ImageFolderConfig(datasets.BuilderConfig):
 class ImageFolder(datasets.GeneratorBasedBuilder):
 
     _IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".ppm", ".bmp", ".pgm", ".tif", ".tiff", ".webp"}
-    _CLASS_PATTERN = "\w+"
+    _CLASS_PATTERN = r"\w+"
 
     BUILDER_CONFIG_CLASS = ImageFolderConfig
 
