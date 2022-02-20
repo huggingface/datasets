@@ -42,3 +42,4 @@ _EXTENSION_TO_MODULE = {
     "parquet": "parquet",
     "txt": "text",
 }
+_EXTENSION_TO_MODULE.update({ext: "imagefolder" for ext in imagefolder.IMAGE_EXTENSIONS})

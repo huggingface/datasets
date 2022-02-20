@@ -11,6 +11,84 @@ import datasets
 
 logger = datasets.utils.logging.get_logger(__name__)
 
+# Obtained with:
+# ```
+# import PIL.Image
+# IMAGE_EXTENSIONS = []
+# PIL.Image.init()
+# for ext, format in PIL.Image.EXTENSION.items():
+# if format in PIL.Image.OPEN:
+#     IMAGE_EXTENSIONS.append(ext[1:])
+# ```
+# We intentionally do not run this code on launch because:
+# (1) Pillow is an optional dependency, so importing Pillow in global namespace is not allowed
+# (2) To ensure the list of supported extensions is deterministic
+IMAGE_EXTENSIONS = [
+    "blp",
+    "bmp",
+    "dib",
+    "bufr",
+    "cur",
+    "pcx",
+    "dcx",
+    "dds",
+    "ps",
+    "eps",
+    "fit",
+    "fits",
+    "fli",
+    "flc",
+    "ftc",
+    "ftu",
+    "gbr",
+    "gif",
+    "grib",
+    "h5",
+    "hdf",
+    "png",
+    "apng",
+    "jp2",
+    "j2k",
+    "jpc",
+    "jpf",
+    "jpx",
+    "j2c",
+    "icns",
+    "ico",
+    "im",
+    "iim",
+    "tif",
+    "tiff",
+    "jfif",
+    "jpe",
+    "jpg",
+    "jpeg",
+    "mpg",
+    "mpeg",
+    "msp",
+    "pcd",
+    "pxr",
+    "pbm",
+    "pgm",
+    "ppm",
+    "pnm",
+    "psd",
+    "bw",
+    "rgb",
+    "rgba",
+    "sgi",
+    "ras",
+    "tga",
+    "icb",
+    "vda",
+    "vst",
+    "webp",
+    "wmf",
+    "emf",
+    "xbm",
+    "xpm",
+]
+
 
 @dataclass
 class ImageFolderConfig(datasets.BuilderConfig):
@@ -24,8 +102,6 @@ class ImageFolderConfig(datasets.BuilderConfig):
 
 
 class ImageFolder(datasets.GeneratorBasedBuilder):
-
-    _IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".ppm", ".bmp", ".pgm", ".tif", ".tiff", ".webp"}
     _CLASS_PATTERN = r"\w+"
 
     BUILDER_CONFIG_CLASS = ImageFolderConfig
@@ -83,5 +159,5 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, files, split):
         for i, (file, downloaded_file) in enumerate(files):
-            if Path(file).suffix in self._IMAGE_EXTENSIONS:
+            if Path(file).suffix in IMAGE_EXTENSIONS:
                 yield i, {"image_file_path": downloaded_file, "labels": self._get_class_name(split, str(file))}
