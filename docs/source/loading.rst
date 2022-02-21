@@ -203,30 +203,7 @@ To load an ``imagefolder`` dataset, simply pass the root path of the image folde
    >>> from datasets import load_dataset
    >>> dataset = load_dataset('imagefolder', data_files='/path/to/data')
 
-The resulting dataset will include an ``image_file_path`` feature - this is a string filepath to an image file. To convert this to ``PIL.Image``, you can write a simple transform and apply it to your dataset.
-
-.. code-block::
-
-   >>> from PIL import Image
-   >>> from datasets import load_dataset
-
-   >>> def pil_loader(path: str):
-   ...     with open(path, 'rb') as f:
-   ...         im = Image.open(f)
-   ...         return im.convert('RGB')
-
-   >>> def image_loader(example_batch):
-   ...     example_batch['image'] = [pil_loader(f) for f in example_batch['image_file_path']]
-   ...     return example_batch
-
-   >>> dataset = load_dataset('imagefolder', data_files='/path/to/data')
-   >>> dataset = dataset.with_transform(image_loader)
-   >>> print(dataset['train'])
-   {
-   'image': <PIL.Image.Image image mode=RGB size=307x500 at 0x7FDB314C9D10>,
-   'image_file': 'PetImages/Dog/576.jpg',
-   'labels': 'dog'
-   }
+The resulting dataset will include an ``image`` feature, which is a ``PIL.Image`` loaded from the image file, and the corresponding ``label`` inferred from the directory structure.
 
 In-memory data
 --------------
