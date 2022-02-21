@@ -255,6 +255,20 @@ def xrelpath(path, start=None):
         return posixpath.relpath(main_hop, start=start.split("::")[0]) if start else os.path.relpath(main_hop)
 
 
+def xcommonprefix(m):
+    """Extend `os.path.commonprefix` function to support remote files.
+
+    Args:
+        paths (:obj:`list`): List of URL paths.
+
+    Returns:
+        :obj:`str`
+    """
+    m = ["::".join(path.split("::")[::-1]) for path in m]
+    prefix = os.path.commonprefix(m)
+    return "::".join(prefix.split("::")[::-1])
+
+
 def _as_posix(path: Path):
     """Extend :meth:`pathlib.PurePath.as_posix` to fix missing slashes after protocol.
 

@@ -42,7 +42,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
 
-        # ignore non-image files to not "pollute" the prefix computation 
+        # ignore non-image files to not "pollute" the prefix computation
         image_data_files = {}
         for split, files in self.config.data_files.items():
             image_files = []
