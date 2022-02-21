@@ -114,6 +114,17 @@ def test_audio_decode_example_mp3(shared_datadir):
     assert decoded_example["sampling_rate"] == 44100
 
 
+@require_sndfile
+def test_audio_decode_example_opus(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_48000.opus")
+    audio = Audio()
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] == audio_path
+    assert decoded_example["array"].shape == (48000,)
+    assert decoded_example["sampling_rate"] == 48000
+
+
 @require_sox
 @require_torchaudio
 def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
