@@ -40,7 +40,6 @@ Args:
         should be a string.
     references (list of str): list of reference for each prediction. Each
         reference should be a string.
-    pretrained_model_name_or_path (str): the pretrained model used to generate the scores.
     batch_size (int): the batch size for predictions.
     max_length (int): maximum sequence length.
     device (str): either gpu or cpu
