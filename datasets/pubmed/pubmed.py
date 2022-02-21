@@ -16,7 +16,7 @@
 
 
 import copy
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as ET
 
 import datasets
 
@@ -39,7 +39,7 @@ _LICENSE = ""
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 # Note these URLs here are used by MockDownloadManager.create_dummy_data_list
-_URLs = [f"ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed22n{i:04d}.xml.gz" for i in range(1, 1115)]
+_URLs = [f"https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed22n{i:04d}.xml.gz" for i in range(1, 1115)]
 
 
 # Copyright Ferry Boender, released under the MIT license.
@@ -170,7 +170,7 @@ class Pubmed(datasets.GeneratorBasedBuilder):
             # XXX
             # Very special case, it will contain html leading to having very odd structure
             tag = parentElement.tag
-            string = etree.tostring(parentElement).decode("utf-8").strip()
+            string = ET.tostring(parentElement).decode("utf-8").strip()
             inner_string = string[len(f"<{tag}>") : -len(f"</{tag}>")]
             return {parentElement.tag: inner_string}
 
@@ -359,10 +359,10 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         id_ = 0
         for filename in filenames:
             try:
-                tree = etree.parse(filename)
+                tree = ET.parse(filename)
                 root = tree.getroot()
                 xmldict = self.xml_to_dictionnary(root)
-            except etree.ParseError:
+            except ET.ParseError:
                 logger.warning(f"Ignoring file {filename}, it is malformed")
                 continue
 

@@ -5,7 +5,8 @@ language_creators:
 - expert-generated
 languages:
 - en
-licenses: []
+licenses:
+- other-non-commercial-research-purpose-only
 multilinguality:
 - monolingual
 size_categories:
@@ -143,9 +144,9 @@ An example from the DialogRE train set looks as follows:
 
 The data is split into a training, validation and test set as per the original dataset split. 
 
-|                       | Tain | Valid | Test |
-| --------------------- | ---- | ----- | ---- |
-| Input dialog examples | 1073 | 358   | 357  |
+|                       |  train |  validation |  test |
+| --------------------- |-------:|------------:|------:|
+| Input dialog examples |   1073 |         358 |   357 |
 
 ## Dataset Creation
 
