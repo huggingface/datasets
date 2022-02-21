@@ -50,7 +50,7 @@ Examples:
     >>> frugalscore = datasets.load_metric("frugalscore")
     >>> results = frugalscore.compute(predictions=['hello there', 'huggingface'], references=['hello world', 'hugging face'])
     >>> print(results)
-    {'scores': [0.631, 0.645]}
+    {'scores': [0.6307542, 0.6449357]}
 """
 
 
