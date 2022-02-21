@@ -4,8 +4,8 @@ import s3fs
 
 class S3FileSystem(s3fs.S3FileSystem):
     """
-    `datasets.filesystems.S3FileSystem` is a subclass of s3fs.S3FileSystem](https://s3fs.readthedocs.io/en/latest/api.html), which is a known
-    implementation of `fsspec`. Filesystem Spec [FSSPEC](https://filesystem-spec.readthedocs.io/en/latest/?badge=latest) is a project to
+    ``datasets.filesystems.S3FileSystem`` is a subclass of s3fs.S3FileSystem](https://s3fs.readthedocs.io/en/latest/api.html), which is a known
+    implementation of ``fsspec``. Filesystem Spec [FSSPEC](https://filesystem-spec.readthedocs.io/en/latest/?badge=latest) is a project to
     unify various projects and classes to work with remote filesystems
     and file-system-like abstractions using a standard pythonic interface.
 
@@ -20,7 +20,7 @@ class S3FileSystem(s3fs.S3FileSystem):
     ['dataset_info.json.json','dataset.arrow','state.json']
     ```
 
-    Listing files from private s3 bucket using ``aws_access_key_id`` and ``aws_secret_access_key``.
+    Listing files from private s3 bucket using <code>aws_access_key_id</code> and <code>aws_secret_access_key</code>.
 
     ```py
     >>> import datasets
@@ -29,7 +29,7 @@ class S3FileSystem(s3fs.S3FileSystem):
     ['dataset_info.json.json','dataset.arrow','state.json']
     ```
 
-    Using `S3Filesystem` with `botocore.session.Session` and custom `aws_profile`.
+    Using <code>S3Filesystem</code> with <code>botocore.session.Session</code> and custom <code>aws_profile</code>.
 
     ```py
     >>> import botocore
@@ -39,7 +39,7 @@ class S3FileSystem(s3fs.S3FileSystem):
     >>> s3 = S3FileSystem(session=s3_session)  # doctest: +SKIP
     ```
 
-    Loading dataset from s3 using `S3Filesystem` and `load_from_disk()`.
+    Loading dataset from s3 using <code>S3Filesystem</code> and <code>load_from_disk()</code>.
 
     ```py
     >>> from datasets import load_from_disk
@@ -53,7 +53,7 @@ class S3FileSystem(s3fs.S3FileSystem):
     25000
     ```
 
-    Saving dataset to s3 using `S3Filesystem` and `dataset.save_to_disk()`.
+    Saving dataset to s3 using <code>S3Filesystem<code/> and <code>dataset.save_to_disk()<code/>.
 
     ```py
     >>> from datasets import load_dataset
