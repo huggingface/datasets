@@ -201,6 +201,7 @@ EXTRAS_REQUIRE = {
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": [
         # Might need to add doc-builder and some specific deps in the future
+        "s3fs",
     ],
 }
 
