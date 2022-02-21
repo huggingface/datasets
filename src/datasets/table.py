@@ -1139,31 +1139,23 @@ def table_flatten(table: pa.Table):
     Returns:
         Table: the flattened table
     """
-    from .features import Audio, Features
+    from .features import Features
 
-    has_decodable_feature = False
-    has_audio_feature = False
     features = Features.from_arrow_schema(table.schema)
-    for column_name, subfeature in features.items():
-        if hasattr(subfeature, "decode_example") and subfeature.decode:
-            has_decodable_feature = True
-            if isinstance(subfeature, Audio):
-                has_audio_feature = True
-    if has_audio_feature:
-        raise ValueError("Cannot flatten table with decodable Audio feature")
-    if has_decodable_feature:
+    if any(hasattr(subfeature, "flatten") and subfeature.flatten() == subfeature for subfeature in features.values()):
         flat_arrays = []
         flat_column_names = []
-        for column_name, subfeature in features.items():
-            array = table.column(column_name)
-            if pa.types.is_struct(subfeature.pa_type) and (
-                not subfeature.decode if hasattr(subfeature, "decode_example") else True
+        for field in table.schema:
+            array = table.column(field.name)
+            subfeature = features[field.name]
+            if pa.types.is_struct(field.type) and (
+                subfeature.flatten() != subfeature if hasattr(subfeature, "flatten") else True
             ):
                 flat_arrays.extend(array.flatten())
-                flat_column_names.extend([f"{column_name}.{field.name}" for field in subfeature.pa_type])
+                flat_column_names.extend([f"{field.name}.{subfield.name}" for subfield in field])
             else:
                 flat_arrays.append(array)
-                flat_column_names.append(column_name)
+                flat_column_names.append(field.name)
         flat_features = features.flatten(max_depth=2)
         flat_features = Features({column_name: flat_features[column_name] for column_name in flat_column_names})
         return pa.Table.from_arrays(
