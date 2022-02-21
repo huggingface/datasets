@@ -9,6 +9,7 @@ from enum import Enum
 from importlib.util import find_spec
 from pathlib import Path
 from unittest.mock import patch
+from packaging import version
 
 import pyarrow as pa
 
@@ -153,6 +154,29 @@ def require_sndfile(test_case):
             "test requires 'sndfile': `pip install soundfile`; "
             "Linux requires sndfile installed with distribution package manager, e.g.: `sudo apt-get install libsndfile1`",
         )(test_case)
+    return test_case
+
+
+def require_libsndfile(test_case):
+    """
+    Decorator marking a test that requires libsndfile>=1.0.30.
+
+    These tests are skipped when libsndfile is <1.0.30.
+
+    """
+    if (sys.platform != "linux" and find_spec("soundfile")) or (
+        sys.platform == "linux" and find_library("sndfile")
+    ):
+        import soundfile
+        # soundfile library is needed to be installed to check libsndfile version
+
+        if version.parse(soundfile.__libsndfile_version__) < version.parse("1.0.30"):
+            test_case = unittest.skip(
+                "test requires libsndfile>=1.0.30: `conda install -c conda-forge libsndfile>=1.0.30`"
+            )(test_case)
+    else:
+        test_case = require_sndfile(test_case)
+
     return test_case
 
 
