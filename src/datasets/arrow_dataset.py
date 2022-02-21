@@ -101,6 +101,7 @@ from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
+from .utils.streaming_download_manager import xgetsize
 from .utils.typing import PathLike
 
 
@@ -3563,7 +3564,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 if isinstance(feature, (Audio, Image)):
                     for x in array.to_pylist():
                         if x["bytes"] is None and x["path"] is not None:
-                            extra_nbytes += os.path.getsize(x["path"])
+                            size = xgetsize(x["path"])
+                            extra_nbytes += size
                     extra_nbytes -= array.field("path").nbytes
 
             table = self.with_format("arrow")[:1000]
@@ -3576,6 +3578,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_nbytes = dataset_nbytes * len(self._indices) / len(self.data)
 
         num_shards = int(dataset_nbytes / shard_size) + 1
+        num_shards = max(num_shards, 1)
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
 
         if decodable_columns:
