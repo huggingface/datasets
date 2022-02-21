@@ -339,8 +339,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
         dl_manager = DummyDataGeneratorDownloadManager(
             dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager, download_config=download_config
         )
-        split_generators_kwargs = dataset_builder._make_split_generators_kwargs({"dl_manager": dl_manager})
-        dataset_builder._split_generators(dl_manager, **split_generators_kwargs)
+        dataset_builder._split_generators(dl_manager)
         mock_dl_manager.load_existing_dummy_data = False  # don't use real dummy data
         dl_manager.auto_generate_dummy_data_folder(
             n_lines=self._n_lines,
@@ -357,10 +356,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
             n_examples_per_split = {}
             os.makedirs(dataset_builder._cache_dir, exist_ok=True)
             try:
-                split_generators_kwargs = dataset_builder._make_split_generators_kwargs(
-                    {"dl_manager": mock_dl_manager}
-                )
-                split_generators = dataset_builder._split_generators(mock_dl_manager, **split_generators_kwargs)
+                split_generators = dataset_builder._split_generators(mock_dl_manager)
                 for split_generator in split_generators:
                     dataset_builder._prepare_split(split_generator)
                     n_examples_per_split[split_generator.name] = split_generator.split_info.num_examples
@@ -397,8 +393,7 @@ class DummyDataCommand(BaseDatasetsCLICommand):
         os.makedirs(dummy_data_folder, exist_ok=True)
 
         try:
-            split_generators_kwargs = dataset_builder._make_split_generators_kwargs({"dl_manager": mock_dl_manager})
-            generator_splits = dataset_builder._split_generators(mock_dl_manager, **split_generators_kwargs)
+            generator_splits = dataset_builder._split_generators(mock_dl_manager)
         except FileNotFoundError as e:
 
             print(
