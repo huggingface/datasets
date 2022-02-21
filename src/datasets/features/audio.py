@@ -180,7 +180,7 @@ class Audio:
             if version.parse(soundfile.__libsndfile_version__) < version.parse("1.0.30"):
                 raise RuntimeError(
                     "Decoding .opus files requires 'libsndfile'>=1.0.30, "
-                    + "it can be installed via conda: `conda install -c conda-forge libsndfile==1.0.30`"
+                    + "it can be installed via conda: `conda install -c conda-forge libsndfile>=1.0.30`"
                 )
 
         with xopen(path, "rb") as f:
@@ -198,7 +198,7 @@ class Audio:
             if version.parse(sf.__libsndfile_version__) < version.parse("1.0.30"):
                 raise RuntimeError(
                     "Decoding .opus files requires 'libsndfile'>=1.0.30, "
-                    + "it can be installed via conda: `conda install -c conda-forge libsndfile==1.0.30`"
+                    + "it can be installed via conda: `conda install -c conda-forge libsndfile>=1.0.30`"
                 )
         array, sampling_rate = sf.read(file)
         array = array.T
