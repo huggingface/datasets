@@ -15,7 +15,6 @@
 # Lint as: python3
 """ Metrics base class."""
 import os
-import re
 import types
 import uuid
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -450,8 +449,7 @@ class Metric(MetricInfoMixin):
             self._init_writer()
         try:
             self.writer.write_batch(batch)
-        except pa.ArrowInvalid as e:
-            match = re.match(r"Column 1 named references expected length (\d+) but got length (\d+)", str(e))
+        except pa.ArrowInvalid:
 
             # lists - summarize long lists similarly to NumPy
             # arrays/tensors - let the frameworks control formatting
@@ -464,14 +462,16 @@ class Metric(MetricInfoMixin):
 
                 return f"[{format_chunk(obj[:3])}, ..., {format_chunk(obj[-3:])}]"
 
-            if sorted(self.features) != ["references", "predictions"]:
+            if any(len(batch[c]) != len(next(iter(batch.values()))) for c in batch):
+                col0 = next(iter(batch))
+                bad_col = [c for c in batch if len(batch[c]) != len(batch[col0])][0]
+                error_msg = (
+                    f"Mismatch in the number of {col0} ({len(batch[col0])}) and {bad_col} ({len(batch[bad_col])})"
+                )
+            elif sorted(self.features) != ["references", "predictions"]:
                 error_msg = f"Metric inputs don't match the expected format.\n" f"Expected format: {self.features},\n"
                 for input_name in self.features:
                     error_msg += f"Input {input_name}: {summarize_if_long_list(batch[input_name])},\n"
-            elif match is not None:
-                error_msg = (
-                    f"Mismatch in the number of predictions ({match.group(1)}) and references ({match.group(2)})"
-                )
             else:
                 error_msg = (
                     f"Predictions and/or references don't match the expected format.\n"
