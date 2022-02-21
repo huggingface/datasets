@@ -175,7 +175,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "audio_archives": [download_audio(split="train", lang=lang) for lang in self.config.languages],
-                    "splits_archive": [dl_manager.iter_archive(path) for path in splits_archive_path],
+                    "splits_archives": [dl_manager.iter_archive(path) for path in splits_archive_path],
                     "split": "train",
                 },
             ),
@@ -183,7 +183,7 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "audio_archives": [download_audio(split="dev", lang=lang) for lang in self.config.languages],
-                    "splits_archive": [dl_manager.iter_archive(path) for path in splits_archive_path],
+                    "splits_archives": [dl_manager.iter_archive(path) for path in splits_archive_path],
                     "split": "dev",
                 },
             ),
@@ -191,18 +191,17 @@ class MlSpokenWords(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "audio_archives": [download_audio(split="test", lang=lang) for lang in self.config.languages],
-                    "splits_archive": [dl_manager.iter_archive(path) for path in splits_archive_path],
+                    "splits_archives": [dl_manager.iter_archive(path) for path in splits_archive_path],
                     "split": "test",
                 },
             ),
         ]
 
-    def _generate_examples(self, audio_archives, splits_archive, split):
+    def _generate_examples(self, audio_archives, splits_archives, split):
         metadata = dict()
         for lang_idx, lang in enumerate(self.config.languages):
-            for split_filename, split_file in splits_archive[lang_idx]:
+            for split_filename, split_file in splits_archives[lang_idx]:
                 if split_filename.split(".csv")[0] == split:
-                    # TODO: how to correctly process csv files from tar?
                     csv_reader = csv.reader([line.decode("utf-8") for line in split_file.readlines()], delimiter=",")
                     for i, (link, word, is_valid, speaker, gender) in enumerate(csv_reader):
                         if i == 0:
