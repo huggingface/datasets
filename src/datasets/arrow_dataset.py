@@ -616,27 +616,6 @@ def _align_features(features_list: List[Features]) -> List[Features]:
     return [Features({k: name2feature[k] for k in features.keys()}) for features in features_list]
 
 
-def _check_if_trying_to_flatten_audio_feature(feature, column_name, depth, max_depth, inplace: bool = False):
-    """Check if the user is trying to flatten an audio feature."""
-    if isinstance(feature, Audio) and feature.decode:
-        instructions = (
-            (f"dataset = dataset.flatten(max_depth={depth})" if not inplace else f"self.flatten_(max_depth={depth})")
-            if depth > 1
-            else ""
-        )
-        instructions += "\n"
-        instructions += (
-            f"dataset = dataset.map(lambda batch: {{'{column_name}': batch['{column_name}']}}, batched=True)"
-        )
-        instructions += "\n"
-        instructions += (
-            "dataset = dataset.flatten" if not inplace else "dataset.flatten_"
-        ) + f"(max_depth={max_depth - depth + 1})"
-        raise ValueError(
-            f"Cannot flatten table with Audio feature in column {column_name} at depth {depth}. Use\n\n{instructions}\n\nto flatten the dataset."
-        )
-
-
 class NonExistentDatasetError(Exception):
     """Used when we expect the existence of a dataset"""
 
@@ -1309,18 +1288,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             Use :meth:`Dataset.flatten` instead.
         """
         for depth in range(1, max_depth):
-            has_struct_type = False
-            for field in self._data.schema:
-                if isinstance(field.type, pa.StructType):
-                    has_struct_type = True
-                    subfeature = self.info.features[field.name]
-                    _check_if_trying_to_flatten_audio_feature(subfeature, field.name, depth, max_depth, inplace=True)
-
-            if has_struct_type:
+            if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
                 self._data = self._data.flatten()
-                self.info.features = self.info.features.flatten(max_depth=2)
             else:
                 break
+        self.info.features = self.features.flatten(max_depth=max_depth)
         self._data = update_metadata_with_features(self._data, self.features)
         logger.info(f'Flattened dataset from depth {depth} to depth { 1 if depth + 1 < max_depth else "unknown"}.')
 
@@ -1335,17 +1307,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """
         dataset = copy.deepcopy(self)
         for depth in range(1, max_depth):
-            has_struct_type = False
-            for field in dataset._data.schema:
-                if isinstance(field.type, pa.StructType):
-                    has_struct_type = True
-                    subfeature = dataset.info.features[field.name]
-                    _check_if_trying_to_flatten_audio_feature(subfeature, field.name, depth, max_depth, inplace=False)
-            if has_struct_type:
+            if any(isinstance(field.type, pa.StructType) for field in dataset._data.schema):
                 dataset._data = dataset._data.flatten()
-                dataset.info.features = dataset.info.features.flatten(max_depth=2)
             else:
                 break
+        dataset.info.features = self.features.flatten(max_depth=max_depth)
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
         dataset._fingerprint = new_fingerprint
