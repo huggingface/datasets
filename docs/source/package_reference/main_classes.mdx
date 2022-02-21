@@ -1,11 +1,11 @@
 # Main classes
 
 
-## `DatasetInfo`
+## DatasetInfo
 
 [[autodoc]] datasets.DatasetInfo
 
-## `Dataset`
+## Dataset
 
 The base class [`datasets.Dataset`] implements a Dataset backed by an Apache Arrow table.
 
@@ -108,7 +108,7 @@ The base class [`datasets.Dataset`] implements a Dataset backed by an Apache Arr
 
 [[autodoc]] datasets.is_progress_bar_enabled
 
-## `DatasetDict`
+## DatasetDict
 
 Dictionary with split names as keys ('train', 'test' for example), and `datasets.Dataset` objects as values.
 It also has dataset transform methods like map or filter, to process all the splits at once.
@@ -152,7 +152,7 @@ It also has dataset transform methods like map or filter, to process all the spl
 
 <a id='package_reference_features'></a>
 
-## `IterableDataset`
+## IterableDataset
 
 The base class [`datasets.IterableDataset`] implements an iterable Dataset backed by python generators.
 
@@ -180,13 +180,13 @@ The base class [`datasets.IterableDataset`] implements an iterable Dataset backe
     - supervised_keys
     - version
 
-## `IterableDatasetDict`
+## IterableDatasetDict
 
 Dictionary with split names as keys ('train', 'test' for example), and `datasets.IterableDataset` objects as values.
 
 [[autodoc]] datasets.IterableDatasetDict
 
-## `Features`
+## Features
 
 [[autodoc]] datasets.Features
 
@@ -212,17 +212,17 @@ Dictionary with split names as keys ('train', 'test' for example), and `datasets
 
 [[autodoc]] datasets.Image
 
-## `MetricInfo`
+## MetricInfo
 
 [[autodoc]] datasets.MetricInfo
 
-## `Metric`
+## Metric
 
 The base class `Metric` implements a Metric backed by one or several [`datasets.Dataset`].
 
 [[autodoc]] datasets.Metric
 
-## `Filesystems`
+## Filesystems
 
 
 [[autodoc]] datasets.filesystems.S3FileSystem(anon=False, key=None, secret=None, token=None, use_ssl=True, client_kwargs=None, requester_pays=False, default_block_size=None, default_fill_cache=True, default_cache_type='bytes', version_aware=False, config_kwargs=None, s3_additional_kwargs=None, session=None, username=None, password=None, asynchronous=False, loop=None, **kwargs)
@@ -231,6 +231,6 @@ The base class `Metric` implements a Metric backed by one or several [`datasets.
 
 [[autodoc]] datasets.filesystems.is_remote_filesystem
 
-## `Fingerprint`
+## Fingerprint
 
 [[autodoc]] datasets.fingerprint.Hasher

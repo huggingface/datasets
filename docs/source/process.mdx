@@ -28,7 +28,7 @@ All the processing methods in this guide return a new [`datasets.Dataset`]. Modi
 
 There are several methods for rearranging the structure of a dataset. These methods are useful for selecting only the rows you want, creating train and test splits, and sharding very large datasets into smaller chunks.
 
-### `Sort`
+### Sort
 
 Use [`datasets.Dataset.sort`] to sort a columns values according to their numerical values. The provided column must be NumPy compatible.
 
@@ -42,7 +42,7 @@ Use [`datasets.Dataset.sort`] to sort a columns values according to their numeri
 [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ```
 
-### `Shuffle`
+### Shuffle
 
 The [`datasets.Dataset.shuffle`] method randomly rearranges the values of a column. You can specify the `generator` argument in this method to use a different `numpy.random.Generator` if you want more control over the algorithm used to shuffle the dataset.
 
@@ -52,7 +52,7 @@ The [`datasets.Dataset.shuffle`] method randomly rearranges the values of a colu
 [1, 1, 1, 0, 1, 1, 1, 1, 1, 0]
 ```
 
-### `Select` and `Filter`
+### Select and Filter
 
 There are two options for filtering rows in a dataset: [`datasets.Dataset.select`] and [`datasets.Dataset.filter`].
 
@@ -90,7 +90,7 @@ There are two options for filtering rows in a dataset: [`datasets.Dataset.select
 1834.0
 ```
 
-### `Split`
+### Split
 
 [`datasets.Dataset.train_test_split`] creates train and test splits, if your dataset doesn't already have them. This allows you to adjust the relative proportions or absolute number of samples in each split. In the example below, use the `test_size` argument to create a test split that is 10% of the original dataset:
 
@@ -104,7 +104,7 @@ There are two options for filtering rows in a dataset: [`datasets.Dataset.select
 
 The splits are shuffled by default, but you can set `shuffle=False` to prevent shuffling.
 
-### `Shard`
+### Shard
 
 🤗 Datasets supports sharding to divide a very large dataset into a predefined number of chunks. Specify the `num_shards` argument in [`datasets.Dataset.shard`] to determine the number of shards to split the dataset into. You will also need to provide the shard you want to return with the `index` argument.
 
@@ -136,7 +136,7 @@ Dataset({
 
 The following methods allow you to modify the columns of a dataset. These methods are useful for renaming or removing columns, changing columns to a new set of features, and flattening nested column structures.
 
-### `Rename`
+### Rename
 
 Use [`datasets.Dataset.rename_column`] when you need to rename a column in your dataset. Features associated with the original column are actually moved under the new column name, instead of just replacing the original column in-place.
 
@@ -157,7 +157,7 @@ Dataset({
 })
 ```
 
-### `Remove`
+### Remove
 
 When you need to remove one or more columns, give [`datasets.Dataset.remove_columns`] the name of the column to remove. Remove more than one column by providing a list of column names:
 
@@ -176,7 +176,7 @@ Dataset({
 })
 ```
 
-### `Cast`
+### Cast
 
 [`datasets.Dataset.cast`] changes the feature type of one or more columns. This method takes your new `datasets.Features` as its argument. The following sample code shows how to change the feature types of `datasets.ClassLabel` and `datasets.Value`:
 
@@ -216,7 +216,7 @@ Use [`datasets.Dataset.cast_column`] to change the feature type of just one colu
 {'audio': Audio(sampling_rate=16000, mono=True, id=None)}
 ```
 
-### `Flatten`
+### Flatten
 
 Sometimes a column can be a nested structure of several types. Use [`datasets.Dataset.flatten`] to extract the subfields into their own separate columns. Take a look at the nested structure below from the SQuAD dataset:
 
@@ -244,7 +244,7 @@ Dataset({
 
 Notice how the subfields are now their own independent columns: `answers.text` and `answers.answer_start`.
 
-## `Map`
+## Map
 
 Some of the more powerful applications of 🤗 Datasets come from using [`datasets.Dataset.map`]. The primary purpose of [`datasets.Dataset.map`] is to speed up processing functions. It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.
 

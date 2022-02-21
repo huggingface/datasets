@@ -26,7 +26,7 @@ An [`datasets.IterableDataset`] is useful for iterative jobs like training a mod
 
 </Tip>
 
-## `Shuffle`
+## Shuffle
 
 Like a regular [`datasets.Dataset`] object, you can also shuffle a [`datasets.IterableDataset`] with [`datasets.IterableDataset.shuffle`]. 
 
@@ -84,7 +84,7 @@ You can split your dataset one of two ways:
 
 <a id='interleave_datasets'></a>
 
-## `Interleave`
+## Interleave
 
 [`datasets.interleave_datasets`] can combine an [`datasets.IterableDataset`] with other datasets. The combined dataset returns alternating examples from each of the original datasets. 
 
@@ -119,7 +119,7 @@ Remove columns on-the-fly with [`datasets.IterableDataset.remove_columns`]. Spec
 >>> dataset = dataset.remove_columns('timestamp')
 ```
 
-## `Map`
+## Map
 
 Similar to the [`datasets.Dataset.map`] function for a regular [`datasets.Dataset`], 🤗  Datasets features [`datasets.IterableDataset.map`] for processing [`datasets.IterableDataset`]\s.
 [`datasets.IterableDataset.map`] applies processing on-the-fly when examples are streamed.
