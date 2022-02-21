@@ -381,16 +381,17 @@ def test_xrelpath(input_path, start_path, expected_path):
     "input_paths, expected_path",
     [
         (["dir1/dir2/a.txt", "dir1/dir2/b.txt"], "dir1/dir2/"),
+        (["https://host.com/path/to/a.txt", "https://host.com/path/to/b.txt"], "https://host.com/path/to/"),
+        (
+            ["zip://a.txt::https://host.com/archive.zip", "zip://b.txt::https://host.com/archive.zip"],
+            "zip://::https://host.com/archive.zip",
+        ),
         (
             [
                 "zip://folder/a.txt::https://host.com/archive.zip",
                 "zip://folder/b.txt::https://host.com/archive.zip",
             ],
             "zip://folder/::https://host.com/archive.zip",
-        ),
-        (
-            ["zip://a.txt::https://host.com/archive.zip", "zip://b.txt::https://host.com/archive.zip"],
-            "zip://::https://host.com/archive.zip",
         ),
     ],
 )
