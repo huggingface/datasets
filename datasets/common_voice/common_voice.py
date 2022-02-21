@@ -657,8 +657,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
             ],
         )
 
-    def _split_generators(self, dl_manager, streaming):
+    def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
+        streaming = dl_manager.is_streaming
         archive_path = dl_manager.download(_DATA_URL.format(self.config.name))
         if streaming:
             # Here we use iter_archive in streaming mode because dl_manager.download_and_extract
