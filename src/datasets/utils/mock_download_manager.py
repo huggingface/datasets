@@ -173,7 +173,7 @@ class MockDownloadManager:
         # trick: if there are many shards named like `data.txt-000001-of-00300`, only use the first one
         is_tf_records = all(bool(re.findall("[0-9]{3,}-of-[0-9]{3,}", url)) for url in data_url)
         is_pubmed_records = all(
-            url.startswith("ftp://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed") for url in data_url
+            url.startswith("https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed") for url in data_url
         )
         if is_tf_records or is_pubmed_records:
             data_url = [data_url[0]] * len(data_url)

@@ -112,7 +112,7 @@ The data fields are the same among all splits.
 ### Data Splits
 
 | name       | train |
-| ---------- | ----: |
+|------------|------:|
 | plain_text |  3835 |
 
 ## Dataset Creation
