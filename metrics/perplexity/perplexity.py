@@ -14,11 +14,12 @@
 # limitations under the License.
 """ Perplexity Metric """
 
-
-from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 from tqdm import tqdm
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 import datasets
+
 
 _CITATION = """\
 
@@ -34,39 +35,41 @@ For more information, see https://huggingface.co/docs/transformers/perplexity
 _KWARGS_DESCRIPTION = """
 Args:
     model_id (str): model used for calculating Perplexity
-            NOTE: Perplexity can only be calculated for causal langugae models. 
-                    This includes models such as gpt2, causal variations of bert, 
+            NOTE: Perplexity can only be calculated for causal langugae models.
+                    This includes models such as gpt2, causal variations of bert,
                     causal versions of t5, and more (the full list can be found
                     in the AutoModelForCausalLM documentation here:
                     https://huggingface.co/docs/transformers/master/en/model_doc/auto#transformers.AutoModelForCausalLM )
 
-    input_text (list of str): input text, each separate text snippet
+    input_texts (list of str): input text, each separate text snippet
         is one list entry. Perplexity returned will be an average of
         the perplexity for each list entry.
     stride (int): stride size, defaults to 512
-    device (str): device to run on, defaults to 'cuda'
+    device (str): device to run on, defaults to 'cuda' when available
 Returns:
     perplexity: dictionary containing the average perplexity score for the text
         in the input list.
 Examples:
     Example 1:
-        >>> perplexity = datsets.load_meric("perplexity")
-        >>> input_text = ["lorem ipsum", "Happy Birthday!", "Bienvenue"]
+        >>> perplexity = datasets.load_metric("perplexity")
+        >>> input_texts = ["lorem ipsum", "Happy Birthday!", "Bienvenue"]
         >>> results = perplexity.compute(model_id='gpt2',
-                                        input_text=input_text,
-                                        stride=1)
-        {'perplexity': 646.7385864257812}
+        ...                              input_texts=input_texts,
+        ...                              stride=1)
+        >>> round(results["perplexity"], 2)
+        646.74
 
     Example 2:
         >>> perplexity = datasets.load_metric("perplexity")
-        >>> input_text = datasets.load_dataset("wikitext", "wikitext-2-raw-v1", "test")
+        >>> input_texts = datasets.load_dataset("wikitext", "wikitext-2-raw-v1", "test") # doctest:+ELLIPSIS
+        [...]
         >>> results = perplexity.compute(model_id='gpt2',
-                                        input_text=input_text,
-                                        stride=256)
-        {'perplexity': 8542.330078125}
+        ...                              input_texts=input_texts,
+        ...                              stride=256)
+        >>> round(results["perplexity"], 2)
+        285.12
 
 """
-
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
@@ -78,50 +81,33 @@ class Perplexity(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": None,
-                    "references": None
+                    "input_texts": datasets.Value("string"),
                 }
             ),
-            reference_urls=[
-                "https://huggingface.co/docs/transformers/perplexity"
-            ],
+            reference_urls=["https://huggingface.co/docs/transformers/perplexity"],
         )
 
-    def compute(self, **kwargs):
-        """ Compute perplexity. Overrides the metrics `compute` method.
+    def _compute(self, input_texts, model_id, stride=512, device=None):
 
-        Args:
-            **kwargs: Keyword arguments that will be forwarded
-                        to the perplexity :meth:`_compute` method.
-
-        Return:
-            {perplexity: (float)}
-        """
-
-        return self._compute(**kwargs)
-
-
-    def _compute(
-        self,
-        model_id,
-        input_text,
-        stride=512,
-        device='cuda'):
+        if device is not None:
+            assert device in ["gpu", "cpu"], "device should be either gpu or cpu."
+        else:
+            device = "gpu" if torch.cuda.is_available() else "cpu"
 
         model = AutoModelForCausalLM.from_pretrained(model_id)
         model = model.to(device)
 
         tokenizer = AutoTokenizer.from_pretrained(model_id, pad_token="<PAD>")
 
-        encodings = tokenizer(input_text, padding=True, return_tensors='pt', return_special_tokens_mask=True)
+        encodings = tokenizer(input_texts, padding=True, return_tensors="pt", return_special_tokens_mask=True)
 
-        encoded_texts = encodings['input_ids']
-        special_tokens_masks = encodings['special_tokens_mask']
+        encoded_texts = encodings["input_ids"]
+        special_tokens_masks = encodings["special_tokens_mask"]
 
         max_model_length = model.config.n_positions
 
         ppls = []
-        
+
         for text_index in tqdm(range(0, len(encoded_texts))):
             encoded_text = encoded_texts[text_index]
             special_tokens_mask = special_tokens_masks[text_index]
@@ -136,7 +122,7 @@ class Perplexity(datasets.Metric):
             while target_index < encoded_text_length:
                 start_index = max(0, target_index - (max_model_length - 1))
 
-                input_ids = encoded_text[start_index:target_index+1]
+                input_ids = encoded_text[start_index : target_index + 1]
 
                 target_ids = input_ids.clone()
                 target_ids[:-1] = -100
@@ -147,16 +133,14 @@ class Perplexity(datasets.Metric):
 
                 nlls.append(neg_log_likelihood)
 
-                target_index+=stride
-                num_predictions+=1
+                target_index += stride
+                num_predictions += 1
 
             if len(nlls) > 0:
                 ppls.append(torch.exp(torch.stack(nlls).sum() / num_predictions))
 
-        print(ppls)
         ppl = torch.stack(ppls).sum() / len(encoded_texts)
 
         return {
             "perplexity": float(ppl),
         }
-
