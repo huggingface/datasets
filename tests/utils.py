@@ -1,9 +1,12 @@
 import os
+import sys
 import tempfile
 import unittest
 from contextlib import contextmanager
+from ctypes.util import find_library
 from distutils.util import strtobool
 from enum import Enum
+from importlib.util import find_spec
 from pathlib import Path
 from unittest.mock import patch
 
@@ -133,6 +136,47 @@ def require_pil(test_case):
     """
     if not config.PIL_AVAILABLE:
         test_case = unittest.skip("test requires Pillow")(test_case)
+    return test_case
+
+
+def require_sndfile(test_case):
+    """
+    Decorator marking a test that requires soundfile.
+
+    These tests are skipped when soundfile isn't installed.
+
+    """
+    if (sys.platform != "linux" and find_spec("soundfile") is None) or (
+        sys.platform == "linux" and find_library("sndfile") is None
+    ):
+        test_case = unittest.skip(
+            "test requires 'sndfile': `pip install soundfile`; "
+            "Linux requires sndfile installed with distribution package manager, e.g.: `sudo apt-get install libsndfile1`",
+        )(test_case)
+    return test_case
+
+
+def require_sox(test_case):
+    """
+    Decorator marking a test that requires sox.
+
+    These tests are skipped when sox isn't installed.
+    """
+    if find_library("sox") is None:
+        return unittest.skip("test requires 'sox'; only available in non-Windows, e.g.: `sudo apt-get install sox`")(
+            test_case
+        )
+    return test_case
+
+
+def require_torchaudio(test_case):
+    """
+    Decorator marking a test that requires torchaudio.
+
+    These tests are skipped when torchaudio isn't installed.
+    """
+    if find_spec("sox") is None:
+        return unittest.skip("test requires 'torchaudio'")(test_case)
     return test_case
 
 

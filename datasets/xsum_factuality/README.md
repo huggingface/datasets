@@ -141,10 +141,10 @@ The `is_factual` column has NULL value for some entries which have been replaced
 
 There is only a single split for both the Faithfulness annotations dataset and Factuality annotations dataset.
 
-|                          | Tain  |
-| ------------------------ | ----- |
+|                          | train |
+|--------------------------|------:|
 | Faithfulness annotations | 11185 |
-| Factuality annotations   | 5597  |
+| Factuality annotations   |  5597 |
 
 ## Dataset Creation
 

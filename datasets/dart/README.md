@@ -26,7 +26,7 @@ paperswithcode_id: dart
 pretty_name: DART
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for DART
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -109,9 +109,9 @@ The different fields are:
 
 There are three splits, train, validation and test:
 
-|                  | Tain    | Valid | Test |
-| -----            | ------- | ----- | ---- |
-| N. Examples      | 30526   | 2768  | 6959 |
+|                  | train | validation | test |
+| -----            |------:|-----------:|-----:|
+| N. Examples      | 30526 |       2768 | 6959 |
 
 ## Dataset Creation
 

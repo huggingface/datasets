@@ -40,7 +40,8 @@ covering all Reddit submissions from 2005 up until April 2020, \
 with further months becoming available after the corresponding PushShift dump files are released.
 """
 
-_URL = "https://the-eye.eu/public/AI/pile_preliminary_components/openwebtext2.jsonl.zst.tar"
+_HOST_URL = "https://mystic.the-eye.eu"  # Before: "https://the-eye.eu"
+_URL = f"{_HOST_URL}/public/AI/pile_preliminary_components/openwebtext2.jsonl.zst.tar"
 
 
 class Openwebtext2(datasets.GeneratorBasedBuilder):

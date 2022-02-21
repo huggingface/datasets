@@ -51,12 +51,17 @@ _DOWNLOAD_URLS = {
     "validation": ["%s/dev/nq-dev-%02d.jsonl.gz" % (_BASE_DOWNLOAD_URL, i) for i in range(5)],
 }
 
+_VERSION = datasets.Version("0.0.3")
+
 
 class NaturalQuestions(datasets.BeamBasedBuilder):
     """Natural Questions: A Benchmark for Question Answering Research."""
 
-    VERSION = datasets.Version("0.0.2")
-    SUPPORTED_VERSIONS = [datasets.Version("0.0.1")]
+    BUILDER_CONFIGS = [
+        datasets.BuilderConfig(name="default", version=_VERSION),
+        datasets.BuilderConfig(name="dev", version=_VERSION, description="Only dev split"),
+    ]
+    DEFAULT_CONFIG_NAME = "default"
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -108,20 +113,19 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
 
     def _split_generators(self, dl_manager, pipeline):
         """Returns SplitGenerators."""
-
-        files = dl_manager.download(_DOWNLOAD_URLS)
+        urls = _DOWNLOAD_URLS
+        if self.config.name == "dev":
+            urls = {"validation": urls["validation"]}
+        files = dl_manager.download(urls)
         if not pipeline.is_local():
             files = dl_manager.ship_files_with_pipeline(files, pipeline)
-
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"filepaths": files["train"]},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepaths": files["validation"]},
-            ),
+                name=split,
+                gen_kwargs={"filepaths": files[split]},
+            )
+            for split in [datasets.Split.TRAIN, datasets.Split.VALIDATION]
+            if split in files
         ]
 
     def _build_pcollection(self, pipeline, filepaths):
@@ -133,7 +137,7 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
             html_bytes = ex_json["document_html"].encode("utf-8")
 
             def _parse_short_answer(short_ans):
-                """ "Extract text of short answer."""
+                """Extract text of short answer."""
                 ans_bytes = html_bytes[short_ans["start_byte"] : short_ans["end_byte"]]
                 # Remove non-breaking spaces.
                 ans_bytes = ans_bytes.replace(b"\xc2\xa0", b" ")

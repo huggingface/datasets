@@ -618,7 +618,7 @@ class DatasetBuilder:
                     Please follow the manual download instructions:
                      {self.manual_download_instructions}
                     Manual data can be loaded with:
-                     datasets.load_dataset({self.name}, data_dir='<path/to/manual/data>')"""
+                     datasets.load_dataset("{self.name}", data_dir="<path/to/manual/data>")"""
                 )
             )
 
