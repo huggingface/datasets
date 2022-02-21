@@ -34,7 +34,7 @@ FrugalScore is a reference-based metric for NLG models evaluation. It is based o
 
 
 _KWARGS_DESCRIPTION = """
-Calculates how good are predictions given some references, using certain scores
+Calculates how good are predictions given some references, using certain scores.
 Args:
     predictions (list of str): list of predictions to score. Each predictions
         should be a string.
