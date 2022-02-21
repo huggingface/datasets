@@ -93,7 +93,7 @@ class JsonDatasetWriter:
         else:
             if compression:
                 raise NotImplementedError(
-                    f"The compression parameter is not supported when writing to a buffer, but compression={compression}
+                    f"The compression parameter is not supported when writing to a buffer, but compression={compression}"
                     " was passed. Please provide a local path instead."
                 )
             written = self._write(file_obj=self.path_or_buf, orient=orient, lines=lines, **self.to_json_kwargs)
