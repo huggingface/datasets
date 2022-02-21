@@ -19,7 +19,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Union
 
 import huggingface_hub
 
-from .features import Features
+from .info import DatasetInfo
 from .load import (
     dataset_module_factory,
     extend_dataset_builder_for_streaming,
@@ -123,13 +123,12 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
 
 def get_dataset_infos(
     path: str,
-    revision: Optional[Union[str, Version]] = None,
+    data_files: Optional[Union[Dict, List, str]] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
-    force_local_path: Optional[str] = None,
-    dynamic_modules_path: Optional[str] = None,
-    data_files: Optional[Union[Dict, List, str]] = None,
-    **download_kwargs,
+    revision: Optional[Union[str, Version]] = None,
+    use_auth_token: Optional[Union[bool, str]] = None,
+    **config_kwargs,
 ):
     """Get the meta information about a dataset, returned as a dict mapping config name to DatasetInfoDict.
 
@@ -148,27 +147,31 @@ def get_dataset_infos(
             Specifying a version that is different from your local version of the lib might cause compatibility issues.
         download_config (:class:`DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
-        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-            Used to inspect or modify the script folder.
-        dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
-            Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
-            By default the datasets and metrics are stored inside the `datasets_modules` module.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
-        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied,
-            for example ``use_auth_token``
+        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
+        config_kwargs: optional attributes for builder class which will override the attributes if supplied.
     """
-    dataset_module = dataset_module_factory(
-        path,
+    config_names = get_dataset_config_names(
+        path=path,
         revision=revision,
         download_config=download_config,
         download_mode=download_mode,
-        force_local_path=force_local_path,
-        dynamic_modules_path=dynamic_modules_path,
         data_files=data_files,
-        **download_kwargs,
     )
-    builder_cls = import_main_class(dataset_module.module_path, dataset=True)
-    return builder_cls.get_all_exported_dataset_infos()
+    return {
+        config_name: get_dataset_config_info(
+            path=path,
+            config_name=config_name,
+            data_files=data_files,
+            download_config=download_config,
+            download_mode=download_mode,
+            revision=revision,
+            use_auth_token=use_auth_token,
+            **config_kwargs,
+        )
+        for config_name in config_names
+    }
 
 
 def get_dataset_config_names(
@@ -221,20 +224,17 @@ def get_dataset_config_names(
     return list(builder_cls.builder_configs.keys()) or [dataset_module.builder_kwargs.get("name", "default")]
 
 
-def get_dataset_split_names(
+def get_dataset_config_info(
     path: str,
     config_name: Optional[str] = None,
-    data_dir: Optional[str] = None,
     data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
-    cache_dir: Optional[str] = None,
-    features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     revision: Optional[Union[str, Version]] = None,
     use_auth_token: Optional[Union[bool, str]] = None,
     **config_kwargs,
-):
-    """Get the list of available splits for a particular config and dataset.
+) -> DatasetInfo:
+    """Get the meta information (DatasetInfo) about a dataset for a particular config
 
     Args:
         path (``str``): path to the dataset processing script with the dataset builder. Can be either:
@@ -244,10 +244,7 @@ def get_dataset_split_names(
             - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
-        cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
-        features (:class:`Features`, optional): Set the features type to use for this dataset.
         download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
         download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
         revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
@@ -264,10 +261,7 @@ def get_dataset_split_names(
     builder = load_dataset_builder(
         path,
         name=config_name,
-        data_dir=data_dir,
         data_files=data_files,
-        cache_dir=cache_dir,
-        features=features,
         download_config=download_config,
         download_mode=download_mode,
         revision=revision,
@@ -275,17 +269,65 @@ def get_dataset_split_names(
         **config_kwargs,
     )
     extend_dataset_builder_for_streaming(builder, use_auth_token=use_auth_token)
-    if builder.info.splits is None:
+    info = builder.info
+    if info.splits is None:
         try:
             download_config = download_config.copy() if download_config else DownloadConfig()
             if use_auth_token is not None:
                 download_config.use_auth_token = use_auth_token
-            return [
-                split_generator.name
+            info.splits = {
+                split_generator.name: {"name": split_generator.name, "dataset_name": path}
                 for split_generator in builder._split_generators(
                     StreamingDownloadManager(base_path=builder.base_path, download_config=download_config)
                 )
-            ]
+            }
         except Exception as err:
             raise SplitsNotFoundError("The split names could not be parsed from the dataset config.") from err
-    return list(builder.info.splits.keys())
+    return info
+
+
+def get_dataset_split_names(
+    path: str,
+    config_name: Optional[str] = None,
+    data_files: Optional[Union[str, Sequence[str], Mapping[str, Union[str, Sequence[str]]]]] = None,
+    download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[GenerateMode] = None,
+    revision: Optional[Union[str, Version]] = None,
+    use_auth_token: Optional[Union[bool, str]] = None,
+    **config_kwargs,
+):
+    """Get the list of available splits for a particular config and dataset.
+
+    Args:
+        path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+
+            - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
+                e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
+            - a dataset identifier on the Hugging Face Hub (list all available datasets and ids with ``datasets.list_datasets()``)
+                e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+        config_name (:obj:`str`, optional): Defining the name of the dataset configuration.
+        data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
+        download_config (:class:`~utils.DownloadConfig`, optional): Specific download configuration parameters.
+        download_mode (:class:`GenerateMode`, default ``REUSE_DATASET_IF_EXISTS``): Download/generate mode.
+        revision (:class:`~utils.Version` or :obj:`str`, optional): Version of the dataset script to load:
+
+            - For canonical datasets in the `huggingface/datasets` library like "squad", the default version of the module is the local version of the lib.
+              You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
+            - For community provided datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
+              You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
+        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            If True, will get token from `"~/.huggingface"`.
+        config_kwargs: optional attributes for builder class which will override the attributes if supplied.
+
+    """
+    info = get_dataset_config_info(
+        path,
+        name=config_name,
+        data_files=data_files,
+        download_config=download_config,
+        download_mode=download_mode,
+        revision=revision,
+        use_auth_token=use_auth_token,
+        **config_kwargs,
+    )
+    return list(info.splits.keys())
