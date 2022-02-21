@@ -1849,7 +1849,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
     def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
         """
-        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [`datasets.tasks`](/docs/datasets/package_reference/task_templates).
+        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [datasets.tasks](/docs/datasets/package_reference/task_templates).
 
         Casts [`datasets.DatasetInfo.features`] according to a task-specific schema. Intended for single-use only, so all task templates are removed from [`datasets.DatasetInfo.task_templates`] after casting.
 
