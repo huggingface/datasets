@@ -7,7 +7,7 @@ import pytest
 from datasets import Dataset, concatenate_datasets, load_dataset
 from datasets.features import Audio, Features, Sequence, Value
 
-from ..utils import require_sndfile, require_libsndfile, require_sox, require_torchaudio
+from ..utils import require_libsndfile, require_sndfile, require_sox, require_torchaudio
 
 
 @pytest.fixture()
