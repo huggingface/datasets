@@ -1474,29 +1474,9 @@ class Features(dict):
                     no_change = False
                     flattened.update({f"{column_name}.{k}": Sequence(v) for k, v in subfeature.feature.items()})
                     del flattened[column_name]
-                elif isinstance(subfeature, Translation):
+                elif hasattr(subfeature, "flatten") and subfeature.flatten() != subfeature:
                     no_change = False
-                    flattened.update({f"{column_name}.{k}": Value("string") for k in sorted(subfeature.languages)})
-                    del flattened[column_name]
-                elif isinstance(subfeature, TranslationVariableLanguages):
-                    no_change = False
-                    flattened.update(
-                        {
-                            f"{column_name}.language": Sequence(Value("string")),
-                            f"{column_name}.translation": Sequence(Value("string")),
-                        }
-                    )
-                    del flattened[column_name]
-                elif isinstance(subfeature, Audio) and subfeature.decode:
-                    raise ValueError("Cannot flatten decodable Audio feature")
-                elif isinstance(subfeature, (Audio, Image)) and not subfeature.decode:
-                    no_change = False
-                    flattened.update(
-                        {
-                            f"{column_name}.bytes": Value("binary"),
-                            f"{column_name}.path": Value("string"),
-                        }
-                    )
+                    flattened.update({f"{column_name}.{k}": v for k, v in subfeature.flatten().items()})
                     del flattened[column_name]
             self = flattened
             if no_change:

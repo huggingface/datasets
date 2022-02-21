@@ -1,12 +1,16 @@
 from dataclasses import dataclass, field
 from io import BytesIO
-from typing import Any, ClassVar, Optional, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Union
 
 import pyarrow as pa
 
 from ..table import array_cast
 from ..utils.py_utils import no_op_if_value_is_null
 from ..utils.streaming_download_manager import xopen
+
+
+if TYPE_CHECKING:
+    from .features import FeatureType
 
 
 @dataclass
@@ -102,6 +106,17 @@ class Audio:
             else:
                 array, sampling_rate = self._decode_non_mp3_path_like(path)
         return {"path": path, "array": array, "sampling_rate": sampling_rate}
+
+    def flatten(self) -> Union["FeatureType", Dict[str, "FeatureType"]]:
+        """If in the decodable state, raise an error, otherwise flatten the feature into a dictionary."""
+        from .features import Value
+
+        if self.decode:
+            raise ValueError("Cannot flatten a decoded Audio feature.")
+        return {
+            "bytes": Value("binary"),
+            "path": Value("string"),
+        }
 
     def cast_storage(self, storage: Union[pa.StringArray, pa.StructArray]) -> pa.StructArray:
         """Cast an Arrow array to the Audio arrow storage type.
