@@ -756,7 +756,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         if os.path.isfile(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME)):
             with open(os.path.join(self.path, config.DATASETDICT_INFOS_FILENAME), encoding="utf-8") as f:
                 dataset_infos: DatasetInfosDict = json.load(f)
-                builder_kwargs["name"] = next(iter(dataset_infos.values()))
+                builder_kwargs["name"] = next(iter(dataset_infos))
                 builder_kwargs["info"] = DatasetInfo.from_dict(dataset_infos[builder_kwargs["name"]])
         return DatasetModule(module_path, hash, builder_kwargs)
 
