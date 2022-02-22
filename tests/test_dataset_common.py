@@ -28,7 +28,7 @@ from datasets.features import ClassLabel, Features, Value
 from datasets.load import dataset_module_factory, import_main_class, load_dataset
 from datasets.packaged_modules import _PACKAGED_DATASETS_MODULES
 from datasets.search import _has_faiss
-from datasets.utils.download_manager import GenerateMode
+from datasets.utils.download_manager import DownloadMode
 from datasets.utils.file_utils import DownloadConfig, cached_path, is_remote_url
 from datasets.utils.logging import get_logger
 from datasets.utils.mock_download_manager import MockDownloadManager
@@ -176,7 +176,7 @@ class DatasetTester:
                 # generate examples from dummy data
                 dataset_builder.download_and_prepare(
                     dl_manager=mock_dl_manager,
-                    download_mode=GenerateMode.FORCE_REDOWNLOAD,
+                    download_mode=DownloadMode.FORCE_REDOWNLOAD,
                     ignore_verifications=True,
                     try_from_hf_gcs=False,
                 )
@@ -264,7 +264,7 @@ class LocalDatasetTest(parameterized.TestCase):
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as temp_cache_dir:
             dataset = load_dataset(
-                path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                path, name=name, cache_dir=temp_cache_dir, download_mode=DownloadMode.FORCE_REDOWNLOAD
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
@@ -281,7 +281,7 @@ class LocalDatasetTest(parameterized.TestCase):
         for name in config_names:
             with tempfile.TemporaryDirectory() as temp_cache_dir:
                 dataset = load_dataset(
-                    path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                    path, name=name, cache_dir=temp_cache_dir, download_mode=DownloadMode.FORCE_REDOWNLOAD
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)

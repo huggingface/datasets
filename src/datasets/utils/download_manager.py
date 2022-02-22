@@ -24,6 +24,7 @@ from functools import partial
 from typing import Dict, Optional, Union
 
 from .. import config, utils
+from .deprecation_utils import DeprecatedEnum
 from .file_utils import (
     DownloadConfig,
     cached_path,
@@ -40,7 +41,7 @@ from .py_utils import NestedDataStructure, map_nested, size_str
 logger = get_logger(__name__)
 
 
-class GenerateMode(enum.Enum):
+class DownloadMode(enum.Enum):
     """`Enum` for how to treat pre-existing downloads and data.
 
     The default mode is `REUSE_DATASET_IF_EXISTS`, which will reuse both
@@ -64,7 +65,19 @@ class GenerateMode(enum.Enum):
     FORCE_REDOWNLOAD = "force_redownload"
 
 
+class GenerateMode(DeprecatedEnum):
+    REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
+    REUSE_CACHE_IF_EXISTS = "reuse_cache_if_exists"
+    FORCE_REDOWNLOAD = "force_redownload"
+
+    @property
+    def help_message(self):
+        return "Use 'DownloadMode' instead."
+
+
 class DownloadManager:
+    is_streaming = False
+
     def __init__(
         self,
         dataset_name: Optional[str] = None,

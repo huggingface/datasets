@@ -3,6 +3,7 @@ from io import BytesIO
 from typing import Any, ClassVar, Optional, Union
 
 import pyarrow as pa
+from packaging import version
 
 from ..table import array_cast
 from ..utils.py_utils import no_op_if_value_is_null
@@ -96,6 +97,11 @@ class Audio:
             raise ValueError(f"An audio sample should have one of 'path' or 'bytes' but both are None in {value}.")
         elif path is not None and path.endswith("mp3"):
             array, sampling_rate = self._decode_mp3(file if file else path)
+        elif path is not None and path.endswith("opus"):
+            if file:
+                array, sampling_rate = self._decode_non_mp3_file_like(file, "opus")
+            else:
+                array, sampling_rate = self._decode_non_mp3_path_like(path, "opus")
         else:
             if file:
                 array, sampling_rate = self._decode_non_mp3_file_like(file)
@@ -162,23 +168,38 @@ class Audio:
         storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
         return array_cast(storage, self.pa_type)
 
-    def _decode_non_mp3_path_like(self, path):
+    def _decode_non_mp3_path_like(self, path, format=None):
         try:
             import librosa
         except ImportError as err:
             raise ImportError("To support decoding audio files, please install 'librosa'.") from err
 
+        if format == "opus":
+            import soundfile
+
+            if version.parse(soundfile.__libsndfile_version__) < version.parse("1.0.30"):
+                raise RuntimeError(
+                    "Decoding .opus files requires 'libsndfile'>=1.0.30, "
+                    + "it can be installed via conda: `conda install -c conda-forge libsndfile>=1.0.30`"
+                )
+
         with xopen(path, "rb") as f:
             array, sampling_rate = librosa.load(f, sr=self.sampling_rate, mono=self.mono)
         return array, sampling_rate
 
-    def _decode_non_mp3_file_like(self, file):
+    def _decode_non_mp3_file_like(self, file, format=None):
         try:
             import librosa
             import soundfile as sf
         except ImportError as err:
             raise ImportError("To support decoding audio files, please install 'librosa' and 'soundfile'.") from err
 
+        if format == "opus":
+            if version.parse(sf.__libsndfile_version__) < version.parse("1.0.30"):
+                raise RuntimeError(
+                    "Decoding .opus files requires 'libsndfile'>=1.0.30, "
+                    + "it can be installed via conda: `conda install -c conda-forge libsndfile>=1.0.30`"
+                )
         array, sampling_rate = sf.read(file)
         array = array.T
         if self.mono:

@@ -43,7 +43,7 @@ After you download a dataset, control how it is loaded by :func:`datasets.load_d
    >>> from datasets import load_dataset
    >>> dataset = load_dataset('squad', download_mode='force_redownload')
 
-Refer to :class:`datasets.GenerateMode` for a full list of download modes.
+Refer to :class:`datasets.DownloadMode` for a full list of download modes.
 
 Cache files
 -----------
