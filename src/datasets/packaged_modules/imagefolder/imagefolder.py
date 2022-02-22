@@ -1,7 +1,7 @@
 import os
 import re
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
 import datasets
 from datasets.tasks.image_classification import ImageClassification
@@ -20,8 +20,8 @@ class ImageFolderConfig(datasets.BuilderConfig):
 class ImageFolder(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = ImageFolderConfig
 
-    IMAGE_EXTENSIONS = []  # defined at the bottom of the script
-    CLASS_PATTERN_RE = re.compile(r"\w+")
+    IMAGE_EXTENSIONS: List[str] = []  # defined at the bottom of the script
+    CLASS_PATTERN_RE: re.Pattern = re.compile(r"\w+")
 
     def __init__(self, *args, **kwargs):
         self.prefixes = {}
