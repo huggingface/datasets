@@ -56,7 +56,7 @@ There are two features:
 
 """
 
-_URL = "https://drive.google.com/uc?export=download&id=1USoQ8lJgN8kAWnUnRrupMGrPMLlDVqlV"
+_URL = "https://drive.google.com/uc?export=download&id=1USoQ8lJgN8kAWnUnRrupMGrPMLlDVqlV&confirm=t"
 
 _DOCUMENT = "document"
 _SUMMARY = "summary"
