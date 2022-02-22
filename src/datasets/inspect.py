@@ -322,7 +322,7 @@ def get_dataset_split_names(
     """
     info = get_dataset_config_info(
         path,
-        name=config_name,
+        config_name=config_name,
         data_files=data_files,
         download_config=download_config,
         download_mode=download_mode,
