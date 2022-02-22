@@ -157,9 +157,9 @@ def require_sndfile(test_case):
     return test_case
 
 
-def require_libsndfile(test_case):
+def require_libsndfile_with_opus(test_case):
     """
-    Decorator marking a test that requires libsndfile>=1.0.30.
+    Decorator marking a test that requires libsndfile>=1.0.30 (version that is required for opus decoding).
 
     These tests are skipped when libsndfile is <1.0.30.
 
