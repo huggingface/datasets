@@ -1,57 +1,26 @@
 Share
 ======
 
-At Hugging Face, we are on a mission to democratize NLP and we believe in the value of open source. That's why we designed 🤗 Datasets so that anyone can share a dataset with the greater NLP community. There are currently over 900 datasets in over 100 languages in the Hugging Face Hub, and the Hugging Face team always welcomes new contributions!
+At Hugging Face, we are on a mission to democratize good Machine Learning and we believe in the value of open source. That's why we designed 🤗 Datasets so that anyone can share a dataset with the greater ML community. There are currently thousands datasets in over 100 languages in the Hugging Face Hub, and the Hugging Face team always welcomes new contributions!
 
-This guide will show you how to share a dataset that can be easily accessed by anyone.
+Dataset repositories offer you nice features such as:
 
-There are two options to share a new dataset:
-
-- Directly upload it on the Hub as a community provided dataset.
-- Add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗 Datasets <https://github.com/huggingface/datasets>`__.
-
-Community vs. canonical
------------------------
-
-Both options offer the same features such as:
-
+- Free dataset hosting
 - Dataset versioning
 - Commit history and diffs
 - Metadata for discoverability
 - Dataset cards for documentation, licensing, limitations, etc.
 
-The main differences between the two are highlighted in the table below:
-
-.. list-table::
-    :header-rows: 1
-
-    * - Community datasets
-      - Canonical datasets
-    * - Faster to share, no review process.
-      - Slower to add, needs to be reviewed.
-    * - Data files can be stored on the Hub.
-      - Data files are typically retrieved from the original host URLs.
-    * - Identified by a user or organization namespace like **thomwolf/my_dataset** or **huggingface/our_dataset**.
-      - Identified by a root namespace. Need to select a short name that is available.
-    * - Requires data files and/or a dataset loading script.
-      - Always requires a dataset loading script.
-    * - Flagged as **unsafe** because the dataset contains executable code.
-      - Flagged as **safe** because the dataset has been reviewed.
-
-For community datasets, if your dataset is in a supported format, you can skip directly below to learn how to upload your files and add a :doc:`dataset card <dataset_card>`. There is no need to write your own dataset loading script (unless you want more control over how to load your dataset). However, if the dataset isn't in one of the supported formats, you will need to write a :doc:`dataset loading script <dataset_script>`. The dataset loading script is a Python script that defines the dataset splits, feature types, and how to download and process the data.
-
-On the other hand, a dataset script is always required for canonical datasets.
-
-.. important::
-
-    The distinction between a canonical and community dataset is based solely on the selected sharing workflow. It does not involve any ranking, decisioning, or opinion regarding the contents of the dataset itself.
+This guide will show you how to share a dataset that can be easily accessed by anyone.
 
 .. _upload_dataset_repo:
 
-Add a community dataset
------------------------
+Add a dataset
+-------------
 
 You can share your dataset with the community with a dataset repository on the Hugging Face Hub.
+It can also be a private dataset if you want to control who has access to it.
+
 In a dataset repository, you can either host all your data files and/or use a dataset script.
 
 The dataset script is optional if your dataset is in one of the following formats: CSV, JSON, JSON lines, text or Parquet.
@@ -113,11 +82,11 @@ Prepare your files
 
 * ``README.md`` is a Dataset card that describes the datasets contents, creation, and usage. To write a Dataset card, see the :doc:`dataset card <dataset_card>` page.
 
-* The raw data files of the dataset (optional, if they are hosted elsewhere you can specify the URLs in the dataset script).
+* The raw data files of the dataset (optional, if they are hosted elsewhere you can specify the URLs in the dataset script). If you don't need a dataset script, you can take a look at :doc:`how to structure your dataset repository for your data files <repository_structure>`.
 
 * ``your_dataset_name.py`` is your dataset loading script (optional if your data files are already in the supported formats csv/jsonl/json/parquet/txt). To create a dataset script, see the :doc:`dataset script <dataset_script>` page.
 
-* ``dataset_infos.json`` contains metadata about the dataset (required only if you have a dataset script).
+* ``dataset_infos.json`` contains metadata about the dataset (required only if you have a dataset script, or if you want to specify custom feature types).
 
 Upload your files
 ^^^^^^^^^^^^^^^^^
@@ -157,67 +126,18 @@ Congratulations, your dataset has now been uploaded to the Hugging Face Hub wher
 
    dataset = load_dataset("namespace/your_dataset_name")
 
-Add a canonical dataset
------------------------
 
-Canonical datasets are dataset scripts hosted in the GitHub repository of the 🤗 Dataset library.
-The code of these datasets are reviewed by the Hugging Face team, and they require test data in order to be regularly tested.
+Datasets on GitHub (legacy)
+---------------------------
 
-Clone the repository
-^^^^^^^^^^^^^^^^^^^^
+Most datasets have been added on the GitHub repository of the huggingface/datasets repository before being moved to the Hugging face Hub.
+Editing them still has to be done using Pull Requests on GitHub for now.
 
-To share a canonical dataset:
+.. important::
 
-1. Fork the 🤗 `Datasets repository <https://github.com/huggingface/datasets>`_ by clicking on the **Fork** button.
+    The distinction between a Hub dataset and a dataset from GitHub only comes from the legacy sharing workflow. It does not involve any ranking, decisioning, or opinion regarding the contents of the dataset itself.
 
-2. Clone your fork to your local disk, and add the base repository as a remote:
 
-.. code-block::
+The code of these datasets are reviewed by the Hugging Face team and is considered **safe**, and they require test data in order to be regularly tested.
 
-   git clone https://github.com/<your_GitHub_handle>/datasets
-   cd datasets
-   git remote add upstream https://github.com/huggingface/datasets.git
-
-Prepare your files
-^^^^^^^^^^^^^^^^^^
-
-3. Create a new branch to hold your changes. You can name the new branch using the short name of your dataset:
-
-.. code::
-
-   git checkout -b my-new-dataset
-
-4. Set up a development environment by running the following command in a virtual environment:
-
-.. code::
-
-   pip install -e ".[dev]"
-
-5. Create a new folder with the dataset name inside ``huggingface/datasets``, and add the dataset loading script. To create a dataset script, see the :doc:`dataset script <dataset_script>` page.
-
-6. Check your directory to ensure the only files you're uploading are:
-
-* ``README.md`` is a Dataset card that describes the datasets contents, creation, and usage. To write a Dataset card, see the :doc:`dataset card <dataset_card>` page.
-
-* ``your_dataset_name.py`` is your dataset loading script.
-
-* ``dataset_infos.json`` contains metadata about the dataset.
-
-* ``dummy`` folder with ``dummy_data.zip`` files that hold a small subset of data from the dataset for tests and preview.
-
-7. Run `Black <https://black.readthedocs.io/en/stable/index.html>`_ and `isort <https://pycqa.github.io/isort/>`_ to tidy up your code and files:
-
-.. code-block::
-
-   make style
-   make quality
-
-8. Add your changes, and make a commit to record your changes locally. Then you can push the changes to your account:
-
-.. code-block::
-
-   git add datasets/<my-new-dataset>
-   git commit
-   git push -u origin my-new-dataset
-
-9. Go back to your fork on GitHub, and click on **Pull request** to open a pull request on the main 🤗 `Datasets repository <https://github.com/huggingface/datasets>`_ for review.
+For more info, please take a look at the documentation on [How to add a new dataset in the huggingface/datasets repository](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md).

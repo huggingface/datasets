@@ -8,15 +8,23 @@ ELI5: ``load_dataset``
 
 Let's begin with a basic Explain Like I'm Five.
 
-For community datasets, :func:`datasets.load_dataset` downloads and imports the dataset loading script associated with the requested dataset from the Hugging Face Hub. The Hub is a central repository where all the Hugging Face datasets and models are stored. Code in the loading script defines the dataset information (description, features, URL to the original files, etc.), and tells 🤗 Datasets how to generate and display examples from it.
+A dataset is a directory that contains:
 
-If you are working with a canonical dataset, :func:`datasets.load_dataset` downloads and imports the dataset loading script from GitHub.
+- some data files in generic formats (JSON, CSV, Parquet, text, etc.)
+- and optionally a dataset script, if it requires some code to read the data files. This is used to load any kind of formats or structures.
+
+The :func:`datasets.load_dataset` function fetches the requested dataset, locally or from the Hugging Face Hub.
+The Hub is a central repository where all the Hugging Face datasets and models are stored.
+
+If the dataset only contains data files alone, then :func:`datasets.load_dataset` automatically infers how to load the data files from their extensions (json, csv, parquet, txt, etc.).
+If the dataset has a dataset script, then it downloads and imports it from the Hugging Face Hub. 
+Code in the loading script defines the dataset information (description, features, URL to the original files, etc.), and tells 🤗 Datasets how to generate and display examples from it.
 
 .. seealso::
 
-   Read the :doc:`Share <./share>` section to learn more about the difference between community and canonical datasets. This section also provides a step-by-step guide on how to write your own dataset loading script!
+   Read the :doc:`Share <./share>` section to learn more about how to share a dataset. This section also provides a step-by-step guide on how to write your own dataset loading script!
 
-The loading script downloads the dataset files from the original URL, generates the dataset and caches it in an Arrow table on your drive. If you've downloaded the dataset before, then 🤗 Datasets will reload it from the cache to save you the trouble of downloading it again.
+The dataset script downloads the dataset files from the original URL, generates the dataset and caches it in an Arrow table on your drive. If you've downloaded the dataset before, then 🤗 Datasets will reload it from the cache to save you the trouble of downloading it again.
 
 Now that you have a high-level understanding about how datasets are built, let's take a closer look at the nuts and bolts of how all this works.
 
