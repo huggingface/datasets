@@ -740,6 +740,8 @@ class StreamingDownloadManager:
     builtin `open` function to stream data from remote files.
     """
 
+    is_streaming = True
+
     def __init__(
         self,
         dataset_name: Optional[str] = None,

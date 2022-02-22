@@ -32,6 +32,7 @@ logger = get_logger(__name__)
 class MockDownloadManager:
     dummy_file_name = "dummy_data"
     datasets_scripts_dir = "datasets"
+    is_streaming = False
 
     def __init__(
         self,
