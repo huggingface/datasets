@@ -16,16 +16,13 @@ class HfFileSystem(AbstractFileSystem):
 
     def __init__(
         self,
-        repo_info: Optional[str] = None,
+        repo_info: Optional[DatasetInfo] = None,
         token: Optional[str] = None,
         **kwargs,
     ):
         """
-        The compressed file system can be instantiated from any compressed file.
-        It reads the contents of compressed file as a filesystem with one file inside, as if it was an archive.
-
-        The single file inside the filesystem is named after the compresssed file,
-        without the compression extension at the end of the filename.
+        The file system can be instantiated using a huggingface_hub.hf_api.DatasetInfo object,
+        and can be used to list and open files from a Hugging Face dataset repository with fsspec.
 
         Args:
             repo_info (:obj:``DatasetInfo``, `optional`):
