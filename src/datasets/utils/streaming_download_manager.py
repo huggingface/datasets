@@ -215,6 +215,34 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
         return fs.isfile(main_hop)
 
 
+def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> int:
+    """Extend `os.path.getsize` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`int`, optional
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.path.getsize(path)
+    else:
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        size = fs.size(main_hop)
+        if size is None:
+            # use xopen instead of fs.open to make data fetching more robust
+            with xopen(path, use_auth_token=use_auth_token) as f:
+                size = len(f.read())
+        return size
+
+
 def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     """Extend `os.path.isdir` function to support remote files.
 
@@ -711,6 +739,8 @@ class StreamingDownloadManager:
     data, but they rather return the path or url that could be opened using the `xopen` function which extends the
     builtin `open` function to stream data from remote files.
     """
+
+    is_streaming = True
 
     def __init__(
         self,

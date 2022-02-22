@@ -561,7 +561,7 @@ class CanonicalDatasetModuleFactory(_DatasetModuleFactory):
         )
         # make the new module to be noticed by the import system
         importlib.invalidate_caches()
-        builder_kwargs = {"hash": hash, "base_path": hf_github_url(self.name, "", revision=revision)}
+        builder_kwargs = {"hash": hash, "base_path": hf_hub_url(self.name, "", revision=self.revision)}
         return DatasetModule(module_path, hash, builder_kwargs)
 
 

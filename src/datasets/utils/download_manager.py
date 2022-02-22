@@ -76,6 +76,8 @@ class GenerateMode(DeprecatedEnum):
 
 
 class DownloadManager:
+    is_streaming = False
+
     def __init__(
         self,
         dataset_name: Optional[str] = None,

@@ -38,6 +38,7 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 
 # Imports
+PANDAS_VERSION = version.parse(importlib_metadata.version("pandas"))
 PYARROW_VERSION = version.parse(importlib_metadata.version("pyarrow"))
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()

@@ -100,7 +100,6 @@ Class Label Mappings:
 
 ### Data Splits
 
- 
 |               | train |
 |---------------|------:|
 | # of examples | 23410 |
