@@ -1,3 +1,4 @@
+import os
 import tempfile
 import time
 import unittest
@@ -6,10 +7,12 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
+import numpy as np
 from huggingface_hub import HfApi
 from huggingface_hub.hf_api import HfFolder
 
-from datasets import ClassLabel, Dataset, DatasetDict, Features, Value, load_dataset
+from datasets import Audio, ClassLabel, Dataset, DatasetDict, Features, Image, Value, load_dataset
+from tests.utils import require_pil, require_sndfile
 
 
 REPO_NAME = f"repo-{int(time.time() * 10e3)}"
@@ -308,15 +311,70 @@ class TestPushToHub(TestCase):
         ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
         try:
             ds.push_to_hub(ds_name, token=self._token)
-            hub_ds = load_dataset(ds_name, download_mode="force_redownload")
+            hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
 
-            self.assertListEqual(ds.column_names, hub_ds["train"].column_names)
-            self.assertListEqual(list(ds.features.keys()), list(hub_ds["train"].features.keys()))
-            self.assertDictEqual(ds.features, hub_ds["train"].features)
+            self.assertListEqual(ds.column_names, hub_ds.column_names)
+            self.assertListEqual(list(ds.features.keys()), list(hub_ds.features.keys()))
+            self.assertDictEqual(ds.features, hub_ds.features)
+            self.assertEqual(ds[:], hub_ds[:])
         finally:
             self._api.delete_repo(
                 ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"
             )
+
+    @require_sndfile
+    def test_push_dataset_to_hub_custom_features_audio(self):
+        audio_path = os.path.join(os.path.dirname(__file__), "features", "data", "test_audio_44100.wav")
+        data = {"x": [audio_path], "y": [0]}
+        features = Features({"x": Audio(), "y": Value("int32")})
+        ds = Dataset.from_dict(data, features=features)
+
+        for embed_external_files in [True, False]:
+            ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+            try:
+                ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
+                hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
+
+                self.assertListEqual(ds.column_names, hub_ds.column_names)
+                self.assertListEqual(list(ds.features.keys()), list(hub_ds.features.keys()))
+                self.assertDictEqual(ds.features, hub_ds.features)
+                np.testing.assert_equal(ds[0]["x"]["array"], hub_ds[0]["x"]["array"])
+                hub_ds = hub_ds.cast_column("x", Audio(decode=False))
+                elem = hub_ds[0]["x"]
+                path, bytes_ = elem["path"], elem["bytes"]
+                self.assertTrue(bool(path) == (not embed_external_files))
+                self.assertTrue(bool(bytes_) == embed_external_files)
+            finally:
+                self._api.delete_repo(
+                    ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"
+                )
+
+    @require_pil
+    def test_push_dataset_to_hub_custom_features_image(self):
+        image_path = os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
+        data = {"x": [image_path], "y": [0]}
+        features = Features({"x": Image(), "y": Value("int32")})
+        ds = Dataset.from_dict(data, features=features)
+
+        for embed_external_files in [True, False]:
+            ds_name = f"{USER}/test-{int(time.time() * 10e3)}"
+            try:
+                ds.push_to_hub(ds_name, embed_external_files=embed_external_files, token=self._token)
+                hub_ds = load_dataset(ds_name, split="train", download_mode="force_redownload")
+
+                self.assertListEqual(ds.column_names, hub_ds.column_names)
+                self.assertListEqual(list(ds.features.keys()), list(hub_ds.features.keys()))
+                self.assertDictEqual(ds.features, hub_ds.features)
+                self.assertEqual(ds[:], hub_ds[:])
+                hub_ds = hub_ds.cast_column("x", Image(decode=False))
+                elem = hub_ds[0]["x"]
+                path, bytes_ = elem["path"], elem["bytes"]
+                self.assertTrue(bool(path) == (not embed_external_files))
+                self.assertTrue(bool(bytes_) == embed_external_files)
+            finally:
+                self._api.delete_repo(
+                    ds_name.split("/")[1], organization=ds_name.split("/")[0], token=self._token, repo_type="dataset"
+                )
 
     def test_push_dataset_dict_to_hub_custom_features(self):
         features = Features({"x": Value("int64"), "y": ClassLabel(names=["neg", "pos"])})

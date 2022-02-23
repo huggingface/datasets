@@ -48,7 +48,7 @@ Features includes:
   - upvote_ratio: upvote ratio.
 """
 
-_URL = "https://drive.google.com/uc?export=download&id=1ffWfITKFMJeqjT8loC8aiCLRNJpc_XnF"
+_URL = "https://drive.google.com/uc?export=download&confirm=t&id=1ffWfITKFMJeqjT8loC8aiCLRNJpc_XnF"
 
 _DOCUMENT = "documents"
 _TITLE = "title"

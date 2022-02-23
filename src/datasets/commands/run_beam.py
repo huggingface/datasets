@@ -8,7 +8,7 @@ from datasets import config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.download_manager import DownloadConfig, GenerateMode
+from datasets.utils.download_manager import DownloadConfig, DownloadMode
 
 
 def run_beam_command_factory(args):
@@ -122,9 +122,9 @@ class RunBeamCommand(BaseDatasetsCLICommand):
 
         for builder in builders:
             builder.download_and_prepare(
-                download_mode=GenerateMode.REUSE_CACHE_IF_EXISTS
+                download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS
                 if not self._force_redownload
-                else GenerateMode.FORCE_REDOWNLOAD,
+                else DownloadMode.FORCE_REDOWNLOAD,
                 download_config=DownloadConfig(cache_dir=config.DOWNLOADED_DATASETS_PATH),
                 save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,

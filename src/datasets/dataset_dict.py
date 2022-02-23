@@ -918,6 +918,7 @@ class DatasetDict(dict):
         token: Optional[str] = None,
         branch: Optional[None] = None,
         shard_size: Optional[int] = 500 << 20,
+        embed_external_files: bool = True,
     ):
         """Pushes the ``DatasetDict`` to the hub.
         The ``DatasetDict`` is pushed using HTTP requests and does not need to have neither git or git-lfs installed.
@@ -941,6 +942,11 @@ class DatasetDict(dict):
             shard_size (Optional :obj:`int`):
                 The size of the dataset shards to be uploaded to the hub. The dataset will be pushed in files
                 of the size specified here, in bytes.
+            embed_external_files (:obj:`bool`, default ``True``):
+                Whether to embed file bytes in the shards.
+                In particular, this will do the following before the push for the fields of type:
+
+                - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
 
         Example::
             .. code-block:: python
@@ -957,7 +963,13 @@ class DatasetDict(dict):
             logger.warning(f"Pushing split {split} to the Hub.")
             # The split=key needs to be removed before merging
             repo_id, split, uploaded_size, dataset_nbytes = self[split]._push_parquet_shards_to_hub(
-                repo_id, split=split, private=private, token=token, branch=branch, shard_size=shard_size
+                repo_id,
+                split=split,
+                private=private,
+                token=token,
+                branch=branch,
+                shard_size=shard_size,
+                embed_external_files=embed_external_files,
             )
             total_uploaded_size += uploaded_size
             total_dataset_nbytes += dataset_nbytes

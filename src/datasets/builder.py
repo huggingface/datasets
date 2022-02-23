@@ -48,7 +48,7 @@ from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examp
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
-from .utils.download_manager import DownloadManager, GenerateMode
+from .utils.download_manager import DownloadManager, DownloadMode
 from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
@@ -477,7 +477,7 @@ class DatasetBuilder:
     def download_and_prepare(
         self,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         ignore_verifications: bool = False,
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
@@ -489,7 +489,7 @@ class DatasetBuilder:
 
         Args:
             download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-            download_mode (Optional `datasets.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
+            download_mode (Optional `datasets.DownloadMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
             ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
             save_infos (bool): Save the dataset information (checksums/size/splits/...)
             try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
@@ -500,15 +500,15 @@ class DatasetBuilder:
                 If True, will get token from ~/.huggingface.
 
         """
-        download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
+        download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
         base_path = base_path if base_path is not None else self.base_path
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
                     cache_dir=self._cache_downloaded_dir,
-                    force_download=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
-                    force_extract=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
+                    force_download=bool(download_mode == DownloadMode.FORCE_REDOWNLOAD),
+                    force_extract=bool(download_mode == DownloadMode.FORCE_REDOWNLOAD),
                     use_etag=False,
                     use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
@@ -527,7 +527,7 @@ class DatasetBuilder:
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
-            if data_exists and download_mode == GenerateMode.REUSE_DATASET_IF_EXISTS:
+            if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
                 logger.warning(f"Reusing dataset {self.name} ({self._cache_dir})")
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
@@ -618,7 +618,7 @@ class DatasetBuilder:
                     Please follow the manual download instructions:
                      {self.manual_download_instructions}
                     Manual data can be loaded with:
-                     datasets.load_dataset({self.name}, data_dir='<path/to/manual/data>')"""
+                     datasets.load_dataset("{self.name}", data_dir="<path/to/manual/data>")"""
                 )
             )
 

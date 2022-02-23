@@ -19,7 +19,7 @@ import json
 import re
 import sys
 from collections.abc import Iterable
-from dataclasses import _asdict_inner, dataclass, field, fields
+from dataclasses import InitVar, _asdict_inner, dataclass, field, fields
 from functools import reduce
 from operator import mul
 from typing import Any, ClassVar, Dict, List, Optional
@@ -761,7 +761,7 @@ class ClassLabel:
 
     num_classes: int = None
     names: List[str] = None
-    names_file: Optional[str] = None
+    names_file: InitVar[Optional[str]] = None  # Pseudo-field: ignored by asdict/fields when converting to/from dict
     id: Optional[str] = None
     # Automatically constructed
     dtype: ClassVar[str] = "int64"
@@ -770,7 +770,8 @@ class ClassLabel:
     _int2str: ClassVar[Dict[int, int]] = None
     _type: str = field(default="ClassLabel", init=False, repr=False)
 
-    def __post_init__(self):
+    def __post_init__(self, names_file):
+        self.names_file = names_file
         if self.names_file is not None and self.names is not None:
             raise ValueError("Please provide either names or names_file but not both.")
         # Set self.names
@@ -831,7 +832,7 @@ class ClassLabel:
         """Conversion integer => class name string."""
         if not isinstance(values, int) and not isinstance(values, Iterable):
             raise ValueError(
-                "Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+                f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
             )
         return_list = True
         if isinstance(values, int):
@@ -1146,7 +1147,16 @@ def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.Data
         return pa.array([], type=type)
 
 
-def require_decoding(feature: FeatureType) -> bool:
+def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False) -> bool:
+    """Check if a (possibly nested) feature requires decoding.
+
+    Args:
+        feature (FeatureType): the feature type to be checked
+        ignore_decode_attribute (:obj:`bool`, default ``False``): Whether to ignore the current value
+            of the `decode` attribute of the decodable feature types.
+    Returns:
+        :obj:`bool`
+    """
     if isinstance(feature, dict):
         return any(require_decoding(f) for f in feature.values())
     elif isinstance(feature, (list, tuple)):
@@ -1154,7 +1164,7 @@ def require_decoding(feature: FeatureType) -> bool:
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
     else:
-        return hasattr(feature, "decode_example") and feature.decode
+        return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
 
 
 class Features(dict):
