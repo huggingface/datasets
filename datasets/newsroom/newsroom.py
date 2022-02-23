@@ -84,7 +84,7 @@ class Newsroom(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-  You should download the dataset from http://lil.datasets.cornell.edu/newsroom/
+  You should download the dataset from https://lil.nlp.cornell.edu/newsroom/download/index.html
   The webpage requires registration.
   To unzip the .tar file run `tar -zxvf complete.tar`. To unzip the .gz files
   run `gunzip train.json.gz` , ...
