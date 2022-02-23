@@ -15,7 +15,7 @@
 """ Perplexity Metric """
 
 import torch
-from tqdm import tqdm
+from datasets.utils import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 import datasets
