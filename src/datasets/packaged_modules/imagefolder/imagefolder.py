@@ -1,10 +1,9 @@
 import os
-import re
 from dataclasses import dataclass
-from typing import List, Optional, Pattern, Tuple
+from typing import List, Optional
 
 import datasets
-from datasets.tasks.image_classification import ImageClassification
+from datasets.tasks import ImageClassification
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -20,103 +19,97 @@ class ImageFolderConfig(datasets.BuilderConfig):
 class ImageFolder(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = ImageFolderConfig
 
-    IMAGE_EXTENSIONS: List[str] = []  # defined at the bottom of the script
-    CLASS_PATTERN_RE: Pattern = re.compile(r"\w+")
-
-    @classmethod
-    def _get_class_name(cls, prefix: str, file: str) -> str:
-        file_name = os.path.basename(file)
-        sub_path = file[len(prefix) : -len(file_name)]
-        for class_name_match in cls.CLASS_PATTERN_RE.finditer(sub_path):
-            return class_name_match.group()
+    IMAGE_EXTENSIONS: List[str] = []  # definition at the bottom of the script
 
     def _info(self):
         return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
-        data_files = self.config.data_files
-        if not data_files:
-            raise ValueError(f"At least one data file must be specified, but got data_files={data_files}")
+        if not self.config.data_files:
+            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
 
-        def process_split_files(data_files, downloaded_data_files, find_class_names=False):
-            image_files: List[Tuple[Optional[str], str]] = []
-            for file, downloaded_file in zip(data_files, downloaded_data_files):
+        labels = set()
+
+        def capture_labels_for_split(files, downloaded_files):
+            for file, downloaded_file in zip(files, downloaded_files):
                 file, downloaded_file = str(file), str(downloaded_file)
                 if os.path.isfile(downloaded_file):
                     _, file_ext = os.path.splitext(file)
                     if file_ext in self.IMAGE_EXTENSIONS:
-                        image_files.append(
-                            (file if find_class_names and file != downloaded_file else None, downloaded_file)
-                        )
+                        labels.add(os.path.basename(os.path.dirname(file)))
                 else:
                     for downloaded_dir_file in dl_manager.iter_files([downloaded_file]):
                         _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
                         if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
-                            image_files.append((None, downloaded_dir_file))
-            if find_class_names:
-                image_file_names = [
-                    file if file is not None else downloaded_file for file, downloaded_file in image_files
-                ]
-                prefix = os.path.commonprefix(image_file_names)
-                class_names = {self._get_class_name(prefix, file) for file in image_file_names}
-            else:
-                prefix = None
-                class_names = None
-            return image_files, prefix, class_names
+                            labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
 
-        find_class_names = self.config.features is None
+        data_files = self.config.data_files
         downloaded_data_files = dl_manager.download_and_extract(data_files)
-
-        split_args = []
+        logger.info("Inferring labels from data files...")
+        splits = []
         if isinstance(downloaded_data_files, (str, list, tuple)):
             files, downloaded_files = data_files, downloaded_data_files
             if isinstance(files, str):
                 files, downloaded_files = [files], [downloaded_files]
-            split_image_files, split_prefix, split_class_names = process_split_files(
-                files, downloaded_files, find_class_names=find_class_names
+            capture_labels_for_split(files, downloaded_files)
+            splits.append(
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "files": [
+                            (file, downloaded_file)
+                            if os.path.isfile(downloaded_file)
+                            else (None, dl_manager.iter_files([downloaded_file]))
+                            for file, downloaded_file in zip(files, downloaded_files)
+                        ]
+                    },
+                )
             )
-            split_args.append((str(datasets.Split.TRAIN), split_image_files, split_prefix, split_class_names))
         else:
             for split_name, files in data_files.items():
                 downloaded_files = downloaded_data_files[split_name]
                 if isinstance(files, str):
                     files, downloaded_files = [files], [downloaded_files]
-                split_image_files, split_prefix, split_class_names = process_split_files(
-                    files, downloaded_files, find_class_names=find_class_names
+                capture_labels_for_split(files, downloaded_files)
+                splits.append(
+                    datasets.SplitGenerator(
+                        name=split_name,
+                        gen_kwargs={
+                            "files": [
+                                (file, downloaded_file)
+                                if os.path.isfile(downloaded_file)
+                                else (None, dl_manager.iter_files([downloaded_file]))
+                                for file, downloaded_file in zip(files, downloaded_files)
+                            ]
+                        },
+                    )
                 )
-                split_args.append((split_name, split_image_files, split_prefix, split_class_names))
 
-        class_names = set()
-        if find_class_names:
-            for *_, split_class_names in split_args:
-                class_names |= split_class_names
-            if class_names:
-                self.info.features = datasets.Features(
-                    {"image": datasets.Image(), "label": datasets.ClassLabel(names=sorted(class_names))}
-                )
-                self.info.task_templates = [ImageClassification(image_column="image", label_column="label")]
-            else:
-                self.info.features = datasets.Features({"image": datasets.Image()})
-        else:
-            self.info.features = datasets.Features({"image": datasets.Image()})
-
-        add_label = find_class_names and class_names
-        return [
-            datasets.SplitGenerator(
-                name=split_name,
-                gen_kwargs={"files": split_image_files, "prefix": split_prefix, "add_label": add_label},
+        if self.config.features is None:
+            self.info.features = datasets.Features(
+                {"image": datasets.Image(), "label": datasets.ClassLabel(names=sorted(labels))}
             )
-            for split_name, split_image_files, split_prefix, _ in split_args
-        ]
+            self.info.task_templates = [ImageClassification(image_column="image", label_column="label")]
 
-    def _generate_examples(self, files, prefix, add_label):
-        for i, (file, downloaded_file) in enumerate(files):
-            file = downloaded_file if file is None else file
-            if add_label:
-                ex = {"image": downloaded_file, "label": self._get_class_name(prefix, file)}
+        return splits
+
+    def _generate_examples(self, files):
+        file_idx = 0
+        for file, downloaded_file_or_dir in files:
+            if file is not None:
+                _, file_ext = os.path.splitext(file)
+                if file_ext in self.IMAGE_EXTENSIONS:
+                    yield file_idx, {"image": downloaded_file_or_dir, "label": os.path.basename(os.path.dirname(file))}
+                    file_idx += 1
             else:
-                ex = {"image": downloaded_file}
-            yield i, ex
+                for downloaded_dir_file in downloaded_file_or_dir:
+                    _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
+                    if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
+                        yield file_idx, {
+                            "image": downloaded_dir_file,
+                            "label": os.path.basename(os.path.dirname(downloaded_dir_file)),
+                        }
+                        file_idx += 1
 
 
 # Obtained with:
