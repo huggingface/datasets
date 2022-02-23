@@ -102,7 +102,7 @@ class Newsroom(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(features),
             supervised_keys=(_DOCUMENT, _SUMMARY),
-            homepage="http://lil.datasets.cornell.edu/newsroom/",
+            homepage="https://lil.nlp.cornell.edu/newsroom/index.html",
             citation=_CITATION,
         )
 
