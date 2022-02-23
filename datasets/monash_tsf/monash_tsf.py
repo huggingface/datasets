@@ -116,13 +116,21 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             record="4656096",
             file_name="tourism_monthly_dataset.zip",
         ),
-MonashTSFBuilderConfig(
+        MonashTSFBuilderConfig(
             name="cif_2016",
             version=VERSION,
             description="72 monthly time series originated from the banking domain used in the CIF 2016 forecasting competition.",
             freq="1M",
             record="4656042",
             file_name="cif_2016_dataset.zip",
+        ),
+        MonashTSFBuilderConfig(
+            name="london_smart_meters",
+            version=VERSION,
+            description="5560 half hourly time series that represent the energy consumption readings of London households in kilowatt hour (kWh) from November 2011 to February 2014.",
+            freq="30T",
+            record="4656072",
+            file_name="london_smart_meters_dataset_with_missing_values.zip",
         ),
         MonashTSFBuilderConfig(
             name="oikolab_weather",
