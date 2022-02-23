@@ -13,7 +13,6 @@ from datasets.utils.streaming_download_manager import (
     _as_posix,
     _get_extraction_protocol,
     xbasename,
-    xcommonprefix,
     xgetsize,
     xglob,
     xisdir,
@@ -391,29 +390,6 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
 )
 def test_xrelpath(input_path, start_path, expected_path):
     output_path = xrelpath(input_path, start=start_path)
-    assert output_path == expected_path
-
-
-@pytest.mark.parametrize(
-    "input_paths, expected_path",
-    [
-        (["dir1/dir2/a.txt", "dir1/dir2/b.txt"], "dir1/dir2/"),
-        (["https://host.com/path/to/a.txt", "https://host.com/path/to/b.txt"], "https://host.com/path/to/"),
-        (
-            ["zip://a.txt::https://host.com/archive.zip", "zip://b.txt::https://host.com/archive.zip"],
-            "zip://::https://host.com/archive.zip",
-        ),
-        (
-            [
-                "zip://folder/a.txt::https://host.com/archive.zip",
-                "zip://folder/b.txt::https://host.com/archive.zip",
-            ],
-            "zip://folder/::https://host.com/archive.zip",
-        ),
-    ],
-)
-def test_xcommonprefix(input_paths, expected_path):
-    output_path = xcommonprefix(input_paths)
     assert output_path == expected_path
 
 

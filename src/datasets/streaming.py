@@ -7,7 +7,6 @@ from .utils.logging import get_logger
 from .utils.patching import patch_submodule
 from .utils.streaming_download_manager import (
     xbasename,
-    xcommonprefix,
     xdirname,
     xet_parse,
     xgetsize,
@@ -80,7 +79,6 @@ def extend_module_for_streaming(module_path, use_auth_token: Optional[Union[str,
     patch_submodule(module, "os.path.basename", xbasename).start()
     patch_submodule(module, "os.path.relpath", xrelpath).start()
     patch_submodule(module, "os.path.splitext", xsplitext).start()
-    patch_submodule(module, "os.path.commonprefix", xcommonprefix).start()
     # allow checks on paths
     patch_submodule(module, "os.path.isdir", wrap_auth(xisdir)).start()
     patch_submodule(module, "os.path.isfile", wrap_auth(xisfile)).start()
