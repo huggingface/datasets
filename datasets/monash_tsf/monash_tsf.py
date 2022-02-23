@@ -57,7 +57,7 @@ class MonashTSFBuilderConfig(datasets.BuilderConfig):
     freq: Optional[str] = None
     prediction_length: Optional[int] = None
     item_id_column: Optional[str] = None
-    data_column: Optional[str] = "series_type"
+    data_column: Optional[str] = None
     target_fields: Optional[List[str]] = None
     feat_dynamic_real_fields: Optional[List[str]] = None
     multivariate: bool = False
@@ -90,6 +90,31 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             freq="1D",
             record="4654822",
             file_name="weather_dataset.zip",
+            data_column="series_type",
+        ),
+        MonashTSFBuilderConfig(
+            name="tourism_yearly",
+            version=VERSION,
+            description="This dataset contains 518 yearly time series used in the Kaggle Tourism forecasting competition.",
+            freq="1Y",
+            record="4656103",
+            file_name="tourism_yearly_dataset.zip",
+        ),
+        MonashTSFBuilderConfig(
+            name="tourism_quarterly",
+            version=VERSION,
+            description="This dataset contains 427 quarterly time series used in the Kaggle Tourism forecasting competition.",
+            freq="1QS",
+            record="4656093",
+            file_name="tourism_quarterly_dataset.zip",
+        ),
+        MonashTSFBuilderConfig(
+            name="tourism_monthly",
+            version=VERSION,
+            description="This dataset contains 366 monthly time series used in the Kaggle Tourism forecasting competition.",
+            freq="1M",
+            record="4656096",
+            file_name="tourism_monthly_dataset.zip",
         ),
         MonashTSFBuilderConfig(
             name="oikolab_weather",
@@ -345,6 +370,10 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
                     feat_dynamic_real = None
 
                 feat_static_cat = [cat]
+                if self.config.data_column is not None:
+                    item_id = f"{ts.series_name}-{ts[self.config.data_column]}"
+                else:
+                    item_id = ts.series_name
 
                 if split in ["train", "val"]:
                     offset = forecast_horizon * self.config.rolling_evaluations + forecast_horizon * (split == "train")
@@ -357,5 +386,5 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
                     "target": target,
                     "feat_dynamic_real": feat_dynamic_real,
                     "feat_static_cat": feat_static_cat,
-                    "item_id": f"{ts.series_name}-{ts[self.config.data_column]}",
+                    "item_id": item_id,
                 }
