@@ -85,11 +85,14 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     )
                 )
 
+        # Normally we would do this in _info, but we need to know the labels before building the features
         if self.config.features is None:
             self.info.features = datasets.Features(
                 {"image": datasets.Image(), "label": datasets.ClassLabel(names=sorted(labels))}
             )
-            self.info.task_templates = [ImageClassification(image_column="image", label_column="label")]
+            task_template = ImageClassification(image_column="image", label_column="label")
+            task_template = task_template.align_with_features(self.info.features)
+            self.info.task_templates = [task_template]
 
         return splits
 
