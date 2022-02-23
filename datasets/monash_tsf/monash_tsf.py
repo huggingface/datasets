@@ -104,7 +104,7 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             name="tourism_quarterly",
             version=VERSION,
             description="This dataset contains 427 quarterly time series used in the Kaggle Tourism forecasting competition.",
-            freq="1QS",
+            freq="1Q-JAN",
             record="4656093",
             file_name="tourism_quarterly_dataset.zip",
         ),
