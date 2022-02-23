@@ -90,9 +90,11 @@ class Perplexity(datasets.Metric):
     def _compute(self, input_texts, model_id, stride=512, device=None):
 
         if device is not None:
-            assert device in ["gpu", "cpu"], "device should be either gpu or cpu."
+            assert device in ["gpu", "cpu", "cuda"], "device should be either gpu or cpu."
+            if device == "gpu":
+                device = "cuda"
         else:
-            device = "gpu" if torch.cuda.is_available() else "cpu"
+            device = "cuda" if torch.cuda.is_available() else "cpu"
 
         model = AutoModelForCausalLM.from_pretrained(model_id)
         model = model.to(device)
