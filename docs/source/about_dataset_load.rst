@@ -11,14 +11,14 @@ Let's begin with a basic Explain Like I'm Five.
 A dataset is a directory that contains:
 
 - some data files in generic formats (JSON, CSV, Parquet, text, etc.)
-- and optionally a dataset script, if it requires some code to read the data files. This is used to load any kind of formats or structures.
+- An optional dataset script if it requires some code to read the data files. This is used to load files of all formats and structures.
 
-The :func:`datasets.load_dataset` function fetches the requested dataset, locally or from the Hugging Face Hub.
+The :func:`datasets.load_dataset` function fetches the requested dataset locally or from the Hugging Face Hub.
 The Hub is a central repository where all the Hugging Face datasets and models are stored.
 
-If the dataset only contains data files alone, then :func:`datasets.load_dataset` automatically infers how to load the data files from their extensions (json, csv, parquet, txt, etc.).
+If the dataset only contains data files, then :func:`datasets.load_dataset` automatically infers how to load the data files from their extensions (json, csv, parquet, txt, etc.).
 If the dataset has a dataset script, then it downloads and imports it from the Hugging Face Hub. 
-Code in the loading script defines the dataset information (description, features, URL to the original files, etc.), and tells 🤗 Datasets how to generate and display examples from it.
+Code in the dataset script defines the dataset information (description, features, URL to the original files, etc.), and tells 🤗 Datasets how to generate and display examples from it.
 
 .. seealso::
 

@@ -1,9 +1,9 @@
 Share
 ======
 
-At Hugging Face, we are on a mission to democratize good Machine Learning and we believe in the value of open source. That's why we designed 🤗 Datasets so that anyone can share a dataset with the greater ML community. There are currently thousands datasets in over 100 languages in the Hugging Face Hub, and the Hugging Face team always welcomes new contributions!
+At Hugging Face, we are on a mission to democratize good Machine Learning and we believe in the value of open source. That's why we designed 🤗 Datasets so that anyone can share a dataset with the greater ML community. There are currently thousands of datasets in over 100 languages in the Hugging Face Hub, and the Hugging Face team always welcomes new contributions!
 
-Dataset repositories offer you nice features such as:
+Dataset repositories offer features such as:
 
 - Free dataset hosting
 - Dataset versioning
@@ -130,7 +130,7 @@ Congratulations, your dataset has now been uploaded to the Hugging Face Hub wher
 Datasets on GitHub (legacy)
 ---------------------------
 
-Most datasets have been added on the GitHub repository of the huggingface/datasets repository before being moved to the Hugging face Hub.
+Most datasets have been added to the GitHub repository of the huggingface/datasets repository before being moved to the Hugging Face Hub.
 Editing them still has to be done using Pull Requests on GitHub for now.
 
 .. important::
