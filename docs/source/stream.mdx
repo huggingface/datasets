@@ -6,7 +6,8 @@ Dataset streaming lets you get started with a dataset without waiting for the en
 - The dataset size exceeds the amount of disk space on your computer.
 
 <div class="flex justify-center">
-    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/stream.gif"/>
+    <img class="block dark:hidden" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/streaming.gif"/>
+    <img class="hidden dark:block" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/streaming-dark.gif"/>
 </div>
 
 For example, the English split of the [OSCAR](https://huggingface.co/datasets/oscar) dataset is 1.2 terabytes, but you can use it instantly with streaming. Stream a dataset by setting `streaming=True` in [`datasets.load_dataset`] as shown below:
