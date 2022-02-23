@@ -35,7 +35,7 @@ For more information, see https://huggingface.co/docs/transformers/perplexity
 _KWARGS_DESCRIPTION = """
 Args:
     model_id (str): model used for calculating Perplexity
-            NOTE: Perplexity can only be calculated for causal langugae models.
+            NOTE: Perplexity can only be calculated for causal language models.
                     This includes models such as gpt2, causal variations of bert,
                     causal versions of t5, and more (the full list can be found
                     in the AutoModelForCausalLM documentation here:
