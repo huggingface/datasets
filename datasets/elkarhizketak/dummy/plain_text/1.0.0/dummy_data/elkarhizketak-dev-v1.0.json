@@ -1,0 +1,114 @@
+{
+  "data": [
+    {
+      "section_title": "Ibilaldi profesionala.",
+      "title": "Tommy Haas",
+      "paragraphs": [
+        {
+          "id": "C_0ff1663b966e4e26b6d1373fd7ab41e0",
+          "context": "Haas txiki-txikitatik hasi zen tenisean, 2 urte t'erdirekin jada hasia zen erraketa txiki batekin tenis-pilotak bere aitari botatzen. Bere aitak, semeak talentua zeukala ikusterakoan, zeukan diru-kopuru guztia gastatu zuen bere semeari entrenatzaile on bat ordaintzeko. Apustua ez zitzaion batere gaizki atera, izan ere 5 urte beteak zituela, bere lehenengo txapelketa irabazi zuen bere jaioterrian, Hamburgen. Gutxinaka txapelketak irabazten joan zen eta 13 urte zituenean jada Austria, Alemania eta Europako txapelketak irabaziak zituen bigarrengo aldiz. Nick Bollettierik bere talentua ikusterakoan dohain utzi zion bere Floridako akademian sartzen. Beraz, 13 urterekin eta ingelesa ikasi gabe, Haas AEBtara joan zen, serioski entrenatzen hasteko asmoz. 1996an, Haas jokalari profesionala bihurtu zuen eta gorako ibilbidea hartu zuen urte gutxitan izan ere bi urteren buruan bere lehenengo ATP-saria irabazi zuen eta Open Australiarrean final erdietara iritsia zen. 2000. urtean zilarrezko domina irabazi zuen Sidney-ko joko olinpikoetan. 2001 eta 2002 urteak oparoak izan ziren tenislariarentzat, izan ere lehenengo urtean 4 ATP-sari irabazi zituen eta 2002. urtean munduko 2. tenislari onena bilakatu zen. Baina urte hartan, istripu bat gertatu zen, Haasen bizia arriskuan jarriz, gainera bere aita koman geratu zen istripu tragiko hartan. Bere sorbalda hautsi zuen eta zirkuitu-profesionala utzi zuen 2004. urtera arte. Gogo handiz itzuli zen, Andy Roddick, Marat Safin eta Roger Federer bezalako tenislari ospetsuei irabaziz eta urte berean 2 ATP-txapelketa lortuz. 2006. urtean 3 ATP-txapelketa irabazi zituen eta AEB-tako Open ikusgarri bat egin ondoren, zortzirenekoetan kanporatua izan zen hankan lesio txiki bat izan ondoren. Gainera sailkapenean 9. postuan kokatu zen, ondorioz, postu batengatik, ezin izan zuen Masters Kopan sartu. Tommy Haas ezkondua dago eta 2005. urtean jaiotako Sophia alaba dauka. CANNOTANSWER",
+          "qas": [
+            {
+              "question": "Zein sari garrantzitsu irabazi ditu?",
+              "answers": [
+                {
+                  "text": "2001 eta 2002 urteak oparoak izan ziren tenislariarentzat, izan ere lehenengo urtean 4 ATP-sari irabazi zituen eta 2002. urtean munduko 2. tenislari onena bilakatu zen",
+                  "input_text": "2001 eta 2002 urteak oparoak izan ziren tenislariarentzat, izan ere lehenengo urtean 4 ATP-sari irabazi zituen eta 2002. urtean munduko 2. tenislari onena bilakatu zen",
+                  "answer_start": 1042
+                }
+              ],
+              "orig_answer": {
+                "text": "2001 eta 2002 urteak oparoak izan ziren tenislariarentzat, izan ere lehenengo urtean 4 ATP-sari irabazi zituen eta 2002. urtean munduko 2. tenislari onena bilakatu zen",
+                "answer_start": 1042
+              },
+              "id": "C_0ff1663b966e4e26b6d1373fd7ab41e0_q#0",
+              "yesno": "x"
+            },
+            {
+              "question": "Jokatzen jarraitzen du edo erretiratua dago?",
+              "answers": [
+                {
+                  "text": "CANNOTANSWER",
+                  "input_text": "CANNOTANSWER",
+                  "answer_start": 1917
+                }
+              ],
+              "orig_answer": {
+                "text": "CANNOTANSWER",
+                "answer_start": 1917
+              },
+              "id": "C_0ff1663b966e4e26b6d1373fd7ab41e0_q#1",
+              "yesno": "x"
+            },
+            {
+              "question": "Noiz hasi zen profesional gisa jokatzen?",
+              "answers": [
+                {
+                  "text": "1996an, Haas jokalari profesionala bihurtu zuen",
+                  "input_text": "1996an, Haas jokalari profesionala bihurtu zen",
+                  "answer_start": 757
+                }
+              ],
+              "orig_answer": {
+                "text": "1996an, Haas jokalari profesionala bihurtu zuen",
+                "answer_start": 757
+              },
+              "id": "C_0ff1663b966e4e26b6d1373fd7ab41e0_q#2",
+              "yesno": "x"
+            },
+            {
+              "question": "Wimbledonen saririk irabazi du inoiz?",
+              "answers": [
+                {
+                  "text": "2001 eta",
+                  "input_text": "Ez. ",
+                  "answer_start": 1042
+                }
+              ],
+              "orig_answer": {
+                "text": "2001 eta",
+                "answer_start": 1042
+              },
+              "id": "C_0ff1663b966e4e26b6d1373fd7ab41e0_q#3",
+              "yesno": "n"
+            },
+            {
+              "question": "Eta Australiako Openean?",
+              "answers": [
+                {
+                  "text": "Open Australiarrean final erdietara iritsia zen",
+                  "input_text": "Ez. baina Open Australiarrean final erdietara iritsi zen",
+                  "answer_start": 920
+                }
+              ],
+              "orig_answer": {
+                "text": "Open Australiarrean final erdietara iritsia zen",
+                "answer_start": 920
+              },
+              "id": "C_0ff1663b966e4e26b6d1373fd7ab41e0_q#4",
+              "yesno": "n"
+            },
+            {
+              "question": "Olinpiadetan lortu du inoiz medailarik?",
+              "answers": [
+                {
+                  "text": "2000. urtean zilarrezko domina irabazi zuen Sidney-ko joko olinpikoetan",
+                  "input_text": "Bai. 2000. urtean zilarrezko domina irabazi zuen Sidney-ko joko olinpikoetan",
+                  "answer_start": 969
+                }
+              ],
+              "orig_answer": {
+                "text": "2000. urtean zilarrezko domina irabazi zuen Sidney-ko joko olinpikoetan",
+                "answer_start": 969
+              },
+              "id": "C_0ff1663b966e4e26b6d1373fd7ab41e0_q#5",
+              "yesno": "y"
+            }
+          ]
+        }
+      ],
+      "background": "Tommy Haas Alemaniako tenislaria da. ATP-sailkapenean 11. postuan dago, baina 2002an 2. postura iristea lortu zuen."
+    }
+  ]
+}
+  
