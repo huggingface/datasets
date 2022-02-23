@@ -101,7 +101,7 @@ class Perplexity(datasets.Metric):
 
         tokenizer = AutoTokenizer.from_pretrained(model_id, pad_token="<PAD>")
 
-        encodings = tokenizer(input_texts, padding=True, return_tensors="pt", return_special_tokens_mask=True)
+        encodings = tokenizer(input_texts, padding=True, return_tensors="pt", return_special_tokens_mask=True).to(device)
 
         encoded_texts = encodings["input_ids"]
         special_tokens_masks = encodings["special_tokens_mask"]
@@ -118,8 +118,7 @@ class Perplexity(datasets.Metric):
 
             nlls = []
 
-            target_index = 1
-            num_predictions = 0
+            target_index = max(1, min(stride-1, encoded_text_length-1))
 
             while target_index < encoded_text_length:
                 start_index = max(0, target_index - (max_model_length - 1))
@@ -129,19 +128,21 @@ class Perplexity(datasets.Metric):
                 target_ids = input_ids.clone()
                 target_ids[:-1] = -100
 
+                attn_mask = torch.ones(len(input_ids)).to(device)
+                attn_mask[-1] = 0
+
                 with torch.no_grad():
-                    outputs = model(input_ids, labels=target_ids)
+                    outputs = model(input_ids, labels=target_ids, attention_mask=attn_mask)
                     neg_log_likelihood = outputs[0]
 
                 nlls.append(neg_log_likelihood)
 
                 target_index += stride
-                num_predictions += 1
 
             if len(nlls) > 0:
-                ppls.append(torch.exp(torch.stack(nlls).sum() / num_predictions))
+                ppls.append(torch.exp2(torch.mean(torch.stack(nlls))))
 
-        ppl = torch.stack(ppls).sum() / len(encoded_texts)
+        ppl = torch.mean(torch.stack(ppls))
 
         return {
             "perplexity": float(ppl),
