@@ -165,6 +165,14 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             file_name="pedestrian_counts_dataset.zip",
         ),
         MonashTSFBuilderConfig(
+            name="vehicle_trips",
+            version=VERSION,
+            description="329 daily time series representing the number of trips and vehicles belonging to a set of for-hire vehicle (FHV) companies.",
+            freq="1D",
+            record="5122535",
+            file_name="pedestrian_counts_dataset.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="oikolab_weather",
             version=VERSION,
             description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
