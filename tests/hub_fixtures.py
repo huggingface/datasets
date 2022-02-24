@@ -37,7 +37,7 @@ def hf_private_dataset_repo_txt_data_(hf_api: HfApi, hf_token, text_file):
     hf_api.upload_file(
         token=hf_token,
         path_or_fileobj=str(text_file),
-        path_in_repo="data/text_data.txt",
+        path_in_repo="data.txt",
         repo_id=repo_id,
         repo_type="dataset",
     )
