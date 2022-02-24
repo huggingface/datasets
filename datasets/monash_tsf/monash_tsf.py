@@ -177,7 +177,7 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             version=VERSION,
             description="Hourly time series representing the air quality levels in 59 stations in 2 cities from 01/01/2017 to 31/03/2018.",
             freq="1H",
-            record="5122535",
+            record="4656719",
             file_name="kdd_cup_2018_dataset_with_missing_values.zip",
         ),
         MonashTSFBuilderConfig(
