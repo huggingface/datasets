@@ -133,6 +133,14 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             file_name="london_smart_meters_dataset_with_missing_values.zip",
         ),
         MonashTSFBuilderConfig(
+            name="australian_electricity_demand",
+            version=VERSION,
+            description="5 time series representing the half hourly electricity demand of 5 states in Australia: Victoria, New South Wales, Queensland, Tasmania and South Australia.",
+            freq="30T",
+            record="4659727",
+            file_name="australian_electricity_demand_dataset.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="oikolab_weather",
             version=VERSION,
             description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
