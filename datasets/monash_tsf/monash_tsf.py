@@ -173,6 +173,14 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             file_name="vehicle_trips_dataset_with_missing_values.zip",
         ),
         MonashTSFBuilderConfig(
+            name="kdd_cup_2018",
+            version=VERSION,
+            description="Hourly time series representing the air quality levels in 59 stations in 2 cities from 01/01/2017 to 31/03/2018.",
+            freq="1H",
+            record="5122535",
+            file_name="kdd_cup_2018_dataset_with_missing_values.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="oikolab_weather",
             version=VERSION,
             description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
