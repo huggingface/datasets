@@ -141,6 +141,14 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             file_name="australian_electricity_demand_dataset.zip",
         ),
         MonashTSFBuilderConfig(
+            name="wind_farms_minutely",
+            version=VERSION,
+            description="Minutely time series representing the wind power production of 339 wind farms in Australia.",
+            freq="1T",
+            record="4654909",
+            file_name="wind_farms_minutely_dataset_with_missing_values.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="oikolab_weather",
             version=VERSION,
             description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
