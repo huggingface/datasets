@@ -1,5 +1,4 @@
-# coding=utf-8
-# Copyright 2021 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2022 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Perplexity Metric """
+"""Perplexity Metric."""
 
 import torch
-from datasets.utils import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 import datasets
+from datasets.utils import tqdm
 
 
 _CITATION = """\
@@ -57,11 +56,11 @@ Examples:
         ...                              input_texts=input_texts,
         ...                              stride=1)
         >>> round(results["perplexity"], 2)
-        837.04
+        78.22
 
     Example 2:
         >>> perplexity = datasets.load_metric("perplexity")
-        >>> input_texts = datasets.load_dataset("wikitext", "wikitext-2-raw-v1", "test") # doctest:+ELLIPSIS
+        >>> input_texts = datasets.load_dataset("wikitext", "wikitext-2-raw-v1", split="test")["text"]
         [...]
         >>> results = perplexity.compute(model_id='gpt2',
         ...                              input_texts=input_texts,
@@ -101,7 +100,9 @@ class Perplexity(datasets.Metric):
 
         tokenizer = AutoTokenizer.from_pretrained(model_id, pad_token="<PAD>")
 
-        encodings = tokenizer(input_texts, padding=True, return_tensors="pt", return_special_tokens_mask=True).to(device)
+        encodings = tokenizer(input_texts, padding=True, return_tensors="pt", return_special_tokens_mask=True).to(
+            device
+        )
 
         encoded_texts = encodings["input_ids"]
         special_tokens_masks = encodings["special_tokens_mask"]
@@ -118,7 +119,7 @@ class Perplexity(datasets.Metric):
 
             nlls = []
 
-            target_index = max(1, min(stride-1, encoded_text_length-1))
+            target_index = max(1, min(stride - 1, encoded_text_length - 1))
 
             while target_index < encoded_text_length:
                 start_index = max(0, target_index - (max_model_length - 1))
@@ -144,6 +145,4 @@ class Perplexity(datasets.Metric):
 
         ppl = torch.mean(torch.stack(ppls))
 
-        return {
-            "perplexity": float(ppl),
-        }
+        return {"perplexity": float(ppl)}
