@@ -57,7 +57,7 @@ Examples:
         ...                              input_texts=input_texts,
         ...                              stride=1)
         >>> round(results["perplexity"], 2)
-        646.74
+        837.04
 
     Example 2:
         >>> perplexity = datasets.load_metric("perplexity")
@@ -67,7 +67,7 @@ Examples:
         ...                              input_texts=input_texts,
         ...                              stride=256)
         >>> round(results["perplexity"], 2)
-        285.12
+        304.81
 
 """
 
