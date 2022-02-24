@@ -988,8 +988,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
         if pa.types.is_fixed_size_list(pa_type):
             if pa_type.list_size * len(array) == len(array.values):
                 return pa.FixedSizeListArray.from_arrays(
-                    _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str),
-                    pa_type.list_size,
+                    _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str), pa_type.list_size,
                 )
         elif pa.types.is_list(pa_type):
             return pa.ListArray.from_arrays(
@@ -998,8 +997,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     elif pa.types.is_fixed_size_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             return pa.FixedSizeListArray.from_arrays(
-                _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str),
-                pa_type.list_size,
+                _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str), pa_type.list_size,
             )
         elif pa.types.is_list(pa_type):
             offsets_arr = pa.array(range(len(array) + 1), pa.int32())
@@ -1102,6 +1100,7 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
     arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
+
 def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     """Cast an table to the arrow schema. Different from `cast_table_to_features`, this method can preserve nullability.
 
@@ -1113,10 +1112,11 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
         pa.Table: the casted table
     """
     from .features import Features
-    
+
     features = Features.from_arrow_schema(schema)
     arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
     return pa.Table.from_arrays(arrays, schema=schema)
+
 
 def table_cast(table: pa.Table, schema: pa.Schema):
     """Improved version of pa.Table.cast
