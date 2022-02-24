@@ -130,14 +130,16 @@ Congratulations, your dataset has now been uploaded to the Hugging Face Hub wher
 Datasets on GitHub (legacy)
 ---------------------------
 
-Most datasets have been added to the GitHub repository of the huggingface/datasets repository before being moved to the Hugging Face Hub.
-Editing them still has to be done using Pull Requests on GitHub for now.
+Datasets used to be hosted on our GitHub repository, but all datasets have now been migrated to the Hugging Face Hub.
+The legacy GitHub datasets were added originally on our GitHub repository and therefore don't have a namespace: "squad", "glue", etc. unlike the other datasets that are named "username/dataset_name" or "org/dataset_name".
+Those datasets are still maintained, and if you'd like to edit them, please open a Pull Request on the huggingface/datasets repository.
+Sharing your dataset to the Hub is the recommended way of adding a dataset.
 
 .. important::
 
     The distinction between a Hub dataset and a dataset from GitHub only comes from the legacy sharing workflow. It does not involve any ranking, decisioning, or opinion regarding the contents of the dataset itself.
 
 
-The code of these datasets are reviewed by the Hugging Face team and is considered **safe**, and they require test data in order to be regularly tested.
+The code of these datasets are reviewed by the Hugging Face team, and they require test data in order to be regularly tested.
 
 For more info, please take a look at the documentation on [How to add a new dataset in the huggingface/datasets repository](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md).
