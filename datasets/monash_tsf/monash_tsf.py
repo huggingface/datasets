@@ -149,6 +149,14 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             file_name="wind_farms_minutely_dataset_with_missing_values.zip",
         ),
         MonashTSFBuilderConfig(
+            name="bitcoin",
+            version=VERSION,
+            description="18 daily time series including hash rate, block size, mining difficulty etc. as well as public opinion in the form of tweets and google searches mentioning the keyword bitcoin as potential influencer of the bitcoin price.",
+            freq="1D",
+            record="5121965",
+            file_name="bitcoin_dataset_with_missing_values.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="oikolab_weather",
             version=VERSION,
             description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
