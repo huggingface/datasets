@@ -157,6 +157,14 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             file_name="bitcoin_dataset_with_missing_values.zip",
         ),
         MonashTSFBuilderConfig(
+            name="pedestrian_counts",
+            version=VERSION,
+            description="Hourly pedestrian counts captured from 66 sensors in Melbourne city starting from May 2009.",
+            freq="1H",
+            record="4656626",
+            file_name="pedestrian_counts_dataset.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="oikolab_weather",
             version=VERSION,
             description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
