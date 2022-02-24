@@ -38,7 +38,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                     if file_ext in self.IMAGE_EXTENSIONS:
                         labels.add(os.path.basename(os.path.dirname(file)))
                 else:
-                    for downloaded_dir_file in dl_manager.iter_files([downloaded_file]):
+                    for downloaded_dir_file in dl_manager.iter_files(downloaded_file):
                         _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
                         if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
                             labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
@@ -59,7 +59,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                         "files": [
                             (file, downloaded_file)
                             if os.path.isfile(downloaded_file)
-                            else (None, dl_manager.iter_files([downloaded_file]))
+                            else (None, dl_manager.iter_files(downloaded_file))
                             for file, downloaded_file in zip(files, downloaded_files)
                         ]
                     },
@@ -78,7 +78,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                             "files": [
                                 (file, downloaded_file)
                                 if os.path.isfile(downloaded_file)
-                                else (None, dl_manager.iter_files([downloaded_file]))
+                                else (None, dl_manager.iter_files(downloaded_file))
                                 for file, downloaded_file in zip(files, downloaded_files)
                             ]
                         },
