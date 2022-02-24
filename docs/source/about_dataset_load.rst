@@ -111,3 +111,13 @@ If the dataset doesn't pass the verifications, it is likely that the original ho
 In this case, an error is raised to alert that the dataset has changed.
 To ignore the error, one needs to specify ``ignore_verifications=True`` in :func:`load_dataset`.
 Anytime you see a verification error, feel free to `open an issue on GitHub <https://github.com/huggingface/datasets/issues>`_ so that we can update the integrity checks for this dataset.
+
+
+Security
+--------
+
+The dataset repositories on the Hub are scanned for malware, see more information [here](https://huggingface.co/docs/hub/security#malware-scanning).
+
+Moreover the datasets that were constributed on our GitHub repository have all been reviewed by our maintainers.
+The code of these datasets is considered **safe**.
+It concerns datasets that are not under a namespace, e.g. "squad" or "glue", unlike the other datasets that are named "username/dataset_name" or "org/dataset_name".
