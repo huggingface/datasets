@@ -215,6 +215,8 @@ class MockDownloadManager:
                 yield file_path.relative_to(path).as_posix(), file_path.open("rb")
 
     def iter_files(self, paths):
+        if not isinstance(paths, list):
+            paths = [paths]
         for path in paths:
             if os.path.isfile(path):
                 yield path

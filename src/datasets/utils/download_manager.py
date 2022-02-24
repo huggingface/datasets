@@ -21,7 +21,7 @@ import os
 import tarfile
 from datetime import datetime
 from functools import partial
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from .. import config, utils
 from .deprecation_utils import DeprecatedEnum
@@ -272,15 +272,17 @@ class DownloadManager:
             with open(path_or_buf, "rb") as f:
                 yield from _iter_archive(f)
 
-    def iter_files(self, paths):
+    def iter_files(self, paths: Union[str, List[str]]):
         """Iterate over file paths.
 
         Args:
-            paths (list): Root paths.
+            paths (:obj:`str` or :obj:`list` of :obj:`str`): Root paths.
 
         Yields:
             str: File path.
         """
+        if not isinstance(paths, list):
+            paths = [paths]
         for path in paths:
             if os.path.isfile(path):
                 yield path
