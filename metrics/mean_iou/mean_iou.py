@@ -62,23 +62,27 @@ Examples:
 
     >>> from datasets import load_metric
     >>> import numpy as np
-    
-    >>> mean_iou_metric = datasets.load_metric("mean_iou")
+
+    >>> mean_iou = datasets.load_metric("mean_iou")
 
     >>> # suppose one has 3 different segmentation maps predicted
-    >>> predicted_1 = np.array([[1, 2], [3, 4], [5, 6]])
-    >>> actual_1 = np.array([[1, 3], [5, 4], [6, 6]])
+    >>> predicted_1 = np.array([[1, 2], [3, 4], [5, 255]])
+    >>> actual_1 = np.array([[0, 3], [5, 4], [6, 255]])
 
-    >>> predicted_2 = np.array([[2, 2], [9, 2], [3, 6]])
-    >>> actual_2 = np.array([[1, 2], [8, 2], [3, 6]])
+    >>> predicted_2 = np.array([[2, 7], [9, 2], [3, 6]])
+    >>> actual_2 = np.array([[1, 7], [9, 2], [3, 6]])
 
-    >>> predicted_3 = np.array([[2, 2, 3], [8, 2, 4], [3, 6, 2]])
-    >>> actual_3 = np.array([[1, 2, 2], [8, 2, 1], [3, 6, 1]])
+    >>> predicted_3 = np.array([[2, 2, 3], [8, 2, 4], [3, 255, 2]])
+    >>> actual_3 = np.array([[1, 2, 2], [8, 2, 1], [3, 255, 1]])
 
     >>> predicted = [predicted_1, predicted_2, predicted_3]
     >>> ground_truth = [actual_1, actual_2, actual_3]
 
-    >>> results = metric.compute(predictions=predicted, references=ground_truth)
+    >>> results = mean_iou.compute(predictions=predicted, references=ground_truth, num_labels=10, ignore_index=255, reduce_labels=False)
+    >>> print(results)
+    OrderedDict([('mIoU', 0.47750000000000004), ('mAcc', 0.5916666666666666), ('overall_accuracy', 0.5263157894736842), ('per_category_iou', array([0.   , 0.   , 0.375, 0.4  , 0.5  , 0.   , 0.5  , 1.   , 1.   ,
+       1.   ])), ('per_category_accuracy', array([0.        , 0.        , 0.75      , 0.66666667, 1.        ,
+       0.        , 0.5       , 1.        , 1.        , 1.        ]))])
 """
 
 _CITATION = """\
@@ -92,7 +96,14 @@ year = {2020}
 }"""
 
 
-def intersect_and_union(pred_label, label, num_labels, ignore_index, label_map=dict(), reduce_labels=False):
+def intersect_and_union(
+    pred_label,
+    label,
+    num_labels,
+    ignore_index: bool,
+    label_map: Optional[Dict[int, int]] = None,
+    reduce_labels: bool = False,
+):
     """Calculate intersection and Union.
 
     Args:
@@ -105,10 +116,10 @@ def intersect_and_union(pred_label, label, num_labels, ignore_index, label_map=d
         ignore_index (`int`):
             Index that will be ignored during evaluation.
         label_map (`dict`, *optional*):
-            Mapping old labels to new labels. The parameter will work only when label is str. Default: dict().
+            Mapping old labels to new labels. The parameter will work only when label is str.
         reduce_labels (`bool`, *optional*, defaults to `False`):
             Whether or not to reduce all label values of segmentation maps by 1. Usually used for datasets where 0 is used for background,
-        and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
+            and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
 
      Returns:
          area_intersect (`ndarray`):
@@ -149,7 +160,14 @@ def intersect_and_union(pred_label, label, num_labels, ignore_index, label_map=d
     return area_intersect, area_union, area_pred_label, area_label
 
 
-def total_intersect_and_union(results, gt_seg_maps, num_labels, ignore_index, label_map=dict(), reduce_labels=False):
+def total_intersect_and_union(
+    results,
+    gt_seg_maps,
+    num_labels,
+    ignore_index: bool,
+    label_map: Optional[Dict[int, int]] = None,
+    reduce_labels: bool = False,
+):
     """Calculate Total Intersection and Union, by calculating `intersect_and_union` for each (predicted, ground truth) pair.
 
     Args:
@@ -162,10 +180,10 @@ def total_intersect_and_union(results, gt_seg_maps, num_labels, ignore_index, la
         ignore_index (`int`):
             Index that will be ignored during evaluation.
         label_map (`dict`, *optional*):
-            Mapping old labels to new labels. The parameter will work only when label is str. Default: dict().
+            Mapping old labels to new labels. The parameter will work only when label is str.
         reduce_labels (`bool`, *optional*, defaults to `False`):
             Whether or not to reduce all label values of segmentation maps by 1. Usually used for datasets where 0 is used for background,
-        and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
+            and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
 
      Returns:
          total_area_intersect (`ndarray`):
@@ -192,7 +210,15 @@ def total_intersect_and_union(results, gt_seg_maps, num_labels, ignore_index, la
     return total_area_intersect, total_area_union, total_area_pred_label, total_area_label
 
 
-def mean_iou(results, gt_seg_maps, num_labels, ignore_index, nan_to_num=None, label_map=dict(), reduce_labels=False):
+def mean_iou(
+    results,
+    gt_seg_maps,
+    num_labels,
+    ignore_index: bool,
+    nan_to_num: Optional[int] = None,
+    label_map: Optional[Dict[int, int]] = None,
+    reduce_labels: bool = False,
+):
     """Calculate Mean Intersection and Union (mIoU).
 
     Args:
@@ -204,11 +230,13 @@ def mean_iou(results, gt_seg_maps, num_labels, ignore_index, nan_to_num=None, la
             Number of categories.
         ignore_index (`int`):
             Index that will be ignored during evaluation.
+        nan_to_num (`int`, *optional*):
+            If specified, NaN values will be replaced by the number defined by the user.
         label_map (`dict`, *optional*):
-            Mapping old labels to new labels. The parameter will work only when label is str. Default: dict().
+            Mapping old labels to new labels. The parameter will work only when label is str.
         reduce_labels (`bool`, *optional*, defaults to `False`):
             Whether or not to reduce all label values of segmentation maps by 1. Usually used for datasets where 0 is used for background,
-        and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
+            and background itself is not included in all classes of a dataset (e.g. ADE20k). The background label will be replaced by 255.
 
     Returns:
         `Dict[str, float | ndarray]` comprising various elements:
@@ -249,7 +277,7 @@ def mean_iou(results, gt_seg_maps, num_labels, ignore_index, nan_to_num=None, la
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
-class Mean_IoU(datasets.Metric):
+class MeanIoU(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
@@ -258,8 +286,8 @@ class Mean_IoU(datasets.Metric):
             features=datasets.Features(
                 # 1st Seq - height dim, 2nd - width dim
                 {
-                    "predictions": datasets.Sequence(datasets.Sequence(datasets.Value("uint8"))),
-                    "references": datasets.Sequence(datasets.Sequence(datasets.Value("uint8"))),
+                    "predictions": datasets.Sequence(datasets.Sequence(datasets.Value("uint16"))),
+                    "references": datasets.Sequence(datasets.Sequence(datasets.Value("uint16"))),
                 }
             ),
             reference_urls=[
@@ -274,9 +302,7 @@ class Mean_IoU(datasets.Metric):
         num_labels: int,
         ignore_index: bool,
         nan_to_num: Optional[int] = None,
-        label_map: Optional[
-            Dict[int, int]
-        ] = None,  # in the body: label_map = label_map if label_map is not None else {}
+        label_map: Optional[Dict[int, int]] = None,
         reduce_labels: bool = False,
     ):
         iou_result = mean_iou(
