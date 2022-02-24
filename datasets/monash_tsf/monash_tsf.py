@@ -170,7 +170,7 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             description="329 daily time series representing the number of trips and vehicles belonging to a set of for-hire vehicle (FHV) companies.",
             freq="1D",
             record="5122535",
-            file_name="pedestrian_counts_dataset.zip",
+            file_name="vehicle_trips_dataset_with_missing_values.zip",
         ),
         MonashTSFBuilderConfig(
             name="oikolab_weather",
