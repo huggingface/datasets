@@ -26,9 +26,7 @@ IS_PYARROW_AT_LEAST_4 = config.PYARROW_VERSION.major >= 4
 def inject_arrow_table_documentation(arrow_table_method):
     def wrapper(fn):
         fn.__doc__ = arrow_table_method.__doc__ + (fn.__doc__ if fn.__doc__ is not None else "")
-        fn.__doc__ = fn.__doc__.replace(
-            "pyarrow.Table", "Table"
-        )
+        fn.__doc__ = fn.__doc__.replace("pyarrow.Table", "Table")
         if hasattr(arrow_table_method, "__annotations__"):
             fn.__annotations__ = arrow_table_method.__annotations__
         return fn

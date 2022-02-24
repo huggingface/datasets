@@ -1,4 +1,5 @@
 import re
+
 import s3fs
 
 
@@ -66,6 +67,7 @@ class S3FileSystem(s3fs.S3FileSystem):
     >>> dataset.save_to_disk('s3://my-private-datasets/imdb/train',fs=s3)  # doctest: +SKIP
     ```
     """
+
     _re_params = re.compile(r"(Parameters\s*---+\n*(((?!\n\n\s).)*)\n\n)\s", re.DOTALL)
 
     S3FileSystem_doc = s3fs.S3FileSystem.__doc__.split("Examples")[0]

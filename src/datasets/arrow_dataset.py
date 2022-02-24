@@ -1497,7 +1497,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
-            new_fingerprint : 
+            new_fingerprint (:obj:`str`, optional): The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
 
         Returns:
             :class:`Dataset`: A copy of the dataset object without the columns to remove.
@@ -1574,7 +1575,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
             new_column_name (:obj:`str`): New name for the column.
-            new_fingerprint :
+            new_fingerprint (:obj:`str`, optional): The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
 
         Returns:
             :class:`Dataset`: A copy of the dataset with a renamed column.

@@ -276,7 +276,7 @@ class DatasetDict(dict):
             column (`str`): The name of the column to cast
             include_nulls (`bool`, default `False`):
                 Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
-                
+
                 *New in version 1.14.2*
         """
         self._check_values_type()
