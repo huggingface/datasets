@@ -228,6 +228,14 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             file_name="car_parts_dataset_with_missing_values.zip",
         ),
         MonashTSFBuilderConfig(
+            name="fred_md",
+            version=VERSION,
+            description="107 monthly time series showing a set of macro-economic indicators from the Federal Reserve Bank.",
+            freq="1M",
+            record="4654833",
+            file_name="fred_md_dataset.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="oikolab_weather",
             version=VERSION,
             description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
