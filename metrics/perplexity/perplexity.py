@@ -60,8 +60,8 @@ Examples:
 
     Example 2:
         >>> perplexity = datasets.load_metric("perplexity")
-        >>> input_texts = datasets.load_dataset("wikitext", 
-        ...                                     "wikitext-2-raw-v1", 
+        >>> input_texts = datasets.load_dataset("wikitext",
+        ...                                     "wikitext-2-raw-v1",
         ...                                     split="test")["text"][:10]
         [...]
         >>> results = perplexity.compute(model_id='gpt2',
