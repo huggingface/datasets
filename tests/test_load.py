@@ -14,6 +14,7 @@ import requests
 
 import datasets
 from datasets import SCRIPTS_VERSION, config, load_dataset, load_from_disk
+from datasets import data_files
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
@@ -236,6 +237,14 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+
+        factory = PackagedDatasetModuleFactory(
+            "json", data_dir=self._data_dir, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert module_factory_result.builder_kwargs["data_files"] is not None
+        for data_file in module_factory_result.builder_kwargs["data_files"]:
+            assert data_file.
 
     def test_HubDatasetModuleFactoryWithoutScript(self):
         factory = HubDatasetModuleFactoryWithoutScript(
