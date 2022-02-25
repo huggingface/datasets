@@ -181,6 +181,22 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             file_name="kdd_cup_2018_dataset_with_missing_values.zip",
         ),
         MonashTSFBuilderConfig(
+            name="nn5_daily",
+            version=VERSION,
+            description="111 time series to predicting the daily cash withdrawals from ATMs in UK.",
+            freq="1D",
+            record="4656110",
+            file_name="nn5_daily_dataset_with_missing_values.zip",
+        ),
+        MonashTSFBuilderConfig(
+            name="nn5_weekly",
+            version=VERSION,
+            description="111 time series to predicting the weekly cash withdrawals from ATMs in UK.",
+            freq="1W-MON",
+            record="4656125",
+            file_name="nn5_weekly_dataset.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="oikolab_weather",
             version=VERSION,
             description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
