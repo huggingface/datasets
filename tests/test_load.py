@@ -259,7 +259,7 @@ class ModuleFactoryTest(TestCase):
     def test_HubDatasetModuleFactoryWithoutScript_with_data_dir(self):
         data_dir = "data2"
         factory = HubDatasetModuleFactoryWithoutScript(
-            SAMPLE_DATASET_IDENTIFIER3, data_dir="data2", download_config=self.download_config
+            SAMPLE_DATASET_IDENTIFIER3, data_dir=data_dir, download_config=self.download_config
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
