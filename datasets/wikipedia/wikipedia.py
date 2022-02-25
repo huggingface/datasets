@@ -405,6 +405,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "id": datasets.Value("string"),
                     "url": datasets.Value("string"),
                     "title": datasets.Value("string"),
                     "text": datasets.Value("string"),
@@ -510,7 +511,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
 
             beam.metrics.Metrics.counter(language, "cleaned-examples").inc()
 
-            yield id_, {"url": url, "title": title, "text": text}
+            yield id_, {"id": id_, "url": url, "title": title, "text": text}
 
         return (
             pipeline
