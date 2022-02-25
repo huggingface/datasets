@@ -220,6 +220,14 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             file_name="solar_weekly_dataset.zip",
         ),
         MonashTSFBuilderConfig(
+            name="car_parts",
+            version=VERSION,
+            description="2674 intermittent monthly time series that represent car parts sales from January 1998 to March 2002.",
+            freq="1M",
+            record="4656022",
+            file_name="car_parts_dataset_with_missing_values.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="oikolab_weather",
             version=VERSION,
             description="Eight time series representing the hourly climate data nearby Monash University, Clayton, Victoria, Australia from 2010-01-01 to 2021-05-31",
