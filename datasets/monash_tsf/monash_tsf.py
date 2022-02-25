@@ -71,17 +71,8 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
     BUILDER_CONFIG_CLASS = MonashTSFBuilderConfig
 
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         MonashTSFBuilderConfig(
             name="weather",
@@ -324,10 +315,6 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             multivariate=True,
         ),
     ]
-
-    # DEFAULT_CONFIG_NAME = (
-    #     "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-    # )
 
     def _info(self):
         if self.config.multivariate:
