@@ -205,6 +205,14 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             file_name="kaggle_web_traffic_dataset_with_missing_values.zip",
         ),
         MonashTSFBuilderConfig(
+            name="kaggle_web_traffic_weekly",
+            version=VERSION,
+            description="145063 daily time series representing the number of hits or web traffic for a set of Wikipedia pages from 2015-07-01 to 2017-09-10.",
+            freq="1W-WED",
+            record="4656664",
+            file_name=" kaggle_web_traffic_weekly_dataset.zip",
+        ),
+        MonashTSFBuilderConfig(
             name="solar_10_minutes",
             version=VERSION,
             description="137 time series representing the solar power production recorded per every 10 minutes in Alabama state in 2006.",
