@@ -578,6 +578,9 @@ def get_from_cache(
                         url += "&confirm=" + v
                         cookies = response.cookies
                 connected = True
+                # Fix Google Drive URL to avoid Virus scan warning
+                if "drive.google.com" in url and "confirm=" not in url:
+                    url += "&confirm=t"
             # In some edge cases, head request returns 400 but the connection is actually ok
             elif (
                 (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
