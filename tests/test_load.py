@@ -13,7 +13,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import SCRIPTS_VERSION, config, data_files, load_dataset, load_from_disk
+from datasets import SCRIPTS_VERSION, config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
