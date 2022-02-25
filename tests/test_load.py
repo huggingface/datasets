@@ -72,6 +72,7 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
 
 SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
 SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"  # only has data files
+SAMPLE_DATASET_IDENTIFIER3 = "mariosasko/test_multi_dir_dataset"  # has multiple data directories
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
 
@@ -240,6 +241,7 @@ class ModuleFactoryTest(TestCase):
     def test_PackagedDatasetModuleFactory_with_data_dir(self):
         factory = PackagedDatasetModuleFactory("json", data_dir=self._data_dir, download_config=self.download_config)
         module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
         assert (
             module_factory_result.builder_kwargs["data_files"] is not None
             and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
@@ -253,6 +255,23 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
         assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+
+    def test_HubDatasetModuleFactoryWithoutScript_with_data_dir(self):
+        data_dir = "data2"
+        factory = HubDatasetModuleFactoryWithoutScript(
+            SAMPLE_DATASET_IDENTIFIER3, data_dir="data2", download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+        )
+        assert all(
+            data_dir in Path(data_file).parts
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+        )
 
     def test_HubDatasetModuleFactoryWithScript(self):
         factory = HubDatasetModuleFactoryWithScript(
