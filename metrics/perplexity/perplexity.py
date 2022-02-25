@@ -60,13 +60,15 @@ Examples:
 
     Example 2:
         >>> perplexity = datasets.load_metric("perplexity")
-        >>> input_texts = datasets.load_dataset("wikitext", "wikitext-2-raw-v1", split="test")["text"] # doctest:+ELLIPSIS
+        >>> input_texts = datasets.load_dataset("wikitext", 
+        ...                                     "wikitext-2-raw-v1", 
+        ...                                     split="test")["text"][:10]
         [...]
         >>> results = perplexity.compute(model_id='gpt2',
         ...                              input_texts=input_texts,
         ...                              stride=256)
         >>> round(results["perplexity"], 2)
-        304.81
+        117.88
 
 """
 
