@@ -55,8 +55,8 @@ Examples:
         >>> results = perplexity.compute(model_id='gpt2',
         ...                              input_texts=input_texts,
         ...                              stride=1)
-        >>> round(results["perplexity"], 2)
-        78.22
+        >>> round(results["perplexity"], 1)
+        78.2
 
     Example 2:
         >>> perplexity = datasets.load_metric("perplexity")
@@ -67,8 +67,8 @@ Examples:
         >>> results = perplexity.compute(model_id='gpt2',
         ...                              input_texts=input_texts,
         ...                              stride=256)
-        >>> round(results["perplexity"], 2)
-        117.88
+        >>> round(results["perplexity"], 1)
+        117.9
 
 """
 
