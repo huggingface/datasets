@@ -116,14 +116,18 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
         if self.config.is_multilingual:
             dl_dir = dl_manager.download_and_extract(MULTI_URL)
             dl_dir = dl_manager.extract(
-                f"{dl_dir}/2017-01-trnmted/texts/DeEnItNlRo/DeEnItNlRo/DeEnItNlRo-DeEnItNlRo.tgz"
+                os.path.join(
+                    dl_dir, "2017-01-trnmted", "texts", "DeEnItNlRo", "DeEnItNlRo", "DeEnItNlRo-DeEnItNlRo.tgz"
+                )
             )
             data_dir = os.path.join(dl_dir, "DeEnItNlRo-DeEnItNlRo")
             years = [2010]
         else:
             bi_url = "https://drive.google.com/u/0/uc?id=1gFeuPTRc3RB4DhJEkhr8O-a8PObM7Ix2"
             dl_dir = dl_manager.download_and_extract(bi_url)
-            dl_dir = dl_manager.extract(f"{dl_dir}/2017-01-trnted/texts/{source}/{target}/{source}-{target}.tgz")
+            dl_dir = dl_manager.extract(
+                os.path.join(dl_dir), "2017-01-trnted", "texts", source, target, f"{source}-{target}.tgz"
+            )
             data_dir = os.path.join(dl_dir, f"{source}-{target}")
             years = [2010, 2011, 2012, 2013, 2014, 2015]
         return [
