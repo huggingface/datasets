@@ -88,7 +88,8 @@ from .utils import logging
 from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
-from .utils.py_utils import unique_values
+from .utils.py_utils import temporary_assignment, unique_values
+from .utils.streaming_download_manager import xgetsize
 from .utils.typing import PathLike
 
 
@@ -3520,12 +3521,44 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             else:
                 raise
 
+
+        # Find decodable columns, because if there are any, we need to:
+        # (1) adjust the dataset size computation (needed for sharding) to account for possible external files
+        # (2) embed the bytes from the files in the shards
+        decodable_columns = (
+            [k for k, v in self.features.items() if require_decoding(v, ignore_decode_attribute=True)]
+            if embed_external_files
+            else []
+        )
+
+        dataset_nbytes = self.data.nbytes
+
+        if decodable_columns:
+            # Approximate the space needed to store the bytes from the external files by analyzing the first 1000 examples
+            extra_nbytes = 0
+
+            def extra_nbytes_visitor(array, feature):
+                nonlocal extra_nbytes
+                if isinstance(feature, (Audio, Image)):
+                    for x in array.to_pylist():
+                        if x["bytes"] is None and x["path"] is not None:
+                            size = xgetsize(x["path"])
+                            extra_nbytes += size
+                    extra_nbytes -= array.field("path").nbytes
+
+            table = self.with_format("arrow")[:1000]
+            table_visitor(table, extra_nbytes_visitor)
+
+            extra_nbytes = extra_nbytes * len(self.data) / len(table)
+            dataset_nbytes = dataset_nbytes + extra_nbytes
+
         if self._indices is not None:
             dataset_nbytes = self.data.nbytes * len(self._indices) / len(self.data)
         else:
             dataset_nbytes = self.data.nbytes
 
         num_shards = int(dataset_nbytes / shard_size) + 1
+        num_shards = max(num_shards, 1)
         shards = (self.shard(num_shards=num_shards, index=i, contiguous=True) for i in range(num_shards))
 
         files = api.list_repo_files(repo_id, repo_type="dataset", revision=branch, token=token)

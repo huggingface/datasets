@@ -7,7 +7,7 @@ import pytest
 from datasets import Dataset, concatenate_datasets, load_dataset
 from datasets.features import Audio, Features, Sequence, Value
 
-from ..utils import require_sndfile, require_sox, require_torchaudio
+from ..utils import require_libsndfile_with_opus, require_sndfile, require_sox, require_torchaudio
 
 
 @pytest.fixture()
@@ -112,6 +112,17 @@ def test_audio_decode_example_mp3(shared_datadir):
     assert decoded_example["path"] == audio_path
     assert decoded_example["array"].shape == (109440,)
     assert decoded_example["sampling_rate"] == 44100
+
+
+@require_libsndfile_with_opus
+def test_audio_decode_example_opus(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_48000.opus")
+    audio = Audio()
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] == audio_path
+    assert decoded_example["array"].shape == (48000,)
+    assert decoded_example["sampling_rate"] == 48000
 
 
 @require_sox

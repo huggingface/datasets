@@ -264,7 +264,7 @@ Testing data and checksum metadata
 ----------------------------------
 
 We strongly recommend adding testing data and checksum metadata to your dataset to verify and test its behavior. This ensures the generated dataset matches your expectations.
-Testing data and checksum metadata are mandatory for Canonical datasets stored in the GitHub repository of the 🤗 Datasets library.
+Testing data and checksum metadata are mandatory for datasets stored in the GitHub repository of the 🤗 Datasets library.
 
 .. important::
 

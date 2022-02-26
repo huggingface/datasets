@@ -213,9 +213,9 @@ An example from the Curiosity Dataset train set looks as follows:
 
 The data is split into a training, validation, test and test_zero set as per the original dataset split.
 
-|                       | Tain  | Valid | Test | Test Zero |
-| --------------------- | ----- | ----- | ---- | --------- |
-| Input dialog examples | 10287 | 1287  | 1287 | 1187      |
+|                       | train | validation | test | test_zero |
+|-----------------------|------:|-----------:|-----:|----------:|
+| Input dialog examples | 10287 |       1287 | 1287 |      1187 |
 
 ## Dataset Creation
 
