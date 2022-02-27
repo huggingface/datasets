@@ -8,7 +8,7 @@ import datasets.config
 from datasets.builder import DatasetBuilder
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils.download_manager import GenerateMode
+from datasets.utils.download_manager import DownloadMode
 from datasets.utils.filelock import logger as fl_logger
 from datasets.utils.logging import ERROR, get_logger
 
@@ -154,9 +154,9 @@ class TestCommand(BaseDatasetsCLICommand):
         for j, builder in enumerate(get_builders()):
             print(f"Testing builder '{builder.config.name}' ({j + 1}/{n_builders})")
             builder.download_and_prepare(
-                download_mode=GenerateMode.REUSE_CACHE_IF_EXISTS
+                download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS
                 if not self._force_redownload
-                else GenerateMode.FORCE_REDOWNLOAD,
+                else DownloadMode.FORCE_REDOWNLOAD,
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
             )
