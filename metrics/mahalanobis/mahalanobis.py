@@ -14,7 +14,9 @@
 """Mahalanobis metric."""
 
 import numpy as np
+
 import datasets
+
 
 _DESCRIPTION = """
 Compute the Mahalanobis Distance
