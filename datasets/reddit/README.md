@@ -2,10 +2,10 @@
 languages:
 - en
 paperswithcode_id: reddit
-pretty_name: Reddit
+pretty_name: Reddit Webis-TLDR-17
 ---
 
-# Dataset Card for "reddit"
+# Dataset Card for Reddit Webis-TLDR-17
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -43,7 +43,7 @@ pretty_name: Reddit
 
 ### Dataset Summary
 
-This corpus contains preprocessed posts from the Reddit dataset.
+This corpus contains preprocessed posts from the Reddit dataset (Webis-TLDR-17).
 The dataset consists of 3,848,330 posts with an average length of 270 words for content,
 and 28 words for the summary.
 
