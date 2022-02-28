@@ -64,9 +64,7 @@ class Mahalanobis(datasets.Metric):
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("float", id="sequence"),
-                    "references": datasets.Sequence(
-                        datasets.Value("float", id="sequence"), id="references"
-                    ),
+                    "references": datasets.Sequence(datasets.Value("float", id="sequence"), id="references"),
                 }
             ),
         )
