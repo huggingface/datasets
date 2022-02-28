@@ -14,8 +14,8 @@
 """Monash Time Series Forecasting Repository Dataset."""
 
 
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
@@ -258,6 +258,22 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             freq="1H",
             record="5122114",
             file_name="rideshare_dataset_with_missing_values.zip",
+            item_id_column=["source_location", "provider_name", "provider_service"],
+            data_column="target",
+            target_fields=[
+                "price_min",
+                "price_mean",
+                "price_max",
+                "distance_min",
+                "distance_mean",
+                "distance_max",
+                "surge_min",
+                "surge_mean",
+                "surge_max",
+                "api_calls",
+            ],
+            feat_dynamic_real_fields=["temp", "rain", "humidity", "clouds", "wind"],
+            multivariate=True,
         ),
         MonashTSFBuilderConfig(
             name="oikolab_weather",
@@ -468,11 +484,13 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
                     target_fields = self.config.data_column.unique()
 
                 if self.config.feat_dynamic_real_fields is not None:
-                    feat_dynamic_real_fields = ts[ts[self.config.data_column].isin(self.config.feat_dynamic_real_fields)]
+                    feat_dynamic_real_fields = ts[
+                        ts[self.config.data_column].isin(self.config.feat_dynamic_real_fields)
+                    ]
                     feat_dynamic_real = np.vstack(feat_dynamic_real_fields.target)
                 else:
                     feat_dynamic_real = None
-                
+
                 target = np.vstack(target_fields.target)
 
                 feat_static_cat = [cat]
@@ -493,15 +511,17 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
         else:
             if self.config.target_fields is not None:
                 target_fields = loaded_data[loaded_data[self.config.data_column].isin(self.config.target_fields)]
-            else: 
+            else:
                 target_fields = loaded_data
             if self.config.feat_dynamic_real_fields is not None:
-                feat_dynamic_real_fields = loaded_data[loaded_data[self.config.data_column].isin(self.config.feat_dynamic_real_fields)]
+                feat_dynamic_real_fields = loaded_data[
+                    loaded_data[self.config.data_column].isin(self.config.feat_dynamic_real_fields)
+                ]
             else:
                 feat_dynamic_real_fields = None
 
             for cat, ts in target_fields.iterrows():
-                start = ts.get("start_timestamp", datetime.strptime('1900-01-01 00-00-00', '%Y-%m-%d %H-%M-%S'))
+                start = ts.get("start_timestamp", datetime.strptime("1900-01-01 00-00-00", "%Y-%m-%d %H-%M-%S"))
                 target = ts.target
                 if feat_dynamic_real_fields is not None:
                     feat_dynamic_real = np.vstack(feat_dynamic_real_fields.target)
