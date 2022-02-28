@@ -1,8 +1,24 @@
 ---
+annotations_creators:
+- no-annotation
+language_creators:
+- crowdsourced
 languages:
 - en
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
 paperswithcode_id: reddit
 pretty_name: Reddit Webis-TLDR-17
+size_categories:
+- 1M<n<10M
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+task_ids:
+- summarization
 ---
 
 # Dataset Card for Reddit Webis-TLDR-17
