@@ -732,7 +732,7 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         download_mode: Optional[DownloadMode] = None,
     ):
         if data_files is None and data_dir is not None:
-            data_files = [os.path.join(data_dir, "*"), os.path.join(data_dir, "**/*")]
+            data_files = os.path.join(data_dir, "**")
 
         self.path = path
         self.name = Path(path).stem
@@ -781,7 +781,7 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
         download_mode: Optional[DownloadMode] = None,
     ):
         if data_files is None and data_dir is not None:
-            data_files = [os.path.join(data_dir, "*"), os.path.join(data_dir, "**/*")]
+            data_files = os.path.join(data_dir, "**")
 
         self.name = name
         self.data_files = data_files
@@ -817,7 +817,7 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         download_mode: Optional[DownloadMode] = None,
     ):
         if data_files is None and data_dir is not None:
-            data_files = [os.path.join(data_dir, "*"), os.path.join(data_dir, "**/*")]
+            data_files = os.path.join(data_dir, "**")
 
         self.name = name
         self.revision = revision
