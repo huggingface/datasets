@@ -48,9 +48,9 @@ Returns:
 Examples:
 
     >>> mahalanobis_metric = datasets.load_metric("mahalanobis")
-    >>> results = mahalanobis_metric.compute(references=[[0, 1], [1, 0]], predictions=[0, 1])
+    >>> results = mahalanobis_metric.compute(references=[[0, 1], [1, 0]], predictions=[[0, 1]])
     >>> print(results)
-    {'mahalanobis': np.array([0.5])}
+    {'mahalanobis': array([0.5])}
 """
 
 
