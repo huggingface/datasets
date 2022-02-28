@@ -22,7 +22,8 @@ Compute the Mahalanobis Distance
 Mahalonobis distance is the distance between a point and a distribution. 
 And not between two distinct points. It is effectively a multivariate equivalent of the Euclidean distance. 
 It was introduced by Prof. P. C. Mahalanobis in 1936 
-and has been used in various statistical applications ever since [source: https://www.machinelearningplus.com/statistics/mahalanobis-distance/]
+and has been used in various statistical applications ever since 
+[source: https://www.machinelearningplus.com/statistics/mahalanobis-distance/]
 """
 
 _CITATION = """\
@@ -62,17 +63,13 @@ class Mahalanobis(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Value("float"),
-                    "references": datasets.Value("float"),
+                    "predictions": datasets.Value("float", id="sequence"),
+                    "references": datasets.Sequence(datasets.Value("float", id="sequence"), id="references")
                 }
             ),
         )
 
-    def _compute(
-            self,
-            predictions,
-            references
-    ):
+    def _compute(self, predictions, references):
 
         # convert to numpy arrays
         predictions = np.array(predictions)
@@ -81,8 +78,8 @@ class Mahalanobis(datasets.Metric):
         # Assert that arrays are 2D
         assert len(predictions.shape) == 2, "Expected `predictions` to be a 2D vector"
         assert len(references.shape) == 2, "Expected `references` to be a 2D vector"
-        assert references.shape[
-                   0] > 1, "Expected `references` to be a 2D vector with more than one element in the first dimension"
+        assert references.shape[0] > 1, \
+            "Expected `references` to be a 2D vector with more than one element in the first dimension"
 
         # Get mahalanobis distance for each prediction
         predictions_minus_mu = predictions - np.mean(references)
