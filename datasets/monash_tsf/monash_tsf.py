@@ -259,7 +259,7 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
             record="5122114",
             file_name="rideshare_dataset_with_missing_values.zip",
             item_id_column=["source_location", "provider_name", "provider_service"],
-            data_column="target",
+            data_column="type",
             target_fields=[
                 "price_min",
                 "price_mean",
