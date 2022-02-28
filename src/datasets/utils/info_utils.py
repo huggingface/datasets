@@ -75,13 +75,17 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
     logger.info("All the splits matched successfully.")
 
 
-def get_size_checksum_dict(path: str) -> dict:
+def get_size_checksum_dict(path: str, record_checksum: bool = True) -> dict:
     """Compute the file size and the sha256 checksum of a file"""
-    m = sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1 << 20), b""):
-            m.update(chunk)
-    return {"num_bytes": os.path.getsize(path), "checksum": m.hexdigest()}
+    if record_checksum:
+        m = sha256()
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 20), b""):
+                m.update(chunk)
+            checksum = m.hexdigest()
+    else:
+        checksum = None
+    return {"num_bytes": os.path.getsize(path), "checksum": checksum}
 
 
 def is_small_dataset(dataset_size):

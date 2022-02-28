@@ -518,6 +518,7 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
+                record_checksums=verify_infos,
             )
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
@@ -808,7 +809,7 @@ class DatasetBuilder:
                 ds = post_processed
                 recorded_checksums = {}
                 for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path)
+                    size_checksum = get_size_checksum_dict(resource_path, record_checksum=verify_infos)
                     recorded_checksums[resource_name] = size_checksum
                 if verify_infos:
                     if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
