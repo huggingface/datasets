@@ -485,22 +485,6 @@ class BaseDatasetTest(TestCase):
                     with self.assertRaises(ValueError):
                         dset.class_encode_column(column)
 
-    def test_remove_columns_in_place(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                fingerprint = dset._fingerprint
-                with assert_arrow_memory_doesnt_increase():
-                    dset.remove_columns_(column_names="col_1")
-                self.assertEqual(dset.num_columns, 2)
-                self.assertListEqual(list(dset.column_names), ["col_2", "col_3"])
-                assert_arrow_metadata_are_synced_with_dataset_features(dset)
-
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                dset.remove_columns_(column_names=["col_1", "col_2", "col_3"])
-                self.assertEqual(dset.num_columns, 0)
-                self.assertNotEqual(dset._fingerprint, fingerprint)
-                assert_arrow_metadata_are_synced_with_dataset_features(dset)
-
     def test_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
@@ -726,7 +710,7 @@ class BaseDatasetTest(TestCase):
             )
 
             dset3 = dset3.rename_column("foo", "new_foo")
-            dset3.remove_columns_("new_foo")
+            dset3 = dset3.remove_columns("new_foo")
             if in_memory:
                 dset3._data.table = Unpicklable()
             else:
@@ -2911,26 +2895,6 @@ def test_dataset_to_json(dataset, tmp_path):
         ),
         ("flatten", tuple(), {}),
         ("rename_column_", tuple(), {"original_column_name": "labels", "new_column_name": "label"}),
-        ("remove_columns_", tuple(), {"column_names": "labels"}),
-        (
-            "cast_",
-            tuple(),
-            {
-                "features": Features(
-                    {
-                        "tokens": Sequence(Value("string")),
-                        "labels": Sequence(Value("int16")),
-                        "answers": Sequence(
-                            {
-                                "text": Value("string"),
-                                "answer_start": Value("int32"),
-                            }
-                        ),
-                        "id": Value("int32"),
-                    }
-                )
-            },
-        ),
     ],
 )
 def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_params, arrow_file):

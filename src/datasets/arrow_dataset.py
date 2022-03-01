@@ -1358,33 +1358,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features[column] = feature
             return self.cast(features)
 
-    @deprecated(help_message="Use Dataset.remove_columns instead.")
-    @fingerprint_transform(inplace=True)
-    def remove_columns_(self, column_names: Union[str, List[str]]):
-        """In-place version of :meth:`Dataset.remove_columns`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`Dataset.remove_columns` instead.
-
-        Args:
-            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
-        """
-        if isinstance(column_names, str):
-            column_names = [column_names]
-
-        for column_name in column_names:
-            if column_name not in self._data.column_names:
-                raise ValueError(
-                    f"Column name {column_name} not in the dataset. "
-                    f"Current columns in the dataset: {self._data.column_names}"
-                )
-
-        for column_name in column_names:
-            del self._info.features[column_name]
-
-        self._data = self._data.drop(column_names)
-        self._data = update_metadata_with_features(self._data, self.features)
-
     @transmit_tasks
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":

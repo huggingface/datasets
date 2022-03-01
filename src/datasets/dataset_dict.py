@@ -155,20 +155,6 @@ class DatasetDict(dict):
         self._check_values_type()
         return DatasetDict({k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()})
 
-    @deprecated(help_message="Use DatasetDict.remove_columns instead.")
-    def remove_columns_(self, column_names: Union[str, List[str]]):
-        """In-place version of :meth:`DatasetDict.remove_columns`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`DatasetDict.remove_columns` instead.
-
-        Args:
-            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
-        """
-        self._check_values_type()
-        new_dataset_dict = {k: dataset.remove_columns(column_names=column_names) for k, dataset in self.items()}
-        self.update(new_dataset_dict)
-
     def remove_columns(self, column_names: Union[str, List[str]]) -> "DatasetDict":
         """
         Remove one or several column(s) from each split in the dataset
