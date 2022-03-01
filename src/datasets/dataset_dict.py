@@ -20,7 +20,6 @@ from .splits import NamedSplit, Split, SplitDict, SplitInfo
 from .table import Table
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils.deprecation_utils import deprecated
 from .utils.doc_utils import is_documented_by
 from .utils.typing import PathLike
 
@@ -170,24 +169,6 @@ class DatasetDict(dict):
         """
         self._check_values_type()
         return DatasetDict({k: dataset.remove_columns(column_names=column_names) for k, dataset in self.items()})
-
-    @deprecated(help_message="Use DatasetDict.rename_column instead.")
-    def rename_column_(self, original_column_name: str, new_column_name: str):
-        """In-place version of :meth:`DatasetDict.rename_column`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`DatasetDict.rename_column` instead.
-
-        Args:
-            original_column_name (:obj:`str`): Name of the column to rename.
-            new_column_name (:obj:`str`): New name for the column.
-        """
-        self._check_values_type()
-        new_dataset_dict = {
-            k: dataset.rename_column(original_column_name=original_column_name, new_column_name=new_column_name)
-            for k, dataset in self.items()
-        }
-        self.update(new_dataset_dict)
 
     def rename_column(self, original_column_name: str, new_column_name: str) -> "DatasetDict":
         """

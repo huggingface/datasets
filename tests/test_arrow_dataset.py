@@ -501,16 +501,6 @@ class BaseDatasetTest(TestCase):
                     self.assertNotEqual(new_dset._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
 
-    def test_rename_column_in_place(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                fingerprint = dset._fingerprint
-                dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
-                self.assertEqual(dset.num_columns, 3)
-                self.assertListEqual(list(dset.column_names), ["new_name", "col_2", "col_3"])
-                self.assertNotEqual(dset._fingerprint, fingerprint)
-                assert_arrow_metadata_are_synced_with_dataset_features(dset)
-
     def test_rename_column(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
@@ -1523,31 +1513,31 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertEqual(len(dset.cache_files), 0 if in_memory else 1)
-                dset.rename_column_("filename", "file")
-                self.assertListEqual(dset.column_names, ["file"])
-                with dset.select(range(5)) as dset:
-                    self.assertEqual(len(dset), 5)
-                    with dset.map(lambda x: {"id": int(x["file"][-1])}) as dset:
-                        self.assertListEqual(sorted(dset.column_names), ["file", "id"])
-                        dset.rename_column_("id", "number")
-                        self.assertListEqual(sorted(dset.column_names), ["file", "number"])
-                        with dset.select([1]) as dset:
-                            self.assertEqual(dset[0]["file"], "my_name-train_1")
-                            self.assertEqual(dset[0]["number"], 1)
+                with dset.rename_column("filename", "file") as dset:
+                    self.assertListEqual(dset.column_names, ["file"])
+                    with dset.select(range(5)) as dset:
+                        self.assertEqual(len(dset), 5)
+                        with dset.map(lambda x: {"id": int(x["file"][-1])}) as dset:
+                            self.assertListEqual(sorted(dset.column_names), ["file", "id"])
+                            with dset.rename_column("id", "number") as dset:
+                                self.assertListEqual(sorted(dset.column_names), ["file", "number"])
+                                with dset.select([1]) as dset:
+                                    self.assertEqual(dset[0]["file"], "my_name-train_1")
+                                    self.assertEqual(dset[0]["number"], 1)
 
-                            self.assertEqual(dset._indices["indices"].to_pylist(), [1])
-                            if not in_memory:
-                                self.assertIn(
-                                    ("rename_columns", (["file", "number"],), {}),
-                                    dset._data.replays,
-                                )
-                            if not in_memory:
-                                dset._data.table = Unpicklable()  # check that we don't pickle the entire table
+                                    self.assertEqual(dset._indices["indices"].to_pylist(), [1])
+                                    if not in_memory:
+                                        self.assertIn(
+                                            ("rename_columns", (["file", "number"],), {}),
+                                            dset._data.replays,
+                                        )
+                                    if not in_memory:
+                                        dset._data.table = Unpicklable()  # check that we don't pickle the entire table
 
-                            pickled = pickle.dumps(dset)
-                            with pickle.loads(pickled) as loaded:
-                                self.assertEqual(loaded[0]["file"], "my_name-train_1")
-                                self.assertEqual(loaded[0]["number"], 1)
+                                    pickled = pickle.dumps(dset)
+                                    with pickle.loads(pickled) as loaded:
+                                        self.assertEqual(loaded[0]["file"], "my_name-train_1")
+                                        self.assertEqual(loaded[0]["number"], 1)
 
     def test_shuffle(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2894,7 +2884,6 @@ def test_dataset_to_json(dataset, tmp_path):
             },
         ),
         ("flatten", tuple(), {}),
-        ("rename_column_", tuple(), {"original_column_name": "labels", "new_column_name": "label"}),
     ],
 )
 def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_params, arrow_file):

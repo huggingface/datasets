@@ -97,7 +97,6 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
@@ -1392,49 +1391,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset
-
-    @deprecated(help_message="Use Dataset.rename_column instead.")
-    @fingerprint_transform(inplace=True)
-    def rename_column_(self, original_column_name: str, new_column_name: str):
-        """In-place version of :meth:`Dataset.rename_column`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`Dataset.rename_column` instead.
-
-        Args:
-            original_column_name (:obj:`str`): Name of the column to rename.
-            new_column_name (:obj:`str`): New name for the column.
-        """
-        if original_column_name not in self._data.column_names:
-            raise ValueError(
-                f"Original column name {original_column_name} not in the dataset. "
-                f"Current columns in the dataset: {self._data.column_names}"
-            )
-        if new_column_name in self._data.column_names:
-            raise ValueError(
-                f"New column name {original_column_name} already in the dataset. "
-                f"Please choose a column name which is not already in the dataset. "
-                f"Current columns in the dataset: {self._data.column_names}"
-            )
-        if not new_column_name:
-            raise ValueError("New column name is empty.")
-
-        def rename(columns):
-            return [new_column_name if col == original_column_name else col for col in columns]
-
-        new_column_names = rename(self._data.column_names)
-        if self._format_columns is not None:
-            self._format_columns = rename(self._format_columns)
-
-        self._info.features = Features(
-            {
-                new_column_name if col == original_column_name else col: feature
-                for col, feature in self._info.features.items()
-            }
-        )
-
-        self._data = self._data.rename_columns(new_column_names)
-        self._data = update_metadata_with_features(self._data, self.features)
 
     @transmit_tasks
     @fingerprint_transform(inplace=False)
