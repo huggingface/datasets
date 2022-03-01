@@ -24,34 +24,33 @@ pretty_name: ElkarHizketak
 # Dataset Card for ElkarHizketak
 
 ## Table of Contents
-- [Dataset Card Creation Guide](#dataset-card-creation-guide)
-  - [Table of Contents](#table-of-contents)
-  - [Dataset Description](#dataset-description)
-    - [Dataset Summary](#dataset-summary)
-    - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
-    - [Languages](#languages)
-  - [Dataset Structure](#dataset-structure)
-    - [Data Instances](#data-instances)
-    - [Data Fields](#data-fields)
-    - [Data Splits](#data-splits)
-  - [Dataset Creation](#dataset-creation)
-    - [Curation Rationale](#curation-rationale)
-    - [Source Data](#source-data)
-      - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
-      - [Who are the source language producers?](#who-are-the-source-language-producers)
-    - [Annotations](#annotations)
-      - [Annotation process](#annotation-process)
-      - [Who are the annotators?](#who-are-the-annotators)
-    - [Personal and Sensitive Information](#personal-and-sensitive-information)
-  - [Considerations for Using the Data](#considerations-for-using-the-data)
-    - [Social Impact of Dataset](#social-impact-of-dataset)
-    - [Discussion of Biases](#discussion-of-biases)
-    - [Other Known Limitations](#other-known-limitations)
-  - [Additional Information](#additional-information)
-    - [Dataset Curators](#dataset-curators)
-    - [Licensing Information](#licensing-information)
-    - [Citation Information](#citation-information)
-    - [Contributions](#contributions)
+- [Table of Contents](#table-of-contents)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+    - [Initial Data Collection and Normalization](#initial-data-collection-and-normalization)
+    - [Who are the source language producers?](#who-are-the-source-language-producers)
+  - [Annotations](#annotations)
+    - [Annotation process](#annotation-process)
+    - [Who are the annotators?](#who-are-the-annotators)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
 
 ## Dataset Description
 
@@ -63,7 +62,7 @@ pretty_name: ElkarHizketak
 
 ElkarHizketak is a low resource conversational Question Answering (QA) dataset in Basque created by Basque speaker volunteers. The dataset contains close to 400 dialogues and more than 1600 question and answers, and its small size presents a realistic low-resource scenario for conversational QA systems. The dataset is built on top of Wikipedia sections about popular people and organizations. The dialogues involve two crowd workers: (1) a student ask questions after reading a small introduction about the person, but without seeing the section text; and (2) a teacher answers the questions selecting a span of text of the section.
 
-### Supported Tasks
+### Supported Tasks and Leaderboards
 
 - `extractive-qa`: The dataset can be used to train a model for Conversational Question Answering.
 
@@ -72,6 +71,14 @@ ElkarHizketak is a low resource conversational Question Answering (QA) dataset i
 The text in the dataset is in Basque.
 
 ## Dataset Structure
+
+### Data Instances
+
+[More Information Needed]
+
+### Data Fields
+
+[More Information Needed]
 
 ### Data Splits
 
@@ -98,6 +105,34 @@ Then, dialogues were collected during some online sessions that we arranged with
 
 The language producers are Basque speaking volunteers which hold a conversation using a text-based chat interface developed for those purposes.
 
+### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
+
+### Personal and Sensitive Information
+
+[More Information Needed]
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
+
+[More Information Needed]
+
 ## Additional Information
 
 ### Dataset Curators
@@ -115,4 +150,21 @@ To view a copy of this license, visit [https://creativecommons.org/licenses/by-s
 
 If you are using this dataset in your work, please cite this publication:
 
-A. Otegi, A. Agirre, J. A. Campos, A. Soroa, and E. Agirre. Conversational Question Answering in Low Resource Scenarios: A Dataset and Case Study for Basque. Proceedings of The 12th Language Resources and Evaluation Conference, pp. 429-435, European Language Resources Association. 2020.
+@inproceedings{otegi-etal-2020-conversational,
+    title = "{Conversational Question Answering in Low Resource Scenarios: A Dataset and Case Study for Basque}",
+    author = "Otegi, Arantxa  and
+      Agirre, Aitor  and
+      Campos, Jon Ander  and
+      Soroa, Aitor  and
+      Agirre, Eneko",
+    booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
+    year = "2020",
+    address = "Marseille, France",
+    publisher = "European Language Resources Association",
+    url = "https://aclanthology.org/2020.lrec-1.55",
+    pages = "436--442"
+}
+
+### Contributions
+
+Thanks to [@antxa](https://github.com/antxa) for adding this dataset.
