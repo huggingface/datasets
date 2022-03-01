@@ -18,6 +18,10 @@ import json
 
 import datasets
 
+logger = datasets.logging.get_logger(__name__)
+
+
+
 
 _CITATION = """\
 @inproceedings{otegi-etal-2020-conversational,
@@ -82,19 +86,19 @@ class Elkarhizketak(datasets.GeneratorBasedBuilder):
                     "background": datasets.Value("string"),
                     "section_title": datasets.Value("string"),
                     "context": datasets.Value("string"),
-                    "turn_ids": datasets.Sequence(datasets.Value("string")),
-                    "questions": datasets.Sequence(datasets.Value("string")),
-                    "yesnos": datasets.Sequence(datasets.ClassLabel(names=["y", "n", "x"])),
+                    "turn_id": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "yesno": datasets.ClassLabel(names=["y", "n", "x"]),
                     "answers": datasets.Sequence(
                         {
-                            "texts": datasets.Sequence(datasets.Value("string")),
-                            "answer_starts": datasets.Sequence(datasets.Value("int32")),
-                            "input_texts": datasets.Sequence(datasets.Value("string")),
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                            "input_text": datasets.Value("string"),
                         }
                     ),
-                    "orig_answers": {
-                        "texts": datasets.Sequence(datasets.Value("string")),
-                        "answer_starts": datasets.Sequence(datasets.Value("int32")),
+                    "orig_answer": {
+                        "text": datasets.Value("string"),
+                        "answer_start": datasets.Value("int32"),
                     },
                 }
             ),
@@ -130,47 +134,42 @@ class Elkarhizketak(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
+        logger.info("generating examples from = %s", filepath)
+
+        key = 0
         with open(filepath, encoding="utf-8") as f:
             elkarhizketak = json.load(f)
             for section in elkarhizketak["data"]:
                 wiki_page_title = section.get("title", "").strip()
                 background = section.get("background", "").strip()
                 section_title = section.get("section_title", "").strip()
-
+                
                 for dialogue in section["paragraphs"]:
                     context = dialogue["context"].strip()
                     dialogue_id = dialogue["id"]
-
-                    yesnos = []
-                    questions = []
-                    turn_ids = []
-                    answers = []
-                    orig_answers = {"texts": [], "answer_starts": []}
-
-                    for turn in dialogue["qas"]:
-                        yesnos.append(turn["yesno"])
-                        questions.append(turn["question"])
-                        turn_ids.append(turn["id"])
-
-                        ans_ = {
-                            "texts": [t["text"].strip() for t in turn["answers"]],
-                            "answer_starts": [t["answer_start"] for t in turn["answers"]],
-                            "input_texts": [t["input_text"] for t in turn["answers"]],
+                    
+                    for qa in dialogue["qas"]:
+                        answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+                        answers = [answer["text"].strip() for answer in qa["answers"]]
+                        input_texts = [answer["input_text"].strip() for answer in qa["answers"]]
+                        
+                        yield key, {
+                            "wikipedia_page_title": wiki_page_title,
+                            "background": background,
+                            "section_title": section_title,
+                            "context": context,
+                            "dialogue_id": dialogue_id,
+                            "question": qa["question"],
+                            "turn_id": qa["id"],
+                            "yesno": qa["yesno"],
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                                "input_text": input_texts,
+                            },
+                            "orig_answer": {
+                                "answer_start": qa["orig_answer"]["answer_start"],
+                                "text": qa["orig_answer"]["text"]
+                            },
                         }
-                        answers.append(ans_)
-
-                        orig_answers["texts"].append(turn["orig_answer"]["text"])
-                        orig_answers["answer_starts"].append(turn["orig_answer"]["answer_start"])
-
-                    yield dialogue_id, {
-                        "dialogue_id": dialogue_id,
-                        "wikipedia_page_title": wiki_page_title,
-                        "background": background,
-                        "section_title": section_title,
-                        "context": context,
-                        "turn_ids": turn_ids,
-                        "questions": questions,
-                        "yesnos": yesnos,
-                        "answers": answers,
-                        "orig_answers": orig_answers,
-                    }
+                        key += 1
