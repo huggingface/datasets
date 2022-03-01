@@ -10,7 +10,8 @@ from absl.testing import parameterized
 
 import datasets
 from datasets.arrow_writer import ArrowWriter
-from datasets.features import Array2D, Array3D, Array3DExtensionType, Array4D, Array5D, Value, _ArrayXD
+from datasets.features import Array2D, Array3D, Array4D, Array5D, Value
+from datasets.features.features import Array3DExtensionType, _ArrayXD
 from datasets.formatting.formatting import NumpyArrowExtractor, SimpleArrowExtractor
 
 

@@ -14,9 +14,8 @@ import numpy as np
 import pyarrow as pa
 import xxhash
 
-from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
-
 from .info import DatasetInfo
+from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
 from .utils.logging import get_logger
 from .utils.py_utils import dumps
 

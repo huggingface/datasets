@@ -126,7 +126,7 @@ class JsonDatasetWriter:
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:
-            for offset in utils.tqdm(
+            for offset in utils.tqdm_utils.tqdm(
                 range(0, len(self.dataset), self.batch_size),
                 unit="ba",
                 disable=not utils.is_progress_bar_enabled(),
@@ -137,7 +137,7 @@ class JsonDatasetWriter:
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
-                for json_str in utils.tqdm(
+                for json_str in utils.tqdm_utils.tqdm(
                     pool.imap(
                         self._batch_json,
                         [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],

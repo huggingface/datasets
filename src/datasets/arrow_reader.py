@@ -26,11 +26,10 @@ from typing import TYPE_CHECKING, List, Optional, Union
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from datasets.utils.file_utils import DownloadConfig
-
 from .naming import _split_re, filename_for_dataset_split
 from .table import InMemoryTable, MemoryMappedTable, Table, concat_tables
-from .utils import cached_path, logging
+from .utils import logging
+from .utils.file_utils import DownloadConfig, cached_path
 
 
 if TYPE_CHECKING:
