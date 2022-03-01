@@ -169,32 +169,70 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
 
 class MappedExamplesIterable(_BaseExamplesIterable):
     def __init__(
-        self, ex_iterable: _BaseExamplesIterable, function: Callable, batched: bool = False, batch_size: int = 1000
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        function: Callable,
+        with_indices: bool = False,
+        input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
+        batch_size: int = 1000,
+        remove_columns: Optional[Union[str, List[str]]] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
         self.batched = batched
         self.batch_size = batch_size
+        self.remove_columns = remove_columns
+        self.with_indices = with_indices
+        self.remove_columns = remove_columns
+        self.input_columns = input_columns
 
     def __iter__(self):
         iterator = iter(self.ex_iterable)
-        for key, example in iterator:
-            if self.batched:
+        current_idx = 0
+        if self.batched:
+            for key, example in iterator:
                 # If batched, first build the batch
                 key_examples_list = [(key, example)] + [
                     (key, example) for key, example in islice(iterator, self.batch_size - 1)
                 ]
                 keys, examples = zip(*key_examples_list)
                 batch = _examples_to_batch(examples)
+                # then remove the unwanted columns
+                if self.remove_columns:
+                    for c in self.remove_columns:
+                        del batch[c]
                 # then apply the transform
-                transformed_batch = self.function(batch)
+                inputs = batch
+                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
+                if self.with_indices:
+                    function_args.append([current_idx + i for i in range(len(key_examples_list))])
+                transformed_batch = dict(batch)  # this will be updated with the function output
+                transformed_batch = self.function(*function_args)
                 # the new key is the concatenation of the examples keys from the batch
                 new_key = "_".join(str(key) for key in keys)
                 # yield one example at a time from the transformed batch
-                yield from zip(repeat(new_key), _batch_to_examples(transformed_batch))
-            else:
-                # If not batched, apply the transform and yield the example directly
-                yield key, self.function(example)
+                for batch_idx, example in enumerate(_batch_to_examples(transformed_batch)):
+                    yield new_key, example
+                current_idx += batch_idx
+        else:
+            for key, example in iterator:
+                # If not batched, we can apply the transform and yield the example directly
+                # first copy the example, since we might drop some keys
+                example = dict(example)
+                # then we remove the unwanted columns
+                if self.remove_columns:
+                    for c in self.remove_columns:
+                        del example[c]
+                # then apply the transform
+                inputs = example
+                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
+                if self.with_indices:
+                    function_args.append(current_idx)
+                transformed_example = dict(example)  # this will be updated with the function output
+                transformed_example.update(self.function(*function_args))
+                yield key, transformed_example
+                current_idx += 1
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
@@ -403,7 +441,15 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
         )
 
-    def map(self, function: Callable, batched: bool = False, batch_size: int = 1000):
+    def map(
+        self,
+        function: Callable,
+        with_indices: bool = False,
+        input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
+        batch_size: int = 1000,
+        remove_columns: Optional[Union[str, List[str]]] = None,
+    ):
         """
         Return a dataset with the specified map function. The function is applied on-the-fly on the examples when iterating over the dataset.
 
@@ -420,10 +466,17 @@ class IterableDataset(DatasetInfoMixin):
         Args:
             function (:obj:`Callable`, optional, default None): if not None, this function is applied
                 on-the-fly on the examples when you iterate on the dataset.
+            with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
+            input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
+                as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
             batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
-
+            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+                Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
+                columns with names in `remove_columns`, these columns will be kept.
         """
+        if isinstance(input_columns, str):
+            input_columns = [input_columns]
         info = copy.deepcopy(self._info)
         info.features = None
         ex_iterable = MappedExamplesIterable(
@@ -431,8 +484,10 @@ class IterableDataset(DatasetInfoMixin):
             if self._info.features is not None
             else self._ex_iterable,
             function=function,
+            with_indices=with_indices,
             batched=batched,
             batch_size=batch_size,
+            remove_columns=remove_columns,
         )
         return iterable_dataset(
             ex_iterable=ex_iterable,

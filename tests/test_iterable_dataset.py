@@ -188,7 +188,7 @@ def test_mapped_examples_iterable(generate_examples_fn, n, func, batch_size):
     ex_iterable = MappedExamplesIterable(base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size)
     all_examples = list(generate_examples_fn(n=n))
     if batch_size is None:
-        expected = [(key, func(x)) for key, x in all_examples]
+        expected = [(key, {**x, **func(x)}) for key, x in all_examples]
     else:
         # For batched map we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
         expected_examples_per_batch = [
@@ -292,11 +292,11 @@ def test_iterable_dataset_set_epoch_of_shuffled_dataset(dataset: IterableDataset
 
 def test_iterable_dataset_map(dataset: IterableDataset, generate_examples_fn):
     func = lambda x: {"id+1": x["id"] + 1}  # noqa: E731
-    dataset = dataset.map(func)
-    assert isinstance(dataset._ex_iterable, MappedExamplesIterable)
-    assert dataset._ex_iterable.function is func
-    assert dataset._ex_iterable.batched is False
-    assert next(iter(dataset)) == func(next(iter(generate_examples_fn()))[1])
+    mapped_dataset = dataset.map(func)
+    assert isinstance(mapped_dataset._ex_iterable, MappedExamplesIterable)
+    assert mapped_dataset._ex_iterable.function is func
+    assert mapped_dataset._ex_iterable.batched is False
+    assert next(iter(mapped_dataset)) == {**next(iter(dataset)), **func(next(iter(generate_examples_fn()))[1])}
 
 
 def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_examples_fn):
