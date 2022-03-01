@@ -727,9 +727,13 @@ class LocalDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
     def __init__(
         self,
         path: str,
+        data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_mode: Optional[DownloadMode] = None,
     ):
+        if data_files is None and data_dir is not None:
+            data_files = os.path.join(data_dir, "**")
+
         self.path = path
         self.name = Path(path).stem
         self.data_files = data_files
@@ -771,10 +775,14 @@ class PackagedDatasetModuleFactory(_DatasetModuleFactory):
     def __init__(
         self,
         name: str,
+        data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[DownloadMode] = None,
     ):
+        if data_files is None and data_dir is not None:
+            data_files = os.path.join(data_dir, "**")
+
         self.name = name
         self.data_files = data_files
         self.downnload_config = download_config
@@ -803,10 +811,14 @@ class HubDatasetModuleFactoryWithoutScript(_DatasetModuleFactory):
         self,
         name: str,
         revision: Optional[Union[str, Version]] = None,
+        data_dir: Optional[str] = None,
         data_files: Optional[Union[str, List, Dict]] = None,
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[DownloadMode] = None,
     ):
+        if data_files is None and data_dir is not None:
+            data_files = os.path.join(data_dir, "**")
+
         self.name = name
         self.revision = revision
         self.data_files = data_files
@@ -1048,6 +1060,7 @@ def dataset_module_factory(
     download_mode: Optional[DownloadMode] = None,
     force_local_path: Optional[str] = None,
     dynamic_modules_path: Optional[str] = None,
+    data_dir: Optional[str] = None,
     data_files: Optional[Union[Dict, List, str, DataFilesDict]] = None,
     **download_kwargs,
 ) -> DatasetModule:
@@ -1092,6 +1105,8 @@ def dataset_module_factory(
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
+        data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
+            in which case it's equal to passing `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         script_version:
             .. deprecated:: 1.13
@@ -1135,7 +1150,11 @@ def dataset_module_factory(
     # Try packaged
     if path in _PACKAGED_DATASETS_MODULES:
         return PackagedDatasetModuleFactory(
-            path, data_files=data_files, download_config=download_config, download_mode=download_mode
+            path,
+            data_dir=data_dir,
+            data_files=data_files,
+            download_config=download_config,
+            download_mode=download_mode,
         ).get_module()
     # Try locally
     elif path.endswith(filename):
@@ -1151,7 +1170,7 @@ def dataset_module_factory(
         ).get_module()
     elif os.path.isdir(path):
         return LocalDatasetModuleFactoryWithoutScript(
-            path, data_files=data_files, download_mode=download_mode
+            path, data_dir=data_dir, data_files=data_files, download_mode=download_mode
         ).get_module()
     # Try remotely
     elif is_relative_path(path) and path.count("/") <= 1 and not force_local_path:
@@ -1206,6 +1225,7 @@ def dataset_module_factory(
                     return HubDatasetModuleFactoryWithoutScript(
                         path,
                         revision=revision,
+                        data_dir=data_dir,
                         data_files=data_files,
                         download_config=download_config,
                         download_mode=download_mode,
@@ -1504,7 +1524,8 @@ def load_dataset_builder(
 
 
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
+        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is None,
+            the behavior is equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files in a directory.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
@@ -1535,7 +1556,12 @@ def load_dataset_builder(
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.use_auth_token = use_auth_token
     dataset_module = dataset_module_factory(
-        path, revision=revision, download_config=download_config, download_mode=download_mode, data_files=data_files
+        path,
+        revision=revision,
+        download_config=download_config,
+        download_mode=download_mode,
+        data_dir=data_dir,
+        data_files=data_files,
     )
 
     # Get dataset builder class from the processing script
@@ -1650,7 +1676,8 @@ def load_dataset(
               e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
+        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If specified for the generic builders (csv, text etc.) or the Hub datasets and `data_files` is None,
+            the behavior is equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files in a directory.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         split (:class:`Split` or :obj:`str`): Which split of the data to load.
             If None, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
