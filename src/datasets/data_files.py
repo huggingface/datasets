@@ -302,7 +302,7 @@ def _resolve_single_pattern_in_dataset_repository(
 ) -> List[PurePath]:
     data_files_ignore = FILES_TO_IGNORE
     fs = HfFileSystem(repo_info=dataset_info)
-    glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
+    glob_iter = [PurePath(filepath) for filepath in fs.glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
     matched_paths = [
         filepath
         for filepath in glob_iter

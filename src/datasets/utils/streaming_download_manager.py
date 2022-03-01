@@ -717,8 +717,10 @@ class FilesIterable(_IterableFromGenerator):
 
     @classmethod
     def _iter_from_urlpaths(
-        cls, urlpaths: List[str], use_auth_token: Optional[Union[str, bool]] = None
+        cls, urlpaths: Union[str, List[str]], use_auth_token: Optional[Union[str, bool]] = None
     ) -> Generator[str, None, None]:
+        if not isinstance(urlpaths, list):
+            urlpaths = [urlpaths]
         for urlpath in urlpaths:
             if xisfile(urlpath, use_auth_token=use_auth_token):
                 yield urlpath
@@ -810,11 +812,11 @@ class StreamingDownloadManager:
         else:
             return ArchiveIterable.from_urlpath(urlpath_or_buf, use_auth_token=self.download_config.use_auth_token)
 
-    def iter_files(self, urlpaths: List[str]) -> Iterable[str]:
+    def iter_files(self, urlpaths: Union[str, List[str]]) -> Iterable[str]:
         """Iterate over files.
 
         Args:
-            urlpaths (list): Root paths.
+            urlpaths (:obj:`str` or :obj:`list` of :obj:`str`): Root paths.
 
         Yields:
             str: File URL path.
