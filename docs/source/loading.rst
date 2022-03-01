@@ -196,12 +196,16 @@ The folder structure should look like this:
    data/cat/nsdf3.png
    data/cat/asd932_.png
 
-To load an ``imagefolder`` dataset, simply pass the root path of the image folder to the ``data_files`` kwarg of ``load_dataset()``.
+To load an ``imagefolder`` dataset, simply pass the root path of the image folder to the ``data_dir`` kwarg of ``load_dataset()``, which is a shorthand syntax for ``data_files=os.path.join(data_dir, **)``.
 
 .. code-block::
 
    >>> from datasets import load_dataset
-   >>> dataset = load_dataset('imagefolder', data_files='/path/to/data')
+   >>> dataset = load_dataset('imagefolder', data_dir='/path/to/data')
+
+To load remote image folders via HTTP, you can pass the URLs:
+
+   >>> dataset = load_dataset("parquet", data_files="https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_3367a.zip", split="train")
 
 The resulting dataset will include an ``image`` feature, which is a ``PIL.Image`` loaded from the image file, and the corresponding ``label`` inferred from the directory structure.
 
