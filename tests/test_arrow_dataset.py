@@ -767,14 +767,14 @@ class BaseDatasetTest(TestCase):
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
                     fingerprint = dset._fingerprint
-                    dset.flatten_()
-                    self.assertListEqual(sorted(dset.column_names), ["a.b.c", "foo"])
-                    self.assertListEqual(sorted(dset.features.keys()), ["a.b.c", "foo"])
-                    self.assertDictEqual(
-                        dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
-                    )
-                    self.assertNotEqual(dset._fingerprint, fingerprint)
-                    assert_arrow_metadata_are_synced_with_dataset_features(dset)
+                    with dset.flatten() as dset:
+                        self.assertListEqual(sorted(dset.column_names), ["a.b.c", "foo"])
+                        self.assertListEqual(sorted(dset.features.keys()), ["a.b.c", "foo"])
+                        self.assertDictEqual(
+                            dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
+                        )
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
     def test_map(self, in_memory):
         # standard
@@ -1654,28 +1654,28 @@ class BaseDatasetTest(TestCase):
                     with_indices=True,
                     remove_columns=["filename"],
                 ) as formatted_dset:
-                    formatted_dset.flatten_()
-                    formatted_dset.set_format("numpy")
-                    formatted_dset.export(filename=tfrecord_path, format="tfrecord")
+                    with formatted_dset.flatten() as formatted_dset_flat:
+                        formatted_dset.set_format("numpy")
+                        formatted_dset.export(filename=tfrecord_path, format="tfrecord")
 
-                    # Import the data
-                    import tensorflow as tf
+                        # Import the data
+                        import tensorflow as tf
 
-                    tf_dset = tf.data.TFRecordDataset([tfrecord_path])
-                    feature_description = {
-                        "id": tf.io.FixedLenFeature([], tf.int64),
-                        "question": tf.io.FixedLenFeature([], tf.string),
-                        "answers.text": tf.io.VarLenFeature(tf.string),
-                        "answers.answer_start": tf.io.VarLenFeature(tf.int64),
-                    }
-                    tf_parsed_dset = tf_dset.map(
-                        lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
-                    )
-                    # Test that keys match original dataset
-                    for i, ex in enumerate(tf_parsed_dset):
-                        self.assertEqual(ex.keys(), formatted_dset[i].keys())
-                    # Test for equal number of elements
-                    self.assertEqual(i, len(formatted_dset) - 1)
+                        tf_dset = tf.data.TFRecordDataset([tfrecord_path])
+                        feature_description = {
+                            "id": tf.io.FixedLenFeature([], tf.int64),
+                            "question": tf.io.FixedLenFeature([], tf.string),
+                            "answers.text": tf.io.VarLenFeature(tf.string),
+                            "answers.answer_start": tf.io.VarLenFeature(tf.int64),
+                        }
+                        tf_parsed_dset = tf_dset.map(
+                            lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
+                        )
+                        # Test that keys match original dataset
+                        for i, ex in enumerate(tf_parsed_dset):
+                            self.assertEqual(ex.keys(), formatted_dset[i].keys())
+                        # Test for equal number of elements
+                        self.assertEqual(i, len(formatted_dset) - 1)
 
     def test_to_csv(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2945,7 +2945,6 @@ def test_dataset_to_json(dataset, tmp_path):
                 )
             },
         ),
-        ("flatten_", tuple(), {}),
     ],
 )
 def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_params, arrow_file):

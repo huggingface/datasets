@@ -1280,23 +1280,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         self.info.features = Features.from_arrow_schema(self._data.schema)
         self._data = update_metadata_with_features(self._data, self.features)
 
-    @deprecated(help_message="Use Dataset.flatten instead.")
-    @fingerprint_transform(inplace=True)
-    def flatten_(self, max_depth=16):
-        """In-place version of :meth:`Dataset.flatten`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`Dataset.flatten` instead.
-        """
-        for depth in range(1, max_depth):
-            if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
-                self._data = self._data.flatten()
-            else:
-                break
-        self.info.features = self.features.flatten(max_depth=max_depth)
-        self._data = update_metadata_with_features(self._data, self.features)
-        logger.info(f'Flattened dataset from depth {depth} to depth { 1 if depth + 1 < max_depth else "unknown"}.')
-
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
         """Flatten the table.

@@ -103,17 +103,6 @@ class DatasetDict(dict):
         for dataset in self.values():
             dataset.dictionary_encode_column_(column=column)
 
-    @deprecated(help_message="Use DatasetDict.flatten instead.")
-    def flatten_(self, max_depth=16):
-        """In-place version of :meth:`DatasetDict.flatten`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`DatasetDict.flatten` instead.
-        """
-        self._check_values_type()
-        for dataset in self.values():
-            dataset.flatten_(max_depth=max_depth)
-
     def flatten(self, max_depth=16) -> "DatasetDict":
         """Flatten the Apache Arrow Table of each split (nested features are flatten).
         Each column with a struct type is flattened into one column per struct field.
