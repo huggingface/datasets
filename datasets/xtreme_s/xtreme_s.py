@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2021 The Google AI and HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2022 The Google and HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,16 +60,16 @@ _ALL_DATASET_CONFIGS = {
     "babel": _BABEL_LANG,
     "mls": _MLS_LANG,
     "covost2": _COVOST2_LANG,
-    "flores": _FLORES_LANG,
+    "fleurs": _FLORES_LANG,
     "minds14": _MINDS_14_LANG
 }
 
 # _ALL_LANG = ["ar", "as", "ca", "cs", "cy", "da", "de", "en", "en", "en", "en", "es", "et", "fa", "fi", "fr", "hr", "hu", "id", "it", "ja", "ka", "ko", "lo", "lt", "lv", "mn", "nl", "pl", "pt", "ro", "ru", "sk", "sl", "sv", "sw", "ta", "tl", "tr", "zh"]
 
 _ALL_CONFIGS = []  # e.g. mls.en, covost.en.sv, ...
-for sub_data, langs in _ALL_DATASET_CONFIGS:
+for sub_data, langs in _ALL_DATASET_CONFIGS.items():
     for lang in langs:
-        _ALL_DATASET_CONFIGS.append(f"{sub_data}.{lang}")
+        _ALL_CONFIGS.append(f"{sub_data}.{lang}")
 
 
 _DESCRIPTIONS = {  # TOOD(PVP)
@@ -78,7 +78,7 @@ _DESCRIPTIONS = {  # TOOD(PVP)
 Multilingual LibriSpeech (MLS) dataset is a large multilingual corpus suitable for speech research. The dataset is derived from read audiobooks from LibriVox and consists of 8 languages - English, German, Dutch, Spanish, French, Italian, Portuguese, Polish.
 """,
     "covost2": "",
-    "flores": "",
+    "fleurs": "",
     "minds14": "",
 }
 
@@ -94,7 +94,7 @@ _CITATIONS = {  # TOOD(PVP)
 }
 """,
     "covost2": "",
-    "flores": "",
+    "fleurs": "",
     "minds14": "",
 }
 
@@ -102,7 +102,7 @@ _HOMEPAGE_URLS = {  # TOOD(PVP)
     "babel": "",
     "mls": "http://www.openslr.org/94",
     "covost2": "",
-    "flores": "",
+    "fleurs": "",
     "minds14": "",
 }
 
@@ -110,16 +110,16 @@ _DATA_URLS = {  # TOOD(PVP)
     "babel": "",
     "mls": "https://dl.fbaipublicfiles.com/mls/mls_{}.tar.gz",
     "covost2": "",
-    "flores": "",
+    "fleurs": "",
     "minds14": "",
 }
 
 _DATA_FORMAT = {
-    "babel": "",
-    "mls": {k: _ID_TO_LANG[k] for k in _MLS_LANG},
-    "covost2": "",
-    "flores": "",
-    "minds14": "",
+    "babel": {k: "" for k in _BABEL_LANG},
+    "mls": {k: (_ID_TO_LANG[k],) for k in _MLS_LANG},
+    "covost2": {k: "" for k in _COVOST2_LANG},
+    "fleurs": {k: "" for k in _FLORES_LANG},
+    "minds14": {k: "" for k in _MINDS_14_LANG},
 }
 
 
@@ -127,6 +127,9 @@ class XtremeSConfig(datasets.BuilderConfig):
     """BuilderConfig for xtreme-s"""
 
     def __init__(self, name, dataset_name, lang_name, description, citation, homepage, data_format, data_url):
+        super(XtremeSConfig, self).__init__(
+            name=self.name, version=datasets.Version("1.0.0", ""), description=self.description
+        )
         self.name = name
         self.dataset_name = dataset_name
         self.lang_name = lang_name
@@ -136,14 +139,10 @@ class XtremeSConfig(datasets.BuilderConfig):
         self.data_format = data_format
         self.data_url = data_url.format(*self.data_format)
 
-        super(XtremeSConfig, self).__init__(
-            name=self.name, version=datasets.Version("1.0.0", ""), description=self.description
-        )
-
 
 def _build_config(name):
     dataset_name = name.split(".")[0]
-    lang_name = ".".join(name.split(".")[-1])
+    lang_name = ".".join(name.split(".")[1:])
 
     return XtremeSConfig(
         name=name,
@@ -160,11 +159,11 @@ def _build_config(name):
 class XtremeS(datasets.GeneratorBasedBuilder):
 
     DEFAULT_WRITER_BATCH_SIZE = 1000
-    BUILDER_CONFIGS = [_build_config(name) for name in _ALL_DATASET_CONFIGS.keys()]
+    BUILDER_CONFIGS = [_build_config(name) for name in _ALL_CONFIGS]
 
     def _info(self):
         task_templates = None
-        if self.dataset_name in ["mls", "voxpopuli", "babel"]:
+        if self.config.dataset_name in ["mls", "voxpopuli", "babel"]:
             # asr
             features = datasets.Features(
                 {
@@ -174,7 +173,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 }
             )
             task_templates = [AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="text")]
-        elif self.dataset_name in ["covost2"]:
+        elif self.config.dataset_name in ["covost2"]:
             # speech translation
             features = datasets.Features(
                 {
@@ -184,7 +183,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                     "target": datasets.Value("string"),
                 }
             )
-        elif self.dataset_name == "fleurs":
+        elif self.config.dataset_name == "fleurs":
             # language identification
             # TODO(PVP/Anton)
             pass
@@ -198,13 +197,13 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             description=self.config.description + "\n" + _DESCRIPTION,
             features=features,
             supervised_keys=("audio", "target"),
-            homepage=self.homepage,
+            homepage=self.config.homepage,
             citation=self.config.citation + "\n" + _CITATION,
             task_templates=task_templates,
         )
 
     def _split_generators(self, dl_manager):
-        archive_path = dl_manager.download_and_extract(self.config.data_dir)
+        archive_path = dl_manager.download_and_extract(self.config.data_url)
         data_path = os.path.join(archive_path, f"mls_{_ID_TO_LANG[self.config.lang_name]}")
 
         if self.config.dataset_name == "mls":
@@ -257,7 +256,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 speaker_id, chapter_id = [int(el) for el in _id.split("_")[:2]]
 
                 yield key, {
-                    "file": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
+                    "path": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
                     "audio": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
                     "target": transcript,
                 }
