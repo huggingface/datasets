@@ -18,6 +18,7 @@ task_categories:
 - dialogue
 task_ids:
 - extractive-qa
+pretty_name: ElkarHizketak
 ---
 
 # Dataset Card for ElkarHizketak
