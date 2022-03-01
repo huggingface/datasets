@@ -63,6 +63,7 @@ def sanitize_patterns(patterns: Union[Dict, List, str]) -> Dict[str, Union[List[
     Take the data_files patterns from the user, and format them into a dictionary.
     Each key is the name of the split, and each value is a list of data files patterns (paths or urls).
     The default split is "train".
+
     Returns:
         patterns: dictionary of split_name -> list_of _atterns
     """
