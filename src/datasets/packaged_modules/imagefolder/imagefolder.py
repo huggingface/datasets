@@ -35,7 +35,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 file, downloaded_file = str(file), str(downloaded_file)
                 if os.path.isfile(downloaded_file):
                     _, file_ext = os.path.splitext(file)
-                    if file_ext in self.IMAGE_EXTENSIONS:
+                    if file_ext.lower() in self.IMAGE_EXTENSIONS:
                         labels.add(os.path.basename(os.path.dirname(file)))
                 else:
                     for downloaded_dir_file in dl_manager.iter_files(downloaded_file):
@@ -101,13 +101,13 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         for file, downloaded_file_or_dir in files:
             if file is not None:
                 _, file_ext = os.path.splitext(file)
-                if file_ext in self.IMAGE_EXTENSIONS:
+                if file_ext.lower() in self.IMAGE_EXTENSIONS:
                     yield file_idx, {"image": downloaded_file_or_dir, "label": os.path.basename(os.path.dirname(file))}
                     file_idx += 1
             else:
                 for downloaded_dir_file in downloaded_file_or_dir:
                     _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                    if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
+                    if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
                         yield file_idx, {
                             "image": downloaded_dir_file,
                             "label": os.path.basename(os.path.dirname(downloaded_dir_file)),
