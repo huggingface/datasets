@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import csv
 import glob
 import os
-import csv
 
 import pandas as pd
+
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
+
 
 """ XTREME-S Dataset"""
 
@@ -47,24 +49,85 @@ _ID_TO_LANG = {
 
 _BABEL_LANG = ["as", "tl", "sw", "lo", "ka"]
 _MLS_LANG = ["nl", "en", "fr", "de", "it", "pl", "pt", "es"]
-_VOXPOPULI_LANG = []  # TODO(PVP)
+_VOXPOPULI_LANG = ["en de fr es pl it ro hu cs nl fi hr sk sl"]
 
-_COVOST2_TO_EN_LANG = [f"{source}.en" for source in ["fr", "de", "es", "ca", "it", "ru", "zh", "pt", "fa", "et", "mn", "nl", "tr", "ar", "sv", "lv", "sl", "ta", "ja", "id", "cy"]]
-_COVOST2_FROM_EN_LANG = [f"en.{target}" for target in ["de", "ca", "zh", "fa", "et", "mn", "tr", "ar", "sw", "lv", "sl", "ta", "ja", "id", "cy"]]
-
+_COVOST2_TO_EN_LANG = [
+    f"{source}.en"
+    for source in [
+        "fr",
+        "de",
+        "es",
+        "ca",
+        "it",
+        "ru",
+        "zh",
+        "pt",
+        "fa",
+        "et",
+        "mn",
+        "nl",
+        "tr",
+        "ar",
+        "sv",
+        "lv",
+        "sl",
+        "ta",
+        "ja",
+        "id",
+        "cy",
+    ]
+]
+_COVOST2_FROM_EN_LANG = [
+    f"en.{target}"
+    for target in [
+        "de",
+        "ca",
+        "zh",
+        "fa",
+        "et",
+        "mn",
+        "tr",
+        "ar",
+        "sw",
+        "lv",
+        "sl",
+        "ta",
+        "ja",
+        "id",
+        "cy",
+    ]
+]
 _COVOST2_LANG = _COVOST2_FROM_EN_LANG + _COVOST2_TO_EN_LANG
 
+
+_MINDS_14_LANG = [
+    "aux-en",
+    "cs-CZ",
+    "de-DE",
+    "en-AU",
+    "en-GB",
+    "en-US",
+    "es-ES",
+    "fr-FR",
+    "it-IT",
+    "ko-KR",
+    "nl-NL",
+    "pl-PL",
+    "pt-PT",
+    "ru-RU",
+    "zh-CN",
+]
 _FLORES_LANG = []  # TODO(PVP)
-_MINDS_14_LANG = []  # TODO(PVP)
 
 _ALL_LANG = set(_BABEL_LANG + _MLS_LANG + _VOXPOPULI_LANG + _COVOST2_LANG + _FLORES_LANG + _MINDS_14_LANG)
 
 _ALL_DATASET_CONFIGS = {
     "babel": _BABEL_LANG,
     "mls": _MLS_LANG,
+    "voxpopuli": _VOXPOPULI_LANG,
     "covost2": _COVOST2_LANG,
     "fleurs": _FLORES_LANG,
-    "minds14": _MINDS_14_LANG
+    "minds14": _MINDS_14_LANG,
 }
 
 # _ALL_LANG = ["ar", "as", "ca", "cs", "cy", "da", "de", "en", "en", "en", "en", "es", "et", "fa", "fi", "fr", "hr", "hu", "id", "it", "ja", "ka", "ko", "lo", "lt", "lv", "mn", "nl", "pl", "pt", "ro", "ru", "sk", "sl", "sv", "sw", "ta", "tl", "tr", "zh"]
@@ -80,6 +143,7 @@ _DESCRIPTIONS = {  # TOOD(PVP)
     "mls": """\
 Multilingual LibriSpeech (MLS) dataset is a large multilingual corpus suitable for speech research. The dataset is derived from read audiobooks from LibriVox and consists of 8 languages - English, German, Dutch, Spanish, French, Italian, Portuguese, Polish.
 """,
+    "voxpopuli": "",
     "covost2": "",
     "fleurs": "",
     "minds14": "",
@@ -96,6 +160,7 @@ _CITATIONS = {  # TOOD(PVP)
   volume={abs/2012.03411}
 }
 """,
+    "voxpopuli": "",
     "covost2": "",
     "fleurs": "",
     "minds14": "",
@@ -104,17 +169,22 @@ _CITATIONS = {  # TOOD(PVP)
 _HOMEPAGE_URLS = {  # TOOD(PVP)
     "babel": "",
     "mls": "http://www.openslr.org/94",
+    "voxpopuli": "",
     "covost2": "",
     "fleurs": "",
     "minds14": "",
 }
 
-_DATA_URLS = {  # TOOD(PVP)
+_DATA_URLS = {  # TODO(PVP)
     "babel": "",
     "mls": ["https://dl.fbaipublicfiles.com/mls/mls_{}.tar.gz"],
-    "covost2": ["https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-4-2019-12-10/{}.tar.gz", "https://dl.fbaipublicfiles.com/covost/covost_v2.{}_{}.tsv.tar.gz"],
+    "voxpopuli": "",
+    "covost2": [
+        "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-4-2019-12-10/{}.tar.gz",
+        "https://dl.fbaipublicfiles.com/covost/covost_v2.{}_{}.tsv.tar.gz",
+    ],
     "fleurs": "",
-    "minds14": "http://poly-public-data.s3.amazonaws.com/MInDS-14/MInDS-14.zip",
+    "minds14": ["http://poly-public-data.s3.amazonaws.com/MInDS-14/MInDS-14.zip"],
 }
 
 
@@ -123,7 +193,9 @@ class XtremeSConfig(datasets.BuilderConfig):
 
     def __init__(self, name, dataset_name, lang_name, description, citation, homepage, data_urls):
         super(XtremeSConfig, self).__init__(
-            name=self.name, version=datasets.Version("1.0.0", ""), description=self.description
+            name=self.name,
+            version=datasets.Version("1.0.0", ""),
+            description=self.description,
         )
         self.name = name
         self.dataset_name = dataset_name
@@ -176,13 +248,35 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                     "target": datasets.Value("string"),
                 }
             )
+        elif self.config.dataset_name == "minds14":
+            features = datasets.Features(
+                {
+                    "path": datasets.Value("string"),
+                    "audio": datasets.Audio(sampling_rate=8_000),
+                    "transcription": datasets.Value("string"),
+                    "english_transcription": datasets.Value("string"),
+                    "target": datasets.ClassLabel(
+                        names=[
+                            "abroad",
+                            "address",
+                            "app_error",
+                            "atm_limit",
+                            "balance",
+                            "business_loan",
+                            "card_issues",
+                            "cash_deposit",
+                            "direct_debit",
+                            "freeze",
+                            "high_value_payment",
+                            "joint_account",
+                            "latest_transactions",
+                            "pay_bill",
+                        ]
+                    ),
+                }
+            )
         elif self.config.dataset_name == "fleurs":
             # language identification
-            # TODO(PVP/Anton)
-            pass
-
-        elif self.dataset_name == "minds14":
-            # intent classification
             # TODO(PVP/Anton)
             pass
 
@@ -200,12 +294,16 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             return self._mls_split_generators(*args, **kwargs)
         elif self.config.dataset_name == "covost2":
             return self._covost_2_split_generators(*args, **kwargs)
+        elif self.config.dataset_name == "minds14":
+            return self._minds14_split_generators(*args, **kwargs)
 
     def _generate_examples(self, *args, **kwargs):
         if self.config.dataset_name == "mls":
             yield from self._mls_generate_examples(*args, **kwargs)
         elif self.config.dataset_name == "covost2":
             yield from self._covost_2_generate_examples(*args, **kwargs)
+        elif self.config.dataset_name == "minds14":
+            yield from self._minds14_generate_examples(*args, **kwargs)
 
     # MLS
     def _mls_split_generators(self, dl_manager):
@@ -216,13 +314,19 @@ class XtremeS(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"data_dir": os.path.join(data_path, "train"), "sub_folder": "limited_supervision/9hr"}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "data_dir": os.path.join(data_path, "train"),
+                    "sub_folder": "limited_supervision/9hr",
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"data_dir": os.path.join(data_path, "dev")}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"data_dir": os.path.join(data_path, "dev")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"data_dir": os.path.join(data_path, "test")}
+                name=datasets.Split.TEST,
+                gen_kwargs={"data_dir": os.path.join(data_path, "test")},
             ),
         ]
 
@@ -336,3 +440,36 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 "transcription": row["sentence"],
                 "target": row["translation"],
             }
+
+    # MINDS-14
+    def _minds14_split_generators(self, dl_manager):
+        archive_path = dl_manager.download_and_extract(self.config.data_urls[0])
+        audio_path = dl_manager.extract(os.path.join(archive_path, "MInDS-14", "audio.zip"))
+        text_path = dl_manager.extract(os.path.join(archive_path, "MInDS-14", "text.zip"))
+
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "audio_path": audio_path,
+                    "text_path": os.path.join(text_path, "{}.csv".format(self.config.lang_name)),
+                },
+            ),
+        ]
+
+    def _minds14_generate_examples(self, audio_path, text_path):
+        key = 0
+        with open(text_path, encoding="utf-8") as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=",", skipinitialspace=True)
+            next(csv_reader)
+            for row in csv_reader:
+                file_path, transcription, english_transcription, target = row
+                audio_path = os.path.join(audio_path, *file_path.split("/"))
+                yield key, {
+                    "path": audio_path,
+                    "audio": audio_path,
+                    "transcription": transcription,
+                    "english_transcription": english_transcription,
+                    "target": target.lower(),
+                }
+                key += 1
