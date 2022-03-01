@@ -93,6 +93,21 @@ class WER(datasets.Metric):
         )
 
     def _compute(self, predictions=None, references=None, concatenate_texts=False):
+        if type(predictions) != type(references):
+            raise ValueError(
+                f"`predictions` {predictions} are of type {type(predictions)}, "
+                f" while `targets` {references} are of type {type(references)}. "
+                "Make sure `predictions` and `targets` are of the same type."
+            )
+
+        inputs_are_lists = isinstance(predictions, (list, tuple)) and isinstance(references, (list, tuple))
+        if inputs_are_lists and (type(predictions[0]) != type(references[0])):  # noqa: E721
+            raise ValueError(
+                f"`predictions` {predictions} is a list/tuple of type {type(predictions[0])}, "
+                f" while `targets` {references} is a list/tuple of type {type(references[0])}. "
+                "Make sure `predictions` and `targets` are a list/tuple of the same type."
+            )
+
         if concatenate_texts:
             return compute_measures(references, predictions)["wer"]
         else:
