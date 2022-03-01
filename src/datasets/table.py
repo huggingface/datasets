@@ -700,17 +700,17 @@ class InMemoryTable(TableBlock):
         Returns:
             :class:`datasets.table.Table`:
 
-            Examples
-            --------
-
-            >>> import pandas as pd
-            >>> import pyarrow as pa
-            >>> df = pd.DataFrame({
-                ...     'int': [1, 2],
-                ...     'str': ['a', 'b']
-                ... })
-            >>> pa.Table.from_pandas(df)
-            <pyarrow.lib.Table object at 0x7f05d1fb1b40>
+        Examples:
+        ```python
+        >>> import pandas as pd
+        >>> import pyarrow as pa
+        >>> df = pd.DataFrame({
+            ...     'int': [1, 2],
+            ...     'str': ['a', 'b']
+            ... })
+        >>> pa.Table.from_pandas(df)
+        <pyarrow.lib.Table object at 0x7f05d1fb1b40>
+        ```
         """
         return cls(pa.Table.from_pandas(*args, **kwargs))
 
