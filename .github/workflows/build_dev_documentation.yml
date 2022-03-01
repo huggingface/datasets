@@ -102,7 +102,7 @@ jobs:
         run: |
           cd doc-build-dev && git pull && cd ..
           cd doc-builder
-          doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build-dev --notebook_dir ../notebooks/datasets_doc --clean --version pr_$PR_NUMBER --html
+          doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build-dev --clean --version pr_$PR_NUMBER --html
           cd ..
 
       - name: Push to repositories
