@@ -201,15 +201,13 @@ class Table(IndexedTableMixin):
 
     def validate(self, *args, **kwargs):
         """
-        Table.validate(self, *, full=False)
+        Perform validation checks.  An exception is raised if validation fails.
 
-            Perform validation checks.  An exception is raised if validation fails.
-
-            By default only cheap validation checks are run.  Pass `full=True`
-            for thorough validation checks (potentially O(n)).
+        By default only cheap validation checks are run.  Pass `full=True`
+        for thorough validation checks (potentially O(n)).
 
         Args:
-            full (:obj:`bool`, default ``False``):
+            full (:obj:`bool`, defaults to :obj:`False`):
                 If True, run expensive checks, otherwise cheap checks only.
 
         Raises:
@@ -219,18 +217,16 @@ class Table(IndexedTableMixin):
 
     def equals(self, *args, **kwargs):
         """
-        Table.equals(self, Table other, bool check_metadata=False)
-
-            Check if contents of two tables are equal.
+        Check if contents of two tables are equal.
 
         Args:
-            other (:obj:`datasets.table.Table`):
+            other (:class:`datasets.table.Table`):
                 Table to compare against.
-            check_metadata (:obj:`bool`, default ``False``):
+            check_metadata (:obj:`bool`, defaults to :obj:`False`):
                 Whether schema metadata equality should be checked as well.
 
         Returns:
-            are_equal (:obj:`bool`):
+            :obj:`bool`
         """
         args = tuple(arg.table if isinstance(arg, Table) else arg for arg in args)
         kwargs = {k: v.table if isinstance(v, Table) else v for k, v in kwargs}
@@ -238,82 +234,76 @@ class Table(IndexedTableMixin):
 
     def to_batches(self, *args, **kwargs):
         """
-        Table.to_batches(self, max_chunksize=None, **kwargs)
-
-            Convert Table to list of (contiguous) RecordBatch objects.
+        Convert Table to list of (contiguous) RecordBatch objects.
 
         Args:
-            max_chunksize (:obj:`int`, default ``None``):
+            max_chunksize (:obj:`int`, defaults to `None`):
                 Maximum size for RecordBatch chunks. Individual chunks may be
                 smaller depending on the chunk layout of individual columns.
 
         Returns:
-            batches (:obj:`List[pyarrow.RecordBatch]`):
+            :obj:`List[pyarrow.RecordBatch]`:
         """
         return self.table.to_batches(*args, **kwargs)
 
     def to_pydict(self, *args, **kwargs):
         """
-        Table.to_pydict(self)
-
-            Convert the Table to a dict or OrderedDict.
+        Convert the Table to a dict or OrderedDict.
 
         Returns:
-            dict (:obj:`dict`):
+            :obj:`dict`
         """
         return self.table.to_pydict(*args, **kwargs)
 
     def to_pandas(self, *args, **kwargs):
         """
-        _PandasConvertible.to_pandas(self, memory_pool=None, categories=None, bool strings_to_categorical=False, bool zero_copy_only=False, bool integer_object_nulls=False, bool date_as_object=True, bool timestamp_as_object=False, bool use_threads=True, bool deduplicate_objects=True, bool ignore_metadata=False, bool safe=True, bool split_blocks=False, bool self_destruct=False, types_mapper=None)
-
-            Convert to a pandas-compatible NumPy array or DataFrame, as appropriate
+        Convert to a pandas-compatible NumPy array or DataFrame, as appropriate
 
         Args:
-            memory_pool (:obj:`MemoryPool`, default ``None``):
+            memory_pool (:obj:`MemoryPool`, defaults to :obj:`None`):
                 Arrow MemoryPool to use for allocations. Uses the default memory
                 pool is not passed.
-            strings_to_categorical (:obj:`bool`, default ``False``):
+            strings_to_categorical (:obj:`bool`, defaults to :obj:`False`):
                 Encode string (UTF8) and binary types to pandas.Categorical.
-            categories (:obj:`list`, default ``empty``):
+            categories (:obj:`list`, defaults to :obj:`empty`):
                 List of fields that should be returned as pandas.Categorical. Only
                 applies to table-like data structures.
-            zero_copy_only (:obj:`bool`, default ``False``):
+            zero_copy_only (:obj:`bool`, defaults to :obj:`False`):
                 Raise an ArrowException if this function call would require copying
                 the underlying data.
-            integer_object_nulls (:obj:`bool`, default ``False``):
+            integer_object_nulls (:obj:`bool`, defaults to :obj:`False`):
                 Cast integers with nulls to objects
-            date_as_object (:obj:`bool`, default ``True``):
+            date_as_object (:obj:`bool`, defaults to :obj:`True`):
                 Cast dates to objects. If False, convert to datetime64[ns] dtype.
-            timestamp_as_object (:obj:`bool`, default ``False``):
+            timestamp_as_object (:obj:`bool`, defaults to :obj:`False`):
                 Cast non-nanosecond timestamps (np.datetime64) to objects. This is
                 useful if you have timestamps that don't fit in the normal date
                 range of nanosecond timestamps (1678 CE-2262 CE).
                 If False, all timestamps are converted to datetime64[ns] dtype.
-            use_threads (:obj:`bool`, default ``True``):
+            use_threads (:obj:`bool`, defaults to :obj:`True`):
                 Whether to parallelize the conversion using multiple threads.
-            deduplicate_objects (:obj:`bool`, default ``False``):
+            deduplicate_objects (:obj:`bool`, defaults to :obj:`False`):
                 Do not create multiple copies Python objects when created, to save
                 on memory use. Conversion will be slower.
-            ignore_metadata (:obj:`bool`, default ``False``):
+            ignore_metadata (:obj:`bool`, defaults to :obj:`False`):
                 If True, do not use the 'pandas' metadata to reconstruct the
                 DataFrame index, if present
-            safe (:obj:`bool`, default ``True``):
+            safe (:obj:`bool`, defaults to :obj:`True`):
                 For certain data types, a cast is needed in order to store the
                 data in a pandas DataFrame or Series (e.g. timestamps are always
                 stored as nanoseconds in pandas). This option controls whether it
                 is a safe cast or not.
-            split_blocks (:obj:`bool`, default ``False``):
+            split_blocks (:obj:`bool`, defaults to :obj:`False`):
                 If True, generate one internal "block" for each column when
                 creating a pandas.DataFrame from a RecordBatch or Table. While this
                 can temporarily reduce memory note that various pandas operations
                 can trigger "consolidation" which may balloon memory use.
-            self_destruct (:obj:`bool`, default ``False``):
+            self_destruct (:obj:`bool`, defaults to :obj:`False`):
                 EXPERIMENTAL: If True, attempt to deallocate the originating Arrow
                 memory while converting the Arrow object to pandas. If you use the
                 object after calling to_pandas with this option it will crash your
                 program.
-            types_mapper (:obj:`function`, default ``None``):
+            types_mapper (:obj:`function`, defaults to :obj:`None`):
                 A function mapping a pyarrow DataType to a pandas ExtensionDtype.
                 This can be used to override the default pandas type for conversion
                 of built-in pyarrow types or in absence of pandas_metadata in the
@@ -323,7 +313,7 @@ class Table(IndexedTableMixin):
                 a dictionary mapping, you can pass ``dict.get`` as function.
 
         Returns:
-            pandas.Series or pandas.DataFrame depending on type of object
+            :obj:`pandas.Series` or :obj:`pandas.DataFrame`: :obj:`pandas.Series` or :obj:`pandas.DataFrame` depending on type of object
         """
         return self.table.to_pandas(*args, **kwargs)
 
@@ -332,43 +322,36 @@ class Table(IndexedTableMixin):
 
     def field(self, *args, **kwargs):
         """
-        Table.field(self, i)
-
-            Select a schema field by its column name or numeric index.
+        Select a schema field by its column name or numeric index.
 
         Args:
             i (:obj:`Union[int, str]`):
                 The index or name of the field to retrieve.
 
         Returns:
-            result (:obj:`pyarrow.Field`):
+            :obj:`pyarrow.Field`:
         """
         return self.table.field(*args, **kwargs)
 
     def column(self, *args, **kwargs):
         """
-        Table.column(self, i)
-
-            Select a column by its column name, or numeric index.
+        Select a column by its column name, or numeric index.
 
         Args:
             i (:obj:`Union[int, str]`):
                 The index or name of the column to retrieve.
 
         Returns:
-            result (:obj:`pyarrow.ChunkedArray`):
+            :obj:`pyarrow.ChunkedArray`:
         """
         return self.table.column(*args, **kwargs)
 
     def itercolumns(self, *args, **kwargs):
         """
-        Table.itercolumns(self)
+        Iterator over all columns in their numerical order.
 
-            Iterator over all columns in their numerical order.
-
-            Yields
-            ------
-            pyarrow.ChunkedArray
+        Yields:
+            :obj:`pyarrow.ChunkedArray`:
         """
         return self.table.itercolumns(*args, **kwargs)
 
@@ -378,7 +361,7 @@ class Table(IndexedTableMixin):
         Schema of the table and its columns.
 
         Returns:
-            result (:obj:`pyarrow.Schema`):
+            :obj:`pyarrow.Schema`:
         """
         return self.table.schema
 
@@ -388,7 +371,7 @@ class Table(IndexedTableMixin):
         List of all columns in numerical order.
 
         Returns:
-            list of pa.ChunkedArray
+            :obj:`List[pa.ChunkedArray]`:
         """
         return self.table.columns
 
@@ -398,7 +381,7 @@ class Table(IndexedTableMixin):
         Number of columns in this table.
 
         Returns:
-            int
+            int:
         """
         return self.table.num_columns
 
@@ -407,11 +390,11 @@ class Table(IndexedTableMixin):
         """
         Number of rows in this table.
 
-            Due to the definition of a table, all columns have the same number of
-            rows.
+        Due to the definition of a table, all columns have the same number of
+        rows.
 
         Returns:
-            int
+            int:
         """
         return self.table.num_rows
 
@@ -421,8 +404,7 @@ class Table(IndexedTableMixin):
         Dimensions of the table: (#rows, #columns).
 
         Returns:
-            (int, int)
-                Number of rows and number of columns.
+            :obj:`(int, int)`: Number of rows and number of columns.
         """
         return self.table.shape
 
@@ -457,105 +439,91 @@ class Table(IndexedTableMixin):
 
     def slice(self, *args, **kwargs):
         """
-        Table.slice(self, offset=0, length=None)
-
-            Compute zero-copy slice of this Table
+        Compute zero-copy slice of this Table
 
         Args:
-            offset (:obj:`int`, default ``0``):
+            offset (:obj:`int`, defaults to :obj:`0`):
                 Offset from start of table to slice
-            length (:obj:`int`, default ``None``):
+            length (:obj:`int`, defaults to :obj:`None`):
                 Length of slice (default is until end of table starting from
                 offset)
 
         Returns:
-            sliced (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         raise NotImplementedError()
 
     def filter(self, *args, **kwargs):
         """
-        Table.filter(self, mask, null_selection_behavior=u'drop')
-
-            Select records from a Table. See pyarrow.compute.filter for full usage.
+        Select records from a Table. See pyarrow.compute.filter for full usage.
         """
         raise NotImplementedError()
 
     def flatten(self, *args, **kwargs):
         """
-        Table.flatten(self, MemoryPool memory_pool=None)
-
-            Flatten this Table.  Each column with a struct type is flattened
-            into one column per struct field.  Other columns are left unchanged.
+        Flatten this Table.  Each column with a struct type is flattened
+        into one column per struct field.  Other columns are left unchanged.
 
         Args:
-            memory_pool (:obj:`MemoryPool`, default ``None``):
+            memory_pool (:obj:`MemoryPool`, defaults to :obj:`None`):
                 For memory allocations, if required, otherwise use default pool
 
         Returns:
-            result (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         raise NotImplementedError()
 
     def combine_chunks(self, *args, **kwargs):
         """
-        Table.combine_chunks(self, MemoryPool memory_pool=None)
+        Make a new table by combining the chunks this table has.
 
-            Make a new table by combining the chunks this table has.
-
-            All the underlying chunks in the ChunkedArray of each column are
-            concatenated into zero or one chunk.
+        All the underlying chunks in the ChunkedArray of each column are
+        concatenated into zero or one chunk.
 
         Args:
-            memory_pool (:obj:`MemoryPool`, default ``None``):
+            memory_pool (:obj:`MemoryPool`, defaults to :obj:`None`):
                 For memory allocations, if required, otherwise use default pool
 
         Returns:
-            result (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         raise NotImplementedError()
 
     def cast(self, *args, **kwargs):
         """
-        Table.cast(self, Schema target_schema, bool safe=True)
-
-            Cast table values to another schema
+        Cast table values to another schema
 
         Args:
             target_schema (:obj:`Schema`):
                 Schema to cast to, the names and order of fields must match
-            safe (:obj:`bool`, default ``True``):
+            safe (:obj:`bool`, defaults to :obj:`True`):
                 Check for overflows or other unsafe conversions
 
         Returns:
-            casted (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         raise NotImplementedError()
 
     def replace_schema_metadata(self, *args, **kwargs):
         """
-        Table.replace_schema_metadata(self, metadata=None)
-
-            EXPERIMENTAL: Create shallow copy of table by replacing schema
-            key-value metadata with the indicated new metadata (which may be None,
-            which deletes any existing metadata
+        EXPERIMENTAL: Create shallow copy of table by replacing schema
+        key-value metadata with the indicated new metadata (which may be None,
+        which deletes any existing metadata
 
         Args:
-            metadata (:obj:`dict`, default ``None``):
+            metadata (:obj:`dict`, defaults to :obj:`None`):
 
         Returns:
-            shallow_copy (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`: shallow_copy
         """
         raise NotImplementedError()
 
     def add_column(self, *args, **kwargs):
         """
-        Table.add_column(self, int i, field_, column)
+        Add column to Table at position.
 
-            Add column to Table at position.
-
-            A new table is returned with the column added, the original table
-            object is left unchanged.
+        A new table is returned with the column added, the original table
+        object is left unchanged.
 
         Args:
             i (:obj:`int`):
@@ -567,15 +535,13 @@ class Table(IndexedTableMixin):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`): New table with the passed column added.
+            :class:`datasets.table.Table`: New table with the passed column added.
         """
         raise NotImplementedError()
 
     def append_column(self, *args, **kwargs):
         """
-        Table.append_column(self, field_, column)
-
-            Append column at end of columns.
+        Append column at end of columns.
 
         Args:
             field_ (:obj:`Union[str, pyarrow.Field]`):
@@ -585,32 +551,26 @@ class Table(IndexedTableMixin):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
-                New table with the passed column added.
+            :class:`datasets.table.Table`:  New table with the passed column added.
         """
         raise NotImplementedError()
 
     def remove_column(self, *args, **kwargs):
         """
-        Table.remove_column(self, int i)
-
-            Create new Table with the indicated column removed.
+        Create new Table with the indicated column removed.
 
         Args:
             i (:obj:`int`):
                 Index of column to remove.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
-                New table without the column.
+            :class:`datasets.table.Table`: New table without the column.
         """
         raise NotImplementedError()
 
     def set_column(self, *args, **kwargs):
         """
-        Table.set_column(self, int i, field_, column)
-
-            Replace column in Table at position.
+        Replace column in Table at position.
 
         Args:
             i (:obj:`int`):
@@ -622,24 +582,19 @@ class Table(IndexedTableMixin):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
-                New table with the passed column set.
+            :class:`datasets.table.Table`: New table with the passed column set.
         """
         raise NotImplementedError()
 
     def rename_columns(self, *args, **kwargs):
         """
-        Table.rename_columns(self, names)
-
-            Create new table with columns renamed to provided names.
+        Create new table with columns renamed to provided names.
         """
         raise NotImplementedError()
 
     def drop(self, *args, **kwargs):
         """
-        Table.drop(self, columns)
-
-            Drop one or more columns and return a new table.
+        Drop one or more columns and return a new table.
 
         Args:
             columns (:obj:`List[str]`):
@@ -649,8 +604,7 @@ class Table(IndexedTableMixin):
             KeyError : if any of the passed columns name are not existing.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
-                New table without the columns.
+            :class:`datasets.table.Table`: New table without the columns.
         """
         raise NotImplementedError()
 
@@ -660,7 +614,7 @@ class Table(IndexedTableMixin):
         """Return the table by keeping only the requested columns
 
         Returns:
-            Table (:obj:`datasets.table.Table`): table with only a subset of the columns
+            :class:`datasets.table.Table`: table with only a subset of the columns
         """
         for column_to_remove in set(range(len(self.column_names))) - set(columns):
             self = self.remove_column(column_to_remove)
@@ -705,22 +659,20 @@ class InMemoryTable(TableBlock):
     @classmethod
     def from_pandas(cls, *args, **kwargs):
         """
-        Table.from_pandas(type cls, df, Schema schema=None, preserve_index=None, nthreads=None, columns=None, bool safe=True)
+        Convert pandas.DataFrame to an Arrow Table.
 
-            Convert pandas.DataFrame to an Arrow Table.
+        The column types in the resulting Arrow Table are inferred from the
+        dtypes of the pandas.Series in the DataFrame. In the case of non-object
+        Series, the NumPy dtype is translated to its Arrow equivalent. In the
+        case of `object`, we need to guess the datatype by looking at the
+        Python objects in this Series.
 
-            The column types in the resulting Arrow Table are inferred from the
-            dtypes of the pandas.Series in the DataFrame. In the case of non-object
-            Series, the NumPy dtype is translated to its Arrow equivalent. In the
-            case of `object`, we need to guess the datatype by looking at the
-            Python objects in this Series.
-
-            Be aware that Series of the `object` dtype don't carry enough
-            information to always lead to a meaningful Arrow type. In the case that
-            we cannot infer a type, e.g. because the DataFrame is of length 0 or
-            the Series only contains None/nan objects, the type is set to
-            null. This behavior can be avoided by constructing an explicit schema
-            and passing it to this function.
+        Be aware that Series of the `object` dtype don't carry enough
+        information to always lead to a meaningful Arrow type. In the case that
+        we cannot infer a type, e.g. because the DataFrame is of length 0 or
+        the Series only contains None/nan objects, the type is set to
+        null. This behavior can be avoided by constructing an explicit schema
+        and passing it to this function.
 
         Args:
             df (:obj:`pandas.DataFrame`):
@@ -737,16 +689,16 @@ class InMemoryTable(TableBlock):
                 ``Table``. The default of None will store the index as a column,
                 except for RangeIndex which is stored as metadata only. Use
                 ``preserve_index=True`` to force it to be stored as a column.
-            nthreads (:obj:`int`, default ``None`` (may use up to system CPU count threads))
+            nthreads (:obj:`int`, defaults to :obj:`None` (may use up to system CPU count threads))
                 If greater than 1, convert columns to Arrow in parallel using
                 indicated number of threads
             columns (:obj:`List[str]`, optional):
                List of column to be converted. If None, use all columns.
-            safe (:obj:`bool`, default ``True``):
+            safe (:obj:`bool`, defaults to :obj:`True`):
                Check for overflows or other unsafe conversions
 
         Returns:
-            Table
+            :class:`datasets.table.Table`:
 
             Examples
             --------
@@ -765,165 +717,145 @@ class InMemoryTable(TableBlock):
     @classmethod
     def from_arrays(cls, *args, **kwargs):
         """
-        Table.from_arrays(arrays, names=None, schema=None, metadata=None)
-
-            Construct a Table from Arrow arrays
+        Construct a Table from Arrow arrays
 
         Args:
             arrays (:obj:`List[Union[pyarrow.Array, pyarrow.ChunkedArray]]`):
                 Equal-length arrays that should form the table.
             names (:obj:`List[str]`, optional):
                 Names for the table columns. If not passed, schema must be passed
-            schema (:obj:`Schema`, default ``None``):
+            schema (:obj:`Schema`, defaults to :obj:`None`):
                 Schema for the created table. If not passed, names must be passed
             metadata (:obj:`Union[dict, Mapping]`, default None):
                 Optional metadata for the schema (if inferred).
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         return cls(pa.Table.from_arrays(*args, **kwargs))
 
     @classmethod
     def from_pydict(cls, *args, **kwargs):
         """
-        Table.from_pydict(mapping, schema=None, metadata=None)
-
-            Construct a Table from Arrow arrays or columns
+        Construct a Table from Arrow arrays or columns
 
         Args:
             mapping (:obj:`Union[dict, Mapping]`):
                 A mapping of strings to Arrays or Python lists.
-            schema (:obj:`Schema`, default ``None``):
+            schema (:obj:`Schema`, defaults to :obj:`None`):
                 If not passed, will be inferred from the Mapping values
             metadata (:obj:`Union[dict, Mapping]`, default None):
                 Optional metadata for the schema (if inferred).
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         return cls(pa.Table.from_pydict(*args, **kwargs))
 
     @classmethod
     def from_batches(cls, *args, **kwargs):
         """
-        Table.from_batches(batches, Schema schema=None)
-
-            Construct a Table from a sequence or iterator of Arrow RecordBatches.
+        Construct a Table from a sequence or iterator of Arrow RecordBatches.
 
         Args:
             batches (:obj:`Union[Sequence[pyarrow.RecordBatch], Iterator[pyarrow.RecordBatch]]`):
                 Sequence of RecordBatch to be converted, all schemas must be equal.
-            schema (:obj:`Schema`, default ``None``):
+            schema (:obj:`Schema`, defaults to :obj:`None`):
                 If not passed, will be inferred from the first RecordBatch.
 
         Returns:
-            table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         return cls(pa.Table.from_batches(*args, **kwargs))
 
     def slice(self, offset=0, length=None):
         """
-        Table.slice(self, offset=0, length=None)
-
-            Compute zero-copy slice of this Table
+        Compute zero-copy slice of this Table
 
         Args:
-            offset (:obj:`int`, default ``0``):
+            offset (:obj:`int`, defaults to :obj:`0`):
                 Offset from start of table to slice
-            length (:obj:`int`, default ``None``):
+            length (:obj:`int`, defaults to :obj:`None`):
                 Length of slice (default is until end of table starting from
                 offset)
 
         Returns:
-            sliced (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         # Use fast slicing here
         return InMemoryTable(self.fast_slice(offset=offset, length=length))
 
     def filter(self, *args, **kwargs):
         """
-        Table.filter(self, mask, null_selection_behavior=u'drop')
-
-            Select records from a Table. See pyarrow.compute.filter for full usage.
+        Select records from a Table. See pyarrow.compute.filter for full usage.
         """
         return InMemoryTable(self.table.filter(*args, **kwargs))
 
     def flatten(self, *args, **kwargs):
         """
-        Table.flatten(self, MemoryPool memory_pool=None)
-
-            Flatten this Table.  Each column with a struct type is flattened
-            into one column per struct field.  Other columns are left unchanged.
+        Flatten this Table.  Each column with a struct type is flattened
+        into one column per struct field.  Other columns are left unchanged.
 
         Args:
-            memory_pool (:obj:`MemoryPool`, default ``None``):
+            memory_pool (:obj:`MemoryPool`, defaults to :obj:`None`):
                 For memory allocations, if required, otherwise use default pool
 
         Returns:
-            result (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         return InMemoryTable(self.table.flatten(*args, **kwargs))
 
     def combine_chunks(self, *args, **kwargs):
         """
-        Table.combine_chunks(self, MemoryPool memory_pool=None)
+        Make a new table by combining the chunks this table has.
 
-            Make a new table by combining the chunks this table has.
-
-            All the underlying chunks in the ChunkedArray of each column are
-            concatenated into zero or one chunk.
+        All the underlying chunks in the ChunkedArray of each column are
+        concatenated into zero or one chunk.
 
         Args:
-            memory_pool (:obj:`MemoryPool`, default ``None``):
+            memory_pool (:obj:`MemoryPool`, defaults to :obj:`None`):
                 For memory allocations, if required, otherwise use default pool
 
         Returns:
-            result (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         return InMemoryTable(self.table.combine_chunks(*args, **kwargs))
 
     def cast(self, *args, **kwargs):
         """
-        Table.cast(self, Schema target_schema, bool safe=True)
-
-            Cast table values to another schema
+        Cast table values to another schema
 
         Args:
             target_schema (:obj:`Schema`):
                 Schema to cast to, the names and order of fields must match
-            safe (:obj:`bool`, default ``True``):
+            safe (:obj:`bool`, defaults to :obj:`True`):
                 Check for overflows or other unsafe conversions
 
         Returns:
-            casted (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         return InMemoryTable(table_cast(self.table, *args, **kwargs))
 
     def replace_schema_metadata(self, *args, **kwargs):
         """
-        Table.replace_schema_metadata(self, metadata=None)
-
-            EXPERIMENTAL: Create shallow copy of table by replacing schema
-            key-value metadata with the indicated new metadata (which may be None,
-            which deletes any existing metadata
+        EXPERIMENTAL: Create shallow copy of table by replacing schema
+        key-value metadata with the indicated new metadata (which may be None,
+        which deletes any existing metadata
 
         Args:
-            metadata (:obj:`dict`, default ``None``):
+            metadata (:obj:`dict`, defaults to :obj:`None`):
 
         Returns:
-            shallow_copy (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`: shallow_copy
         """
         return InMemoryTable(self.table.replace_schema_metadata(*args, **kwargs))
 
     def add_column(self, *args, **kwargs):
         """
-        Table.add_column(self, int i, field_, column)
+        Add column to Table at position.
 
-            Add column to Table at position.
-
-            A new table is returned with the column added, the original table
-            object is left unchanged.
+        A new table is returned with the column added, the original table
+        object is left unchanged.
 
         Args:
             i (:obj:`int`):
@@ -935,15 +867,13 @@ class InMemoryTable(TableBlock):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`): New table with the passed column added.
+            :class:`datasets.table.Table`: New table with the passed column added.
         """
         return InMemoryTable(self.table.add_column(*args, **kwargs))
 
     def append_column(self, *args, **kwargs):
         """
-        Table.append_column(self, field_, column)
-
-            Append column at end of columns.
+        Append column at end of columns.
 
         Args:
             field_ (:obj:`Union[str, pyarrow.Field]`):
@@ -953,32 +883,28 @@ class InMemoryTable(TableBlock):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table with the passed column added.
         """
         return InMemoryTable(self.table.append_column(*args, **kwargs))
 
     def remove_column(self, *args, **kwargs):
         """
-        Table.remove_column(self, int i)
-
-            Create new Table with the indicated column removed.
+        Create new Table with the indicated column removed.
 
         Args:
             i (:obj:`int`):
                 Index of column to remove.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table without the column.
         """
         return InMemoryTable(self.table.remove_column(*args, **kwargs))
 
     def set_column(self, *args, **kwargs):
         """
-        Table.set_column(self, int i, field_, column)
-
-            Replace column in Table at position.
+        Replace column in Table at position.
 
         Args:
             i (:obj:`int`):
@@ -990,24 +916,20 @@ class InMemoryTable(TableBlock):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table with the passed column set.
         """
         return InMemoryTable(self.table.set_column(*args, **kwargs))
 
     def rename_columns(self, *args, **kwargs):
         """
-        Table.rename_columns(self, names)
-
-            Create new table with columns renamed to provided names.
+        Create new table with columns renamed to provided names.
         """
         return InMemoryTable(self.table.rename_columns(*args, **kwargs))
 
     def drop(self, *args, **kwargs):
         """
-        Table.drop(self, columns)
-
-            Drop one or more columns and return a new table.
+        Drop one or more columns and return a new table.
 
         Args:
             columns (:obj:`List[str]`):
@@ -1017,7 +939,7 @@ class InMemoryTable(TableBlock):
             KeyError : if any of the passed columns name are not existing.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table without the columns.
         """
         return InMemoryTable(self.table.drop(*args, **kwargs))
@@ -1086,19 +1008,17 @@ class MemoryMappedTable(TableBlock):
 
     def slice(self, offset=0, length=None):
         """
-        Table.slice(self, offset=0, length=None)
-
-            Compute zero-copy slice of this Table
+        Compute zero-copy slice of this Table
 
         Args:
-            offset (:obj:`int`, default ``0``):
+            offset (:obj:`int`, defaults to :obj:`0`):
                 Offset from start of table to slice
-            length (:obj:`int`, default ``None``):
+            length (:obj:`int`, defaults to :obj:`None`):
                 Length of slice (default is until end of table starting from
                 offset)
 
         Returns:
-            sliced (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         replay = ("slice", (offset, length), {})
         replays = self._append_replay(replay)
@@ -1107,9 +1027,7 @@ class MemoryMappedTable(TableBlock):
 
     def filter(self, *args, **kwargs):
         """
-        Table.filter(self, mask, null_selection_behavior=u'drop')
-
-            Select records from a Table. See pyarrow.compute.filter for full usage.
+        Select records from a Table. See pyarrow.compute.filter for full usage.
         """
         replay = ("filter", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
@@ -1117,17 +1035,15 @@ class MemoryMappedTable(TableBlock):
 
     def flatten(self, *args, **kwargs):
         """
-        Table.flatten(self, MemoryPool memory_pool=None)
-
-            Flatten this Table.  Each column with a struct type is flattened
-            into one column per struct field.  Other columns are left unchanged.
+        Flatten this Table.  Each column with a struct type is flattened
+        into one column per struct field.  Other columns are left unchanged.
 
         Args:
-            memory_pool (:obj:`MemoryPool`, default ``None``):
+            memory_pool (:obj:`MemoryPool`, defaults to :obj:`None`):
                 For memory allocations, if required, otherwise use default pool
 
         Returns:
-            result (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         replay = ("flatten", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
@@ -1135,19 +1051,17 @@ class MemoryMappedTable(TableBlock):
 
     def combine_chunks(self, *args, **kwargs):
         """
-        Table.combine_chunks(self, MemoryPool memory_pool=None)
+        Make a new table by combining the chunks this table has.
 
-            Make a new table by combining the chunks this table has.
-
-            All the underlying chunks in the ChunkedArray of each column are
-            concatenated into zero or one chunk.
+        All the underlying chunks in the ChunkedArray of each column are
+        concatenated into zero or one chunk.
 
         Args:
-            memory_pool (:obj:`MemoryPool`, default ``None``):
+            memory_pool (:obj:`MemoryPool`, defaults to :obj:`None`):
                 For memory allocations, if required, otherwise use default pool
 
         Returns:
-            result (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         replay = ("combine_chunks", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
@@ -1155,18 +1069,16 @@ class MemoryMappedTable(TableBlock):
 
     def cast(self, *args, **kwargs):
         """
-        Table.cast(self, Schema target_schema, bool safe=True)
-
-            Cast table values to another schema
+        Cast table values to another schema
 
         Args:
             target_schema (:obj:`Schema`):
                 Schema to cast to, the names and order of fields must match
-            safe (:obj:`bool`, default ``True``):
+            safe (:obj:`bool`, defaults to :obj:`True`):
                 Check for overflows or other unsafe conversions
 
         Returns:
-            casted (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         replay = ("cast", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
@@ -1174,17 +1086,15 @@ class MemoryMappedTable(TableBlock):
 
     def replace_schema_metadata(self, *args, **kwargs):
         """
-        Table.replace_schema_metadata(self, metadata=None)
-
-            EXPERIMENTAL: Create shallow copy of table by replacing schema
-            key-value metadata with the indicated new metadata (which may be None,
-            which deletes any existing metadata
+        EXPERIMENTAL: Create shallow copy of table by replacing schema
+        key-value metadata with the indicated new metadata (which may be None,
+        which deletes any existing metadata
 
         Args:
-            metadata (:obj:`dict`, default ``None``):
+            metadata (:obj:`dict`, defaults to :obj:`None`):
 
         Returns:
-            shallow_copy (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`: shallow_copy
         """
         replay = ("replace_schema_metadata", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
@@ -1192,12 +1102,10 @@ class MemoryMappedTable(TableBlock):
 
     def add_column(self, *args, **kwargs):
         """
-        Table.add_column(self, int i, field_, column)
+        Add column to Table at position.
 
-            Add column to Table at position.
-
-            A new table is returned with the column added, the original table
-            object is left unchanged.
+        A new table is returned with the column added, the original table
+        object is left unchanged.
 
         Args:
             i (:obj:`int`):
@@ -1209,7 +1117,7 @@ class MemoryMappedTable(TableBlock):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`): New table with the passed column added.
+            :class:`datasets.table.Table`: New table with the passed column added.
         """
         replay = ("add_column", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
@@ -1217,9 +1125,7 @@ class MemoryMappedTable(TableBlock):
 
     def append_column(self, *args, **kwargs):
         """
-        Table.append_column(self, field_, column)
-
-            Append column at end of columns.
+        Append column at end of columns.
 
         Args:
             field_ (:obj:`Union[str, pyarrow.Field]`):
@@ -1229,7 +1135,7 @@ class MemoryMappedTable(TableBlock):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table with the passed column added.
         """
         replay = ("append_column", copy.deepcopy(args), copy.deepcopy(kwargs))
@@ -1238,16 +1144,14 @@ class MemoryMappedTable(TableBlock):
 
     def remove_column(self, *args, **kwargs):
         """
-        Table.remove_column(self, int i)
-
-            Create new Table with the indicated column removed.
+        Create new Table with the indicated column removed.
 
         Args:
             i (:obj:`int`):
                 Index of column to remove.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table without the column.
         """
         replay = ("remove_column", copy.deepcopy(args), copy.deepcopy(kwargs))
@@ -1256,9 +1160,7 @@ class MemoryMappedTable(TableBlock):
 
     def set_column(self, *args, **kwargs):
         """
-        Table.set_column(self, int i, field_, column)
-
-            Replace column in Table at position.
+        Replace column in Table at position.
 
         Args:
             i (:obj:`int`):
@@ -1270,7 +1172,7 @@ class MemoryMappedTable(TableBlock):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table with the passed column set.
         """
         replay = ("set_column", copy.deepcopy(args), copy.deepcopy(kwargs))
@@ -1279,9 +1181,7 @@ class MemoryMappedTable(TableBlock):
 
     def rename_columns(self, *args, **kwargs):
         """
-        Table.rename_columns(self, names)
-
-            Create new table with columns renamed to provided names.
+        Create new table with columns renamed to provided names.
         """
         replay = ("rename_columns", copy.deepcopy(args), copy.deepcopy(kwargs))
         replays = self._append_replay(replay)
@@ -1289,9 +1189,7 @@ class MemoryMappedTable(TableBlock):
 
     def drop(self, *args, **kwargs):
         """
-        Table.drop(self, columns)
-
-            Drop one or more columns and return a new table.
+        Drop one or more columns and return a new table.
 
         Args:
             columns (:obj:`List[str]`):
@@ -1301,7 +1199,7 @@ class MemoryMappedTable(TableBlock):
             KeyError : if any of the passed columns name are not existing.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table without the columns.
         """
         replay = ("drop", copy.deepcopy(args), copy.deepcopy(kwargs))
@@ -1431,7 +1329,7 @@ class ConcatenationTable(Table):
 
         Args:
             tables (list of :class:`Table` or list of :obj:`pyarrow.Table`): List of tables.
-            axis: (``{0, 1}``, default ``0``, meaning over rows):
+            axis: (``{0, 1}``, defaults to :obj:`0`, meaning over rows):
             Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
             (horizontally).
 
@@ -1486,19 +1384,17 @@ class ConcatenationTable(Table):
 
     def slice(self, offset=0, length=None):
         """
-        Table.slice(self, offset=0, length=None)
-
-            Compute zero-copy slice of this Table
+        Compute zero-copy slice of this Table
 
         Args:
-            offset (:obj:`int`, default ``0``):
+            offset (:obj:`int`, defaults to :obj:`0`):
                 Offset from start of table to slice
-            length (:obj:`int`, default ``None``):
+            length (:obj:`int`, defaults to :obj:`None`):
                 Length of slice (default is until end of table starting from
                 offset)
 
         Returns:
-            sliced (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         table = self.table.slice(offset, length=length)
         length = length if length is not None else self.num_rows - offset
@@ -1519,9 +1415,7 @@ class ConcatenationTable(Table):
 
     def filter(self, mask, *args, **kwargs):
         """
-        Table.filter(self, mask, null_selection_behavior=u'drop')
-
-            Select records from a Table. See pyarrow.compute.filter for full usage.
+        Select records from a Table. See pyarrow.compute.filter for full usage.
         """
         table = self.table.filter(mask, *args, **kwargs)
         blocks = []
@@ -1532,17 +1426,15 @@ class ConcatenationTable(Table):
 
     def flatten(self, *args, **kwargs):
         """
-        Table.flatten(self, MemoryPool memory_pool=None)
-
-            Flatten this Table.  Each column with a struct type is flattened
-            into one column per struct field.  Other columns are left unchanged.
+        Flatten this Table.  Each column with a struct type is flattened
+        into one column per struct field.  Other columns are left unchanged.
 
         Args:
-            memory_pool (:obj:`MemoryPool`, default ``None``):
+            memory_pool (:obj:`MemoryPool`, defaults to :obj:`None`):
                 For memory allocations, if required, otherwise use default pool
 
         Returns:
-            result (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         table = self.table.flatten(*args, **kwargs)
         blocks = []
@@ -1552,19 +1444,17 @@ class ConcatenationTable(Table):
 
     def combine_chunks(self, *args, **kwargs):
         """
-        Table.combine_chunks(self, MemoryPool memory_pool=None)
+        Make a new table by combining the chunks this table has.
 
-            Make a new table by combining the chunks this table has.
-
-            All the underlying chunks in the ChunkedArray of each column are
-            concatenated into zero or one chunk.
+        All the underlying chunks in the ChunkedArray of each column are
+        concatenated into zero or one chunk.
 
         Args:
-            memory_pool (:obj:`MemoryPool`, default ``None``):
+            memory_pool (:obj:`MemoryPool`, defaults to :obj:`None`):
                 For memory allocations, if required, otherwise use default pool
 
         Returns:
-            result (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         table = self.table.combine_chunks(*args, **kwargs)
         blocks = []
@@ -1574,18 +1464,16 @@ class ConcatenationTable(Table):
 
     def cast(self, target_schema, *args, **kwargs):
         """
-        Table.cast(self, Schema target_schema, bool safe=True)
-
-            Cast table values to another schema
+        Cast table values to another schema
 
         Args:
             target_schema (:obj:`Schema`):
                 Schema to cast to, the names and order of fields must match
-            safe (:obj:`bool`, default ``True``):
+            safe (:obj:`bool`, defaults to :obj:`True`):
                 Check for overflows or other unsafe conversions
 
         Returns:
-            casted (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
         """
         table = table_cast(self.table, target_schema, *args, **kwargs)
         blocks = []
@@ -1603,17 +1491,15 @@ class ConcatenationTable(Table):
 
     def replace_schema_metadata(self, *args, **kwargs):
         """
-        Table.replace_schema_metadata(self, metadata=None)
-
-            EXPERIMENTAL: Create shallow copy of table by replacing schema
-            key-value metadata with the indicated new metadata (which may be None,
-            which deletes any existing metadata
+        EXPERIMENTAL: Create shallow copy of table by replacing schema
+        key-value metadata with the indicated new metadata (which may be None,
+        which deletes any existing metadata
 
         Args:
-            metadata (:obj:`dict`, default ``None``):
+            metadata (:obj:`dict`, defaults to :obj:`None`):
 
         Returns:
-            shallow_copy (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`: shallow_copy
         """
         table = self.table.replace_schema_metadata(*args, **kwargs)
         blocks = []
@@ -1623,12 +1509,10 @@ class ConcatenationTable(Table):
 
     def add_column(self, *args, **kwargs):
         """
-        Table.add_column(self, int i, field_, column)
+        Add column to Table at position.
 
-            Add column to Table at position.
-
-            A new table is returned with the column added, the original table
-            object is left unchanged.
+        A new table is returned with the column added, the original table
+        object is left unchanged.
 
         Args:
             i (:obj:`int`):
@@ -1640,15 +1524,13 @@ class ConcatenationTable(Table):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`): New table with the passed column added.
+            :class:`datasets.table.Table`: New table with the passed column added.
         """
         raise NotImplementedError()
 
     def append_column(self, *args, **kwargs):
         """
-        Table.append_column(self, field_, column)
-
-            Append column at end of columns.
+        Append column at end of columns.
 
         Args:
             field_ (:obj:`Union[str, pyarrow.Field]`):
@@ -1658,23 +1540,21 @@ class ConcatenationTable(Table):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table with the passed column added.
         """
         raise NotImplementedError()
 
     def remove_column(self, i, *args, **kwargs):
         """
-        Table.remove_column(self, int i)
-
-            Create new Table with the indicated column removed.
+        Create new Table with the indicated column removed.
 
         Args:
             i (:obj:`int`):
                 Index of column to remove.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table without the column.
         """
         table = self.table.remove_column(i, *args, **kwargs)
@@ -1691,9 +1571,7 @@ class ConcatenationTable(Table):
 
     def set_column(self, *args, **kwargs):
         """
-        Table.set_column(self, int i, field_, column)
-
-            Replace column in Table at position.
+        Replace column in Table at position.
 
         Args:
             i (:obj:`int`):
@@ -1705,16 +1583,14 @@ class ConcatenationTable(Table):
                 Column data.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table with the passed column set.
         """
         raise NotImplementedError()
 
     def rename_columns(self, names, *args, **kwargs):
         """
-        Table.rename_columns(self, names)
-
-            Create new table with columns renamed to provided names.
+        Create new table with columns renamed to provided names.
         """
         table = self.table.rename_columns(names, *args, **kwargs)
         names = dict(zip(self.table.column_names, names))
@@ -1727,9 +1603,7 @@ class ConcatenationTable(Table):
 
     def drop(self, columns, *args, **kwargs):
         """
-        Table.drop(self, columns)
-
-            Drop one or more columns and return a new table.
+        Drop one or more columns and return a new table.
 
         Args:
             columns (:obj:`List[str]`):
@@ -1739,7 +1613,7 @@ class ConcatenationTable(Table):
             KeyError : if any of the passed columns name are not existing.
 
         Returns:
-            Table (:obj:`datasets.table.Table`):
+            :class:`datasets.table.Table`:
                 New table without the columns.
         """
         table = self.table.drop(columns)
@@ -1755,14 +1629,14 @@ def concat_tables(tables: List[Table], axis: int = 0) -> Table:
 
     Args:
         tables (list of :class:`Table`): List of tables to be concatenated.
-        axis (``{0, 1}``, default ``0``, meaning over rows):
+        axis (``{0, 1}``, defaults to :obj:`0`, meaning over rows):
             Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
             (horizontally).
 
             *New in version 1.6.0*
 
     Returns:
-        Table (:obj:`datasets.table.Table`): The concatenated table:
+        :class:`datasets.table.Table`:
             If the number of input tables is > 1, then the returned table is a :obj:`datasets.table.ConcatenationTable`.
             Otherwise if there's only one table, it is returned as is.
     """
@@ -1778,7 +1652,7 @@ def list_table_cache_files(table: Table) -> List[str]:
     Cache file are used when parts of the table come from the disk via memory mapping.
 
     Returns:
-        cache_files ():obj:`List[str]`): a list of paths to the cache files loaded by the table
+        :obj:`List[str]`: a list of paths to the cache files loaded by the table
     """
     if isinstance(table, ConcatenationTable):
         cache_files = []
@@ -1840,7 +1714,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     Args:
         array (pa.Array): PyArrow array to cast
         pa_type (pa.DataType): target PyArrow type
-        allow_number_to_str (bool, default ``True``): Whether to allow casting numbers to strings.
+        allow_number_to_str (bool, defaults to :obj:`True`): Whether to allow casting numbers to strings.
             Defaults to True.
 
     Raises:
@@ -1851,7 +1725,7 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
             = if casting from numbers to strings and allow_number_to_str is False
 
     Returns:
-         array (:obj:`pyarrow.Array`): the casted array
+        :obj:`List[pyarrow.Array]`: the casted array
     """
     _c = partial(array_cast, allow_number_to_str=allow_number_to_str)
     if isinstance(array, pa.ExtensionArray):
@@ -1911,7 +1785,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     Args:
         array (pa.Array): the PyArrow array to cast
         feature (FeatureType): the target feature type
-        allow_number_to_str (bool, default ``True``): Whether to allow casting numbers to strings.
+        allow_number_to_str (bool, defaults to :obj:`True`): Whether to allow casting numbers to strings.
             Defaults to True.
 
     Raises:
