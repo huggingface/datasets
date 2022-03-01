@@ -354,34 +354,6 @@ def map_nested(
             return np.array(mapped)
 
 
-def zip_nested(arg0, *args, **kwargs):
-    """Zip data struct together and return a data struct with the same shape."""
-    # Python 2 do not support kwargs only arguments
-    dict_only = kwargs.pop("dict_only", False)
-    assert not kwargs
-
-    # Could add support for more exotic data_struct, like OrderedDict
-    if isinstance(arg0, dict):
-        return {k: zip_nested(*a, dict_only=dict_only) for k, a in zip_dict(arg0, *args)}
-    elif not dict_only:
-        if isinstance(arg0, list):
-            return [zip_nested(*a, dict_only=dict_only) for a in zip(arg0, *args)]
-    # Singleton
-    return (arg0,) + args
-
-
-def flatten_nest_dict(d):
-    """Return the dict with all nested keys flattened joined with '/'."""
-    # Use NonMutableDict to ensure there is no collision between features keys
-    flat_dict = NonMutableDict()
-    for k, v in d.items():
-        if isinstance(v, dict):
-            flat_dict.update({f"{k}/{k2}": v2 for k2, v2 in flatten_nest_dict(v).items()})
-        else:
-            flat_dict[k] = v
-    return flat_dict
-
-
 class NestedDataStructure:
     def __init__(self, data=None):
         self.data = data if data is not None else []
