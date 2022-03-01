@@ -4,6 +4,7 @@ Each `datasets.Dataset` object is backed by a PyArrow Table.
 A Table can be loaded from either the disk (memory mapped) or in memory.
 Several Table types are available, and they all inherit from [`datasets.table.Table`].
 
+## Table
 
 [[autodoc]] datasets.table.Table
     - validate
@@ -21,6 +22,8 @@ Several Table types are available, and they all inherit from [`datasets.table.Ta
     - num_rows
     - shape
     - nbytes
+
+## InMemoryTable
 
 [[autodoc]] datasets.table.InMemoryTable
     - validate
@@ -58,6 +61,8 @@ Several Table types are available, and they all inherit from [`datasets.table.Ta
     - from_pydict
     - from_batches
 
+## MemoryMappedTable
+
 [[autodoc]] datasets.table.MemoryMappedTable
     - validate
     - equals
@@ -88,6 +93,8 @@ Several Table types are available, and they all inherit from [`datasets.table.Ta
     - rename_columns
     - drop
     - from_file
+
+## ConcatenationTable
 
 [[autodoc]] datasets.table.ConcatenationTable
     - validate
@@ -120,6 +127,8 @@ Several Table types are available, and they all inherit from [`datasets.table.Ta
     - drop
     - from_blocks
     - from_tables
+
+## Utils
 
 [[autodoc]] datasets.table.concat_tables
 
