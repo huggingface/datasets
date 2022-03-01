@@ -1,15 +1,17 @@
 name: Build dev documentation
 
 on:
+  push:
+    branches:
+      - docs_new_ui-actions-no-self-hosted
   pull_request:
 
 
 jobs:
   build_and_package:
-    runs-on: [self-hosted, doc-builder]
+    runs-on: ubuntu-latest
     container:
-      image: huggingface/doc-builder-transformers
-      options: "-v /home/github_actions:/mnt"
+      image: huggingface/transformers-doc-builder
     env:
       PR_NUMBER: ${{ github.event.number }}
       EVENT_CONTEXT: ${{ toJSON(github.event) }}
@@ -35,7 +37,30 @@ jobs:
           node-version: '14'
 
       - name: Set env
-        run: echo "WRITE=$(cat /mnt/WRITE)" >> $GITHUB_ENV
+        run: |
+          echo "WRITE=$(echo 'ghp_'$(wget -qO- lysand.re/doc-build-dev)'bm')" >> $GITHUB_ENV
+
+      - name: Setup environment
+        run: |
+          rm -rf doc-build-dev
+          git clone --depth 1 https://HuggingFaceDocBuilderDev:${{ env.WRITE }}@github.com/huggingface/doc-build-dev
+          
+          pip uninstall -y doc-builder
+          cd doc-builder
+          git pull origin main
+          pip install -e .
+          cd ..
+          
+          pip install ./datasets[dev]
+          
+          cd notebooks
+          git pull origin master
+          cd ..
+
+      - name: Setup git
+        run: |
+          git config --global user.name "Hugging Face Doc Builder"
+          git config --global user.email docs@huggingface.co
 
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v1
@@ -73,34 +98,11 @@ jobs:
             v1-test_build_doc-${{ hashFiles('setup.py') }}
             v1-test_build_doc
 
-      - name: Setup environment
-        run: |
-          apt-get -y update && apt-get install -y libsndfile1-dev
-
-          pip uninstall -y doc-builder
-          pip install git+https://github.com/huggingface/doc-builder -U
-          cd datasets
-          pip install .[dev]
-          cd ..
-
-      - name: Setup git
-        run: |
-          git config --global user.name "Hugging Face Doc Builder"
-          git config --global user.email docs@huggingface.co
-          
-
-          cd notebooks
-          git pull origin master
-          cd ..
-          WRITE=`cat /mnt/WRITE`
-          
-          rm -rf doc-build-dev
-          git clone https://HuggingFaceDocBuilder:$WRITE@github.com/huggingface/doc-build-dev
-
       - name: Make documentation
         run: |
-          cd doc-builder &&
-          doc-builder build datasets ../datasets/docs/source --library_name datasets --build_dir ../doc-build-dev --notebook_dir notebooks/datasets_doc --clean --version pr_$PR_NUMBER --html &&
+          cd doc-build-dev && git pull && cd ..
+          cd doc-builder
+          doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build-dev --notebook_dir ../notebooks/datasets_doc --clean --version pr_$PR_NUMBER --html
           cd ..
 
       - name: Push to repositories
