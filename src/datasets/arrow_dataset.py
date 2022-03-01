@@ -1255,31 +1255,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return dset
 
-    @deprecated()
-    @fingerprint_transform(inplace=True)
-    def dictionary_encode_column_(self, column: str):
-        """Dictionary encode a column.
-
-        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-        by storing a dictionary of the strings. This only affect the internal storage.
-
-        .. deprecated:: 1.4.0
-
-        Args:
-            column (:obj:`str`):
-
-        """
-        if column not in self._data.column_names:
-            raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
-        casted_schema: pa.Schema = self._data.schema
-        field_index = casted_schema.get_field_index(column)
-        field: pa.Field = casted_schema.field(field_index)
-        casted_field = pa.field(field.name, pa.dictionary(pa.int32(), field.type), nullable=False)
-        casted_schema.set(field_index, casted_field)
-        self._data = self._data.cast(casted_schema)
-        self.info.features = Features.from_arrow_schema(self._data.schema)
-        self._data = update_metadata_with_features(self._data, self.features)
-
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
         """Flatten the table.

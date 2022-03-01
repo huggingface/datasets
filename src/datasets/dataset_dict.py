@@ -86,23 +86,6 @@ class DatasetDict(dict):
         self._check_values_type()
         return {k: dataset.shape for k, dataset in self.items()}
 
-    @deprecated()
-    def dictionary_encode_column_(self, column: str):
-        """Dictionary encode a column in each split.
-
-        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-        by storing a dictionary of the strings. This only affect the internal storage.
-
-        .. deprecated:: 1.4.0
-
-        Args:
-            column (:obj:`str`):
-
-        """
-        self._check_values_type()
-        for dataset in self.values():
-            dataset.dictionary_encode_column_(column=column)
-
     def flatten(self, max_depth=16) -> "DatasetDict":
         """Flatten the Apache Arrow Table of each split (nested features are flatten).
         Each column with a struct type is flattened into one column per struct field.
