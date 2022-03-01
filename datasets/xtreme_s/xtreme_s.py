@@ -15,6 +15,9 @@
 
 import glob
 import os
+import csv
+
+import pandas as pd
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
 
@@ -108,25 +111,17 @@ _HOMEPAGE_URLS = {  # TOOD(PVP)
 
 _DATA_URLS = {  # TOOD(PVP)
     "babel": "",
-    "mls": "https://dl.fbaipublicfiles.com/mls/mls_{}.tar.gz",
-    "covost2": "",
+    "mls": ["https://dl.fbaipublicfiles.com/mls/mls_{}.tar.gz"],
+    "covost2": ["https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-4-2019-12-10/{}.tar.gz", "https://dl.fbaipublicfiles.com/covost/covost_v2.{}_{}.tsv.tar.gz"],
     "fleurs": "",
-    "minds14": "",
-}
-
-_DATA_FORMAT = {
-    "babel": {k: "" for k in _BABEL_LANG},
-    "mls": {k: (_ID_TO_LANG[k],) for k in _MLS_LANG},
-    "covost2": {k: "" for k in _COVOST2_LANG},
-    "fleurs": {k: "" for k in _FLORES_LANG},
-    "minds14": {k: "" for k in _MINDS_14_LANG},
+    "minds14": "http://poly-public-data.s3.amazonaws.com/MInDS-14/MInDS-14.zip",
 }
 
 
 class XtremeSConfig(datasets.BuilderConfig):
     """BuilderConfig for xtreme-s"""
 
-    def __init__(self, name, dataset_name, lang_name, description, citation, homepage, data_format, data_url):
+    def __init__(self, name, dataset_name, lang_name, description, citation, homepage, data_urls):
         super(XtremeSConfig, self).__init__(
             name=self.name, version=datasets.Version("1.0.0", ""), description=self.description
         )
@@ -136,8 +131,7 @@ class XtremeSConfig(datasets.BuilderConfig):
         self.description = description
         self.citation = citation
         self.homepage = homepage
-        self.data_format = data_format
-        self.data_url = data_url.format(*self.data_format)
+        self.data_urls = data_urls
 
 
 def _build_config(name):
@@ -151,8 +145,7 @@ def _build_config(name):
         description=_DESCRIPTIONS[dataset_name],
         citation=_CITATIONS[dataset_name],
         homepage=_HOMEPAGE_URLS[dataset_name],
-        data_format=_DATA_FORMAT[dataset_name][lang_name],
-        data_url=_DATA_URLS[dataset_name],
+        data_urls=_DATA_URLS[dataset_name],
     )
 
 
@@ -202,19 +195,25 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             task_templates=task_templates,
         )
 
-    def _split_generators(self, dl_manager):
-        archive_path = dl_manager.download_and_extract(self.config.data_url)
-        data_path = os.path.join(archive_path, f"mls_{_ID_TO_LANG[self.config.lang_name]}")
-
+    def _split_generators(self, *args, **kwargs):
         if self.config.dataset_name == "mls":
-            return self._split_generators_mls(data_path)
+            return self._mls_split_generators(*args, **kwargs)
+        elif self.config.dataset_name == "covost2":
+            return self._covost_2_split_generators(*args, **kwargs)
 
     def _generate_examples(self, *args, **kwargs):
         if self.config.dataset_name == "mls":
-            yield from self._generate_mls_examples(*args, **kwargs)
+            yield from self._mls_generate_examples(*args, **kwargs)
+        elif self.config.dataset_name == "covost2":
+            yield from self._covost_2_generate_examples(*args, **kwargs)
 
     # MLS
-    def _split_generators_mls(self, data_path):
+    def _mls_split_generators(self, dl_manager):
+        lang = _ID_TO_LANG[self.config.lang_name]
+
+        archive_path = dl_manager.download_and_extract(self.config.data_urls[0].format(lang))
+        data_path = os.path.join(archive_path, f"mls_{_ID_TO_LANG[self.config.lang_name]}")
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN, gen_kwargs={"data_dir": os.path.join(data_path, "train"), "sub_folder": "limited_supervision/9hr"}
@@ -227,7 +226,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_mls_examples(self, data_dir, sub_folder=""):
+    def _mls_generate_examples(self, data_dir, sub_folder=""):
         """Generate examples from a Multilingual LibriSpeech data dir."""
         transcript_path = os.path.join(data_dir, "transcripts.txt")
         key = 0
@@ -261,3 +260,79 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                     "target": transcript,
                 }
                 key += 1
+
+    # Covost2
+    def _covost_2_split_generators(self, dl_manager):
+        source_lang, target_lang = self.config.lang_name.split(".")
+        audio_url, translation_url = tuple(self.config.data_urls)
+
+        audio_data = dl_manager.download_and_extract(audio_url.format(source_lang))
+        text_data = dl_manager.download_and_extract(translation_url.format(source_lang, target_lang))
+
+        covost_tsv_path = os.path.join(text_data, f"covost_v2.{source_lang}_{target_lang}.tsv")
+        cv_tsv_path = os.path.join(audio_data, "validated.tsv")
+
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "source_path": audio_data,
+                    "covost_tsv_path": covost_tsv_path,
+                    "cv_tsv_path": cv_tsv_path,
+                    "split": "train",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "source_path": audio_data,
+                    "covost_tsv_path": covost_tsv_path,
+                    "cv_tsv_path": cv_tsv_path,
+                    "split": "dev",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "source_path": audio_data,
+                    "covost_tsv_path": covost_tsv_path,
+                    "cv_tsv_path": cv_tsv_path,
+                    "split": "test",
+                },
+            ),
+        ]
+
+    def _covost_2_generate_examples(self, source_path, covost_tsv_path, cv_tsv_path, split):
+        def _load_df_from_tsv(path):
+            return pd.read_csv(
+                path,
+                sep="\t",
+                header=0,
+                encoding="utf-8",
+                escapechar="\\",
+                quoting=csv.QUOTE_NONE,
+                na_filter=False,
+            )
+
+        covost_tsv = _load_df_from_tsv(covost_tsv_path)
+        cv_tsv = _load_df_from_tsv(cv_tsv_path)
+
+        df = pd.merge(
+            left=cv_tsv[["path", "sentence", "client_id"]],
+            right=covost_tsv[["path", "translation", "split"]],
+            how="inner",
+            on="path",
+        )
+
+        if split == "train":
+            df = df[(df["split"] == "train") | (df["split"] == "train_covost")]
+        else:
+            df = df[df["split"] == split]
+
+        for i, row in df.iterrows():
+            yield i, {
+                "path": os.path.join(source_path, "clips", row["path"]),
+                "audio": os.path.join(source_path, "clips", row["path"]),
+                "transcription": row["sentence"],
+                "target": row["translation"],
+            }
