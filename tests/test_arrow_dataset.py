@@ -433,20 +433,6 @@ class BaseDatasetTest(TestCase):
                 dset.set_format("numpy", columns=["col_1", "col_2"])
                 self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
 
-    def test_cast_in_place(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                features = dset.features
-                features["col_1"] = Value("float64")
-                features = Features({k: features[k] for k in list(features)[::-1]})
-                fingerprint = dset._fingerprint
-                dset.cast_(features)
-                self.assertEqual(dset.num_columns, 3)
-                self.assertEqual(dset.features["col_1"], Value("float64"))
-                self.assertIsInstance(dset[0]["col_1"], float)
-                self.assertNotEqual(dset._fingerprint, fingerprint)
-                assert_arrow_metadata_are_synced_with_dataset_features(dset)
-
     def test_cast(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:

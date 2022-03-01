@@ -195,17 +195,6 @@ class DatasetDictTest(TestCase):
             self.assertDictEqual(dset_split.format, dset_split2.format)
         del dset, dset2
 
-    def test_cast_in_place(self):
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        features = dset["train"].features
-        features["col_1"] = Value("float64")
-        dset.cast_(features)
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 2)
-            self.assertEqual(dset_split.features["col_1"], Value("float64"))
-            self.assertIsInstance(dset_split[0]["col_1"], float)
-        del dset
-
     def test_cast(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         features = dset["train"].features

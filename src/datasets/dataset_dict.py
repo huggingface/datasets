@@ -125,23 +125,6 @@ class DatasetDict(dict):
         repr = re.sub(r"^", " " * 4, repr, 0, re.M)
         return f"DatasetDict({{\n{repr}\n}})"
 
-    @deprecated(help_message="Use DatasetDict.cast instead.")
-    def cast_(self, features: Features):
-        """In-place version of :meth:`DatasetDict.cast`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`DatasetDict.cast` instead.
-
-        Args:
-            features (:class:`datasets.Features`): New features to cast the dataset to.
-                The name and order of the fields in the features must match the current column names.
-                The type of the data must also be convertible from one type to the other.
-                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
-        """
-        self._check_values_type()
-        new_dataset_dict = {k: dataset.cast(features=features) for k, dataset in self.items()}
-        self.update(new_dataset_dict)
-
     def cast(self, features: Features) -> "DatasetDict":
         """
         Cast the dataset to a new set of features.

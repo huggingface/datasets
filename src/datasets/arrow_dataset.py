@@ -1276,65 +1276,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._fingerprint = new_fingerprint
         return dataset
 
-    @deprecated(help_message="Use Dataset.cast instead.")
-    def cast_(
-        self,
-        features: Features,
-        batch_size: Optional[int] = 10_000,
-        keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
-        cache_file_name: Optional[str] = None,
-        writer_batch_size: Optional[int] = 10_000,
-        num_proc: Optional[int] = None,
-    ):
-        """In-place version of :meth:`Dataset.cast`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`Dataset.cast` instead.
-
-        Args:
-            features (:class:`datasets.Features`): New features to cast the dataset to.
-                The name of the fields in the features must match the current column names.
-                The type of the data must also be convertible from one type to the other.
-                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
-            batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to cast.
-                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to cast.
-            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
-            load_from_cache_file (:obj:`bool`, default `True` if caching is enabled): If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
-                results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
-        """
-        if sorted(features) != sorted(self._data.column_names):
-            raise ValueError(
-                f"The columns in features ({list(features)}) must be identical "
-                f"as the columns in the dataset: {self._data.column_names}"
-            )
-
-        type = features.type
-        schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
-        dataset = self.with_format("arrow")
-        dataset = dataset.map(
-            partial(table_cast, schema=schema),
-            batched=True,
-            batch_size=batch_size,
-            keep_in_memory=keep_in_memory,
-            load_from_cache_file=load_from_cache_file,
-            cache_file_name=cache_file_name,
-            writer_batch_size=writer_batch_size,
-            num_proc=num_proc,
-            features=features,
-            desc="Casting the dataset",
-        )
-        self._data = dataset._data
-        self._info = dataset._info
-        self._fingerprint = dataset._fingerprint
-
     def cast(
         self,
         features: Features,
