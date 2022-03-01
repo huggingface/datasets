@@ -1,8 +1,27 @@
 ---
-TODO: Add YAML tags here. Copy-paste the tags obtained with the online tagging app: https://huggingface.co/spaces/huggingface/datasets-tagging
+annotations_creators:
+- no-annotation
+language_creators:
+- found
+languages:
+- unknown
+licenses:
+- unknown
+multilinguality:
+- monolingual
+pretty_name: Monash Time Series Forecasting Repository
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- time-series-forecasting
+task_ids:
+- univariate-time-series-forecasting
+- multivariate-time-series-forecasting
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Monash Time Series Forecasting Repository
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -31,23 +50,21 @@ TODO: Add YAML tags here. Copy-paste the tags obtained with the online tagging a
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [Monash Time Series Forecasting Repository](https://forecastingdata.org/)
+- **Paper:** [Monash Time Series Forecasting Archive](https://openreview.net/pdf?id=wEc1mgAjU-)
+- **Leaderboard:** [Baseline Results](https://forecastingdata.org/#results)
+- **Point of Contact:** [Rakshitha Godahewa](mailto:rakshitha.godahewa@monash.edu)
 
 ### Dataset Summary
 
-[More Information Needed]
+The first comprehensive time series forecasting repository containing datasets of related time series to facilitate the evaluation of global forecasting models. All datasets are intended to use only for research purpose. Our repository contains 30 datasets including both publicly available time series datasets (in different formats) and datasets curated by us. Many datasets have different versions based on the frequency and the inclusion of missing values, making the total number of dataset variations to 58. Furthermore, it includes both real-world and competition time series datasets covering varied domains.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `univariate-time-series-forecasting`: The time series forecasting tasks involves learning the future `target` values of time series in a dataset for the `prediction_length` time steps. The performance of the forecast models can then be validated via the ground truth in the `validation` split and tested via the `test` split.
+
 
 ### Languages
-
-[More Information Needed]
 
 ## Dataset Structure
 
@@ -115,12 +132,20 @@ TODO: Add YAML tags here. Copy-paste the tags obtained with the online tagging a
 
 ### Licensing Information
 
-[More Information Needed]
+[Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/legalcode)
 
 ### Citation Information
 
-[More Information Needed]
+```tex
+@InProceedings{godahewa2021monash,
+    author = "Godahewa, Rakshitha and Bergmeir, Christoph and Webb, Geoffrey I. and Hyndman, Rob J. and Montero-Manso, Pablo",
+    title = "Monash Time Series Forecasting Archive",
+    booktitle = "Neural Information Processing Systems Track on Datasets and Benchmarks",
+    year = "2021",
+    note = "forthcoming"
+}
+```
 
 ### Contributions
 
-Thanks to [@github-username](https://github.com/<github-username>) for adding this dataset.
+Thanks to [@kashif](https://github.com/kashif) for adding this dataset.
