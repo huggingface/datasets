@@ -1105,6 +1105,8 @@ def dataset_module_factory(
         dynamic_modules_path (Optional str, defaults to HF_MODULES_CACHE / "datasets_modules", i.e. ~/.cache/huggingface/modules/datasets_modules):
             Optional path to the directory in which the dynamic modules are saved. It must have been initialized with :obj:`init_dynamic_modules`.
             By default the datasets and metrics are stored inside the `datasets_modules` module.
+        data_dir (:obj:`str`, optional): Directory with the data files. Used only if `data_files` is not specified,
+            in which case it's equal to passing `os.path.join(data_dir, "**")` as `data_files`.
         data_files (:obj:`Union[Dict, List, str]`, optional): Defining the data_files of the dataset configuration.
         script_version:
             .. deprecated:: 1.13
@@ -1522,7 +1524,8 @@ def load_dataset_builder(
 
 
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
+        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If `data_files` is not specified for the generic builders (csv, text etc.) or the Hub datasets,
+            it's equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files inside a directory.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         cache_dir (:obj:`str`, optional): Directory to read/write data. Defaults to "~/.cache/huggingface/datasets".
         features (:class:`Features`, optional): Set the features type to use for this dataset.
@@ -1673,7 +1676,8 @@ def load_dataset(
               e.g. ``glue``, ``squad``, ``'username/dataset_name'``, a dataset repository on the HF hub containing a dataset script `'dataset_name.py'`.
 
         name (:obj:`str`, optional): Defining the name of the dataset configuration.
-        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration.
+        data_dir (:obj:`str`, optional): Defining the data_dir of the dataset configuration. If `data_files` is not specified for the generic builders (csv, text etc.) or the Hub datasets,
+            it's equal to passing `os.path.join(data_dir, **)` as `data_files` to reference all the files inside a directory.
         data_files (:obj:`str` or :obj:`Sequence` or :obj:`Mapping`, optional): Path(s) to source data file(s).
         split (:class:`Split` or :obj:`str`): Which split of the data to load.
             If None, will return a `dict` with all splits (typically `datasets.Split.TRAIN` and `datasets.Split.TEST`).
