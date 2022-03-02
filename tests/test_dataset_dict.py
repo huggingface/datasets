@@ -219,14 +219,6 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split.num_columns, 0)
         del dset
 
-    def test_rename_column_in_place(self):
-        dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
-        for dset_split in dset.values():
-            self.assertEqual(dset_split.num_columns, 2)
-            self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
-        del dset
-
     def test_rename_column(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
         dset = dset.rename_column(original_column_name="col_1", new_column_name="new_name")
