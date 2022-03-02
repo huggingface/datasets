@@ -76,7 +76,7 @@ jobs:
       - name: Make documentation
         run: |
           cd doc-builder &&
-          doc-builder build datasets ../datasets/docs/source --library_name datasets --build_dir ../doc-build --clean --html &&
+          doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build --clean --html &&
           cd ..
         env:
           NODE_OPTIONS: --max-old-space-size=6656
