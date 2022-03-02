@@ -43,14 +43,14 @@ _CITATION = """\
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Predicted labels, as returned by a model.
-    references: Ground truth labels.
+    X: List of datapoints to be compared with the `reference_distribution`.
+    reference_distribution: List of datapoints from the reference distribution we want to compare to.
 Returns:
-    mahalanobis: The Mahalonobis distance.
+    mahalanobis: The Mahalonobis distance for each datapoint in `X`.
 Examples:
 
     >>> mahalanobis_metric = datasets.load_metric("mahalanobis")
-    >>> results = mahalanobis_metric.compute(references=[[0, 1], [1, 0]], predictions=[[0, 1]])
+    >>> results = mahalanobis_metric.compute(reference_distribution=[[0, 1], [1, 0]], X=[[0, 1]])
     >>> print(results)
     {'mahalanobis': array([0.5])}
 """
@@ -65,36 +65,38 @@ class Mahalanobis(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Sequence(datasets.Value("float", id="sequence"), id="predictions"),
-                    "references": datasets.Sequence(datasets.Value("float", id="sequence"), id="references"),
+                    "X": datasets.Sequence(datasets.Value("float", id="sequence"), id="X"),
+                    "reference_distribution": datasets.Sequence(
+                        datasets.Value("float", id="sequence"), id="reference_distribution"
+                    ),
                 }
             ),
         )
 
-    def _compute(self, predictions, references):
+    def _compute(self, X, reference_distribution):
 
         # convert to numpy arrays
-        predictions = np.array(predictions)
-        references = np.array(references)
+        X = np.array(X)
+        reference_distribution = np.array(reference_distribution)
 
         # Assert that arrays are 2D
-        if len(predictions.shape) != 2:
-            raise ValueError("Expected `predictions` to be a 2D vector")
-        if len(references.shape) != 2:
-            raise ValueError("Expected `references` to be a 2D vector")
-        if references.shape[0] < 2:
+        if len(X.shape) != 2:
+            raise ValueError("Expected `X` to be a 2D vector")
+        if len(reference_distribution.shape) != 2:
+            raise ValueError("Expected `reference_distribution` to be a 2D vector")
+        if reference_distribution.shape[0] < 2:
             raise ValueError(
-                "Expected `references` to be a 2D vector with more than one element in the first dimension"
+                "Expected `reference_distribution` to be a 2D vector with more than one element in the first dimension"
             )
 
         # Get mahalanobis distance for each prediction
-        predictions_minus_mu = predictions - np.mean(references)
-        cov = np.cov(references.T)
+        X_minus_mu = X - np.mean(reference_distribution)
+        cov = np.cov(reference_distribution.T)
         try:
             inv_covmat = np.linalg.inv(cov)
         except np.linalg.LinAlgError:
             inv_covmat = np.linalg.pinv(cov)
-        left_term = np.dot(predictions_minus_mu, inv_covmat)
-        mahal_dist = np.dot(left_term, predictions_minus_mu.T).diagonal()
+        left_term = np.dot(X_minus_mu, inv_covmat)
+        mahal_dist = np.dot(left_term, X_minus_mu.T).diagonal()
 
         return {"mahalanobis": mahal_dist}
