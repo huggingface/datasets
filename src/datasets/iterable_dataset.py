@@ -173,10 +173,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         ex_iterable: _BaseExamplesIterable,
         function: Callable,
         with_indices: bool = False,
-        input_columns: Optional[Union[str, List[str]]] = None,
+        input_columns: Optional[List[str]] = None,
         batched: bool = False,
         batch_size: int = 1000,
-        remove_columns: Optional[Union[str, List[str]]] = None,
+        remove_columns: Optional[List[str]] = None,
     ):
         self.ex_iterable = ex_iterable
         self.function = function
@@ -184,7 +184,6 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         self.batch_size = batch_size
         self.remove_columns = remove_columns
         self.with_indices = with_indices
-        self.remove_columns = remove_columns
         self.input_columns = input_columns
 
     def __iter__(self):
@@ -198,32 +197,39 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 ]
                 keys, examples = zip(*key_examples_list)
                 batch = _examples_to_batch(examples)
-                # then remove the unwanted columns
-                if self.remove_columns:
-                    for c in self.remove_columns:
-                        del batch[c]
                 # then apply the transform
                 inputs = batch
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
                 if self.with_indices:
                     function_args.append([current_idx + i for i in range(len(key_examples_list))])
                 transformed_batch = dict(batch)  # this will be updated with the function output
-                transformed_batch = self.function(*function_args)
+                transformed_batch.update(self.function(*function_args))
+                # then remove the unwanted columns
+                if self.remove_columns:
+                    for c in self.remove_columns:
+                        del transformed_batch[c]
+                if transformed_batch:
+                    first_col = next(iter(transformed_batch))
+                    bad_cols = [
+                        col
+                        for col in transformed_batch
+                        if len(transformed_batch[col]) != len(transformed_batch[first_col])
+                    ]
+                    if bad_cols:
+                        raise ValueError(
+                            f"Column lengths mismatch: columns {bad_cols} have length {[len(transformed_batch[col]) for col in bad_cols]} while {first_col} has length {len(transformed_batch[first_col])}."
+                        )
                 # the new key is the concatenation of the examples keys from the batch
                 new_key = "_".join(str(key) for key in keys)
                 # yield one example at a time from the transformed batch
                 for batch_idx, example in enumerate(_batch_to_examples(transformed_batch)):
                     yield new_key, example
-                current_idx += batch_idx
+                current_idx += batch_idx + 1
         else:
             for key, example in iterator:
                 # If not batched, we can apply the transform and yield the example directly
                 # first copy the example, since we might drop some keys
                 example = dict(example)
-                # then we remove the unwanted columns
-                if self.remove_columns:
-                    for c in self.remove_columns:
-                        del example[c]
                 # then apply the transform
                 inputs = example
                 function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
@@ -231,6 +237,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                     function_args.append(current_idx)
                 transformed_example = dict(example)  # this will be updated with the function output
                 transformed_example.update(self.function(*function_args))
+                # then we remove the unwanted columns
+                if self.remove_columns:
+                    for c in self.remove_columns:
+                        del transformed_example[c]
                 yield key, transformed_example
                 current_idx += 1
 
@@ -477,6 +487,8 @@ class IterableDataset(DatasetInfoMixin):
         """
         if isinstance(input_columns, str):
             input_columns = [input_columns]
+        if isinstance(remove_columns, str):
+            remove_columns = [remove_columns]
         info = copy.deepcopy(self._info)
         info.features = None
         ex_iterable = MappedExamplesIterable(
@@ -485,6 +497,7 @@ class IterableDataset(DatasetInfoMixin):
             else self._ex_iterable,
             function=function,
             with_indices=with_indices,
+            input_columns=input_columns,
             batched=batched,
             batch_size=batch_size,
             remove_columns=remove_columns,
