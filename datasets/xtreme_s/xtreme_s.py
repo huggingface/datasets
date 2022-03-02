@@ -344,7 +344,8 @@ class XtremeS(datasets.GeneratorBasedBuilder):
         extracted_text_data = dl_manager.download_and_extract(self.config.data_urls[-1].format(self.config.lang_name))
 
         # TODO(PVP) - add print statement that this takes a while or into tqdm
-        import ipdb; ipdb.set_trace()
+        # split audio data and save in cached extracted folders so that it
+        # only has to be done once
         split_audio_data = self._voxpopuli_split_audio(extracted_audio_data_dict, extracted_text_data)
 
         return [
