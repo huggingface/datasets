@@ -46,7 +46,7 @@ Args:
     predictions: Predicted labels, as returned by a model.
     references: Ground truth labels.
 Returns:
-    matthews_correlation: Matthews correlation.
+    mahalanobis: The Mahalonobis distance.
 Examples:
 
     >>> mahalanobis_metric = datasets.load_metric("mahalanobis")
