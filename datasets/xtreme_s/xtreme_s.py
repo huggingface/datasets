@@ -16,7 +16,12 @@
 import csv
 import glob
 import os
+from pathlib import Path
+from tqdm import tqdm
+from typing import Tuple, Dict, List
 
+from ast import literal_eval
+from collections import defaultdict
 import pandas as pd
 
 import datasets
@@ -49,73 +54,25 @@ _ID_TO_LANG = {
 
 _BABEL_LANG = ["as", "tl", "sw", "lo", "ka"]
 _MLS_LANG = ["nl", "en", "fr", "de", "it", "pl", "pt", "es"]
-_VOXPOPULI_LANG = ["en de fr es pl it ro hu cs nl fi hr sk sl"]
+_VOXPOPULI_LANG = ["en", "de", "fr", "es", "pl", "it", "ro", "hu", "cs", "nl", "fi", "hr", "sk", "sl"]
 
+# fmt: off
 _COVOST2_TO_EN_LANG = [
     f"{source}.en"
     for source in [
-        "fr",
-        "de",
-        "es",
-        "ca",
-        "it",
-        "ru",
-        "zh",
-        "pt",
-        "fa",
-        "et",
-        "mn",
-        "nl",
-        "tr",
-        "ar",
-        "sv",
-        "lv",
-        "sl",
-        "ta",
-        "ja",
-        "id",
-        "cy",
+        "fr", "de", "es", "ca", "it", "ru", "zh", "pt", "fa", "et", "mn", "nl", "tr", "ar", "sv", "lv", "sl", "ta", "ja", "id", "cy",
     ]
 ]
 _COVOST2_FROM_EN_LANG = [
     f"en.{target}"
     for target in [
-        "de",
-        "ca",
-        "zh",
-        "fa",
-        "et",
-        "mn",
-        "tr",
-        "ar",
-        "sw",
-        "lv",
-        "sl",
-        "ta",
-        "ja",
-        "id",
-        "cy",
+        "de", "ca", "zh", "fa", "et", "mn", "tr", "ar", "sw", "lv", "sl", "ta", "ja", "id", "cy",
     ]
 ]
 _COVOST2_LANG = _COVOST2_FROM_EN_LANG + _COVOST2_TO_EN_LANG
 
-
 _MINDS_14_LANG = [
-    "aux-en",
-    "cs-CZ",
-    "de-DE",
-    "en-AU",
-    "en-GB",
-    "en-US",
-    "es-ES",
-    "fr-FR",
-    "it-IT",
-    "ko-KR",
-    "nl-NL",
-    "pl-PL",
-    "pt-PT",
-    "ru-RU",
-    "zh-CN",
+    "aux-en", "cs-CZ", "de-DE", "en-AU", "en-GB", "en-US", "es-ES", "fr-FR", "it-IT", "ko-KR", "nl-NL", "pl-PL", "pt-PT", "ru-RU", "zh-CN",
 ]
 _FLORES_LANG = []  # TODO(PVP)
 
@@ -175,10 +132,12 @@ _HOMEPAGE_URLS = {  # TOOD(PVP)
     "minds14": "",
 }
 
+_VOXPOPULI_AUDIO_URLS = ['https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2009.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2010.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2011.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2012.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2013.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2014.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2015.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2016.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2017.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2018.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2019.tar', 'https://dl.fbaipublicfiles.com/voxpopuli/audios/original_2020.tar']
+
 _DATA_URLS = {  # TODO(PVP)
     "babel": "",
     "mls": ["https://dl.fbaipublicfiles.com/mls/mls_{}.tar.gz"],
-    "voxpopuli": "",
+    "voxpopuli": _VOXPOPULI_AUDIO_URLS + ["https://dl.fbaipublicfiles.com/voxpopuli/annotations/asr/asr_{}.tsv.gz"],
     "covost2": [
         "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-4-2019-12-10/{}.tar.gz",
         "https://dl.fbaipublicfiles.com/covost/covost_v2.{}_{}.tsv.tar.gz",
@@ -186,6 +145,7 @@ _DATA_URLS = {  # TODO(PVP)
     "fleurs": "",
     "minds14": ["http://poly-public-data.s3.amazonaws.com/MInDS-14/MInDS-14.zip"],
 }
+# fmt: on
 
 
 class XtremeSConfig(datasets.BuilderConfig):
@@ -292,6 +252,8 @@ class XtremeS(datasets.GeneratorBasedBuilder):
     def _split_generators(self, *args, **kwargs):
         if self.config.dataset_name == "mls":
             return self._mls_split_generators(*args, **kwargs)
+        elif self.config.dataset_name == "voxpopuli":
+            return self._voxpopuli_split_generators(*args, **kwargs)
         elif self.config.dataset_name == "covost2":
             return self._covost_2_split_generators(*args, **kwargs)
         elif self.config.dataset_name == "minds14":
@@ -300,6 +262,8 @@ class XtremeS(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, *args, **kwargs):
         if self.config.dataset_name == "mls":
             yield from self._mls_generate_examples(*args, **kwargs)
+        elif self.config.dataset_name == "voxpopuli":
+            yield from self._voxpopuli_generate_examples(*args, **kwargs)
         elif self.config.dataset_name == "covost2":
             yield from self._covost_2_generate_examples(*args, **kwargs)
         elif self.config.dataset_name == "minds14":
@@ -361,6 +325,130 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 yield key, {
                     "path": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
                     "audio": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
+                    "target": transcript,
+                }
+                key += 1
+
+    # Voxpopuli
+    def _voxpopuli_split_generators(self, dl_manager):
+        # TODO(PVP) - need to add warning here that even for a single
+        # language ALL files need to be downloaded because all langs archive_path
+        # mixed in single audio files
+        if hasattr(dl_manager, "download_config"):
+            # last file is text file
+            dl_manager.download_config.num_proc = len(_VOXPOPULI_AUDIO_URLS)
+
+        extracted_audio_data_list = dl_manager.download_and_extract(self.config.data_urls[:-1])
+        extracted_audio_data_dict = {str(i + 2009): extracted_audio_data_list[i] for i in range(len(extracted_audio_data_list))}
+
+        extracted_text_data = dl_manager.download_and_extract(self.config.data_urls[-1].format(self.config.lang_name))
+
+        # TODO(PVP) - add print statement that this takes a while or into tqdm
+        import ipdb; ipdb.set_trace()
+        split_audio_data = self._voxpopuli_split_audio(extracted_audio_data_dict, extracted_text_data)
+
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "audio_data": split_audio_data,
+                    "text_data": extracted_text_data,
+                    "split": "train",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "audio_data": split_audio_data,
+                    "text_data": extracted_text_data,
+                    "split": "dev",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "audio_data": split_audio_data,
+                    "text_data": extracted_text_data,
+                    "split": "test",
+                },
+            ),
+        ]
+
+    def _voxpopuli_split_audio(self, audio_data_dict, text_data, sub_folder="original"):
+        """This function is heavily inspired from https://github.com/facebookresearch/voxpopuli/blob/main/voxpopuli/get_asr_data.py"""
+
+        def cut_session(info: Tuple[str, Dict[str, List[Tuple[float, float]]]]) -> None:
+            # this function requires both torch, and torchaudio to be installed
+            in_path, out_path_to_timestamps = info
+
+            has_to_load_audio = False
+            for out_path, timestamps in out_path_to_timestamps.items():
+                if not os.path.exists(out_path):
+                    has_to_load_audio = True
+
+            if not has_to_load_audio:
+                return
+
+            try:
+                import torchaudio
+                import torch
+            except ImportError as e:
+                raise ValueError(
+                    "Loading voxpopuli requires `torchaudio` to be installed."
+                    "You can install torchaudio with `pip install torchaudio`." + e
+                )
+
+            waveform, sr = torchaudio.load(in_path)
+            duration = waveform.size(1)
+            for out_path, timestamps in out_path_to_timestamps.items():
+                if not os.path.exists(out_path):
+                    segment = torch.cat(
+                        [waveform[:, int(s * sr): min(int(t * sr), duration)]
+                         for s, t in timestamps],
+                        dim=1
+                    )
+                    torchaudio.save(out_path, segment, sr)
+
+        output_paths = {}
+
+        time_stamps = defaultdict(dict)
+        with open(text_data, encoding="utf-8") as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter="|")
+            for row in csv_reader:
+                id_, _, session_id, _, _, _, _, _, _, _, _, time_stamp, split, gender = row
+                if split not in ["train", "dev", "test"]:
+                    continue
+
+                year = session_id[:4]
+                audio_data = audio_data_dict[year]
+
+                split_audio_output_folder = os.path.join(audio_data, "transcribed_data", self.config.lang_name)
+                Path(split_audio_output_folder).mkdir(exist_ok=True, parents=True)
+                output_paths[id_] = os.path.join(split_audio_output_folder, f"{session_id}-{id_}.ogg")
+
+                audio_sample_path = os.path.join(audio_data, sub_folder, year, f"{session_id}_original.ogg")
+                time_stamps[audio_sample_path][output_paths[id_]] = [(t[0], t[1]) for t in literal_eval(time_stamp)]
+
+        time_stamps = tqdm(list(time_stamps.items()))
+        # TODO(PVP): add note here that audio is cut and that this might take a while
+        for time_stamp in time_stamps:
+            cut_session(time_stamp)
+
+        return output_paths
+
+    def _voxpopuli_generate_examples(self, audio_data, text_data, split):
+        key = 0
+        with open(text_data, encoding="utf-8") as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter="|")
+            next(csv_reader)
+            for row in csv_reader:
+                id_, _, _, _, _, transcript, _, _, _, _, _, _, split_of_sample, _ = row
+                if split_of_sample != split:
+                    continue
+
+                yield key, {
+                    "path": audio_data[id_],
+                    "audio": audio_data[id_],
                     "target": transcript,
                 }
                 key += 1
