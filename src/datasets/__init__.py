@@ -64,7 +64,7 @@ from .inspect import (
 )
 from .iterable_dataset import IterableDataset
 from .keyhash import KeyHasher
-from .load import import_main_class, load_dataset, load_dataset_builder, load_from_disk, load_metric, prepare_module
+from .load import import_main_class, load_dataset, load_dataset_builder, load_from_disk, load_metric
 from .metric import Metric
 from .splits import (
     NamedSplit,

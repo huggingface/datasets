@@ -1614,7 +1614,7 @@ class BaseDatasetTest(TestCase):
                     with_indices=True,
                     remove_columns=["filename"],
                 ) as formatted_dset:
-                    with formatted_dset.flatten() as formatted_dset_flat:
+                    with formatted_dset.flatten() as formatted_dset:
                         formatted_dset.set_format("numpy")
                         formatted_dset.export(filename=tfrecord_path, format="tfrecord")
 
