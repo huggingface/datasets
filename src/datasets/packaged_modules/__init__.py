@@ -4,6 +4,7 @@ from hashlib import sha256
 from typing import List
 
 from .csv import csv
+from .imagefolder import imagefolder
 from .json import json
 from .pandas import pandas
 from .parquet import parquet
@@ -30,6 +31,7 @@ _PACKAGED_DATASETS_MODULES = {
     "pandas": (pandas.__name__, hash_python_lines(inspect.getsource(pandas).splitlines())),
     "parquet": (parquet.__name__, hash_python_lines(inspect.getsource(parquet).splitlines())),
     "text": (text.__name__, hash_python_lines(inspect.getsource(text).splitlines())),
+    "imagefolder": (imagefolder.__name__, hash_python_lines(inspect.getsource(imagefolder).splitlines())),
 }
 
 _EXTENSION_TO_MODULE = {
@@ -40,3 +42,4 @@ _EXTENSION_TO_MODULE = {
     "parquet": "parquet",
     "txt": "text",
 }
+_EXTENSION_TO_MODULE.update({ext[1:]: "imagefolder" for ext in imagefolder.ImageFolder.IMAGE_EXTENSIONS})
