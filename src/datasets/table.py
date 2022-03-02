@@ -7,8 +7,6 @@ from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, TypeVar, Unio
 
 import numpy as np
 import pyarrow as pa
-import pyarrow.compute as pc
-from packaging import version
 
 from . import config
 from .utils.logging import get_logger
@@ -19,8 +17,6 @@ if TYPE_CHECKING:
 
 
 logger = get_logger(__name__)
-
-IS_PYARROW_AT_LEAST_4 = config.PYARROW_VERSION.major >= 4
 
 
 def inject_arrow_table_documentation(arrow_table_method):
@@ -922,31 +918,6 @@ def _wrap_for_chunked_arrays(func):
     return wrapper
 
 
-def _sanitize_sliced_list_arrays_for_cast(func):
-    """Sanitize pyarrow.ListArray objects for pyarrow.Array.cast in case they are sliced list arrays"""
-
-    @_wrap_for_chunked_arrays
-    def _sanitize(array: pa.ListArray) -> pa.ListArray:
-        """Return the same pyarrow.ListArray but with array.offset == 0 for compatibility with cast for pyarrow 3"""
-        if array.offset == 0:
-            return array
-        elif len(array) == 0:
-            return array.values.slice(0, 0)
-        else:
-            values_offset = array.offsets[0]  # the relevant values start at this index
-            new_values = array.values.slice(values_offset.as_py())  # get the values to start at the right position
-            new_offsets = pc.subtract(array.offsets, values_offset)  # update the offsets accordingly
-            return pa.ListArray.from_arrays(new_offsets, new_values)
-
-    def wrapper(array, *args, **kwargs):
-        if pa.types.is_list(array.type) and config.PYARROW_VERSION < version.parse("4.0.0"):
-            array = _sanitize(array)
-        return func(array, *args, **kwargs)
-
-    return wrapper
-
-
-@_sanitize_sliced_list_arrays_for_cast
 @_wrap_for_chunked_arrays
 def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     """Improved version of pa.Array.cast
@@ -1019,7 +990,6 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
     raise TypeError(f"Couldn't cast array of type\n{array.type}\nto\n{pa_type}")
 
 
-@_sanitize_sliced_list_arrays_for_cast
 @_wrap_for_chunked_arrays
 def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_to_str=True):
     """Cast an array to the arrow type that corresponds to the requested feature type.
