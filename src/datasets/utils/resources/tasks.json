@@ -106,18 +106,18 @@
         ]
     },
     "image-to-text": {
-        "description": "tasks related to generating images from an existing dataset",
+        "description": "tasks related to generating text from images",
         "options": [
             "image-captioning",
             "other"
         ]
     },
     "text-to-image": {
-        "description": "tasks related to generating images from an existing dataset",
+        "description": "tasks related to generating images from text",
         "options": []
     },
     "image-segmentation": {
-        "description": "tasks related to detecting and delineating distinct objects of interest appearing in images",
+        "description": "tasks related to detecting and delineating distinct objects in images",
         "options": [
             "instance-segmentation",
             "semantic-segmentation",
