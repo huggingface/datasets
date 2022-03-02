@@ -389,8 +389,8 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
     ],
 )
 def test_xrelpath(input_path, start_path, expected_path):
-    outut_path = xrelpath(input_path, start=start_path)
-    assert outut_path == expected_path
+    output_path = xrelpath(input_path, start=start_path)
+    assert output_path == expected_path
 
 
 @pytest.mark.parametrize(

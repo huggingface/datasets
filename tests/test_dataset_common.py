@@ -73,11 +73,18 @@ def skip_if_not_compatible_with_windows(test_case):
 
 
 def get_packaged_dataset_dummy_data_files(dataset_name, path_to_dummy_data):
-    extensions = {"text": "txt", "json": "json", "pandas": "pkl", "csv": "csv", "parquet": "parquet"}
+    extensions = {
+        "text": ".txt",
+        "json": ".json",
+        "pandas": ".pkl",
+        "csv": ".csv",
+        "parquet": ".parquet",
+        "imagefolder": "/",
+    }
     return {
-        "train": os.path.join(path_to_dummy_data, "train." + extensions[dataset_name]),
-        "test": os.path.join(path_to_dummy_data, "test." + extensions[dataset_name]),
-        "dev": os.path.join(path_to_dummy_data, "dev." + extensions[dataset_name]),
+        "train": os.path.join(path_to_dummy_data, "train" + extensions[dataset_name]),
+        "test": os.path.join(path_to_dummy_data, "test" + extensions[dataset_name]),
+        "dev": os.path.join(path_to_dummy_data, "dev" + extensions[dataset_name]),
     }
 
 
