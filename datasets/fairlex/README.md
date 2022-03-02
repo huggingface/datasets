@@ -2,22 +2,40 @@
 pretty_name: FairLex
 annotations_creators:
 - found
+- machine-generated
 language_creators:
 - found
 languages:
-- en
-- de
-- fr
-- it
-- zh
+  ecthr:
+  - en
+  scotus:
+  - en
+  fscs:
+  - de
+  - fr
+  - it
+  cail:
+  - zh
 licenses:
 - cc-by-nc-sa-4.0
 multilinguality:
-- monolingual
-- multilingual
+  ecthr:
+  - monolingual
+  scotus:
+  - monolingual
+  fscs:
+  - multilingual
+  cail:
+  - monolingual
 size_categories:
-- 10K<n<100K
-- 1K<n<10K
+  ecthr:
+  - 10K<n<100K
+  scotus:
+  - 1K<n<10K
+  fscs:
+    - 10K<n<100K
+  cail:
+    - 100K<n<1M
 source_datasets:
 - extended
 task_categories:
@@ -32,13 +50,19 @@ task_categories:
 task_ids:
   ecthr:
   - multi-label-classification
+  - text-classification-other-bias
+  - text-classification-other-gender-bias
   scotus:
   - multi-class-classification
   - topic-classification
+  - text-classification-other-bias
   fscs:
   - multi-class-classification
+  - text-classification-other-bias
   cail:
   - multi-class-classification
+  - text-classification-other-bias
+  - text-classification-other-gender-bias
 ---
 
 # Dataset Card for "FairLex"
