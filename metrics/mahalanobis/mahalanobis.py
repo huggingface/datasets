@@ -78,11 +78,14 @@ class Mahalanobis(datasets.Metric):
         references = np.array(references)
 
         # Assert that arrays are 2D
-        assert len(predictions.shape) == 2, "Expected `predictions` to be a 2D vector"
-        assert len(references.shape) == 2, "Expected `references` to be a 2D vector"
-        assert (
-            references.shape[0] > 1
-        ), "Expected `references` to be a 2D vector with more than one element in the first dimension"
+        if len(predictions.shape) != 2:
+            raise ValueError("Expected `predictions` to be a 2D vector")
+        if len(references.shape) != 2:
+            raise ValueError("Expected `references` to be a 2D vector")
+        if references.shape[0] < 2:
+            raise ValueError(
+                "Expected `references` to be a 2D vector with more than one element in the first dimension"
+            )
 
         # Get mahalanobis distance for each prediction
         predictions_minus_mu = predictions - np.mean(references)
