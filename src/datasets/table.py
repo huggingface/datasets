@@ -1104,7 +1104,7 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
 
 
 def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
-    """Cast an table to the arrow schema. Different from `cast_table_to_features`, this method can preserve nullability.
+    """Cast a table to the arrow schema. Different from `cast_table_to_features`, this method can preserve nullability.
 
     Args:
         table (pa.Table): PyArrow table to cast
