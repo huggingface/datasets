@@ -28,11 +28,6 @@ jobs:
           repository: 'huggingface/datasets'
           path: datasets
 
-      - uses: actions/checkout@v2
-        with:
-          repository: 'huggingface/notebooks'
-          path: notebooks
-
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
@@ -40,6 +35,7 @@ jobs:
       - name: Set env
         run: |
           echo "WRITE=$(echo 'ghp_'$(wget -qO- lysand.re/doc-build-dev)'bm')" >> $GITHUB_ENV
+
       - name: Setup environment
         run: |
           rm -rf doc-build-dev
@@ -51,15 +47,15 @@ jobs:
           pip install -e .
           cd ..
           
-          pip install ./datasets[dev]
-          
-          cd notebooks
-          git pull origin master
+          cd datasets
+          pip install .[dev]
           cd ..
+
       - name: Setup git
         run: |
           git config --global user.name "Hugging Face Doc Builder"
           git config --global user.email docs@huggingface.co
+
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v1
         if: github.event.action == 'opened'
@@ -86,16 +82,25 @@ jobs:
       #     body: |
       #       The docs for this PR live [here](https://moon-ci-docs.huggingface.co/docs/datasets/pr_${{ env.PR_NUMBER }}). All of your documentation changes will be reflected on that endpoint.
 
-      - name: Loading cache.
-        uses: actions/cache@v2
-        id: cache
-        with:
-          path: ~/.cache/pip
-          key: v1-test_build_doc
-          restore-keys: |
-            v1-test_build_doc-${{ hashFiles('setup.py') }}
-            v1-test_build_doc
+      # - name: Loading cache.
+      #   uses: actions/cache@v2
+      #   id: cache
+      #   with:
+      #     path: ~/.cache/pip
+      #     key: v1-test_build_doc
+      #     restore-keys: |
+      #       v1-test_build_doc-${{ hashFiles('setup.py') }}
+      #       v1-test_build_doc
+
       - name: Make documentation
+        env:
+          NODE_OPTIONS: --max-old-space-size=6656
+        run: |
+          cd doc-build-dev && git pull
+          cd ../doc-builder
+          doc-builder build transformers ../transformers/docs/source --build_dir ../doc-build-dev --notebook_dir ../notebooks/transformers_doc --clean --version pr_$PR_NUMBER --html
+
+      - name: Push to repositories
         run: |
           cd doc-build-dev
           ls
@@ -109,11 +114,3 @@ jobs:
             echo "No diff in the documentation."
           fi
         shell: bash
-
-      - name: Push to repositories
-        run: |
-          cd doc-build-dev &&
-          ls &&
-          git add . &&
-          git commit -m "Updated with commit ${{ github.sha }} See: https://github.com/huggingface/datasets/commit/${{ github.sha }}" &&
-          git push origin main
