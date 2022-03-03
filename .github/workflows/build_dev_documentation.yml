@@ -1,6 +1,9 @@
 name: Build dev documentation
 
 on:
+  push:
+    branches:
+      - doc_new_ui_test_workflows
   pull_request:
 
 concurrency:
