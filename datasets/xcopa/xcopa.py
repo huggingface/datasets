@@ -7,7 +7,8 @@ import os
 import datasets
 
 
-# TODO(xcopa): BibTeX citation
+_HOMEPAGE = "https://github.com/cambridgeltl/xcopa"
+
 _CITATION = """\
   @article{ponti2020xcopa,
   title={{XCOPA: A} Multilingual Dataset for Causal Commonsense Reasoning},
@@ -26,7 +27,6 @@ _CITATION = """\
 }
 """
 
-# TODO(xcopa):
 _DESCRIPTION = """\
   XCOPA: A Multilingual Dataset for Causal Commonsense Reasoning
 The Cross-lingual Choice of Plausible Alternatives dataset is a benchmark to evaluate the ability of machine learning models to transfer commonsense reasoning across
@@ -36,15 +36,11 @@ creation of XCOPA and the implementation of the baselines are available in the p
 """
 
 _LANG = ["et", "ht", "it", "id", "qu", "sw", "zh", "ta", "th", "tr", "vi"]
-
 _URL = "https://github.com/cambridgeltl/xcopa/archive/master.zip"
 _VERSION = datasets.Version("1.1.0", "Minor fixes to the 'question' values in Italian")
 
 
 class Xcopa(datasets.GeneratorBasedBuilder):
-    """TODO(xcopa): Short description of my dataset."""
-
-    # TODO(xcopa): Set up version.
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
             name=lang,
@@ -64,14 +60,10 @@ class Xcopa(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(xcopa): Specifies the datasets.DatasetInfo object
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION + self.config.description,
-            # datasets.features.FeatureConnectors
             features=datasets.Features(
                 {
-                    # These are the features of your dataset like images, labels ...
                     "premise": datasets.Value("string"),
                     "choice1": datasets.Value("string"),
                     "choice2": datasets.Value("string"),
@@ -81,20 +73,12 @@ class Xcopa(datasets.GeneratorBasedBuilder):
                     "changed": datasets.Value("bool"),
                 }
             ),
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
-            homepage="https://github.com/cambridgeltl/xcopa",
+            homepage=_HOMEPAGE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO(xcopa): Downloads the data and defines the splits
-        # dl_manager is a datasets.download.DownloadManager that can be used to
-        # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
 
         *translation_prefix, lang = self.config.name.split("-")
@@ -115,7 +99,6 @@ class Xcopa(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        # TODO(xcopa): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
             for row in f:
                 data = json.loads(row)
