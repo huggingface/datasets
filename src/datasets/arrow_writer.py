@@ -184,9 +184,7 @@ class TypedSequence:
             elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
-                casted_data = cast_to_python_objects(data, only_1d_for_numpy=True)
-                mask = np.array([value is None for value in casted_data])
-                out = pa.array(casted_data, mask=mask)
+                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
                 if pa.types.is_int64(out.type):
@@ -211,9 +209,7 @@ class TypedSequence:
                     elif isinstance(data, list) and data and any(isinstance(value, np.ndarray) for value in data):
                         return list_of_np_array_to_pyarrow_listarray(data)
                     else:
-                        casted_data = cast_to_python_objects(data, only_1d_for_numpy=True)
-                        mask = np.array([value is None for value in casted_data])
-                        return pa.array(casted_data, mask=mask)
+                        return pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(
