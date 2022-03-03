@@ -185,7 +185,7 @@ class TypedSequence:
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
                 casted_data = cast_to_python_objects(data, only_1d_for_numpy=True)
-                mask = np.array(casted_data, dtype=np.object) == None  # noqa: E711
+                mask = np.array([value is None for value in casted_data])
                 out = pa.array(casted_data, mask=mask)
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
@@ -212,7 +212,7 @@ class TypedSequence:
                         return list_of_np_array_to_pyarrow_listarray(data)
                     else:
                         casted_data = cast_to_python_objects(data, only_1d_for_numpy=True)
-                        mask = np.array(casted_data, dtype=np.object) == None  # noqa: E711
+                        mask = np.array([value is None for value in casted_data])
                         return pa.array(casted_data, mask=mask)
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):

@@ -234,6 +234,40 @@ def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
 
 
 @require_sndfile
+def test_dataset_with_audio_feature_with_none():
+    data = {"audio": [None]}
+    features = Features({"audio": Audio()})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"] is None
+    batch = dset[:1]
+    assert len(batch) == 1
+    assert batch.keys() == {"audio"}
+    assert isinstance(batch["audio"], list) and all(item is None for item in batch["audio"])
+    column = dset["audio"]
+    assert len(column) == 1
+    assert isinstance(column, list) and all(item is None for item in column)
+
+    # nested tests
+
+    data = {"audio": [[None]]}
+    features = Features({"audio": Sequence(Audio())})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert all(i is None for i in item["audio"])
+
+    data = {"nested": [{"audio": None}]}
+    features = Features({"nested": {"audio": Audio()}})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"nested"}
+    assert item["nested"].keys() == {"audio"}
+    assert item["nested"]["audio"] is None
+
+
+@require_sndfile
 def test_resampling_at_loading_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
     data = {"audio": [audio_path]}
