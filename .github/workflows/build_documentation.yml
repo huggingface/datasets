@@ -35,12 +35,6 @@ jobs:
           repository: 'huggingface/datasets'
           path: datasets
       
-      - uses: actions/checkout@v2
-        with:
-          repository: 'huggingface/notebooks'
-          path: notebooks
-          token: ${{ secrets.HUGGINGFACE_PUSH }}
-      
       - name: Loading cache.
         uses: actions/cache@v2
         id: cache
@@ -69,10 +63,6 @@ jobs:
           git pull origin main
           cd ..
 
-          cd notebooks
-          git pull origin master
-          cd ..
-
       - name: Make documentation
         run: |
           cd doc-builder &&
@@ -90,15 +80,4 @@ jobs:
             git push origin main
           else
             echo "No diff in the documentation."
-          fi &&
-          cd .. &&
-
-          cd notebooks &&
-          if [[ `git status --porcelain` ]]; then
-            git add datasets_doc &&
-            git commit -m "Updated Datasets doc notebooks with commit ${{ github.sha }} \n\nSee: https://github.com/huggingface/datasets/commit/${{ github.sha }}" &&
-            git push origin master
-          else
-            echo "No diff in the notebooks."
-          fi &&
-          cd ..
+          fi
