@@ -146,7 +146,7 @@ class TypedSequence:
 
             non_null_idx, non_null_value = first_non_null_value(data)
             if isinstance(non_null_value, PIL.Image.Image):
-                return [Image().encode_example(value) for value in data], Image()
+                return [Image().encode_example(value) if value is not None else None for value in data], Image()
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
@@ -184,8 +184,9 @@ class TypedSequence:
             elif isinstance(data, list) and data and isinstance(first_non_null_value(data)[1], np.ndarray):
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
-                out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
-
+                casted_data = cast_to_python_objects(data, only_1d_for_numpy=True)
+                mask = np.array(casted_data, dtype=np.object) == None  # noqa: E711
+                out = pa.array(casted_data, mask=mask)
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
                 if pa.types.is_int64(out.type):
@@ -210,7 +211,9 @@ class TypedSequence:
                     elif isinstance(data, list) and data and any(isinstance(value, np.ndarray) for value in data):
                         return list_of_np_array_to_pyarrow_listarray(data)
                     else:
-                        return pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
+                        casted_data = cast_to_python_objects(data, only_1d_for_numpy=True)
+                        mask = np.array(casted_data, dtype=np.object) == None  # noqa: E711
+                        return pa.array(casted_data, mask=mask)
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(

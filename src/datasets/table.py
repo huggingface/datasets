@@ -951,32 +951,26 @@ def array_cast(array: pa.Array, pa_type: pa.DataType, allow_number_to_str=True):
         if pa.types.is_struct(pa_type) and (
             set(field.name for field in pa_type) == set(field.name for field in array.type)
         ):
-            arrays = [
-                _c(array.field(field.name), field.type, allow_number_to_str=allow_number_to_str) for field in pa_type
-            ]
-            return pa.StructArray.from_arrays(arrays, fields=list(pa_type))
+            arrays = [_c(array.field(field.name), field.type) for field in pa_type]
+            return pa.StructArray.from_arrays(arrays, fields=list(pa_type), mask=array.is_null())
     elif pa.types.is_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             if pa_type.list_size * len(array) == len(array.values):
                 return pa.FixedSizeListArray.from_arrays(
-                    _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str),
+                    _c(array.values, pa_type.value_type),
                     pa_type.list_size,
                 )
         elif pa.types.is_list(pa_type):
-            return pa.ListArray.from_arrays(
-                array.offsets, _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str)
-            )
+            return pa.ListArray.from_arrays(array.offsets, _c(array.values, pa_type.value_type))
     elif pa.types.is_fixed_size_list(array.type):
         if pa.types.is_fixed_size_list(pa_type):
             return pa.FixedSizeListArray.from_arrays(
-                _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str),
+                _c(array.values, pa_type.value_type),
                 pa_type.list_size,
             )
         elif pa.types.is_list(pa_type):
             offsets_arr = pa.array(range(len(array) + 1), pa.int32())
-            return pa.ListArray.from_arrays(
-                offsets_arr, _c(array.values, pa_type.value_type, allow_number_to_str=allow_number_to_str)
-            )
+            return pa.ListArray.from_arrays(offsets_arr, _c(array.values, pa_type.value_type))
     else:
         if (
             not allow_number_to_str
@@ -1028,7 +1022,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
             }
         if isinstance(feature, dict) and set(field.name for field in array.type) == set(feature):
             arrays = [_c(array.field(name), subfeature) for name, subfeature in feature.items()]
-            return pa.StructArray.from_arrays(arrays, names=list(feature))
+            return pa.StructArray.from_arrays(arrays, names=list(feature), mask=array.is_null())
     elif pa.types.is_list(array.type):
         # feature must be either [subfeature] or Sequence(subfeature)
         if isinstance(feature, list):
