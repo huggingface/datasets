@@ -1,11 +1,11 @@
 name: Build dev documentation
 
 on:
-  push:
-    branches:
-      - docs_new_ui
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build_and_package:
@@ -13,6 +13,7 @@ jobs:
     container:
       image: huggingface/transformers-doc-builder
     env:
+      COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
       PR_NUMBER: ${{ github.event.number }}
       EVENT_CONTEXT: ${{ toJSON(github.event) }}
 
@@ -26,11 +27,6 @@ jobs:
         with:
           repository: 'huggingface/datasets'
           path: datasets
-
-      - uses: actions/checkout@v2
-        with:
-          repository: 'huggingface/notebooks'
-          path: notebooks
 
       - uses: actions/setup-node@v2
         with:
@@ -51,16 +47,15 @@ jobs:
           pip install -e .
           cd ..
           
-          pip install ./datasets[dev]
-          
-          cd notebooks
-          git pull origin master
+          cd datasets
+          pip install .[dev]
           cd ..
 
       - name: Setup git
         run: |
           git config --global user.name "Hugging Face Doc Builder"
           git config --global user.email docs@huggingface.co
+
 
       - name: Comment PR
         uses: thollander/actions-comment-pull-request@v1
@@ -70,45 +65,44 @@ jobs:
           message: 'The docs for this PR live [here](https://moon-ci-docs.huggingface.co/docs/datasets/pr_${{ env.PR_NUMBER }}). All of your documentation changes will be reflected on that endpoint.'
           GITHUB_TOKEN: ${{ env.WRITE }}
 
-      - name: Find Comment
-        if: github.event.action == 'reopened'
-        uses: peter-evans/find-comment@v1
-        id: fc
-        with:
-          issue-number: ${{ env.PR_NUMBER }}
-          comment-author: HuggingFaceDocBuilder
+#      - name: Find Comment
+#        if: github.event.action == 'reopened'
+#        uses: peter-evans/find-comment@v1
+#        id: fc
+#        with:
+#          issue-number: ${{ env.PR_NUMBER }}
+#          comment-author: HuggingFaceDocBuilder
 
-      - name: Update comment
-        if: github.event.action == 'reopened'
-        uses: peter-evans/create-or-update-comment@v1
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          token: ${{ env.WRITE }}
-          edit-mode: replace
-          body: |
-            The docs for this PR live [here](https://moon-ci-docs.huggingface.co/docs/datasets/pr_${{ env.PR_NUMBER }}). All of your documentation changes will be reflected on that endpoint.
-
-      - name: Loading cache.
-        uses: actions/cache@v2
-        id: cache
-        with:
-          path: ~/.cache/pip
-          key: v1-test_build_doc
-          restore-keys: |
-            v1-test_build_doc-${{ hashFiles('setup.py') }}
-            v1-test_build_doc
+#      - name: Update comment
+#        if: github.event.action == 'reopened'
+#        uses: peter-evans/create-or-update-comment@v1
+#        with:
+#          comment-id: ${{ steps.fc.outputs.comment-id }}
+#          token: ${{ env.WRITE }}
+#          edit-mode: replace
+#          body: |
+#            The docs for this PR live [here](https://moon-ci-docs.huggingface.co/docs/datasets/pr_${{ env.PR_NUMBER }}). All of your documentation changes will be reflected on that endpoint.
 
       - name: Make documentation
+        env:
+          NODE_OPTIONS: --max-old-space-size=6656
         run: |
-          cd doc-build-dev && git pull && cd ..
-          cd doc-builder
+          cd doc-build-dev && git pull
+          cd ../doc-builder
           doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build-dev --clean --version pr_$PR_NUMBER --html
-          cd ..
 
       - name: Push to repositories
         run: |
-          cd doc-build-dev &&
-          ls &&
-          git add . &&
-          git commit -m "Updated with commit ${{ github.sha }} See: https://github.com/huggingface/datasets/commit/${{ github.sha }}" &&
-          git push origin main
+          cd doc-build-dev
+          ls
+          git status
+
+          if [[ `git status --porcelain` ]]; then
+            git add .
+            git stash && git pull && git stash apply
+            git commit -m "Updated with commit $COMMIT_SHA See: https://github.com/huggingface/datasets/commit/$COMMIT_SHA"
+            git push origin main
+          else
+            echo "No diff in the documentation."
+          fi
+        shell: bashname: Build dev documentation
