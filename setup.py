@@ -20,7 +20,6 @@ To create the package for pypi.
 1. Change the version in:
    - __init__.py
    - setup.py
-   - docs/source/conf.py
 
 2. Commit these changes: "git commit -m 'Release: VERSION'"
 
@@ -51,15 +50,6 @@ To create the package for pypi.
    twine upload dist/* -r pypi
 
 7. Fill release notes in the tag in github once everything is looking hunky-dory.
-
-8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed.
-   Update the version mapping in docs/source/_static/js/custom.js with: "python utils/release.py --version VERSION"
-   Set version to X.X.X+1.dev0 (e.g. 1.8.0 -> 1.8.1.dev0) in:
-   - setup.py
-   - __init__.py
-
-9. Commit these changes: "git commit -m 'Release docs'"
-   Push the commit to remote: "git push origin master"
 """
 
 import os
@@ -209,19 +199,8 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": [
-        "docutils==0.16.0",
-        "recommonmark",
-        "sphinx==3.1.2",
-        "sphinx-markdown-tables",
-        "sphinx-rtd-theme==0.4.3",
-        "sphinxext-opengraph==0.4.1",
-        "sphinx-copybutton",
-        "fsspec<2021.9.0",
+        # Might need to add doc-builder and some specific deps in the future
         "s3fs",
-        "sphinx-panels",
-        "sphinx-inline-tabs",
-        "myst-parser",
-        "Markdown!=3.3.5",
     ],
 }
 
