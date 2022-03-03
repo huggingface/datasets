@@ -3,7 +3,7 @@ name: Build dev documentation
 on:
   push:
     branches:
-      - docs_new_ui
+      - docs_new_ui*
   pull_request:
 
 
