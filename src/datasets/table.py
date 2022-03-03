@@ -1116,6 +1116,8 @@ def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
     from .features import Features
 
     features = Features.from_arrow_schema(schema)
+    if sorted(table.column_names) != sorted(features):
+        raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match")
     arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
     return pa.Table.from_arrays(arrays, schema=schema)
 
