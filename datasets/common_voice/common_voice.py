@@ -659,31 +659,37 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
+        # Download the TAR archive that contains the audio files:
         archive_path = dl_manager.download(_DATA_URL.format(self.config.name))
-        # Here we use iter_archive because dl_manager.download_and_extract
-        # doesn't work to stream TAR archives in streaming mode.
-        # (we have to stream the files in the archive one by one)
-        #
-        # The iter_archive method returns an iterable of (path_within_archive, file_obj) for every
-        # file in the TAR archive.
-        #
-        archive_iterator = dl_manager.iter_archive(archive_path)
-        # we locate the data using the path within the archive
+
+        # First we locate the data using the path within the archive:
         path_to_data = "/".join(["cv-corpus-6.1-2020-12-11", self.config.name])
         path_to_clips = "/".join([path_to_data, "clips"])
         metadata_filepaths = {
             split: "/".join([path_to_data, f"{split}.tsv"])
             for split in ["train", "test", "dev", "other", "validated", "invalidated"]
         }
-        # in streaming mode, the archive is not extracted locally
+        # (Optional) In non-streaming mode, we can extract the archive locally to have actual local audio files:
         local_extracted_archive = dl_manager.extract(archive_path) if not dl_manager.is_streaming else None
+
+        # To access the audio data from the TAR archives using the download manager,
+        # we have to use the dl_manager.iter_archive method.
+        #
+        # This is because dl_manager.download_and_extract
+        # doesn't work to stream TAR archives in streaming mode.
+        # (we have to stream the files of a TAR archive one by one)
+        #
+        # The iter_archive method returns an iterable of (path_within_archive, file_obj) for every
+        # file in the TAR archive.
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
-                    "archive_iterator": archive_iterator,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
                     "metadata_filepath": metadata_filepaths["train"],
                     "path_to_clips": path_to_clips,
                 },
@@ -692,7 +698,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
-                    "archive_iterator": archive_iterator,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
                     "metadata_filepath": metadata_filepaths["test"],
                     "path_to_clips": path_to_clips,
                 },
@@ -701,7 +709,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
-                    "archive_iterator": archive_iterator,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
                     "metadata_filepath": metadata_filepaths["dev"],
                     "path_to_clips": path_to_clips,
                 },
@@ -710,7 +720,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name="other",
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
-                    "archive_iterator": archive_iterator,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
                     "metadata_filepath": metadata_filepaths["other"],
                     "path_to_clips": path_to_clips,
                 },
@@ -719,7 +731,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name="validated",
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
-                    "archive_iterator": archive_iterator,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
                     "metadata_filepath": metadata_filepaths["validated"],
                     "path_to_clips": path_to_clips,
                 },
@@ -728,7 +742,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                 name="invalidated",
                 gen_kwargs={
                     "local_extracted_archive": local_extracted_archive,
-                    "archive_iterator": archive_iterator,
+                    "archive_iterator": dl_manager.iter_archive(
+                        archive_path
+                    ),  # use iter_archive here to access the files in the TAR archives
                     "metadata_filepath": metadata_filepaths["invalidated"],
                     "path_to_clips": path_to_clips,
                 },
@@ -745,7 +761,9 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
         all_field_values = {}
         metadata_found = False
+        # Here we iterate over all the files within the TAR archive:
         for path, f in archive_iterator:
+            # Parse the metadata CSV file
             if path == metadata_filepath:
                 metadata_found = True
                 lines = f.readlines()
@@ -760,11 +778,13 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
                     # set full path for mp3 audio file
                     audio_path = "/".join([path_to_clips, field_values[path_idx]])
                     all_field_values[audio_path] = field_values
+            # Else, read the audio file and yield an example
             elif path.startswith(path_to_clips):
                 assert metadata_found, "Found audio clips before the metadata TSV file."
                 if not all_field_values:
                     break
                 if path in all_field_values:
+                    # retrieve the metadata corresponding to this audio file
                     field_values = all_field_values[path]
 
                     # if data is incomplete, fill with empty values
@@ -775,7 +795,7 @@ class CommonVoice(datasets.GeneratorBasedBuilder):
 
                     # set audio feature
                     result["audio"] = {"path": path, "bytes": f.read()}
-                    # set path to None if the path doesn't exist locally in streaming mode
+                    # set path to None if the audio file doesn't exist locally (i.e. in streaming mode)
                     result["path"] = os.path.join(local_extracted_archive, path) if local_extracted_archive else None
 
                     yield path, result
