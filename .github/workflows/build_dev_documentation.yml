@@ -98,7 +98,7 @@ jobs:
         run: |
           cd doc-build-dev && git pull
           cd ../doc-builder
-          doc-builder build transformers ../transformers/docs/source --build_dir ../doc-build-dev --notebook_dir ../notebooks/transformers_doc --clean --version pr_$PR_NUMBER --html
+          doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build-dev --clean --version pr_$PR_NUMBER --html
 
       - name: Push to repositories
         run: |
