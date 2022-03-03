@@ -1859,6 +1859,25 @@ def cast_table_to_features(table: pa.Table, features: "Features"):
     return pa.Table.from_arrays(arrays, schema=features.arrow_schema)
 
 
+def cast_table_to_schema(table: pa.Table, schema: pa.Schema):
+    """Cast a table to the arrow schema. Different from `cast_table_to_features`, this method can preserve nullability.
+
+    Args:
+        table (pa.Table): PyArrow table to cast
+        features (Features): target features.
+
+    Returns:
+        pa.Table: the casted table
+    """
+    from .features import Features
+
+    features = Features.from_arrow_schema(schema)
+    if sorted(table.column_names) != sorted(features):
+        raise ValueError(f"Couldn't cast\n{table.schema}\nto\n{features}\nbecause column names don't match")
+    arrays = [cast_array_to_feature(table[name], feature) for name, feature in features.items()]
+    return pa.Table.from_arrays(arrays, schema=schema)
+
+
 def table_cast(table: pa.Table, schema: pa.Schema):
     """Improved version of pa.Table.cast
 
@@ -1872,9 +1891,7 @@ def table_cast(table: pa.Table, schema: pa.Schema):
         table (:obj:`pyarrow.Table`): the casted table
     """
     if table.schema != schema:
-        from .features import Features
-
-        return cast_table_to_features(table, Features.from_arrow_schema(schema))
+        return cast_table_to_schema(table, schema)
     elif table.schema.metadata != schema.metadata:
         return table.replace_schema_metadata(schema.metadata)
     else:

@@ -97,7 +97,6 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils.deprecation_utils import deprecated
 from .utils.file_utils import estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
@@ -1255,48 +1254,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         return dset
 
-    @deprecated()
-    @fingerprint_transform(inplace=True)
-    def dictionary_encode_column_(self, column: str):
-        """Dictionary encode a column.
-
-        Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-        by storing a dictionary of the strings. This only affect the internal storage.
-
-        .. deprecated:: 1.4.0
-
-        Args:
-            column (:obj:`str`):
-
-        """
-        if column not in self._data.column_names:
-            raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
-        casted_schema: pa.Schema = self._data.schema
-        field_index = casted_schema.get_field_index(column)
-        field: pa.Field = casted_schema.field(field_index)
-        casted_field = pa.field(field.name, pa.dictionary(pa.int32(), field.type), nullable=False)
-        casted_schema.set(field_index, casted_field)
-        self._data = self._data.cast(casted_schema)
-        self.info.features = Features.from_arrow_schema(self._data.schema)
-        self._data = update_metadata_with_features(self._data, self.features)
-
-    @deprecated(help_message="Use Dataset.flatten instead.")
-    @fingerprint_transform(inplace=True)
-    def flatten_(self, max_depth=16):
-        """In-place version of :meth:`Dataset.flatten`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`Dataset.flatten` instead.
-        """
-        for depth in range(1, max_depth):
-            if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
-                self._data = self._data.flatten()
-            else:
-                break
-        self.info.features = self.features.flatten(max_depth=max_depth)
-        self._data = update_metadata_with_features(self._data, self.features)
-        logger.info(f'Flattened dataset from depth {depth} to depth { 1 if depth + 1 < max_depth else "unknown"}.')
-
     @fingerprint_transform(inplace=False)
     def flatten(self, new_fingerprint, max_depth=16) -> "Dataset":
         """Flatten the table.
@@ -1317,65 +1274,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         logger.info(f'Flattened dataset from depth {depth} to depth {1 if depth + 1 < max_depth else "unknown"}.')
         dataset._fingerprint = new_fingerprint
         return dataset
-
-    @deprecated(help_message="Use Dataset.cast instead.")
-    def cast_(
-        self,
-        features: Features,
-        batch_size: Optional[int] = 10_000,
-        keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
-        cache_file_name: Optional[str] = None,
-        writer_batch_size: Optional[int] = 10_000,
-        num_proc: Optional[int] = None,
-    ):
-        """In-place version of :meth:`Dataset.cast`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`Dataset.cast` instead.
-
-        Args:
-            features (:class:`datasets.Features`): New features to cast the dataset to.
-                The name of the fields in the features must match the current column names.
-                The type of the data must also be convertible from one type to the other.
-                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
-            batch_size (:obj:`int`, optional, defaults to `1000`): Number of examples per batch provided to cast.
-                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to cast.
-            keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
-            load_from_cache_file (:obj:`bool`, default `True` if caching is enabled): If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
-            cache_file_name (:obj:`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
-                results of the computation instead of the automatically generated cache file name.
-            writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
-                This value is a good trade-off between memory usage during the processing, and processing speed.
-                Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            num_proc (:obj:`int`, optional, default `None`): Number of processes for multiprocessing. By default it doesn't
-                use multiprocessing.
-        """
-        if sorted(features) != sorted(self._data.column_names):
-            raise ValueError(
-                f"The columns in features ({list(features)}) must be identical "
-                f"as the columns in the dataset: {self._data.column_names}"
-            )
-
-        type = features.type
-        schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
-        dataset = self.with_format("arrow")
-        dataset = dataset.map(
-            partial(table_cast, schema=schema),
-            batched=True,
-            batch_size=batch_size,
-            keep_in_memory=keep_in_memory,
-            load_from_cache_file=load_from_cache_file,
-            cache_file_name=cache_file_name,
-            writer_batch_size=writer_batch_size,
-            num_proc=num_proc,
-            features=features,
-            desc="Casting the dataset",
-        )
-        self._data = dataset._data
-        self._info = dataset._info
-        self._fingerprint = dataset._fingerprint
 
     def cast(
         self,
@@ -1459,33 +1357,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features[column] = feature
             return self.cast(features)
 
-    @deprecated(help_message="Use Dataset.remove_columns instead.")
-    @fingerprint_transform(inplace=True)
-    def remove_columns_(self, column_names: Union[str, List[str]]):
-        """In-place version of :meth:`Dataset.remove_columns`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`Dataset.remove_columns` instead.
-
-        Args:
-            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
-        """
-        if isinstance(column_names, str):
-            column_names = [column_names]
-
-        for column_name in column_names:
-            if column_name not in self._data.column_names:
-                raise ValueError(
-                    f"Column name {column_name} not in the dataset. "
-                    f"Current columns in the dataset: {self._data.column_names}"
-                )
-
-        for column_name in column_names:
-            del self._info.features[column_name]
-
-        self._data = self._data.drop(column_names)
-        self._data = update_metadata_with_features(self._data, self.features)
-
     @transmit_tasks
     @fingerprint_transform(inplace=False)
     def remove_columns(self, column_names: Union[str, List[str]], new_fingerprint) -> "Dataset":
@@ -1521,49 +1392,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         dataset._data = update_metadata_with_features(dataset._data, dataset.features)
         dataset._fingerprint = new_fingerprint
         return dataset
-
-    @deprecated(help_message="Use Dataset.rename_column instead.")
-    @fingerprint_transform(inplace=True)
-    def rename_column_(self, original_column_name: str, new_column_name: str):
-        """In-place version of :meth:`Dataset.rename_column`.
-
-        .. deprecated:: 1.4.0
-            Use :meth:`Dataset.rename_column` instead.
-
-        Args:
-            original_column_name (:obj:`str`): Name of the column to rename.
-            new_column_name (:obj:`str`): New name for the column.
-        """
-        if original_column_name not in self._data.column_names:
-            raise ValueError(
-                f"Original column name {original_column_name} not in the dataset. "
-                f"Current columns in the dataset: {self._data.column_names}"
-            )
-        if new_column_name in self._data.column_names:
-            raise ValueError(
-                f"New column name {original_column_name} already in the dataset. "
-                f"Please choose a column name which is not already in the dataset. "
-                f"Current columns in the dataset: {self._data.column_names}"
-            )
-        if not new_column_name:
-            raise ValueError("New column name is empty.")
-
-        def rename(columns):
-            return [new_column_name if col == original_column_name else col for col in columns]
-
-        new_column_names = rename(self._data.column_names)
-        if self._format_columns is not None:
-            self._format_columns = rename(self._format_columns)
-
-        self._info.features = Features(
-            {
-                new_column_name if col == original_column_name else col: feature
-                for col, feature in self._info.features.items()
-            }
-        )
-
-        self._data = self._data.rename_columns(new_column_names)
-        self._data = update_metadata_with_features(self._data, self.features)
 
     @transmit_tasks
     @fingerprint_transform(inplace=False)
