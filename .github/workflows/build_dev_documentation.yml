@@ -28,11 +28,6 @@ jobs:
           repository: 'huggingface/datasets'
           path: datasets
 
-      - uses: actions/checkout@v2
-        with:
-          repository: 'huggingface/notebooks'
-          path: notebooks
-
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
@@ -53,10 +48,6 @@ jobs:
           cd ..
           
           pip install ./datasets[dev]
-          
-          cd notebooks
-          git pull origin master
-          cd ..
 
       - name: Setup git
         run: |
@@ -100,6 +91,14 @@ jobs:
             v1-test_build_doc
 
       - name: Make documentation
+        env:
+          NODE_OPTIONS: --max-old-space-size=6656
+        run: |
+          cd doc-build-dev && git pull
+          cd ../doc-builder
+          doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build-dev --clean --version pr_$PR_NUMBER --html
+
+      - name: Push to repositories
         run: |
           cd doc-build-dev
           ls
@@ -113,11 +112,3 @@ jobs:
             echo "No diff in the documentation."
           fi
         shell: bash
-
-      - name: Push to repositories
-        run: |
-          cd doc-build-dev &&
-          ls &&
-          git add . &&
-          git commit -m "Updated with commit ${{ github.sha }} See: https://github.com/huggingface/datasets/commit/${{ github.sha }}" &&
-          git push origin main
