@@ -52,7 +52,16 @@ _ID_TO_LANG = {
     "pl": "polish",
 }
 
-_BABEL_LANG = ["as", "tl", "sw", "lo", "ka"]
+_BABEL_LANG_TO_ID = {
+    "as": "IARPA_BABEL_OP1_102_LDC2016S06",
+    "tl": "IARPA_BABEL_OP1_102_LDC2016S06",
+    "sw": "IARPA_BABEL_OP1_102_LDC2016S06",
+    "lo": "IARPA_BABEL_OP1_102_LDC2016S06",
+    "ka": "IARPA_BABEL_OP1_102_LDC2016S06",
+}
+
+
+_BABEL_LANG = list(_BABEL_LANG_TO_ID.keys())
 _MLS_LANG = ["nl", "en", "fr", "de", "it", "pl", "pt", "es"]
 _VOXPOPULI_LANG = ["en", "de", "fr", "es", "pl", "it", "ro", "hu", "cs", "nl", "fi", "hr", "sk", "sl"]
 
@@ -64,8 +73,8 @@ _COVOST2_TO_EN_LANG = [
     ]
 ]
 _COVOST2_FROM_EN_LANG = [
-    f"en.{target}"
-    for target in [
+    f"en.{transcription}"
+    for transcription in [
         "de", "ca", "zh", "fa", "et", "mn", "tr", "ar", "sw", "lv", "sl", "ta", "ja", "id", "cy",
     ]
 ]
@@ -194,7 +203,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 {
                     "path": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
-                    "target": datasets.Value("string"),
+                    "transcription": datasets.Value("string"),
                 }
             )
             task_templates = [AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="text")]
@@ -205,7 +214,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                     "path": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=48_000),
                     "transcription": datasets.Value("string"),
-                    "target": datasets.Value("string"),
+                    "translation": datasets.Value("string"),
                 }
             )
         elif self.config.dataset_name == "minds14":
@@ -215,7 +224,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                     "audio": datasets.Audio(sampling_rate=8_000),
                     "transcription": datasets.Value("string"),
                     "english_transcription": datasets.Value("string"),
-                    "target": datasets.ClassLabel(
+                    "target_class": datasets.ClassLabel(
                         names=[
                             "abroad",
                             "address",
@@ -243,7 +252,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=self.config.description + "\n" + _DESCRIPTION,
             features=features,
-            supervised_keys=("audio", "target"),
+            supervised_keys=("audio", "transcription"),
             homepage=self.config.homepage,
             citation=self.config.citation + "\n" + _CITATION,
             task_templates=task_templates,
@@ -258,6 +267,8 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             return self._covost_2_split_generators(*args, **kwargs)
         elif self.config.dataset_name == "minds14":
             return self._minds14_split_generators(*args, **kwargs)
+        elif self.config.dataset_name == "babel":
+            return self._babel_split_generators(*args, **kwargs)
 
     def _generate_examples(self, *args, **kwargs):
         if self.config.dataset_name == "mls":
@@ -268,6 +279,8 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             yield from self._covost_2_generate_examples(*args, **kwargs)
         elif self.config.dataset_name == "minds14":
             yield from self._minds14_generate_examples(*args, **kwargs)
+        elif self.config.dataset_name == "babel":
+            yield from self._babel_generate_examples(*args, **kwargs)
 
     # MLS
     def _mls_split_generators(self, dl_manager):
@@ -325,7 +338,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 yield key, {
                     "path": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
                     "audio": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
-                    "target": transcript,
+                    "transcription": transcript,
                 }
                 key += 1
 
@@ -450,19 +463,19 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 yield key, {
                     "path": audio_data[id_],
                     "audio": audio_data[id_],
-                    "target": transcript,
+                    "transcription": transcript,
                 }
                 key += 1
 
     # Covost2
     def _covost_2_split_generators(self, dl_manager):
-        source_lang, target_lang = self.config.lang_name.split(".")
+        source_lang, transcription_lang = self.config.lang_name.split(".")
         audio_url, translation_url = tuple(self.config.data_urls)
 
         audio_data = dl_manager.download_and_extract(audio_url.format(source_lang))
-        text_data = dl_manager.download_and_extract(translation_url.format(source_lang, target_lang))
+        text_data = dl_manager.download_and_extract(translation_url.format(source_lang, transcription_lang))
 
-        covost_tsv_path = os.path.join(text_data, f"covost_v2.{source_lang}_{target_lang}.tsv")
+        covost_tsv_path = os.path.join(text_data, f"covost_v2.{source_lang}_{transcription_lang}.tsv")
         cv_tsv_path = os.path.join(audio_data, "validated.tsv")
 
         return [
@@ -527,7 +540,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 "path": os.path.join(source_path, "clips", row["path"]),
                 "audio": os.path.join(source_path, "clips", row["path"]),
                 "transcription": row["sentence"],
-                "target": row["translation"],
+                "translation": row["translation"],
             }
 
     # MINDS-14
@@ -552,13 +565,107 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             csv_reader = csv.reader(csv_file, delimiter=",", skipinitialspace=True)
             next(csv_reader)
             for row in csv_reader:
-                file_path, transcription, english_transcription, target = row
+                file_path, transcription, english_transcription, target_class = row
                 audio_path = os.path.join(audio_path, *file_path.split("/"))
                 yield key, {
                     "path": audio_path,
                     "audio": audio_path,
                     "transcription": transcription,
                     "english_transcription": english_transcription,
-                    "target": target.lower(),
+                    "target_class": target_class.lower(),
                 }
                 key += 1
+
+    # BABEL
+    def _babel_split_generators(self, dl_manager):
+        dataset_id = _BABEL_LANG_TO_ID[self.config.lang_name]
+        data_root = os.path.abspath(os.path.join(os.path.expanduser(dl_manager.manual_dir), dataset_id + ".zip"))
+
+        if not os.path.exists(data_root):
+            raise FileNotFoundError(
+                f"You are trying to load the {self.config.name} speech translation dataset. "
+                f"It is required that you manually download the input speech data. "
+                f"Manual download instructions: {self._babel_manual_download_instructions}"
+            )
+
+        extracted_data = dl_manager.extract(data_root)
+        data_dir = os.path.join(extracted_data, "_".join(dataset_id.split("_")[:-1]))
+
+        # dev is 10% of trainining, train, is 90% of training
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "data_dir": os.path.join(data_dir, "conversational", "training"), "split": "training"
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"data_dir": os.path.join(data_dir, "conversational", "training"), "split": "dev"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"data_dir": os.path.join(data_dir, "conversational", "test"), "split": "test"}
+            ),
+        ]
+
+    @property
+    def _babel_manual_download_instructions(self):
+        return """TODO(PVP)
+        """
+
+    def _babel_generate_examples(self, data_dir, split):
+        files = []
+
+        def get_audio_file(ftrans, split):
+            fname = ftrans.replace('.txt', '')
+            split = 'training' if split == 'traindev' else 'dev'
+            faudio = '%s/conversational/%s/audio/%s' % (lg, split, fname)
+            if os.path.isfile(faudio + '.sph'):
+                return fname, faudio + '.sph'
+            elif os.path.isfile(faudio + '.wav'):
+                return fname, faudio + '.wav'
+            else:
+                assert False, "Error, couldn't file audio %s" % faudio
+            return
+
+        def get_trans_and_times(ftrans, split):
+            def process_time(s):
+                assert s[0] == '[' and s[-1] == ']', s
+                s = s[1:-1]
+                assert len(s) > 0
+                return float(s)
+
+            def process_trans(s):
+                assert s[0] != '[' or s[-1] != ']', s
+                for wrd in '(()) <no-speech> <sta> <int> <hes> <laugh> <breath> <foreign> <cough> <lipsmack> <click> <prompt> <dtmf> <overlap> <ring> <male-to-female> <female-to-male>'.split():
+                    s = s.replace(wrd, ' ')
+                s = s.strip()
+                return s
+
+            split = 'training' if split == 'traindev' else 'dev'
+            ftrans = '%s/conversational/%s/transcription/%s.txt' % (lg, split, ftrans)
+            times = []
+            trans = []
+
+            # load time segments and trans
+            with open(ftrans) as f:
+                for k, line in enumerate(f):
+                    line = line.rstrip()
+                    if k % 2 == 0:
+                        times.append(process_time(line))
+                    else:
+                        trans.append(process_trans(line))
+            assert len(times) == len(trans) + 1, (len(times), len(trans))
+
+            # get list of valid (trans, start_time, duration) tuples
+            trans_start_dur = []
+            for i, tr in enumerate(trans):
+                if tr:
+                    trans_start_dur.append((tr, times[i], times[i + 1] - times[i]))
+
+            return trans_start_dur
+
+        for ftrans in os.listdir(os.path.join(data_dir, "transcription/")):
+            fname, faudio = get_audio_file(ftrans, 'dev')
+            files.append((ftrans, fname, faudio, get_trans_and_times(fname, 'dev')))
