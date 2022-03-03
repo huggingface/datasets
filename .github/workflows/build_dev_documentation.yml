@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - docs_new_ui
+  pull_request:
 
 
 jobs:
@@ -98,6 +99,7 @@ jobs:
             v1-test_build_doc-${{ hashFiles('setup.py') }}
             v1-test_build_doc
 
+      - name: Make documentation
         run: |
           cd doc-build-dev
           ls
