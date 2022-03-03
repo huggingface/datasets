@@ -69,7 +69,7 @@ _URLs = {
 class WikiLingua(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.1.1")
 
     # This is an example of a dataset with multiple configurations.
     # If you don't want/need to define several sub-sets in your dataset,
