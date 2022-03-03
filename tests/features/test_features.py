@@ -20,6 +20,7 @@ from datasets.features import (
     generate_from_dict,
     string_to_arrow,
 )
+from datasets.features.translation import Translation, TranslationVariableLanguages
 from datasets.info import DatasetInfo
 
 from ..utils import require_jax, require_tf, require_torch
@@ -306,6 +307,48 @@ def test_encode_batch_with_example_with_empty_first_elem():
         }
     )
     assert encoded_batch == {"x": [[[0], [1]], [[], [1]]]}
+
+
+@pytest.mark.parametrize(
+    "feature",
+    [
+        Value("int32"),
+        ClassLabel(num_classes=2),
+        Translation(languages=["en", "fr"]),
+        TranslationVariableLanguages(languages=["en", "fr"]),
+    ],
+)
+def test_dataset_feature_with_none(feature):
+    data = {"col": [None]}
+    features = Features({"col": feature})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"col"}
+    assert item["col"] is None
+    batch = dset[:1]
+    assert len(batch) == 1
+    assert batch.keys() == {"col"}
+    assert isinstance(batch["col"], list) and all(item is None for item in batch["col"])
+    column = dset["col"]
+    assert len(column) == 1
+    assert isinstance(column, list) and all(item is None for item in column)
+
+    # nested tests
+
+    data = {"col": [[None]]}
+    features = Features({"col": Sequence(feature)})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"col"}
+    assert all(i is None for i in item["col"])
+
+    data = {"nested": [{"col": None}]}
+    features = Features({"nested": {"col": feature}})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"nested"}
+    assert item["nested"].keys() == {"col"}
+    assert item["nested"]["col"] is None
 
 
 def iternumpy(key1, value1, value2):
