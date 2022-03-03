@@ -3,7 +3,7 @@ name: Build dev documentation
 on:
   push:
     branches:
-      - docs_new_ui*
+      - doc_new_ui_test_workflows2
 
 jobs:
   build_and_package:
