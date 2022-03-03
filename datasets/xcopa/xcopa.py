@@ -38,37 +38,26 @@ creation of XCOPA and the implementation of the baselines are available in the p
 _LANG = ["et", "ht", "it", "id", "qu", "sw", "zh", "ta", "th", "tr", "vi"]
 
 _URL = "https://github.com/cambridgeltl/xcopa/archive/master.zip"
-
-
-class XcopaConfig(datasets.BuilderConfig):
-    """BuilderConfig for Break"""
-
-    def __init__(self, **kwargs):
-        """
-
-        Args:
-            data_dir: directory for the given language dataset
-            **kwargs: keyword arguments forwarded to super.
-        """
-        super(XcopaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+_VERSION = datasets.Version("1.1.0", "Minor fixes to the 'question' values in Italian")
 
 
 class Xcopa(datasets.GeneratorBasedBuilder):
     """TODO(xcopa): Short description of my dataset."""
 
     # TODO(xcopa): Set up version.
-    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
-        XcopaConfig(
+        datasets.BuilderConfig(
             name=lang,
             description=f"Xcopa language {lang}",
+            version=_VERSION,
         )
         for lang in _LANG
     ]
     BUILDER_CONFIGS += [
-        XcopaConfig(
+        datasets.BuilderConfig(
             name=f"translation-{lang}",
             description=f"Xcopa English translation for language {lang}",
+            version=_VERSION,
         )
         for lang in _LANG
         if lang != "qu"
