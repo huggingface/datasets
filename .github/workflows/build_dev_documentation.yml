@@ -1,10 +1,8 @@
 name: Build dev documentation
 
 on:
-  push:
-    branches:
-      - docs_new_ui*
   pull_request:
+    types: [ opened ]
 
 # concurrency:
 #   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
