@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - docs_new_ui
-  pull_request:
 
 
 jobs:
