@@ -461,7 +461,9 @@ class IterableDataset(DatasetInfoMixin):
         remove_columns: Optional[Union[str, List[str]]] = None,
     ):
         """
-        Return a dataset with the specified map function. The function is applied on-the-fly on the examples when iterating over the dataset.
+        Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
+        If your function returns a column that already exists, then it overwrites it.
+        The function is applied on-the-fly on the examples when iterating over the dataset.
 
         You can specify whether the function should be batched or not with the ``batched`` parameter:
 
