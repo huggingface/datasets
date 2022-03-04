@@ -12,12 +12,12 @@ from datasets.utils import cached_path
 
 
 DATASETS_ON_HF_GCP = [
-    {"dataset": "wikipedia", "config_name": "20200501.en"},
-    {"dataset": "wikipedia", "config_name": "20200501.it"},
-    {"dataset": "wikipedia", "config_name": "20200501.fr"},
-    {"dataset": "wikipedia", "config_name": "20200501.frr"},
-    {"dataset": "wikipedia", "config_name": "20200501.simple"},
-    {"dataset": "wikipedia", "config_name": "20200501.de"},
+    # {"dataset": "wikipedia", "config_name": "20200501.en"},
+    # {"dataset": "wikipedia", "config_name": "20200501.it"},
+    # {"dataset": "wikipedia", "config_name": "20200501.fr"},
+    # {"dataset": "wikipedia", "config_name": "20200501.frr"},
+    # {"dataset": "wikipedia", "config_name": "20200501.simple"},
+    # {"dataset": "wikipedia", "config_name": "20200501.de"},
     {"dataset": "snli", "config_name": "plain_text"},
     {"dataset": "eli5", "config_name": "LFQA_reddit"},
     {"dataset": "wiki40b", "config_name": "en"},
