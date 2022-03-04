@@ -74,18 +74,52 @@ The text in the dataset is in Basque.
 
 ### Data Instances
 
-[More Information Needed]
+An example from the train split:
+```
+{'dialogue_id': 'C_50be3f56f0d04c99a82f1f950baf0c2d',
+ 'wikipedia_page_title': 'Howard Becker',
+ 'background': 'Howard Saul Becker (Chicago,Illinois, 1928ko apirilaren 18an) Estatu Batuetako soziologoa bat da. Bere ekarpen handienak desbiderakuntzaren soziologian, artearen soziologian eta musikaren soziologian egin ditu. "Outsiders" (1963) bere lanik garrantzitsuetako da eta bertan garatu zuen bere etiketatze-teoria. Nahiz eta elkarrekintza sinbolikoaren edo gizarte-konstruktibismoaren korronteen barruan sartu izan, berak ez du bere burua inongo paradigman kokatzen. Chicagoko Unibertsitatean graduatua, Becker Chicagoko Soziologia Eskolako bigarren belaunaldiaren barruan kokatu ohi da, Erving Goffman eta Anselm Strauss-ekin batera.',
+ 'section_title': 'Hastapenak eta hezkuntza.',
+ 'context': 'Howard Saul Becker Chicagon jaio zen 1928ko apirilaren 18an. Oso gazte zelarik piano jotzen asi zen eta 15 urte zituenean dagoeneko tabernetan aritzen zen pianoa jotzen. Beranduago Northwestern Unibertsitateko banda batean jo zuen. Beckerren arabera, erdi-profesional gisa aritu ahal izan zen Bigarren Mundu Gerra tokatu eta musikari gehienak soldadugai zeudelako. Musikari bezala egin zuen lan horretan egin zuen lehen aldiz drogaren kulturaren ezagutza, aurrerago ikerketa-gai hartuko zuena. 1946an bere graduazpiko soziologia titulua lortu zuen Chicagoko Unibertsitatean. Ikasten ari zen bitartean, pianoa jotzen jarraitu zuen modu erdi-profesionalean. Hala ere, soziologiako masterra eta doktoretza eskuratu zituen Chicagoko Unibertsitatean. Unibertsitate horretan Chicagoko Soziologia Eskolaren jatorrizko tradizioaren barruan hezia izan zen. Chicagoko Soziologia Eskolak garrantzi berezia ematen zion datu kualitatiboen analisiari eta Chicagoko hiria hartzen zuen ikerketa eremu bezala. Beckerren hasierako lan askok eskola honen tradizioaren eragina dute, bereziko Everett C. Hughes-en eragina, bere tutore eta gidari izan zena. Askotan elkarrekintzaile sinboliko bezala izendatua izan da, nahiz eta Beckerek berak ez duen gogoko izendapen hori. Haren arabera, bere leinu akademikoa Georg Simmel, Robert E. Park eta Everett Hughes dira. Doktoretza lortu ostean, 23 urterekin, Beckerrek marihuanaren erabilpena ikertu zuen "Institut for Juvenil Reseac"h-en. Ondoren Illinoisko Unibertsitatean eta Standfor Unibertsitateko ikerketa institutu batean aritu zen bere irakasle karrera hasi aurretik. CANNOTANSWER',
+ 'turn_id': 'C_50be3f56f0d04c99a82f1f950baf0c2d_q#0',
+ 'question': 'Zer da desbiderakuntzaren soziologia?',
+ 'yesno': 2,
+ 'answers': {'text': ['CANNOTANSWER'],
+  'answer_start': [1601],
+  'input_text': ['CANNOTANSWER']},
+ 'orig_answer': {'text': 'CANNOTANSWER', 'answer_start': 1601}}
+ ```
 
 ### Data Fields
 
-[More Information Needed]
+The different fields are:
+
+- `dialogue_id`: string,
+- `wikipedia_page_title`: title of the wikipedia page as a string,
+- `background`: string,
+- `section_title`: title os the section as a string,
+- `context`: context of the question as a string string,
+- `turn_id`: string,
+- `question`: question as a string,
+- `yesno`: Class label that represents if the question is a yes/no question. Possible values are "y" (0), "n" (1), "x" (2),
+- `answers`: a dictionary with three fields:
+  - `text`: list of texts of the answer as a string,
+  - `answer_start`: list of positions of the answers in the context as an int32,
+  - `input_text`: list of strings,
+    }
+),
+- `orig_answer`: {
+  - `text`: original answer text as a string,
+  - `answer_start`: original position of the answer as an int32,
+},
 
 ### Data Splits
 
 The data is split into a training, development and test set. The split sizes are as follow:
- - train: 1,306 questions / 301 dialogues
- - development:  161 questions / 38 dialogues
- - test: 167 questions / 38 dialogues
+
+- train: 1,306 questions / 301 dialogues
+- development:  161 questions / 38 dialogues
+- test: 167 questions / 38 dialogues
 
 ## Dataset Creation
 
@@ -150,7 +184,7 @@ To view a copy of this license, visit [https://creativecommons.org/licenses/by-s
 
 If you are using this dataset in your work, please cite this publication:
 
-```
+```bibtex
 @inproceedings{otegi-etal-2020-conversational,
     title = "{Conversational Question Answering in Low Resource Scenarios: A Dataset and Case Study for Basque}",
     author = "Otegi, Arantxa  and
