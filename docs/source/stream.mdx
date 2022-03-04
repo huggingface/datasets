@@ -152,6 +152,20 @@ Let's take a look at another example, except this time, you will remove a column
 Specify the column to remove with the `remove_columns` argument in [`datasets.IterableDataset.map`]:
 
 ```py
+>>> updated_dataset = dataset.map(add_prefix, remove_columns=["id"])
+>>> list(updated_dataset.take(3))
+[{'text': 'My text: Mtendere Village was inspired by...'},
+ {'text': 'My text: Lily James cannot fight the music...'},
+ {'text': 'My text: "I\'d love to help kickstart...'}]
+```
+
+### Batch processing
+
+[`datasets.IterableDataset.map`] also supports working with batches of examples. Operate on batches by setting `batched=True`. The default batch size is 1000, but you can adjust it with the `batch_size` argument. This opens the door to many interesting applications such as tokenization, splitting long sentences into shorter chunks, and data augmentation.
+
+#### Tokenization
+
+```py
 >>> from datasets import load_dataset
 >>> from transformers import AutoTokenizer
 >>> dataset = load_dataset("mc4", "en", streaming=True, split="train")
@@ -163,6 +177,12 @@ Specify the column to remove with the `remove_columns` argument in [`datasets.It
 {'input_ids': 101, 8466, 1018, 1010, 4029, 2475, 2062, 18558, 3100, 2061, ...,1106, 3739, 102],
 'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ..., 1, 1]}
 ```
+
+<Tip>
+
+See other examples of batch processing in [the batched map processing documentation](./process#batch-processing). They work the same for iterable datasets.
+
+</Tip>
 
 ## Stream in a training loop
 
