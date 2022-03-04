@@ -383,6 +383,7 @@ class WikipediaConfig(datasets.BuilderConfig):
 
 
 _VERSION = datasets.Version("2.0.0", "")
+_DATE = "20220301"
 
 
 class Wikipedia(datasets.BeamBasedBuilder):
@@ -394,7 +395,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
         WikipediaConfig(
             version=_VERSION,
             language=lang,
-            date="20200501",
+            date=_DATE,
         )  # pylint:disable=g-complex-comprehension
         for lang in WIKIPEDIA_LANGUAGES
     ]
