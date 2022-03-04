@@ -69,7 +69,7 @@ class ExactMatch(datasets.Metric):
         score_list = np.zeros(len(predictions))
 
         if chars_to_ignore is not None:
-            translate_dict = chars_to_ignore.maketrans('', '', chars_to_ignore)
+            translate_dict = chars_to_ignore.maketrans("", "", chars_to_ignore)
             predictions = np.char.translate(predictions, translate_dict)
             references = np.char.translate(references, translate_dict)
         else:
