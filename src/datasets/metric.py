@@ -391,11 +391,15 @@ class Metric(MetricInfoMixin):
             - None if the metric is not run on the main process (``process_id != 0``).
         """
         all_kwargs = {"predictions": predictions, "references": references, **kwargs}
-        missing_inputs = [k for k in self.features if k not in all_kwargs]
-        if missing_inputs:
-            raise ValueError(
-                f"Metric inputs are missing: {missing_inputs}. All required inputs are {list(self.features)}"
-            )
+        if predictions is None and references is None:
+            missing_kwargs = {k: None for k in self.features if k not in all_kwargs}
+            all_kwargs.update(missing_kwargs)
+        else:
+            missing_inputs = [k for k in self.features if k not in all_kwargs]
+            if missing_inputs:
+                raise ValueError(
+                    f"Metric inputs are missing: {missing_inputs}. All required inputs are {list(self.features)}"
+                )
         inputs = {input_name: all_kwargs[input_name] for input_name in self.features}
         compute_kwargs = {k: kwargs[k] for k in kwargs if k not in self.features}
 
@@ -470,8 +474,10 @@ class Metric(MetricInfoMixin):
                 )
             elif sorted(self.features) != ["references", "predictions"]:
                 error_msg = f"Metric inputs don't match the expected format.\n" f"Expected format: {self.features},\n"
-                for input_name in self.features:
-                    error_msg += f"Input {input_name}: {summarize_if_long_list(batch[input_name])},\n"
+                error_msg_inputs = ",\n".join(
+                    f"Input {input_name}: {summarize_if_long_list(batch[input_name])}" for input_name in self.features
+                )
+                error_msg += error_msg_inputs
             else:
                 error_msg = (
                     f"Predictions and/or references don't match the expected format.\n"
@@ -500,8 +506,10 @@ class Metric(MetricInfoMixin):
             self.writer.write(example)
         except pa.ArrowInvalid:
             error_msg = f"Metric inputs don't match the expected format.\n" f"Expected format: {self.features},\n"
-            for input_name in self.features:
-                error_msg += f"Input {input_name}: {example[input_name]},\n"
+            error_msg_inputs = ",\n".join(
+                f"Input {input_name}: {summarize_if_long_list(example[input_name])}" for input_name in self.features
+            )
+            error_msg += error_msg_inputs
             raise ValueError(error_msg) from None
 
     def _init_writer(self, timeout=1):
