@@ -249,8 +249,11 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         return MappedExamplesIterable(
             self.ex_iterable.shuffle_data_sources(seed),
             function=self.function,
+            with_indices=self.with_indices,
+            input_columns=self.input_columns,
             batched=self.batched,
             batch_size=self.batch_size,
+            remove_columns=self.remove_columns,
         )
 
     @property
