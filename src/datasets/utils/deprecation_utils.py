@@ -14,7 +14,7 @@ def deprecated(help_message: Optional[str] = None):
     """Decorator to mark a function as deprecated.
 
     Args:
-        help_message (`Optional[str]`): An optional message to guide the user on how to
+        help_message (:obj:`str`, optional): An optional message to guide the user on how to
             switch to non-deprecated usage of the library.
     """
 

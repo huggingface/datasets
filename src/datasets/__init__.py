@@ -24,9 +24,9 @@ from packaging import version as _version
 from pyarrow import total_allocated_bytes
 
 
-if _version.parse(pyarrow.__version__).major < 3:
+if _version.parse(pyarrow.__version__).major < 5:
     raise ImportWarning(
-        "To use `datasets`, the module `pyarrow>=3.0.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
+        "To use `datasets`, the module `pyarrow>=5.0.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
     )
 
@@ -64,7 +64,7 @@ from .inspect import (
 )
 from .iterable_dataset import IterableDataset
 from .keyhash import KeyHasher
-from .load import import_main_class, load_dataset, load_dataset_builder, load_from_disk, load_metric, prepare_module
+from .load import import_main_class, load_dataset, load_dataset_builder, load_from_disk, load_metric
 from .metric import Metric
 from .splits import (
     NamedSplit,
