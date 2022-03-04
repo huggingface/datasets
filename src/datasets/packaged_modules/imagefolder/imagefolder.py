@@ -14,6 +14,7 @@ class ImageFolderConfig(datasets.BuilderConfig):
     """BuilderConfig for ImageFolder."""
 
     features: Optional[datasets.Features] = None
+    drop_labels: bool = False
 
 
 class ImageFolder(datasets.GeneratorBasedBuilder):
@@ -28,30 +29,34 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
 
-        labels = set()
+        capture_labels = self.config.drop_labels and self.config.features is None
+        if capture_labels:
+            labels = set()
 
-        def capture_labels_for_split(files, downloaded_files):
-            for file, downloaded_file in zip(files, downloaded_files):
-                file, downloaded_file = str(file), str(downloaded_file)
-                if os.path.isfile(downloaded_file):
-                    _, file_ext = os.path.splitext(file)
-                    if file_ext.lower() in self.IMAGE_EXTENSIONS:
-                        labels.add(os.path.basename(os.path.dirname(file)))
-                else:
-                    for downloaded_dir_file in dl_manager.iter_files(downloaded_file):
-                        _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                        if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
-                            labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
+            def capture_labels_for_split(files, downloaded_files):
+                for file, downloaded_file in zip(files, downloaded_files):
+                    file, downloaded_file = str(file), str(downloaded_file)
+                    if os.path.isfile(downloaded_file):
+                        _, file_ext = os.path.splitext(file)
+                        if file_ext.lower() in self.IMAGE_EXTENSIONS:
+                            labels.add(os.path.basename(os.path.dirname(file)))
+                    else:
+                        for downloaded_dir_file in dl_manager.iter_files(downloaded_file):
+                            _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
+                            if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
+                                labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
+
+            logger.info("Inferring labels from data files...")
 
         data_files = self.config.data_files
         downloaded_data_files = dl_manager.download_and_extract(data_files)
-        logger.info("Inferring labels from data files...")
         splits = []
         if isinstance(downloaded_data_files, (str, list, tuple)):
             files, downloaded_files = data_files, downloaded_data_files
             if isinstance(files, str):
                 files, downloaded_files = [files], [downloaded_files]
-            capture_labels_for_split(files, downloaded_files)
+            if capture_labels:
+                capture_labels_for_split(files, downloaded_files)
             splits.append(
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -70,7 +75,8 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 downloaded_files = downloaded_data_files[split_name]
                 if isinstance(files, str):
                     files, downloaded_files = [files], [downloaded_files]
-                capture_labels_for_split(files, downloaded_files)
+                if capture_labels:
+                    capture_labels_for_split(files, downloaded_files)
                 splits.append(
                     datasets.SplitGenerator(
                         name=split_name,
@@ -86,7 +92,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
                 )
 
         # Normally we would do this in _info, but we need to know the labels before building the features
-        if self.config.features is None:
+        if capture_labels:
             self.info.features = datasets.Features(
                 {"image": datasets.Image(), "label": datasets.ClassLabel(names=sorted(labels))}
             )
@@ -97,22 +103,40 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         return splits
 
     def _generate_examples(self, files):
-        file_idx = 0
-        for file, downloaded_file_or_dir in files:
-            if file is not None:
-                _, file_ext = os.path.splitext(file)
-                if file_ext.lower() in self.IMAGE_EXTENSIONS:
-                    yield file_idx, {"image": downloaded_file_or_dir, "label": os.path.basename(os.path.dirname(file))}
-                    file_idx += 1
-            else:
-                for downloaded_dir_file in downloaded_file_or_dir:
-                    _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
-                    if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
+        if not self.config.drop_labels:
+            file_idx = 0
+            for file, downloaded_file_or_dir in files:
+                if file is not None:
+                    _, file_ext = os.path.splitext(file)
+                    if file_ext.lower() in self.IMAGE_EXTENSIONS:
                         yield file_idx, {
-                            "image": downloaded_dir_file,
-                            "label": os.path.basename(os.path.dirname(downloaded_dir_file)),
+                            "image": downloaded_file_or_dir,
+                            "label": os.path.basename(os.path.dirname(file)),
                         }
                         file_idx += 1
+                else:
+                    for downloaded_dir_file in downloaded_file_or_dir:
+                        _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
+                        if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
+                            yield file_idx, {
+                                "image": downloaded_dir_file,
+                                "label": os.path.basename(os.path.dirname(downloaded_dir_file)),
+                            }
+                            file_idx += 1
+        else:
+            file_idx = 0
+            for file, downloaded_file_or_dir in files:
+                if file is not None:
+                    _, file_ext = os.path.splitext(file)
+                    if file_ext.lower() in self.IMAGE_EXTENSIONS:
+                        yield file_idx, {"image": downloaded_file_or_dir}
+                        file_idx += 1
+                else:
+                    for downloaded_dir_file in downloaded_file_or_dir:
+                        _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
+                        if downloaded_dir_file_ext.lower() in self.IMAGE_EXTENSIONS:
+                            yield file_idx, {"image": downloaded_dir_file}
+                            file_idx += 1
 
 
 # Obtained with:
