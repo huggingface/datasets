@@ -22,6 +22,7 @@ import codecs
 import json
 import re
 import xml.etree.cElementTree as etree
+from urllib.parse import quote
 
 import datasets
 
@@ -916,7 +917,14 @@ class Wikipedia(datasets.BeamBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"title": datasets.Value("string"), "text": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "id": datasets.Value("string"),
+                    "url": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "text": datasets.Value("string"),
+                }
+            ),
             # No default supervised_keys.
             supervised_keys=None,
             homepage="https://dumps.wikimedia.org",
@@ -1014,9 +1022,11 @@ class Wikipedia(datasets.BeamBasedBuilder):
                 beam.metrics.Metrics.counter(language, "empty-clean-examples").inc()
                 return
 
+            url = _construct_url(title, language)
+
             beam.metrics.Metrics.counter(language, "cleaned-examples").inc()
 
-            yield id_, {"title": title, "text": text}
+            yield id_, {"id": id_, "url": url, "title": title, "text": text}
 
         return (
             pipeline
@@ -1084,3 +1094,8 @@ def _parse_and_clean_wikicode(raw_content, parser, language):
 
         section_text.append(re.sub(re_rm_magic, "", section.strip_code().strip()))
     return "\n\n".join(section_text)
+
+
+def _construct_url(title, language):
+    # See: https://meta.wikimedia.org/wiki/Help:URL
+    return f"https://{language}.wikipedia.org/wiki/{quote(title)}"
