@@ -475,9 +475,6 @@ class DatasetDict(dict):
             batched (`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (:obj:`int`, optional, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
-                Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
-                columns with names in `remove_columns`, these columns will be kept.
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
@@ -503,7 +500,6 @@ class DatasetDict(dict):
                     input_columns=input_columns,
                     batched=batched,
                     batch_size=batch_size,
-                    remove_columns=remove_columns,
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
                     cache_file_name=cache_file_names[k],
