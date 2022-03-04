@@ -61,6 +61,18 @@ class FileFreeLock(BaseFileLock):
         self._lock_file_fd = None
 
 
+# lists - summarize long lists similarly to NumPy
+# arrays/tensors - let the frameworks control formatting
+def summarize_if_long_list(obj):
+    if not type(obj) == list or len(obj) <= 6:
+        return f"{obj}"
+
+    def format_chunk(chunk):
+        return ", ".join(repr(x) for x in chunk)
+
+    return f"[{format_chunk(obj[:3])}, ..., {format_chunk(obj[-3:])}]"
+
+
 class MetricInfoMixin:
     """This base class exposes some attributes of MetricInfo
     at the base level of the Metric for easy access.
@@ -454,18 +466,6 @@ class Metric(MetricInfoMixin):
         try:
             self.writer.write_batch(batch)
         except pa.ArrowInvalid:
-
-            # lists - summarize long lists similarly to NumPy
-            # arrays/tensors - let the frameworks control formatting
-            def summarize_if_long_list(obj):
-                if not type(obj) == list or len(obj) <= 6:
-                    return f"{obj}"
-
-                def format_chunk(chunk):
-                    return ", ".join(repr(x) for x in chunk)
-
-                return f"[{format_chunk(obj[:3])}, ..., {format_chunk(obj[-3:])}]"
-
             if any(len(batch[c]) != len(next(iter(batch.values()))) for c in batch):
                 col0 = next(iter(batch))
                 bad_col = [c for c in batch if len(batch[c]) != len(batch[col0])][0]
