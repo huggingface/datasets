@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - language-modeling
 paperswithcode_id: null
+pretty_name: Yorùbá Text C3
 ---
 
 # Dataset Card for Yorùbá Text C3

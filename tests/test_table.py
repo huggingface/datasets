@@ -6,7 +6,8 @@ import numpy as np
 import pyarrow as pa
 import pytest
 
-from datasets import config
+from datasets import Sequence, Value
+from datasets.features.features import ClassLabel, Features
 from datasets.table import (
     ConcatenationTable,
     InMemoryTable,
@@ -17,6 +18,7 @@ from datasets.table import (
     _in_memory_arrow_table_from_file,
     _interpolation_search,
     _memory_mapped_arrow_table_from_file,
+    cast_array_to_feature,
     concat_tables,
     inject_arrow_table_documentation,
 )
@@ -320,6 +322,31 @@ def test_in_memory_table_cast(in_memory_pa_table):
     table = InMemoryTable(in_memory_pa_table).cast(schema)
     assert table.table == in_memory_pa_table.cast(schema)
     assert isinstance(table, InMemoryTable)
+
+
+def test_in_memory_table_cast_reorder_struct():
+    table = InMemoryTable(
+        pa.Table.from_pydict(
+            {
+                "top": [
+                    {
+                        "foo": "a",
+                        "bar": "b",
+                    }
+                ]
+            }
+        )
+    )
+    schema = pa.schema({"top": pa.struct({"bar": pa.string(), "foo": pa.string()})})
+    assert table.cast(schema).schema == schema
+
+
+def test_in_memory_table_cast_with_hf_features():
+    table = InMemoryTable(pa.Table.from_pydict({"labels": [0, 1]}))
+    features = Features({"labels": ClassLabel(names=["neg", "pos"])})
+    schema = features.arrow_schema
+    assert table.cast(schema).schema == schema
+    assert Features.from_arrow_schema(table.cast(schema).schema) == features
 
 
 def test_in_memory_table_replace_schema_metadata(in_memory_pa_table):
@@ -769,13 +796,9 @@ def test_concatenation_table_cast(
             for k, v in zip(in_memory_pa_table.schema.names, in_memory_pa_table.schema.types)
         }
     )
-    if config.PYARROW_VERSION.major < 4:
-        with pytest.raises(pa.ArrowNotImplementedError):
-            ConcatenationTable.from_blocks(blocks).cast(schema)
-    else:
-        table = ConcatenationTable.from_blocks(blocks).cast(schema)
-        assert table.table == in_memory_pa_table.cast(schema)
-        assert isinstance(table, ConcatenationTable)
+    table = ConcatenationTable.from_blocks(blocks).cast(schema)
+    assert table.table == in_memory_pa_table.cast(schema)
+    assert isinstance(table, ConcatenationTable)
     schema = pa.schema(
         {
             k: v if v != pa.int64() else pa.int32()
@@ -980,3 +1003,17 @@ def test_indexed_table_mixin():
     assert all(table._offsets.tolist() == np.cumsum([0] + [n_rows_per_chunk] * n_chunks))
     assert table.fast_slice(5) == pa_table.slice(5)
     assert table.fast_slice(2, 13) == pa_table.slice(2, 13)
+
+
+def test_cast_array_to_features():
+    arr = pa.array([[0, 1]])
+    assert cast_array_to_feature(arr, Sequence(Value("string"))).type == pa.list_(pa.string())
+    with pytest.raises(TypeError):
+        cast_array_to_feature(arr, Sequence(Value("string")), allow_number_to_str=False)
+
+
+def test_cast_array_to_features_nested():
+    arr = pa.array([[{"foo": [0]}]])
+    assert cast_array_to_feature(arr, [{"foo": Sequence(Value("string"))}]).type == pa.list_(
+        pa.struct({"foo": pa.list_(pa.string())})
+    )

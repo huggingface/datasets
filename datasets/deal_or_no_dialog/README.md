@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - conditional-text-generation-other-dialogue-generation
 paperswithcode_id: negotiation-dialogues-dataset
+pretty_name: Deal or No Deal Negotiator
 ---
 
 
@@ -85,10 +86,10 @@ The text in the dataset is in English
 
 ### Data Splits
 
-|           | Tain   | Valid | Test |
-| -----     | ------ | ----- | ---- |
-| dialogues |  10095 |  1087 | 1052 |
-| self_play |   8172 |  NA   | NA   |
+|            | train | validation | test |
+|------------|------:|-----------:|-----:|
+| dialogues  | 10095 |       1087 | 1052 |
+| self_play  |  8172 |         NA |   NA |
 
 ## Dataset Creation
 

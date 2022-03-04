@@ -22,18 +22,16 @@ import datasets
 
 
 _CITATION = """\
-@misc{xiong2019tweetqa,
-      title={TWEETQA: A Social Media Focused Question Answering Dataset},
-      author={Wenhan Xiong and Jiawei Wu and Hong Wang and Vivek Kulkarni and Mo Yu and Shiyu Chang and Xiaoxiao Guo and William Yang Wang},
-      year={2019},
-      eprint={1907.06292},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
+@inproceedings{xiong2019tweetqa,
+  title={TweetQA: A Social Media Focused Question Answering Dataset},
+  author={Xiong, Wenhan and Wu, Jiawei and Wang, Hong and Kulkarni, Vivek and Yu, Mo and Guo, Xiaoxiao and Chang, Shiyu and Wang, William Yang},
+  booktitle={Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics},
+  year={2019}
 }
 """
 
 _DESCRIPTION = """\
- TweetQA is the first dataset for QA on social media data by leveraging news media and crowdsourcing.
+TweetQA is the first dataset for QA on social media data by leveraging news media and crowdsourcing.
 """
 
 _HOMEPAGE = "https://tweetqa.github.io/"
@@ -101,12 +99,12 @@ class TweetQA(datasets.GeneratorBasedBuilder):
 
         with open(filepath, encoding="utf-8") as f:
             tweet_qa = json.load(f)
+            idx = 0
             for data in tweet_qa:
-                id_ = data["qid"]
-
-                yield id_, {
+                yield idx, {
                     "Question": data["Question"],
                     "Answer": [] if split == "test" else data["Answer"],
                     "Tweet": data["Tweet"],
                     "qid": data["qid"],
                 }
+                idx += 1

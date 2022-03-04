@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 paperswithcode_id: null
+pretty_name: "Swahili : News Classification Dataset"
 ---
 
 # Dataset Card for Swahili : News Classification Dataset
@@ -48,7 +49,7 @@ paperswithcode_id: null
 
 ## Dataset Description
 
-- **Homepage:** [Homepage for Swahili News classification dataset](https://zenodo.org/record/4300294#.X84BQdgzZPb)
+- **Homepage:** [Homepage for Swahili News classification dataset](https://doi.org/10.5281/zenodo.4300293)
 - **Repository:**
 - **Paper:**
 - **Leaderboard:**
@@ -77,23 +78,21 @@ The language used is Swahili
 
 ### Data Instances
 
-A data point consists of sentences seperated by empty line and tab-seperated tokens and tags. 
+A data instance:
 ```
-{'id': '0',
- 'content': "Bodi ya Utalii Tanzania (TTB) imesema, itafanya misafara ya kutangaza utalii kwenye miji minne nchini China kati ya Juni 19 hadi Juni 26 mwaka huu.Misafara hiyo itatembelea miji ya Beijing Juni 19, Shanghai Juni 21, Nanjig Juni 24 na Changsha Juni 26.Mwenyekiti wa bodi TTB, Jaji Mstaafu Thomas Mihayo ameyasema hayo kwenye mkutano na waandishi wa habari jijini Dar es Salaam.“Tunafanya jitihada kuhakikisha tunavuna watalii wengi zaidi kutoka China hasa tukizingatia umuhimu wa soko la sekta ya utalii nchini,” amesema Jaji Mihayo.Novemba 2018 TTB ilifanya ziara kwenye miji ya Beijing, Shanghai, Chengdu, Guangzhou na Hong Kong kutangaza vivutio vya utalii sanjari kuzitangaza safari za ndege za Air Tanzania.Ziara hiyo inaelezwa kuzaa matunda ikiwa ni pamoja na watalii zaidi ya 300 kuja nchini Mei mwaka huu kutembelea vivutio vya utalii.",
- 'label': "uchumi"
+{
+  'text': ' Bodi ya Utalii Tanzania (TTB) imesema, itafanya misafara ya kutangaza utalii kwenye miji minne nchini China kati ya Juni 19 hadi Juni 26 mwaka huu.Misafara hiyo itatembelea miji ya Beijing Juni 19, Shanghai Juni 21, Nanjig Juni 24 na Changsha Juni 26.Mwenyekiti wa bodi TTB, Jaji Mstaafu Thomas Mihayo ameyasema hayo kwenye mkutano na waandishi wa habari jijini Dar es Salaam.“Tunafanya jitihada kuhakikisha tunavuna watalii wengi zaidi kutoka China hasa tukizingatia umuhimu wa soko la sekta ya utalii nchini,” amesema Jaji Mihayo.Novemba 2018 TTB ilifanya ziara kwenye miji ya Beijing, Shanghai, Chengdu, Guangzhou na Hong Kong kutangaza vivutio vya utalii sanjari kuzitangaza safari za ndege za Air Tanzania.Ziara hiyo inaelezwa kuzaa matunda ikiwa ni pamoja na watalii zaidi ya 300 kuja nchini Mei mwaka huu kutembelea vivutio vya utalii.',
+  'label': 0
 }
 ```
 
 ### Data Fields
-
-- `id`: id of the sample
-- `content`: the news articles
+- `text`: the news articles
 - `label`: the label of the news article
 
 ### Data Splits
 
-Only training dataset was available
+Dataset contains train and test splits.
 
 ## Dataset Creation
 
@@ -151,16 +150,19 @@ Creative Commons Attribution 4.0 International
 
 ### Citation Information
 
-@dataset{davis_david_2020_4300294,
+```
+@dataset{davis_david_2020_5514203,
   author       = {Davis David},
   title        = {Swahili : News Classification Dataset},
   month        = dec,
   year         = 2020,
+  note         = {{The news version contains both train and test sets.}},
   publisher    = {Zenodo},
-  version      = {0.1},
-  doi          = {10.5281/zenodo.4300294},
-  url          = {https://doi.org/10.5281/zenodo.4300294}
+  version      = {0.2},
+  doi          = {10.5281/zenodo.5514203},
+  url          = {https://doi.org/10.5281/zenodo.5514203}
 }
+```
 
 ### Contributions
 

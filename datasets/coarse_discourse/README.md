@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: coarse-discourse
+pretty_name: Coarse Discourse
 ---
 
 # Dataset Card for "coarse_discourse"

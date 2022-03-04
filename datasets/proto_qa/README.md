@@ -20,6 +20,7 @@ task_ids:
 - multiple-choice-qa
 - open-domain-qa
 paperswithcode_id: protoqa
+pretty_name: ProtoQA
 ---
 
 # Dataset Card for [Dataset Name]

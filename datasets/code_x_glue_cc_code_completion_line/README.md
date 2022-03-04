@@ -28,6 +28,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - slot-filling
+pretty_name: CodeXGlueCcCodeCompletionLine
 ---
 # Dataset Card for "code_x_glue_cc_code_completion_line"
 

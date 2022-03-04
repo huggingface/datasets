@@ -22,6 +22,7 @@ task_ids:
 - slot-filling
 - topic-classification
 paperswithcode_id: null
+pretty_name: SofcMaterialsArticles
 ---
 
 

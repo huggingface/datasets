@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - named-entity-recognition
 paperswithcode_id: null
+pretty_name: TurkishShrinkedNer
 ---
 
 # Dataset Card for turkish_shrinked_ner

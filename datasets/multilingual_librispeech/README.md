@@ -16,7 +16,7 @@ languages:
 licenses:
 - cc-by-4.0
 multilinguality:
-- monolingual
+- multilingual
 paperswithcode_id: librispeech-1
 size_categories:
 - 100K<n<1M
@@ -148,7 +148,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 ### Personal and Sensitive Information
 
-[Needs More Information]
+The dataset consists of people who have donated their voice online. You agree to not attempt to determine the identity of speakers in this dataset.
 
 ## Considerations for Using the Data
 
@@ -172,7 +172,7 @@ A typical data point comprises the path to the audio file, usually called `file`
 
 ### Licensing Information
 
-CC BY 4.0
+Public Domain, Creative Commons Attribution 4.0 International Public License ([CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode))
 
 ### Citation Information
 

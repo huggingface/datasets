@@ -87,6 +87,7 @@ task_ids:
   - intent-classification
   - multi-class-classification
 paperswithcode_id: tweeteval
+pretty_name: TweetEval
 ---
 
 # Dataset Card for tweet_eval
@@ -438,7 +439,20 @@ Francesco Barbieri, Jose Camacho-Collados, Luis Espiinosa-Anke and Leonardo Neve
 
 ### Licensing Information
 
-[Needs More Information]
+This is not a single dataset, therefore each subset has its own license (the collection itself does not have additional restrictions).
+
+All of the datasets require complying with Twitter [Terms Of Service](https://twitter.com/tos) and Twitter API [Terms Of Service](https://developer.twitter.com/en/developer-terms/agreement-and-policy)
+
+Additionally the license are:
+- emoji: Undefined
+- emotion(EmoInt): Undefined
+- hate (HateEval): Need permission [here](http://hatespeech.di.unito.it/hateval.html)
+- irony: Undefined
+- Offensive: Undefined
+- Sentiment: [Creative Commons Attribution 3.0 Unported License](https://groups.google.com/g/semevaltweet/c/k5DDcvVb_Vo/m/zEOdECFyBQAJ)
+- Stance: Undefined
+
+
 ### Citation Information
 
 ```

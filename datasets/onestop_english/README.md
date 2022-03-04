@@ -20,6 +20,7 @@ task_ids:
 - multi-class-classification
 - text-simplification
 paperswithcode_id: onestopenglish
+pretty_name: OneStopEnglish corpus
 ---
 
 # Dataset Card for OneStopEnglish corpus

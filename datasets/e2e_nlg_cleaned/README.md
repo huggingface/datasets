@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - conditional-text-generation-other-meaning-representtion-to-text
 paperswithcode_id: null
+pretty_name: the Cleaned Version of the E2E Dataset
 ---
 
 # Dataset Card for the Cleaned Version of the E2E Dataset
@@ -100,9 +101,9 @@ Each MR consists of 3–8 attributes (slots), such as name, food or area, and th
 
 The dataset is split into training, validation and testing sets (in a 76.5-8.5-15 ratio), keeping a similar distribution of MR and reference text lengths and ensuring that MRs in different sets are distinct.
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| N. Instances               | 33525  | 4299  | 4693 |
+|              | train | validation | test |
+|--------------|------:|-----------:|-----:|
+| N. Instances | 33525 |       4299 | 4693 |
 
 ## Dataset Creation
 

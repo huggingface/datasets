@@ -18,9 +18,10 @@ task_categories:
 task_ids:
 - sentiment-classification
 paperswithcode_id: gutenberg-poem-dataset
+pretty_name: Gutenberg Poem Dataset
 ---
 
-# Dataset Card Creation Guide
+# Dataset Card for Gutenberg Poem Dataset
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -89,9 +90,9 @@ Example of one instance in the dataset.
 
 The dataset is split into a `train`, `validation`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid | Test  |
-| -----                      | ------ | ----- | ----- |
-| Number of examples         | 892    | 105   | 104   |
+|                    | train | validation | test |
+|--------------------|------:|-----------:|-----:|
+| Number of examples |   892 |        105 |  104 |
 
 
 

@@ -16,6 +16,7 @@ from datasets.iterable_dataset import (
     ShufflingConfig,
     SkipExamplesIterable,
     TakeExamplesIterable,
+    TypedExamplesIterable,
     _batch_to_examples,
     _examples_to_batch,
     iterable_dataset,
@@ -67,14 +68,33 @@ def test_examples_iterable_with_kwargs(generate_examples_fn):
     expected = list(generate_examples_fn(filepaths=["0.txt", "1.txt"], split="train"))
     assert list(ex_iterable) == expected
     assert all("split" in ex for _, ex in ex_iterable)
-    assert sorted(set(ex["filepath"] for _, ex in ex_iterable)) == ["0.txt", "1.txt"]
+    assert sorted({ex["filepath"] for _, ex in ex_iterable}) == ["0.txt", "1.txt"]
 
 
 def test_examples_iterable_shuffle_data_sources(generate_examples_fn):
     ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]})
-    ex_iterable = ex_iterable.shuffle_data_sources(42)
+    ex_iterable = ex_iterable.shuffle_data_sources(40)
     expected = list(generate_examples_fn(filepaths=["1.txt", "0.txt"]))  # shuffle the filepaths
     assert list(ex_iterable) == expected
+
+
+def test_examples_iterable_shuffle_shards_and_metadata():
+    def gen(filepaths, all_metadata):
+        for i, (filepath, metadata) in enumerate(zip(filepaths, all_metadata)):
+            yield i, {"filepath": filepath, "metadata": metadata}
+
+    ex_iterable = ExamplesIterable(
+        gen,
+        {
+            "filepaths": [f"{i}.txt" for i in range(100)],
+            "all_metadata": [{"id": str(i)} for i in range(100)],
+        },
+    )
+    ex_iterable = ex_iterable.shuffle_data_sources(42)
+    out = list(ex_iterable)
+    filepaths_ids = [x["filepath"].split(".")[0] for _, x in out]
+    metadata_ids = [x["metadata"]["id"] for _, x in out]
+    assert filepaths_ids == metadata_ids, "entangled lists of shards/metadata should be shuffled the same way"
 
 
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
@@ -290,6 +310,25 @@ def test_iterable_dataset_map_batched(dataset: IterableDataset, generate_example
     assert next(iter(dataset)) == _func_unbatched(next(iter(generate_examples_fn()))[1])
 
 
+def test_iterable_dataset_map_complex_features(dataset: IterableDataset, generate_examples_fn):
+    # https://github.com/huggingface/datasets/issues/3505
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": "positive"})
+    features = Features(
+        {
+            "id": Value("int64"),
+            "label": Value("string"),
+        }
+    )
+    dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    dataset = dataset.cast_column("label", ClassLabel(names=["negative", "positive"]))
+    dataset = dataset.map(lambda x: {"id+1": x["id"] + 1, **x})
+    assert isinstance(dataset._ex_iterable, MappedExamplesIterable)
+    features["label"] = ClassLabel(names=["negative", "positive"])
+    assert [{k: v for k, v in ex.items() if k != "id+1"} for ex in dataset] == [
+        features.encode_example(ex) for _, ex in ex_iterable
+    ]
+
+
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 @pytest.mark.parametrize("epoch", [None, 0, 1])
 def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn, seed, epoch):
@@ -335,7 +374,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn
         ),
     ],
 )
-def test_terable_dataset_features(generate_examples_fn, features):
+def test_iterable_dataset_features(generate_examples_fn, features):
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 0})
     dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
     if features:
@@ -384,6 +423,16 @@ def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, metho
     # shuffling a skip/take dataset should keep the same examples and don't shuffle the shards
     key = lambda x: f"{x['filepath']}_{x['id']}"  # noqa: E731
     assert sorted(dataset, key=key) == sorted(shuffled_dataset, key=key)
+
+
+def test_iterable_dataset_cast_column(generate_examples_fn):
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
+    features = Features({"id": Value("int64"), "label": Value("int64")})
+    dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    casted_dataset = dataset.cast_column("label", Value("bool"))
+    casted_features = features.copy()
+    casted_features["label"] = Value("bool")
+    assert list(casted_dataset) == [casted_features.encode_example(ex) for _, ex in ex_iterable]
 
 
 @pytest.mark.parametrize(
@@ -444,6 +493,6 @@ def test_interleave_datasets_with_features(dataset: IterableDataset, generate_ex
 
     merged_dataset = interleave_datasets([dataset, dataset_with_features], probabilities=[0, 1])
     assert isinstance(merged_dataset._ex_iterable, CyclingMultiSourcesExamplesIterable)
-    assert isinstance(merged_dataset._ex_iterable.ex_iterables[1], MappedExamplesIterable)
-    assert merged_dataset._ex_iterable.ex_iterables[1].function == features.encode_example
+    assert isinstance(merged_dataset._ex_iterable.ex_iterables[1], TypedExamplesIterable)
+    assert merged_dataset._ex_iterable.ex_iterables[1].features == features
     assert next(iter(merged_dataset)) == next(iter(dataset_with_features))

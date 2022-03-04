@@ -35,6 +35,8 @@ task_categories:
 task_ids:
 - text-classification-other-hope-speech-classification
 paperswithcode_id: hopeedi
+pretty_name: 'HopeEDI: A Multilingual Hope Speech Detection Dataset for Equality,
+  Diversity, and Inclusion'
 ---
 
 # Dataset Card for [Dataset Name]
@@ -128,12 +130,11 @@ Malayalam
 
 ### Data Splits
 
-
-|              | Tain   | Valid |
-| -----        | ------: | -----: |
-| English      |  22762 |  2843 |
-| Tamil        |  16160 |  2018 |
-| Malayalam    |  8564  |  1070 |
+|           | train | validation |
+| -----     |------:|-----------:|
+| English   | 22762 |       2843 |
+| Tamil     | 16160 |       2018 |
+| Malayalam |  8564 |       1070 |
 
 ## Dataset Creation
 

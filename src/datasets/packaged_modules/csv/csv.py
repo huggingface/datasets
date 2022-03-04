@@ -1,15 +1,12 @@
-# coding=utf-8
-import glob
-import os
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
-from packaging import version
 from typing_extensions import Literal
 
 import datasets
+import datasets.config
 
 
 logger = datasets.utils.logging.get_logger(__name__)
@@ -17,16 +14,6 @@ logger = datasets.utils.logging.get_logger(__name__)
 _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS = ["names", "prefix"]
 _PANDAS_READ_CSV_DEPRECATED_PARAMETERS = ["warn_bad_lines", "error_bad_lines"]
 _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS = ["encoding_errors", "on_bad_lines"]
-
-
-def _iter_files(files):
-    for file in files:
-        if os.path.isfile(file):
-            yield file
-        else:
-            for subfile in glob.glob(os.path.join(file, "**", "*"), recursive=True):
-                if os.path.isfile(subfile):
-                    yield subfile
 
 
 @dataclass
@@ -120,7 +107,6 @@ class CsvConfig(datasets.BuilderConfig):
             on_bad_lines=self.on_bad_lines,
         )
 
-        pandas_version = version.Version(pd.__version__)
         # some kwargs must not be passed if they don't have a default value
         # some others are deprecated and we can also not pass them if they are the default value
         for read_csv_parameter in _PANDAS_READ_CSV_NO_DEFAULT_PARAMETERS + _PANDAS_READ_CSV_DEPRECATED_PARAMETERS:
@@ -128,7 +114,7 @@ class CsvConfig(datasets.BuilderConfig):
                 del read_csv_kwargs[read_csv_parameter]
 
         # Remove 1.3 new arguments
-        if not (pandas_version.major >= 1 and pandas_version.minor >= 3):
+        if not (datasets.config.PANDAS_VERSION.major >= 1 and datasets.config.PANDAS_VERSION.minor >= 3):
             for read_csv_parameter in _PANDAS_READ_CSV_NEW_1_3_0_PARAMETERS:
                 del read_csv_kwargs[read_csv_parameter]
 
@@ -150,16 +136,14 @@ class Csv(datasets.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
-            if any(os.path.isdir(file) for file in files):
-                files = [file for file in _iter_files(files)]
-            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
+            return [
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": dl_manager.iter_files(files)})
+            ]
         splits = []
         for split_name, files in data_files.items():
             if isinstance(files, str):
                 files = [files]
-            if any(os.path.isdir(file) for file in files):
-                files = [file for file in _iter_files(files)]
-            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": dl_manager.iter_files(files)}))
         return splits
 
     def _generate_tables(self, files):
@@ -176,5 +160,5 @@ class Csv(datasets.ArrowBasedBuilder):
                     # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
                     yield (file_idx, batch_idx), pa_table
             except ValueError as e:
-                logger.error(f"Failed to read file '{csv_file_reader.f}' with error {type(e)}: {e}")
+                logger.error(f"Failed to read file '{file}' with error {type(e)}: {e}")
                 raise

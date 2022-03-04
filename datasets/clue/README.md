@@ -1,5 +1,6 @@
 ---
 paperswithcode_id: clue
+pretty_name: Chinese Language Understanding Evaluation Benchmark
 ---
 
 # Dataset Card for "clue"

@@ -2,6 +2,7 @@
 languages:
 - en
 paperswithcode_id: sentiment140
+pretty_name: Sentiment140
 ---
 
 # Dataset Card for "sentiment140"

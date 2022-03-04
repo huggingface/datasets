@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - fact-checking
 paperswithcode_id: fake-news-filipino-dataset
+pretty_name: Fake News Filipino
 ---
 
 # Dataset Card for Fake News Filipino
