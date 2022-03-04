@@ -19,25 +19,33 @@ import datasets
 
 
 _DESCRIPTION = """
-TO DO!
+Returns the rate at which the input predicted strings exactly match their references, ignoring characters in the chars_to_ignore string
 """
 
 _KWARGS_DESCRIPTION = """
 Args:
     predictions: Predicted labels, as returned by a model.
     references: Ground truth labels.
+    chars_to_ignore: String of characters to ignore when calculating the exact matches.
 Returns:
-    exact_match: Exact match score.
+    exact_match: Exact match rate. Possible values are between 0 and 1, inclusive.
 Examples:
 
     >>> exact_match = datasets.load_metric("exact_match")
-    >>> results = exact_match.compute(references=["happy birthday!", "welcome"], predictions=["happy birthday!", "welcome"])
+    >>> refs = ["happy birthday!", "welcome..."]
+    >>> preds = ["happy birthday", "elcome"]
+    >>> results = exact_match.compute(references=refs, predictions=preds)
+    >>> print(results)
+    {'exact_match': 0.0}
+    >>> results = exact_match.compute(references=refs, predictions=preds, chars_to_ignore="!")
+    >>> print(results)
+    {'exact_match': 0.5}
+    >>> results = exact_match.compute(references=refs, predictions=preds, chars_to_ignore="!.w")
     >>> print(results)
     {'exact_match': 1.0}
 """
 
 _CITATION = """
-TO DO!
 """
 
 
@@ -58,21 +66,16 @@ class ExactMatch(datasets.Metric):
         )
 
     def _compute(self, predictions, references, chars_to_ignore=None):
-        assert len(predictions) == len(references)
-
         score_list = np.zeros(len(predictions))
 
         if chars_to_ignore is not None:
             translate_dict = chars_to_ignore.maketrans('', '', chars_to_ignore)
-
-            for i in range(len(predictions)):
-                if predictions[i].translate(translate_dict) == references[i].translate(translate_dict):
-                    score_list[i] = 1
-
+            predictions = np.char.translate(predictions, translate_dict)
+            references = np.char.translate(references, translate_dict)
         else:
-            for i in range(len(predictions)):
-                if predictions[i] == references[i]:
-                    score_list[i] = 1
+            predictions = np.asarray(predictions)
+            references = np.asarray(references)
 
+        score_list = predictions == references
 
         return {"exact_match": np.mean(score_list)}
