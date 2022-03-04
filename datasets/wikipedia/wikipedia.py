@@ -382,7 +382,7 @@ class WikipediaConfig(datasets.BuilderConfig):
         self.language = language
 
 
-_VERSION = datasets.Version("1.0.0", "")
+_VERSION = datasets.Version("2.0.0", "")
 
 
 class Wikipedia(datasets.BeamBasedBuilder):
