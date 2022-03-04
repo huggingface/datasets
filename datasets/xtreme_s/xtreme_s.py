@@ -228,7 +228,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                     "audio": datasets.Audio(sampling_rate=8_000),
                     "transcription": datasets.Value("string"),
                     "english_transcription": datasets.Value("string"),
-                    "target_class": datasets.ClassLabel(
+                    "intent_class": datasets.ClassLabel(
                         names=[
                             "abroad",
                             "address",
@@ -321,18 +321,19 @@ class XtremeS(datasets.GeneratorBasedBuilder):
         sub_path = os.path.join(data_dir, sub_folder)
         all_ids_paths = glob.glob(sub_path + "/*/*.txt") + glob.glob(sub_path + "/*.txt")
         all_ids = []
-        for path in all_ids_paths:
-            with open(path, "r", encoding="utf-8") as f:
-                all_ids += [line.strip() for line in f.readlines()]
+        if sub_folder != "":
+            for path in all_ids_paths:
+                with open(path, "r", encoding="utf-8") as f:
+                    all_ids += [line.strip() for line in f.readlines()]
 
-        all_ids = set(all_ids)
+            all_ids = set(all_ids)
 
         with open(transcript_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 _id, transcript = line.split("\t")
 
-                if _id not in all_ids:
+                if sub_folder != "" and _id not in all_ids:
                     # filter-out audios not contained in the 9/10h version
                     continue
 
@@ -569,14 +570,14 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             csv_reader = csv.reader(csv_file, delimiter=",", skipinitialspace=True)
             next(csv_reader)
             for row in csv_reader:
-                file_path, transcription, english_transcription, target_class = row
+                file_path, transcription, english_transcription, intent_class = row
                 audio_path = os.path.join(audio_path, *file_path.split("/"))
                 yield key, {
                     "path": audio_path,
                     "audio": audio_path,
                     "transcription": transcription,
                     "english_transcription": english_transcription,
-                    "target_class": target_class.lower(),
+                    "intent_class": intent_class.lower(),
                 }
                 key += 1
 
