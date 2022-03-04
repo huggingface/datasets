@@ -16,17 +16,13 @@
 import csv
 import glob
 import os
-import random
-import subprocess
-import time
-import warnings
+from pathlib import Path
+from tqdm import tqdm
+from typing import Tuple, Dict, List
+
 from ast import literal_eval
 from collections import defaultdict
-from pathlib import Path
-from typing import Dict, List, Tuple
-
 import pandas as pd
-from tqdm import tqdm
 
 import datasets
 from datasets.tasks import AutomaticSpeechRecognition
@@ -34,13 +30,13 @@ from datasets.tasks import AutomaticSpeechRecognition
 
 """ XTREME-S Dataset"""
 
-"""TODO(PVP): Add a description here."""
+"""TODO(xtreme): Add a description here."""
 
-# TODO(PVP): BibTeX citation
+# TODO(xtreme-s): BibTeX citation
 _CITATION = """\
 """
 
-# TODO(PVP): Correct later
+# TODO(xtrem-s): Correct later
 _DESCRIPTION = """\
 The Cross-lingual TRansfer Evaluation of Multilingual Encoders for Speech (XTREME-S) benchmark is a benchmark designed to evaluate speech representations across languages, tasks, domains and data regimes. It covers XX typologically diverse languages eight total downstream tasks grouped in four families: speech recognition, translation, classification and retrieval.
 """
@@ -58,10 +54,10 @@ _ID_TO_LANG = {
 
 _BABEL_LANG_TO_ID = {
     "as": "IARPA_BABEL_OP1_102_LDC2016S06",
-    "ka": "IARPA_BABEL_OP3_404_LDC2016S12",
-    "lo": "IARPA_Babel_203_LDC2017S08",
-    "sw": "IARPA_BABEL_OP2_202_LDC2017S05",
-    "tl": "IARPA_BABEL_BP_106_LDC2016S13",
+    "tl": "IARPA_BABEL_OP1_102_LDC2016S06",
+    "sw": "IARPA_BABEL_OP1_102_LDC2016S06",
+    "lo": "IARPA_BABEL_OP1_102_LDC2016S06",
+    "ka": "IARPA_BABEL_OP1_102_LDC2016S06",
 }
 
 
@@ -250,7 +246,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             )
         elif self.config.dataset_name == "fleurs":
             # language identification
-            # TODO(PVP)
+            # TODO(PVP/Anton)
             pass
 
         return datasets.DatasetInfo(
@@ -356,9 +352,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             dl_manager.download_config.num_proc = len(_VOXPOPULI_AUDIO_URLS)
 
         extracted_audio_data_list = dl_manager.download_and_extract(self.config.data_urls[:-1])
-        extracted_audio_data_dict = {
-            str(i + 2009): extracted_audio_data_list[i] for i in range(len(extracted_audio_data_list))
-        }
+        extracted_audio_data_dict = {str(i + 2009): extracted_audio_data_list[i] for i in range(len(extracted_audio_data_list))}
 
         extracted_text_data = dl_manager.download_and_extract(self.config.data_urls[-1].format(self.config.lang_name))
 
@@ -410,8 +404,8 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 return
 
             try:
-                import torch
                 import torchaudio
+                import torch
             except ImportError as e:
                 raise ValueError(
                     "Loading voxpopuli requires `torchaudio` to be installed."
@@ -423,7 +417,9 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             for out_path, timestamps in out_path_to_timestamps.items():
                 if not os.path.exists(out_path):
                     segment = torch.cat(
-                        [waveform[:, int(s * sr) : min(int(t * sr), duration)] for s, t in timestamps], dim=1
+                        [waveform[:, int(s * sr): min(int(t * sr), duration)]
+                         for s, t in timestamps],
+                        dim=1
                     )
                     torchaudio.save(out_path, segment, sr)
 
@@ -582,198 +578,112 @@ class XtremeS(datasets.GeneratorBasedBuilder):
 
     # BABEL
     def _babel_split_generators(self, dl_manager):
-        if dl_manager.manual_dir is None or not os.path.exists(dl_manager.manual_dir):
+        dataset_id = _BABEL_LANG_TO_ID[self.config.lang_name]
+        data_root = os.path.abspath(os.path.join(os.path.expanduser(dl_manager.manual_dir), dataset_id + ".zip"))
+
+        if not os.path.exists(data_root):
             raise FileNotFoundError(
-                f"You are trying to load the '{self.config.name}' speech recognition dataset. "
+                f"You are trying to load the {self.config.name} speech translation dataset. "
                 f"It is required that you manually download the input speech data. "
                 f"Manual download instructions: {self._babel_manual_download_instructions}"
             )
 
-        data_root = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        manual_file_name = dl_manager.manual_dir.split("/")[-1].split(".zip")[0]
-        if manual_file_name != _BABEL_LANG_TO_ID[self.config.lang_name]:
-            error = (
-                f"You have passed a path to the file {manual_file_name}, but the "
-                f"dataset {self.config.name} expects a path to the file {_BABEL_LANG_TO_ID[self.config.lang_name] + '.zip'}"
-            )
-            if manual_file_name.split(".zip")[0] in _BABEL_LANG_TO_ID.values():
-                raise ValueError(error)
-            else:
-                warnings.warn(error)
-
         extracted_data = dl_manager.extract(data_root)
-
-        dataset_id = _BABEL_LANG_TO_ID[self.config.lang_name]
         data_dir = os.path.join(extracted_data, "_".join(dataset_id.split("_")[:-1]))
 
         # preprocess 'training' and 'development' data
-        training_audio_file = self._preprocess_audio(data_dir=os.path.join(data_dir, "conversational", "training"))
-        dev_audio_files = self._preprocess_audio(data_dir=os.path.join(data_dir, "conversational", "dev"))
+        self._preprocess_audio(data_dir=os.path.join(data_dir, "conversational", "training"))
+        self._preprocess_audio(data_dir=os.path.join(data_dir, "conversational", "dev"))
 
         # dev is 10% of trainining, train, is 90% of training
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "audio_file": training_audio_file,
-                    "split_ratio": (0.0, 0.9),
+                    "data_dir": os.path.join(data_dir, "conversational", "training"), "split": "training"
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "audio_file": training_audio_file,
-                    "split_ratio": (0.9, 1.0),
-                },
+                gen_kwargs={"data_dir": os.path.join(data_dir, "conversational", "training"), "split": "dev"},
             ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"audio_file": dev_audio_files}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"data_dir": os.path.join(data_dir, "conversational", "test"), "split": "test"}
+            ),
         ]
 
     @property
     def _babel_manual_download_instructions(self):
-        ds_name_full = _BABEL_LANG_TO_ID[self.config.lang_name]
-        ds_name = ds_name_full.split("_")[-1]
-        ds_url = f"https://catalog.ldc.upenn.edu/{ds_name}"
-        zip_file = ds_name_full + ".zip"
-
-        return f"""Please make sure to get access and download the following dataset {ds_name} from {ds_url}.
-            Once downloaded make sure that you pass the path to the downloaded file {zip_file} as a manual downloaded dataset:
-            `load_dataset("google/xtreme-s", "{self.config.name}", data_dir='path/to/{zip_file}')`.
+        return """TODO(PVP)
         """
 
     def _preprocess_audio(self, data_dir):
-        try:
-            subprocess.check_output(["ffmpeg", "-h"], stderr=subprocess.DEVNULL)
-        except FileNotFoundError as e:
-            raise ValueError("ffmpeg was not found but is required to stream audio files from filename") from e
-
         data = []
-        ffmpeg_pattern = "ffmpeg -nostdin -hide_banner -loglevel error -ss {} -t {} -y -i {} -ar 16000 {} &"
 
-        for ftrans in os.listdir(os.path.join(data_dir, "transcription/")):
-            fname, faudio = self.get_audio_file(ftrans, data_dir)
-            transcription_and_times = self.get_trans_and_times(fname, data_dir)
-            data.append((ftrans, fname, faudio, transcription_and_times))
+        def get_audio_file(ftrans):
+            fname = ftrans.replace('.txt', '')
+            faudio = os.path.join(data_dir, "audio", fname)
 
-        audio_files = self.write_audio(data, data_dir, ffmpeg_pattern)
-        text_file = self.write_transcripts(data, audio_files, data_dir)
-
-        return text_file
-
-    @staticmethod
-    def get_audio_file(ftrans, data_dir):
-        fname = ftrans.replace(".txt", "")
-        faudio = os.path.join(data_dir, "audio", fname)
-
-        if os.path.isfile(faudio + ".sph"):
-            return fname, faudio + ".sph"
-        elif os.path.isfile(faudio + ".wav"):
-            return fname, faudio + ".wav"
-        else:
-            assert False, "Error, couldn't file audio %s" % faudio
+            if os.path.isfile(faudio + '.sph'):
+                return fname, faudio + '.sph'
+            elif os.path.isfile(faudio + '.wav'):
+                return fname, faudio + '.wav'
+            else:
+                assert False, "Error, couldn't file audio %s" % faudio
             return
 
-    @staticmethod
-    def get_trans_and_times(ftrans, data_dir):
-        def process_time(s):
-            assert s[0] == "[" and s[-1] == "]", s
-            s = s[1:-1]
-            assert len(s) > 0
-            return float(s)
+        def get_trans_and_times(ftrans):
+            def process_time(s):
+                assert s[0] == '[' and s[-1] == ']', s
+                s = s[1:-1]
+                assert len(s) > 0
+                return float(s)
 
-        def process_trans(s):
-            assert s[0] != "[" or s[-1] != "]", s
-            for (
-                wrd
-            ) in "(()) <no-speech> <sta> <int> <hes> <laugh> <breath> <foreign> <cough> <lipsmack> <click> <prompt> <dtmf> <overlap> <ring> <male-to-female> <female-to-male>".split():
-                s = s.replace(wrd, " ")
-            s = s.strip()
-            return s
+            def process_trans(s):
+                assert s[0] != '[' or s[-1] != ']', s
+                for wrd in '(()) <no-speech> <sta> <int> <hes> <laugh> <breath> <foreign> <cough> <lipsmack> <click> <prompt> <dtmf> <overlap> <ring> <male-to-female> <female-to-male>'.split():
+                    s = s.replace(wrd, ' ')
+                s = s.strip()
+                return s
 
-        ftrans = os.path.join(data_dir, "transcription", f"{ftrans}.txt")
-        times = []
-        trans = []
+            ftrans = os.path.join(data_dir, "transcription", f"{ftrans}.txt")
+            times = []
+            trans = []
 
-        # load time segments and trans
-        with open(ftrans) as f:
-            for k, line in enumerate(f):
-                line = line.rstrip()
-                if k % 2 == 0:
-                    times.append(process_time(line))
-                else:
-                    trans.append(process_trans(line))
-        assert len(times) == len(trans) + 1, (len(times), len(trans))
+            # load time segments and trans
+            with open(ftrans) as f:
+                for k, line in enumerate(f):
+                    line = line.rstrip()
+                    if k % 2 == 0:
+                        times.append(process_time(line))
+                    else:
+                        trans.append(process_trans(line))
+            assert len(times) == len(trans) + 1, (len(times), len(trans))
 
-        # get list of valid (trans, start_time, duration) tuples
-        trans_start_dur = []
-        for i, tr in enumerate(trans):
-            if tr:
-                trans_start_dur.append((tr, times[i], times[i + 1] - times[i]))
+            # get list of valid (trans, start_time, duration) tuples
+            trans_start_dur = []
+            for i, tr in enumerate(trans):
+                if tr:
+                    trans_start_dur.append((tr, times[i], times[i + 1] - times[i]))
 
-        return trans_start_dur
+            return trans_start_dur
 
-    @staticmethod
-    def write_audio(data, data_dir, ffmpeg_pattern):
-        audio_files = {}
+        for ftrans in os.listdir(os.path.join(data_dir, "transcription/")):
+            fname, faudio = get_audio_file(ftrans)
+            data.append((ftrans, fname, faudio, get_trans_and_times(fname)))
 
-        outdir = os.path.join(data_dir, "processed_audio")
-        Path(outdir).mkdir(parents=True, exist_ok=True)
-        for sample in tqdm(data, desc=f"Progress of {'/'.join(data_dir.split('/')[-2:])} audio segmentation"):
-            ftrans, fname, faudio, trans_start_dur = sample
-            do_sleep = False
-            for part, tuple in enumerate(trans_start_dur):
-                _, start_time, duration = tuple
-                fseg = f"{outdir}/{fname}_{part+1}.wav"
-                ffmpeg = ffmpeg_pattern.format(start_time, duration, faudio, fseg)
-                audio_files[f"{fname}_{part+1}"] = fseg
-
-                if os.path.exists(fseg):
-                    continue
-                else:
-                    do_sleep = True
-
-                if not os.path.isfile(ffmpeg):
-                    os.system(ffmpeg)
-
-            if do_sleep:
-                time.sleep(0.1)
-
-        return audio_files
-
-    @staticmethod
-    def write_transcripts(data, audio_files, data_dir):
-        text_file = os.path.join(data_dir, "processed_text.tsv")
-
-        with open(text_file, "w") as f:
-            for sample in data:
+        def write_ffmpeg_cmd(data, split='train'):
+            outdir = "/".join(data_dir.split("/")[:-2])
+            Path(outdir).mkdir(parents=True, exist_ok=True)
+            for sample in tqdm(data, desc = 'Progress of %s-%s audio segmentation' % (lg, split)):
                 ftrans, fname, faudio, trans_start_dur = sample
-                for part, tuple_items in enumerate(trans_start_dur):
-                    path = audio_files[f"{fname}_{part+1}"]
-                    transcription = tuple_items[0]
-                    f.write(f"{path}\t{transcription}\n")
+                for part, tuple in enumerate(trans_start_dur):
+                    trans, start_time, duration = tuple
+                    fseg = '%s/%s_%s.wav' % (outdir, fname, part + 1)
+                    ffmpeg = FFMPEG_PATTERN % (start_time, duration, faudio, fseg)
+                    if not os.path.isfile(ffmpeg):
+                        os.system(ffmpeg)
+        sleep(0.1)
 
-        return text_file
-
-    def _babel_generate_examples(self, audio_file, split_ratio=None):
-        """Generate examples from a Multilingual LibriSpeech data dir."""
-
-        with open(audio_file, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-
-        if split_ratio is not None:
-            random.Random(42).shuffle(lines)
-
-            start_idx = int(split_ratio[0] * len(lines))
-            end_idx = int(split_ratio[1] * len(lines))
-            lines = lines[start_idx:end_idx]
-
-        key = 0
-        for line in lines:
-            path, transcript = line.strip().split("\t")
-
-            yield key, {
-                "path": path,
-                "audio": path,
-                "transcription": transcript,
-            }
-            key += 1
+        import ipdb; ipdb.set_trace()

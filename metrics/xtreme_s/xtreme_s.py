@@ -13,8 +13,8 @@
 # limitations under the License.
 """ XTREME-S benchmark metric. """
 
-from sklearn.metrics import f1_score
 from packaging import version
+from sklearn.metrics import f1_score
 
 import datasets
 
@@ -140,9 +140,7 @@ def wer(preds, labels, concatenate_texts, config_name):
 class XtremeS(datasets.Metric):
     def _info(self):
         if self.config_name not in _CONFIG_NAMES:
-            raise KeyError(
-                f"You should supply a configuration name selected in {_CONFIG_NAMES}"
-            )
+            raise KeyError(f"You should supply a configuration name selected in {_CONFIG_NAMES}")
 
         pred_type = "int64" if self.config_name in ["fleurs", "minds14"] else "string"
 
@@ -151,10 +149,7 @@ class XtremeS(datasets.Metric):
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "predictions": datasets.Value(pred_type),
-                    "references": datasets.Value(pred_type)
-                }
+                {"predictions": datasets.Value(pred_type), "references": datasets.Value(pred_type)}
             ),
             codebase_urls=[],
             reference_urls=[],
@@ -187,6 +182,4 @@ class XtremeS(datasets.Metric):
             concatenate_texts = kwargs.pop("concatenate_texts", False)
             return wer(predictions, references, concatenate_texts, self.config_name)
         else:
-            raise KeyError(
-                f"You should supply a configuration name selected in {_CONFIG_NAMES}"
-            )
+            raise KeyError(f"You should supply a configuration name selected in {_CONFIG_NAMES}")
