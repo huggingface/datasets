@@ -15,7 +15,7 @@ source_datasets:
 - original
 task_categories:
 - question-answering
-- dialogue
+- other-dialogue
 task_ids:
 - extractive-qa
 pretty_name: ElkarHizketak
@@ -150,6 +150,7 @@ To view a copy of this license, visit [https://creativecommons.org/licenses/by-s
 
 If you are using this dataset in your work, please cite this publication:
 
+```
 @inproceedings{otegi-etal-2020-conversational,
     title = "{Conversational Question Answering in Low Resource Scenarios: A Dataset and Case Study for Basque}",
     author = "Otegi, Arantxa  and
@@ -164,6 +165,7 @@ If you are using this dataset in your work, please cite this publication:
     url = "https://aclanthology.org/2020.lrec-1.55",
     pages = "436--442"
 }
+```
 
 ### Contributions
 

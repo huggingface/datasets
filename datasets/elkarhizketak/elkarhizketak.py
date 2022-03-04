@@ -21,8 +21,6 @@ import datasets
 logger = datasets.logging.get_logger(__name__)
 
 
-
-
 _CITATION = """\
 @inproceedings{otegi-etal-2020-conversational,
     title = "{Conversational Question Answering in Low Resource Scenarios: A Dataset and Case Study for {B}asque}",
@@ -143,16 +141,13 @@ class Elkarhizketak(datasets.GeneratorBasedBuilder):
                 wiki_page_title = section.get("title", "").strip()
                 background = section.get("background", "").strip()
                 section_title = section.get("section_title", "").strip()
-                
                 for dialogue in section["paragraphs"]:
                     context = dialogue["context"].strip()
                     dialogue_id = dialogue["id"]
-                    
                     for qa in dialogue["qas"]:
                         answer_starts = [answer["answer_start"] for answer in qa["answers"]]
                         answers = [answer["text"].strip() for answer in qa["answers"]]
                         input_texts = [answer["input_text"].strip() for answer in qa["answers"]]
-                        
                         yield key, {
                             "wikipedia_page_title": wiki_page_title,
                             "background": background,
@@ -169,7 +164,7 @@ class Elkarhizketak(datasets.GeneratorBasedBuilder):
                             },
                             "orig_answer": {
                                 "answer_start": qa["orig_answer"]["answer_start"],
-                                "text": qa["orig_answer"]["text"]
+                                "text": qa["orig_answer"]["text"],
                             },
                         }
                         key += 1
