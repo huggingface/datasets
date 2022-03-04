@@ -512,6 +512,7 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
 
         if forecast_horizon is None:
             prediction_length_map = {
+                "S": 60,
                 "T": 60,
                 "H": 48,
                 "D": 30,
