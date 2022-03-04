@@ -258,6 +258,73 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
+class FilteredExamplesIterable(_BaseExamplesIterable):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        function: Callable,
+        with_indices: bool = False,
+        input_columns: Optional[List[str]] = None,
+        batched: bool = False,
+        batch_size: int = 1000,
+    ):
+        self.ex_iterable = ex_iterable
+        self.function = function
+        self.batched = batched
+        self.batch_size = batch_size
+        self.with_indices = with_indices
+        self.input_columns = input_columns
+
+    def __iter__(self):
+        iterator = iter(self.ex_iterable)
+        current_idx = 0
+        if self.batched:
+            for key, example in iterator:
+                # If batched, first build the batch
+                key_examples_list = [(key, example)] + [
+                    (key, example) for key, example in islice(iterator, self.batch_size - 1)
+                ]
+                keys, examples = zip(*key_examples_list)
+                batch = _examples_to_batch(examples)
+                # then compute the mask for the batch
+                inputs = batch
+                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
+                if self.with_indices:
+                    function_args.append([current_idx + i for i in range(len(key_examples_list))])
+                mask = self.function(*function_args)
+                # yield one example at a time from the batch
+                for batch_idx, (key_example, to_keep) in enumerate(zip(key_examples_list, mask)):
+                    if to_keep:
+                        yield key_example
+                current_idx += batch_idx + 1
+        else:
+            for key, example in iterator:
+                # If not batched, we can apply the filtering function direcly
+                inputs = dict(example)
+                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
+                if self.with_indices:
+                    function_args.append(current_idx)
+                to_keep = self.function(*function_args)
+                if to_keep:
+                    yield key, example
+                current_idx += 1
+
+    def shuffle_data_sources(self, seed: Optional[int]) -> "MappedExamplesIterable":
+        """Shuffle the wrapped examples iterable."""
+        return FilteredExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(seed),
+            function=self.function,
+            with_indices=self.with_indices,
+            input_columns=self.input_columns,
+            batched=self.batched,
+            batch_size=self.batch_size,
+        )
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
+
+
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, seed: Optional[int]):
         self.ex_iterable = ex_iterable
@@ -459,7 +526,7 @@ class IterableDataset(DatasetInfoMixin):
         batched: bool = False,
         batch_size: int = 1000,
         remove_columns: Optional[Union[str, List[str]]] = None,
-    ):
+    ) -> "IterableDataset":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
         If your function returns a column that already exists, then it overwrites it.
@@ -503,6 +570,58 @@ class IterableDataset(DatasetInfoMixin):
             batched=batched,
             batch_size=batch_size,
             remove_columns=remove_columns,
+        )
+        return iterable_dataset(
+            ex_iterable=ex_iterable,
+            info=info,
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+        )
+
+    def filter(
+        self,
+        function: Optional[Callable] = None,
+        with_indices=False,
+        input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+    ) -> "IterableDataset":
+        """Apply a filter function to all the elements in the table in batches
+        and update the table so that the dataset only includes examples according to the filter function.
+
+        Args:
+            function (:obj:`Callable`): Callable with one of the following signatures:
+
+                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
+
+                If no function is provided, defaults to an always True function: ``lambda x: True``.
+            with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+            input_columns (:obj:`str` or `List[str]`, optional): The columns to be passed into `function` as
+                positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+            batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
+            batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+        """
+        if isinstance(input_columns, str):
+            input_columns = [input_columns]
+
+        # TODO(QL): keep the features (right now if we keep it it would call decode_example again on an already decoded example)
+        info = copy.deepcopy(self._info)
+        info.features = None
+
+        # We need the examples to be decoded for certain feature types like Image or Audio, so we use TypedExamplesIterable here
+        ex_iterable = FilteredExamplesIterable(
+            TypedExamplesIterable(self._ex_iterable, self._info.features)
+            if self._info.features is not None
+            else self._ex_iterable,
+            function=function,
+            with_indices=with_indices,
+            input_columns=input_columns,
+            batched=batched,
+            batch_size=batch_size,
         )
         return iterable_dataset(
             ex_iterable=ex_iterable,
