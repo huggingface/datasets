@@ -1,4 +1,5 @@
 import copy
+from copy import deepcopy
 from dataclasses import dataclass
 from itertools import cycle, islice
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Union
@@ -46,7 +47,7 @@ class _BaseExamplesIterable:
         """An examples iterable should yield tuples (example_key, example) of type (int/str, dict)"""
         raise NotImplementedError()
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "_BaseExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "_BaseExamplesIterable":
         """
         Either shuffle the shards/sources of the dataset, or propagate the shuffling to the underlying iterable.
         If the order of the shards must stay fixed (when using .skip or .take for example), then this method returns self.
@@ -58,22 +59,21 @@ class _BaseExamplesIterable:
         raise NotImplementedError()
 
 
-def _shuffle_kwargs(seed: Optional[int], kwargs: dict) -> dict:
-    shuffled_kwargs = {}
-    if seed is None:
-        # We use the current NumPy's seed
-        _, seed, pos, *_ = np.random.get_state()
-        seed: int = seed[pos] if pos < 624 else seed[0]
-        _ = np.random.random()  # do 1 step of rng
-    for key, value in sorted(kwargs.items()):
+def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
+    # We must shuffle all the lists, and lists of the same size must have the same shuffling.
+    # This way entangled lists of (shard, shard_metadata) are still in the right order.
+
+    # First, let's generate the shuffled indices per list size
+    list_sizes = set(len(value) for value in kwargs.values() if isinstance(value, list))
+    indices_per_size = {}
+    for size in list_sizes:
+        indices_per_size[size] = list(range(size))
+        rng.shuffle(indices_per_size[size])
+    # Now let's copy the kwargs and shuffle the lists based on their sizes
+    shuffled_kwargs = dict(kwargs)
+    for key, value in shuffled_kwargs.items():
         if isinstance(value, list):
-            value = list(value)
-            # We use the same seed for all the lists that have the same length
-            # This way entangled lists of (shard, shard_metadata) are still in the right order
-            np.random.default_rng(seed + len(value)).shuffle(value)
-            shuffled_kwargs[key] = value
-        else:
-            shuffled_kwargs[key] = value
+            shuffled_kwargs[key] = [value[i] for i in indices_per_size[len(value)]]
     return shuffled_kwargs
 
 
@@ -85,8 +85,8 @@ class ExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         yield from self.generate_examples_fn(**self.kwargs)
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "ExamplesIterable":
-        return ShardShuffledExamplesIterable(self.generate_examples_fn, self.kwargs, seed)
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "ExamplesIterable":
+        return ShardShuffledExamplesIterable(self.generate_examples_fn, self.kwargs, generator)
 
     @property
     def n_shards(self) -> int:
@@ -95,13 +95,14 @@ class ExamplesIterable(_BaseExamplesIterable):
 
 
 class ShardShuffledExamplesIterable(ExamplesIterable):
-    def __init__(self, generate_examples_fn: Callable, kwargs: dict, seed: Optional[int]):
+    def __init__(self, generate_examples_fn: Callable, kwargs: dict, generator: np.random.Generator):
         super().__init__(generate_examples_fn, kwargs)
-        self.seed = seed
+        self.generator = deepcopy(generator)
 
     def __iter__(self):
         """Shuffle the kwargs order to shuffle shards"""
-        kwargs_with_shuffled_shards = _shuffle_kwargs(self.seed, self.kwargs)
+        rng = deepcopy(self.generator)
+        kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
         yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
 
 
@@ -119,9 +120,9 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
             except StopIteration:  # if we ran out of examples on this iterator, break the main for loop
                 break
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "CyclingMultiSourcesExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "CyclingMultiSourcesExamplesIterable":
         """Shuffle each underlying examples iterable."""
-        ex_iterables = [ex_iterable.shuffle_data_sources(seed) for ex_iterable in self.ex_iterables]
+        ex_iterables = [ex_iterable.shuffle_data_sources(generator) for ex_iterable in self.ex_iterables]
         return CyclingMultiSourcesExamplesIterable(ex_iterables)
 
     @property
@@ -130,9 +131,9 @@ class CyclingMultiSourcesExamplesIterable(_BaseExamplesIterable):
 
 
 class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIterable):
-    def __init__(self, ex_iterables, seed: Optional[int] = None, probabilities: Optional[List[float]] = None):
+    def __init__(self, ex_iterables, generator: np.random.Generator, probabilities: Optional[List[float]] = None):
         super().__init__(ex_iterables)
-        self.seed = seed
+        self.generator = deepcopy(generator)
         self.probabilities = probabilities
 
     @staticmethod
@@ -151,7 +152,7 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
                 yield from (int(i) for i in rng.choice(num_sources, size=random_batch_size, p=p))
 
     def __iter__(self):
-        rng = np.random.default_rng(self.seed)
+        rng = deepcopy(self.generator)
         iterators = [iter(ex_iterable) for ex_iterable in self.ex_iterables]
         # this is an infinite iterator that randomly samples the index of the source to pick examples from
         indices_iterator = self._iter_random_indices(rng, len(iterators), p=self.probabilities)
@@ -161,10 +162,12 @@ class RandomlyCyclingMultiSourcesExamplesIterable(CyclingMultiSourcesExamplesIte
             except StopIteration:  # if we ran out of examples on this iterator, break the main for loop
                 break
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "RandomlyCyclingMultiSourcesExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "RandomlyCyclingMultiSourcesExamplesIterable":
         """Shuffle the data sources of each wrapped examples iterable."""
-        ex_iterables = [ex_iterable.shuffle_data_sources(seed) for ex_iterable in self.ex_iterables]
-        return RandomlyCyclingMultiSourcesExamplesIterable(ex_iterables, seed=seed, probabilities=self.probabilities)
+        ex_iterables = [ex_iterable.shuffle_data_sources(generator) for ex_iterable in self.ex_iterables]
+        return RandomlyCyclingMultiSourcesExamplesIterable(
+            ex_iterables, generator=generator, probabilities=self.probabilities
+        )
 
 
 class MappedExamplesIterable(_BaseExamplesIterable):
@@ -244,10 +247,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
                 yield key, transformed_example
                 current_idx += 1
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "MappedExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "MappedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return MappedExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(seed),
+            self.ex_iterable.shuffle_data_sources(generator),
             function=self.function,
             with_indices=self.with_indices,
             input_columns=self.input_columns,
@@ -262,10 +265,10 @@ class MappedExamplesIterable(_BaseExamplesIterable):
 
 
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
-    def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, seed: Optional[int]):
+    def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, generator: np.random.Generator):
         self.ex_iterable = ex_iterable
         self.buffer_size = buffer_size
-        self.seed = seed
+        self.generator = generator
 
     @staticmethod
     def _iter_random_indices(rng: np.random.Generator, buffer_size: int, random_batch_size=1000) -> Iterator[int]:
@@ -274,7 +277,7 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
 
     def __iter__(self):
         buffer_size = self.buffer_size
-        rng = np.random.default_rng(self.seed)
+        rng = deepcopy(self.generator)
         indices_iterator = self._iter_random_indices(rng, buffer_size)
         # this is the shuffle buffer that we keep in memory
         mem_buffer = []
@@ -289,10 +292,10 @@ class BufferShuffledExamplesIterable(_BaseExamplesIterable):
         rng.shuffle(mem_buffer)
         yield from mem_buffer
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "BufferShuffledExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "BufferShuffledExamplesIterable":
         """Shuffle the wrapped examples iterable as well as the shuffling buffer."""
         return BufferShuffledExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(seed), buffer_size=self.buffer_size, seed=seed
+            self.ex_iterable.shuffle_data_sources(generator), buffer_size=self.buffer_size, generator=generator
         )
 
     @property
@@ -311,8 +314,8 @@ class SkipExamplesIterable(_BaseExamplesIterable):
             pass
         yield from ex_iterator
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "SkipExamplesIterable":
-        """Doesn't shuffle the wrapped examples iterable since it would skip exampels from other shards instead."""
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "SkipExamplesIterable":
+        """Doesn't shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
         return self
 
     @property
@@ -328,7 +331,7 @@ class TakeExamplesIterable(_BaseExamplesIterable):
     def __iter__(self):
         yield from islice(self.ex_iterable, self.n)
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "TakeExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "TakeExamplesIterable":
         """Doesn't shuffle the wrapped examples iterable since it would take examples from other shards instead."""
         return self
 
@@ -350,10 +353,10 @@ class TypedExamplesIterable(_BaseExamplesIterable):
             decoded_example = self.features.decode_example(encoded_example)
             yield key, decoded_example
 
-    def shuffle_data_sources(self, seed: Optional[int]) -> "TypedExamplesIterable":
+    def shuffle_data_sources(self, generator: np.random.Generator) -> "TypedExamplesIterable":
         """Shuffle the wrapped examples iterable."""
         return TypedExamplesIterable(
-            self.ex_iterable.shuffle_data_sources(seed),
+            self.ex_iterable.shuffle_data_sources(generator),
             features=self.features,
         )
 
@@ -375,7 +378,7 @@ def _generate_examples_from_tables_wrapper(generate_tables_fn):
 
 @dataclass
 class ShufflingConfig:
-    seed: Optional[int] = None
+    generator: np.random.Generator
 
 
 class IterableDataset(DatasetInfoMixin):
@@ -400,12 +403,16 @@ class IterableDataset(DatasetInfoMixin):
     def _head(self, n=5):
         return _examples_to_batch([x for key, x in islice(self._iter(), n)])
 
-    @property
-    def _effective_seed(self):
-        if self._shuffling:
-            return self._shuffling.seed + self._epoch if self._shuffling.seed is not None else None
+    def _effective_generator(self):
+        if self._shuffling and self._epoch == 0:
+            return self._shuffling.generator
+        elif self._shuffling:
+            # Create effective seed using self._epoch (we subtract in order to avoir overflow in long_scalars)
+            effective_seed = deepcopy(self._shuffling.generator).integers(0, 1 << 63) - self._epoch
+            effective_seed = (1 << 63) + effective_seed if effective_seed < 0 else effective_seed
+            return np.random.default_rng(effective_seed)
         else:
-            return None
+            raise ValueError("This dataset is not shuffled")
 
     @property
     def n_shards(self) -> int:
@@ -413,7 +420,7 @@ class IterableDataset(DatasetInfoMixin):
 
     def _iter(self):
         if self._shuffling:
-            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_seed)
+            ex_iterable = self._ex_iterable.shuffle_data_sources(self._effective_generator())
         else:
             ex_iterable = self._ex_iterable
         yield from ex_iterable
@@ -515,7 +522,9 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
         )
 
-    def shuffle(self, buffer_size, seed=None) -> "IterableDataset":
+    def shuffle(
+        self, seed=None, generator: Optional[np.random.Generator] = None, buffer_size: int = 1000
+    ) -> "IterableDataset":
         """
         Randomly shuffles the elements of this dataset.
 
@@ -533,14 +542,21 @@ class IterableDataset(DatasetInfoMixin):
         then the order of the shards is kept unchanged.
 
         Args:
-            buffer_size (:obj:`int`): size of the buffer.
-            seed (:obj:`int`, optional, default None): random seed that will be used to create the distribution.
+            seed (:obj:`int`, optional, default None): random seed that will be used to shuffle the dataset.
+                It is used to sample from the shuffle buffe and als oto shuffle the data shards.
+            generator (:obj:`numpy.random.Generator`, optional): Numpy random Generator to use to compute the permutation of the dataset rows.
+                If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
+            buffer_size (:obj:`int`, default 1000): size of the buffer.
         """
-        shuffling = ShufflingConfig(seed=seed)
+        if generator is None:
+            generator = np.random.default_rng(seed)
+        else:
+            generator = deepcopy(generator)
+        shuffling = ShufflingConfig(generator=generator)
         return iterable_dataset(
-            ex_iterable=BufferShuffledExamplesIterable(self._ex_iterable, buffer_size, seed=seed).shuffle_data_sources(
-                seed=seed
-            ),
+            ex_iterable=BufferShuffledExamplesIterable(
+                self._ex_iterable, buffer_size=buffer_size, generator=generator
+            ).shuffle_data_sources(generator),
             info=copy.deepcopy(self._info),
             split=self._split,
             format_type=self._format_type,
