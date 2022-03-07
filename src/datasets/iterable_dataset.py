@@ -587,8 +587,8 @@ class IterableDataset(DatasetInfoMixin):
         batched: bool = False,
         batch_size: Optional[int] = 1000,
     ) -> "IterableDataset":
-        """Apply a filter function to all the elements in the table in batches
-        and update the table so that the dataset only includes examples according to the filter function.
+        """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
+        The filtering is done on-the-fly when iterating over the dataset.
 
         Args:
             function (:obj:`Callable`): Callable with one of the following signatures:
