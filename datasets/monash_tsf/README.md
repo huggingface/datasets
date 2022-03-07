@@ -70,21 +70,49 @@ The first comprehensive time series forecasting repository containing datasets o
 
 ### Data Instances
 
-[More Information Needed]
+A sample from the training set is provided below:
+
+{
+  'start': datetime.datetime(2012, 1, 1, 0, 0),
+  'target': [14.0, 18.0, 21.0, 20.0, 22.0, 20.0, ...], # <= this target array is a concatenated sample
+  'feat_static_cat': [0], 
+  'feat_dynamic_real': [[0.3, 0.4], [0.1, 0.6], ...], # <= temporal covariates
+  'item_id': '0'
+}
+
 
 ### Data Fields
 
-[More Information Needed]
+For this univariate regular time series we have:
+
+* `start`: a datetime of the first entry of each time series in the dataset
+* `target`: an array[float32] of the actual target values
+* `feat_static_cat`: an array[uint64] which contains a categorical identifier of each time series in the dataset
+* `feat_dynamic_real`: optional array of covariate features
+* `item_id`: a string identifier of each time series in a dataset for reference
 
 ### Data Splits
 
-[More Information Needed]
+The datasets are split in time depending on the prediction length specified in the datasets. If no prediction length is specified then we use the following prediction lengths given the frequency of the datasets:
+
+```py
+prediction_length_map = {
+    "S": 60,
+    "T": 60,
+    "H": 48,
+    "D": 30,
+    "W": 8,
+    "M": 12,
+    "Y": 4,
+}
+```
+
 
 ## Dataset Creation
 
 ### Curation Rationale
 
-[More Information Needed]
+To facilitate the evaluation of global forecasting models. 
 
 ### Source Data
 
