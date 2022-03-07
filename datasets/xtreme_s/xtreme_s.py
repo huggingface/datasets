@@ -566,7 +566,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
         archive_path = dl_manager.download_and_extract(self.config.data_urls[0])
         audio_path = dl_manager.extract(os.path.join(archive_path, "MInDS-14", "audio.zip"))
         text_path = dl_manager.extract(os.path.join(archive_path, "MInDS-14", "text.zip"))
-        split_path_format = os.path.join("minds14_splits/{}_{}.tsv")
+        split_paths = {k: dl_manager.download(f"minds14_splits/{k}_{self.config.lang_name}.tsv") for k in ["train", "dev", "test"]}
 
         return [
             datasets.SplitGenerator(
@@ -574,7 +574,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "audio_path": audio_path,
                     "text_path": os.path.join(text_path, "{}.csv".format(self.config.lang_name)),
-                    "split_tsv_file": split_path_format.format("train", self.config.lang_name)
+                    "split_tsv_file": split_paths["train"],
                 },
             ),
             datasets.SplitGenerator(
@@ -582,7 +582,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "audio_path": audio_path,
                     "text_path": os.path.join(text_path, "{}.csv".format(self.config.lang_name)),
-                    "split_tsv_file": split_path_format.format("dev", self.config.lang_name)
+                    "split_tsv_file": split_paths["dev"],
                 },
             ),
             datasets.SplitGenerator(
@@ -590,7 +590,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "audio_path": audio_path,
                     "text_path": os.path.join(text_path, "{}.csv".format(self.config.lang_name)),
-                    "split_tsv_file": split_path_format.format("test", self.config.lang_name)
+                    "split_tsv_file": split_paths["test"],
                 },
             ),
         ]
