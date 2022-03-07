@@ -10,6 +10,7 @@ from datasets.iterable_dataset import (
     BufferShuffledExamplesIterable,
     CyclingMultiSourcesExamplesIterable,
     ExamplesIterable,
+    FilteredExamplesIterable,
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
@@ -294,6 +295,94 @@ def test_mapped_examples_iterable_input_columns(generate_examples_fn, n, func, b
         expected = _examples_to_batch(all_examples)
         expected.update(_examples_to_batch(all_transformed_examples))
         expected = list(_batch_to_examples(expected))
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert list(x for _, x in ex_iterable) == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batch_size",
+    [
+        (3, lambda x: x["id"] % 2 == 0, None),  # keep even number
+        (3, lambda x: [x["id"][0] % 2 == 0], 1),  # same with bs=1
+        (5, lambda x: [i % 2 == 0 for i in x["id"]], 10),  # same with bs=10
+        (25, lambda x: [i % 2 == 0 for i in x["id"]], 10),  # same with bs=10
+        (3, lambda x: False, None),  # return 0 examples
+        (3, lambda x: [False] * len(x["id"]), 10),  # same with bs=10
+    ],
+)
+def test_filtered_examples_iterable(generate_examples_fn, n, func, batch_size):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = FilteredExamplesIterable(
+        base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if batch_size is None:
+        expected = [x for x in all_examples if func(x)]
+    else:
+        # For batched filter we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
+        expected = []
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = _examples_to_batch(examples)
+            mask = func(batch)
+            expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
+    if expected:
+        assert next(iter(ex_iterable))[1] == expected[0]
+    assert list(x for _, x in ex_iterable) == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batch_size",
+    [
+        (3, lambda x, index: index % 2 == 0, None),  # keep even number
+        (25, lambda x, indices: [idx % 2 == 0 for idx in indices], 10),  # same with bs=10
+    ],
+)
+def test_filtered_examples_iterable_with_indices(generate_examples_fn, n, func, batch_size):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = FilteredExamplesIterable(
+        base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, with_indices=True
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if batch_size is None:
+        expected = [x for idx, x in enumerate(all_examples) if func(x, idx)]
+    else:
+        # For batched filter we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
+        expected = []
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = _examples_to_batch(examples)
+            indices = list(range(batch_offset, batch_offset + len(examples)))
+            mask = func(batch, indices)
+            expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert list(x for _, x in ex_iterable) == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batch_size, input_columns",
+    [
+        (3, lambda id_: id_ % 2 == 0, None, ["id"]),  # keep even number
+        (25, lambda ids_: [i % 2 == 0 for i in ids_], 10, ["id"]),  # same with bs=10
+    ],
+)
+def test_filtered_examples_iterable_input_columns(generate_examples_fn, n, func, batch_size, input_columns):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = FilteredExamplesIterable(
+        base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, input_columns=input_columns
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    columns_to_input = input_columns if isinstance(input_columns, list) else [input_columns]
+    if batch_size is None:
+        expected = [x for x in all_examples if func(*[x[col] for col in columns_to_input])]
+    else:
+        # For batched filter we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
+        expected = []
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = _examples_to_batch(examples)
+            mask = func(*[batch[col] for col in columns_to_input])
+            expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
     assert next(iter(ex_iterable))[1] == expected[0]
     assert list(x for _, x in ex_iterable) == expected
 
