@@ -299,6 +299,11 @@ class XtremeS(datasets.GeneratorBasedBuilder):
         elif self.config.dataset_name == "fleurs":
             yield from self._fleurs_generate_examples(*args, **kwargs)
 
+    @property
+    def manual_download_instructions(self):
+        if self.config.name == "babel":
+            return self._babel_manual_download_instructions
+
     # MLS
     def _mls_split_generators(self, dl_manager):
         lang = _ID_TO_LANG[self.config.lang_name]
@@ -332,7 +337,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
 
         # find relevant ids
         sub_path = os.path.join(data_dir, sub_folder)
-        all_ids_paths = glob.glob(sub_path + "/*/*.txt") + glob.glob(sub_path + "/*.txt")
+        all_ids_paths = glob.glob(os.path.join(sub_path, "/*/*.txt")) + glob.glob(os.path.join(sub_path, "/*.txt"))
         all_ids = []
         if sub_folder != "":
             for path in all_ids_paths:
@@ -365,9 +370,8 @@ class XtremeS(datasets.GeneratorBasedBuilder):
         # TODO(PVP) - need to add warning here that even for a single
         # language ALL files need to be downloaded because all langs archive_path
         # mixed in single audio files
-        if hasattr(dl_manager, "download_config"):
-            # last file is text file
-            dl_manager.download_config.num_proc = len(_VOXPOPULI_AUDIO_URLS)
+        # last file is text file
+        dl_manager.download_config.num_proc = len(_VOXPOPULI_AUDIO_URLS)
 
         extracted_audio_data_list = dl_manager.download_and_extract(self.config.data_urls[:-1])
         extracted_audio_data_dict = {
@@ -410,6 +414,12 @@ class XtremeS(datasets.GeneratorBasedBuilder):
 
     def _voxpopuli_split_audio(self, audio_data_dict, text_data, sub_folder="original"):
         """This function is heavily inspired from https://github.com/facebookresearch/voxpopuli/blob/main/voxpopuli/get_asr_data.py"""
+
+        # Voxpopuli is based on the official Europeen parliament recordings
+        # where as each recording file has audio of all languages in it
+        # To retrieve the language-specific audio content, we need to extract
+        # the correct audio chunks of the long parliament recording and re-save it
+        # in a new audio file.
 
         def cut_session(info: Tuple[str, Dict[str, List[Tuple[float, float]]]]) -> None:
             # this function requires both torch, and torchaudio to be installed
