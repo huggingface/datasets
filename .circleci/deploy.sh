@@ -5,7 +5,7 @@ function deploy_doc(){
 	git checkout $1
 	if [ ! -z "$2" ]
 	then
-		if [ "$2" == "master" ]; then
+		if [ "$2" == "faf3d79" ]; then
 		    echo "Pushing master"
 			make clean && make html && scp -r -oStrictHostKeyChecking=no _build/html/* $doc:$dir/$2/
 			cp -r _build/html/_static .
@@ -30,7 +30,7 @@ function deploy_doc(){
 
 # You can find the commit for each tag on https://github.com/huggingface/datasets/tags
 # Deploys the master documentation on huggingface.co/docs/datasets/master
-deploy_doc "master" master
+# deploy_doc "master" master
 
 # Example of how to deploy a doc on a certain commit (the commit doesn't have to be on the master branch).
 # The following commit would live on huggingface.co/docs/datasets/v1.0.0
