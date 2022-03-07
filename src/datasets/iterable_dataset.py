@@ -261,7 +261,7 @@ class SkipExamplesIterable(_BaseExamplesIterable):
         yield from ex_iterator
 
     def shuffle_data_sources(self, seed: Optional[int]) -> "SkipExamplesIterable":
-        """Doesn't shuffle the wrapped examples iterable since it would skip exampels from other shards instead."""
+        """Doesn't shuffle the wrapped examples iterable since it would skip examples from other shards instead."""
         return self
 
     @property
@@ -442,7 +442,7 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
         )
 
-    def shuffle(self, buffer_size, seed=None) -> "IterableDataset":
+    def shuffle(self, seed=None, buffer_size: int = 1000) -> "IterableDataset":
         """
         Randomly shuffles the elements of this dataset.
 
@@ -460,8 +460,8 @@ class IterableDataset(DatasetInfoMixin):
         then the order of the shards is kept unchanged.
 
         Args:
-            buffer_size (:obj:`int`): size of the buffer.
             seed (:obj:`int`, optional, default None): random seed that will be used to create the distribution.
+            buffer_size (:obj:`int`, default 1000): size of the buffer.
         """
         shuffling = ShufflingConfig(seed=seed)
         return iterable_dataset(
