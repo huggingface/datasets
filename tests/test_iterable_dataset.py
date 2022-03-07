@@ -281,7 +281,7 @@ def test_iterable_dataset_set_epoch(dataset: IterableDataset):
 @pytest.mark.parametrize("epoch", [None, 0, 1, 10])
 def test_iterable_dataset_set_epoch_of_shuffled_dataset(dataset: IterableDataset, seed, epoch):
     buffer_size = 10
-    shuffled_dataset = dataset.shuffle(buffer_size, seed=seed)
+    shuffled_dataset = dataset.shuffle(seed, buffer_size=buffer_size)
     if epoch is not None:
         shuffled_dataset.set_epoch(epoch)
     if seed is None:
@@ -334,7 +334,7 @@ def test_iterable_dataset_map_complex_features(dataset: IterableDataset, generat
 def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn, seed, epoch):
     buffer_size = 3
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
-    dataset = dataset.shuffle(buffer_size, seed=seed)
+    dataset = dataset.shuffle(seed, buffer_size=buffer_size)
     assert isinstance(dataset._shuffling, ShufflingConfig)
     assert dataset._shuffling.seed == seed
     # Effective seed is sum of seed and epoch
@@ -419,7 +419,7 @@ def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, metho
     ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "filepaths": [f"{i}.txt" for i in range(n_shards)]})
     dataset = IterableDataset(ex_iterable)
     dataset = dataset.skip(n) if method == "skip" else dataset.take(count)
-    shuffled_dataset = dataset.shuffle(DEFAULT_N_EXAMPLES, seed=seed)
+    shuffled_dataset = dataset.shuffle(seed, DEFAULT_N_EXAMPLES)
     # shuffling a skip/take dataset should keep the same examples and don't shuffle the shards
     key = lambda x: f"{x['filepath']}_{x['id']}"  # noqa: E731
     assert sorted(dataset, key=key) == sorted(shuffled_dataset, key=key)
