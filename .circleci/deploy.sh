@@ -5,7 +5,7 @@ function deploy_doc(){
 	git checkout $1
 	if [ ! -z "$2" ]
 	then
-		if [ "$2" == "faf3d79" ]; then
+		if [ "$2" == "v1.18.4" ]; then
 		    echo "Pushing master"
 			make clean && make html && scp -r -oStrictHostKeyChecking=no _build/html/* $doc:$dir/$2/
 			cp -r _build/html/_static .
