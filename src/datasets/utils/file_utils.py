@@ -15,7 +15,6 @@ import sys
 import tempfile
 import time
 import urllib
-import warnings
 from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from functools import partial
@@ -152,14 +151,9 @@ def head_hf_s3(
     )
 
 
-def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None, version="deprecated") -> str:
+def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None) -> str:
     from .. import SCRIPTS_VERSION
 
-    if version != "deprecated":
-        warnings.warn(
-            "'version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
-        )
-        revision = version
     revision = revision or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
     if dataset:
         return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
@@ -167,12 +161,7 @@ def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = 
         return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
 
 
-def hf_hub_url(path: str, name: str, revision: Optional[str] = None, version="deprecated") -> str:
-    if version != "deprecated":
-        warnings.warn(
-            "'version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
-        )
-        revision = version
+def hf_hub_url(path: str, name: str, revision: Optional[str] = None) -> str:
     revision = revision or config.HUB_DEFAULT_VERSION
     return config.HUB_DATASETS_URL.format(path=path, name=name, revision=revision)
 
@@ -578,6 +567,9 @@ def get_from_cache(
                         url += "&confirm=" + v
                         cookies = response.cookies
                 connected = True
+                # Fix Google Drive URL to avoid Virus scan warning
+                if "drive.google.com" in url and "confirm=" not in url:
+                    url += "&confirm=t"
             # In some edge cases, head request returns 400 but the connection is actually ok
             elif (
                 (response.status_code == 400 and "firebasestorage.googleapis.com" in url)

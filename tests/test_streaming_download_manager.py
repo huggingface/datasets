@@ -13,6 +13,7 @@ from datasets.utils.streaming_download_manager import (
     _as_posix,
     _get_extraction_protocol,
     xbasename,
+    xgetsize,
     xglob,
     xisdir,
     xisfile,
@@ -319,6 +320,22 @@ def test_xisfile(input_path, isfile, tmp_path, mock_fsspec):
 
 
 @pytest.mark.parametrize(
+    "input_path, size",
+    [
+        ("tmp_path/file.txt", 100),
+        ("mock://", 0),
+        ("mock://top_level/second_level/date=2019-10-01/a.parquet", 100),
+    ],
+)
+def test_xgetsize(input_path, size, tmp_path, mock_fsspec):
+    if input_path.startswith("tmp_path"):
+        input_path = input_path.replace("/", os.sep).replace("tmp_path", str(tmp_path))
+        (tmp_path / "file.txt").touch()
+        (tmp_path / "file.txt").write_bytes(b"x" * 100)
+    assert xgetsize(input_path) == size
+
+
+@pytest.mark.parametrize(
     "input_path, expected_paths",
     [
         ("tmp_path/*.txt", ["file1.txt", "file2.txt"]),
@@ -372,8 +389,8 @@ def test_xglob(input_path, expected_paths, tmp_path, mock_fsspec):
     ],
 )
 def test_xrelpath(input_path, start_path, expected_path):
-    outut_path = xrelpath(input_path, start=start_path)
-    assert outut_path == expected_path
+    output_path = xrelpath(input_path, start=start_path)
+    assert output_path == expected_path
 
 
 @pytest.mark.parametrize(
