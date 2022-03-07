@@ -83,13 +83,13 @@ def bleu(
     use_effective_order=False,
 ):
     # xtreme-s can only have one label
-    labels = [[l] for l in labels]
+    labels = [[label] for label in labels]
     preds = list(preds)
     try:
         import sacrebleu as scb
     except ImportError:
         raise ValueError(
-            f"sacrebleu has to be installed in order to apply the bleu metric for covost2."
+            "sacrebleu has to be installed in order to apply the bleu metric for covost2."
             "You can install it via `pip install sacrebleu`."
         )
 
@@ -156,18 +156,18 @@ class XtremeS(datasets.Metric):
             format="numpy",
         )
 
-    def _compute(self, predictions, references, **kwargs):
+    def _compute(self, predictions, references, bleu_kwargs, wer_kwargs):
         if self.config_name == "fleurs":
             return {"accuracy": simple_accuracy(predictions, references)}
         elif self.config_name == "minds14":
             return {"f1": f1(predictions, references)}
         elif self.config_name == "covost2":
-            smooth_method = kwargs.pop("smooth_method", "exp")
-            smooth_value = kwargs.pop("smooth_value", None)
-            force = kwargs.pop("force", False)
-            lowercase = kwargs.pop("lowercase", False)
-            tokenize = kwargs.pop("tokenize", None)
-            use_effective_order = kwargs.pop("use_effective_order", False)
+            smooth_method = bleu_kwargs.pop("smooth_method", "exp")
+            smooth_value = bleu_kwargs.pop("smooth_value", None)
+            force = bleu_kwargs.pop("force", False)
+            lowercase = bleu_kwargs.pop("lowercase", False)
+            tokenize = bleu_kwargs.pop("tokenize", None)
+            use_effective_order = bleu_kwargs.pop("use_effective_order", False)
             return bleu(
                 preds=predictions,
                 labels=references,
@@ -179,7 +179,7 @@ class XtremeS(datasets.Metric):
                 use_effective_order=use_effective_order,
             )
         elif self.config_name in ["babel", "mls", "voxpopuli"]:
-            concatenate_texts = kwargs.pop("concatenate_texts", False)
+            concatenate_texts = wer_kwargs.pop("concatenate_texts", False)
             return wer(predictions, references, concatenate_texts, self.config_name)
         else:
             raise KeyError(f"You should supply a configuration name selected in {_CONFIG_NAMES}")
