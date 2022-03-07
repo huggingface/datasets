@@ -1,3 +1,4 @@
+from copy import deepcopy
 from itertools import chain, islice
 
 import numpy as np
@@ -22,7 +23,7 @@ from datasets.iterable_dataset import (
     iterable_dataset,
 )
 
-from .utils import require_torch
+from .utils import is_rng_equal, require_torch
 
 
 DEFAULT_N_EXAMPLES = 20
@@ -73,7 +74,7 @@ def test_examples_iterable_with_kwargs(generate_examples_fn):
 
 def test_examples_iterable_shuffle_data_sources(generate_examples_fn):
     ex_iterable = ExamplesIterable(generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]})
-    ex_iterable = ex_iterable.shuffle_data_sources(40)
+    ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(40))
     expected = list(generate_examples_fn(filepaths=["1.txt", "0.txt"]))  # shuffle the filepaths
     assert list(ex_iterable) == expected
 
@@ -90,7 +91,7 @@ def test_examples_iterable_shuffle_shards_and_metadata():
             "all_metadata": [{"id": str(i)} for i in range(100)],
         },
     )
-    ex_iterable = ex_iterable.shuffle_data_sources(42)
+    ex_iterable = ex_iterable.shuffle_data_sources(np.random.default_rng(42))
     out = list(ex_iterable)
     filepaths_ids = [x["filepath"].split(".")[0] for _, x in out]
     metadata_ids = [x["metadata"]["id"] for _, x in out]
@@ -100,7 +101,11 @@ def test_examples_iterable_shuffle_shards_and_metadata():
 @pytest.mark.parametrize("seed", [42, 1337, 101010, 123456])
 def test_buffer_shuffled_examples_iterable(generate_examples_fn, seed):
     n, buffer_size = 100, 30
-    rng = np.random.default_rng(seed)
+    generator = np.random.default_rng(seed)
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = BufferShuffledExamplesIterable(base_ex_iterable, buffer_size=buffer_size, generator=generator)
+
+    rng = deepcopy(generator)
     expected_indices_used_for_shuffling = list(
         islice(BufferShuffledExamplesIterable._iter_random_indices(rng, buffer_size=buffer_size), n - buffer_size)
     )
@@ -108,9 +113,6 @@ def test_buffer_shuffled_examples_iterable(generate_examples_fn, seed):
     assert all(0 <= index_to_pick < buffer_size for index_to_pick in expected_indices_used_for_shuffling)
     # it should be random indices
     assert expected_indices_used_for_shuffling != list(range(buffer_size))
-
-    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
-    ex_iterable = BufferShuffledExamplesIterable(base_ex_iterable, buffer_size=buffer_size, seed=seed)
 
     # The final order of examples is the result of a shuffle buffer.
     all_examples = list(generate_examples_fn(n=n))
@@ -144,14 +146,15 @@ def test_cycling_multi_sources_examples_iterable(generate_examples_fn):
 @pytest.mark.parametrize("probabilities", [None, (0.5, 0.5), (0.9, 0.1)])
 def test_randomly_cycling_multi_sources_examples_iterable(generate_examples_fn, probabilities):
     seed = 42
+    generator = np.random.default_rng(seed)
     ex_iterable1 = ExamplesIterable(generate_examples_fn, {"text": "foo"})
     ex_iterable2 = ExamplesIterable(generate_examples_fn, {"text": "bar"})
     ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
-        [ex_iterable1, ex_iterable2], seed=seed, probabilities=probabilities
+        [ex_iterable1, ex_iterable2], generator=generator, probabilities=probabilities
     )
 
     # The source used randomly changes at each example. It stops when one of the iterators is empty.
-    rng = np.random.default_rng(seed)
+    rng = deepcopy(generator)
     iterators = (generate_examples_fn(text="foo"), generate_examples_fn(text="bar"))
     indices_iterator = RandomlyCyclingMultiSourcesExamplesIterable._iter_random_indices(
         rng, len(iterators), p=probabilities
@@ -216,7 +219,9 @@ def test_skip_examples_iterable(generate_examples_fn):
     skip_ex_iterable = SkipExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[count:]
     assert list(skip_ex_iterable) == expected
-    assert skip_ex_iterable.shuffle_data_sources(42) is skip_ex_iterable, "skip examples makes the shards order fixed"
+    assert (
+        skip_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is skip_ex_iterable
+    ), "skip examples makes the shards order fixed"
 
 
 def test_take_examples_iterable(generate_examples_fn):
@@ -225,7 +230,9 @@ def test_take_examples_iterable(generate_examples_fn):
     take_ex_iterable = TakeExamplesIterable(base_ex_iterable, n=count)
     expected = list(generate_examples_fn(n=total))[:count]
     assert list(take_ex_iterable) == expected
-    assert take_ex_iterable.shuffle_data_sources(42) is take_ex_iterable, "skip examples makes the shards order fixed"
+    assert (
+        take_ex_iterable.shuffle_data_sources(np.random.default_rng(42)) is take_ex_iterable
+    ), "skip examples makes the shards order fixed"
 
 
 ############################
@@ -282,12 +289,17 @@ def test_iterable_dataset_set_epoch(dataset: IterableDataset):
 def test_iterable_dataset_set_epoch_of_shuffled_dataset(dataset: IterableDataset, seed, epoch):
     buffer_size = 10
     shuffled_dataset = dataset.shuffle(seed, buffer_size=buffer_size)
+    base_generator = shuffled_dataset._shuffling.generator
     if epoch is not None:
         shuffled_dataset.set_epoch(epoch)
-    if seed is None:
-        assert shuffled_dataset._effective_seed is None
+    effective_generator = shuffled_dataset._effective_generator()
+    assert effective_generator is not None
+    if epoch is None or epoch == 0:
+        assert is_rng_equal(base_generator, shuffled_dataset._effective_generator())
     else:
-        assert shuffled_dataset._effective_seed == seed + (epoch if epoch is not None else 0)
+        assert not is_rng_equal(base_generator, shuffled_dataset._effective_generator())
+        effective_seed = deepcopy(base_generator).integers(0, 1 << 63) - epoch
+        assert is_rng_equal(np.random.default_rng(effective_seed), shuffled_dataset._effective_generator())
 
 
 def test_iterable_dataset_map(dataset: IterableDataset, generate_examples_fn):
@@ -333,16 +345,18 @@ def test_iterable_dataset_map_complex_features(dataset: IterableDataset, generat
 @pytest.mark.parametrize("epoch", [None, 0, 1])
 def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn, seed, epoch):
     buffer_size = 3
+    dataset = deepcopy(dataset)
     dataset._ex_iterable.kwargs["filepaths"] = ["0.txt", "1.txt"]
     dataset = dataset.shuffle(seed, buffer_size=buffer_size)
     assert isinstance(dataset._shuffling, ShufflingConfig)
-    assert dataset._shuffling.seed == seed
+    assert isinstance(dataset._shuffling.generator, np.random.Generator)
+    assert is_rng_equal(dataset._shuffling.generator, np.random.default_rng(seed))
     # Effective seed is sum of seed and epoch
-    if epoch is None:
+    if epoch is None or epoch == 0:
         effective_seed = seed
     else:
         dataset.set_epoch(epoch)
-        effective_seed = seed + epoch
+        effective_seed = np.random.default_rng(seed).integers(0, 1 << 63) - epoch
     # Shuffling adds a shuffle buffer
     expected_first_example_index = next(
         iter(BufferShuffledExamplesIterable._iter_random_indices(np.random.default_rng(effective_seed), buffer_size))
@@ -351,7 +365,7 @@ def test_iterable_dataset_shuffle(dataset: IterableDataset, generate_examples_fn
     # It also shuffles the underlying examples iterable
     expected_ex_iterable = ExamplesIterable(
         generate_examples_fn, {"filepaths": ["0.txt", "1.txt"]}
-    ).shuffle_data_sources(effective_seed)
+    ).shuffle_data_sources(np.random.default_rng(effective_seed))
     assert isinstance(dataset._ex_iterable.ex_iterable, ExamplesIterable)
     assert next(iter(dataset)) == list(islice(expected_ex_iterable, expected_first_example_index + 1))[-1][1]
 
@@ -419,7 +433,7 @@ def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, metho
     ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n, "filepaths": [f"{i}.txt" for i in range(n_shards)]})
     dataset = IterableDataset(ex_iterable)
     dataset = dataset.skip(n) if method == "skip" else dataset.take(count)
-    shuffled_dataset = dataset.shuffle(seed, DEFAULT_N_EXAMPLES)
+    shuffled_dataset = dataset.shuffle(seed, buffer_size=DEFAULT_N_EXAMPLES)
     # shuffling a skip/take dataset should keep the same examples and don't shuffle the shards
     key = lambda x: f"{x['filepath']}_{x['id']}"  # noqa: E731
     assert sorted(dataset, key=key) == sorted(shuffled_dataset, key=key)
