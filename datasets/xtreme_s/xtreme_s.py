@@ -566,9 +566,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
         archive_path = dl_manager.download_and_extract(self.config.data_urls[0])
         audio_path = dl_manager.extract(os.path.join(archive_path, "MInDS-14", "audio.zip"))
         text_path = dl_manager.extract(os.path.join(archive_path, "MInDS-14", "text.zip"))
-        # TODO(Quentin) - how to best add the code here?
-#        splits_path = dl_manager.extract("https://huggingface.co/datasets/google/xtreme_s/tree/main/minds14_splits")
-        split_path_format = os.path.join("/home/patrick/xtreme_s/minds14_splits/{}_{}.tsv")
+        split_path_format = os.path.join("minds14_splits/{}_{}.tsv")
 
         return [
             datasets.SplitGenerator(
