@@ -144,7 +144,7 @@ Follow these steps in case the dummy data test keeps failing:
 
 - If the dummy data tests still fail, open a PR in the repo anyways and make a remark in the description that you need help creating the dummy data.
 
-If you're looking for more details about dataset scripts creation, please refer to the [documentation](https://huggingface.co/docs/datasets/add_dataset.html).
+If you're looking for more details about dataset scripts creation, please refer to the [documentation](https://huggingface.co/docs/datasets/master/dataset_script).
 
 Note: You can use the CLI tool from the root of the repository with the following command:
 ```bash
