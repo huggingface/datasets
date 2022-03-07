@@ -68,7 +68,7 @@ You can split your dataset one of two ways:
 >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
 >>> dataset_head = dataset.take(2)
 >>> list(dataset_head)
-[{'id': 0, 'text': 'Mtendere Village was...'}, '{id': 1, 'text': 'Lily James cannot fight the music...'}]
+[{'id': 0, 'text': 'Mtendere Village was...'}, {'id': 1, 'text': 'Lily James cannot fight the music...'}]
 ```
 
 - [`datasets.IterableDataset.skip`] omits the first `n` examples in a dataset and returns the remaining examples:
@@ -97,7 +97,7 @@ You can split your dataset one of two ways:
 
 >>> multilingual_dataset = interleave_datasets([en_dataset, fr_dataset])
 >>> print(list(islice(multilingual_dataset, 2)))
-[{'text': 'Mtendere Village was inspired by the vision...}, {'text': "Média de débat d'idées, de culture et de littérature....}]
+[{'text': 'Mtendere Village was inspired by the vision...'}, {'text': "Média de débat d'idées, de culture et de littérature..."}]
 ```
 
 Define sampling probabilities from each of the original datasets for more control over how each of them are sampled and combined. Set the `probabilities` argument with your desired sampling probabilities:
@@ -105,7 +105,7 @@ Define sampling probabilities from each of the original datasets for more contro
 ```py
 >>> multilingual_dataset_with_oversampling = interleave_datasets([en_dataset, fr_dataset], probabilities=[0.8, 0.2], seed=42)
 >>> print(list(islice(multilingual_dataset_with_oversampling, 2)))
-[{'text': 'Mtendere Village was inspired by the vision...}, {'text': 'Lily James cannot fight the music...}]
+[{'text': 'Mtendere Village was inspired by the vision...'}, {'text': 'Lily James cannot fight the music...'}]
 ```
 
 Around 80% of the final dataset is made of the `en_dataset`, and 20% of the `fr_dataset`.
@@ -116,7 +116,7 @@ Remove columns on-the-fly with [`datasets.IterableDataset.remove_columns`]. Spec
 
 ```py
 >>> from datasets import load_dataset
->>> dataset = load_dataset('m4', 'en', streaming=True, split='train')
+>>> dataset = load_dataset('mc4', 'en', streaming=True, split='train')
 >>> dataset = dataset.remove_columns('timestamp')
 ```
 
@@ -129,6 +129,41 @@ It allows you to apply a processing function to each example in a dataset, indep
 
 The following example demonstrates how to tokenize a [`datasets.IterableDataset`]. The function needs to accept and output a `dict`:
 
+```py
+>>> def add_prefix(example):
+...     example['text'] = 'My text: ' + example['text']
+...     return example
+```
+
+Next, apply this function to the dataset with [`datasets.IterableDataset.map`]:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset('oscar', 'unshuffled_deduplicated_en', streaming=True, split='train')
+>>> updated_dataset = dataset.map(add_prefix)
+>>> list(updated_dataset.take(3))
+[{'id': 0, 'text': 'My text: Mtendere Village was inspired by...'},
+ {'id': 1, 'text': 'My text: Lily James cannot fight the music...'},
+ {'id': 2, 'text': 'My text: "I\'d love to help kickstart...'}]
+```
+
+Let's take a look at another example, except this time, you will remove a column with [`datasets.IterableDataset.map`]. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed.
+
+Specify the column to remove with the `remove_columns` argument in [`datasets.IterableDataset.map`]:
+
+```py
+>>> updated_dataset = dataset.map(add_prefix, remove_columns=["id"])
+>>> list(updated_dataset.take(3))
+[{'text': 'My text: Mtendere Village was inspired by...'},
+ {'text': 'My text: Lily James cannot fight the music...'},
+ {'text': 'My text: "I\'d love to help kickstart...'}]
+```
+
+### Batch processing
+
+[`datasets.IterableDataset.map`] also supports working with batches of examples. Operate on batches by setting `batched=True`. The default batch size is 1000, but you can adjust it with the `batch_size` argument. This opens the door to many interesting applications such as tokenization, splitting long sentences into shorter chunks, and data augmentation.
+
+#### Tokenization
 
 ```py
 >>> from datasets import load_dataset
@@ -137,11 +172,17 @@ The following example demonstrates how to tokenize a [`datasets.IterableDataset`
 >>> tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 >>> def encode(examples):
 ...     return tokenizer(examples['text'], truncation=True, padding='max_length')
->>> dataset = dataset.map(encode, batched=True)
+>>> dataset = dataset.map(encode, batched=True, remove_columns=["text", "timestamp", "url"])
 >>> next(iter(dataset))
 {'input_ids': 101, 8466, 1018, 1010, 4029, 2475, 2062, 18558, 3100, 2061, ...,1106, 3739, 102],
 'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ..., 1, 1]}
 ```
+
+<Tip>
+
+See other examples of batch processing in [the batched map processing documentation](./process#batch-processing). They work the same for iterable datasets.
+
+</Tip>
 
 ## Stream in a training loop
 
