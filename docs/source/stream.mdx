@@ -31,12 +31,12 @@ An [`datasets.IterableDataset`] is useful for iterative jobs like training a mod
 
 Like a regular [`datasets.Dataset`] object, you can also shuffle a [`datasets.IterableDataset`] with [`datasets.IterableDataset.shuffle`]. 
 
-The `buffer_size` argument controls the size of the buffer to randomly sample examples from. Let's say your dataset has one million examples, and you set the `buffer_size` to ten thousand. [`datasets.IterableDataset.shuffle`] will randomly select examples from the first ten thousand examples in the buffer. Selected examples in the buffer are replaced with new examples.
+The `buffer_size` argument controls the size of the buffer to randomly sample examples from. Let's say your dataset has one million examples, and you set the `buffer_size` to ten thousand. [`datasets.IterableDataset.shuffle`] will randomly select examples from the first ten thousand examples in the buffer. Selected examples in the buffer are replaced with new examples. By default, the buffer size is 1,000.
 
 ```py
 >>> from datasets import load_dataset
 >>> dataset = load_dataset('oscar', "unshuffled_deduplicated_en", split='train', streaming=True)
->>> shuffled_dataset = dataset.shuffle(buffer_size=10_000, seed=42)
+>>> shuffled_dataset = dataset.shuffle(seed=42, buffer_size=10_000)
 ```
 
 <Tip>
