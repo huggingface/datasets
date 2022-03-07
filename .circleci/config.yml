@@ -118,7 +118,7 @@ workflow_filters: &workflow_filters
     filters:
         branches:
             only:
-                - master
+                - 1.18.X
 
 workflows:
     version: 2
