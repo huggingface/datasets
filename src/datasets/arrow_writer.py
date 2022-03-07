@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +15,6 @@
 import errno
 import json
 import os
-import socket
 import sys
 from dataclasses import asdict
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
@@ -148,7 +146,7 @@ class TypedSequence:
 
             non_null_idx, non_null_value = first_non_null_value(data)
             if isinstance(non_null_value, PIL.Image.Image):
-                return [Image().encode_example(value) for value in data], Image()
+                return [Image().encode_example(value) if value is not None else None for value in data], Image()
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
@@ -187,7 +185,6 @@ class TypedSequence:
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
                 out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
-
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
                 if pa.types.is_int64(out.type):
@@ -616,7 +613,7 @@ class BeamWriter:
             sources = [beam.io.filesystems.FileSystems.open(shard) for shard in shards]
             with beam.io.filesystems.FileSystems.create(self._path) as dest:
                 parquet_to_arrow(sources, dest)
-        except socket.error as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
+        except OSError as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
             if e.errno != errno.EPIPE:  # not a broken pipe
                 raise
             logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
@@ -642,7 +639,7 @@ class BeamWriter:
 def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
-    disable = bool(logging.get_verbosity() == logging.NOTSET)
+    disable = not utils.is_progress_bar_enabled()
     with ArrowWriter(path=destination, stream=stream) as writer:
         for source in utils.tqdm(sources, unit="sources", disable=disable):
             pf = pa.parquet.ParquetFile(source)

@@ -20,7 +20,6 @@ To create the package for pypi.
 1. Change the version in:
    - __init__.py
    - setup.py
-   - docs/source/conf.py
 
 2. Commit these changes: "git commit -m 'Release: VERSION'"
 
@@ -51,15 +50,6 @@ To create the package for pypi.
    twine upload dist/* -r pypi
 
 7. Fill release notes in the tag in github once everything is looking hunky-dory.
-
-8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed.
-   Update the version mapping in docs/source/_static/js/custom.js with: "python utils/release.py --version VERSION"
-   Set version to X.X.X+1.dev0 (e.g. 1.8.0 -> 1.8.1.dev0) in:
-   - setup.py
-   - __init__.py
-
-9. Commit these changes: "git commit -m 'Release docs'"
-   Push the commit to remote: "git push origin master"
 """
 
 import os
@@ -71,9 +61,8 @@ REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
     "numpy>=1.17",
     # Backend and serialization.
-    # Minimum 3.0.0 to support mix of struct and list types in parquet, and batch iterators of parquet data
-    # pyarrow 4.0.0 introduced segfault bug, see: https://github.com/huggingface/datasets/pull/2268
-    "pyarrow>=3.0.0,!=4.0.0",
+    # Minimum 5.0.0 to support mix of struct and list types in parquet, and batch iterators of parquet data, masks in StructArray
+    "pyarrow>=5.0.0",
     # For smart caching dataset processing
     "dill",
     # For performance gains with apache arrow
@@ -99,6 +88,7 @@ REQUIRED_PKGS = [
     "huggingface_hub>=0.1.0,<1.0.0",
     # Utilities from PyPA to e.g., compare versions
     "packaging",
+    "responses<0.19",
 ]
 
 AUDIO_REQUIRE = [
@@ -124,7 +114,7 @@ TESTS_REQUIRE = [
     "pytest-xdist",
     # optional dependencies
     "apache-beam>=2.26.0",
-    "elasticsearch",
+    "elasticsearch<8.0.0",  # 8.0 asks users to provide hosts or cloud_id when instantiating ElastictSearch()
     "aiobotocore",
     "boto3",
     "botocore",
@@ -188,7 +178,7 @@ if os.name != "nt":
         ]
     )
 
-QUALITY_REQUIRE = ["black==21.4b0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 
 EXTRAS_REQUIRE = {
@@ -210,27 +200,16 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
     "benchmarks": BENCHMARKS_REQUIRE,
     "docs": [
-        "docutils==0.16.0",
-        "recommonmark",
-        "sphinx==3.1.2",
-        "sphinx-markdown-tables",
-        "sphinx-rtd-theme==0.4.3",
-        "sphinxext-opengraph==0.4.1",
-        "sphinx-copybutton",
-        "fsspec<2021.9.0",
+        # Might need to add doc-builder and some specific deps in the future
         "s3fs",
-        "sphinx-panels",
-        "sphinx-inline-tabs",
-        "myst-parser",
-        "Markdown!=3.3.5",
     ],
 }
 
 setup(
     name="datasets",
-    version="1.18.3.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="1.18.5.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of datasets",
-    long_description=open("README.md", "r", encoding="utf-8").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",

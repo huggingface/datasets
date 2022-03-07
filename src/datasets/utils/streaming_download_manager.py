@@ -77,6 +77,10 @@ MAGIC_NUMBER_MAX_LENGTH = max(
 )
 
 
+class NonStreamableDatasetError(Exception):
+    pass
+
+
 def xjoin(a, *p):
     """
     This function extends os.path.join to support the "::" hop separator. It supports both paths and urls.
@@ -211,6 +215,34 @@ def xisfile(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
         return fs.isfile(main_hop)
 
 
+def xgetsize(path, use_auth_token: Optional[Union[str, bool]] = None) -> int:
+    """Extend `os.path.getsize` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+
+    Returns:
+        :obj:`int`, optional
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.path.getsize(path)
+    else:
+        if rest_hops and fsspec.get_fs_token_paths(rest_hops[0])[0].protocol == "https":
+            storage_options = {
+                "https": {"headers": get_authentication_headers_for_url(rest_hops[0], use_auth_token=use_auth_token)}
+            }
+        else:
+            storage_options = None
+        fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
+        size = fs.size(main_hop)
+        if size is None:
+            # use xopen instead of fs.open to make data fetching more robust
+            with xopen(path, use_auth_token=use_auth_token) as f:
+                size = len(f.read())
+        return size
+
+
 def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
     """Extend `os.path.isdir` function to support remote files.
 
@@ -232,6 +264,23 @@ def xisdir(path, use_auth_token: Optional[Union[str, bool]] = None) -> bool:
             storage_options = None
         fs, *_ = fsspec.get_fs_token_paths(path, storage_options=storage_options)
         return fs.isdir(main_hop)
+
+
+def xrelpath(path, start=None):
+    """Extend `os.path.relpath` function to support remote files.
+
+    Args:
+        path (:obj:`str`): URL path.
+        start (:obj:`str`): Start URL directory path.
+
+    Returns:
+        :obj:`str`
+    """
+    main_hop, *rest_hops = path.split("::")
+    if is_local_path(main_hop):
+        return os.path.relpath(main_hop, start=start) if start else os.path.relpath(main_hop)
+    else:
+        return posixpath.relpath(main_hop, start=start.split("::")[0]) if start else os.path.relpath(main_hop)
 
 
 def _as_posix(path: Path):
@@ -366,7 +415,16 @@ def xopen(file: str, mode="r", *args, use_auth_token: Optional[Union[str, bool]]
     else:
         new_kwargs = {}
     kwargs = {**kwargs, **new_kwargs}
-    file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+    try:
+        file_obj = fsspec.open(file, mode=mode, *args, **kwargs).open()
+    except ValueError as e:
+        if str(e) == "Cannot seek streaming HTTP file":
+            raise NonStreamableDatasetError(
+                "Streaming is not possible for this dataset because data host server doesn't support HTTP range "
+                "requests. You can still load this dataset in non-streaming mode by passing `streaming=False` (default)"
+            ) from e
+        else:
+            raise
     _add_retries_to_file_obj_read_method(file_obj)
     return file_obj
 
@@ -659,8 +717,10 @@ class FilesIterable(_IterableFromGenerator):
 
     @classmethod
     def _iter_from_urlpaths(
-        cls, urlpaths: List[str], use_auth_token: Optional[Union[str, bool]] = None
+        cls, urlpaths: Union[str, List[str]], use_auth_token: Optional[Union[str, bool]] = None
     ) -> Generator[str, None, None]:
+        if not isinstance(urlpaths, list):
+            urlpaths = [urlpaths]
         for urlpath in urlpaths:
             if xisfile(urlpath, use_auth_token=use_auth_token):
                 yield urlpath
@@ -681,6 +741,8 @@ class StreamingDownloadManager:
     data, but they rather return the path or url that could be opened using the `xopen` function which extends the
     builtin `open` function to stream data from remote files.
     """
+
+    is_streaming = True
 
     def __init__(
         self,
@@ -750,11 +812,11 @@ class StreamingDownloadManager:
         else:
             return ArchiveIterable.from_urlpath(urlpath_or_buf, use_auth_token=self.download_config.use_auth_token)
 
-    def iter_files(self, urlpaths: List[str]) -> Iterable[str]:
+    def iter_files(self, urlpaths: Union[str, List[str]]) -> Iterable[str]:
         """Iterate over files.
 
         Args:
-            urlpaths (list): Root paths.
+            urlpaths (:obj:`str` or :obj:`list` of :obj:`str`): Root paths.
 
         Yields:
             str: File URL path.

@@ -125,7 +125,7 @@ class Image:
         - pa.list(*) - it must contain the image array data
 
         Args:
-            storage (Union[pa.StringArray, pa.StructArray, pa.ListArray]): [description]
+            storage (Union[pa.StringArray, pa.StructArray, pa.ListArray]): PyArrow array to cast.
 
         Returns:
             pa.StructArray: Array in the Image arrow storage type, that is
@@ -138,7 +138,7 @@ class Image:
 
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
-            storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"])
+            storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_struct(storage.type):
             if storage.type.get_field_index("bytes") >= 0:
                 bytes_array = storage.field("bytes")
@@ -148,14 +148,45 @@ class Image:
                 path_array = storage.field("path")
             else:
                 path_array = pa.array([None] * len(storage), type=pa.string())
-            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_list(storage.type):
             bytes_array = pa.array(
-                [image_to_bytes(PIL.Image.fromarray(np.array(arr, np.uint8))) for arr in storage.to_pylist()],
+                [
+                    image_to_bytes(PIL.Image.fromarray(np.array(arr, np.uint8))) if arr is not None else None
+                    for arr in storage.to_pylist()
+                ],
                 type=pa.binary(),
             )
             path_array = pa.array([None] * len(storage), type=pa.string())
-            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+            storage = pa.StructArray.from_arrays(
+                [bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null()
+            )
+        return array_cast(storage, self.pa_type)
+
+    def embed_storage(self, storage: pa.StructArray, drop_paths: bool = True) -> pa.StructArray:
+        """Embed image files into the Arrow array.
+
+        Args:
+            storage (pa.StructArray): PyArrow array to embed.
+            drop_paths (bool, default ``True``): If True, the paths are set to None.
+
+        Returns:
+            pa.StructArray: Array in the Image arrow storage type, that is
+                pa.struct({"bytes": pa.binary(), "path": pa.string()})
+        """
+
+        @no_op_if_value_is_null
+        def path_to_bytes(path):
+            with xopen(path, "rb") as f:
+                bytes_ = f.read()
+            return bytes_
+
+        bytes_array = pa.array(
+            [path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"] for x in storage.to_pylist()],
+            type=pa.binary(),
+        )
+        path_array = pa.array([None] * len(storage), type=pa.string()) if drop_paths else storage.field("path")
+        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
 
 

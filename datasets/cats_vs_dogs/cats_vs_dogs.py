@@ -44,6 +44,8 @@ _CITATION = """\
 
 
 class CatsVsDogs(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version("0.0.1")
+
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,

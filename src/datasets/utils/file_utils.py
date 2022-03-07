@@ -15,7 +15,6 @@ import sys
 import tempfile
 import time
 import urllib
-import warnings
 from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from functools import partial
@@ -152,14 +151,9 @@ def head_hf_s3(
     )
 
 
-def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None, version="deprecated") -> str:
+def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = None) -> str:
     from .. import SCRIPTS_VERSION
 
-    if version != "deprecated":
-        warnings.warn(
-            "'version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
-        )
-        revision = version
     revision = revision or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
     if dataset:
         return config.REPO_DATASETS_URL.format(revision=revision, path=path, name=name)
@@ -167,12 +161,7 @@ def hf_github_url(path: str, name: str, dataset=True, revision: Optional[str] = 
         return config.REPO_METRICS_URL.format(revision=revision, path=path, name=name)
 
 
-def hf_hub_url(path: str, name: str, revision: Optional[str] = None, version="deprecated") -> str:
-    if version != "deprecated":
-        warnings.warn(
-            "'version' was renamed to 'revision' in version 1.13 and will be removed in 1.15.", FutureWarning
-        )
-        revision = version
+def hf_hub_url(path: str, name: str, revision: Optional[str] = None) -> str:
     revision = revision or config.HUB_DEFAULT_VERSION
     return config.HUB_DATASETS_URL.format(path=path, name=name, revision=revision)
 
@@ -241,6 +230,7 @@ class DownloadConfig:
             for remote files on the Datasets Hub. If True, will get token from ~/.huggingface.
         ignore_url_params (:obj:`bool`, default ``False``): Whether to strip all query parameters and #fragments from
             the download URL before using it for caching the file.
+        download_desc (:obj:`str`, optional): A description to be displayed alongside with the progress bar while downloading the files.
     """
 
     cache_dir: Optional[Union[str, Path]] = None
@@ -257,6 +247,7 @@ class DownloadConfig:
     max_retries: int = 1
     use_auth_token: Optional[Union[str, bool]] = None
     ignore_url_params: bool = False
+    download_desc: Optional[str] = None
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -307,6 +298,7 @@ def cached_path(
             max_retries=download_config.max_retries,
             use_auth_token=download_config.use_auth_token,
             ignore_url_params=download_config.ignore_url_params,
+            download_desc=download_config.download_desc,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
@@ -434,7 +426,9 @@ def ftp_get(url, temp_file, timeout=10.0):
         raise ConnectionError(e) from None
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=100.0, max_retries=0):
+def http_get(
+    url, temp_file, proxies=None, resume_size=0, headers=None, cookies=None, timeout=100.0, max_retries=0, desc=None
+):
     headers = copy.deepcopy(headers) or {}
     headers["user-agent"] = get_datasets_user_agent(user_agent=headers.get("user-agent"))
     if resume_size > 0:
@@ -453,19 +447,17 @@ def http_get(url, temp_file, proxies=None, resume_size=0, headers=None, cookies=
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    progress = utils.tqdm(
+    with utils.tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
-        desc="Downloading",
-        disable=bool(logging.get_verbosity() == logging.NOTSET),
-    )
-    for chunk in response.iter_content(chunk_size=1024):
-        if chunk:  # filter out keep-alive new chunks
+        desc=desc or "Downloading",
+        disable=not utils.is_progress_bar_enabled(),
+    ) as progress:
+        for chunk in response.iter_content(chunk_size=1024):
             progress.update(len(chunk))
             temp_file.write(chunk)
-    progress.close()
 
 
 def http_head(
@@ -507,6 +499,7 @@ def get_from_cache(
     max_retries=0,
     use_auth_token=None,
     ignore_url_params=False,
+    download_desc=None,
 ) -> str:
     """
     Given a URL, look for the corresponding file in the local cache.
@@ -574,6 +567,9 @@ def get_from_cache(
                         url += "&confirm=" + v
                         cookies = response.cookies
                 connected = True
+                # Fix Google Drive URL to avoid Virus scan warning
+                if "drive.google.com" in url and "confirm=" not in url:
+                    url += "&confirm=t"
             # In some edge cases, head request returns 400 but the connection is actually ok
             elif (
                 (response.status_code == 400 and "firebasestorage.googleapis.com" in url)
@@ -593,7 +589,7 @@ def get_from_cache(
                 raise ConnectionError(
                     f"Unauthorized for URL {url}. Please use the parameter ``use_auth_token=True`` after logging in with ``huggingface-cli login``"
                 )
-        except (EnvironmentError, requests.exceptions.Timeout) as e:
+        except (OSError, requests.exceptions.Timeout) as e:
             # not connected
             head_error = e
             pass
@@ -664,6 +660,7 @@ def get_from_cache(
                     headers=headers,
                     cookies=cookies,
                     max_retries=max_retries,
+                    desc=download_desc,
                 )
 
         logger.info(f"storing {url} in cache at {cache_path}")

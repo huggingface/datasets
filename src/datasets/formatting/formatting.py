@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -509,9 +508,9 @@ def format_table(
             the table as either a row, a column or a batch.
         formatter (``datasets.formatting.formatting.Formatter``): Any subclass of a Formatter such as
             PythonFormatter, NumpyFormatter, etc.
-        format_columns (Optional ``List[str]``): if not None, it defines the columns that will be formatted using the
+        format_columns (:obj:`List[str]`, optional): if not None, it defines the columns that will be formatted using the
             given formatter. Other columns are discarded (unless ``output_all_columns`` is True)
-        output_all_columns (``bool``, defaults to False). If True, the formatted output is completed using the columns
+        output_all_columns (:obj:`bool`, defaults to False). If True, the formatted output is completed using the columns
             that are not in the ``format_columns`` list. For these columns, the PythonFormatter is used.
 
 

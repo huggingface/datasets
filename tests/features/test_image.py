@@ -222,6 +222,40 @@ def test_dataset_with_image_feature_tar_jpg(tar_jpg_path):
 
 
 @require_pil
+def test_dataset_with_image_feature_with_none():
+    data = {"image": [None]}
+    features = Features({"image": Image()})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"image"}
+    assert item["image"] is None
+    batch = dset[:1]
+    assert len(batch) == 1
+    assert batch.keys() == {"image"}
+    assert isinstance(batch["image"], list) and all(item is None for item in batch["image"])
+    column = dset["image"]
+    assert len(column) == 1
+    assert isinstance(column, list) and all(item is None for item in column)
+
+    # nested tests
+
+    data = {"images": [[None]]}
+    features = Features({"images": Sequence(Image())})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"images"}
+    assert all(i is None for i in item["images"])
+
+    data = {"nested": [{"image": None}]}
+    features = Features({"nested": {"image": Image()}})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"nested"}
+    assert item["nested"].keys() == {"image"}
+    assert item["nested"]["image"] is None
+
+
+@require_pil
 @pytest.mark.parametrize(
     "build_data",
     [
@@ -484,7 +518,7 @@ class __DummyDataset__(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, **kwargs):
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             for i, line in enumerate(f):
                 image_path, caption = line.split(",")
                 yield i, {"image": image_path.strip(), "caption": caption.strip()}

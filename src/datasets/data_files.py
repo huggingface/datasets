@@ -13,7 +13,7 @@ from .splits import Split
 from .utils import logging
 from .utils.file_utils import hf_hub_url, is_remote_url, request_etag
 from .utils.py_utils import string_to_dict
-from .utils.tqdm_utils import tqdm
+from .utils.tqdm_utils import is_progress_bar_enabled, tqdm
 
 
 DEFAULT_SPLIT = str(Split.TRAIN)
@@ -90,7 +90,7 @@ def _get_data_files_patterns(pattern_resolver: Callable[[str], List[PurePath]]) 
         data_files = pattern_resolver(pattern)
         if len(data_files) > 0:
             data_files = [p.as_posix() for p in data_files]
-            splits: Set[str] = set(string_to_dict(p, split_pattern)["split"] for p in data_files)
+            splits: Set[str] = {string_to_dict(p, split_pattern)["split"] for p in data_files}
             return {split: [split_pattern.format(split=split)] for split in splits}
     # then check the default patterns based on train/valid/test splits
     for patterns_dict in ALL_DEFAULT_PATTERNS:
@@ -170,7 +170,7 @@ def resolve_patterns_locally_or_by_urls(
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
 
-    Examples:
+    Example::
 
         >>> import huggingface_hub
         >>> from datasets.data_files import resolve_patterns_locally_or_by_urls
@@ -302,7 +302,7 @@ def _resolve_single_pattern_in_dataset_repository(
 ) -> List[PurePath]:
     data_files_ignore = FILES_TO_IGNORE
     fs = HfFileSystem(repo_info=dataset_info)
-    glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
+    glob_iter = [PurePath(filepath) for filepath in fs.glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
     matched_paths = [
         filepath
         for filepath in glob_iter
@@ -353,7 +353,7 @@ def resolve_patterns_in_dataset_repository(
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
 
-    Examples:
+    Example::
 
         >>> import huggingface_hub
         >>> from datasets.data_files import resolve_patterns_in_dataset_repository
@@ -497,7 +497,7 @@ def _get_origin_metadata_locally_or_by_urls(
         max_workers=max_workers,
         tqdm_class=tqdm,
         desc="Resolving data files",
-        disable=len(data_files) <= 16 or logging.get_verbosity() == logging.NOTSET,
+        disable=len(data_files) <= 16 or not is_progress_bar_enabled(),
     )
 
 

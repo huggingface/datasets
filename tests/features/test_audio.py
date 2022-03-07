@@ -1,8 +1,5 @@
 import os
-import sys
 import tarfile
-from ctypes.util import find_library
-from importlib.util import find_spec
 
 import pyarrow as pa
 import pytest
@@ -10,23 +7,7 @@ import pytest
 from datasets import Dataset, concatenate_datasets, load_dataset
 from datasets.features import Audio, Features, Sequence, Value
 
-
-# pytestmark = pytest.mark.audio
-
-
-require_sndfile = pytest.mark.skipif(
-    # In Windows and OS X, soundfile installs sndfile
-    (sys.platform != "linux" and find_spec("soundfile") is None)
-    # In Linux, soundfile throws RuntimeError if sndfile not installed with distribution package manager
-    or (sys.platform == "linux" and find_library("sndfile") is None),
-    reason="Test requires 'sndfile': `pip install soundfile`; "
-    "Linux requires sndfile installed with distribution package manager, e.g.: `sudo apt-get install libsndfile1`",
-)
-require_sox = pytest.mark.skipif(
-    find_library("sox") is None,
-    reason="Test requires 'sox'; only available in non-Windows, e.g.: `sudo apt-get install sox`",
-)
-require_torchaudio = pytest.mark.skipif(find_spec("torchaudio") is None, reason="Test requires 'torchaudio'")
+from ..utils import require_libsndfile_with_opus, require_sndfile, require_sox, require_torchaudio
 
 
 @pytest.fixture()
@@ -133,6 +114,37 @@ def test_audio_decode_example_mp3(shared_datadir):
     assert decoded_example["sampling_rate"] == 44100
 
 
+@require_libsndfile_with_opus
+def test_audio_decode_example_opus(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_48000.opus")
+    audio = Audio()
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] == audio_path
+    assert decoded_example["array"].shape == (48000,)
+    assert decoded_example["sampling_rate"] == 48000
+
+
+@require_sox
+@require_torchaudio
+def test_audio_resampling_mp3_different_sampling_rates(shared_datadir):
+    audio_path = str(shared_datadir / "test_audio_44100.mp3")
+    audio_path2 = str(shared_datadir / "test_audio_16000.mp3")
+    audio = Audio(sampling_rate=48000)
+
+    decoded_example = audio.decode_example(audio.encode_example(audio_path))
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] == audio_path
+    assert decoded_example["array"].shape == (119119,)
+    assert decoded_example["sampling_rate"] == 48000
+
+    decoded_example = audio.decode_example(audio.encode_example(audio_path2))
+    assert decoded_example.keys() == {"path", "array", "sampling_rate"}
+    assert decoded_example["path"] == audio_path2
+    assert decoded_example["array"].shape == (120960,)
+    assert decoded_example["sampling_rate"] == 48000
+
+
 @require_sndfile
 def test_dataset_with_audio_feature(shared_datadir):
     audio_path = str(shared_datadir / "test_audio_44100.wav")
@@ -219,6 +231,40 @@ def test_dataset_with_audio_feature_tar_mp3(tar_mp3_path):
     assert column[0]["path"] == audio_filename
     assert column[0]["array"].shape == (109440,)
     assert column[0]["sampling_rate"] == 44100
+
+
+@require_sndfile
+def test_dataset_with_audio_feature_with_none():
+    data = {"audio": [None]}
+    features = Features({"audio": Audio()})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert item["audio"] is None
+    batch = dset[:1]
+    assert len(batch) == 1
+    assert batch.keys() == {"audio"}
+    assert isinstance(batch["audio"], list) and all(item is None for item in batch["audio"])
+    column = dset["audio"]
+    assert len(column) == 1
+    assert isinstance(column, list) and all(item is None for item in column)
+
+    # nested tests
+
+    data = {"audio": [[None]]}
+    features = Features({"audio": Sequence(Audio())})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"audio"}
+    assert all(i is None for i in item["audio"])
+
+    data = {"nested": [{"audio": None}]}
+    features = Features({"nested": {"audio": Audio()}})
+    dset = Dataset.from_dict(data, features=features)
+    item = dset[0]
+    assert item.keys() == {"nested"}
+    assert item["nested"].keys() == {"audio"}
+    assert item["nested"]["audio"] is None
 
 
 @require_sndfile

@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the TensorFlow Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +48,7 @@ from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examp
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
-from .utils.download_manager import DownloadManager, GenerateMode
+from .utils.download_manager import DownloadManager, DownloadMode
 from .utils.file_utils import DownloadConfig, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
@@ -478,7 +477,7 @@ class DatasetBuilder:
     def download_and_prepare(
         self,
         download_config: Optional[DownloadConfig] = None,
-        download_mode: Optional[GenerateMode] = None,
+        download_mode: Optional[DownloadMode] = None,
         ignore_verifications: bool = False,
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
@@ -489,27 +488,27 @@ class DatasetBuilder:
         """Downloads and prepares dataset for reading.
 
         Args:
-            download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-            download_mode (Optional `datasets.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
-            ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
-            save_infos (bool): Save the dataset information (checksums/size/splits/...)
-            try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
-            dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
-            base_path ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
-                If not specified, the value of the ``base_path`` attribute (``self.base_path``) will be used instead.
-            use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            download_config (:class:`DownloadConfig`, optional): specific download configuration parameters.
+            download_mode (:class:`DownloadMode`, optional): select the download/generate mode - Default to ``REUSE_DATASET_IF_EXISTS``
+            ignore_verifications (:obj:`bool`): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
+            save_infos (:obj:`bool`): Save the dataset information (checksums/size/splits/...)
+            try_from_hf_gcs (:obj:`bool`): If True, it will try to download the already prepared dataset from the Hf google cloud storage
+            dl_manager (:class:`DownloadManager`, optional): specific Download Manger to use
+            base_path (:obj:`str`, optional): base path for relative paths that are used to download files. This can be a remote url.
+                If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
+            use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
 
         """
-        download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
+        download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
         verify_infos = not ignore_verifications
         base_path = base_path if base_path is not None else self.base_path
         if dl_manager is None:
             if download_config is None:
                 download_config = DownloadConfig(
                     cache_dir=self._cache_downloaded_dir,
-                    force_download=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
-                    force_extract=bool(download_mode == GenerateMode.FORCE_REDOWNLOAD),
+                    force_download=bool(download_mode == DownloadMode.FORCE_REDOWNLOAD),
+                    force_extract=bool(download_mode == DownloadMode.FORCE_REDOWNLOAD),
                     use_etag=False,
                     use_auth_token=use_auth_token,
                 )  # We don't use etag for data files to speed up the process
@@ -519,6 +518,7 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
+                record_checksums=verify_infos,
             )
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
@@ -528,7 +528,7 @@ class DatasetBuilder:
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
-            if data_exists and download_mode == GenerateMode.REUSE_DATASET_IF_EXISTS:
+            if data_exists and download_mode == DownloadMode.REUSE_DATASET_IF_EXISTS:
                 logger.warning(f"Reusing dataset {self.name} ({self._cache_dir})")
                 # We need to update the info in case some splits were added in the meantime
                 # for example when calling load_dataset from multiple workers.
@@ -538,7 +538,7 @@ class DatasetBuilder:
             logger.info(f"Generating dataset {self.name} ({self._cache_dir})")
             if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
                 if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
-                    raise IOError(
+                    raise OSError(
                         f"Not enough disk space. Needed: {utils.size_str(self.info.size_in_bytes or 0)} (download: {utils.size_str(self.info.download_size or 0)}, generated: {utils.size_str(self.info.dataset_size or 0)}, post-processed: {utils.size_str(self.info.post_processing_size or 0)})"
                     )
 
@@ -619,7 +619,7 @@ class DatasetBuilder:
                     Please follow the manual download instructions:
                      {self.manual_download_instructions}
                     Manual data can be loaded with:
-                     datasets.load_dataset({self.name}, data_dir='<path/to/manual/data>')"""
+                     datasets.load_dataset("{self.name}", data_dir="<path/to/manual/data>")"""
                 )
             )
 
@@ -676,7 +676,7 @@ class DatasetBuilder:
                     "._split_generator()."
                 )
 
-            logger.info(f"Generating split {split_generator.split_info.name}")
+            logger.info(f"Generating {split_generator.split_info.name} split")
             split_dict.add(split_generator.split_info)
 
             try:
@@ -749,11 +749,9 @@ class DatasetBuilder:
         """
         if not os.path.exists(self._cache_dir):
             raise AssertionError(
-                (
-                    f"Dataset {self.name}: could not find data in {self._cache_dir_root}. Please make sure to call "
-                    "builder.download_and_prepare(), or pass download=True to "
-                    "datasets.load_dataset() before trying to access the Dataset object."
-                )
+                f"Dataset {self.name}: could not find data in {self._cache_dir_root}. Please make sure to call "
+                "builder.download_and_prepare(), or pass download=True to "
+                "datasets.load_dataset() before trying to access the Dataset object."
             )
 
         logger.debug(f'Constructing Dataset for split {split or ", ".join(self.info.splits)}, from {self._cache_dir}')
@@ -772,7 +770,7 @@ class DatasetBuilder:
             ),
             split,
             map_tuple=True,
-            disable_tqdm=False,
+            disable_tqdm=not utils.is_progress_bar_enabled(),
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
@@ -811,7 +809,7 @@ class DatasetBuilder:
                 ds = post_processed
                 recorded_checksums = {}
                 for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path)
+                    size_checksum = get_size_checksum_dict(resource_path, record_checksum=verify_infos)
                     recorded_checksums[resource_name] = size_checksum
                 if verify_infos:
                     if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
@@ -942,7 +940,7 @@ class DatasetBuilder:
         This function returns a list of `SplitGenerator`s defining how to generate
         data and what splits to use.
 
-        Example:
+        Example::
 
             return [
                     datasets.SplitGenerator(
@@ -1020,7 +1018,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
     DEFAULT_WRITER_BATCH_SIZE = None
 
     def __init__(self, *args, writer_batch_size=None, **kwargs):
-        super(GeneratorBasedBuilder, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Batch size used by the ArrowWriter
         # It defines the number of samples that are kept in memory before writing them
         # and also the length of the arrow chunks
@@ -1058,7 +1056,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
         raise NotImplementedError()
 
     def _prepare_split(self, split_generator):
-        split_info = split_generator.split_info
+        if self.info.splits is not None:
+            split_info = self.info.splits[split_generator.name]
+        else:
+            split_info = split_generator.split_info
 
         fname = f"{self.name}-{split_generator.name}.arrow"
         fpath = os.path.join(self._cache_dir, fname)
@@ -1078,7 +1079,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
                     unit=" examples",
                     total=split_info.num_examples,
                     leave=False,
-                    disable=bool(logging.get_verbosity() == logging.NOTSET),
+                    disable=not utils.is_progress_bar_enabled(),
+                    desc=f"Generating {split_info.name} split",
                 ):
                     example = self.info.features.encode_example(record)
                     writer.write(example, key)
@@ -1134,7 +1136,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         generator = self._generate_tables(**split_generator.gen_kwargs)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
             for key, table in utils.tqdm(
-                generator, unit=" tables", leave=False, disable=True  # bool(logging.get_verbosity() == logging.NOTSET)
+                generator, unit=" tables", leave=False, disable=True  # not utils.is_progress_bar_enabled()
             ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
@@ -1163,7 +1165,7 @@ class BeamBasedBuilder(DatasetBuilder):
     def __init__(self, *args, **kwargs):
         self._beam_runner = kwargs.pop("beam_runner", None)
         self._beam_options = kwargs.pop("beam_options", None)
-        super(BeamBasedBuilder, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._beam_writers = {}  # {split: beam_writer} mapping.
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -1190,7 +1192,7 @@ class BeamBasedBuilder(DatasetBuilder):
         can be accessed by the workers jobs. The data should be located in a
         shared filesystem, like GCS.
 
-        Example:
+        Example::
 
         ```
         def _build_pcollection(pipeline, extracted_dir):
@@ -1245,7 +1247,7 @@ class BeamBasedBuilder(DatasetBuilder):
             runner=beam_runner,
             options=beam_options,
         )
-        super(BeamBasedBuilder, self)._download_and_prepare(
+        super()._download_and_prepare(
             dl_manager,
             verify_infos=False,
             pipeline=pipeline,

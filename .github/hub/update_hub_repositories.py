@@ -104,7 +104,7 @@ def check_authorizations(user_info: dict):
 
 def apply_hacks_for_moon_landing(dataset_repo_path: Path):
     if (dataset_repo_path / "README.md").is_file():
-        with (dataset_repo_path / "README.md").open("r") as f:
+        with (dataset_repo_path / "README.md").open() as f:
             readme_content = f.read()
         if readme_content.count("---\n") > 1:
             _, tags, content = readme_content.split("---\n", 2)
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     datasets_lib_path = Path(os.environ["DATASETS_LIB_PATH"]).expanduser().resolve()
 
     if Path(token).expanduser().is_file():
-        with Path(token).expanduser().open("r") as f:
+        with Path(token).expanduser().open() as f:
             token = f.read().strip()
     user_info = whoami(token)
     check_authorizations(user_info)
@@ -211,14 +211,15 @@ if __name__ == "__main__":
         for diff in datasets_lib_repo.index.diff(prev_commit)
         for path in [diff.a_path, diff.b_path]
         if path.startswith(DATASETS_LIB_CATALOG_DIR_NAME)
-        and path.count("/") > 2
+        and path.count("/") >= 2
     ]
-    changed_datasets_names_since_last_commit = set(path.split("/")[1] for path in changed_files_since_last_commit)
+
+    changed_datasets_names_since_last_commit = {path.split("/")[1] for path in changed_files_since_last_commit}
     # ignore json, csv etc.
-    changed_datasets_names_since_last_commit = set(
+    changed_datasets_names_since_last_commit = {
         dataset_name for dataset_name in changed_datasets_names_since_last_commit
         if (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME / dataset_name / (dataset_name + ".py")).is_file()
-    )
+    }
 
     deleted_files = {dataset_name: set() for dataset_name in changed_datasets_names_since_last_commit}
     for path in changed_files_since_last_commit:
@@ -232,20 +233,21 @@ if __name__ == "__main__":
     dataset_names = sys.argv[1:]
     if dataset_names:
         if dataset_names[0] == "--all":
-            dataset_names = sorted([
+            dataset_names = sorted(
                 d.name for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
                 if d.is_dir() and (d / (d.name + ".py")).is_file()  # ignore json, csv etc.
-            ])
+            )
         if dataset_names[0] == "--auto":
             if new_tag:
                 logger.info(
                     "All the datasets will be updated since --auto was used and "
                     f"this is a new release {new_tag.name} of the `datasets` library."
                 )
-                dataset_names = sorted([
+                dataset_names = sorted(d.name for d in (ROOT / HUB_DIR_NAME).glob("*") if d.is_dir())
+                dataset_names = sorted(
                     d.name for d in (datasets_lib_path / DATASETS_LIB_CATALOG_DIR_NAME).glob("*")
                     if d.is_dir() and (d / (d.name + ".py")).is_file()  # ignore json, csv etc.
-                ])
+                )
             else:
                 logger.info(
                     "All the datasets that have been changed in the latest commit of `datasets` will be updated "

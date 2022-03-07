@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -266,6 +265,7 @@ class Sari(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
+                    "sources": datasets.Value("string", id="sequence"),
                     "predictions": datasets.Value("string", id="sequence"),
                     "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
                 }
