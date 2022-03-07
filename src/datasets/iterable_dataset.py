@@ -356,9 +356,9 @@ class IterableDataset(DatasetInfoMixin):
         if self._shuffling and self._epoch == 0:
             return self._shuffling.generator
         elif self._shuffling:
-            # Create effective seed using self._epoch (we substract in order to avoir overflow in long_scalars)
+            # Create effective seed using self._epoch (we subtract in order to avoir overflow in long_scalars)
             effective_seed = deepcopy(self._shuffling.generator).integers(0, 1 << 63) - self._epoch
-            effective_seed = 1 << 63 + effective seed if effective_seed < 0 else effective_seed
+            effective_seed = (1 << 63) + effective seed if effective_seed < 0 else effective_seed
             return np.random.default_rng(effective_seed)
         else:
             raise ValueError("This dataset is not shuffled")
