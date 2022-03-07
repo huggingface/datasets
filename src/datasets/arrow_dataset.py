@@ -3621,9 +3621,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The index_name/identifier of the index.
                 This is the index_name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
                 By default it corresponds to `column`.
-            device (Optional :obj:`int`):
-                If not None, this is the index of the GPU to use.
-                By default it uses the CPU.
+            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+                If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             string_factory (Optional :obj:`str`):
                 This is passed to the index factory of Faiss to create the index.
                 Default index class is ``IndexFlat``.
@@ -3694,9 +3693,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             index_name (:obj:`str`):
                 The index_name/identifier of the index.
                 This is the index_name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
-            device (Optional :obj:`int`):
-                If not None, this is the index of the GPU to use.
-                By default it uses the CPU.
+            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+                If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             string_factory (Optional :obj:`str`):
                 This is passed to the index factory of Faiss to create the index.
                 Default index class is ``IndexFlat``.
