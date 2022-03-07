@@ -83,7 +83,7 @@ There are two options for filtering rows in a dataset: [`datasets.Dataset.select
 [`datasets.Dataset.filter`] can also filter by indices if you set `with_indices=True`:
 
 ```py
->>> even_dataset = dataset.filter(lambda example, indice: indice % 2 == 0, with_indices=True)
+>>> even_dataset = dataset.filter(lambda example, idx: idx % 2 == 0, with_indices=True)
 >>> len(even_dataset)
 1834
 >>> len(dataset) / 2
