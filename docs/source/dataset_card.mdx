@@ -1,0 +1,26 @@
+# Create a dataset card
+
+Each dataset should be accompanied with a Dataset card to promote responsible usage, and alert the user to any potential biases within the dataset.
+This idea is inspired by the Model Cards proposed by [Mitchell, 2018](https://arxiv.org/abs/1810.03993).
+Dataset cards help users understand the contents of the dataset, context for how the dataset should be used, how it was created, and considerations for using the dataset.
+This guide shows you how to create your own Dataset card.
+
+1. Create a new Dataset card by opening the [online card creator](https://huggingface.co/datasets/card-creator/), or manually copying the template from [here](https://raw.githubusercontent.com/huggingface/datasets/master/templates/README.md).
+
+2. Next, you need to generate structured tags. The tags help users discover your dataset on the Hub. Create the tags with the [online Datasets Tagging app](https://huggingface.co/spaces/huggingface/datasets-tagging).
+
+3. Select the appropriate tags for your dataset from the dropdown menus, and save the file once you are done.
+
+4. Expand the **Show YAML output aggregating the tags** section on the right, copy the YAML tags, and paste it under the matching section on the online form. Paste the tags into your `README.md` file if you manually created your Dataset card.
+
+5. Expand the **Show Markdown Data Fields** section, paste it into the **Data Fields** section under **Data Structure** on the online form (or your local `README.md`). Modify the descriptions as needed, and briefly describe each of the fields.
+
+6. Fill out the Dataset card to the best of your ability. Refer to the [Dataset Card Creation Guide](https://github.com/huggingface/datasets/blob/master/templates/README_guide.md) for more detailed information about each section of the card. For fields you are unable to complete, you can write **[More Information Needed]**.
+
+7. Once you are done filling out the card with the online form, click the **Export** button to download the Dataset card. Place it in the same folder as your dataset.
+
+Feel free to take a look at these examples of good Dataset cards for inspiration:
+
+- [SNLI](https://huggingface.co/datasets/snli)
+- [CNN / DailyMail](https://huggingface.co/datasets/cnn_dailymail)
+- [Allociné](https://huggingface.co/datasets/allocine)

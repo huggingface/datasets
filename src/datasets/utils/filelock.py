@@ -177,7 +177,7 @@ class BaseFileLock:
         A timeout of 0 means, that there is exactly one attempt to acquire the
         file lock.
 
-        .. versionadded:: 2.0.0
+        *New in version 2.0.0*
         """
         return self._timeout
 

@@ -1,0 +1,80 @@
+- sections: 
+  - local: index
+    title: 🤗 Datasets
+  - local: quickstart
+    title: Quick start
+  title: Get started
+- sections:
+  - local: tutorial
+    title: Overview
+  - local: installation
+    title: Installation
+  - local: load_hub
+    title: Hugging Face Hub
+  - local: access
+    title: The Dataset object
+  - local: use_dataset
+    title: Train with 🤗 Datasets
+  - local: metrics
+    title: Evaluate predictions
+  - local: upload_dataset
+    title: Upload a dataset to the Hub
+  title: "Tutorials"
+- sections:
+  - local: how_to
+    title: Overview
+  - local: loading
+    title: Load
+  - local: process
+    title: Process
+  - local: audio_process
+    title: Process audio data
+  - local: stream
+    title: Stream
+  - local: share
+    title: Share
+  - local: dataset_script
+    title: Create a dataset loading script
+  - local: dataset_card
+    title: Create a dataset card
+  - local: repository_structure
+    title: Structure your repository
+  - local: cache
+    title: Cache management
+  - local: filesystems
+    title: Cloud storage
+  - local: faiss_es
+    title: Search index
+  - local: how_to_metrics
+    title: Metrics
+  - local: beam
+    title: Beam Datasets
+  title: "How-to guides"
+- sections:
+  - local: about_arrow
+    title: Datasets 🤝 Arrow
+  - local: about_cache
+    title: The cache
+  - local: about_dataset_features
+    title: Dataset features
+  - local: about_dataset_load
+    title: Build and load
+  - local: about_map_batch
+    title: Batch mapping
+  - local: about_metrics
+    title: All about metrics
+  title: "Conceptual guides"
+- sections:
+  - local: package_reference/main_classes
+    title: Main classes
+  - local: package_reference/builder_classes
+    title: Builder classes
+  - local: package_reference/loading_methods
+    title: Loading methods
+  - local: package_reference/table_classes
+    title: Table Classes
+  - local: package_reference/logging_methods
+    title: Logging methods
+  - local: package_reference/task_templates
+    title: Task templates
+  title: "Reference"

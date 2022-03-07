@@ -46,7 +46,7 @@ _HOMEPAGE = "https://redcaps.xyz/"
 
 _LICENSE = "CC BY 4.0"
 
-_URL = "https://www.dropbox.com/s/cqtdpsl4hewlli1/redcaps_v1.0_annotations.zip?dl=1"
+_URL = "https://huggingface.co/datasets/red_caps/resolve/main/data/redcaps_v1.0_annotations.zip"
 
 _SUBREDDITS_WITH_YEAR = """\
 abandonedporn_2017 abandonedporn_2018 abandonedporn_2019 abandonedporn_2020 abandoned_2017 abandoned_2018

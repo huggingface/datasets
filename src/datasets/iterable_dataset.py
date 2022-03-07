@@ -58,12 +58,19 @@ class _BaseExamplesIterable:
         raise NotImplementedError()
 
 
-def _shuffle_kwargs(rng: np.random.Generator, kwargs: dict) -> dict:
+def _shuffle_kwargs(seed: Optional[int], kwargs: dict) -> dict:
     shuffled_kwargs = {}
+    if seed is None:
+        # We use the current NumPy's seed
+        _, seed, pos, *_ = np.random.get_state()
+        seed: int = seed[pos] if pos < 624 else seed[0]
+        _ = np.random.random()  # do 1 step of rng
     for key, value in sorted(kwargs.items()):
         if isinstance(value, list):
             value = list(value)
-            rng.shuffle(value)
+            # We use the same seed for all the lists that have the same length
+            # This way entangled lists of (shard, shard_metadata) are still in the right order
+            np.random.default_rng(seed + len(value)).shuffle(value)
             shuffled_kwargs[key] = value
         else:
             shuffled_kwargs[key] = value
@@ -94,8 +101,7 @@ class ShardShuffledExamplesIterable(ExamplesIterable):
 
     def __iter__(self):
         """Shuffle the kwargs order to shuffle shards"""
-        rng = np.random.default_rng(self.seed)
-        kwargs_with_shuffled_shards = _shuffle_kwargs(rng, self.kwargs)
+        kwargs_with_shuffled_shards = _shuffle_kwargs(self.seed, self.kwargs)
         yield from self.generate_examples_fn(**kwargs_with_shuffled_shards)
 
 

@@ -832,7 +832,7 @@ class ClassLabel:
         """Conversion integer => class name string."""
         if not isinstance(values, int) and not isinstance(values, Iterable):
             raise ValueError(
-                "Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+                f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
             )
         return_list = True
         if isinstance(values, int):
@@ -1147,7 +1147,16 @@ def list_of_np_array_to_pyarrow_listarray(l_arr: List[np.ndarray], type: pa.Data
         return pa.array([], type=type)
 
 
-def require_decoding(feature: FeatureType) -> bool:
+def require_decoding(feature: FeatureType, ignore_decode_attribute: bool = False) -> bool:
+    """Check if a (possibly nested) feature requires decoding.
+
+    Args:
+        feature (FeatureType): the feature type to be checked
+        ignore_decode_attribute (:obj:`bool`, default ``False``): Whether to ignore the current value
+            of the `decode` attribute of the decodable feature types.
+    Returns:
+        :obj:`bool`
+    """
     if isinstance(feature, dict):
         return any(require_decoding(f) for f in feature.values())
     elif isinstance(feature, (list, tuple)):
@@ -1155,7 +1164,7 @@ def require_decoding(feature: FeatureType) -> bool:
     elif isinstance(feature, Sequence):
         return require_decoding(feature.feature)
     else:
-        return hasattr(feature, "decode_example") and feature.decode
+        return hasattr(feature, "decode_example") and (feature.decode if not ignore_decode_attribute else True)
 
 
 class Features(dict):
@@ -1264,7 +1273,7 @@ class Features(dict):
         Returns:
             :class:`Features`
 
-        Examples:
+        Example::
             >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
             {'_type': Value(dtype='string', id=None)}
         """
@@ -1380,7 +1389,7 @@ class Features(dict):
         Returns:
             :class:`Features`
 
-        Examples:
+        Example::
 
             >>> from datasets import Features, Sequence, Value
             >>> # let's say we have to features with a different order of nested fields (for a and b for example)
