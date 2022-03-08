@@ -11,7 +11,7 @@ jobs:
   build_and_package:
     runs-on: ubuntu-latest
     container:
-      image: huggingface/transformers-hf-doc-utils
+      image: huggingface/transformers-doc-builder
     env:
       COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
       PR_NUMBER: ${{ github.event.number }}
