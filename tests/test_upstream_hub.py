@@ -325,7 +325,7 @@ class TestPushToHub(TestCase):
     @require_sndfile
     def test_push_dataset_to_hub_custom_features_audio(self):
         audio_path = os.path.join(os.path.dirname(__file__), "features", "data", "test_audio_44100.wav")
-        data = {"x": [audio_path], "y": [0]}
+        data = {"x": [audio_path, None], "y": [0, -1]}
         features = Features({"x": Audio(), "y": Value("int32")})
         ds = Dataset.from_dict(data, features=features)
 
@@ -339,6 +339,9 @@ class TestPushToHub(TestCase):
                 self.assertListEqual(list(ds.features.keys()), list(hub_ds.features.keys()))
                 self.assertDictEqual(ds.features, hub_ds.features)
                 np.testing.assert_equal(ds[0]["x"]["array"], hub_ds[0]["x"]["array"])
+                self.assertEqual(
+                    ds[1], hub_ds[1]
+                )  # don't test hub_ds[0] since audio decoding might be slightly different
                 hub_ds = hub_ds.cast_column("x", Audio(decode=False))
                 elem = hub_ds[0]["x"]
                 path, bytes_ = elem["path"], elem["bytes"]
@@ -352,7 +355,7 @@ class TestPushToHub(TestCase):
     @require_pil
     def test_push_dataset_to_hub_custom_features_image(self):
         image_path = os.path.join(os.path.dirname(__file__), "features", "data", "test_image_rgb.jpg")
-        data = {"x": [image_path], "y": [0]}
+        data = {"x": [image_path, None], "y": [0, -1]}
         features = Features({"x": Image(), "y": Value("int32")})
         ds = Dataset.from_dict(data, features=features)
 
