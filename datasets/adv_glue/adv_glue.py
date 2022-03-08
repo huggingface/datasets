@@ -324,7 +324,6 @@ class AdvGlue(datasets.GeneratorBasedBuilder):
             config_key = "mnli-mm"
         data = json.loads(open(data_file).read())
         for row in data[config_key]:
-            print("example:", row)
             example = {feat: row[col] for feat, col in self.config.text_features.items()}
             example["label"] = self.config.process_label(row[self.config.label_column])
             example["idx"] = row["idx"]
