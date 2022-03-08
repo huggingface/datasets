@@ -74,7 +74,7 @@ class SplitBase(metaclass=abc.ABCMeta):
     """Abstract base class for Split compositionality.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
+    [guide on splits](/docs/datasets/loading#slice-splits)
     for more information.
 
     There are three parts to the composition:
@@ -252,7 +252,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     """Syntactic sugar for defining slice subsplits: `datasets.percent[75:-5]`.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
+    [guide on splits](/docs/datasets/loading#slice-splits)
     for more information.
     """
     # pylint: enable=line-too-long
