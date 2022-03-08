@@ -53,7 +53,7 @@ If you would like to work on any of the open Issues:
    it with `pip uninstall datasets` before reinstalling it in editable
    mode with the `-e` flag.)
 
-5. Develop the features on your branch. If you want to add a dataset see more in-detail instructions in the section [*How to add a dataset*](#how-to-add-a-dataset). Alternatively, you can follow the steps to [add a dataset](https://huggingface.co/docs/datasets/add_dataset.html) and [share a dataset](https://huggingface.co/docs/datasets/share_dataset.html) in the documentation.
+5. Develop the features on your branch. If you want to add a dataset see more in-detail instructions in the section [*How to add a dataset*](#how-to-add-a-dataset). 
 
 6. Format your code. Run black and isort so that your newly added files look nice with the following command:
 
