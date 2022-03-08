@@ -1,0 +1,830 @@
+{
+    "english_v4": {
+        "description": "OntoNotes v5.0 is final version of OntoNotes corpus, and is a large-scale, multi-genre, multilingual corpus manually annotated with syntactic, semantic and discourse information.\n\nThis dataset is the version of OntoNotes v5.0 extended and used in the CoNLL-2012 shared task , includes v4 train/dev and v9 test data for English/Chinese/Arabic from the official source (https://conll.cemantix.org/2012/data.html) and corrected version v12 train/dev/test data for English from (https://cemantix.org/data/ontonotes.html). \n\nThe source of data is from a public repo found on Medeley Data https://data.mendeley.com/datasets/zmycy7t9h9/1, which seems to be as the same with the original data, but users should use this dataset on their own responsibility.\n\nNotice that every entry in the dataset contains data of a single whole document, such that we can concatenate sentences easily. And under the \"sentences\" data field of an entry, data is stored in the format as same as (https://docs.allennlp.org/models/main/models/common/ontonotes/#ontonotessentence) ,except that `parse_tree` is of `str`, `srl_frames` is of List[Dict(\"word\":str, \"frames\":List[str])], `coref spans` is of `List[List[int](cluster_id, start_index, end_index)]` type instead. \n\nnamed entities tag set\nsection 2.6 in https://catalog.ldc.upenn.edu/docs/LDC2013T19/OntoNotes-Release-5.0.pdf\n",
+        "citation": "@inproceedings{pradhan-etal-2013-towards,\n    title = \"Towards Robust Linguistic Analysis using {O}nto{N}otes\",\n    author = {Pradhan, Sameer  and\n      Moschitti, Alessandro  and\n      Xue, Nianwen  and\n      Ng, Hwee Tou  and\n      Bj{\"o}rkelund, Anders  and\n      Uryupina, Olga  and\n      Zhang, Yuchen  and\n      Zhong, Zhi},\n    booktitle = \"Proceedings of the Seventeenth Conference on Computational Natural Language Learning\",\n    month = aug,\n    year = \"2013\",\n    address = \"Sofia, Bulgaria\",\n    publisher = \"Association for Computational Linguistics\",\n    url = \"https://aclanthology.org/W13-3516\",\n    pages = \"143--152\",\n}\n\nRalph Weischedel, Martha Palmer, Mitchell Marcus, Eduard Hovy, Sameer Pradhan, Lance Ramshaw, Nianwen Xue, Ann Taylor, Jeff Kaufman, Michelle Franchini, Mohammed El-Bachouti, Robert Belvin, Ann Houston. OntoNotes Release 5.0 LDC2013T19. Web Download. Philadelphia: Linguistic Data Consortium, 2013.\n",
+        "homepage": "https://conll.cemantix.org/2012/introduction.html",
+        "license": "",
+        "features": {
+            "document_id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "sentences": [
+                {
+                    "part_id": {
+                        "dtype": "int32",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "words": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "pos_tags": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "parse_tree": {
+                        "dtype": "string",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "predicate_lemmas": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "predicate_framenet_ids": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "word_senses": {
+                        "feature": {
+                            "dtype": "float32",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "speaker": {
+                        "dtype": "string",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "named_entities": {
+                        "feature": {
+                            "num_classes": 37,
+                            "names": [
+                                "O",
+                                "B-PERSON",
+                                "B-NORP",
+                                "B-FAC",
+                                "B-ORG",
+                                "B-GPE",
+                                "B-LOC",
+                                "B-PRODUCT",
+                                "B-EVENT",
+                                "B-WORK_OF_ART",
+                                "B-LAW",
+                                "B-LANGUAGE",
+                                "B-DATE",
+                                "B-TIME",
+                                "B-PERCENT",
+                                "B-MONEY",
+                                "B-QUANTITY",
+                                "B-ORDINAL",
+                                "B-CARDINAL",
+                                "I-PERSON",
+                                "I-NORP",
+                                "I-FAC",
+                                "I-ORG",
+                                "I-GPE",
+                                "I-LOC",
+                                "I-PRODUCT",
+                                "I-EVENT",
+                                "I-WORK_OF_ART",
+                                "I-LAW",
+                                "I-LANGUAGE",
+                                "I-DATE",
+                                "I-TIME",
+                                "I-PERCENT",
+                                "I-MONEY",
+                                "I-QUANTITY",
+                                "I-ORDINAL",
+                                "I-CARDINAL"
+                            ],
+                            "id": null,
+                            "_type": "ClassLabel"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "srl_frames": [
+                        {
+                            "verb": {
+                                "dtype": "string",
+                                "id": null,
+                                "_type": "Value"
+                            },
+                            "frames": {
+                                "feature": {
+                                    "dtype": "string",
+                                    "id": null,
+                                    "_type": "Value"
+                                },
+                                "length": -1,
+                                "id": null,
+                                "_type": "Sequence"
+                            }
+                        }
+                    ],
+                    "coref_spans": {
+                        "feature": {
+                            "feature": {
+                                "dtype": "int32",
+                                "id": null,
+                                "_type": "Value"
+                            },
+                            "length": 3,
+                            "id": null,
+                            "_type": "Sequence"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    }
+                }
+            ]
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "task_templates": null,
+        "builder_name": "ontonotesv5_conll2012",
+        "config_name": "english_v4",
+        "version": {
+            "version_str": "1.0.0",
+            "description": null,
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 109958645,
+                "num_examples": 1940,
+                "dataset_name": "ontonotesv5_conll2012"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 13829823,
+                "num_examples": 222,
+                "dataset_name": "ontonotesv5_conll2012"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 14409270,
+                "num_examples": 222,
+                "dataset_name": "ontonotesv5_conll2012"
+            }
+        },
+        "download_checksums": {
+            "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/zmycy7t9h9-1.zip": {
+                "num_bytes": 183323987,
+                "checksum": "8e44717405541be31a5ca163e7153073f373756e2abf44ccedd214c4d95daa83"
+            }
+        },
+        "download_size": 183323987,
+        "post_processing_size": null,
+        "dataset_size": 138197738,
+        "size_in_bytes": 321521725
+    },
+    "chinese_v4": {
+        "description": "OntoNotes v5.0 is final version of OntoNotes corpus, and is a large-scale, multi-genre, multilingual corpus manually annotated with syntactic, semantic and discourse information.\n\nThis dataset is the version of OntoNotes v5.0 extended and used in the CoNLL-2012 shared task , includes v4 train/dev and v9 test data for English/Chinese/Arabic from the official source (https://conll.cemantix.org/2012/data.html) and corrected version v12 train/dev/test data for English from (https://cemantix.org/data/ontonotes.html). \n\nThe source of data is from a public repo found on Medeley Data https://data.mendeley.com/datasets/zmycy7t9h9/1, which seems to be as the same with the original data, but users should use this dataset on their own responsibility.\n\nNotice that every entry in the dataset contains data of a single whole document, such that we can concatenate sentences easily. And under the \"sentences\" data field of an entry, data is stored in the format as same as (https://docs.allennlp.org/models/main/models/common/ontonotes/#ontonotessentence) ,except that `parse_tree` is of `str`, `srl_frames` is of List[Dict(\"word\":str, \"frames\":List[str])], `coref spans` is of `List[List[int](cluster_id, start_index, end_index)]` type instead. \n\nnamed entities tag set\nsection 2.6 in https://catalog.ldc.upenn.edu/docs/LDC2013T19/OntoNotes-Release-5.0.pdf\n",
+        "citation": "@inproceedings{pradhan-etal-2013-towards,\n    title = \"Towards Robust Linguistic Analysis using {O}nto{N}otes\",\n    author = {Pradhan, Sameer  and\n      Moschitti, Alessandro  and\n      Xue, Nianwen  and\n      Ng, Hwee Tou  and\n      Bj{\"o}rkelund, Anders  and\n      Uryupina, Olga  and\n      Zhang, Yuchen  and\n      Zhong, Zhi},\n    booktitle = \"Proceedings of the Seventeenth Conference on Computational Natural Language Learning\",\n    month = aug,\n    year = \"2013\",\n    address = \"Sofia, Bulgaria\",\n    publisher = \"Association for Computational Linguistics\",\n    url = \"https://aclanthology.org/W13-3516\",\n    pages = \"143--152\",\n}\n\nRalph Weischedel, Martha Palmer, Mitchell Marcus, Eduard Hovy, Sameer Pradhan, Lance Ramshaw, Nianwen Xue, Ann Taylor, Jeff Kaufman, Michelle Franchini, Mohammed El-Bachouti, Robert Belvin, Ann Houston. OntoNotes Release 5.0 LDC2013T19. Web Download. Philadelphia: Linguistic Data Consortium, 2013.\n",
+        "homepage": "https://conll.cemantix.org/2012/introduction.html",
+        "license": "",
+        "features": {
+            "document_id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "sentences": [
+                {
+                    "part_id": {
+                        "dtype": "int32",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "words": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "pos_tags": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "parse_tree": {
+                        "dtype": "string",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "predicate_lemmas": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "predicate_framenet_ids": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "word_senses": {
+                        "feature": {
+                            "dtype": "float32",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "speaker": {
+                        "dtype": "string",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "named_entities": {
+                        "feature": {
+                            "num_classes": 37,
+                            "names": [
+                                "O",
+                                "B-PERSON",
+                                "B-NORP",
+                                "B-FAC",
+                                "B-ORG",
+                                "B-GPE",
+                                "B-LOC",
+                                "B-PRODUCT",
+                                "B-EVENT",
+                                "B-WORK_OF_ART",
+                                "B-LAW",
+                                "B-LANGUAGE",
+                                "B-DATE",
+                                "B-TIME",
+                                "B-PERCENT",
+                                "B-MONEY",
+                                "B-QUANTITY",
+                                "B-ORDINAL",
+                                "B-CARDINAL",
+                                "I-PERSON",
+                                "I-NORP",
+                                "I-FAC",
+                                "I-ORG",
+                                "I-GPE",
+                                "I-LOC",
+                                "I-PRODUCT",
+                                "I-EVENT",
+                                "I-WORK_OF_ART",
+                                "I-LAW",
+                                "I-LANGUAGE",
+                                "I-DATE",
+                                "I-TIME",
+                                "I-PERCENT",
+                                "I-MONEY",
+                                "I-QUANTITY",
+                                "I-ORDINAL",
+                                "I-CARDINAL"
+                            ],
+                            "id": null,
+                            "_type": "ClassLabel"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "srl_frames": [
+                        {
+                            "verb": {
+                                "dtype": "string",
+                                "id": null,
+                                "_type": "Value"
+                            },
+                            "frames": {
+                                "feature": {
+                                    "dtype": "string",
+                                    "id": null,
+                                    "_type": "Value"
+                                },
+                                "length": -1,
+                                "id": null,
+                                "_type": "Sequence"
+                            }
+                        }
+                    ],
+                    "coref_spans": {
+                        "feature": {
+                            "feature": {
+                                "dtype": "int32",
+                                "id": null,
+                                "_type": "Value"
+                            },
+                            "length": 3,
+                            "id": null,
+                            "_type": "Sequence"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    }
+                }
+            ]
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "task_templates": null,
+        "builder_name": "ontonotesv5_conll2012",
+        "config_name": "chinese_v4",
+        "version": {
+            "version_str": "1.0.0",
+            "description": null,
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 69707835,
+                "num_examples": 1391,
+                "dataset_name": "ontonotesv5_conll2012"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 9738104,
+                "num_examples": 172,
+                "dataset_name": "ontonotesv5_conll2012"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 8670627,
+                "num_examples": 166,
+                "dataset_name": "ontonotesv5_conll2012"
+            }
+        },
+        "download_checksums": {
+            "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/zmycy7t9h9-1.zip": {
+                "num_bytes": 183323987,
+                "checksum": "8e44717405541be31a5ca163e7153073f373756e2abf44ccedd214c4d95daa83"
+            }
+        },
+        "download_size": 183323987,
+        "post_processing_size": null,
+        "dataset_size": 88116566,
+        "size_in_bytes": 271440553
+    },
+    "arabic_v4": {
+        "description": "OntoNotes v5.0 is final version of OntoNotes corpus, and is a large-scale, multi-genre, multilingual corpus manually annotated with syntactic, semantic and discourse information.\n\nThis dataset is the version of OntoNotes v5.0 extended and used in the CoNLL-2012 shared task , includes v4 train/dev and v9 test data for English/Chinese/Arabic from the official source (https://conll.cemantix.org/2012/data.html) and corrected version v12 train/dev/test data for English from (https://cemantix.org/data/ontonotes.html). \n\nThe source of data is from a public repo found on Medeley Data https://data.mendeley.com/datasets/zmycy7t9h9/1, which seems to be as the same with the original data, but users should use this dataset on their own responsibility.\n\nNotice that every entry in the dataset contains data of a single whole document, such that we can concatenate sentences easily. And under the \"sentences\" data field of an entry, data is stored in the format as same as (https://docs.allennlp.org/models/main/models/common/ontonotes/#ontonotessentence) ,except that `parse_tree` is of `str`, `srl_frames` is of List[Dict(\"word\":str, \"frames\":List[str])], `coref spans` is of `List[List[int](cluster_id, start_index, end_index)]` type instead. \n\nnamed entities tag set\nsection 2.6 in https://catalog.ldc.upenn.edu/docs/LDC2013T19/OntoNotes-Release-5.0.pdf\n",
+        "citation": "@inproceedings{pradhan-etal-2013-towards,\n    title = \"Towards Robust Linguistic Analysis using {O}nto{N}otes\",\n    author = {Pradhan, Sameer  and\n      Moschitti, Alessandro  and\n      Xue, Nianwen  and\n      Ng, Hwee Tou  and\n      Bj{\"o}rkelund, Anders  and\n      Uryupina, Olga  and\n      Zhang, Yuchen  and\n      Zhong, Zhi},\n    booktitle = \"Proceedings of the Seventeenth Conference on Computational Natural Language Learning\",\n    month = aug,\n    year = \"2013\",\n    address = \"Sofia, Bulgaria\",\n    publisher = \"Association for Computational Linguistics\",\n    url = \"https://aclanthology.org/W13-3516\",\n    pages = \"143--152\",\n}\n\nRalph Weischedel, Martha Palmer, Mitchell Marcus, Eduard Hovy, Sameer Pradhan, Lance Ramshaw, Nianwen Xue, Ann Taylor, Jeff Kaufman, Michelle Franchini, Mohammed El-Bachouti, Robert Belvin, Ann Houston. OntoNotes Release 5.0 LDC2013T19. Web Download. Philadelphia: Linguistic Data Consortium, 2013.\n",
+        "homepage": "https://conll.cemantix.org/2012/introduction.html",
+        "license": "",
+        "features": {
+            "document_id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "sentences": [
+                {
+                    "part_id": {
+                        "dtype": "int32",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "words": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "pos_tags": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "parse_tree": {
+                        "dtype": "string",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "predicate_lemmas": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "predicate_framenet_ids": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "word_senses": {
+                        "feature": {
+                            "dtype": "float32",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "speaker": {
+                        "dtype": "string",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "named_entities": {
+                        "feature": {
+                            "num_classes": 37,
+                            "names": [
+                                "O",
+                                "B-PERSON",
+                                "B-NORP",
+                                "B-FAC",
+                                "B-ORG",
+                                "B-GPE",
+                                "B-LOC",
+                                "B-PRODUCT",
+                                "B-EVENT",
+                                "B-WORK_OF_ART",
+                                "B-LAW",
+                                "B-LANGUAGE",
+                                "B-DATE",
+                                "B-TIME",
+                                "B-PERCENT",
+                                "B-MONEY",
+                                "B-QUANTITY",
+                                "B-ORDINAL",
+                                "B-CARDINAL",
+                                "I-PERSON",
+                                "I-NORP",
+                                "I-FAC",
+                                "I-ORG",
+                                "I-GPE",
+                                "I-LOC",
+                                "I-PRODUCT",
+                                "I-EVENT",
+                                "I-WORK_OF_ART",
+                                "I-LAW",
+                                "I-LANGUAGE",
+                                "I-DATE",
+                                "I-TIME",
+                                "I-PERCENT",
+                                "I-MONEY",
+                                "I-QUANTITY",
+                                "I-ORDINAL",
+                                "I-CARDINAL"
+                            ],
+                            "id": null,
+                            "_type": "ClassLabel"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "srl_frames": [
+                        {
+                            "verb": {
+                                "dtype": "string",
+                                "id": null,
+                                "_type": "Value"
+                            },
+                            "frames": {
+                                "feature": {
+                                    "dtype": "string",
+                                    "id": null,
+                                    "_type": "Value"
+                                },
+                                "length": -1,
+                                "id": null,
+                                "_type": "Sequence"
+                            }
+                        }
+                    ],
+                    "coref_spans": {
+                        "feature": {
+                            "feature": {
+                                "dtype": "int32",
+                                "id": null,
+                                "_type": "Value"
+                            },
+                            "length": 3,
+                            "id": null,
+                            "_type": "Sequence"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    }
+                }
+            ]
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "task_templates": null,
+        "builder_name": "ontonotesv5_conll2012",
+        "config_name": "arabic_v4",
+        "version": {
+            "version_str": "1.0.0",
+            "description": null,
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 41955800,
+                "num_examples": 359,
+                "dataset_name": "ontonotesv5_conll2012"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 4851300,
+                "num_examples": 44,
+                "dataset_name": "ontonotesv5_conll2012"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 4892263,
+                "num_examples": 44,
+                "dataset_name": "ontonotesv5_conll2012"
+            }
+        },
+        "download_checksums": {
+            "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/zmycy7t9h9-1.zip": {
+                "num_bytes": 183323987,
+                "checksum": "8e44717405541be31a5ca163e7153073f373756e2abf44ccedd214c4d95daa83"
+            }
+        },
+        "download_size": 183323987,
+        "post_processing_size": null,
+        "dataset_size": 51699363,
+        "size_in_bytes": 235023350
+    },
+    "english_v12": {
+        "description": "OntoNotes v5.0 is final version of OntoNotes corpus, and is a large-scale, multi-genre, multilingual corpus manually annotated with syntactic, semantic and discourse information.\n\nThis dataset is the version of OntoNotes v5.0 extended and used in the CoNLL-2012 shared task , includes v4 train/dev and v9 test data for English/Chinese/Arabic from the official source (https://conll.cemantix.org/2012/data.html) and corrected version v12 train/dev/test data for English from (https://cemantix.org/data/ontonotes.html). \n\nThe source of data is from a public repo found on Medeley Data https://data.mendeley.com/datasets/zmycy7t9h9/1, which seems to be as the same with the original data, but users should use this dataset on their own responsibility.\n\nNotice that every entry in the dataset contains data of a single whole document, such that we can concatenate sentences easily. And under the \"sentences\" data field of an entry, data is stored in the format as same as (https://docs.allennlp.org/models/main/models/common/ontonotes/#ontonotessentence) ,except that `parse_tree` is of `str`, `srl_frames` is of List[Dict(\"word\":str, \"frames\":List[str])], `coref spans` is of `List[List[int](cluster_id, start_index, end_index)]` type instead. \n\nnamed entities tag set\nsection 2.6 in https://catalog.ldc.upenn.edu/docs/LDC2013T19/OntoNotes-Release-5.0.pdf\n",
+        "citation": "@inproceedings{pradhan-etal-2013-towards,\n    title = \"Towards Robust Linguistic Analysis using {O}nto{N}otes\",\n    author = {Pradhan, Sameer  and\n      Moschitti, Alessandro  and\n      Xue, Nianwen  and\n      Ng, Hwee Tou  and\n      Bj{\"o}rkelund, Anders  and\n      Uryupina, Olga  and\n      Zhang, Yuchen  and\n      Zhong, Zhi},\n    booktitle = \"Proceedings of the Seventeenth Conference on Computational Natural Language Learning\",\n    month = aug,\n    year = \"2013\",\n    address = \"Sofia, Bulgaria\",\n    publisher = \"Association for Computational Linguistics\",\n    url = \"https://aclanthology.org/W13-3516\",\n    pages = \"143--152\",\n}\n\nRalph Weischedel, Martha Palmer, Mitchell Marcus, Eduard Hovy, Sameer Pradhan, Lance Ramshaw, Nianwen Xue, Ann Taylor, Jeff Kaufman, Michelle Franchini, Mohammed El-Bachouti, Robert Belvin, Ann Houston. OntoNotes Release 5.0 LDC2013T19. Web Download. Philadelphia: Linguistic Data Consortium, 2013.\n",
+        "homepage": "https://conll.cemantix.org/2012/introduction.html",
+        "license": "",
+        "features": {
+            "document_id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "sentences": [
+                {
+                    "part_id": {
+                        "dtype": "int32",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "words": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "pos_tags": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "parse_tree": {
+                        "dtype": "string",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "predicate_lemmas": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "predicate_framenet_ids": {
+                        "feature": {
+                            "dtype": "string",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "word_senses": {
+                        "feature": {
+                            "dtype": "float32",
+                            "id": null,
+                            "_type": "Value"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "speaker": {
+                        "dtype": "string",
+                        "id": null,
+                        "_type": "Value"
+                    },
+                    "named_entities": {
+                        "feature": {
+                            "num_classes": 37,
+                            "names": [
+                                "O",
+                                "B-PERSON",
+                                "B-NORP",
+                                "B-FAC",
+                                "B-ORG",
+                                "B-GPE",
+                                "B-LOC",
+                                "B-PRODUCT",
+                                "B-EVENT",
+                                "B-WORK_OF_ART",
+                                "B-LAW",
+                                "B-LANGUAGE",
+                                "B-DATE",
+                                "B-TIME",
+                                "B-PERCENT",
+                                "B-MONEY",
+                                "B-QUANTITY",
+                                "B-ORDINAL",
+                                "B-CARDINAL",
+                                "I-PERSON",
+                                "I-NORP",
+                                "I-FAC",
+                                "I-ORG",
+                                "I-GPE",
+                                "I-LOC",
+                                "I-PRODUCT",
+                                "I-EVENT",
+                                "I-WORK_OF_ART",
+                                "I-LAW",
+                                "I-LANGUAGE",
+                                "I-DATE",
+                                "I-TIME",
+                                "I-PERCENT",
+                                "I-MONEY",
+                                "I-QUANTITY",
+                                "I-ORDINAL",
+                                "I-CARDINAL"
+                            ],
+                            "id": null,
+                            "_type": "ClassLabel"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    },
+                    "srl_frames": [
+                        {
+                            "verb": {
+                                "dtype": "string",
+                                "id": null,
+                                "_type": "Value"
+                            },
+                            "frames": {
+                                "feature": {
+                                    "dtype": "string",
+                                    "id": null,
+                                    "_type": "Value"
+                                },
+                                "length": -1,
+                                "id": null,
+                                "_type": "Sequence"
+                            }
+                        }
+                    ],
+                    "coref_spans": {
+                        "feature": {
+                            "feature": {
+                                "dtype": "int32",
+                                "id": null,
+                                "_type": "Value"
+                            },
+                            "length": 3,
+                            "id": null,
+                            "_type": "Sequence"
+                        },
+                        "length": -1,
+                        "id": null,
+                        "_type": "Sequence"
+                    }
+                }
+            ]
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "task_templates": null,
+        "builder_name": "ontonotesv5_conll2012",
+        "config_name": "english_v12",
+        "version": {
+            "version_str": "1.0.0",
+            "description": null,
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 170168519,
+                "num_examples": 10539,
+                "dataset_name": "ontonotesv5_conll2012"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 23726599,
+                "num_examples": 1370,
+                "dataset_name": "ontonotesv5_conll2012"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 17845250,
+                "num_examples": 1200,
+                "dataset_name": "ontonotesv5_conll2012"
+            }
+        },
+        "download_checksums": {
+            "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/zmycy7t9h9-1.zip": {
+                "num_bytes": 183323987,
+                "checksum": "8e44717405541be31a5ca163e7153073f373756e2abf44ccedd214c4d95daa83"
+            }
+        },
+        "download_size": 183323987,
+        "post_processing_size": null,
+        "dataset_size": 211740368,
+        "size_in_bytes": 395064355
+    }
+}
