@@ -1149,10 +1149,10 @@ def table_flatten(table: pa.Table):
             array = table.column(field.name)
             subfeature = features[field.name]
             if pa.types.is_struct(field.type) and (
-                subfeature.flatten() != subfeature if hasattr(subfeature, "flatten") else True
+                not hasattr(subfeature, "flatten") or subfeature.flatten() != subfeature
             ):
                 flat_arrays.extend(array.flatten())
-                flat_column_names.extend([f"{field.name}.{subfield.name}" for subfield in field])
+                flat_column_names.extend([f"{field.name}.{subfield.name}" for subfield in field.type])
             else:
                 flat_arrays.append(array)
                 flat_column_names.append(field.name)
