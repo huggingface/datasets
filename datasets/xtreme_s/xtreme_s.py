@@ -620,10 +620,10 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 if file_path not in split_ids:
                     continue
 
-                audio_path = os.path.join(audio_path, *file_path.split("/"))
+                file_path = os.path.join(audio_path, *file_path.split("/"))
                 yield key, {
-                    "path": audio_path,
-                    "audio": audio_path,
+                    "path": file_path,
+                    "audio": file_path,
                     "transcription": transcription,
                     "english_transcription": english_transcription,
                     "intent_class": intent_class.lower(),
