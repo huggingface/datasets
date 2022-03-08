@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""RMSE - Root Mean Squared Error Metric"""
+"""MSE - Mean Squared Error Metric"""
 
 from sklearn.metrics import mean_squared_error
 
@@ -33,25 +33,42 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Root Mean Squared Error(RMSE) is the square root of the average of the square of difference between the predicted 
+Mean Squared Error(MSE) is the average of the square of difference between the predicted 
 and actual values.
-To compute RMSE, calculate the residual (difference between prediction and actual) for each data point, compute the norm of residual for each data point, 
-compute the mean of residuals and take the square root of that mean. [Source : C3.ai]
 """
 
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Estimated target values.
-    references: Ground truth (correct) target values.
+    predictions: array-like of shape (n_samples,) or (n_samples, n_outputs) 
+                 Estimated target values.
+    references: array-like of shape (n_samples,) or (n_samples, n_outputs)
+                 Ground truth (correct) target values.
+    sample_weight: array-like of shape (n_samples,), default=None
+                   Sample weights.
+    multioutput: {"raw_values", "uniform_average"} or array-like of shape (n_outputs,), default="uniform_average"
+                  Defines aggregating of multiple output values. Array-like value defines weights used to average errors.
+                 "raw_values" :
+                  Returns a full set of errors in case of multioutput input.
+                 "uniform_average" :
+                  Errors of all outputs are averaged with uniform weight.
+    squared : bool, default=True
+              If True returns MSE value, if False returns RMSE (Root Mean Squared Error) value.
+ 
 Returns:
-    rmse : square root of the mean squared error.
+    mse : mean squared error.
 Examples:
 
-    >>> rmse_metric = datasets.load_metric("rmse")
-    >>> results = rmse_metric.compute(predictions=[2.5, 0.0, 2, 8], references=[3, -0.5, 2, 7])
+    >>> mse_metric = datasets.load_metric("mse")
+    >>> predictions = [2.5, 0.0, 2, 8]
+    >>> references = [3, -0.5, 2, 7]
+    >>> results = mse_metric.compute(predictions=predictions, references=references)
     >>> print(results)
-    {'rmse': 0.6123724356957945}
+    {'mse': 0.375}
+    >>> rmse_result = mse_metric.compute(predictions=predictions, references=references, squared=False)
+    >>> print(rmse_result)
+    {'mse': 0.6123724356957945}
+    
 """
 
 
