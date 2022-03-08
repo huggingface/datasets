@@ -12,9 +12,9 @@ size_categories:
 source_datasets:
 - extended|other-nist
 task_categories:
-- other
+- image-classification
 task_ids:
-- other-other-image-classification
+- single-label-image-classification
 paperswithcode_id: mnist
 pretty_name: MNIST
 ---
@@ -60,7 +60,7 @@ Half of the image were drawn by Census Bureau employees and the other half by hi
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image of a handwritten digit into one of 10 classes representing integer values from 0 to 9, inclusively. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-mnist).
 
 ### Languages
 

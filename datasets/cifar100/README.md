@@ -13,9 +13,9 @@ size_categories:
 source_datasets:
 - extended|other-80-Million-Tiny-Images
 task_categories:
-- other
+- image-classification
 task_ids:
-- other-other-image-classification
+- single-label-image-classification
 paperswithcode_id: cifar-100
 ---
  
@@ -61,7 +61,7 @@ There are two labels per image - fine label (actual class) and coarse label (sup
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+- `image-classification`: The goal of this task is to classify a given image into one of 100 classes. The leaderboard is available [here](https://paperswithcode.com/sota/image-classification-on-cifar-100).
 
 ### Languages
 
