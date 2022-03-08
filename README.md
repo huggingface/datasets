@@ -1,6 +1,6 @@
 <p align="center">
     <br>
-    <img src="https://raw.githubusercontent.com/huggingface/datasets/master/docs/source/imgs/datasets_logo_name.jpg" width="400"/>
+    <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/datasets/datasets_logo.png" width="400"/>
     <br>
 <p>
 <p align="center">
