@@ -1,13 +1,12 @@
-"""The Adversarial GLUE (AdvGLUE) benchmark."""
-
-
-import csv
+"""The Adversarial GLUE (AdvGLUE) benchmark.
+Homepage: https://adversarialglue.github.io/
+"""
+import json
 import os
 import textwrap
 
-import numpy as np
-
 import datasets
+
 
 _ADV_GLUE_CITATION = """\
 @article{Wang2021AdversarialGA,
@@ -28,8 +27,8 @@ version of GLUE benchmark.
 
 _MNLI_BASE_KWARGS = dict(
     text_features={
-        "premise": "sentence1",
-        "hypothesis": "sentence2",
+        "premise": "premise",
+        "hypothesis": "hypothesis",
     },
     label_classes=["entailment", "neutral", "contradiction"],
     label_column="gold_label",
@@ -64,7 +63,8 @@ _MNLI_BASE_KWARGS = dict(
     url="http://www.nyu.edu/projects/bowman/multinli/",
 )
 
-ADVGLUE_DEV = "https://adversarialglue.github.io/dataset/dev.zip"
+ADVGLUE_DEV_URL = "https://adversarialglue.github.io/dataset/dev.zip"
+
 
 class AdvGlueConfig(datasets.BuilderConfig):
     """BuilderConfig for Adversarial GLUE."""
@@ -110,23 +110,24 @@ class AdvGlueConfig(datasets.BuilderConfig):
         self.url = url
         self.process_label = process_label
 
+
 ADVGLUE_BUILDER_CONFIGS = [
-        AdvGlueConfig(
-            name="adv_sst2",
-            description=textwrap.dedent(
-                """Adversarial version of SST-2.
+    AdvGlueConfig(
+        name="adv_sst2",
+        description=textwrap.dedent(
+            """Adversarial version of SST-2.
             The Stanford Sentiment Treebank consists of sentences from movie reviews and
             human annotations of their sentiment. The task is to predict the sentiment of a
             given sentence. We use the two-way (positive/negative) class split, and use only
             sentence-level labels."""
-            ),
-            text_features={"sentence": "sentence"},
-            label_classes=["negative", "positive"],
-            label_column="label",
-            data_url="https://dl.fbaipublicfiles.com/glue/data/SST-2.zip",
-            data_dir="SST-2",
-            citation=textwrap.dedent(
-                """\
+        ),
+        text_features={"sentence": "sentence"},
+        label_classes=["negative", "positive"],
+        label_column="label",
+        data_url="https://dl.fbaipublicfiles.com/glue/data/SST-2.zip",
+        data_dir="SST-2",
+        citation=textwrap.dedent(
+            """\
             @inproceedings{socher2013recursive,
               title={Recursive deep models for semantic compositionality over a sentiment treebank},
               author={Socher, Richard and Perelygin, Alex and Wu, Jean and Chuang, Jason and Manning, Christopher D and Ng, Andrew and Potts, Christopher},
@@ -134,27 +135,27 @@ ADVGLUE_BUILDER_CONFIGS = [
               pages={1631--1642},
               year={2013}
             }"""
-            ),
-            url="https://datasets.stanford.edu/sentiment/index.html",
         ),
-        AdvGlueConfig(
-            name="adv_qqp",
-            description=textwrap.dedent(
-                """Adversarial version of QQP.
+        url="https://datasets.stanford.edu/sentiment/index.html",
+    ),
+    AdvGlueConfig(
+        name="adv_qqp",
+        description=textwrap.dedent(
+            """Adversarial version of QQP.
             The Quora Question Pairs2 dataset is a collection of question pairs from the
             community question-answering website Quora. The task is to determine whether a
             pair of questions are semantically equivalent."""
-            ),
-            text_features={
-                "question1": "question1",
-                "question2": "question2",
-            },
-            label_classes=["not_duplicate", "duplicate"],
-            label_column="is_duplicate",
-            data_url="https://dl.fbaipublicfiles.com/glue/data/QQP-clean.zip",
-            data_dir="QQP",
-            citation=textwrap.dedent(
-                """\
+        ),
+        text_features={
+            "question1": "question1",
+            "question2": "question2",
+        },
+        label_classes=["not_duplicate", "duplicate"],
+        label_column="is_duplicate",
+        data_url="https://dl.fbaipublicfiles.com/glue/data/QQP-clean.zip",
+        data_dir="QQP",
+        citation=textwrap.dedent(
+            """\
           @online{WinNT,
             author = {Iyer, Shankar and Dandekar, Nikhil and Csernai, Kornel},
             title = {First Quora Dataset Release: Question Pairs},
@@ -162,13 +163,13 @@ ADVGLUE_BUILDER_CONFIGS = [
             url = {https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs},
             urldate = {2019-04-03}
           }"""
-            ),
-            url="https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs",
         ),
-        AdvGlueConfig(
-            name="mnli",
-            description=textwrap.dedent(
-                """Adversarial version of MNLI.
+        url="https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs",
+    ),
+    AdvGlueConfig(
+        name="adv_mnli",
+        description=textwrap.dedent(
+            """Adversarial version of MNLI.
             The Multi-Genre Natural Language Inference Corpus is a crowdsourced
             collection of sentence pairs with textual entailment annotations. Given a premise sentence
             and a hypothesis sentence, the task is to predict whether the premise entails the hypothesis
@@ -177,22 +178,22 @@ ADVGLUE_BUILDER_CONFIGS = [
             We use the standard test set, for which we obtained private labels from the authors, and evaluate
             on both the matched (in-domain) and mismatched (cross-domain) section. We also use and recommend
             the SNLI corpus as 550k examples of auxiliary training data."""
-            ),
-            **_MNLI_BASE_KWARGS,
         ),
-        AdvGlueConfig(
-            name="mnli_mismatched",
-            description=textwrap.dedent(
-                """\Adversarial version of MNLI-mismatched.
+        **_MNLI_BASE_KWARGS,
+    ),
+    AdvGlueConfig(
+        name="adv_mnli_mismatched",
+        description=textwrap.dedent(
+            """\Adversarial version of MNLI-mismatched.
           The mismatched validation and test splits from MNLI.
           See the "mnli" BuilderConfig for additional information."""
-            ),
-            **_MNLI_BASE_KWARGS,
         ),
-        AdvGlueConfig(
-            name="qnli",
-            description=textwrap.dedent(
-                """Adversarial version of QNLI.
+        **_MNLI_BASE_KWARGS,
+    ),
+    AdvGlueConfig(
+        name="adv_qnli",
+        description=textwrap.dedent(
+            """Adversarial version of QNLI.
             The Stanford Question Answering Dataset is a question-answering
             dataset consisting of question-paragraph pairs, where one of the sentences in the paragraph (drawn
             from Wikipedia) contains the answer to the corresponding question (written by an annotator). We
@@ -202,46 +203,46 @@ ADVGLUE_BUILDER_CONFIGS = [
             the answer to the question. This modified version of the original task removes the requirement that
             the model select the exact answer, but also removes the simplifying assumptions that the answer
             is always present in the input and that lexical overlap is a reliable cue."""
-            ),  # pylint: disable=line-too-long
-            text_features={
-                "question": "question",
-                "sentence": "sentence",
-            },
-            label_classes=["entailment", "not_entailment"],
-            label_column="label",
-            data_url="https://dl.fbaipublicfiles.com/glue/data/QNLIv2.zip",
-            data_dir="QNLI",
-            citation=textwrap.dedent(
-                """\
+        ),  # pylint: disable=line-too-long
+        text_features={
+            "question": "question",
+            "sentence": "sentence",
+        },
+        label_classes=["entailment", "not_entailment"],
+        label_column="label",
+        data_url="https://dl.fbaipublicfiles.com/glue/data/QNLIv2.zip",
+        data_dir="QNLI",
+        citation=textwrap.dedent(
+            """\
             @article{rajpurkar2016squad,
               title={Squad: 100,000+ questions for machine comprehension of text},
               author={Rajpurkar, Pranav and Zhang, Jian and Lopyrev, Konstantin and Liang, Percy},
               journal={arXiv preprint arXiv:1606.05250},
               year={2016}
             }"""
-            ),
-            url="https://rajpurkar.github.io/SQuAD-explorer/",
         ),
-        AdvGlueConfig(
-            name="rte",
-            description=textwrap.dedent(
-                """Adversarial version of RTE.
+        url="https://rajpurkar.github.io/SQuAD-explorer/",
+    ),
+    AdvGlueConfig(
+        name="adv_rte",
+        description=textwrap.dedent(
+            """Adversarial version of RTE.
             The Recognizing Textual Entailment (RTE) datasets come from a series of annual textual
             entailment challenges. We combine the data from RTE1 (Dagan et al., 2006), RTE2 (Bar Haim
             et al., 2006), RTE3 (Giampiccolo et al., 2007), and RTE5 (Bentivogli et al., 2009).4 Examples are
             constructed based on news and Wikipedia text. We convert all datasets to a two-class split, where
             for three-class datasets we collapse neutral and contradiction into not entailment, for consistency."""
-            ),  # pylint: disable=line-too-long
-            text_features={
-                "sentence1": "sentence1",
-                "sentence2": "sentence2",
-            },
-            label_classes=["entailment", "not_entailment"],
-            label_column="label",
-            data_url="https://dl.fbaipublicfiles.com/glue/data/RTE.zip",
-            data_dir="RTE",
-            citation=textwrap.dedent(
-                """\
+        ),  # pylint: disable=line-too-long
+        text_features={
+            "sentence1": "sentence1",
+            "sentence2": "sentence2",
+        },
+        label_classes=["entailment", "not_entailment"],
+        label_column="label",
+        data_url="https://dl.fbaipublicfiles.com/glue/data/RTE.zip",
+        data_dir="RTE",
+        citation=textwrap.dedent(
+            """\
             @inproceedings{dagan2005pascal,
               title={The PASCAL recognising textual entailment challenge},
               author={Dagan, Ido and Glickman, Oren and Magnini, Bernardo},
@@ -274,19 +275,21 @@ ADVGLUE_BUILDER_CONFIGS = [
               booktitle={TAC},
               year={2009}
             }"""
-            ),
-            url="https://aclweb.org/aclwiki/Recognizing_Textual_Entailment",
         ),
-    ]
+        url="https://aclweb.org/aclwiki/Recognizing_Textual_Entailment",
+    ),
+]
 
 
-class AdvGlue(datasets.BuilderConfig):
+class AdvGlue(datasets.GeneratorBasedBuilder):
     """The General Language Understanding Evaluation (GLUE) benchmark."""
-    DATASETS = ['sst2', 'qqp', 'mnli', 'mnli_mismatched', 'qnli', 'rte']
+
+    DATASETS = ["adv_sst2", "adv_qqp", "adv_mnli", "adv_mnli_mismatched", "adv_qnli", "adv_rte"]
     BUILDER_CONFIGS = ADVGLUE_BUILDER_CONFIGS
 
     def _info(self):
         features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
+        features["idx"] = datasets.Value("int32")
         return datasets.DatasetInfo(
             description=_ADV_GLUE_DESCRIPTION,
             features=datasets.Features(features),
@@ -296,16 +299,27 @@ class AdvGlue(datasets.BuilderConfig):
 
     def _split_generators(self, dl_manager):
         assert self.config.name in AdvGlue.DATASETS
-    
-        dl_dir = dl_manager.download_and_extract(self.config.data_url)
-        data_dir = os.path.join(dl_dir, self.config.data_dir)
-        mrpc_files = None
-        return datasets.SplitGenerator(
-            name=datasets.Split.VALIDATION,
-            gen_kwargs={},
-        )
+        data_dir = dl_manager.download_and_extract(ADVGLUE_DEV_URL)
+        data_file = os.path.join(data_dir, "dev", "dev.json")
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "data_file": data_file,
+                },
+            )
+        ]
 
-    def _generate_examples(self, data_file, split, mrpc_files=None):
+    def _generate_examples(self, data_file):
+        # We name splits 'adv_sst2' instead of 'sst2' so as not to be confused
+        # with the original SST-2. Here they're named like 'sst2' so we have to
+        # remove the 'adv_' prefix.
+        config_key = self.config.name.replace("adv_", "")
+        if config_key == "mnli_mismatched":
+            # and they name this split differently.
+            config_key = "mnli-mm"
         data = json.loads(open(data_file).read())
-        for obj in data[self.config.name]:
-            yield obj # a dict
+        for row in data[config_key]:
+            example = {feat: row[col] for feat, col in self.config.text_features.items()}
+            example["idx"] = row["idx"]
+            yield example["idx"], example
