@@ -74,7 +74,7 @@ class SplitBase(metaclass=abc.ABCMeta):
     """Abstract base class for Split compositionality.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
+    [guide on splits](/docs/datasets/loading#slice-splits)
     for more information.
 
     There are three parts to the composition:
@@ -137,7 +137,7 @@ class SplitBase(metaclass=abc.ABCMeta):
         dataset with `datasets.percent`), and `weighted` (get subsplits with proportions
         specified by `weighted`).
 
-        Examples:
+        Example::
 
         ```
         # 50% train, 50% test
@@ -252,7 +252,7 @@ class PercentSlice(metaclass=PercentSliceMeta):
     """Syntactic sugar for defining slice subsplits: `datasets.percent[75:-5]`.
 
     See the
-    [guide on splits](https://github.com/huggingface/datasets/blob/master/docs/source/splits.rst)
+    [guide on splits](/docs/datasets/loading#slice-splits)
     for more information.
     """
     # pylint: enable=line-too-long
@@ -303,7 +303,7 @@ class _SubSplit(SplitBase):
 class NamedSplit(SplitBase):
     """Descriptor corresponding to a named split (train, test, ...).
 
-    Examples:
+    Example::
         Each descriptor can be composed with other using addition or slice. Ex::
 
             split = datasets.Split.TRAIN.subsplit(datasets.percent[0:25]) + datasets.Split.TEST

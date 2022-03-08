@@ -130,12 +130,11 @@ Malayalam
 
 ### Data Splits
 
-
-|              | Tain   | Valid |
-| -----        | ------: | -----: |
-| English      |  22762 |  2843 |
-| Tamil        |  16160 |  2018 |
-| Malayalam    |  8564  |  1070 |
+|           | train | validation |
+| -----     |------:|-----------:|
+| English   | 22762 |       2843 |
+| Tamil     | 16160 |       2018 |
+| Malayalam |  8564 |       1070 |
 
 ## Dataset Creation
 

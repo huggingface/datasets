@@ -153,7 +153,7 @@ class Image:
 
         if pa.types.is_string(storage.type):
             bytes_array = pa.array([None] * len(storage), type=pa.binary())
-            storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"])
+            storage = pa.StructArray.from_arrays([bytes_array, storage], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_struct(storage.type):
             if storage.type.get_field_index("bytes") >= 0:
                 bytes_array = storage.field("bytes")
@@ -163,7 +163,7 @@ class Image:
                 path_array = storage.field("path")
             else:
                 path_array = pa.array([None] * len(storage), type=pa.string())
-            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=storage.is_null())
         elif pa.types.is_list(storage.type):
             bytes_array = pa.array(
                 [
@@ -173,7 +173,9 @@ class Image:
                 type=pa.binary(),
             )
             path_array = pa.array([None] * len(storage), type=pa.string())
-            storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+            storage = pa.StructArray.from_arrays(
+                [bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null()
+            )
         return array_cast(storage, self.pa_type)
 
     def embed_storage(self, storage: pa.StructArray, drop_paths: bool = True) -> pa.StructArray:
@@ -195,11 +197,14 @@ class Image:
             return bytes_
 
         bytes_array = pa.array(
-            [path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"] for x in storage.to_pylist()],
+            [
+                (path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"]) if x is not None else None
+                for x in storage.to_pylist()
+            ],
             type=pa.binary(),
         )
         path_array = pa.array([None] * len(storage), type=pa.string()) if drop_paths else storage.field("path")
-        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"])
+        storage = pa.StructArray.from_arrays([bytes_array, path_array], ["bytes", "path"], mask=bytes_array.is_null())
         return array_cast(storage, self.pa_type)
 
 

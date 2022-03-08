@@ -14,10 +14,11 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- image-to-text
+- image-classification
 task_ids:
-- other-other-image-classification
-- other-other-image-captioning
+- image-captioning
+- single-label-image-classification
 paperswithcode_id: redcaps
 pretty_name: RedCaps
 ---

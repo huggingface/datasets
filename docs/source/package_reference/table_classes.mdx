@@ -1,0 +1,135 @@
+# Table Classes
+
+Each `datasets.Dataset` object is backed by a PyArrow Table.
+A Table can be loaded from either the disk (memory mapped) or in memory.
+Several Table types are available, and they all inherit from [`datasets.table.Table`].
+
+## Table
+
+[[autodoc]] datasets.table.Table
+    - validate
+    - equals
+    - to_batches
+    - to_pydict
+    - to_pandas
+    - to_string
+    - field
+    - column
+    - itercolumns
+    - schema
+    - columns
+    - num_columns
+    - num_rows
+    - shape
+    - nbytes
+
+## InMemoryTable
+
+[[autodoc]] datasets.table.InMemoryTable
+    - validate
+    - equals
+    - to_batches
+    - to_pydict
+    - to_pandas
+    - to_string
+    - field
+    - column
+    - itercolumns
+    - schema
+    - columns
+    - num_columns
+    - num_rows
+    - shape
+    - nbytes
+    - column_names
+    - slice
+    - filter
+    - flatten
+    - combine_chunks
+    - cast
+    - replace_schema_metadata
+    - add_column
+    - append_column
+    - remove_column
+    - set_column
+    - rename_columns
+    - drop
+    - from_file
+    - from_buffer
+    - from_pandas
+    - from_arrays
+    - from_pydict
+    - from_batches
+
+## MemoryMappedTable
+
+[[autodoc]] datasets.table.MemoryMappedTable
+    - validate
+    - equals
+    - to_batches
+    - to_pydict
+    - to_pandas
+    - to_string
+    - field
+    - column
+    - itercolumns
+    - schema
+    - columns
+    - num_columns
+    - num_rows
+    - shape
+    - nbytes
+    - column_names
+    - slice
+    - filter
+    - flatten
+    - combine_chunks
+    - cast
+    - replace_schema_metadata
+    - add_column
+    - append_column
+    - remove_column
+    - set_column
+    - rename_columns
+    - drop
+    - from_file
+
+## ConcatenationTable
+
+[[autodoc]] datasets.table.ConcatenationTable
+    - validate
+    - equals
+    - to_batches
+    - to_pydict
+    - to_pandas
+    - to_string
+    - field
+    - column
+    - itercolumns
+    - schema
+    - columns
+    - num_columns
+    - num_rows
+    - shape
+    - nbytes
+    - column_names
+    - slice
+    - filter
+    - flatten
+    - combine_chunks
+    - cast
+    - replace_schema_metadata
+    - add_column
+    - append_column
+    - remove_column
+    - set_column
+    - rename_columns
+    - drop
+    - from_blocks
+    - from_tables
+
+## Utils
+
+[[autodoc]] datasets.table.concat_tables
+
+[[autodoc]] datasets.table.list_table_cache_files

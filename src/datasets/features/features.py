@@ -832,7 +832,7 @@ class ClassLabel:
         """Conversion integer => class name string."""
         if not isinstance(values, int) and not isinstance(values, Iterable):
             raise ValueError(
-                "Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
+                f"Values {values} should be an integer or an Iterable (list, numpy array, pytorch, tensorflow tensors)"
             )
         return_list = True
         if isinstance(values, int):
@@ -1287,7 +1287,7 @@ class Features(dict):
         Returns:
             :class:`Features`
 
-        Examples:
+        Example::
             >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
             {'_type': Value(dtype='string', id=None)}
         """
@@ -1403,7 +1403,7 @@ class Features(dict):
         Returns:
             :class:`Features`
 
-        Examples:
+        Example::
 
             >>> from datasets import Features, Sequence, Value
             >>> # let's say we have to features with a different order of nested fields (for a and b for example)
