@@ -463,7 +463,7 @@ class IterableDataset(DatasetInfoMixin):
 
     def map(
         self,
-        function: Callable,
+        function: Optional[Callable] = None,
         with_indices: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
@@ -486,8 +486,15 @@ class IterableDataset(DatasetInfoMixin):
           A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
 
         Args:
-            function (:obj:`Callable`, optional, default None): if not None, this function is applied
-                on-the-fly on the examples when you iterate on the dataset.
+            function (:obj:`Callable`, optional, default None): Function applied on-the-fly on the examples when you iterate on the dataset
+                It must have one of the following signatures:
+
+                - `function(example: Union[Dict, Any]) -> dict` if `batched=False` and `with_indices=False`
+                - `function(example: Union[Dict, Any], idx: int) -> dict` if `batched=False` and `with_indices=True`
+                - `function(batch: Union[Dict[List], List[Any]]) -> dict` if `batched=True` and `with_indices=False`
+                - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> dict` if `batched=True` and `with_indices=True`
+
+                If no function is provided, default to identity function: ``lambda x: x``.
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
@@ -501,6 +508,8 @@ class IterableDataset(DatasetInfoMixin):
             input_columns = [input_columns]
         if isinstance(remove_columns, str):
             remove_columns = [remove_columns]
+        if function is None:
+            function = lambda x: x  # noqa: E731
         info = copy.deepcopy(self._info)
         info.features = None
         ex_iterable = MappedExamplesIterable(
@@ -598,6 +607,78 @@ class IterableDataset(DatasetInfoMixin):
             shuffling=copy.deepcopy(self._shuffling),
         )
 
+    def add_column(self, name: str, column: Union[list, np.array]) -> "IterableDataset":
+        """Add column to Dataset.
+
+        Args:
+            name (str): Column name.
+            column (list or np.array): Column data to be added.
+
+        Returns:
+            :class:`IterableDataset`
+        """
+
+        def add_column_fn(example, idx):
+            if name in example:
+                raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
+            return {name: column[idx]}
+
+        return self.map(add_column_fn, with_indices=True)
+
+    def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDataset":
+        """
+        Rename a column in the dataset, and move the features associated to the original column under the new column
+        name.
+
+        Args:
+            original_column_name (:obj:`str`): Name of the column to rename.
+            new_column_name (:obj:`str`): New name for the column.
+
+        Returns:
+            :class:`IterableDataset`: A copy of the dataset with a renamed column.
+        """
+
+        def add_new_column_fn(example):
+            if original_column_name not in example:
+                raise ValueError(
+                    f"Error when renaming {original_column_name} to {new_column_name}: column {original_column_name} is not in the dataset."
+                )
+            if new_column_name in example:
+                raise ValueError(
+                    f"Error when renaming {original_column_name} to {new_column_name}: column {new_column_name} is already in the dataset."
+                )
+            return {new_column_name: example[original_column_name]}
+
+        return self.map(add_new_column_fn, remove_columns=[original_column_name])
+
+    def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDataset":
+        """
+        Rename several columns in the dataset, and move the features associated to the original columns under
+        the new column names.
+
+        Args:
+            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+
+        Returns:
+            :class:`IterableDataset`: A copy of the dataset with renamed columns
+        """
+
+        def add_new_columns_fn(example):
+            if any(col not in example for col in column_mapping):
+                raise ValueError(
+                    f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
+                )
+            if any(col in example for col in column_mapping.values()):
+                raise ValueError(
+                    f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(example) - set(column_mapping.values())} are already in the dataset."
+                )
+            return {
+                new_column_name: example[original_column_name]
+                for original_column_name, new_column_name in column_mapping.items()
+            }
+
+        return self.map(add_new_columns_fn, remove_columns=list(column_mapping))
+
     def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
         """
         Remove one or several column(s) in the dataset and the features associated to them.
@@ -610,13 +691,7 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             :class:`IterableDataset`: A copy of the dataset object without the columns to remove.
         """
-        if isinstance(column_names, str):
-            column_names = [column_names]
-
-        def remove_fn(example):
-            return {k: v for k, v in example.items() if k not in column_names}
-
-        return self.map(remove_fn)
+        return self.map(remove_columns=column_names)
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
         """Cast column to feature for decoding.
