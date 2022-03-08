@@ -569,7 +569,7 @@ class IterableDataset(DatasetInfoMixin):
             info=copy.deepcopy(self._info),
             split=self._split,
             format_type=self._format_type,
-            shuffling=copy.deepcopy(self._shuffling),
+            shuffling=shuffling,
         )
 
     def set_epoch(self, epoch: int):
