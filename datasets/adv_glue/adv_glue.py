@@ -31,7 +31,7 @@ _MNLI_BASE_KWARGS = dict(
         "hypothesis": "hypothesis",
     },
     label_classes=["entailment", "neutral", "contradiction"],
-    label_column="gold_label",
+    label_column="label",
     data_url="https://dl.fbaipublicfiles.com/glue/data/MNLI.zip",
     data_dir="MNLI",
     citation=textwrap.dedent(
@@ -151,7 +151,7 @@ ADVGLUE_BUILDER_CONFIGS = [
             "question2": "question2",
         },
         label_classes=["not_duplicate", "duplicate"],
-        label_column="is_duplicate",
+        label_column="label",
         data_url="https://dl.fbaipublicfiles.com/glue/data/QQP-clean.zip",
         data_dir="QQP",
         citation=textwrap.dedent(
@@ -289,6 +289,10 @@ class AdvGlue(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features.keys()}
+        if self.config.label_classes:
+            features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
+        else:
+            features["label"] = datasets.Value("float32")
         features["idx"] = datasets.Value("int32")
         return datasets.DatasetInfo(
             description=_ADV_GLUE_DESCRIPTION,
@@ -320,6 +324,8 @@ class AdvGlue(datasets.GeneratorBasedBuilder):
             config_key = "mnli-mm"
         data = json.loads(open(data_file).read())
         for row in data[config_key]:
+            print("example:", row)
             example = {feat: row[col] for feat, col in self.config.text_features.items()}
+            example["label"] = self.config.process_label(row[self.config.label_column])
             example["idx"] = row["idx"]
             yield example["idx"], example
