@@ -1,11 +1,14 @@
 ---
 annotations_creators:
 - expert-generated
-language_creators: []
-languages: []
+language_creators:
+- found
+languages:
+- en
 licenses:
 - mit
-multilinguality: []
+multilinguality:
+- monolingual
 size_categories:
 - 10K<n<100K
 source_datasets:
@@ -128,7 +131,7 @@ We use the front look thumbnail images of 70,000 unique products to build Fashio
 6. Negating the intensities of the image.
 7. Converting the image to 8-bit grayscale pixels.
 
-#### Who are the source image producers?
+#### Who are the source language producers?
 
 **From the arXiv paper:**
 Every fashion product on Zalando has a set of pictures shot by professional photographers, demonstrating different aspects of the product, i.e. front and back looks, details, looks with model and in an outfit.
