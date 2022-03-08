@@ -73,8 +73,8 @@ class Mse(datasets.Metric):
             ],
         )
 
-    def _compute(self, predictions, references):
+    def _compute(self, predictions, references, sample_weight=None, multioutput="uniform_average", squared=True):
 
-        rmse = mean_squared_error(references, predictions, squared=False)
-
-        return {"rmse": rmse}
+        mse = mean_squared_error(references, predictions, sample_weight=sample_weight, multioutput=multioutput, squared=squared)
+        
+        return {"mse": mse}
