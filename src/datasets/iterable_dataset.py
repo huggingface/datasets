@@ -569,7 +569,7 @@ class IterableDataset(DatasetInfoMixin):
             info=copy.deepcopy(self._info),
             split=self._split,
             format_type=self._format_type,
-            shuffling=shuffling,
+            shuffling=copy.deepcopy(self._shuffling),
         )
 
     def set_epoch(self, epoch: int):
@@ -705,6 +705,32 @@ class IterableDataset(DatasetInfoMixin):
         """
         info = copy.deepcopy(self._info)
         info.features[column] = feature
+        return iterable_dataset(
+            ex_iterable=self._ex_iterable,
+            info=info,
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+        )
+
+    def cast(
+        self,
+        features: Features,
+    ) -> "IterableDataset":
+        """
+        Cast the dataset to a new set of features.
+
+        Args:
+            features (:class:`datasets.Features`): New features to cast the dataset to.
+                The name of the fields in the features must match the current column names.
+                The type of the data must also be convertible from one type to the other.
+                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+
+        Returns:
+            :class:`IterableDataset`: A copy of the dataset with casted features.
+        """
+        info = copy.deepcopy(self._info)
+        info.features = features
         return iterable_dataset(
             ex_iterable=self._ex_iterable,
             info=info,
