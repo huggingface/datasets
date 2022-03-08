@@ -40,14 +40,31 @@ values.
 
 _KWARGS_DESCRIPTION = """
 Args:
-    references: Ground truth (correct) target values.
-    predictions: Estimated target values.
+    predictions: array-like of shape (n_samples,) or (n_samples, n_outputs)
+                 Estimated target values.
+    references: array-like of shape (n_samples,) or (n_samples, n_outputs)
+                Ground truth (correct) target values.
+    sample_weight: array-like of shape (n_samples,), default=None
+                   Sample weights.
+    multioutput: {"raw_values", "uniform_average"} or array-like of shape (n_outputs,), default="uniform_average" 
+                  Defines aggregating of multiple output values. Array-like value defines weights used to average errors.    
+                 
+                 "raw_values" :
+                 Returns a full set of errors in case of multioutput input.  
+                 
+                 "uniform_average" :
+                 Errors of all outputs are averaged with uniform weight.   
+       
 Returns:
     mae : mean absolute error.
+          If multioutput is "raw_values", then mean absolute error is returned for each output separately. If multioutput is "uniform_average" or an ndarray of weights, then the weighted average of all output errors is returned.
+          MAE output is non-negative floating point. The best value is 0.0.   
 Examples:
 
     >>> mae_metric = datasets.load_metric("mae")
-    >>> results = mae_metric.compute(references=[3, -0.5, 2, 7], predictions=[2.5, 0.0, 2, 8])
+    >>> predictions = [2.5, 0.0, 2, 8]
+    >>> references = [3, -0.5, 2, 7]
+    >>> results = mae_metric.compute(predictions=predictions, references=references)
     >>> print(results)
     {'mae': 0.5}
 """
