@@ -3401,7 +3401,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 nonlocal extra_nbytes
                 if isinstance(feature, (Audio, Image)):
                     for x in array.to_pylist():
-                        if x["bytes"] is None and x["path"] is not None:
+                        if x is not None and x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])
                             extra_nbytes += size
                     extra_nbytes -= array.field("path").nbytes

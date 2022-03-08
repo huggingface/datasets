@@ -161,7 +161,7 @@ class Audio:
             return bytes_
 
         bytes_array = pa.array(
-            [path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"] for x in storage.to_pylist()],
+            [(path_to_bytes(x["path"]) if x["bytes"] is None else x["bytes"]) if x is not None else None for x in storage.to_pylist()],
             type=pa.binary(),
         )
         path_array = pa.array([None] * len(storage), type=pa.string()) if drop_paths else storage.field("path")
