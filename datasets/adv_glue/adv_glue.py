@@ -184,7 +184,7 @@ ADVGLUE_BUILDER_CONFIGS = [
     AdvGlueConfig(
         name="adv_mnli_mismatched",
         description=textwrap.dedent(
-            """\Adversarial version of MNLI-mismatched.
+            """Adversarial version of MNLI-mismatched.
           The mismatched validation and test splits from MNLI.
           See the "mnli" BuilderConfig for additional information."""
         ),
