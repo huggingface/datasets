@@ -71,8 +71,8 @@ class Mae(datasets.Metric):
             ],
         )
 
-    def _compute(self, predictions, references):
+    def _compute(self, predictions, references, sample_weight=None, multioutput="uniform_average"):
 
-        mae_score = mean_absolute_error(references, predictions)
+        mae_score = mean_absolute_error(references, predictions, sample_weight=sample_weight, multioutput=multioutput)
 
         return {"mae": mae_score}
