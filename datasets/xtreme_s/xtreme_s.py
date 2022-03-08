@@ -337,7 +337,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
 
         # find relevant ids
         sub_path = os.path.join(data_dir, sub_folder)
-        all_ids_paths = glob.glob(os.path.join(sub_path, "/*/*.txt")) + glob.glob(os.path.join(sub_path, "/*.txt"))
+        all_ids_paths = glob.glob(os.path.join(sub_path, "*/*.txt")) + glob.glob(os.path.join(sub_path, "*.txt"))
         all_ids = []
         if sub_folder != "":
             for path in all_ids_paths:
