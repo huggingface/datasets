@@ -867,9 +867,10 @@ class DatasetDict(dict):
                 - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
 
         Example::
-            .. code-block:: python
 
-                >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
+            ```py
+            >>> dataset_dict.push_to_hub("<organization>/<dataset_id>")
+            ```
         """
         self._check_values_type()
         total_uploaded_size = 0
