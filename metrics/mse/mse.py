@@ -92,6 +92,8 @@ class Mse(datasets.Metric):
 
     def _compute(self, predictions, references, sample_weight=None, multioutput="uniform_average", squared=True):
 
-        mse = mean_squared_error(references, predictions, sample_weight=sample_weight, multioutput=multioutput, squared=squared)
-        
+        mse = mean_squared_error(
+            references, predictions, sample_weight=sample_weight, multioutput=multioutput, squared=squared
+        )
+
         return {"mse": mse}
