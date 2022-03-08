@@ -50,6 +50,15 @@ def dataset(generate_examples_fn):
     return IterableDataset(ex_iterable, info=DatasetInfo(description="dummy"), split="train")
 
 
+@pytest.fixture
+def dataset_with_several_columns(generate_examples_fn):
+    ex_iterable = ExamplesIterable(
+        generate_examples_fn,
+        {"filepath": ["data0.txt", "data1.txt", "data2.txt"], "metadata": {"sources": ["https://foo.bar"]}},
+    )
+    return IterableDataset(ex_iterable, info=DatasetInfo(description="dummy"), split="train")
+
+
 ################################
 #
 #   _BaseExampleIterable tests
@@ -526,6 +535,40 @@ def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, metho
     assert sorted(dataset, key=key) == sorted(shuffled_dataset, key=key)
 
 
+def test_iterable_dataset_add_column(dataset_with_several_columns):
+    new_column = list(range(DEFAULT_N_EXAMPLES))
+    new_dataset = dataset_with_several_columns.add_column("new_column", new_column)
+    assert list(new_dataset) == [
+        {**example, "new_column": idx} for idx, example in enumerate(dataset_with_several_columns)
+    ]
+
+
+def test_iterable_dataset_rename_column(dataset_with_several_columns):
+    new_dataset = dataset_with_several_columns.rename_column("id", "new_id")
+    assert list(new_dataset) == [
+        {("new_id" if k == "id" else k): v for k, v in example.items()} for example in dataset_with_several_columns
+    ]
+
+
+def test_iterable_dataset_rename_columns(dataset_with_several_columns):
+    column_mapping = {"id": "new_id", "filepath": "filename"}
+    new_dataset = dataset_with_several_columns.rename_columns(column_mapping)
+    assert list(new_dataset) == [
+        {column_mapping.get(k, k): v for k, v in example.items()} for example in dataset_with_several_columns
+    ]
+
+
+def test_iterable_dataset_remove_columns(dataset_with_several_columns):
+    new_dataset = dataset_with_several_columns.remove_columns("id")
+    assert list(new_dataset) == [
+        {k: v for k, v in example.items() if k != "id"} for example in dataset_with_several_columns
+    ]
+    new_dataset = dataset_with_several_columns.remove_columns(["id", "filepath"])
+    assert list(new_dataset) == [
+        {k: v for k, v in example.items() if k != "id" and k != "filepath"} for example in dataset_with_several_columns
+    ]
+
+
 def test_iterable_dataset_cast_column(generate_examples_fn):
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
     features = Features({"id": Value("int64"), "label": Value("int64")})
@@ -534,6 +577,15 @@ def test_iterable_dataset_cast_column(generate_examples_fn):
     casted_features = features.copy()
     casted_features["label"] = Value("bool")
     assert list(casted_dataset) == [casted_features.encode_example(ex) for _, ex in ex_iterable]
+
+
+def test_iterable_dataset_cast(generate_examples_fn):
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
+    features = Features({"id": Value("int64"), "label": Value("int64")})
+    dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    new_features = Features({"id": Value("int64"), "label": Value("bool")})
+    casted_dataset = dataset.cast(new_features)
+    assert list(casted_dataset) == [new_features.encode_example(ex) for _, ex in ex_iterable]
 
 
 @pytest.mark.parametrize(
