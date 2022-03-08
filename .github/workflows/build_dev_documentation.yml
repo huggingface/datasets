@@ -11,7 +11,7 @@ jobs:
   build_and_package:
     runs-on: ubuntu-latest
     container:
-      image: huggingface/transformers-doc-builder
+      image: huggingface/transformers-hf-doc-utils
     env:
       COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
       PR_NUMBER: ${{ github.event.number }}
@@ -20,8 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: 'huggingface/doc-builder'
-          path: doc-builder
+          repository: 'huggingface/hf-doc-utils'
+          path: hf-doc-utils
 
       - uses: actions/checkout@v2
         with:
@@ -41,8 +41,8 @@ jobs:
           rm -rf doc-build-dev
           git clone --depth 1 https://HuggingFaceDocBuilderDev:${{ env.WRITE }}@github.com/huggingface/doc-build-dev
           
-          pip uninstall -y doc-builder
-          cd doc-builder
+          pip uninstall -y hf-doc-utils
+          cd hf-doc-utils
           git pull origin main
           pip install -e .
           cd ..
@@ -95,8 +95,8 @@ jobs:
           NODE_OPTIONS: --max-old-space-size=6656
         run: |
           cd doc-build-dev && git pull
-          cd ../doc-builder
-          doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build-dev --clean --version pr_$PR_NUMBER --html
+          cd ../hf-doc-utils
+          hf-doc-utils build datasets ../datasets/docs/source --build_dir ../doc-build-dev --clean --version pr_$PR_NUMBER --html
 
       - name: Push to repositories
         run: |

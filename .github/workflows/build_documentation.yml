@@ -17,8 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: 'huggingface/doc-builder'
-          path: doc-builder
+          repository: 'huggingface/hf-doc-utils'
+          path: hf-doc-utils
 
       - uses: actions/checkout@v2
         with:
@@ -45,7 +45,7 @@ jobs:
         run: |
           sudo apt-get -y update && sudo apt-get install -y libsndfile1-dev
 
-          pip install git+https://github.com/huggingface/doc-builder
+          pip install git+https://github.com/huggingface/hf-doc-utils
           cd datasets
           pip install .[dev]
           cd ..
@@ -61,8 +61,8 @@ jobs:
 
       - name: Make documentation
         run: |
-          cd doc-builder &&
-          doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build --clean --html &&
+          cd hf-doc-utils &&
+          hf-doc-utils build datasets ../datasets/docs/source --build_dir ../doc-build --clean --html &&
           cd ..
         env:
           NODE_OPTIONS: --max-old-space-size=6656
