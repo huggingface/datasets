@@ -71,7 +71,7 @@ def size_str(size_in_bytes):
     if not size_in_bytes:
         return "Unknown size"
 
-    _NAME_LIST = [("PiB", 2**50), ("TiB", 2**40), ("GiB", 2**30), ("MiB", 2**20), ("KiB", 2**10)]
+    _NAME_LIST = [("PiB", 2 ** 50), ("TiB", 2 ** 40), ("GiB", 2 ** 30), ("MiB", 2 ** 20), ("KiB", 2 ** 10)]
 
     size_in_bytes = float(size_in_bytes)
     for (name, size_bytes) in _NAME_LIST:
@@ -633,6 +633,7 @@ try:
         pickler.save_reduce(regex.compile, args, obj=obj)
         dill._dill.log.info("# Re")
         return
+
 
 except ImportError:
     pass

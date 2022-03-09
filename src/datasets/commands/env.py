@@ -1,8 +1,8 @@
 import platform
 from argparse import ArgumentParser
 
-import pyarrow
 import pandas
+import pyarrow
 
 from datasets import __version__ as version
 from datasets.commands import BaseDatasetsCLICommand
