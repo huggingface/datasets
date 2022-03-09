@@ -210,6 +210,8 @@ You can filter rows in the dataset based on a predicate function using [`dataset
 
 [`datasets.IterableDataset`] can be integrated into a training loop. First, shuffle the dataset:
 
+<frameworkcontent>
+<pt>
 ```py
 >>> buffer_size, seed = 10_000, 42
 >>> dataset = dataset.shuffle(buffer_size, seed)
@@ -241,6 +243,8 @@ Lastly, create a simple training loop and start training:
 ...         optimizer.zero_grad()
 ...         if i % 10 == 0:
 ...             print(f"loss: {loss}")
-===PT-TF-SPLIT===
-# WIP
 ```
+</pt>
+</frameworkcontent>
+
+<!-- TODO: Write the TF content! -->
