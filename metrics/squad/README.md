@@ -56,7 +56,7 @@ Partial match (2 out of 3 answers correct) :
     from datasets import load_metric
     squad_metric = load_metric("squad")
     predictions = [{'prediction_text': '1976', 'id': '56e10a3be3433e1400422b22'}, {'prediction_text': 'Beyonce', 'id': '56d2051ce7d4791d0090260b'},  {'prediction_text': 'climate change', 'id': '5733b5344776f419006610e1'}]
-    references = [{'answers': {'answer_start': [97], 'text': ['1976']}, 'id': '56e10a3be3433e1400422b22'}, {'answers': {'answer_start': [233], 'text': ['Beyoncé and Bruno Mars']}, 'id': '56e10a3be3433e1400422b22'}, {'answers': {'answer_start': [891], 'text': ['climate change']}, 'id': '5733b5344776f419006610e1'}]
+    references = [{'answers': {'answer_start': [97], 'text': ['1976']}, 'id': '56e10a3be3433e1400422b22'}, {'answers': {'answer_start': [233], 'text': ['Beyoncé and Bruno Mars']}, 'id': '56d2051ce7d4791d0090260b'}, {'answers': {'answer_start': [891], 'text': ['climate change']}, 'id': '5733b5344776f419006610e1'}]
     results = squad_metric.compute(predictions=predictions, references=references)
     results
     {'exact_match': 66.66666666666667, 'f1': 66.66666666666667}
