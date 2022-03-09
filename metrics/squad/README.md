@@ -3,10 +3,6 @@ This metric wraps the official scoring script for version 1 of the [Stanford Que
 
 SQuAD is a reading comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles, where the answer to every question is a segment of text, or span, from the corresponding reading passage, or the question might be unanswerable.
 
-
-## Intended uses & limitations
-This metric works only with the [SQuAD v.1 dataset](https://huggingface.co/datasets/squad) -- it will not work with any other dataset formats.
-
 ## How to use 
 
 The metric takes two files or two lists of question-answers dictionaries as inputs : one with the predictions of the model and the other with the references to be compared to:
@@ -15,7 +11,7 @@ The metric takes two files or two lists of question-answers dictionaries as inpu
     squad_metric = load_metric("squad")
     results = squad_metric.compute(predictions=predictions, references=references)
   
-It outputs a dictionary with two values: the average exact match score and the average [F1 score](https://huggingface.co/metrics/f1).
+It outputs a dictionary with two values: the average exact match score and the average [F1 score](https://huggingface.co/metrics/f1) - see the [range section below](#range)
 
     {'exact_match': 100.0, 'f1': 100.0}
 
@@ -29,8 +25,41 @@ The [original SQuAD paper](https://nlp.stanford.edu/pubs/rajpurkar2016squad.pdf)
 
 For more recent model performance, see the [dataset leaderboard](https://paperswithcode.com/dataset/squad).
 
+## Examples 
+
+Maximal values for both exact match and F1 (perfect match):
+
+    from datasets import load_metric
+    squad_metric = load_metric("squad")
+    predictions = [{'prediction_text': '1976', 'id': '56e10a3be3433e1400422b22'}]
+    references = [{'answers': {'answer_start': [97], 'text': ['1976']}, 'id': '56e10a3be3433e1400422b22'}]
+    results = squad_metric.compute(predictions=predictions, references=references)
+    results
+    {'exact_match': 100.0, 'f1': 100.0}
+
+Minimal values for both exact match and F1 (no match):
+
+    from datasets import load_metric
+    squad_metric = load_metric("squad")
+    predictions = [{'prediction_text': '1999', 'id': '56e10a3be3433e1400422b22'}]
+    references = [{'answers': {'answer_start': [97], 'text': ['1976']}, 'id': '56e10a3be3433e1400422b22'}]
+    results = squad_metric.compute(predictions=predictions, references=references)
+    results
+    {'exact_match': 0.0, 'f1': 0.0}
+    
+Partial match (2 out of 3 answers correct) : 
+
+    from datasets import load_metric
+    squad_metric = load_metric("squad")
+    predictions = [{'prediction_text': '1976', 'id': '56e10a3be3433e1400422b22'}, {'prediction_text': 'Beyonce', 'id': '56d2051ce7d4791d0090260b'},  {'prediction_text': 'climate change', 'id': '5733b5344776f419006610e1'}]
+    references = [{'answers': {'answer_start': [97], 'text': ['1976']}, 'id': '56e10a3be3433e1400422b22'}, {'answers': {'answer_start': [233], 'text': ['Beyoncé and Bruno Mars']}, 'id': '56e10a3be3433e1400422b22'}, {'answers': {'answer_start': [891], 'text': ['climate change']}, 'id': '5733b5344776f419006610e1'}]
+    results = squad_metric.compute(predictions=predictions, references=references)
+    results
+    {'exact_match': 66.66666666666667, 'f1': 66.66666666666667}
 
 ## Limitations and bias
+This metric works only with the [SQuAD v.1 dataset](https://huggingface.co/datasets/squad) -- it will not work with any other dataset formats.
+
 The SQuAD dataset does contain a certain amount of noise, such as duplicate questions as well as missing answers, but these represent a minority of the 100,000 question-answer pairs. Also, neither exact match nor F1 score reflect whether models do better on certain types of questions (e.g. who questions) or those that cover a certain gender or geographical area -- carrying out more in-depth error analysis can complement these numbers. 
 
 
@@ -42,3 +71,11 @@ The SQuAD dataset does contain a certain amount of noise, such as duplicate ques
     booktitle={EMNLP},
     year={2016}
     }
+    
+## Further References 
+
+- [The Stanford Question Answering Dataset: Background, Challenges, Progress (blog post)](https://rajpurkar.github.io/mlx/qa-and-squad/)
+- [Hugging Face Course -- Question Answering](https://huggingface.co/course/chapter7/7)
+- 
+
+(blog post discussing the metrics, page in the HuggingFace course using the metric, etc)
