@@ -160,6 +160,7 @@ class WikiTableQuestions(datasets.GeneratorBasedBuilder):
         rows = []
         # assert ".csv" in _wtq_table_name
         # use the normalized table file
+        table_name = table_name.replace(".csv", ".tsv")
         with open(os.path.join(root_dir, table_name), "r", encoding="utf8") as table_f:
             table_lines = table_f.readlines()
             # the first line is header
