@@ -1055,7 +1055,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _prepare_split(self, split_generator):
+    def _prepare_split(self, split_generator, check_duplicate_keys):
         if self.info.splits is not None:
             split_info = self.info.splits[split_generator.name]
         else:
@@ -1071,7 +1071,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             path=fpath,
             writer_batch_size=self._writer_batch_size,
             hash_salt=split_info.name,
-            check_duplicates=True,
+            check_duplicates=check_duplicate_keys,
         ) as writer:
             try:
                 for key, record in utils.tqdm(
@@ -1089,6 +1089,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
+
+    def _download_and_prepare(self, dl_manager, verify_infos):
+        super()._download_and_prepare(dl_manager, verify_infos, check_duplicate_keys=verify_infos)
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
