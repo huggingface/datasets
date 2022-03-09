@@ -1287,6 +1287,7 @@ def metric_module_factory(
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
 
@@ -1387,6 +1388,7 @@ def load_metric(
     Returns:
         `datasets.Metric`
     """
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     metric_module = metric_module_factory(
         path, revision=revision, download_config=download_config, download_mode=download_mode
     ).module_path
@@ -1477,6 +1479,7 @@ def load_dataset_builder(
         :class:`DatasetBuilder`
 
     """
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     if use_auth_token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.use_auth_token = use_auth_token
@@ -1650,6 +1653,7 @@ def load_dataset(
             "Please use `load_from_disk` instead."
         )
 
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     ignore_verifications = ignore_verifications or save_infos
 
     # Create a dataset builder
