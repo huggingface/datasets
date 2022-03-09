@@ -16,7 +16,7 @@ results = squad_metric.compute(predictions=predictions, references=references)
 ```
 ## Output values
 
-This metric outputs a dictionary with two values: the average exact match score and the average [F1 score](https://huggingface.co/metrics/f1) - see the [range section below](#range)
+This metric outputs a dictionary with two values: the average exact match score and the average [F1 score](https://huggingface.co/metrics/f1).
 
     {'exact_match': 100.0, 'f1': 100.0}
 
