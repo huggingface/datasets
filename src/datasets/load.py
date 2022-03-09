@@ -1113,11 +1113,10 @@ def dataset_module_factory(
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
-    download_config.force_download = download_mode = (
-        DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS) == DownloadMode.FORCE_REDOWNLOAD
-    )
+    download_config.force_download = download_mode == DownloadMode.FORCE_REDOWNLOAD
 
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
     if not filename.endswith(".py"):
