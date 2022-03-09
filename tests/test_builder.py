@@ -520,9 +520,17 @@ class BuilderTest(TestCase):
                 )
             )
 
+        # Test that duplicated keys are ignored if ignore_verifications is True
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy")
             with patch("datasets.builder.ArrowWriter", side_effect=ArrowWriter) as mock_arrow_writer:
+                dummy_builder.download_and_prepare(download_mode=DownloadMode.FORCE_REDOWNLOAD)
+                mock_arrow_writer.assert_called_once()
+                args, kwargs = mock_arrow_writer.call_args_list[0]
+                self.assertTrue(kwargs["check_duplicates"])
+
+                mock_arrow_writer.reset_mock()
+
                 dummy_builder.download_and_prepare(
                     download_mode=DownloadMode.FORCE_REDOWNLOAD, ignore_verifications=True
                 )
