@@ -86,7 +86,7 @@ def string_to_dict(string: str, pattern: str) -> Dict[str, str]:
     """Un-format a string using a python f-string pattern.
     From https://stackoverflow.com/a/36838374
 
-    Examples:
+    Example::
 
         >>> p = 'hello, my name is {name} and I am a {age} year old {what}'
         >>> s = p.format(name='cody', age=18, what='quarterback')

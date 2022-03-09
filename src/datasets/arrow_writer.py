@@ -144,7 +144,7 @@ class TypedSequence:
 
             non_null_idx, non_null_value = first_non_null_value(data)
             if isinstance(non_null_value, PIL.Image.Image):
-                return [Image().encode_example(value) for value in data], Image()
+                return [Image().encode_example(value) if value is not None else None for value in data], Image()
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
@@ -183,7 +183,6 @@ class TypedSequence:
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
                 out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
-
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
                 if pa.types.is_int64(out.type):

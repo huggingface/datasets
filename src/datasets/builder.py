@@ -495,15 +495,15 @@ class DatasetBuilder:
         """Downloads and prepares dataset for reading.
 
         Args:
-            download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-            download_mode (Optional `datasets.DownloadMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
-            ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
-            save_infos (bool): Save the dataset information (checksums/size/splits/...)
-            try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
-            dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
-            base_path ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
-                If not specified, the value of the ``base_path`` attribute (``self.base_path``) will be used instead.
-            use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            download_config (:class:`DownloadConfig`, optional): specific download configuration parameters.
+            download_mode (:class:`DownloadMode`, optional): select the download/generate mode - Default to ``REUSE_DATASET_IF_EXISTS``
+            ignore_verifications (:obj:`bool`): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
+            save_infos (:obj:`bool`): Save the dataset information (checksums/size/splits/...)
+            try_from_hf_gcs (:obj:`bool`): If True, it will try to download the already prepared dataset from the Hf google cloud storage
+            dl_manager (:class:`DownloadManager`, optional): specific Download Manger to use
+            base_path (:obj:`str`, optional): base path for relative paths that are used to download files. This can be a remote url.
+                If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
+            use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
 
         """
@@ -525,6 +525,7 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
+                record_checksums=verify_infos,
             )
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
@@ -815,7 +816,7 @@ class DatasetBuilder:
                 ds = post_processed
                 recorded_checksums = {}
                 for resource_name, resource_path in resources_paths.items():
-                    size_checksum = get_size_checksum_dict(resource_path)
+                    size_checksum = get_size_checksum_dict(resource_path, record_checksum=verify_infos)
                     recorded_checksums[resource_name] = size_checksum
                 if verify_infos:
                     if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
@@ -946,7 +947,7 @@ class DatasetBuilder:
         This function returns a list of `SplitGenerator`s defining how to generate
         data and what splits to use.
 
-        Example:
+        Example::
 
             return [
                     datasets.SplitGenerator(
@@ -1198,7 +1199,7 @@ class BeamBasedBuilder(DatasetBuilder):
         can be accessed by the workers jobs. The data should be located in a
         shared filesystem, like GCS.
 
-        Example:
+        Example::
 
         ```
         def _build_pcollection(pipeline, extracted_dir):
