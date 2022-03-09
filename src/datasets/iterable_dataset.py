@@ -3,6 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from itertools import cycle, islice
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Union
+from dataclasses import asdict
 
 import numpy as np
 import pyarrow as pa
@@ -455,7 +456,7 @@ class IterableDataset(DatasetInfoMixin):
         # TODO(QL): add pandas, numpy and tf formats
         return iterable_dataset(
             ex_iterable=self._ex_iterable,
-            info=copy.deepcopy(self._info),
+            info=self._info.copy(),
             split=self._split,
             format_type=type,
             shuffling=copy.deepcopy(self._shuffling),
@@ -510,7 +511,7 @@ class IterableDataset(DatasetInfoMixin):
             remove_columns = [remove_columns]
         if function is None:
             function = lambda x: x  # noqa: E731
-        info = copy.deepcopy(self._info)
+        info = self._info.copy()
         info.features = None
         ex_iterable = MappedExamplesIterable(
             TypedExamplesIterable(self._ex_iterable, self._info.features)
@@ -566,7 +567,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=BufferShuffledExamplesIterable(
                 self._ex_iterable, buffer_size=buffer_size, generator=generator
             ).shuffle_data_sources(generator),
-            info=copy.deepcopy(self._info),
+            info=self._info.copy(),
             split=self._split,
             format_type=self._format_type,
             shuffling=shuffling,
@@ -585,7 +586,7 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable = SkipExamplesIterable(self._ex_iterable, n)
         return iterable_dataset(
             ex_iterable=ex_iterable,
-            info=copy.deepcopy(self._info),
+            info=self._info.copy(),
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
@@ -601,7 +602,7 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable = TakeExamplesIterable(self._ex_iterable, n)
         return iterable_dataset(
             ex_iterable=ex_iterable,
-            info=copy.deepcopy(self._info),
+            info=self._info.copy(),
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
@@ -693,6 +694,29 @@ class IterableDataset(DatasetInfoMixin):
         """
         return self.map(remove_columns=column_names)
 
+    def flatten(self, new_fingerprint, max_depth=16) -> "IterableDataset":
+        """Flatten the examples.
+        Each column with a struct type is flattened into one column per struct field.
+        Other columns are left unchanged.
+
+        Returns:
+            :class:`Dataset`: A copy of the dataset with flattened columns.
+        """
+        def flatten_fn(example, idx):
+            example = dict(example)
+            for _ in range(max_depth):
+                for column_name, value in example.items():
+                    if isinstance(value, dict):
+                        for subcol, subvalue in value.items():
+                            if f"{column_name}.{subcol}" in example:
+                                raise ValueError(
+                                    f"Error when flattening '{column_name}'': column '{column_name}.{subcol}' is already in the dataset."
+                                )
+                            example[f"{column_name}.{subcol}"] = subvalue
+            return example
+
+        return self.map(add_column_fn, with_indices=True)
+
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
         """Cast column to feature for decoding.
 
@@ -703,8 +727,13 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             :class:`IterableDataset`
         """
-        info = copy.deepcopy(self._info)
+        info = self._info.copy()
         info.features[column] = feature
+        # check that it's still valid, especially with regard to task templates
+        try:
+            info.copy()
+        except ValueError:
+            info.task_templates = None
         return iterable_dataset(
             ex_iterable=self._ex_iterable,
             info=info,
@@ -729,8 +758,13 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             :class:`IterableDataset`: A copy of the dataset with casted features.
         """
-        info = copy.deepcopy(self._info)
+        info = self._info.copy()
         info.features = features
+        # check that it's still valid, especially with regard to task templates
+        try:
+            info.copy()
+        except ValueError:
+            info.task_templates = None
         return iterable_dataset(
             ex_iterable=self._ex_iterable,
             info=info,
