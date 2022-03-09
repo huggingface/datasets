@@ -7,9 +7,11 @@ SQuAD is a reading comprehension dataset, consisting of questions posed by crowd
 
 The metric takes two files or two lists of question-answers dictionaries as inputs : one with the predictions of the model and the other with the references to be compared to:
 
-    from datasets import load_metric
-    squad_metric = load_metric("squad")
-    results = squad_metric.compute(predictions=predictions, references=references)
+```python
+from datasets import load_metric
+squad_metric = load_metric("squad")
+results = squad_metric.compute(predictions=predictions, references=references)
+```
   
 It outputs a dictionary with two values: the average exact match score and the average [F1 score](https://huggingface.co/metrics/f1) - see the [range section below](#range)
 
