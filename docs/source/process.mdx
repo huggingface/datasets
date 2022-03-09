@@ -150,7 +150,7 @@ Dataset({
 })
 >>> dataset = dataset.rename_column("sentence1", "sentenceA")
 >>> dataset = dataset.rename_column("sentence2", "sentenceB")
->>> dataset.features
+>>> dataset
 Dataset({
     features: ['sentenceA', 'sentenceB', 'label', 'idx'],
     num_rows: 3668
