@@ -3,7 +3,7 @@ import timeit
 import numpy as np
 
 import datasets
-from datasets.features import _ArrayXD
+from datasets.features.features import _ArrayXD
 
 
 def get_duration(func):
