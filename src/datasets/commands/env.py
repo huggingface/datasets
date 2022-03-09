@@ -2,6 +2,7 @@ import platform
 from argparse import ArgumentParser
 
 import pyarrow
+import pandas
 
 from datasets import __version__ as version
 from datasets.commands import BaseDatasetsCLICommand
@@ -23,6 +24,7 @@ class EnvironmentCommand(BaseDatasetsCLICommand):
             "Platform": platform.platform(),
             "Python version": platform.python_version(),
             "PyArrow version": pyarrow.__version__,
+            "Pandas version": pandas.__version__,
         }
 
         print("\nCopy-and-paste the text below in your GitHub issue.\n")
