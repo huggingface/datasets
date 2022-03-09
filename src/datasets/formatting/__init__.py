@@ -17,7 +17,8 @@
 
 from typing import Dict, List, Optional
 
-from .. import config, logging
+from .. import config
+from ..utils import logging
 from .formatting import (
     ArrowFormatter,
     CustomFormatter,
