@@ -14,12 +14,12 @@ from datasets import load_metric
 squad_metric = load_metric("squad")
 results = squad_metric.compute(predictions=predictions, references=references)
 ```
-  
-It outputs a dictionary with two values: the average exact match score and the average [F1 score](https://huggingface.co/metrics/f1) - see the [range section below](#range)
+## Output values
+
+This metric outputs a dictionary with two values: the average exact match score and the average [F1 score](https://huggingface.co/metrics/f1) - see the [range section below](#range)
 
     {'exact_match': 100.0, 'f1': 100.0}
 
-## Range
 The range of `exact_match` is 0-100, where 0.0 means no answers were matched and 100.0 means all answers were matched. 
 
 The range of `f1` is 0-1 -- its lowest possible value is 0, if either the precision or the recall is 0, and its highest possible value is 1.0, which means perfect precision and recall.
