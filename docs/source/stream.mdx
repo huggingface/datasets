@@ -184,6 +184,28 @@ See other examples of batch processing in [the batched map processing documentat
 
 </Tip>
 
+### Filter
+
+You can filter rows in the dataset based on a predicate function using [`datasets.Dataset.filter`]. It returns rows that match a specified condition:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset('oscar', 'unshuffled_deduplicated_en', streaming=True, split='train')
+>>> start_with_ar = dataset.filter(lambda example: example['text'].startswith('Ar'))
+>>> next(iter(start_with_ar))
+{'id': 4, 'text': 'Are you looking for Number the Stars (Essential Modern Classics)?...'}
+```
+
+[`datasets.Dataset.filter`] can also filter by indices if you set `with_indices=True`:
+
+```py
+>>> even_dataset = dataset.filter(lambda example, idx: idx % 2 == 0, with_indices=True)
+>>> list(even_dataset.take(3))
+[{'id': 0, 'text': 'Mtendere Village was inspired by the vision of Chief Napoleon Dzombe, ...'},
+ {'id': 2, 'text': '"I\'d love to help kickstart continued development! And 0 EUR/month...'},
+ {'id': 4, 'text': 'Are you looking for Number the Stars (Essential Modern Classics)? Normally, ...'}]
+```
+
 ## Stream in a training loop
 
 [`datasets.IterableDataset`] can be integrated into a training loop. First, shuffle the dataset:
