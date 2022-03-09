@@ -69,6 +69,17 @@ Examples:
     >>> print(rmse_result)
     {'mse': 0.6123724356957945}
     
+    If you're using multi-dimensional lists, then set the config as follows :
+    
+    >>> mse_metric = datasets.load_metric("mse", "multilist")
+    >>> predictions = [[0.5, 1], [-1, 1], [7, -6]]
+    >>> references = [[0, 2], [-1, 2], [8, -5]]
+    >>> results = mse_metric.compute(predictions=predictions, references=references)
+    >>> print(results)
+    {'mse': 0.7083333333333334}
+    >>> results = mse_metric.compute(predictions=predictions, references=references, multioutput='raw_values')
+    >>> print(results)
+    {'mse': array([0.41666667, 1.])}
 """
 
 
@@ -79,16 +90,23 @@ class Mse(datasets.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "predictions": datasets.Value("float"),
-                    "references": datasets.Value("float"),
-                }
-            ),
+            features=datasets.Features(self._get_feature_types()),
             reference_urls=[
                 "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html"
             ],
         )
+
+    def _get_feature_types(self):
+        if self.config_name == "multilist":
+            return {
+                "predictions": datasets.Sequence(datasets.Value("float")),
+                "references": datasets.Sequence(datasets.Value("float")),
+            }
+        else:
+            return {
+                "predictions": datasets.Value("float"),
+                "references": datasets.Value("float"),
+            }
 
     def _compute(self, predictions, references, sample_weight=None, multioutput="uniform_average", squared=True):
 

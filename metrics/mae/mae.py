@@ -67,6 +67,18 @@ Examples:
     >>> results = mae_metric.compute(predictions=predictions, references=references)
     >>> print(results)
     {'mae': 0.5}
+    
+    If you're using multi-dimensional lists, then set the config as follows :
+    
+    >>> mae_metric = datasets.load_metric("mae", "multilist")
+    >>> predictions = [[0.5, 1], [-1, 1], [7, -6]]
+    >>> references = [[0, 2], [-1, 2], [8, -5]]
+    >>> results = mae_metric.compute(predictions=predictions, references=references)
+    >>> print(results)
+    {'mae': 0.75}
+    >>> results = mae_metric.compute(predictions=predictions, references=references, multioutput='raw_values')
+    >>> print(results)
+    {'mae': array([0.5, 1. ])}
 """
 
 
@@ -77,16 +89,23 @@ class Mae(datasets.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "predictions": datasets.Value("float"),
-                    "references": datasets.Value("float"),
-                }
-            ),
+            features=datasets.Features(self._get_feature_types()),
             reference_urls=[
                 "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_absolute_error.html"
             ],
         )
+
+    def _get_feature_types(self):
+        if self.config_name == "multilist":
+            return {
+                "predictions": datasets.Sequence(datasets.Value("float")),
+                "references": datasets.Sequence(datasets.Value("float")),
+            }
+        else:
+            return {
+                "predictions": datasets.Value("float"),
+                "references": datasets.Value("float"),
+            }
 
     def _compute(self, predictions, references, sample_weight=None, multioutput="uniform_average"):
 
