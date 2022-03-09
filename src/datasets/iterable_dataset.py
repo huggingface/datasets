@@ -1,6 +1,6 @@
 import copy
 from copy import deepcopy
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from itertools import cycle, islice
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Union
 
