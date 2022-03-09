@@ -33,28 +33,29 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Mean Squared Error(MSE) is the average of the square of difference between the predicted 
+Mean Squared Error(MSE) is the average of the square of difference between the predicted
 and actual values.
 """
 
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: array-like of shape (n_samples,) or (n_samples, n_outputs) 
-                 Estimated target values.
+    predictions: array-like of shape (n_samples,) or (n_samples, n_outputs)
+        Estimated target values.
     references: array-like of shape (n_samples,) or (n_samples, n_outputs)
-                 Ground truth (correct) target values.
+        Ground truth (correct) target values.
     sample_weight: array-like of shape (n_samples,), default=None
-                   Sample weights.
+        Sample weights.
     multioutput: {"raw_values", "uniform_average"} or array-like of shape (n_outputs,), default="uniform_average"
-                  Defines aggregating of multiple output values. Array-like value defines weights used to average errors.
-                 "raw_values" :
-                  Returns a full set of errors in case of multioutput input.
-                 "uniform_average" :
-                  Errors of all outputs are averaged with uniform weight.
+        Defines aggregating of multiple output values. Array-like value defines weights used to average errors.
+
+        "raw_values" : Returns a full set of errors in case of multioutput input.
+
+        "uniform_average" : Errors of all outputs are averaged with uniform weight.
+
     squared : bool, default=True
-              If True returns MSE value, if False returns RMSE (Root Mean Squared Error) value.
- 
+        If True returns MSE value, if False returns RMSE (Root Mean Squared Error) value.
+
 Returns:
     mse : mean squared error.
 Examples:
@@ -68,9 +69,9 @@ Examples:
     >>> rmse_result = mse_metric.compute(predictions=predictions, references=references, squared=False)
     >>> print(rmse_result)
     {'mse': 0.6123724356957945}
-    
+
     If you're using multi-dimensional lists, then set the config as follows :
-    
+
     >>> mse_metric = datasets.load_metric("mse", "multilist")
     >>> predictions = [[0.5, 1], [-1, 1], [7, -6]]
     >>> references = [[0, 2], [-1, 2], [8, -5]]
@@ -78,8 +79,8 @@ Examples:
     >>> print(results)
     {'mse': 0.7083333333333334}
     >>> results = mse_metric.compute(predictions=predictions, references=references, multioutput='raw_values')
-    >>> print(results)
-    {'mse': array([0.41666667, 1.])}
+    >>> print(results) # doctest: +NORMALIZE_WHITESPACE
+    {'mse': array([0.41666667, 1. ])}
 """
 
 
