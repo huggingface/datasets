@@ -1,9 +1,8 @@
 import copy
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from itertools import cycle, islice
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Union
-from dataclasses import asdict
 
 import numpy as np
 import pyarrow as pa
@@ -693,29 +692,6 @@ class IterableDataset(DatasetInfoMixin):
             :class:`IterableDataset`: A copy of the dataset object without the columns to remove.
         """
         return self.map(remove_columns=column_names)
-
-    def flatten(self, new_fingerprint, max_depth=16) -> "IterableDataset":
-        """Flatten the examples.
-        Each column with a struct type is flattened into one column per struct field.
-        Other columns are left unchanged.
-
-        Returns:
-            :class:`Dataset`: A copy of the dataset with flattened columns.
-        """
-        def flatten_fn(example, idx):
-            example = dict(example)
-            for _ in range(max_depth):
-                for column_name, value in example.items():
-                    if isinstance(value, dict):
-                        for subcol, subvalue in value.items():
-                            if f"{column_name}.{subcol}" in example:
-                                raise ValueError(
-                                    f"Error when flattening '{column_name}'': column '{column_name}.{subcol}' is already in the dataset."
-                                )
-                            example[f"{column_name}.{subcol}"] = subvalue
-            return example
-
-        return self.map(add_column_fn, with_indices=True)
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
         """Cast column to feature for decoding.
