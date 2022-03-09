@@ -18,7 +18,9 @@ results = squad_metric.compute(predictions=predictions, references=references)
 
 This metric outputs a dictionary with two values: the average exact match score and the average [F1 score](https://huggingface.co/metrics/f1).
 
-    {'exact_match': 100.0, 'f1': 100.0}
+```
+{'exact_match': 100.0, 'f1': 100.0}
+```
 
 The range of `exact_match` is 0-100, where 0.0 means no answers were matched and 100.0 means all answers were matched. 
 
