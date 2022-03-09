@@ -23,7 +23,7 @@ import pyarrow
 from packaging import version
 
 
-if _version.parse(pyarrow.__version__).major < 5:
+if version.parse(pyarrow.__version__).major < 5:
     raise ImportWarning(
         "To use `datasets`, the module `pyarrow>=5.0.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
