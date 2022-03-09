@@ -102,7 +102,7 @@ Class Label Mappings:
 
 |               | train |
 |---------------|------:|
-| # of examples | 23410 |
+| # of examples | 23422 |
 
 ## Dataset Creation
 
