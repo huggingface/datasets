@@ -80,6 +80,3 @@ The SQuAD dataset does contain a certain amount of noise, such as duplicate ques
 
 - [The Stanford Question Answering Dataset: Background, Challenges, Progress (blog post)](https://rajpurkar.github.io/mlx/qa-and-squad/)
 - [Hugging Face Course -- Question Answering](https://huggingface.co/course/chapter7/7)
-- 
-
-(blog post discussing the metrics, page in the HuggingFace course using the metric, etc)
