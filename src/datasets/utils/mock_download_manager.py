@@ -175,7 +175,7 @@ class MockDownloadManager:
         is_pubmed_records = all(
             url.startswith("https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed") for url in data_url
         )
-        if is_tf_records or is_pubmed_records:
+        if data_url and (is_tf_records or is_pubmed_records):
             data_url = [data_url[0]] * len(data_url)
         for single_url in data_url:
             for download_callback in self.download_callbacks:

@@ -29,19 +29,25 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
 
-        capture_labels = self.config.drop_labels and self.config.features is None
+        capture_labels = not self.config.drop_labels and self.config.features is None
         if capture_labels:
             labels = set()
 
-            def capture_labels_for_split(files, downloaded_files):
-                for file, downloaded_file in zip(files, downloaded_files):
-                    file, downloaded_file = str(file), str(downloaded_file)
-                    if os.path.isfile(downloaded_file):
+            def capture_labels_for_split(files_or_archives, downloaded_files_or_dirs):
+                # The files are separated from the archives at this point, so check the first sample
+                # to see if it's a file or a directory and iterate accordingly
+                if downloaded_files_or_dirs and os.path.isfile(downloaded_files_or_dirs[0]):
+                    files, downloaded_files = files_or_archives, downloaded_files_or_dirs
+                    for file, downloaded_file in zip(files, downloaded_files):
+                        file, downloaded_file = str(file), str(downloaded_file)
                         _, file_ext = os.path.splitext(file)
                         if file_ext.lower() in self.IMAGE_EXTENSIONS:
                             labels.add(os.path.basename(os.path.dirname(file)))
-                    else:
-                        for downloaded_dir_file in dl_manager.iter_files(downloaded_file):
+                else:
+                    archives, downloaded_dirs = files_or_archives, downloaded_files_or_dirs
+                    for archive, downloaded_dir in zip(archives, downloaded_dirs):
+                        archive, downloaded_file = str(archive), str(downloaded_dir)
+                        for downloaded_dir_file in dl_manager.iter_files(downloaded_dir):
                             _, downloaded_dir_file_ext = os.path.splitext(downloaded_dir_file)
                             if downloaded_dir_file_ext in self.IMAGE_EXTENSIONS:
                                 labels.add(os.path.basename(os.path.dirname(downloaded_dir_file)))
@@ -49,58 +55,71 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             logger.info("Inferring labels from data files...")
 
         data_files = self.config.data_files
-        downloaded_data_files = dl_manager.download_and_extract(data_files)
         splits = []
-        if isinstance(downloaded_data_files, (str, list, tuple)):
-            files, downloaded_files = data_files, downloaded_data_files
+        if isinstance(data_files, (str, list, tuple)):
+            files = data_files
             if isinstance(files, str):
-                files, downloaded_files = [files], [downloaded_files]
+                files = [files]
+            files, archives = self._split_files_and_archives(files)
+            downloaded_files = dl_manager.download(files)
+            downloaded_dirs = dl_manager.download_and_extract(archives)
             if capture_labels:
                 capture_labels_for_split(files, downloaded_files)
+                capture_labels_for_split(archives, downloaded_dirs)
             splits.append(
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "files": [
-                            (file, downloaded_file)
-                            if os.path.isfile(downloaded_file)
-                            else (None, dl_manager.iter_files(downloaded_file))
-                            for file, downloaded_file in zip(files, downloaded_files)
-                        ]
+                        "files": [(file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)]
+                        + [(None, dl_manager.iter_files(downloaded_dir)) for downloaded_dir in downloaded_dirs]
                     },
                 )
             )
         else:
             for split_name, files in data_files.items():
-                downloaded_files = downloaded_data_files[split_name]
                 if isinstance(files, str):
-                    files, downloaded_files = [files], [downloaded_files]
+                    files = [files]
+                files, archives = self._split_files_and_archives(files)
+                downloaded_files = dl_manager.download(files)
+                downloaded_dirs = dl_manager.download_and_extract(archives)
                 if capture_labels:
                     capture_labels_for_split(files, downloaded_files)
+                    capture_labels_for_split(archives, downloaded_dirs)
                 splits.append(
                     datasets.SplitGenerator(
                         name=split_name,
                         gen_kwargs={
                             "files": [
-                                (file, downloaded_file)
-                                if os.path.isfile(downloaded_file)
-                                else (None, dl_manager.iter_files(downloaded_file))
-                                for file, downloaded_file in zip(files, downloaded_files)
+                                (file, downloaded_file) for file, downloaded_file in zip(files, downloaded_files)
                             ]
+                            + [(None, dl_manager.iter_files(downloaded_dir)) for downloaded_dir in downloaded_dirs]
                         },
                     )
                 )
 
         # Normally we would do this in _info, but we need to know the labels before building the features
         if capture_labels:
-            self.info.features = datasets.Features(
-                {"image": datasets.Image(), "label": datasets.ClassLabel(names=sorted(labels))}
-            )
-            task_template = ImageClassification(image_column="image", label_column="label")
-            task_template = task_template.align_with_features(self.info.features)
-            self.info.task_templates = [task_template]
+            if not self.config.drop_labels:
+                self.info.features = datasets.Features(
+                    {"image": datasets.Image(), "label": datasets.ClassLabel(names=sorted(labels))}
+                )
+                task_template = ImageClassification(image_column="image", label_column="label")
+                task_template = task_template.align_with_features(self.info.features)
+                self.info.task_templates = [task_template]
+            else:
+                self.info.features = datasets.Features({"image": datasets.Image()})
 
         return splits
+
+    def _split_files_and_archives(self, data_files):
+        files, archives = [], []
+        for data_file in data_files:
+            _, data_file_ext = os.path.splitext(data_file)
+            if data_file_ext.lower() in self.IMAGE_EXTENSIONS:
+                files.append(data_file)
+            else:
+                archives.append(data_file)
+        return files, archives
 
     def _generate_examples(self, files):
         if not self.config.drop_labels:
