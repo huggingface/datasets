@@ -1183,12 +1183,14 @@ class Features(dict):
           :obj:`list` or :class:`datasets.Sequence` should be provided with a single sub-feature as an example of the feature
           type hosted in this list
 
-          .. note::
+          <Tip>
 
            A :class:`datasets.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of
            lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be
            un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the
            :class:`datasets.Sequence`.
+
+          </Tip>
 
         - a :class:`Array2D`, :class:`Array3D`, :class:`Array4D` or :class:`Array5D` feature for multidimensional arrays
         - an :class:`Audio` feature to store the absolute path to an audio file or a dictionary with the relative path
@@ -1273,7 +1275,7 @@ class Features(dict):
         Returns:
             :class:`Features`
 
-        Examples:
+        Example::
             >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
             {'_type': Value(dtype='string', id=None)}
         """
@@ -1389,7 +1391,7 @@ class Features(dict):
         Returns:
             :class:`Features`
 
-        Examples:
+        Example::
 
             >>> from datasets import Features, Sequence, Value
             >>> # let's say we have to features with a different order of nested fields (for a and b for example)

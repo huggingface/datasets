@@ -184,7 +184,7 @@ def get_imports(file_path: str) -> Tuple[str, str, str, str]:
     Note that only direct import in the dataset processing script will be handled
     We don't recursively explore the additional import to download further files.
 
-    Examples::
+    Example::
 
         import tensorflow
         import .c4_utils
@@ -1113,11 +1113,10 @@ def dataset_module_factory(
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
-    download_config.force_download = download_mode = (
-        DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS) == DownloadMode.FORCE_REDOWNLOAD
-    )
+    download_config.force_download = download_mode == DownloadMode.FORCE_REDOWNLOAD
 
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
     if not filename.endswith(".py"):
@@ -1288,6 +1287,7 @@ def metric_module_factory(
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
 
@@ -1335,7 +1335,7 @@ def extend_dataset_builder_for_streaming(builder: DatasetBuilder, use_auth_token
 
     Args:
         builder (:class:`DatasetBuilder`): Dataset builder instance.
-        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
     """
     # this extends the open and os.path.join functions for data streaming
@@ -1372,9 +1372,9 @@ def load_metric(
                     e.g. ``'./metrics/rouge'`` or ``'./metrics/rogue/rouge.py'``
                 - a metric identifier on the HuggingFace datasets repo (list all available metrics with ``datasets.list_metrics()``)
                     e.g. ``'rouge'`` or ``'bleu'``
-        config_name (Optional ``str``): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
-        process_id (Optional ``int``): for distributed evaluation: id of the process
-        num_process (Optional ``int``): for distributed evaluation: total number of processes
+        config_name (:obj:`str`, optional): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
+        process_id (:obj:`int`, optional): for distributed evaluation: id of the process
+        num_process (:obj:`int`, optional): for distributed evaluation: total number of processes
         cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.cache/huggingface/metrics/`)
         experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
@@ -1388,6 +1388,7 @@ def load_metric(
     Returns:
         `datasets.Metric`
     """
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     metric_module = metric_module_factory(
         path, revision=revision, download_config=download_config, download_mode=download_mode
     ).module_path
@@ -1471,13 +1472,14 @@ def load_dataset_builder(
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
-        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
 
     Returns:
         :class:`DatasetBuilder`
 
     """
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     if use_auth_token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.use_auth_token = use_auth_token
@@ -1623,10 +1625,10 @@ def load_dataset(
               You can specify a different version from your local version of the lib (e.g. "master" or "1.2.0") but it might cause compatibility issues.
             - For community datasets like "lhoestq/squad" that have their own git repository on the Datasets Hub, the default version "main" corresponds to the "main" branch.
               You can specify a different version that the default "main" by using a commit sha or a git tag of the dataset repository.
-        use_auth_token (``str`` or ``bool``, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+        use_auth_token (``str`` or :obj:`bool`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
             If True, will get token from `"~/.huggingface"`.
         task (``str``): The task to prepare the dataset for during training and evaluation. Casts the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
-        streaming (``bool``, default ``False``): If set to True, don't download the data files. Instead, it streams the data progressively while
+        streaming (:obj:`bool`, default ``False``): If set to True, don't download the data files. Instead, it streams the data progressively while
             iterating on the dataset. An IterableDataset or IterableDatasetDict is returned instead in this case.
 
             Note that streaming works for datasets that use data formats that support being iterated over like txt, csv, jsonl for example.
@@ -1651,6 +1653,7 @@ def load_dataset(
             "Please use `load_from_disk` instead."
         )
 
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     ignore_verifications = ignore_verifications or save_infos
 
     # Create a dataset builder

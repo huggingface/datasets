@@ -2,9 +2,11 @@
 
 Before you start, you will need to setup your environment and install the appropriate packages. 🤗 Datasets is tested on **Python 3.6+**.
 
-```{seealso}
+<Tip>
+
 If you want to use 🤗 Datasets with TensorFlow or PyTorch, you will need to install them separately. Refer to the [TensorFlow](https://www.tensorflow.org/install/pip#tensorflow-2-packages-are-available) or the [PyTorch installation page](https://pytorch.org/get-started/locally/#start-locally) for the specific install command for your framework.
-```
+
+</Tip>
 
 ## Virtual environment
 

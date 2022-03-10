@@ -40,7 +40,7 @@ class RunBeamCommand(BaseDatasetsCLICommand):
             "--beam_pipeline_options",
             type=str,
             default="",
-            help="Beam pipeline options, separated by commas. Example: `--beam_pipeline_options=job_name=my-job,project=my-project`",
+            help="Beam pipeline options, separated by commas. Example:: `--beam_pipeline_options=job_name=my-job,project=my-project`",
         )
         run_beam_parser.add_argument(
             "--data_dir",

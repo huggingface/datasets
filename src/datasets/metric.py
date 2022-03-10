@@ -61,6 +61,18 @@ class FileFreeLock(BaseFileLock):
         self._lock_file_fd = None
 
 
+# lists - summarize long lists similarly to NumPy
+# arrays/tensors - let the frameworks control formatting
+def summarize_if_long_list(obj):
+    if not type(obj) == list or len(obj) <= 6:
+        return f"{obj}"
+
+    def format_chunk(chunk):
+        return ", ".join(repr(x) for x in chunk)
+
+    return f"[{format_chunk(obj[:3])}, ..., {format_chunk(obj[-3:])}]"
+
+
 class MetricInfoMixin:
     """This base class exposes some attributes of MetricInfo
     at the base level of the Metric for easy access.
@@ -129,14 +141,14 @@ class Metric(MetricInfoMixin):
     Args:
         config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
             to be overridden when the metric loading script is modified.
-        keep_in_memory (``bool``): keep all predictions and references in memory. Not possible in distributed settings.
+        keep_in_memory (:obj:`bool`): keep all predictions and references in memory. Not possible in distributed settings.
         cache_dir (``str``): Path to a directory in which temporary prediction/references data will be stored.
             The data directory should be located on a shared file-system in distributed setups.
         num_process (``int``): specify the total number of nodes in a distributed settings.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         process_id (``int``): specify the id of the current process in a distributed setup (between 0 and num_process-1)
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
-        seed (Optional ``int``): If specified, this will temporarily set numpy's random seed when :func:`datasets.Metric.compute` is run.
+        seed (:obj:`int`, optional): If specified, this will temporarily set numpy's random seed when :func:`datasets.Metric.compute` is run.
         experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
         max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
@@ -391,11 +403,15 @@ class Metric(MetricInfoMixin):
             - None if the metric is not run on the main process (``process_id != 0``).
         """
         all_kwargs = {"predictions": predictions, "references": references, **kwargs}
-        missing_inputs = [k for k in self.features if k not in all_kwargs]
-        if missing_inputs:
-            raise ValueError(
-                f"Metric inputs are missing: {missing_inputs}. All required inputs are {list(self.features)}"
-            )
+        if predictions is None and references is None:
+            missing_kwargs = {k: None for k in self.features if k not in all_kwargs}
+            all_kwargs.update(missing_kwargs)
+        else:
+            missing_inputs = [k for k in self.features if k not in all_kwargs]
+            if missing_inputs:
+                raise ValueError(
+                    f"Metric inputs are missing: {missing_inputs}. All required inputs are {list(self.features)}"
+                )
         inputs = {input_name: all_kwargs[input_name] for input_name in self.features}
         compute_kwargs = {k: kwargs[k] for k in kwargs if k not in self.features}
 
@@ -450,18 +466,6 @@ class Metric(MetricInfoMixin):
         try:
             self.writer.write_batch(batch)
         except pa.ArrowInvalid:
-
-            # lists - summarize long lists similarly to NumPy
-            # arrays/tensors - let the frameworks control formatting
-            def summarize_if_long_list(obj):
-                if not type(obj) == list or len(obj) <= 6:
-                    return f"{obj}"
-
-                def format_chunk(chunk):
-                    return ", ".join(repr(x) for x in chunk)
-
-                return f"[{format_chunk(obj[:3])}, ..., {format_chunk(obj[-3:])}]"
-
             if any(len(batch[c]) != len(next(iter(batch.values()))) for c in batch):
                 col0 = next(iter(batch))
                 bad_col = [c for c in batch if len(batch[c]) != len(batch[col0])][0]
@@ -470,8 +474,10 @@ class Metric(MetricInfoMixin):
                 )
             elif sorted(self.features) != ["references", "predictions"]:
                 error_msg = f"Metric inputs don't match the expected format.\n" f"Expected format: {self.features},\n"
-                for input_name in self.features:
-                    error_msg += f"Input {input_name}: {summarize_if_long_list(batch[input_name])},\n"
+                error_msg_inputs = ",\n".join(
+                    f"Input {input_name}: {summarize_if_long_list(batch[input_name])}" for input_name in self.features
+                )
+                error_msg += error_msg_inputs
             else:
                 error_msg = (
                     f"Predictions and/or references don't match the expected format.\n"
@@ -500,8 +506,10 @@ class Metric(MetricInfoMixin):
             self.writer.write(example)
         except pa.ArrowInvalid:
             error_msg = f"Metric inputs don't match the expected format.\n" f"Expected format: {self.features},\n"
-            for input_name in self.features:
-                error_msg += f"Input {input_name}: {example[input_name]},\n"
+            error_msg_inputs = ",\n".join(
+                f"Input {input_name}: {summarize_if_long_list(example[input_name])}" for input_name in self.features
+            )
+            error_msg += error_msg_inputs
             raise ValueError(error_msg) from None
 
     def _init_writer(self, timeout=1):

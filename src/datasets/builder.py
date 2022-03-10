@@ -488,15 +488,15 @@ class DatasetBuilder:
         """Downloads and prepares dataset for reading.
 
         Args:
-            download_config (Optional ``datasets.DownloadConfig``: specific download configuration parameters.
-            download_mode (Optional `datasets.DownloadMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
-            ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
-            save_infos (bool): Save the dataset information (checksums/size/splits/...)
-            try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
-            dl_manager (Optional ``datasets.DownloadManager``): specific Download Manger to use
-            base_path ( Optional ``str``): base path for relative paths that are used to download files. This can be a remote url.
-                If not specified, the value of the ``base_path`` attribute (``self.base_path``) will be used instead.
-            use_auth_token (Optional ``Union[str, bool]``): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
+            download_config (:class:`DownloadConfig`, optional): specific download configuration parameters.
+            download_mode (:class:`DownloadMode`, optional): select the download/generate mode - Default to ``REUSE_DATASET_IF_EXISTS``
+            ignore_verifications (:obj:`bool`): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
+            save_infos (:obj:`bool`): Save the dataset information (checksums/size/splits/...)
+            try_from_hf_gcs (:obj:`bool`): If True, it will try to download the already prepared dataset from the Hf google cloud storage
+            dl_manager (:class:`DownloadManager`, optional): specific Download Manger to use
+            base_path (:obj:`str`, optional): base path for relative paths that are used to download files. This can be a remote url.
+                If not specified, the value of the `base_path` attribute (`self.base_path`) will be used instead.
+            use_auth_token (:obj:`Union[str, bool]`, optional): Optional string or boolean to use as Bearer token for remote files on the Datasets Hub.
                 If True, will get token from ~/.huggingface.
 
         """
@@ -940,7 +940,7 @@ class DatasetBuilder:
         This function returns a list of `SplitGenerator`s defining how to generate
         data and what splits to use.
 
-        Example:
+        Example::
 
             return [
                     datasets.SplitGenerator(
@@ -1055,7 +1055,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _prepare_split(self, split_generator):
+    def _prepare_split(self, split_generator, check_duplicate_keys):
         if self.info.splits is not None:
             split_info = self.info.splits[split_generator.name]
         else:
@@ -1071,7 +1071,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             path=fpath,
             writer_batch_size=self._writer_batch_size,
             hash_salt=split_info.name,
-            check_duplicates=True,
+            check_duplicates=check_duplicate_keys,
         ) as writer:
             try:
                 for key, record in utils.tqdm(
@@ -1089,6 +1089,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
+
+    def _download_and_prepare(self, dl_manager, verify_infos):
+        super()._download_and_prepare(dl_manager, verify_infos, check_duplicate_keys=verify_infos)
 
     def _get_examples_iterable_for_split(self, split_generator: SplitGenerator) -> ExamplesIterable:
         return ExamplesIterable(self._generate_examples, split_generator.gen_kwargs)
@@ -1192,7 +1195,7 @@ class BeamBasedBuilder(DatasetBuilder):
         can be accessed by the workers jobs. The data should be located in a
         shared filesystem, like GCS.
 
-        Example:
+        Example::
 
         ```
         def _build_pcollection(pipeline, extracted_dir):

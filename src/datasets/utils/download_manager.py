@@ -49,15 +49,12 @@ class DownloadMode(enum.Enum):
 
     The generations modes:
 
-    +------------------------------------+-----------+---------+
-    |                                    | Downloads | Dataset |
-    +====================================+===========+=========+
-    | `REUSE_DATASET_IF_EXISTS` (default)| Reuse     | Reuse   |
-    +------------------------------------+-----------+---------+
-    | `REUSE_CACHE_IF_EXISTS`            | Reuse     | Fresh   |
-    +------------------------------------+-----------+---------+
-    | `FORCE_REDOWNLOAD`                 | Fresh     | Fresh   |
-    +------------------------------------+-----------+---------+
+    |                                     | Downloads | Dataset |
+    |-------------------------------------|-----------|---------|
+    | `REUSE_DATASET_IF_EXISTS` (default) | Reuse     | Reuse   |
+    | `REUSE_CACHE_IF_EXISTS`             | Reuse     | Fresh   |
+    | `FORCE_REDOWNLOAD`                  | Fresh     | Fresh   |
+
     """
 
     REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
