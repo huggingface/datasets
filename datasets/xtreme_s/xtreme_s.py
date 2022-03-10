@@ -583,7 +583,9 @@ class XtremeS(datasets.GeneratorBasedBuilder):
         archive_path = dl_manager.download_and_extract(self.config.data_urls[0])
         audio_path = dl_manager.extract(os.path.join(archive_path, "MInDS-14", "audio.zip"))
         text_path = dl_manager.extract(os.path.join(archive_path, "MInDS-14", "text.zip"))
-        split_paths = {k: dl_manager.download(f"minds14_splits/{k}_{self.config.lang_name}.tsv") for k in ["train", "dev", "test"]}
+        split_paths = {
+            k: dl_manager.download(f"minds14_splits/{k}_{self.config.lang_name}.tsv") for k in ["train", "dev", "test"]
+        }
 
         return [
             datasets.SplitGenerator(
@@ -905,6 +907,6 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                         "num_samples": int(num_samples),
                         "speaker_id": speaker_id,
                         "gender": gender_to_id[gender],
-                        "lang_id": _FLORES_LANG.index(lang_id)
+                        "lang_id": _FLORES_LANG.index(lang_id),
                     }
                     key += 1

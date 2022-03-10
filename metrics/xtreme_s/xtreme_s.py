@@ -77,6 +77,7 @@ _CONFIG_NAMES = ["fleurs-asr", "mls", "voxpopuli", "babel", "covost2", "fleurs-l
 
 try:
     from jiwer import transforms as tr
+
     _jiwer_available = True
 except ImportError:
     _jiwer_available = False
@@ -119,7 +120,7 @@ def simple_accuracy(preds, labels):
 
 
 def f1_and_simple_accuracy(preds, labels):
-    return {"f1": float(f1_score(y_true=labels, y_pred=preds)), "accuracy": f1_and_simple_accuracy(preds, labels)}
+    return {"f1": float(f1_score(y_true=labels, y_pred=preds)), "accuracy": simple_accuracy(preds, labels)}
 
 
 def bleu(
@@ -174,12 +175,14 @@ def wer_and_cer(preds, labels, concatenate_texts, config_name):
             f"jiwer has to be installed in order to apply the wer metric for {config_name}."
             "You can install it via `pip install jiwer`."
         )
+
     if concatenate_texts:
         wer = compute_measures(labels, preds)["wer"]
 
         cer = compute_measures(labels, preds, truth_transform=cer_transform, hypothesis_transform=cer_transform)["wer"]
         return {"wer": wer, "cer": cer}
     else:
+
         def compute_score(preds, labels, score_type="wer"):
             incorrect = 0
             total = 0
@@ -187,10 +190,12 @@ def wer_and_cer(preds, labels, concatenate_texts, config_name):
                 if score_type == "wer":
                     measures = compute_measures(reference, prediction)
                 elif score_type == "cer":
-                    measures = compute_measures(labels, preds, truth_transform=cer_transform, hypothesis_transform=cer_transform)
+                    measures = compute_measures(
+                        reference, prediction, truth_transform=cer_transform, hypothesis_transform=cer_transform
+                    )
                 incorrect += measures["substitutions"] + measures["deletions"] + measures["insertions"]
                 total += measures["substitutions"] + measures["deletions"] + measures["hits"]
-                return incorrect / total
+            return incorrect / total
 
         return {"wer": compute_score(preds, labels, "wer"), "cer": compute_score(preds, labels, "cer")}
 
@@ -215,7 +220,11 @@ class XtremeS(datasets.Metric):
             format="numpy",
         )
 
-    def _compute(self, predictions, references, bleu_kwargs, wer_kwargs):
+    def _compute(self, predictions, references, bleu_kwargs=None, wer_kwargs=None):
+
+        bleu_kwargs = bleu_kwargs if bleu_kwargs is not None else {}
+        wer_kwargs = wer_kwargs if wer_kwargs is not None else {}
+
         if self.config_name == "fleurs-lang_id":
             return {"accuracy": simple_accuracy(predictions, references)}
         elif self.config_name == "minds14":
