@@ -1,11 +1,11 @@
 # Process image data
 
-🤗 Datasets support loading and processing images with the [`~Image`] feature. This guide will show you how to:
+🤗 Datasets support loading and processing images with the [`Image`] feature. This guide will show you how to:
 
 - Load an image dataset.
 - Load a generic image dataset with `ImageFolder`.
-- Add data augmentations to your images.
-- Use [`~Dataset.map`] to quickly apply your transforms to the entire dataset.
+- Add data augmentations to your images with [`Dataset.set_transform`].
+- Use [`~Dataset.map`] to quickly apply transforms to an entire dataset.
 
 ## Image datasets
 
@@ -25,7 +25,7 @@ For example, load the [Food-101](https://huggingface.co/datasets/food101) datase
  'label': 6}
 ```
 
-The [`~Image`] feature automatically decodes the data from the `image` column to return an image object. Now try and call the `image` column to see what the image is:
+The [`Image`] feature automatically decodes the data from the `image` column to return an image object. Now try and call the `image` column to see what the image is:
 
 ```py
 >>> from datasets import load_dataset, Image
@@ -37,28 +37,24 @@ The [`~Image`] feature automatically decodes the data from the `image` column to
 ![image_process_beignet](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/image_process_beignet.png)
 
 
-To load an image from its path, use the [`~Dataset.cast_column`] method. The [`~Image`] feature will decode the data at the path to return an image object:
+To load an image from its path, use the [`~Dataset.cast_column`] method. The [`Image`] feature will decode the data at the path to return an image object:
 
 ```py
 >>> from datasets import load_dataset, Image
 
->>> dataset = load_dataset("cats_vs_dogs").cast_column("image_file_path", Image())
+>>> dataset = Dataset.from_dict({"image_file_path": ["path/to/image_1", "path/to/image_2", ..., "path/to/image_n"]}).cast_column("image_file_path", Image())
 >>> dataset[0]["image_file_path"]
 ```
 
-![image_process_dog](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/image_process_dog.png)
-
-<Tip>
-
 You can also access the path and bytes of an image file by setting `decode=False` when you load a dataset. In this case, you will need to cast the `image` column:
 
-`dataset = load_dataset("food101", split="train[100:]").cast_column('image', Image(decode=False))`
-
-</Tip>
+```py
+>>> dataset = load_dataset("food101", split="train[100:]").cast_column('image', Image(decode=False))
+```
 
 ## ImageFolder
 
-You can also load your image dataset with our `ImageFolder` dataset builder without writing a custom dataloader. Your image dataset structure should look like this:
+You can also load your image dataset with a `ImageFolder` dataset builder without writing a custom dataloader. Your image dataset structure should look like this:
 
 ```
 folder/dog/golden_retriever.png
@@ -80,7 +76,7 @@ Then you can load your dataset by specifying `imagefolder` and the directory of 
 Load remote datasets from their URLs with the `data_files` parameter:
 
 ```py
-dataset = load_dataset("imagefolder", data_files="https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_3367a.zip", split="train")
+>>> dataset = load_dataset("imagefolder", data_files="https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_3367a.zip", split="train")
 ```
 
 ## Data augmentation
@@ -93,11 +89,11 @@ Add the [`ColorJitter`](https://pytorch.org/vision/stable/transforms.html#torchv
 >>> from torchvision.transforms import Compose, ColorJitter, ToTensor
 
 >>> jitter = Compose(
-    [
-     ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.7),
-     ToTensor(),
-    ]
-)
+... [
+...  ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.7),
+...  ToTensor(),
+...  ]
+... )
 ```
 
 Create a function to apply the `ColorJitter` transform to an image:
@@ -108,13 +104,13 @@ Create a function to apply the `ColorJitter` transform to an image:
 ...     return examples
 ```
 
-Use the [`~Dataset.set_transform`] function to apply the transformation on-the-fly. This is generally faster than [`~Dataset.map`] because it only prepares the data when it is used, instead of preparing it across the entire dataset ahead of time:
+Then you can use the [`~Dataset.set_transform`] function to apply the transformation on-the-fly to consume less disk space. You should use [`~Dataset.set_transform`] if you only need to access the examples once:
 
 ```py
 >>> dataset.set_transform(transforms)
 ```
 
-Now you can visualize the results of the `ColorJitter` transform:
+Now visualize the results of the `ColorJitter` transform:
 
 ```py
 >>> import numpy as np
@@ -125,3 +121,13 @@ Now you can visualize the results of the `ColorJitter` transform:
 ```
 
 ![image_process_jitter](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/image_process_jitter.png)
+
+## Map
+
+[`~Dataset.map`] can also apply transforms over an entire dataset. When you use [`~Dataset.map`] to apply transforms, it generates a cache file. This saves time because you don't have to execute the same transform twice. You should use [`~Dataset.map`] for operations you only run once per training - like resizing an image - instead of using it for operations that are executed for each epoch, like data augmentations.
+
+To apply the same `ColorJitter` transform from above with [`~Dataset.map`], you need to set `batched=True`:
+
+```py
+>>> processed_food = dataset.map(transforms, batched=True)
+```
