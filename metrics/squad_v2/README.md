@@ -102,12 +102,14 @@ The SQuAD datasets do contain a certain amount of noise, such as duplicate quest
 
 ## Citation
 
-    @inproceedings{Rajpurkar2018SQuAD2,
-    title={Know What You Don't Know: Unanswerable Questions for SQuAD},
-    author={Pranav Rajpurkar and Jian Zhang and Percy Liang},
-    booktitle={ACL 2018},
-    year={2018}
-    }
+```bibtex
+@inproceedings{Rajpurkar2018SQuAD2,
+title={Know What You Don't Know: Unanswerable Questions for SQuAD},
+author={Pranav Rajpurkar and Jian Zhang and Percy Liang},
+booktitle={ACL 2018},
+year={2018}
+}
+```
     
 ## Further References 
 
