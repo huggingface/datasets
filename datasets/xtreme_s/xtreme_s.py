@@ -161,7 +161,6 @@ _DATA_URLS = {  # TODO(PVP)
         "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-4-2019-12-10/{}.tar.gz",
         "https://dl.fbaipublicfiles.com/covost/covost_v2.{}_{}.tsv.tar.gz",
     ],
-    "fleurs": ["https://storage.googleapis.com/xtreme_translations/FLEURS/{}.tar.gz"],
     "minds14": ["http://poly-public-data.s3.amazonaws.com/MInDS-14/MInDS-14.zip"],
 }
 # fmt: on
