@@ -34,7 +34,7 @@ class ImageFolder(datasets.GeneratorBasedBuilder):
             labels = set()
 
             def capture_labels_for_split(files_or_archives, downloaded_files_or_dirs):
-                if downloaded_files_or_dirs:
+                if len(downloaded_files_or_dirs) == 0:
                     return
                 # The files are separated from the archives at this point, so check the first sample
                 # to see if it's a file or a directory and iterate accordingly
