@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, Optional, Type, TypeVar, Union
+from typing import Dict, List, Optional, Type, TypeVar, Union
 from urllib.parse import urljoin, urlparse
 
 import numpy as np
@@ -372,7 +372,7 @@ def _retry(
     func_args: Optional[tuple] = None,
     func_kwargs: Optional[dict] = None,
     exceptions: Type[requests.exceptions.RequestException] = requests.exceptions.RequestException,
-    status_codes: Optional[list[int]] = None,
+    status_codes: Optional[List[int]] = None,
     max_retries: int = 0,
     base_wait_time: float = 0.5,
     max_wait_time: float = 2,
