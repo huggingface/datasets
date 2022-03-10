@@ -32,6 +32,9 @@ import datasets
 from datasets.tasks import AutomaticSpeechRecognition
 
 
+logger = datasets.logging.get_logger(__name__)
+
+
 """ XTREME-S Dataset"""
 
 """TODO(PVP): Add a description here."""
@@ -87,7 +90,7 @@ _COVOST2_LANG = _COVOST2_FROM_EN_LANG + _COVOST2_TO_EN_LANG
 _MINDS_14_LANG = [
     "cs-CZ", "de-DE", "en-AU", "en-GB", "en-US", "es-ES", "fr-FR", "it-IT", "ko-KR", "nl-NL", "pl-PL", "pt-PT", "ru-RU", "zh-CN",
 ]
-_FLORES_LANG = ["af_za", "am_et", "ar_eg", "as_in", "ast_es", "az_az", "be_by", "bn_in", "bs_ba", "ca_es", "ceb", "cmn_hans_cn", "cmn_hant_hk", "cs_cz", "cy_gb", "da_dk", "de_de", "el_gr", "en_us", "es_419", "et_ee", "fa_ir", "ff_sn", "fi_fi", "fil_ph", "fr_fr", "ga_ie", "gl_es", "gu_in", "ha_ng", "he_il", "hi_in", "hr_hr", "hu_hu", "hy_am", "id_id", "ig_ng", "is_is", "it_it", "ja_jp", "jv_id", "ka_ge", "kam_ke", "kea_cv", "kk_kz", "km_kh", "kn_in", "ko_kr", "ku_arab_iq", "ky_kg", "lb_lu", "lg_ug", "ln_cd", "lo_la", "lt_lt", "luo_ke", "lv_lv", "mi_nz", "mk_mk", "ml_in", "mn_mn", "mr_in", "ms_my", "mt_mt", "my_mm", "nb_no", "ne_np", "nl_nl", "nso_za", "ny_mw", "oci_fr", "om_et", "or_in", "pa_in", "pl_pl", "ps_af", "pt_br", "ro_ro", "ru_ru", "rup_bg", "sd_arab_in", "sk_sk", "sl_si", "sn_zw", "so_so", "sr_rs", "sv_se", "sw_ke", "ta_in", "te_in", "tg_tj", "th_th", "tr_tr", "uk_ua", "umb_ao", "ur_pk", "uz_uz", "vi_vn", "wo_sn", "xh_za", "yo_ng", "zu_za"]
+_FLORES_LANG = sorted(["af_za", "am_et", "ar_eg", "as_in", "ast_es", "az_az", "be_by", "bn_in", "bs_ba", "ca_es", "ceb", "cmn_hans_cn", "cmn_hant_hk", "cs_cz", "cy_gb", "da_dk", "de_de", "el_gr", "en_us", "es_419", "et_ee", "fa_ir", "ff_sn", "fi_fi", "fil_ph", "fr_fr", "ga_ie", "gl_es", "gu_in", "ha_ng", "he_il", "hi_in", "hr_hr", "hu_hu", "hy_am", "id_id", "ig_ng", "is_is", "it_it", "ja_jp", "jv_id", "ka_ge", "kam_ke", "kea_cv", "kk_kz", "km_kh", "kn_in", "ko_kr", "ku_arab_iq", "ky_kg", "lb_lu", "lg_ug", "ln_cd", "lo_la", "lt_lt", "luo_ke", "lv_lv", "mi_nz", "mk_mk", "ml_in", "mn_mn", "mr_in", "ms_my", "mt_mt", "my_mm", "nb_no", "ne_np", "nl_nl", "nso_za", "ny_mw", "oci_fr", "om_et", "or_in", "pa_in", "pl_pl", "ps_af", "pt_br", "ro_ro", "ru_ru", "rup_bg", "sd_arab_in", "sk_sk", "sl_si", "sn_zw", "so_so", "sr_rs", "sv_se", "sw_ke", "ta_in", "te_in", "tg_tj", "th_th", "tr_tr", "uk_ua", "umb_ao", "ur_pk", "uz_uz", "vi_vn", "wo_sn", "xh_za", "yo_ng", "zu_za"])
 
 _ALL_LANG = set(_BABEL_LANG + _MLS_LANG + _VOXPOPULI_LANG + _COVOST2_LANG + _FLORES_LANG + _MINDS_14_LANG)
 
@@ -106,6 +109,9 @@ _ALL_CONFIGS = []  # e.g. mls.en, covost.en.sv, ...
 for sub_data, langs in _ALL_DATASET_CONFIGS.items():
     for lang in langs:
         _ALL_CONFIGS.append(f"{sub_data}.{lang}")
+
+# add fleurs all for langID task
+_ALL_CONFIGS.append("fleurs.all")
 
 
 _DESCRIPTIONS = {  # TOOD(PVP)
@@ -155,7 +161,7 @@ _DATA_URLS = {  # TODO(PVP)
         "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-4-2019-12-10/{}.tar.gz",
         "https://dl.fbaipublicfiles.com/covost/covost_v2.{}_{}.tsv.tar.gz",
     ],
-    "fleurs": "",
+    "fleurs": ["https://storage.googleapis.com/xtreme_translations/FLEURS/{}.tar.gz"],
     "minds14": ["http://poly-public-data.s3.amazonaws.com/MInDS-14/MInDS-14.zip"],
 }
 # fmt: on
@@ -257,8 +263,9 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                     "path": datasets.Value("string"),
                     "audio": datasets.Audio(sampling_rate=16_000),
                     "transcription": datasets.Value("string"),
-                    "gender": datasets.ClassLabel(names=["male", "female"]),
+                    "gender": datasets.ClassLabel(names=["male", "female", "other"]),
                     "speaker_id": datasets.Value("int32"),
+                    "lang_id": datasets.ClassLabel(names=_FLORES_LANG),
                 }
             )
 
@@ -828,32 +835,37 @@ class XtremeS(datasets.GeneratorBasedBuilder):
 
     # Fleurs
     def _fleurs_split_generators(self, dl_manager):
-        archive_path = dl_manager.extract("/home/patrick/Desktop/xtreme_s/so_so.tar.gz")
-        # TODO(PVP) - to clean up once public links exist
-#        archive_path = dl_manager.download_and_extract(self.config.data_urls[0])
-        audio_path = os.path.join(archive_path, self.config.lang_name, "audio")
-        text_path = os.path.join(archive_path, self.config.lang_name)
+        data_url_format = self.config.data_urls[0]
+
+        if self.config.lang_name == "all":
+            data_urls = {l: data_url_format.format(l) for l in _FLORES_LANG}
+        else:
+            data_urls = {self.config.lang_name: data_url_format.format(self.config.lang_name)}
+
+        archive_path = dl_manager.download_and_extract(data_urls)
+        audio_path = {l: os.path.join(v, l, "audio") for l, v in archive_path.items()}
+        text_path = {l: os.path.join(v, l) for l, v in archive_path.items()}
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "audio_path": os.path.join(audio_path, "train"),
-                    "text_path": os.path.join(text_path, "train.tsv"),
+                    "audio_path": {l: os.path.join(v, "train") for l, v in audio_path.items()},
+                    "text_path": {l: os.path.join(v, "train.tsv") for l, v in text_path.items()},
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "audio_path": os.path.join(audio_path, "dev"),
-                    "text_path": os.path.join(text_path, "dev.tsv"),
+                    "audio_path": {l: os.path.join(v, "dev") for l, v in audio_path.items()},
+                    "text_path": {l: os.path.join(v, "dev.tsv") for l, v in text_path.items()},
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "audio_path": os.path.join(audio_path, "test"),
-                    "text_path": os.path.join(text_path, "test.tsv"),
+                    "audio_path": {l: os.path.join(v, "test") for l, v in audio_path.items()},
+                    "text_path": {l: os.path.join(v, "test.tsv") for l, v in text_path.items()},
                 },
             ),
         ]
@@ -861,18 +873,38 @@ class XtremeS(datasets.GeneratorBasedBuilder):
     def _fleurs_generate_examples(self, audio_path, text_path):
         key = 0
 
-        gender_to_id = {"MALE": 0, "FEMALE": 1}
-        with open(text_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-            for line in lines:
-                _id, file_name, _, transcription, _, num_samples, speaker_id, gender = line.strip().split("\t")
-                yield key, {
-                    "id": int(_id),
-                    "path": os.path.join(audio_path, file_name),
-                    "audio": os.path.join(audio_path, file_name),
-                    "transcription": transcription,
-                    "num_samples": int(num_samples),
-                    "speaker_id": int(speaker_id),
-                    "gender": gender_to_id[gender],
-                }
-                key += 1
+        gender_to_id = {"MALE": 0, "FEMALE": 1, "OTHER": 2}
+
+        for lang_id in text_path.keys():
+            text_file = text_path[lang_id]
+            audio_dir = audio_path[lang_id]
+
+            with open(text_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                for line in lines:
+                    _id, file_name, _, transcription, _, num_samples, speaker_id, gender = line.strip().split("\t")
+
+                    # speaker_id sometimes mixes string and digit
+                    if speaker_id.isdigit():
+                        speaker_id = int(speaker_id)
+                    elif any(c.isdigit() for c in speaker_id):
+                        speaker_id = int("".join([c for c in speaker_id if c.isdigit()]))
+                    else:
+                        logger.warn(
+                            f"speaker_id: {speaker_id} has no digits. "
+                            "It is not possible to identify the speaker id. "
+                            f"Defaulting to speaker_id=-1 for {file_name} of {lang_id}."
+                        )
+                        speaker_id = -1
+
+                    yield key, {
+                        "id": int(_id),
+                        "path": os.path.join(audio_dir, file_name),
+                        "audio": os.path.join(audio_dir, file_name),
+                        "transcription": transcription,
+                        "num_samples": int(num_samples),
+                        "speaker_id": speaker_id,
+                        "gender": gender_to_id[gender],
+                        "lang_id": _FLORES_LANG.index(lang_id)
+                    }
+                    key += 1
