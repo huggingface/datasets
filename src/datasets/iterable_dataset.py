@@ -638,7 +638,7 @@ class IterableDataset(DatasetInfoMixin):
             :class:`IterableDataset`: A copy of the dataset with a renamed column.
         """
 
-        def add_new_column_fn(example):
+        def rename_column_fn(example):
             if original_column_name not in example:
                 raise ValueError(
                     f"Error when renaming {original_column_name} to {new_column_name}: column {original_column_name} is not in the dataset."
@@ -649,7 +649,7 @@ class IterableDataset(DatasetInfoMixin):
                 )
             return {new_column_name: example[original_column_name]}
 
-        return self.map(add_new_column_fn, remove_columns=[original_column_name])
+        return self.map(rename_column_fn, remove_columns=[original_column_name])
 
     def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDataset":
         """
@@ -663,7 +663,7 @@ class IterableDataset(DatasetInfoMixin):
             :class:`IterableDataset`: A copy of the dataset with renamed columns
         """
 
-        def add_new_columns_fn(example):
+        def rename_columns_fn(example):
             if any(col not in example for col in column_mapping):
                 raise ValueError(
                     f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
@@ -677,7 +677,7 @@ class IterableDataset(DatasetInfoMixin):
                 for original_column_name, new_column_name in column_mapping.items()
             }
 
-        return self.map(add_new_columns_fn, remove_columns=list(column_mapping))
+        return self.map(rename_columns_fn, remove_columns=list(column_mapping))
 
     def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
         """
