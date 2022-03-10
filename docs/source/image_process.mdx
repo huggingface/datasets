@@ -1,0 +1,127 @@
+# Process image data
+
+🤗 Datasets support loading and processing images with the [`~Image`] feature. This guide will show you how to:
+
+- Load an image dataset.
+- Load a generic image dataset with `ImageFolder`.
+- Add data augmentations to your images.
+- Use [`~Dataset.map`] to quickly apply your transforms to the entire dataset.
+
+## Image datasets
+
+The images in an image dataset are typically either a:
+
+- PIL `image`.
+- Path to an image file that you can load. 
+
+For example, load the [Food-101](https://huggingface.co/datasets/food101) dataset and take a look:
+
+```py
+>>> from datasets import load_dataset, Image
+
+>>> dataset = load_dataset("food101", split="train[100:]")
+>>> dataset[0]
+{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7FC45AB5C590>,
+ 'label': 6}
+```
+
+The [`~Image`] feature automatically decodes the data from the `image` column to return an image object. Now try and call the `image` column to see what the image is:
+
+```py
+>>> from datasets import load_dataset, Image
+
+>>> dataset = load_dataset("food101", split="train[100:200]")
+>>> dataset[0]["image"]
+```
+
+![image_process_beignet](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/image_process_beignet.png)
+
+
+To load an image from its path, use the [`~Dataset.cast_column`] method. The [`~Image`] feature will decode the data at the path to return an image object:
+
+```py
+>>> from datasets import load_dataset, Image
+
+>>> dataset = load_dataset("cats_vs_dogs").cast_column("image_file_path", Image())
+>>> dataset[0]["image_file_path"]
+```
+
+![image_process_dog](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/image_process_dog.png)
+
+<Tip>
+
+You can also access the path and bytes of an image file by setting `decode=False` when you load a dataset. In this case, you will need to cast the `image` column:
+
+`dataset = load_dataset("food101", split="train[100:]").cast_column('image', Image(decode=False))`
+
+</Tip>
+
+## ImageFolder
+
+You can also load your image dataset with our `ImageFolder` dataset builder without writing a custom dataloader. Your image dataset structure should look like this:
+
+```
+folder/dog/golden_retriever.png
+folder/dog/german_shepherd.png
+folder/dog/chihuahua.png
+
+folder/cat/maine_coon.png
+folder/cat/bengal.png
+folder/cat/birman.png
+```
+
+Then you can load your dataset by specifying `imagefolder` and the directory of your dataset in `data_dir`:
+
+```py
+>>> from datasets import load_dataset
+>>> dataset = load_dataset("imagefolder", data_dir="/path/to/folder")
+```
+
+Load remote datasets from their URLs with the `data_files` parameter:
+
+```py
+dataset = load_dataset("imagefolder", data_files="https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_3367a.zip", split="train")
+```
+
+## Data augmentation
+
+Adding data augmentations to a dataset is common to prevent overfitting and achieve better performance. You can use any library or package you want to apply the augmentations. This guide will use the transforms from [torchvision](https://pytorch.org/vision/stable/transforms.html).
+
+Add the [`ColorJitter`](https://pytorch.org/vision/stable/transforms.html#torchvision.transforms.ColorJitter) transform to change the color properties of the image randomly:
+
+```py
+>>> from torchvision.transforms import Compose, ColorJitter, ToTensor
+
+>>> jitter = Compose(
+    [
+     ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.7),
+     ToTensor(),
+    ]
+)
+```
+
+Create a function to apply the `ColorJitter` transform to an image:
+
+```py
+>>> def transforms(examples):
+...     examples["pixel_values"] = [jitter(image.convert("RGB")) for image in examples["image"]]
+...     return examples
+```
+
+Use the [`~Dataset.set_transform`] function to apply the transformation on-the-fly. This is generally faster than [`~Dataset.map`] because it only prepares the data when it is used, instead of preparing it across the entire dataset ahead of time:
+
+```py
+>>> dataset.set_transform(transforms)
+```
+
+Now you can visualize the results of the `ColorJitter` transform:
+
+```py
+>>> import numpy as np
+>>> import matplotlib.pyplot as plt
+
+>>> img = dataset[0]["pixel_values"]
+>>> plt.imshow(img.permute(1, 2, 0))
+```
+
+![image_process_jitter](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/image_process_dog.png)
