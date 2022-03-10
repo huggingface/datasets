@@ -211,8 +211,8 @@ You can filter rows in the dataset based on a predicate function using [`dataset
 [`datasets.IterableDataset`] can be integrated into a training loop. First, shuffle the dataset:
 
 ```py
->>> buffer_size, seed = 10_000, 42
->>> dataset = dataset.shuffle(buffer_size, seed)
+>>> seed, buffer_size = 42, 10_000
+>>> dataset = dataset.shuffle(seed, buffer_size=buffer_size)
 ```
 
 Lastly, create a simple training loop and start training:
