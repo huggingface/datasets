@@ -340,9 +340,9 @@ There should be two new files in your dataset folder:
 - `dummy_data.zip` is a file used to test the behavior of the loading script without having to download the full dataset.
 
 
-### Test
+#### Run the tests
 
-The last step is to actually test dataset generation with the real and dummy data. Run the following command to test the real data:
+The last step is to actually test dataset generation with the real and dummy data. Clone the `huggingface/datasets` repository and run the following command to test the real data:
 
 ```
 RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your_dataset_name>
