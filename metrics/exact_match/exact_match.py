@@ -47,7 +47,7 @@ Examples:
     >>> exact_match = datasets.load_metric("exact_match")
     >>> refs = ["the cat", "theater", "YELLING"]
     >>> preds = ["cat?", "theater", "yelling"]
-    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", r"\?"])
+    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", r'\?'])
     >>> round(results["exact_match"], 1)
     66.7
 
@@ -55,7 +55,7 @@ Examples:
     >>> exact_match = datasets.load_metric("exact_match")
     >>> refs = ["the cat", "theater", "YELLING"]
     >>> preds = ["cat?", "theater", "yelling"]
-    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", r"\?"], ignore_capitalization=True)
+    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", r'\?'], ignore_capitalization=True)
     >>> round(results["exact_match"], 1)
     100.0
 """
