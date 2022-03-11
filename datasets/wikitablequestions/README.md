@@ -79,10 +79,18 @@ en
 An example of 'validation' looks as follows:
 ```
 {
-    "id": nt-0,
+    "id": "nt-0",
     "question": "what was the last year where this team was a part of the usl a-league?",
     "answer": ["2004"],
-    "table": "{\"header\": [\"Year\", \"Division\", \"League\", ...], \"name\": \"csv/204-csv/590.csv", \"rows\": [[\"2001\", \"2\", \"USL A-League\", ...], [\"2002\", \"2\", ...], ...]}"
+    "table": {
+        "header": ["Year", "Division", "League", ...], 
+        "name": "csv/204-csv/590.csv", 
+        "rows": [
+           ["2001", "2", "USL A-League", ...],
+           ["2002", "2", "USL A-League", ...], 
+           ...
+        ]
+    }
 }
 ```
 

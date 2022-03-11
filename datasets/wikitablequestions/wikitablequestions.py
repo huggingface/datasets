@@ -103,7 +103,7 @@ class WikiTableQuestions(datasets.GeneratorBasedBuilder):
             {
                 "id": datasets.Value("string"),
                 "question": datasets.Value("string"),
-                "answer": datasets.features.Sequence(datasets.Value("string")),
+                "answers": datasets.features.Sequence(datasets.Value("string")),
                 "table": {
                     "header": datasets.features.Sequence(datasets.Value("string")),
                     "rows": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("string"))),
