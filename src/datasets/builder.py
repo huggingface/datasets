@@ -297,6 +297,9 @@ class DatasetBuilder:
         # Set download manager
         self.dl_manager = None
 
+        # Record infos even if verify_infos=False; used by datastes-cli test to generate dataset_infos.json
+        self._record_infos = False
+
     # Must be set for datasets that use 'data_dir' functionality - the ones
     # that require users to do additional steps to download the data
     # (this is usually due to some external regulations / rules).
@@ -518,7 +521,7 @@ class DatasetBuilder:
                 download_config=download_config,
                 data_dir=self.config.data_dir,
                 base_path=base_path,
-                record_checksums=verify_infos,
+                record_checksums=self._record_infos or verify_infos,
             )
         elif isinstance(dl_manager, MockDownloadManager):
             try_from_hf_gcs = False
