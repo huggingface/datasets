@@ -4,7 +4,7 @@ import datasets
 from datasets import Dataset
 
 
-def test_enable_disable_progress_bar_enabled():
+def test_enable_disable_progress_bar():
     dset = Dataset.from_dict({"col_1": [3, 2, 0, 1]})
 
     with patch("tqdm.auto.tqdm") as mock_tqdm:
