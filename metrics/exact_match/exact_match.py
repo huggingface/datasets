@@ -17,6 +17,9 @@ import numpy as np
 
 import datasets
 
+import re
+import time
+
 
 _DESCRIPTION = """
 Returns the rate at which the input predicted strings exactly match their references, ignoring characters in the chars_to_ignore string
@@ -26,23 +29,35 @@ _KWARGS_DESCRIPTION = """
 Args:
     predictions: Predicted labels, as returned by a model.
     references: Ground truth labels.
-    chars_to_ignore: String of characters to ignore when calculating the exact matches.
+    regexes_to_ignore: List, defaults to None. Regex expressions of characters to
+        ignore when calculating the exact matches. Note: the regexes are applied after
+        capitalization is normalized.
+    ignore_capitalization: Boolean, defaults to False. If true, turns everything
+        to lowercase so that capitalization differences are ignored. 
 Returns:
-    exact_match: Exact match rate. Possible values are between 0 and 1, inclusive.
+    exact_match: Dictionary containing exact_match rate. Possible values are between 0.0 and 100.0, inclusive.
 Examples:
+    >>> exact_match = datasets.load_metric("exact_match")
+    >>> refs = ["the cat", "theater", "YELLING"]
+    >>> preds = ["cat?", "theater", "yelling"]
+    >>> results = exact_match.compute(references=refs, predictions=preds)
+    >>> round(results["exact_match"], 1)
+    33.3
 
     >>> exact_match = datasets.load_metric("exact_match")
-    >>> refs = ["happy birthday!", "welcome..."]
-    >>> preds = ["happy birthday", "elcome"]
-    >>> results = exact_match.compute(references=refs, predictions=preds)
-    >>> print(results)
-    {'exact_match': 0.0}
-    >>> results = exact_match.compute(references=refs, predictions=preds, chars_to_ignore="!")
-    >>> print(results)
-    {'exact_match': 0.5}
-    >>> results = exact_match.compute(references=refs, predictions=preds, chars_to_ignore="!.w")
-    >>> print(results)
-    {'exact_match': 1.0}
+    >>> refs = ["the cat", "theater", "YELLING"]
+    >>> preds = ["cat?", "theater", "yelling"]
+    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "\?"])
+    >>> round(results["exact_match"], 1)
+    66.7
+
+
+    >>> exact_match = datasets.load_metric("exact_match")
+    >>> refs = ["the cat", "theater", "YELLING"]
+    >>> preds = ["cat?", "theater", "yelling"]
+    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "\?"], ignore_capitalization=True)
+    >>> round(results["exact_match"], 1)
+    100.0
 """
 
 _CITATION = """
@@ -65,17 +80,24 @@ class ExactMatch(datasets.Metric):
             reference_urls=[""],
         )
 
-    def _compute(self, predictions, references, chars_to_ignore=None):
-        score_list = np.zeros(len(predictions))
+    def _compute(self, 
+                predictions,
+                references,
+                regexes_to_ignore=None,
+                ignore_capitalization=False):
 
-        if chars_to_ignore is not None:
-            translate_dict = chars_to_ignore.maketrans("", "", chars_to_ignore)
-            predictions = np.char.translate(predictions, translate_dict)
-            references = np.char.translate(references, translate_dict)
+        if regexes_to_ignore is not None:
+            for s in regexes_to_ignore:
+                if ignore_capitalization:
+                    predictions = np.array(list(map(lambda x: re.sub(s, "", x.lower()), predictions)))
+                    references = np.array(list(map(lambda x: re.sub(s, "", x.lower()), references)))
+                else:
+                    predictions = np.array(list(map(lambda x: re.sub(s, "", x), predictions)))
+                    references = np.array(list(map(lambda x: re.sub(s, "", x), references)))
         else:
             predictions = np.asarray(predictions)
             references = np.asarray(references)
 
         score_list = predictions == references
 
-        return {"exact_match": np.mean(score_list)}
+        return {"exact_match": np.mean(score_list) * 100}
