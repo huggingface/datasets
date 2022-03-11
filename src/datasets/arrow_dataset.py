@@ -58,19 +58,8 @@ from tqdm.auto import tqdm
 from . import config, utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import (
-    Audio,
-    ClassLabel,
-    Features,
-    FeatureType,
-    Image,
-    Sequence,
-    Value,
-    _ArrayXD,
-    decode_nested_example,
-    pandas_types_mapper,
-    require_decoding,
-)
+from .features import Audio, ClassLabel, Features, Image, Sequence, Value
+from .features.features import FeatureType, _ArrayXD, decode_nested_example, pandas_types_mapper, require_decoding
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -2316,7 +2305,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-                pbar = utils.tqdm(
+                pbar = utils.tqdm_utils.tqdm(
                     pbar_iterable,
                     total=pbar_total,
                     disable=disable_tqdm,
@@ -3466,7 +3455,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
 
         if len(file_shards_to_delete):
-            for file in utils.tqdm(
+            for file in utils.tqdm_utils.tqdm(
                 file_shards_to_delete,
                 desc="Deleting unused files from dataset repository",
                 total=len(file_shards_to_delete),
@@ -3475,7 +3464,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 delete_file(file)
 
         uploaded_size = 0
-        for index, shard in utils.tqdm(
+        for index, shard in utils.tqdm_utils.tqdm(
             enumerate(shards),
             desc="Pushing dataset shards to the dataset hub",
             total=num_shards,

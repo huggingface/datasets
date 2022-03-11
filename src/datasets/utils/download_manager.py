@@ -184,7 +184,7 @@ class DownloadManager:
         """
         Ship the files using Beam FileSystems to the pipeline temp dir.
         """
-        from datasets.utils.beam_utils import upload_local_to_remote
+        from .beam_utils import upload_local_to_remote
 
         remote_dir = pipeline._options.get_all_options().get("temp_location")
         if remote_dir is None:

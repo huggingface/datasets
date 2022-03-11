@@ -48,7 +48,7 @@ from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
-from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, hash_python_lines
+from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, _hash_python_lines
 from .splits import Split
 from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
@@ -139,7 +139,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     for file_path in to_use_files:
         with open(file_path, encoding="utf-8") as f:
             lines.extend(f.readlines())
-    return hash_python_lines(lines)
+    return _hash_python_lines(lines)
 
 
 def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:

@@ -8,7 +8,8 @@ import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import DatasetInfoMixin
-from .features import Features, FeatureType
+from .features import Features
+from .features.features import FeatureType
 from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit

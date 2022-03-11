@@ -7,8 +7,7 @@ import huggingface_hub
 from fsspec.implementations.local import LocalFileSystem
 from tqdm.contrib.concurrent import thread_map
 
-from datasets.filesystems.hffilesystem import HfFileSystem
-
+from .filesystems.hffilesystem import HfFileSystem
 from .splits import Split
 from .utils import logging
 from .utils.file_utils import hf_hub_url, is_remote_url, request_etag
