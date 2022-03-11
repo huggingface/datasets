@@ -174,7 +174,8 @@ class WikiTableQuestions(datasets.GeneratorBasedBuilder):
         # The `key` is for legacy reasons (tfds) and is not important in itself, but must be unique for each example.
         with open(main_filepath, encoding="utf-8") as f:
             # skip the first line since it is the tsv header
-            for idx, line in enumerate(f.readlines()[1:]):
+            next(f)
+            for idx, line in enumerate(f):
                 example_id, question, table_name, answer = line.strip("\n").split("\t")
                 answer = answer.split("|")
                 # must contain rows and header keys
