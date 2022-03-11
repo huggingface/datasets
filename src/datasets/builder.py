@@ -297,7 +297,7 @@ class DatasetBuilder:
         # Set download manager
         self.dl_manager = None
 
-        # Record infos even if verify_infos=False; used by datastes-cli test to generate dataset_infos.json
+        # Record infos even if verify_infos=False; used by "datasets-cli test" to generate dataset_infos.json
         self._record_infos = False
 
     # Must be set for datasets that use 'data_dir' functionality - the ones
