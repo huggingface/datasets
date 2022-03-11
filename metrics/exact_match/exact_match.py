@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Exact Match metric."""
-import datasets
+import re
+import string
 
 import numpy as np
-import string
-import re
+
+import datasets
 
 
 _DESCRIPTION = """
@@ -91,7 +92,15 @@ class ExactMatch(datasets.Metric):
             reference_urls=[""],
         )
 
-    def _compute(self, predictions, references, regexes_to_ignore=None, ignore_case=False, ignore_punctuation=False, ignore_numbers=False):
+    def _compute(
+        self,
+        predictions,
+        references,
+        regexes_to_ignore=None,
+        ignore_case=False,
+        ignore_punctuation=False,
+        ignore_numbers=False,
+    ):
 
         if regexes_to_ignore is not None:
             for s in regexes_to_ignore:
@@ -116,7 +125,10 @@ class ExactMatch(datasets.Metric):
             references = np.char.translate(references, table=repl_table)
 
         print("\n\nregexes to ignore:", regexes_to_ignore)
-        print("ignore_case=%i || ignore_punctuation=%i || ignore_numbers=%i"%(int(ignore_case), int(ignore_punctuation), int(ignore_numbers)))
+        print(
+            "ignore_case=%i || ignore_punctuation=%i || ignore_numbers=%i"
+            % (int(ignore_case), int(ignore_punctuation), int(ignore_numbers))
+        )
         print("preds:", predictions)
         print("refs:", references)
         score_list = predictions == references
