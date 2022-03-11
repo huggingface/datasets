@@ -13,12 +13,12 @@
 # limitations under the License.
 """Exact Match metric."""
 
+import re
+import time
+
 import numpy as np
 
 import datasets
-
-import re
-import time
 
 
 _DESCRIPTION = """
@@ -80,11 +80,7 @@ class ExactMatch(datasets.Metric):
             reference_urls=[""],
         )
 
-    def _compute(self, 
-                predictions,
-                references,
-                regexes_to_ignore=None,
-                ignore_capitalization=False):
+    def _compute(self, predictions, references, regexes_to_ignore=None, ignore_capitalization=False):
 
         if regexes_to_ignore is not None:
             for s in regexes_to_ignore:
