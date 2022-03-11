@@ -180,4 +180,4 @@ class WikiTableQuestions(datasets.GeneratorBasedBuilder):
                 # must contain rows and header keys
                 table_content = self._read_table_from_file(table_name, root_dir)
 
-                yield idx, {"id": example_id, "question": question, "answer": answer, "table": table_content}
+                yield idx, {"id": example_id, "question": question, "answers": answer, "table": table_content}

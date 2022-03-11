@@ -81,7 +81,7 @@ An example of 'validation' looks as follows:
 {
     "id": "nt-0",
     "question": "what was the last year where this team was a part of the usl a-league?",
-    "answer": ["2004"],
+    "answers": ["2004"],
     "table": {
         "header": ["Year", "Division", "League", ...], 
         "name": "csv/204-csv/590.csv", 
@@ -101,7 +101,7 @@ The data fields are the same among all splits.
 #### default
 - `id`: a `string` feature.
 - `question`: a `string` feature.
-- `answer`: a `list` of `string` feature.
+- `answers`: a `list` of `string` feature.
 - `table`: a dictionary feature containing:
   - `header`: a `list` of `string` features.
   - `rows`: a `list` of `list` of `string` features:
