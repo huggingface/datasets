@@ -36,39 +36,47 @@ This metric outputs a dictionary with one value: the average exact match score.
 This metric's range is 0-100, inclusive. Here, 0.0 means no prediction/reference pairs were matches, while 100.0 means they all were.
 
 ### Examples
-Without ignoring any regexes to ignore, and keeping the capitalization as input:
+Without including any regexes to ignore:
 ```python
 exact_match = datasets.load_metric("exact_match")
-refs = ["the cat", "theater", "YELLING"]
-preds = ["cat?", "theater", "yelling"]
+refs = ["the cat", "theater", "YELLING", "agent007"]
+preds = ["cat?", "theater", "yelling", "agent"]
 results = exact_match.compute(references=refs, predictions=preds)
 round(results["exact_match"], 1)
-33.3
-```
-Ignoring the strings "the " and "?" when comparing, but keeping capitalization as input:
-```python
-exact_match = datasets.load_metric("exact_match")
-refs = ["the cat", "theater", "YELLING"]
-preds = ["cat?", "theater", "yelling"]
-results = exact_match.compute(references=refs, 
-                                predictions=preds, 
-                                regexes_to_ignore=["the ", "\?"])
-round(results["exact_match"], 1)
-66.7
+25.0
 ```
 
-Ignoring substrings "the " and "?" when comparing, as well as normalizing capitalization:
+Ignoring regexes "the" and "yell", as well as ignoring case and punctuation:
 ```python
 exact_match = datasets.load_metric("exact_match")
-refs = ["the cat", "theater", "YELLING"]
-preds = ["cat?", "theater", "yelling"]
-results = exact_match.compute(references=refs, 
-                                predictions=preds, 
-                                regexes_to_ignore=["the ", "\?"], 
-                                ignore_capitalization=True)
+refs = ["the cat", "theater", "YELLING", "agent007"]
+preds = ["cat?", "theater", "yelling", "agent"]
+results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "yell"], ignore_case=True, ignore_punctuation=True)
+round(results["exact_match"], 1)
+50.0
+```
+Note that in the example above, because the regexes are ignored before the case is normalized, "yell" from "YELLING" is not deleted.
+
+Ignoring "the", "yell", and "YELL", as well as ignoring case and punctuation:
+```python
+exact_match = datasets.load_metric("exact_match")
+refs = ["the cat", "theater", "YELLING", "agent007"]
+preds = ["cat?", "theater", "yelling", "agent"]
+results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "yell", "YELL"], ignore_case=True, ignore_punctuation=True)
+round(results["exact_match"], 1)
+75.0
+```
+
+Ignoring "the", "yell", and "YELL", as well as ignoring case, punctuation, and numbers:
+```python
+exact_match = datasets.load_metric("exact_match")
+refs = ["the cat", "theater", "YELLING", "agent007"]
+preds = ["cat?", "theater", "yelling", "agent"]
+results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "yell", "YELL"], ignore_case=True, ignore_punctuation=True, ignore_numbers=True)
 round(results["exact_match"], 1)
 100.0
 ```
+
 
 
 ## Limitations and Bias

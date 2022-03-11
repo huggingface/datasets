@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Exact Match metric."""
-
-import re
-import time
+import datasets
 
 import numpy as np
-
-import datasets
+import string
+import re
 
 
 _DESCRIPTION = """
@@ -30,34 +28,47 @@ Args:
     predictions: Predicted labels, as returned by a model.
     references: Ground truth labels.
     regexes_to_ignore: List, defaults to None. Regex expressions of characters to
-        ignore when calculating the exact matches. Note: the regexes are applied after
-        capitalization is normalized.
-    ignore_capitalization: Boolean, defaults to False. If true, turns everything
+        ignore when calculating the exact matches. Note: these regexes are removed
+        from the input data before the changes based on the options below (e.g. ignore_case,
+        ignore_punctuation, ignore_numbers) are applied.
+    ignore_case: Boolean, defaults to False. If true, turns everything
         to lowercase so that capitalization differences are ignored.
+    ignore_punctuation: Boolean, defaults to False. If true, removes all punctuation before
+        comparing predictions and references.
+    ignore_numbers: Boolean, defaults to False. If true, removes all punctuation before
+        comparing predictions and references.
 Returns:
     exact_match: Dictionary containing exact_match rate. Possible values are between 0.0 and 100.0, inclusive.
 Examples:
     >>> exact_match = datasets.load_metric("exact_match")
-    >>> refs = ["the cat", "theater", "YELLING"]
-    >>> preds = ["cat?", "theater", "yelling"]
+    >>> refs = ["the cat", "theater", "YELLING", "agent007"]
+    >>> preds = ["cat?", "theater", "yelling", "agent"]
     >>> results = exact_match.compute(references=refs, predictions=preds)
     >>> round(results["exact_match"], 1)
-    33.3
+    25.0
 
     >>> exact_match = datasets.load_metric("exact_match")
-    >>> refs = ["the cat", "theater", "YELLING"]
-    >>> preds = ["cat?", "theater", "yelling"]
-    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", r'\?'])
+    >>> refs = ["the cat", "theater", "YELLING", "agent007"]
+    >>> preds = ["cat?", "theater", "yelling", "agent"]
+    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "yell"], ignore_case=True, ignore_punctuation=True)
     >>> round(results["exact_match"], 1)
-    66.7
+    50.0
 
 
     >>> exact_match = datasets.load_metric("exact_match")
-    >>> refs = ["the cat", "theater", "YELLING"]
-    >>> preds = ["cat?", "theater", "yelling"]
-    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", r'\?'], ignore_capitalization=True)
+    >>> refs = ["the cat", "theater", "YELLING", "agent007"]
+    >>> preds = ["cat?", "theater", "yelling", "agent"]
+    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "yell", "YELL"], ignore_case=True, ignore_punctuation=True)
+    >>> round(results["exact_match"], 1)
+    75.0
+
+    >>> exact_match = datasets.load_metric("exact_match")
+    >>> refs = ["the cat", "theater", "YELLING", "agent007"]
+    >>> preds = ["cat?", "theater", "yelling", "agent"]
+    >>> results = exact_match.compute(references=refs, predictions=preds, regexes_to_ignore=["the ", "yell", "YELL"], ignore_case=True, ignore_punctuation=True, ignore_numbers=True)
     >>> round(results["exact_match"], 1)
     100.0
+
 """
 
 _CITATION = """
@@ -80,20 +91,34 @@ class ExactMatch(datasets.Metric):
             reference_urls=[""],
         )
 
-    def _compute(self, predictions, references, regexes_to_ignore=None, ignore_capitalization=False):
+    def _compute(self, predictions, references, regexes_to_ignore=None, ignore_case=False, ignore_punctuation=False, ignore_numbers=False):
 
         if regexes_to_ignore is not None:
             for s in regexes_to_ignore:
-                if ignore_capitalization:
-                    predictions = np.array(list(map(lambda x: re.sub(s, "", x.lower()), predictions)))
-                    references = np.array(list(map(lambda x: re.sub(s, "", x.lower()), references)))
-                else:
-                    predictions = np.array(list(map(lambda x: re.sub(s, "", x), predictions)))
-                    references = np.array(list(map(lambda x: re.sub(s, "", x), references)))
+                predictions = np.array(list(map(lambda x: re.sub(s, "", x), predictions)))
+                references = np.array(list(map(lambda x: re.sub(s, "", x), references)))
         else:
             predictions = np.asarray(predictions)
             references = np.asarray(references)
 
+        if ignore_case:
+            predictions = np.char.lower(predictions)
+            references = np.char.lower(references)
+
+        if ignore_punctuation:
+            repl_table = string.punctuation.maketrans("", "", string.punctuation)
+            predictions = np.char.translate(predictions, table=repl_table)
+            references = np.char.translate(references, table=repl_table)
+
+        if ignore_numbers:
+            repl_table = string.digits.maketrans("", "", string.digits)
+            predictions = np.char.translate(predictions, table=repl_table)
+            references = np.char.translate(references, table=repl_table)
+
+        print("\n\nregexes to ignore:", regexes_to_ignore)
+        print("ignore_case=%i || ignore_punctuation=%i || ignore_numbers=%i"%(int(ignore_case), int(ignore_punctuation), int(ignore_numbers)))
+        print("preds:", predictions)
+        print("refs:", references)
         score_list = predictions == references
 
         return {"exact_match": np.mean(score_list) * 100}
