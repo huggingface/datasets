@@ -25,7 +25,7 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 
-from .. import __version__, config, utils
+from .. import __version__, config
 from . import logging
 from .extract import ExtractManager
 from .filelock import FileLock
@@ -392,13 +392,13 @@ def http_get(
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    with utils.tqdm_utils.tqdm(
+    with logging.tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
         desc=desc or "Downloading",
-        disable=not utils.is_progress_bar_enabled(),
+        disable=not logging.is_progress_bar_enabled(),
     ) as progress:
         for chunk in response.iter_content(chunk_size=1024):
             progress.update(len(chunk))

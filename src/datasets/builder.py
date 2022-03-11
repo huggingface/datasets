@@ -777,7 +777,7 @@ class DatasetBuilder:
             ),
             split,
             map_tuple=True,
-            disable_tqdm=not utils.is_progress_bar_enabled(),
+            disable_tqdm=not logging.is_progress_bar_enabled(),
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
@@ -1081,12 +1081,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
             check_duplicates=check_duplicate_keys,
         ) as writer:
             try:
-                for key, record in utils.tqdm_utils.tqdm(
+                for key, record in logging.tqdm(
                     generator,
                     unit=" examples",
                     total=split_info.num_examples,
                     leave=False,
-                    disable=not utils.is_progress_bar_enabled(),
+                    disable=not logging.is_progress_bar_enabled(),
                     desc=f"Generating {split_info.name} split",
                 ):
                     example = self.info.features.encode_example(record)
@@ -1145,8 +1145,8 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in utils.tqdm_utils.tqdm(
-                generator, unit=" tables", leave=False, disable=True  # not utils.is_progress_bar_enabled()
+            for key, table in logging.tqdm(
+                generator, unit=" tables", leave=False, disable=True  # not logging.is_progress_bar_enabled()
             ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()
