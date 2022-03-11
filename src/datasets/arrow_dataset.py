@@ -3326,11 +3326,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             uploaded_size (:obj:`int`): number of uploaded bytes
             dataset_nbytes (:obj:`int`): approximate size in bytes of the uploaded dataset afer uncompression
 
-        Example::
+        Example:
 
-            ```py
-            >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
-            ```
+        ```python
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        ```
         """
         api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
@@ -3523,11 +3523,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
 
-        Example::
+        Example:
 
-            ```py
-            >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
-            ```
+        ```python
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        ```
         """
         repo_id, split, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
@@ -3628,23 +3628,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dtype (data-type): The dtype of the numpy arrays that are indexed.
                 Default is ``np.float32``.
 
-        Example::
+        Example:
 
-            ```py
-            ds = datasets.load_dataset('crime_and_punish', split='train')
-            ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
-            ds_with_embeddings.add_faiss_index(column='embeddings')
-            # query
-            scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
-            # save index
-            ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
+        ```python
+        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
+        >>> ds_with_embeddings.add_faiss_index(column='embeddings')
+        >>> # query
+        >>> scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
+        >>> # save index
+        >>> ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
 
-            ds = datasets.load_dataset('crime_and_punish', split='train')
-            # load index
-            ds.load_faiss_index('embeddings', 'my_index.faiss')
-            # query
-            scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
-            ```
+        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> # load index
+        >>> ds.load_faiss_index('embeddings', 'my_index.faiss')
+        >>> # query
+        >>> scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
+        ```
         """
         with self.formatted_as(type="numpy", columns=[column], dtype=dtype):
             super().add_faiss_index(
@@ -3758,14 +3758,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         },
                     }
 
-        Example::
+        Example:
 
-            ```py
-            es_client = elasticsearch.Elasticsearch()
-            ds = datasets.load_dataset('crime_and_punish', split='train')
-            ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
-            scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
-            ```
+        ```python
+        es_client = elasticsearch.Elasticsearch()
+        ds = datasets.load_dataset('crime_and_punish', split='train')
+        ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
+        scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
+        ```
         """
         with self.formatted_as(type=None, columns=[column]):
             super().add_elasticsearch_index(
@@ -3830,15 +3830,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             label_column (:obj:`str`):
                 The column name of labels to align on.
 
-        Example::
+        Example:
 
-            ```py
-            # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
-            ds = load_dataset("glue", "mnli", split="train")
-            # mapping to align with
-            label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
-            ds_aligned = ds.align_labels_with_mapping(label2id, "label")
-            ```
+        ```python
+        # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+        ds = load_dataset("glue", "mnli", split="train")
+        # mapping to align with
+        label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
+        ds_aligned = ds.align_labels_with_mapping(label2id, "label")
+        ```
         """
         # Sanity checks
         if label_column not in self._data.column_names:
