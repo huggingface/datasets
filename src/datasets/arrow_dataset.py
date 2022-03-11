@@ -3761,10 +3761,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```python
-        es_client = elasticsearch.Elasticsearch()
-        ds = datasets.load_dataset('crime_and_punish', split='train')
-        ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
-        scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
+        >>> es_client = elasticsearch.Elasticsearch()
+        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
+        >>> scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
         ```
         """
         with self.formatted_as(type=None, columns=[column]):
@@ -3833,12 +3833,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Example:
 
         ```python
-        # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
-        ds = load_dataset("glue", "mnli", split="train")
-        # mapping to align with
-        label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
-        ds_aligned = ds.align_labels_with_mapping(label2id, "label")
+        >>> # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+        >>> ds = load_dataset("glue", "mnli", split="train")
+        >>> # mapping to align with
+        >>> label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
+        >>> ds_aligned = ds.align_labels_with_mapping(label2id, "label")
         ```
+
         """
         # Sanity checks
         if label_column not in self._data.column_names:
