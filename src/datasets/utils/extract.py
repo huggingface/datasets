@@ -7,8 +7,8 @@ import tarfile
 from zipfile import ZipFile
 from zipfile import is_zipfile as _is_zipfile
 
-from datasets import config
-from datasets.utils.filelock import FileLock
+from .. import config
+from .filelock import FileLock
 
 
 class ExtractManager:
@@ -19,7 +19,7 @@ class ExtractManager:
         self.extractor = Extractor
 
     def _get_output_path(self, path):
-        from datasets.utils.file_utils import hash_url_to_filename
+        from .file_utils import hash_url_to_filename
 
         # Path where we extract compressed archives
         # We extract in the cache dir, and get the extracted path name by hashing the original path"

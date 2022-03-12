@@ -48,7 +48,7 @@ from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .info import DatasetInfo, DatasetInfosDict
 from .iterable_dataset import IterableDataset
 from .metric import Metric
-from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, hash_python_lines
+from .packaged_modules import _EXTENSION_TO_MODULE, _PACKAGED_DATASETS_MODULES, _hash_python_lines
 from .splits import Split
 from .streaming import extend_module_for_streaming
 from .tasks import TaskTemplate
@@ -139,7 +139,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     for file_path in to_use_files:
         with open(file_path, encoding="utf-8") as f:
             lines.extend(f.readlines())
-    return hash_python_lines(lines)
+    return _hash_python_lines(lines)
 
 
 def convert_github_url(url_path: str) -> Tuple[str, Optional[str]]:
@@ -1113,11 +1113,10 @@ def dataset_module_factory(
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
-    download_config.force_download = download_mode = (
-        DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS) == DownloadMode.FORCE_REDOWNLOAD
-    )
+    download_config.force_download = download_mode == DownloadMode.FORCE_REDOWNLOAD
 
     filename = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
     if not filename.endswith(".py"):
@@ -1288,6 +1287,7 @@ def metric_module_factory(
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     download_config.extract_compressed_file = True
     download_config.force_extract = True
 
@@ -1388,6 +1388,7 @@ def load_metric(
     Returns:
         `datasets.Metric`
     """
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     metric_module = metric_module_factory(
         path, revision=revision, download_config=download_config, download_mode=download_mode
     ).module_path
@@ -1478,6 +1479,7 @@ def load_dataset_builder(
         :class:`DatasetBuilder`
 
     """
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     if use_auth_token is not None:
         download_config = download_config.copy() if download_config else DownloadConfig()
         download_config.use_auth_token = use_auth_token
@@ -1651,6 +1653,7 @@ def load_dataset(
             "Please use `load_from_disk` instead."
         )
 
+    download_mode = DownloadMode(download_mode or DownloadMode.REUSE_DATASET_IF_EXISTS)
     ignore_verifications = ignore_verifications or save_infos
 
     # Create a dataset builder

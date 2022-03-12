@@ -13,7 +13,7 @@ from .utils.logging import get_logger
 
 
 if TYPE_CHECKING:
-    from .features import Features, FeatureType
+    from .features.features import Features, FeatureType
 
 
 logger = get_logger(__name__)
@@ -1762,7 +1762,7 @@ def cast_array_to_feature(array: pa.Array, feature: "FeatureType", allow_number_
     Returns:
          array (:obj:`pyarrow.Array`): the casted array
     """
-    from .features import Sequence, get_nested_type
+    from .features.features import Sequence, get_nested_type
 
     _c = partial(cast_array_to_feature, allow_number_to_str=allow_number_to_str)
 
