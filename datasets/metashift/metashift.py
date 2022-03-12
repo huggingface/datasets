@@ -90,7 +90,7 @@ _ATTRIBUTES_URLS = {
 # See https://github.com/Weixin-Liang/MetaShift/blob/main/dataset/meta_data/class_hierarchy.json
 # for the full object vocabulary and its hierarchy.
 # Since the total number of all subsets is very large, all of the following scripts only generate a subset of MetaShift.
-'''
+
 _SELECTED_CLASSES = [
     'cat', 
     'dog', 
@@ -101,12 +101,7 @@ _SELECTED_CLASSES = [
     'bowl', 
     'cup', 
 ]
-'''
 
-_SELECTED_CLASSES = [
-    'cat', 
-    'dog', 
- ]
 
 class Metashift(datasets.GeneratorBasedBuilder):
 
@@ -232,7 +227,6 @@ class Metashift(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "images_path": data_path['image_files'],
                     "subjects_to_all_set": subjects_to_all_set,
@@ -240,7 +234,7 @@ class Metashift(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
+
     def _generate_examples(self, images_path, subjects_to_all_set):
         
         idx = 0
