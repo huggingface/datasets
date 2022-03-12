@@ -12,10 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""The Open WebText Corpus"""
+"""CoNLL2012 shared task data based on OntoNotes 5.0"""
 
-import codecs
-import logging
 import os
 from collections import defaultdict
 from glob import glob
@@ -55,58 +53,20 @@ _DESCRIPTION = """\
 OntoNotes v5.0 is the final version of OntoNotes corpus, and is a large-scale, multi-genre,
 multilingual corpus manually annotated with syntactic, semantic and discourse information.
 
-This dataset is the version of OntoNotes v5.0 extended and used in the CoNLL-2012 shared task
-, includes v4 train/dev and v9 test data for English/Chinese/Arabic and corrected version v12 train/dev/test data (English only).
+This dataset is the version of OntoNotes v5.0 extended and is used in the CoNLL-2012 shared task.
+It includes v4 train/dev and v9 test data for English/Chinese/Arabic and corrected version v12 train/dev/test data (English only).
 
-The source of data is the Medeley Data repo [ontonotes-conll2012](https://data.mendeley.com/datasets/zmycy7t9h9), which seems to be as the same as the official data, but users should use this dataset on their own responsibility.
+The source of data is the Mendeley Data repo [ontonotes-conll2012](https://data.mendeley.com/datasets/zmycy7t9h9), which seems to be as the same as the official data, but users should use this dataset on their own responsibility.
 
-See also summaries from paperwithcode [OntoNotes 5.0](https://paperswithcode.com/dataset/ontonotes-5-0) [CoNLL-2012](https://paperswithcode.com/dataset/conll-2012-1)
+See also summaries from paperwithcode, [OntoNotes 5.0](https://paperswithcode.com/dataset/ontonotes-5-0) and [CoNLL-2012](https://paperswithcode.com/dataset/conll-2012-1)
+
+For more detailed info of the dataset like annotation, tag set, etc., you can refer to the documents in the Mendeley repo mentioned above. 
 """
 
 _URL = "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/zmycy7t9h9-1.zip"
 
-_NE_TAGS = [
-    "O",
-    "B-PERSON",
-    "B-NORP",
-    "B-FAC",  # FACILITY
-    "B-ORG",  # ORGANIZATION
-    "B-GPE",
-    "B-LOC",
-    "B-PRODUCT",
-    "B-EVENT",
-    "B-WORK_OF_ART",
-    "B-LAW",
-    "B-LANGUAGE",
-    "B-DATE",
-    "B-TIME",
-    "B-PERCENT",
-    "B-MONEY",
-    "B-QUANTITY",
-    "B-ORDINAL",
-    "B-CARDINAL",
-    "I-PERSON",
-    "I-NORP",
-    "I-FAC",
-    "I-ORG",
-    "I-GPE",
-    "I-LOC",
-    "I-PRODUCT",
-    "I-EVENT",
-    "I-WORK_OF_ART",
-    "I-LAW",
-    "I-LANGUAGE",
-    "I-DATE",
-    "I-TIME",
-    "I-PERCENT",
-    "I-MONEY",
-    "I-QUANTITY",
-    "I-ORDINAL",
-    "I-CARDINAL",
-]
 
-
-class Ontonotesv5Conll2012Config(datasets.BuilderConfig):
+class Conll2012Ontonotesv5Config(datasets.BuilderConfig):
     """BuilderConfig for the CoNLL formatted OntoNotes dataset."""
 
     def __init__(self, language=None, conll_version=None, **kwargs):
@@ -121,7 +81,7 @@ class Ontonotesv5Conll2012Config(datasets.BuilderConfig):
         assert conll_version in ["v4", "v12"]
         if conll_version == "v12":
             assert language == "english"
-        super(Ontonotesv5Conll2012Config, self).__init__(
+        super(Conll2012Ontonotesv5Config, self).__init__(
             name=f"{language}_{conll_version}",
             description=f"{conll_version} of CoNLL formatted OntoNotes dataset for {language}.",
             version=datasets.Version("1.0.0"),  # hf dataset script version
@@ -131,23 +91,31 @@ class Ontonotesv5Conll2012Config(datasets.BuilderConfig):
         self.conll_version = conll_version
 
 
-class Ontonotesv5Conll2012(datasets.GeneratorBasedBuilder):
+class Conll2012Ontonotesv5(datasets.GeneratorBasedBuilder):
     """The CoNLL formatted OntoNotes dataset."""
 
     BUILDER_CONFIGS = [
-        Ontonotesv5Conll2012Config(
+        Conll2012Ontonotesv5Config(
             language=lang,
             conll_version="v4",
         )
         for lang in ["english", "chinese", "arabic"]
     ] + [
-        Ontonotesv5Conll2012Config(
+        Conll2012Ontonotesv5Config(
             language="english",
             conll_version="v12",
         )
     ]
 
     def _info(self):
+        lang = self.config.language
+        conll_version = self.config.conll_version
+        if lang == "arabic":
+            pos_tag_feature = datasets.Value("string")
+        else:
+            tag_set = _POS_TAGS[f"{lang}_{conll_version}"]
+            pos_tag_feature = datasets.ClassLabel(num_classes=len(tag_set), names=tag_set)
+
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
@@ -157,13 +125,15 @@ class Ontonotesv5Conll2012(datasets.GeneratorBasedBuilder):
                         {
                             "part_id": datasets.Value("int32"),
                             "words": datasets.Sequence(datasets.Value("string")),
-                            "pos_tags": datasets.Sequence(datasets.Value("string")),
+                            "pos_tags": datasets.Sequence(pos_tag_feature),
                             "parse_tree": datasets.Value("string"),
                             "predicate_lemmas": datasets.Sequence(datasets.Value("string")),
                             "predicate_framenet_ids": datasets.Sequence(datasets.Value("string")),
                             "word_senses": datasets.Sequence(datasets.Value("float32")),
                             "speaker": datasets.Value("string"),
-                            "named_entities": datasets.Sequence(datasets.ClassLabel(num_classes=37, names=_NE_TAGS)),
+                            "named_entities": datasets.Sequence(
+                                datasets.ClassLabel(num_classes=37, names=_NAMED_ENTITY_TAGS)
+                            ),
                             "srl_frames": [
                                 {
                                     "verb": datasets.Value("string"),
@@ -183,14 +153,8 @@ class Ontonotesv5Conll2012(datasets.GeneratorBasedBuilder):
         lang = self.config.language
         conll_version = self.config.conll_version
         dl_dir = dl_manager.download_and_extract(_URL)
-        data_zip = os.path.join(dl_dir, "zmycy7t9h9-1/conll-2012.zip")
-        if isinstance(dl_manager, datasets.MockDownloadManager):
-            import shutil
-
-            ext_dir = os.path.join(dl_dir, "zmycy7t9h9-1/extraction_hash")
-            shutil.unpack_archive(data_zip, ext_dir)
-        else:
-            ext_dir = dl_manager.extract(data_zip)
+        data_zip = glob(f"{dl_dir}/**/conll-2012*", recursive=True)[0]
+        ext_dir = dl_manager.extract(data_zip)
         data_dir = os.path.join(ext_dir, f"conll-2012/{conll_version}/data")
 
         return [
@@ -233,11 +197,197 @@ class Ontonotesv5Conll2012(datasets.GeneratorBasedBuilder):
             yield idx, {"document_id": document_id, "sentences": sentences}
 
 
+# --------------------------------------------------------------------------------------------------------
+# Tag set
+_NAMED_ENTITY_TAGS = [
+    "O",  # out of named entity
+    "B-PERSON",
+    "I-PERSON",
+    "B-NORP",
+    "I-NORP",
+    "B-FAC",  # FACILITY
+    "I-FAC",
+    "B-ORG",  # ORGANIZATION
+    "I-ORG",
+    "B-GPE",
+    "I-GPE",
+    "B-LOC",
+    "I-LOC",
+    "B-PRODUCT",
+    "I-PRODUCT",
+    "B-DATE",
+    "I-DATE",
+    "B-TIME",
+    "I-TIME",
+    "B-PERCENT",
+    "I-PERCENT",
+    "B-MONEY",
+    "I-MONEY",
+    "B-QUANTITY",
+    "I-QUANTITY",
+    "B-ORDINAL",
+    "I-ORDINAL",
+    "B-CARDINAL",
+    "I-CARDINAL",
+    "B-EVENT",
+    "I-EVENT",
+    "B-WORK_OF_ART",
+    "I-WORK_OF_ART",
+    "B-LAW",
+    "I-LAW",
+    "B-LANGUAGE",
+    "I-LANGUAGE",
+]
+
+_POS_TAGS = {
+    "english_v4": [
+        "XX",  # missing
+        "``",
+        "$",
+        "''",
+        ",",
+        "-LRB-",  # (
+        "-RRB-",  # )
+        ".",
+        ":",
+        "ADD",
+        "AFX",
+        "CC",
+        "CD",
+        "DT",
+        "EX",
+        "FW",
+        "HYPH",
+        "IN",
+        "JJ",
+        "JJR",
+        "JJS",
+        "LS",
+        "MD",
+        "NFP",
+        "NN",
+        "NNP",
+        "NNPS",
+        "NNS",
+        "PDT",
+        "POS",
+        "PRP",
+        "PRP$",
+        "RB",
+        "RBR",
+        "RBS",
+        "RP",
+        "SYM",
+        "TO",
+        "UH",
+        "VB",
+        "VBD",
+        "VBG",
+        "VBN",
+        "VBP",
+        "VBZ",
+        "WDT",
+        "WP",
+        "WP$",
+        "WRB",
+    ],  # 49
+    "english_v12": [
+        "XX",  # misssing
+        "``",
+        "$",
+        "''",
+        "*",
+        ",",
+        "-LRB-",  # (
+        "-RRB-",  # )
+        ".",
+        ":",
+        "ADD",
+        "AFX",
+        "CC",
+        "CD",
+        "DT",
+        "EX",
+        "FW",
+        "HYPH",
+        "IN",
+        "JJ",
+        "JJR",
+        "JJS",
+        "LS",
+        "MD",
+        "NFP",
+        "NN",
+        "NNP",
+        "NNPS",
+        "NNS",
+        "PDT",
+        "POS",
+        "PRP",
+        "PRP$",
+        "RB",
+        "RBR",
+        "RBS",
+        "RP",
+        "SYM",
+        "TO",
+        "UH",
+        "VB",
+        "VBD",
+        "VBG",
+        "VBN",
+        "VBP",
+        "VBZ",
+        "VERB",
+        "WDT",
+        "WP",
+        "WP$",
+        "WRB",
+    ],  # 51
+    "chinese_v4": [
+        "X",  # missing
+        "AD",
+        "AS",
+        "BA",
+        "CC",
+        "CD",
+        "CS",
+        "DEC",
+        "DEG",
+        "DER",
+        "DEV",
+        "DT",
+        "ETC",
+        "FW",
+        "IJ",
+        "INF",
+        "JJ",
+        "LB",
+        "LC",
+        "M",
+        "MSP",
+        "NN",
+        "NR",
+        "NT",
+        "OD",
+        "ON",
+        "P",
+        "PN",
+        "PU",
+        "SB",
+        "SP",
+        "URL",
+        "VA",
+        "VC",
+        "VE",
+        "VV",
+    ],  # 36
+}
+
+# --------------------------------------------------------------------------------------------------------
 # The CoNLL(2012) file reader
 # Modified the original code to get rid of extra package dependency.
 # Original code: https://github.com/allenai/allennlp-models/blob/main/allennlp_models/common/ontonotes.py
-
-logger = logging.getLogger(__name__)
 
 
 class OntonotesSentence:
@@ -414,7 +564,6 @@ class Ontonotes:
         An iterator returning file_paths in a directory
         containing CONLL-formatted files.
         """
-        logger.info("Reading CONLL sentences from dataset files at: %s", file_path)
         for root, _, files in list(os.walk(file_path)):
             for data_file in sorted(files):
                 # These are a relic of the dataset pre-processing. Every
@@ -432,7 +581,7 @@ class Ontonotes:
         for conll data which has been preprocessed, such as the preprocessing which
         takes place for the 2012 CONLL Coreference Resolution task.
         """
-        with codecs.open(file_path, "r", encoding="utf8") as open_file:
+        with open(file_path, "r", encoding="utf8") as open_file:
             conll_rows = []
             document: List[OntonotesSentence] = []
             for line in open_file:
