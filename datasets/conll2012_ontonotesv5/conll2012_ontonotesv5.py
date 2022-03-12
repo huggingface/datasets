@@ -60,7 +60,7 @@ The source of data is the Mendeley Data repo [ontonotes-conll2012](https://data.
 
 See also summaries from paperwithcode, [OntoNotes 5.0](https://paperswithcode.com/dataset/ontonotes-5-0) and [CoNLL-2012](https://paperswithcode.com/dataset/conll-2012-1)
 
-For more detailed info of the dataset like annotation, tag set, etc., you can refer to the documents in the Mendeley repo mentioned above. 
+For more detailed info of the dataset like annotation, tag set, etc., you can refer to the documents in the Mendeley repo mentioned above.
 """
 
 _URL = "https://md-datasets-cache-zipfiles-prod.s3.eu-west-1.amazonaws.com/zmycy7t9h9-1.zip"
