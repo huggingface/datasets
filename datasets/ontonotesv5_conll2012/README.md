@@ -4,9 +4,9 @@ annotations_creators:
 language_creators:
 - found
 languages:
-- ar-SA
-- en-US
-- zh-CN
+- ar
+- en
+- zh
 licenses:
 - cc-by-nc-nd-4.0
 multilinguality:
@@ -29,7 +29,7 @@ task_ids:
 - word-sense-disambiguation
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for CoNLL2012 shared task data based on OntoNotes 5.0
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -59,7 +59,7 @@ task_ids:
 ## Dataset Description
 
 - **Homepage:** [CoNLL-2012 Shared Task](https://conll.cemantix.org/2012/data.html), [Author's page](https://cemantix.org/data/ontonotes.html)
-- **Repository:**
+- **Repository:** [Mendeley](https://data.mendeley.com/datasets/zmycy7t9h9)
 - **Paper:** [Towards Robust Linguistic Analysis using OntoNotes](https://aclanthology.org/W13-3516/)
 - **Leaderboard:**
 - **Point of Contact:**
@@ -69,10 +69,10 @@ task_ids:
 OntoNotes v5.0 is the final version of OntoNotes corpus, and is a large-scale, multi-genre,
 multilingual corpus manually annotated with syntactic, semantic and discourse information.
 
-This dataset is the version of OntoNotes v5.0 extended and used in the CoNLL-2012 shared task
-, includes v4 train/dev and v9 test data for English/Chinese/Arabic and corrected version v12 train/dev/test data (English only).
+This dataset is the version of OntoNotes v5.0 extended and is used in the CoNLL-2012 shared task.
+It includes v4 train/dev and v9 test data for English/Chinese/Arabic and corrected version v12 train/dev/test data (English only).
 
-The source of data is the Medeley Data repo [ontonotes-conll2012](https://data.mendeley.com/datasets/zmycy7t9h9), which seems to be as the same as the official data, but users should use this dataset on their own responsibility.
+The source of data is the Mendeley Data repo [ontonotes-conll2012](https://data.mendeley.com/datasets/zmycy7t9h9), which seems to be as the same as the official data, but users should use this dataset on their own responsibility.
 
 See also summaries from paperwithcode [OntoNotes 5.0](https://paperswithcode.com/dataset/ontonotes-5-0) [CoNLL-2012](https://paperswithcode.com/dataset/conll-2012-1)
 
