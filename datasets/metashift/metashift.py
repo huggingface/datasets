@@ -99,9 +99,32 @@ _SELECTED_CLASSES = [
 ]
 
 
+class MetashiftConfig(datasets.BuilderConfig):
+    """BuilderConfig for MetaShift."""
+
+    def __init__(self, *args, selected_classes=None, **kwargs):
+        """BuilderConfig for MetaShift.
+
+        Args:
+        selected_classes: `list[string]`, list of the classes needed to generate subsets.
+        **kwargs: keyword arguments forwarded to super.
+        """
+
+        super(MetashiftConfig, self).__init__(*args, **kwargs)
+        self.selected_classes = selected_classes if selected_classes is not None else []
+
+
 class Metashift(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
+    BUILDER_CONFIGS = [
+        MetashiftConfig(
+            selected_classes=_SELECTED_CLASSES,
+            version=VERSION,
+        ),
+    ]
+
+    BUILDER_CONFIG_CLASS = MetashiftConfig
 
     def _info(self):
 
@@ -111,7 +134,7 @@ class Metashift(datasets.GeneratorBasedBuilder):
                 {
                     "image_id": datasets.Value("string"),
                     "image": datasets.Image(),
-                    "label": datasets.ClassLabel(names=_SELECTED_CLASSES),
+                    "label": datasets.ClassLabel(names=self.config.selected_classes),
                     "context": datasets.Value("string"),
                 }
             ),
@@ -217,7 +240,7 @@ class Metashift(datasets.GeneratorBasedBuilder):
         metadata_path = dl_manager.download_and_extract(_METADATA_URLS)
 
         subjects_to_all_set = self._preprocess_groups(
-            metadata_path["full_candidate_subsets"], subject_classes=_SELECTED_CLASSES
+            metadata_path["full_candidate_subsets"], subject_classes=self.config.selected_classes
         )
 
         return [
