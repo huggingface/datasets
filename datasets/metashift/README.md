@@ -39,7 +39,7 @@ The MetaShift dataset is a collection of 12,868 sets of natural images across 41
 
 The authors leverage the natural heterogeneity of Visual Genome and  its annotations used to construct MetaShift.
 The key idea is to cluster images using its metadata which provides context for each image.
-For example : cats with cars or cats in bathroom
+For example : cats with cars or cats in bathroom.
 The main advantage is the dataset contains many more coherent sets of data compared to other benchmarks..
 
 Two important benefits of MetaShift :
@@ -48,37 +48,56 @@ Two important benefits of MetaShift :
 
 ### Supported Tasks and Leaderboards
 
- [More Information Needed]
+From the paper:
+> MetaShift supports evaluation on both :
+> - domain generalization and subpopulation shifts settings,
+> - assessing training conflicts.
 
 ### Languages
 
- [More Information Needed].
+ All the classes and subsets use English as their primary language.
 
 ## Dataset Structure
 
 ### Data Instances
 
- [More Information Needed]
+A sample from the MetaShift dataset is provided below:
+
+```
+{
+    'image_id': '2411520', 
+    'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=500x375 at 0x7F99115B8D90>,
+    'label': 2, 
+    'context': 'fence'
+}
+```
 
 ### Data Fields
 
- [More Information Needed]
+- `image_id`: Unique numeric ID of the image in Base Visual Genome dataset.
+- `image`:  A PIL.Image.Image object containing the image. 
+- `label`: an int classification label.
+- `context`: represents the context in which the label is seen. A given label could have multiple contexts.
 
 ### Data Splits
 
- [More Information Needed]
+All the data is contained in training set.
 
 ## Dataset Creation
 
 ### Curation Rationale
 
- [More Information Needed]
+From the paper:
+> We present MetaShift as an important resource for studying the behavior of
+ML algorithms and training dynamics across data with heterogeneous contexts. In order to assess the reliability and fairness of a model, we need to evaluate
+its performance and training behavior across heterogeneous types of data. MetaShift contains many more coherent sets of data compared to other benchmarks. Importantly, we have explicit annotations of what makes each subset unique (e.g. cats with cars or dogs next to a bench) as well as a score that measures the distance between any two subsets, which is not available in previous benchmarks of natural data.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
- [More Information Needed]
+From the paper:
+> We leverage the natural heterogeneity of Visual Genome and its annotations to construct MetaShift. Visual Genome contains over 100k images across 1,702 object classes. MetaShift is constructed on a class-by-class basis.  For each class, say “cat”, we pull out all cat images and proceed with generating candidate subests, constructing meta-graphs and then duantify distances of distribution shifts.
 
 #### Who are the source language producers?
 
@@ -106,7 +125,13 @@ Two important benefits of MetaShift :
 
 ### Discussion of Biases
 
- [More Information Needed]
+From the paper:
+> One limitation is that our MetaShift might inherit existing biases in Visual Genome, which is the
+base dataset of our MetaShift. Potential concerns include minority groups being under-represented
+in certain classes (e.g., women with snowboard), or annotation bias where people in images are
+by default labeled as male when gender is unlikely to be identifiable. Existing work in analyzing,
+quantifying, and mitigating biases in general computer vision datasets can help with addressing this
+potential negative societal impact.
 
 ### Other Known Limitations
 
@@ -120,8 +145,17 @@ Two important benefits of MetaShift :
 
 ### Licensing Information
 
-[Needs More Information]
+From the paper :
+> Our MetaShift and the code would use the Creative Commons Attribution 4.0 International License. Visual Genome (Krishna et al., 2017) is licensed under a Creative Commons Attribution 4.0 International License. MS-COCO (Lin et al., 2014) is licensed under CC-BY 4.0. The Visual Genome dataset uses 108, 077 images from the intersection of the YFCC100M (Thomee et al., 2016) and MS-COCO. We use the pre-processed and cleaned version of Visual Genome by GQA (Hudson & Manning, 2019).
 
 ### Citation Information
 
-[Needs More Information]
+```
+@InProceedings{liang2022metashift,
+title={MetaShift: A Dataset of Datasets for Evaluating Contextual Distribution Shifts and Training Conflicts},
+author={Weixin Liang and James Zou},
+booktitle={International Conference on Learning Representations},
+year={2022},
+url={https://openreview.net/forum?id=MTex8qKavoS}
+}
+```
