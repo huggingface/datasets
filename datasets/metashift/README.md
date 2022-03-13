@@ -1,4 +1,23 @@
-[Needs More Information]
+---
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+languages:
+- en
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+pretty_name: MetaShift
+size_categories:
+- unknown
+source_datasets: []
+task_categories:
+- other
+task_ids:
+- other-other-domain-generalization;subpopulation-shifts-settings;assess-training-conflicts
+---
 
 # Dataset Card for metashift
 
