@@ -174,7 +174,7 @@ class Conll2012Ontonotesv5(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, conll_files_directory):
         """Yields examples."""
-        conll_files = sorted(glob(os.path.join(conll_files_directory), "**/*gold_conll"), recursive=True))
+        conll_files = sorted(glob(os.path.join(conll_files_directory, "**/*gold_conll"), recursive=True))
         for idx, conll_file in enumerate(conll_files):
             sentences = []
             for sent in Ontonotes().sentence_iterator(conll_file):
