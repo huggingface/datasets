@@ -73,14 +73,15 @@ The first comprehensive time series forecasting repository containing datasets o
 
 A sample from the training set is provided below:
 
+```python
 {
   'start': datetime.datetime(2012, 1, 1, 0, 0),
-  'target': [14.0, 18.0, 21.0, 20.0, 22.0, 20.0, ...], # <= this target array is a concatenated sample
+  'target': [14.0, 18.0, 21.0, 20.0, 22.0, 20.0, ...],
   'feat_static_cat': [0], 
-  'feat_dynamic_real': [[0.3, 0.4], [0.1, 0.6], ...], # <= temporal covariates
+  'feat_dynamic_real': [[0.3, 0.4], [0.1, 0.6], ...],
   'item_id': '0'
 }
-
+```
 
 ### Data Fields
 
