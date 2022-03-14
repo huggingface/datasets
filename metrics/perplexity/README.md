@@ -9,12 +9,6 @@ Any language generation task.
 
 ## How to Use
 
-```python
-from datasets import load_metric
-exact_match_metric = load_metric("perplexity")
-results = exact_match_metric.compute(predictions=predictions, references=references)
-```
-
 ### Inputs
 - **model_id** (str): model used for calculating Perplexity. NOTE: Perplexity can only be calculated for causal language models.
     - This includes models such as gpt2, causal variations of bert, causal versions of t5, and more (the full list can be found in the AutoModelForCausalLM documentation here: https://huggingface.co/docs/transformers/master/en/model_doc/auto#transformers.AutoModelForCausalLM )
@@ -30,6 +24,9 @@ This metric outputs a dictionary with one value: the average perplexity score fo
 ```
 
 This metric's range is 0 and up. A lower score is better.
+
+#### Values from Popular Papers
+
 
 ### Examples
 Calculating perplexity on input_texts defined here:
@@ -59,4 +56,19 @@ round(results["perplexity"], 1)
 ## Limitations and Bias
 This metric is limited in that it isn't comparable between models or datasets.
 
+
 ## Citation
+
+    @article{jelinek1977perplexity,
+    title={Perplexity—a measure of the difficulty of speech recognition tasks},
+    author={Jelinek, Fred and Mercer, Robert L and Bahl, Lalit R and Baker, James K},
+    journal={The Journal of the Acoustical Society of America},
+    volume={62},
+    number={S1},
+    pages={S63--S63},
+    year={1977},
+    publisher={Acoustical Society of America}
+    }
+
+## Further References
+- [Hugging Face Perplexity Blog Post](https://huggingface.co/docs/transformers/perplexity)
