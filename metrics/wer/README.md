@@ -105,13 +105,15 @@ title = {An information theoretic measure of speech recognition performance}
 }
 ```
 
-    @inproceedings{morris2004,
-        author = {Morris, Andrew and Maier, Viktoria and Green, Phil},
-        year = {2004},
-        month = {01},
-        pages = {},
-        title = {From WER and RIL to MER and WIL: improved evaluation measures for connected speech recognition.}
-    }
+```bibtex
+@inproceedings{morris2004,
+author = {Morris, Andrew and Maier, Viktoria and Green, Phil},
+year = {2004},
+month = {01},
+pages = {},
+title = {From WER and RIL to MER and WIL: improved evaluation measures for connected speech recognition.}
+}
+```
 
 ## Further References 
 
