@@ -7,8 +7,7 @@ import huggingface_hub
 from fsspec.implementations.local import LocalFileSystem
 from tqdm.contrib.concurrent import thread_map
 
-from datasets.filesystems.hffilesystem import HfFileSystem
-
+from .filesystems.hffilesystem import HfFileSystem
 from .splits import Split
 from .utils import logging
 from .utils.file_utils import hf_hub_url, is_remote_url, request_etag
@@ -170,7 +169,7 @@ def resolve_patterns_locally_or_by_urls(
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
 
-    Examples:
+    Example::
 
         >>> import huggingface_hub
         >>> from datasets.data_files import resolve_patterns_locally_or_by_urls
@@ -353,7 +352,7 @@ def resolve_patterns_in_dataset_repository(
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
 
-    Examples:
+    Example::
 
         >>> import huggingface_hub
         >>> from datasets.data_files import resolve_patterns_in_dataset_repository

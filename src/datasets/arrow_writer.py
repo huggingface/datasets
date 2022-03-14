@@ -22,12 +22,10 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 import numpy as np
 import pyarrow as pa
 
-from datasets.features.features import FeatureType, Value
-
 from . import config, utils
-from .features import (
-    Features,
-    Image,
+from .features import Features, Image, Value
+from .features.features import (
+    FeatureType,
     _ArrayXDExtensionType,
     cast_to_python_objects,
     generate_from_arrow_type,
@@ -146,7 +144,7 @@ class TypedSequence:
 
             non_null_idx, non_null_value = first_non_null_value(data)
             if isinstance(non_null_value, PIL.Image.Image):
-                return [Image().encode_example(value) for value in data], Image()
+                return [Image().encode_example(value) if value is not None else None for value in data], Image()
         return data, None
 
     def __arrow_array__(self, type: Optional[pa.DataType] = None):
@@ -185,7 +183,6 @@ class TypedSequence:
                 out = list_of_np_array_to_pyarrow_listarray(data)
             else:
                 out = pa.array(cast_to_python_objects(data, only_1d_for_numpy=True))
-
             # use smaller integer precisions if possible
             if self.trying_int_optimization:
                 if pa.types.is_int64(out.type):
@@ -642,9 +639,9 @@ def parquet_to_arrow(sources, destination):
     stream = None if isinstance(destination, str) else destination
     disable = not utils.is_progress_bar_enabled()
     with ArrowWriter(path=destination, stream=stream) as writer:
-        for source in utils.tqdm(sources, unit="sources", disable=disable):
+        for source in utils.tqdm_utils.tqdm(sources, unit="sources", disable=disable):
             pf = pa.parquet.ParquetFile(source)
-            for i in utils.tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
+            for i in utils.tqdm_utils.tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=disable):
                 df = pf.read_row_group(i).to_pandas()
                 for col in df.columns:
                     df[col] = df[col].apply(json.loads)

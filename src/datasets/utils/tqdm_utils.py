@@ -17,7 +17,7 @@
 """
 from tqdm import auto as tqdm_lib
 
-from datasets.utils.deprecation_utils import deprecated
+from .deprecation_utils import deprecated
 
 
 class EmptyTqdm:

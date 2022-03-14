@@ -33,14 +33,15 @@ import pyarrow.types
 from pandas.api.extensions import ExtensionArray as PandasExtensionArray
 from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
-from datasets import config, utils
-from datasets.features.audio import Audio
-from datasets.features.image import Image, encode_pil_image
-from datasets.features.translation import Translation, TranslationVariableLanguages
-from datasets.utils.logging import get_logger
+from .. import config
+from ..utils import logging
+from ..utils.py_utils import zip_dict
+from .audio import Audio
+from .image import Image, encode_pil_image
+from .translation import Translation, TranslationVariableLanguages
 
 
-logger = get_logger(__name__)
+logger = logging.get_logger(__name__)
 
 
 def _arrow_to_datasets_dtype(arrow_type: pa.DataType) -> str:
@@ -969,9 +970,7 @@ def encode_nested_example(schema, obj):
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return {
-            k: encode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
-        }
+        return {k: encode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         if obj is None:
@@ -991,12 +990,12 @@ def encode_nested_example(schema, obj):
             list_dict = {}
             if isinstance(obj, (list, tuple)):
                 # obj is a list of dict
-                for k, dict_tuples in utils.zip_dict(schema.feature, *obj):
+                for k, dict_tuples in zip_dict(schema.feature, *obj):
                     list_dict[k] = [encode_nested_example(dict_tuples[0], o) for o in dict_tuples[1:]]
                 return list_dict
             else:
                 # obj is a single dict
-                for k, (sub_schema, sub_objs) in utils.zip_dict(schema.feature, obj):
+                for k, (sub_schema, sub_objs) in zip_dict(schema.feature, obj):
                     list_dict[k] = [encode_nested_example(sub_schema, o) for o in sub_objs]
                 return list_dict
         # schema.feature is not a dict
@@ -1030,9 +1029,7 @@ def decode_nested_example(schema, obj):
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return {
-            k: decode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
-        }
+        return {k: decode_nested_example(sub_schema, sub_obj) for k, (sub_schema, sub_obj) in zip_dict(schema, obj)}
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         if obj is None:
@@ -1183,12 +1180,14 @@ class Features(dict):
           :obj:`list` or :class:`datasets.Sequence` should be provided with a single sub-feature as an example of the feature
           type hosted in this list
 
-          .. note::
+          <Tip>
 
            A :class:`datasets.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of
            lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be
            un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the
            :class:`datasets.Sequence`.
+
+          </Tip>
 
         - a :class:`Array2D`, :class:`Array3D`, :class:`Array4D` or :class:`Array5D` feature for multidimensional arrays
         - an :class:`Audio` feature to store the absolute path to an audio file or a dictionary with the relative path
@@ -1273,7 +1272,7 @@ class Features(dict):
         Returns:
             :class:`Features`
 
-        Examples:
+        Example::
             >>> Features.from_dict({'_type': {'dtype': 'string', 'id': None, '_type': 'Value'}})
             {'_type': Value(dtype='string', id=None)}
         """
@@ -1328,7 +1327,7 @@ class Features(dict):
             column_name: decode_nested_example(feature, value)
             if self._column_requires_decoding[column_name]
             else value
-            for column_name, (feature, value) in utils.zip_dict(
+            for column_name, (feature, value) in zip_dict(
                 {key: value for key, value in self.items() if key in example}, example
             )
         }
@@ -1389,7 +1388,7 @@ class Features(dict):
         Returns:
             :class:`Features`
 
-        Examples:
+        Example::
 
             >>> from datasets import Features, Sequence, Value
             >>> # let's say we have to features with a different order of nested fields (for a and b for example)
