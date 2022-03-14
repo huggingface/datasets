@@ -19,7 +19,7 @@ For example, load the [Food-101](https://huggingface.co/datasets/food101) datase
 ```py
 >>> from datasets import load_dataset, Image
 
->>> dataset = load_dataset("food101", split="train[100:]")
+>>> dataset = load_dataset("food101", split="train[:100]")
 >>> dataset[0]
 {'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7FC45AB5C590>,
  'label': 6}
@@ -42,8 +42,8 @@ To load an image from its path, use the [`~Dataset.cast_column`] method. The [`I
 ```py
 >>> from datasets import load_dataset, Image
 
->>> dataset = Dataset.from_dict({"image_file_path": ["path/to/image_1", "path/to/image_2", ..., "path/to/image_n"]}).cast_column("image_file_path", Image())
->>> dataset[0]["image_file_path"]
+>>> dataset = Dataset.from_dict({"image": ["path/to/image_1", "path/to/image_2", ..., "path/to/image_n"]}).cast_column("image", Image())
+>>> dataset[0]["image"]
 ```
 
 You can also access the path and bytes of an image file by setting `decode=False` when you load a dataset. In this case, you will need to cast the `image` column:
@@ -79,9 +79,47 @@ Load remote datasets from their URLs with the `data_files` parameter:
 >>> dataset = load_dataset("imagefolder", data_files="https://download.microsoft.com/download/3/E/1/3E1C3F21-ECDB-4869-8368-6DEBA77B919F/kagglecatsanddogs_3367a.zip", split="train")
 ```
 
+`ImageFolder` will create a `label` column, and the label name is based on the directory name.
+
+## Map
+
+[`~Dataset.map`] can apply transforms over an entire dataset and it also generates a cache file.
+
+Create a simple [`Resize`](https://pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) function:
+
+```py
+>>> def transforms(examples):
+...     examples["pixel_values"] = [image.convert("RGB").resize((100,100)) for image in examples["image"]]
+...     return examples
+```
+
+Now [`~Dataset.map`] the function over the entire dataset and set `batched=True`. The transform returns `pixel_values` as a cacheable `PIL.Image` object:
+
+```py
+>>> dataset = dataset.map(transforms, remove_columns=["image"], batched=True)
+>>> dataset[0]
+{'label': 6,
+ 'pixel_values': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=100x100 at 0x7F058237BB10>}
+```
+
+This saves time because you don't have to execute the same transform twice. It is best to use [`~Dataset.map`] for operations you only run once per training - like resizing an image - instead of using it for operations executed for each epoch, like data augmentations.
+
+[`~Dataset.map`] takes up some memory, but you can reduce its memory requirements with the following parameters:
+
+- [`batch_size`](./package_reference/main_classes#datasets.DatasetDict.map.batch_size) determines the number of examples that are processed in one call to the transform function.
+- [`writer_batch_size`](./package_reference/main_classes#datasets.DatasetDict.map.writer_batch_size) determines the number of processed examples that are kept in memory before they are stored away.
+
+Both parameter values default to 1000, which can be expensive if you are storing images. Lower the value to use less memory when calling [`~Dataset.map`].
+
 ## Data augmentation
 
 Adding data augmentations to a dataset is common to prevent overfitting and achieve better performance. You can use any library or package you want to apply the augmentations. This guide will use the transforms from [torchvision](https://pytorch.org/vision/stable/transforms.html).
+
+<Tip>
+
+Feel free to use other data augmentation libraries like [Albumentations](https://albumentations.ai/docs/). 🤗 Datasets can apply any custom function and transforms to an entire dataset!
+
+</Tip>
 
 Add the [`ColorJitter`](https://pytorch.org/vision/stable/transforms.html#torchvision.transforms.ColorJitter) transform to change the color properties of the image randomly:
 
@@ -121,34 +159,3 @@ Now visualize the results of the `ColorJitter` transform:
 ```
 
 ![image_process_jitter](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/image_process_jitter.png)
-
-## Map
-
-[`~Dataset.map`] can also apply transforms over an entire dataset and it also generates a cache file.
-
-Create a simple [`Resize`](https://pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) function:
-
-```py
->>> def transforms(examples):
-...     examples["pixel_values"] = [image.convert("RGB").resize((100,100)) for image in examples["image"]]
-...     return examples
-```
-
-Now [`~Dataset.map`] the function over the entire dataset and set `batched=True`. The transform returns `pixel_values` as a cacheable `PIL.Image` object:
-
-```py
->>> dataset = dataset.map(transforms, batched=True)
->>> dataset[0]
-{'image': <PIL.JpegImagePlugin.JpegImageFile image mode=RGB size=384x512 at 0x7F058237BCD0>,
- 'label': 6,
- 'pixel_values': <PIL.PngImagePlugin.PngImageFile image mode=RGB size=100x100 at 0x7F058237BB10>}
-```
-
-This saves time because you don't have to execute the same transform twice. It is best to use [`~Dataset.map`] for operations you only run once per training - like resizing an image - instead of using it for operations executed for each epoch, like data augmentations.
-
-[`~Dataset.map`] takes up some memory, but you can reduce its memory requirements with the following parameters:
-
-- [`batch_size`](./package_reference/main_classes#datasets.DatasetDict.map.batch_size) determines the number of examples that are processed in one call to the transform function.
-- [`writer_batch_size`](./package_reference/main_classes#datasets.DatasetDict.map.writer_batch_size) determines the number of processed examples that are kept in memory before they are stored away.
-
-Both parameter values default to 1000, which can be expensive if you are storing images. Lower the value to use less memory when calling [`~Dataset.map`].
