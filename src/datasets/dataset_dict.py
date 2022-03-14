@@ -420,7 +420,7 @@ class DatasetDict(dict):
             cache_file_names = {k: None for k in self}
         return DatasetDict(
             {
-                k: dataset.map(
+                k: self[k].map(
                     function=function,
                     with_indices=with_indices,
                     with_rank=with_rank,
@@ -439,7 +439,9 @@ class DatasetDict(dict):
                     num_proc=num_proc,
                     desc=desc,
                 )
-                for k, dataset in self.items()
+                for k in sorted(
+                    self
+                )  # deterministic split order for https://github.com/huggingface/datasets/issues/3847
             }
         )
 
@@ -494,7 +496,7 @@ class DatasetDict(dict):
             cache_file_names = {k: None for k in self}
         return DatasetDict(
             {
-                k: dataset.filter(
+                k: self[k].filter(
                     function=function,
                     with_indices=with_indices,
                     input_columns=input_columns,
@@ -508,7 +510,9 @@ class DatasetDict(dict):
                     num_proc=num_proc,
                     desc=desc,
                 )
-                for k, dataset in self.items()
+                for k in sorted(
+                    self
+                )  # deterministic split order for https://github.com/huggingface/datasets/issues/3847
             }
         )
 
