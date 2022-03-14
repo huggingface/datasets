@@ -1,7 +1,11 @@
 # Metric Card for Perplexity
 
 ## Metric Description
-Given a model and an input text sequence, perplexity measures how likely the model is to generate the input text sequence. 
+Given a model and an input text sequence, perplexity measures how likely the model is to generate the input text sequence. This can be used in two main ways:
+1. to evaluate how well the model has learned the distribution of the text it was trained on
+    - In this case, the model input should be the trained model to be evaluated, and the input texts should be the text that the model was trained on.
+2. to evaluate how well a selection of text matches the distribution of text that the input model was trained on
+    - In this case, the model input should be a trained model, and the input texts should be the text to be evaluated.
 
 ## Intended Uses
 Any language generation task.
