@@ -120,7 +120,7 @@ def simple_accuracy(preds, labels):
 
 
 def f1_and_simple_accuracy(preds, labels):
-    return {"f1": float(f1_score(y_true=labels, y_pred=preds)), "accuracy": simple_accuracy(preds, labels)}
+    return {"f1": float(f1_score(y_true=labels, y_pred=preds, average="macro")), "accuracy": simple_accuracy(preds, labels)}
 
 
 def bleu(
@@ -228,7 +228,7 @@ class XtremeS(datasets.Metric):
         if self.config_name == "fleurs-lang_id":
             return {"accuracy": simple_accuracy(predictions, references)}
         elif self.config_name == "minds14":
-            return {"f1": f1_and_simple_accuracy(predictions, references)}
+            return f1_and_simple_accuracy(predictions, references)
         elif self.config_name == "covost2":
             smooth_method = bleu_kwargs.pop("smooth_method", "exp")
             smooth_value = bleu_kwargs.pop("smooth_value", None)
