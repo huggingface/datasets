@@ -135,7 +135,9 @@ def disable_caching():
     _CACHING_ENABLED = False
 
 
-@deprecated("Use datasets.enable_caching() or datasets.disable_caching() instead. This function will be removed in a future version of datasets.")
+@deprecated(
+    "Use datasets.enable_caching() or datasets.disable_caching() instead. This function will be removed in a future version of datasets."
+)
 def set_caching_enabled(boolean: bool):
     """
     When applying transforms on a dataset, the data are stored in cache files.
