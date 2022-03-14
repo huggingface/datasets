@@ -464,6 +464,6 @@ def zip_text_with_dir_path(text_path, text2_path, tmp_path_factory):
 def text_path_with_unicode_new_lines(tmp_path_factory):
     text = "\n".join(["First", "Second\u2029with Unicode new line", "Third"])
     path = str(tmp_path_factory.mktemp("data") / "dataset_with_unicode_new_lines.txt")
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(text)
     return path
