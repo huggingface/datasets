@@ -26,7 +26,7 @@ results = glue_metric.compute(predictions=predictions, references=references)
 
 The output of the metric depends on the GLUE subset chosen, consisting of a dictionary that contains one or several of the following metrics:
 
-`accuracy`: the is the proportion of correct predictions among the total number of cases processed, with a range between 0 and 1 (see [accuracy](https://huggingface.co/metrics/accuracy) for more information). 
+`accuracy`: the proportion of correct predictions among the total number of cases processed, with a range between 0 and 1 (see [accuracy](https://huggingface.co/metrics/accuracy) for more information). 
 
 `f1`: the harmonic mean of the precision and recall (see [F1 score](https://huggingface.co/metrics/f1) for more information). Its range is 0-1 -- its lowest possible value is 0, if either the precision or the recall is 0, and its highest possible value is 1.0, which means perfect precision and recall.
 
