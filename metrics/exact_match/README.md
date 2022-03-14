@@ -35,6 +35,9 @@ This metric outputs a dictionary with one value: the average exact match score.
 
 This metric's range is 0-100, inclusive. Here, 0.0 means no prediction/reference pairs were matches, while 100.0 means they all were.
 
+#### Values from Popular Papers
+The exact match metric is often included in other metrics, such as SQuAD. For example, the [original SQuAD paper](https://nlp.stanford.edu/pubs/rajpurkar2016squad.pdf) reported an Exact Match score of 40.0%. They also report that the human performance Exact Match score on the dataset was 80.3%.
+
 ### Examples
 Without including any regexes to ignore:
 ```python
