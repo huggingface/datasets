@@ -6,7 +6,7 @@ language_creators:
 languages:
 - unknown
 licenses:
-- unknown
+- cc-by-4.0
 multilinguality:
 - monolingual
 pretty_name: Monash Time Series Forecasting Repository
