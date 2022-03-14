@@ -47,7 +47,7 @@ This value indicates the average number of errors per reference word.
 
 The **lower** the value, the **better** the performance of the ASR system, with a WER of 0 being a perfect score.
 
-## Popular papers that use this metric
+### Values from popular papers
 
 This metric is highly dependent on the content and quality of the dataset, and therefore users can expect very different values for the same model but on different datasets.
 
