@@ -1100,7 +1100,7 @@ class BaseDatasetTest(TestCase):
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     with self._caplog.at_level(WARNING):
                         with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                            datasets.set_caching_enabled(False)
+                            datasets.disable_caching()
                             with dset.map(lambda x: {"foo": "bar"}) as dset_test1:
                                 with dset.map(lambda x: {"foo": "bar"}) as dset_test2:
                                     self.assertNotEqual(dset_test1.cache_files, dset_test2.cache_files)
@@ -1111,7 +1111,7 @@ class BaseDatasetTest(TestCase):
                                     self.assertIn("tmp", dset_test1.cache_files[0]["filename"])
                                     self.assertIn("tmp", dset_test2.cache_files[0]["filename"])
             finally:
-                datasets.set_caching_enabled(True)
+                datasets.enable_caching()
 
     @require_torch
     def test_map_torch(self, in_memory):
