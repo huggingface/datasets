@@ -86,3 +86,6 @@ round(results["exact_match"], 1)
 This metric is limited in that it outputs the same score for something that is completely wrong as for something that is correct except for a single character. In other words, there is no award for being *almost* right.
 
 ## Citation
+
+## Further References
+- Also used in the [SQuAD metric](https://github.com/huggingface/datasets/tree/master/metrics/squad) 
