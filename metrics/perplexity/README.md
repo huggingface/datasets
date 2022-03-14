@@ -1,8 +1,7 @@
 # Metric Card for Perplexity
 
 ## Metric Description
-Given a model and an input text sequence, perplexity measures how likely the model is to generate the input text sequence. Note that the output value is based heavily on what text the model was trained on.
-
+Given a model and an input text sequence, perplexity measures how likely the model is to generate the input text sequence. 
 
 ## Intended Uses
 Any language generation task.
@@ -57,6 +56,6 @@ round(results["perplexity"], 1)
 ```
 
 ## Limitations and Bias
-This metric is limited in that it isn't comparable between models or datasets.
+Note that the output value is based heavily on what text the model was trained on. This means that perplexity scores are not comparable between models or datasets. 
 
 ## Citation
