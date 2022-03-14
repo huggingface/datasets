@@ -96,12 +96,14 @@ WER is a valuable tool for comparing different systems as well as for evaluating
 
 ## Citation
 
-    @inproceedings{woodard1982,
-      author = {Woodard, J.P. and Nelson, J.T.,
-      year = {1982},
-      journal = Ẅorkshop on standardisation for speech I/O technology, Naval Air Development Center, Warminster, PA},
-      title = {An information theoretic measure of speech recognition performance}
-    }
+```bibtex
+@inproceedings{woodard1982,
+author = {Woodard, J.P. and Nelson, J.T.,
+year = {1982},
+journal = Ẅorkshop on standardisation for speech I/O technology, Naval Air Development Center, Warminster, PA},
+title = {An information theoretic measure of speech recognition performance}
+}
+```
 
     @inproceedings{morris2004,
         author = {Morris, Andrew and Maier, Viktoria and Green, Phil},
