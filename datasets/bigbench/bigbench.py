@@ -146,7 +146,7 @@ class BigBench(datasets.GeneratorBasedBuilder):
         task_path, json_util = bb_json_paths.get_task_path(self.config.task_name)
         
         has_subtasks = bb_json_paths.has_subtasks(self.config.task_name)
-        
+
         if not has_subtasks:
           ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name, 
                                      task_path = task_path,
@@ -157,7 +157,7 @@ class BigBench(datasets.GeneratorBasedBuilder):
                                      json_util = json_util, 
                                      min_validation_examples = _GLOBAL_MIN_VALIDATION_EXAMPLES
                                     )
-          ds = ds_fn(split)
+          ds_list = [ds_fn(split)]
         elif self.config.subtask_name is not None:
           ds_fn = bbb.get_dataset_fn(task_name = self.config.task_name, 
                                      task_path = task_path,
@@ -168,7 +168,7 @@ class BigBench(datasets.GeneratorBasedBuilder):
                                      json_util = json_util, 
                                      min_validation_examples = _GLOBAL_MIN_VALIDATION_EXAMPLES
                                     )
-          ds = ds_fn(split)
+          ds_list = [ds_fn(split)]
         else:
           # Create mixture of all subtasks
           subtask_names = bb_json_paths.get_subtask_names(self.config.task_name)
@@ -176,7 +176,7 @@ class BigBench(datasets.GeneratorBasedBuilder):
           max_examples_per_subtask = div_or_none(self.config.max_examples, num_subtasks)
           min_validation_examples_per_subtask = div_or_none(
               _GLOBAL_MIN_VALIDATION_EXAMPLES, num_subtasks)
-          subtask_datasets = []
+          ds_list = []
           for subtask_name in subtask_names:
             subtask_name = subtask_name.split(':')[-1]
             print(f"Loading subtask {split} split", subtask_name)
@@ -189,19 +189,16 @@ class BigBench(datasets.GeneratorBasedBuilder):
                                      json_util = json_util, 
                                      min_validation_examples = min_validation_examples_per_subtask
                                   	)
-            subtask_datasets.append(ds_fn(split))
-          ds = subtask_datasets[0]
-          for sub_ds in subtask_datasets[1:]:
-          	ds = ds.concatenate(sub_ds)
+            ds_list.append(ds_fn(split))
         
         unique_key_counter = 0
-        
-        for example in ds:
-          unique_key_counter +=1
-          yield unique_key_counter, {
-            "idx": example["idx"],
-            "inputs": example["inputs"],
-            "targets": example["targets"],
-            "multiple_choice_targets": example["multiple_choice_targets"],
-            "multiple_choice_scores": example["multiple_choice_scores"],
-            }
+        for ds in ds_list:
+          for example in ds:
+            unique_key_counter +=1
+            yield unique_key_counter, {
+              "idx": example["idx"],
+              "inputs": example["inputs"].numpy().decode(),
+              "targets": [target.numpy().decode() for target in example["targets"]],
+              "multiple_choice_targets": [targets.decode() for targets in example["multiple_choice_targets"].numpy()],
+              "multiple_choice_scores": [scores for scores in example["multiple_choice_scores"].numpy()],
+              }
