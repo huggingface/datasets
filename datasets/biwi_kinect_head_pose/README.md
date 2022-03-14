@@ -42,7 +42,7 @@ For each frame, there is :
 - a corresponding rgb image (both 640x480 pixels),
 - annotation
 
-The head pose range covers about +-75 degrees yaw and +-60 degrees pitch. The round truth is the 3D location of the head and its rotation.
+The head pose range covers about +-75 degrees yaw and +-60 degrees pitch. The ground truth is the 3D location of the head and its rotation.
 
 ### Supported Tasks and Leaderboards
 
