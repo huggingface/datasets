@@ -153,7 +153,7 @@ class Conll2012Ontonotesv5(datasets.GeneratorBasedBuilder):
         lang = self.config.language
         conll_version = self.config.conll_version
         dl_dir = dl_manager.download_and_extract(_URL)
-        data_zip = glob(f"{dl_dir}/**/conll-2012*", recursive=True)[0]
+        data_zip = glob(os.path.join(dl_dir, "**/conll-2012*"), recursive=True)[0]
         ext_dir = dl_manager.extract(data_zip)
         data_dir = os.path.join(ext_dir, f"conll-2012/{conll_version}/data")
 
@@ -174,7 +174,7 @@ class Conll2012Ontonotesv5(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, conll_files_directory):
         """Yields examples."""
-        conll_files = sorted(glob(f"{conll_files_directory}/**/*gold_conll", recursive=True))
+        conll_files = sorted(glob(os.path.join(conll_files_directory), "**/*gold_conll"), recursive=True))
         for idx, conll_file in enumerate(conll_files):
             sentences = []
             for sent in Ontonotes().sentence_iterator(conll_file):
