@@ -3,7 +3,7 @@
 ## Metric description
 This metric is used to compute the GLUE evaluation metric associated to each [GLUE dataset](https://huggingface.co/datasets/glue). 
 
-GLUE, the General Language Understanding Evaluation benchmark (https://gluebenchmark.com/) is a collection of resources for training, evaluating, and analyzing natural language understanding systems.
+GLUE, the General Language Understanding Evaluation benchmark is a collection of resources for training, evaluating, and analyzing natural language understanding systems.
 
 ## How to use 
 
