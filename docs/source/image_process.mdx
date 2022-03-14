@@ -49,7 +49,7 @@ To load an image from its path, use the [`~Dataset.cast_column`] method. The [`I
 You can also access the path and bytes of an image file by setting `decode=False` when you load a dataset. In this case, you will need to cast the `image` column:
 
 ```py
->>> dataset = load_dataset("food101", split="train[100:]").cast_column('image', Image(decode=False))
+>>> dataset = load_dataset("food101", split="train[:100]").cast_column('image', Image(decode=False))
 ```
 
 ## ImageFolder
