@@ -49,9 +49,10 @@ The **lower** the value, the **better** the performance of the ASR system, with 
 
 ## Values from popular papers
 
-While initial papers such as [Graves (2014)](http://proceedings.mlr.press/v32/graves14.pdf) reported a WER of 0.27, recent systems such as [Word2vec 2.0](https://arxiv.org/pdf/2006.11477.pdf) have a much lower WER, ranging from 0.018 to 0.033). 
+This metric is highly dependent on the content and quality of the dataset, and therefore users can expect very different values for the same model but on different datasets.
 
-WER values will depend on the dataset being used for evaluation, with datasets such as [LibriSpeech](https://huggingface.co/datasets/librispeech_asr), [Common Voice](https://huggingface.co/datasets/common_voice) and [Timit](https://huggingface.co/datasets/timit_asr) commonly used for evaluating ASR systems.
+For example, datasets such as [LibriSpeech](https://huggingface.co/datasets/librispeech_asr) report a WER in the 1.8-3.3 range, whereas ASR models evaluated on [Timit](https://huggingface.co/datasets/timit_asr) report a WER in the 8.3-20.4 range. 
+See the leaderboards for [LibriSpeech](https://paperswithcode.com/sota/speech-recognition-on-librispeech-test-clean) and [Timit](https://paperswithcode.com/sota/speech-recognition-on-timit) for the most recent values.
 
 ## Examples 
 
