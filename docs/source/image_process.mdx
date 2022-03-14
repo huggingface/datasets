@@ -89,10 +89,10 @@ Add the [`ColorJitter`](https://pytorch.org/vision/stable/transforms.html#torchv
 >>> from torchvision.transforms import Compose, ColorJitter, ToTensor
 
 >>> jitter = Compose(
-... [
-...  ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.7),
-...  ToTensor(),
-...  ]
+...     [
+...          ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.7),
+...          ToTensor(),
+...     ]
 ... )
 ```
 
@@ -129,11 +129,8 @@ Now visualize the results of the `ColorJitter` transform:
 Create a simple [`Resize`](https://pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) function:
 
 ```py
->>> from torchvision.transforms import Resize
-
->>> resize = Resize([100,100])
 >>> def transforms(examples):
-...     examples["pixel_values"] = [resize(image.convert("RGB")) for image in examples["image"]]
+...     examples["pixel_values"] = [image.convert("RGB").resize((100,100)) for image in examples["image"]]
 ...     return examples
 ```
 
