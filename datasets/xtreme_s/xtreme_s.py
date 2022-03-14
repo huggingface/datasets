@@ -69,8 +69,8 @@ _BABEL_LANG_TO_ID = {
 
 
 _BABEL_LANG = list(_BABEL_LANG_TO_ID.keys())
-_MLS_LANG = ["nl", "en", "fr", "de", "it", "pl", "pt", "es"]
-_VOXPOPULI_LANG = ["en", "de", "fr", "es", "pl", "it", "ro", "hu", "cs", "nl", "fi", "hr", "sk", "sl"]
+_MLS_LANG = sorted(["nl", "en", "fr", "de", "it", "pl", "pt", "es"])
+_VOXPOPULI_LANG = sorted(["en", "de", "fr", "es", "pl", "it", "ro", "hu", "cs", "nl", "fi", "hr", "sk", "sl"])
 
 # fmt: off
 _COVOST2_TO_EN_LANG = [
@@ -85,11 +85,11 @@ _COVOST2_FROM_EN_LANG = [
         "de", "ca", "zh", "fa", "et", "mn", "tr", "ar", "sw", "lv", "sl", "ta", "ja", "id", "cy",
     ]
 ]
-_COVOST2_LANG = _COVOST2_FROM_EN_LANG + _COVOST2_TO_EN_LANG
+_COVOST2_LANG = sorted(_COVOST2_FROM_EN_LANG + _COVOST2_TO_EN_LANG)
 
-_MINDS_14_LANG = [
+_MINDS_14_LANG = sorted([
     "cs-CZ", "de-DE", "en-AU", "en-GB", "en-US", "es-ES", "fr-FR", "it-IT", "ko-KR", "nl-NL", "pl-PL", "pt-PT", "ru-RU", "zh-CN",
-]
+])
 _FLORES_LANG = sorted(["af_za", "am_et", "ar_eg", "as_in", "ast_es", "az_az", "be_by", "bn_in", "bs_ba", "ca_es", "ceb", "cmn_hans_cn", "cmn_hant_hk", "cs_cz", "cy_gb", "da_dk", "de_de", "el_gr", "en_us", "es_419", "et_ee", "fa_ir", "ff_sn", "fi_fi", "fil_ph", "fr_fr", "ga_ie", "gl_es", "gu_in", "ha_ng", "he_il", "hi_in", "hr_hr", "hu_hu", "hy_am", "id_id", "ig_ng", "is_is", "it_it", "ja_jp", "jv_id", "ka_ge", "kam_ke", "kea_cv", "kk_kz", "km_kh", "kn_in", "ko_kr", "ku_arab_iq", "ky_kg", "lb_lu", "lg_ug", "ln_cd", "lo_la", "lt_lt", "luo_ke", "lv_lv", "mi_nz", "mk_mk", "ml_in", "mn_mn", "mr_in", "ms_my", "mt_mt", "my_mm", "nb_no", "ne_np", "nl_nl", "nso_za", "ny_mw", "oci_fr", "om_et", "or_in", "pa_in", "pl_pl", "ps_af", "pt_br", "ro_ro", "ru_ru", "rup_bg", "sd_arab_in", "sk_sk", "sl_si", "sn_zw", "so_so", "sr_rs", "sv_se", "sw_ke", "ta_in", "te_in", "tg_tj", "th_th", "tr_tr", "uk_ua", "umb_ao", "ur_pk", "uz_uz", "vi_vn", "wo_sn", "xh_za", "yo_ng", "zu_za"])
 
 _ALL_LANG = set(_BABEL_LANG + _MLS_LANG + _VOXPOPULI_LANG + _COVOST2_LANG + _FLORES_LANG + _MINDS_14_LANG)
@@ -110,8 +110,8 @@ for sub_data, langs in _ALL_DATASET_CONFIGS.items():
     for lang in langs:
         _ALL_CONFIGS.append(f"{sub_data}.{lang}")
 
-# add fleurs all for langID task
-_ALL_CONFIGS.append("fleurs.all")
+# add "all" for all datasets besides 'BABEL'
+_ALL_CONFIGS += ["voxpopuli.all", "covost2.all", "mls.all", "fleurs.all", "minds14.all"]
 
 
 _DESCRIPTIONS = {  # TOOD(PVP)
@@ -161,6 +161,7 @@ _DATA_URLS = {  # TODO(PVP)
         "https://voice-prod-bundler-ee1969a6ce8178826482b88e843c335139bd3fb4.s3.amazonaws.com/cv-corpus-4-2019-12-10/{}.tar.gz",
         "https://dl.fbaipublicfiles.com/covost/covost_v2.{}_{}.tsv.tar.gz",
     ],
+    "fleurs": [""],
     "minds14": ["http://poly-public-data.s3.amazonaws.com/MInDS-14/MInDS-14.zip"],
 }
 # fmt: on
@@ -206,8 +207,19 @@ class XtremeS(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         task_templates = None
-        if self.config.dataset_name in ["mls", "voxpopuli", "babel"]:
+        langs = _ALL_DATASET_CONFIGS[self.config.dataset_name]
+        if self.config.dataset_name in ["mls", "voxpopuli"]:
             # asr
+            features = datasets.Features(
+                {
+                    "path": datasets.Value("string"),
+                    "audio": datasets.Audio(sampling_rate=16_000),
+                    "transcription": datasets.Value("string"),
+                    "lang_id": datasets.ClassLabel(names=langs),
+                }
+            )
+            task_templates = [AutomaticSpeechRecognition(audio_file_path_column="path", transcription_column="text")]
+        elif self.config.dataset_name in ["babel"]:
             features = datasets.Features(
                 {
                     "path": datasets.Value("string"),
@@ -224,6 +236,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                     "audio": datasets.Audio(sampling_rate=48_000),
                     "transcription": datasets.Value("string"),
                     "translation": datasets.Value("string"),
+                    "lang_id": datasets.ClassLabel(names=langs),
                 }
             )
         elif self.config.dataset_name == "minds14":
@@ -252,6 +265,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                             "pay_bill",
                         ]
                     ),
+                    "lang_id": datasets.ClassLabel(names=langs),
                 }
             )
         elif self.config.dataset_name == "fleurs":
@@ -264,7 +278,7 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                     "transcription": datasets.Value("string"),
                     "gender": datasets.ClassLabel(names=["male", "female", "other"]),
                     "speaker_id": datasets.Value("int32"),
-                    "lang_id": datasets.ClassLabel(names=_FLORES_LANG),
+                    "lang_id": datasets.ClassLabel(names=langs),
                 }
             )
 
@@ -312,64 +326,76 @@ class XtremeS(datasets.GeneratorBasedBuilder):
 
     # MLS
     def _mls_split_generators(self, dl_manager):
-        lang = _ID_TO_LANG[self.config.lang_name]
 
-        archive_path = dl_manager.download_and_extract(self.config.data_urls[0].format(lang))
-        data_path = os.path.join(archive_path, f"mls_{_ID_TO_LANG[self.config.lang_name]}")
+        if self.config.lang_name != "all":
+            lang = _ID_TO_LANG[self.config.lang_name]
+            archive_paths = {lang: dl_manager.download_and_extract(self.config.data_urls[0].format(lang))}
+        else:
+            archive_paths = {
+                l: dl_manager.download_and_extract(self.config.data_urls[0].format(_ID_TO_LANG[l])) for l in _MLS_LANG
+            }
+
+        data_paths = {l: os.path.join(v, f"mls_{_ID_TO_LANG[l]}") for l, v in archive_paths.items()}
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "data_dir": os.path.join(data_path, "train"),
+                    "data_dirs": {l: os.path.join(v, "train") for l, v in data_paths.items()},
                     "sub_folder": "limited_supervision/9hr",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"data_dir": os.path.join(data_path, "dev")},
+                gen_kwargs={
+                    "data_dirs": {l: os.path.join(v, "dev") for l, v in data_paths.items()},
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"data_dir": os.path.join(data_path, "test")},
+                gen_kwargs={
+                    "data_dirs": {l: os.path.join(v, "test") for l, v in data_paths.items()},
+                },
             ),
         ]
 
-    def _mls_generate_examples(self, data_dir, sub_folder=""):
+    def _mls_generate_examples(self, data_dirs, sub_folder=""):
         """Generate examples from a Multilingual LibriSpeech data dir."""
-        transcript_path = os.path.join(data_dir, "transcripts.txt")
         key = 0
-        all_ids = None
+        for lang, data_dir in data_dirs.items():
+            transcript_path = os.path.join(data_dir, "transcripts.txt")
+            all_ids = None
 
-        # find relevant ids
-        sub_path = os.path.join(data_dir, sub_folder)
-        all_ids_paths = glob.glob(os.path.join(sub_path, "*/*.txt")) + glob.glob(os.path.join(sub_path, "*.txt"))
-        all_ids = []
-        if sub_folder != "":
-            for path in all_ids_paths:
-                with open(path, "r", encoding="utf-8") as f:
-                    all_ids += [line.strip() for line in f.readlines()]
+            # find relevant ids
+            sub_path = os.path.join(data_dir, sub_folder)
+            all_ids_paths = glob.glob(os.path.join(sub_path, "*/*.txt")) + glob.glob(os.path.join(sub_path, "*.txt"))
+            all_ids = []
+            if sub_folder != "":
+                for path in all_ids_paths:
+                    with open(path, "r", encoding="utf-8") as f:
+                        all_ids += [line.strip() for line in f.readlines()]
 
-            all_ids = set(all_ids)
+                all_ids = set(all_ids)
 
-        with open(transcript_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                _id, transcript = line.split("\t")
+            with open(transcript_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    _id, transcript = line.split("\t")
 
-                if sub_folder != "" and _id not in all_ids:
-                    # filter-out audios not contained in the 9/10h version
-                    continue
+                    if sub_folder != "" and _id not in all_ids:
+                        # filter-out audios not contained in the 9/10h version
+                        continue
 
-                audio_file = f"{_id}.flac"
-                speaker_id, chapter_id = [int(el) for el in _id.split("_")[:2]]
+                    audio_file = f"{_id}.flac"
+                    speaker_id, chapter_id = [int(el) for el in _id.split("_")[:2]]
 
-                yield key, {
-                    "path": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
-                    "audio": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
-                    "transcription": transcript,
-                }
-                key += 1
+                    yield key, {
+                        "path": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
+                        "audio": os.path.join(data_dir, "audio", str(speaker_id), str(chapter_id), audio_file),
+                        "transcription": transcript,
+                        "lang_id": _MLS_LANG.index(lang),
+                    }
+                    key += 1
 
     # Voxpopuli
     def _voxpopuli_split_generators(self, dl_manager):
@@ -384,41 +410,50 @@ class XtremeS(datasets.GeneratorBasedBuilder):
             str(i + 2009): extracted_audio_data_list[i] for i in range(len(extracted_audio_data_list))
         }
 
-        extracted_text_data = dl_manager.download_and_extract(self.config.data_urls[-1].format(self.config.lang_name))
+        if self.config.lang_name != "all":
+            langs = [self.config.lang_name]
+            extracted_text_datas = {
+                l: dl_manager.download_and_extract(self.config.data_urls[-1].format(l)) for l in langs
+            }
+        else:
+            langs = _VOXPOPULI_LANG
+            extracted_text_datas = {
+                l: dl_manager.download_and_extract(self.config.data_urls[-1].format(l)) for l in langs
+            }
 
         # TODO(PVP) - add print statement that this takes a while or into tqdm
         # split audio data and save in cached extracted folders so that it
         # only has to be done once
-        split_audio_data = self._voxpopuli_split_audio(extracted_audio_data_dict, extracted_text_data)
+        split_audio_datas = self._voxpopuli_split_audio(extracted_audio_data_dict, extracted_text_datas)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "audio_data": split_audio_data,
-                    "text_data": extracted_text_data,
+                    "audio_datas": split_audio_datas,
+                    "text_datas": extracted_text_datas,
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "audio_data": split_audio_data,
-                    "text_data": extracted_text_data,
+                    "audio_datas": split_audio_datas,
+                    "text_datas": extracted_text_datas,
                     "split": "dev",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "audio_data": split_audio_data,
-                    "text_data": extracted_text_data,
+                    "audio_datas": split_audio_datas,
+                    "text_datas": extracted_text_data,
                     "split": "test",
                 },
             ),
         ]
 
-    def _voxpopuli_split_audio(self, audio_data_dict, text_data, sub_folder="original"):
+    def _voxpopuli_split_audio(self, audio_data_dict, text_datas, sub_folder="original"):
         """This function is heavily inspired from https://github.com/facebookresearch/voxpopuli/blob/main/voxpopuli/get_asr_data.py"""
 
         # Voxpopuli is based on the official Europeen parliament recordings
@@ -460,89 +495,105 @@ class XtremeS(datasets.GeneratorBasedBuilder):
         output_paths = {}
 
         time_stamps = defaultdict(dict)
-        with open(text_data, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter="|")
-            for row in csv_reader:
-                id_, _, session_id, _, _, _, _, _, _, _, _, time_stamp, split, gender = row
-                if split not in ["train", "dev", "test"]:
-                    continue
 
-                year = session_id[:4]
-                audio_data = audio_data_dict[year]
+        for lang, text_data in text_datas.items():
+            result = {}
+            with open(text_data, encoding="utf-8") as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter="|")
+                for row in csv_reader:
+                    id_, _, session_id, _, _, _, _, _, _, _, _, time_stamp, split, gender = row
+                    if split not in ["train", "dev", "test"]:
+                        continue
 
-                split_audio_output_folder = os.path.join(audio_data, "transcribed_data", self.config.lang_name)
-                Path(split_audio_output_folder).mkdir(exist_ok=True, parents=True)
-                output_paths[id_] = os.path.join(split_audio_output_folder, f"{session_id}-{id_}.ogg")
+                    year = session_id[:4]
+                    audio_data = audio_data_dict[year]
 
-                audio_sample_path = os.path.join(audio_data, sub_folder, year, f"{session_id}_original.ogg")
-                time_stamps[audio_sample_path][output_paths[id_]] = [(t[0], t[1]) for t in literal_eval(time_stamp)]
+                    split_audio_output_folder = os.path.join(audio_data, "transcribed_data", self.config.lang_name)
+                    Path(split_audio_output_folder).mkdir(exist_ok=True, parents=True)
+                    result[id_] = os.path.join(split_audio_output_folder, f"{session_id}-{id_}.ogg")
 
-        time_stamps = tqdm(list(time_stamps.items()))
-        # TODO(PVP): add note here that audio is cut and that this might take a while
-        for time_stamp in time_stamps:
-            cut_session(time_stamp)
+                    audio_sample_path = os.path.join(audio_data, sub_folder, year, f"{session_id}_original.ogg")
+                    time_stamps[audio_sample_path][result[id_]] = [(t[0], t[1]) for t in literal_eval(time_stamp)]
+
+            time_stamps = tqdm(list(time_stamps.items()))
+            # TODO(PVP): add note here that audio is cut and that this might take a while
+            for time_stamp in time_stamps:
+                cut_session(time_stamp)
+            output_paths[lang] = result
 
         return output_paths
 
-    def _voxpopuli_generate_examples(self, audio_data, text_data, split):
+    def _voxpopuli_generate_examples(self, audio_datas, text_datas, split):
         key = 0
-        with open(text_data, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter="|")
-            next(csv_reader)
-            for row in csv_reader:
-                id_, _, _, _, _, transcript, _, _, _, _, _, _, split_of_sample, _ = row
-                if split_of_sample != split:
-                    continue
+        for lang, audio_data in audio_datas.items():
+            text_data = text_datas[lang]
 
-                yield key, {
-                    "path": audio_data[id_],
-                    "audio": audio_data[id_],
-                    "transcription": transcript,
-                }
-                key += 1
+            with open(text_data, encoding="utf-8") as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter="|")
+                next(csv_reader)
+                for row in csv_reader:
+                    id_, _, _, _, _, transcript, _, _, _, _, _, _, split_of_sample, _ = row
+                    if split_of_sample != split:
+                        continue
+
+                    yield key, {
+                        "path": audio_data[id_],
+                        "audio": audio_data[id_],
+                        "transcription": transcript,
+                        "lang_id": _VOXPOPULI_LANG.index(lang),
+                    }
+                    key += 1
 
     # Covost2
     def _covost_2_split_generators(self, dl_manager):
-        source_lang, transcription_lang = self.config.lang_name.split(".")
+        if self.config.lang_name != "all":
+            langs = [self.config.lang_name]
+        else:
+            langs = _COVOST2_LANG
+
+        source_langs = list(set(l.split(".")[0] for l in langs))
+
         audio_url, translation_url = tuple(self.config.data_urls)
 
-        audio_data = dl_manager.download_and_extract(audio_url.format(source_lang))
-        text_data = dl_manager.download_and_extract(translation_url.format(source_lang, transcription_lang))
+        audio_data = {l: dl_manager.download_and_extract(audio_url.format(l)) for l in source_langs}
+        text_data = {l: dl_manager.download_and_extract(translation_url.format(*l.split("."))) for l in langs}
 
-        covost_tsv_path = os.path.join(text_data, f"covost_v2.{source_lang}_{transcription_lang}.tsv")
-        cv_tsv_path = os.path.join(audio_data, "validated.tsv")
+        covost_tsv_paths = {
+            l: os.path.join(v, "covost_v2.{}_{}.tsv".format(*l.split("."))) for l, v in text_data.items()
+        }
+        cv_tsv_paths = {l: os.path.join(v, "validated.tsv") for l, v in audio_data.items()}
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "source_path": audio_data,
-                    "covost_tsv_path": covost_tsv_path,
-                    "cv_tsv_path": cv_tsv_path,
+                    "source_paths": audio_data,
+                    "covost_tsv_paths": covost_tsv_paths,
+                    "cv_tsv_paths": cv_tsv_paths,
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "source_path": audio_data,
-                    "covost_tsv_path": covost_tsv_path,
-                    "cv_tsv_path": cv_tsv_path,
+                    "source_paths": audio_data,
+                    "covost_tsv_paths": covost_tsv_paths,
+                    "cv_tsv_paths": cv_tsv_paths,
                     "split": "dev",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "source_path": audio_data,
-                    "covost_tsv_path": covost_tsv_path,
-                    "cv_tsv_path": cv_tsv_path,
+                    "source_paths": audio_data,
+                    "covost_tsv_paths": covost_tsv_paths,
+                    "cv_tsv_paths": cv_tsv_paths,
                     "split": "test",
                 },
             ),
         ]
 
-    def _covost_2_generate_examples(self, source_path, covost_tsv_path, cv_tsv_path, split):
+    def _covost_2_generate_examples(self, source_paths, covost_tsv_paths, cv_tsv_paths, split):
         def _load_df_from_tsv(path):
             return pd.read_csv(
                 path,
@@ -554,89 +605,108 @@ class XtremeS(datasets.GeneratorBasedBuilder):
                 na_filter=False,
             )
 
-        covost_tsv = _load_df_from_tsv(covost_tsv_path)
-        cv_tsv = _load_df_from_tsv(cv_tsv_path)
+        key = 0
+        for lang_id in covost_tsv_paths.keys():
+            source_lang, target_lang = lang_id.split(".")
 
-        df = pd.merge(
-            left=cv_tsv[["path", "sentence", "client_id"]],
-            right=covost_tsv[["path", "translation", "split"]],
-            how="inner",
-            on="path",
-        )
+            covost_tsv_path = covost_tsv_paths[lang_id]
+            cv_tsv_path = cv_tsv_paths[source_lang]
+            source_path = source_paths[source_lang]
 
-        if split == "train":
-            df = df[(df["split"] == "train") | (df["split"] == "train_covost")]
-        else:
-            df = df[df["split"] == split]
+            covost_tsv = _load_df_from_tsv(covost_tsv_path)
+            cv_tsv = _load_df_from_tsv(cv_tsv_path)
 
-        for i, row in df.iterrows():
-            yield i, {
-                "path": os.path.join(source_path, "clips", row["path"]),
-                "audio": os.path.join(source_path, "clips", row["path"]),
-                "transcription": row["sentence"],
-                "translation": row["translation"],
-            }
+            df = pd.merge(
+                left=cv_tsv[["path", "sentence", "client_id"]],
+                right=covost_tsv[["path", "translation", "split"]],
+                how="inner",
+                on="path",
+            )
+
+            if split == "train":
+                df = df[(df["split"] == "train") | (df["split"] == "train_covost")]
+            else:
+                df = df[df["split"] == split]
+
+            for _, row in df.iterrows():
+                yield key, {
+                    "path": os.path.join(source_path, "clips", row["path"]),
+                    "audio": os.path.join(source_path, "clips", row["path"]),
+                    "transcription": row["sentence"],
+                    "translation": row["translation"],
+                    "lang_id": _COVOST2_LANG.index(lang_id),
+                }
+                key += 1
 
     # MINDS-14
     def _minds14_split_generators(self, dl_manager):
+        langs = _MINDS_14_LANG if self.config.lang_name == "all" else [self.config.lang_name]
+
         archive_path = dl_manager.download_and_extract(self.config.data_urls[0])
         audio_path = dl_manager.extract(os.path.join(archive_path, "MInDS-14", "audio.zip"))
         text_path = dl_manager.extract(os.path.join(archive_path, "MInDS-14", "text.zip"))
-        split_paths = {
-            k: dl_manager.download(f"minds14_splits/{k}_{self.config.lang_name}.tsv") for k in ["train", "dev", "test"]
-        }
+
+        train_split_paths = {l: dl_manager.download(f"minds14_splits/train_{l}.tsv") for l in langs}
+        dev_split_paths = {l: dl_manager.download(f"minds14_splits/dev_{l}.tsv") for l in langs}
+        test_split_paths = {l: dl_manager.download(f"minds14_splits/test_{l}.tsv") for l in langs}
+
+        text_path = {l: os.path.join(text_path, f"{l}.csv") for l in langs}
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "audio_path": audio_path,
-                    "text_path": os.path.join(text_path, "{}.csv".format(self.config.lang_name)),
-                    "split_tsv_file": split_paths["train"],
+                    "text_paths": text_path,
+                    "split_tsv_files": train_split_paths,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "audio_path": audio_path,
-                    "text_path": os.path.join(text_path, "{}.csv".format(self.config.lang_name)),
-                    "split_tsv_file": split_paths["dev"],
+                    "text_paths": text_path,
+                    "split_tsv_files": dev_split_paths,
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "audio_path": audio_path,
-                    "text_path": os.path.join(text_path, "{}.csv".format(self.config.lang_name)),
-                    "split_tsv_file": split_paths["test"],
+                    "text_paths": text_path,
+                    "split_tsv_files": test_split_paths,
                 },
             ),
         ]
 
-    def _minds14_generate_examples(self, audio_path, text_path, split_tsv_file):
+    def _minds14_generate_examples(self, audio_path, text_paths, split_tsv_files):
         key = 0
-        with open(split_tsv_file, encoding="utf-8") as split_f:
-            split_ids = set([line.split("\t")[0] for line in split_f.readlines()])
+        for lang_id in split_tsv_files.keys():
+            split_tsv_file = split_tsv_files[lang_id]
+            with open(split_tsv_file, encoding="utf-8") as split_f:
+                split_ids = set([line.split("\t")[0] for line in split_f.readlines()])
 
-        with open(text_path, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=",", skipinitialspace=True)
-            next(csv_reader)
-            for row in csv_reader:
-                file_path, transcription, english_transcription, intent_class = row
+            text_path = text_paths[lang_id]
+            with open(text_path, encoding="utf-8") as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter=",", skipinitialspace=True)
+                next(csv_reader)
+                for row in csv_reader:
+                    file_path, transcription, english_transcription, intent_class = row
 
-                # only add example if exist in splits
-                if file_path not in split_ids:
-                    continue
+                    # only add example if exist in splits
+                    if file_path not in split_ids:
+                        continue
 
-                file_path = os.path.join(audio_path, *file_path.split("/"))
-                yield key, {
-                    "path": file_path,
-                    "audio": file_path,
-                    "transcription": transcription,
-                    "english_transcription": english_transcription,
-                    "intent_class": intent_class.lower(),
-                }
-                key += 1
+                    file_path = os.path.join(audio_path, *file_path.split("/"))
+                    yield key, {
+                        "path": file_path,
+                        "audio": file_path,
+                        "transcription": transcription,
+                        "english_transcription": english_transcription,
+                        "intent_class": intent_class.lower(),
+                        "lang_id": _MINDS_14_LANG.index(lang_id),
+                    }
+                    key += 1
 
     # BABEL
     def _babel_split_generators(self, dl_manager):
