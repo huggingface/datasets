@@ -52,8 +52,7 @@ class Text(datasets.ArrowBasedBuilder):
     def _generate_tables(self, files):
         schema = pa.schema(self.config.features.type if self.config.features is not None else {"text": pa.string()})
         for file_idx, file in enumerate(files):
-            batch_idx = 0
-            with open(file, encoding=self.config.encoding) as f:
+            with open(file, "rb") as f:
                 if self.config.sample_by == "line":
                     batch_idx = 0
                     while True:
@@ -61,7 +60,9 @@ class Text(datasets.ArrowBasedBuilder):
                         if not batch:
                             break
                         batch += f.readline()  # finish current line
+                        # bytes.splitlines splits only on universal newlines: "\n", "\r\n" and "\r"
                         batch = batch.splitlines(keepends=self.config.keep_linebreaks)
+                        batch = [line.decode(encoding=self.config.encoding) for line in batch]
                         pa_table = pa.Table.from_arrays([pa.array(batch)], schema=schema)
                         # Uncomment for debugging (will print the Arrow table size and elements)
                         # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
@@ -72,7 +73,7 @@ class Text(datasets.ArrowBasedBuilder):
                     batch_idx = 0
                     batch = ""
                     while True:
-                        batch += f.read(self.config.chunksize)
+                        batch += f.read(self.config.chunksize).decode(encoding=self.config.encoding)
                         if not batch:
                             break
                         batch += f.readline()  # finish current line
@@ -87,6 +88,6 @@ class Text(datasets.ArrowBasedBuilder):
                         batch_idx += 1
                         batch = batch[-1]
                 elif self.config.sample_by == "document":
-                    text = f.read()
+                    text = f.read().decode(encoding=self.config.encoding)
                     pa_table = pa.Table.from_arrays([pa.array([text])], schema=schema)
                     yield file_idx, pa_table
