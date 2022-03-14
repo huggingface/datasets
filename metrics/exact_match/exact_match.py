@@ -21,7 +21,7 @@ import datasets
 
 
 _DESCRIPTION = """
-Returns the rate at which the input predicted strings exactly match their references, ignoring characters in the chars_to_ignore string
+Returns the rate at which the input predicted strings exactly match their references, ignoring any strings input as part of the regexes_to_ignore list.
 """
 
 _KWARGS_DESCRIPTION = """
@@ -89,7 +89,7 @@ class ExactMatch(datasets.Metric):
                     "references": datasets.Value("string", id="sequence"),
                 }
             ),
-            reference_urls=[""],
+            reference_urls=[],
         )
 
     def _compute(
@@ -104,8 +104,8 @@ class ExactMatch(datasets.Metric):
 
         if regexes_to_ignore is not None:
             for s in regexes_to_ignore:
-                predictions = np.array(list(map(lambda x: re.sub(s, "", x), predictions)))
-                references = np.array(list(map(lambda x: re.sub(s, "", x), references)))
+                predictions = np.array([re.sub(s, "", x) for x in predictions])
+                references = np.array([re.sub(s, "", x) for x in references])
         else:
             predictions = np.asarray(predictions)
             references = np.asarray(references)
@@ -124,13 +124,6 @@ class ExactMatch(datasets.Metric):
             predictions = np.char.translate(predictions, table=repl_table)
             references = np.char.translate(references, table=repl_table)
 
-        print("\n\nregexes to ignore:", regexes_to_ignore)
-        print(
-            "ignore_case=%i || ignore_punctuation=%i || ignore_numbers=%i"
-            % (int(ignore_case), int(ignore_punctuation), int(ignore_numbers))
-        )
-        print("preds:", predictions)
-        print("refs:", references)
         score_list = predictions == references
 
         return {"exact_match": np.mean(score_list) * 100}
