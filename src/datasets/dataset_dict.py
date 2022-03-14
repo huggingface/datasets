@@ -418,32 +418,29 @@ class DatasetDict(dict):
         self._check_values_type()
         if cache_file_names is None:
             cache_file_names = {k: None for k in self}
-        return DatasetDict(
-            {
-                k: self[k].map(
-                    function=function,
-                    with_indices=with_indices,
-                    with_rank=with_rank,
-                    input_columns=input_columns,
-                    batched=batched,
-                    batch_size=batch_size,
-                    drop_last_batch=drop_last_batch,
-                    remove_columns=remove_columns,
-                    keep_in_memory=keep_in_memory,
-                    load_from_cache_file=load_from_cache_file,
-                    cache_file_name=cache_file_names[k],
-                    writer_batch_size=writer_batch_size,
-                    features=features,
-                    disable_nullable=disable_nullable,
-                    fn_kwargs=fn_kwargs,
-                    num_proc=num_proc,
-                    desc=desc,
-                )
-                for k in sorted(
-                    self
-                )  # deterministic split order for https://github.com/huggingface/datasets/issues/3847
-            }
-        )
+        out = {
+            k: self[k].map(
+                function=function,
+                with_indices=with_indices,
+                with_rank=with_rank,
+                input_columns=input_columns,
+                batched=batched,
+                batch_size=batch_size,
+                drop_last_batch=drop_last_batch,
+                remove_columns=remove_columns,
+                keep_in_memory=keep_in_memory,
+                load_from_cache_file=load_from_cache_file,
+                cache_file_name=cache_file_names[k],
+                writer_batch_size=writer_batch_size,
+                features=features,
+                disable_nullable=disable_nullable,
+                fn_kwargs=fn_kwargs,
+                num_proc=num_proc,
+                desc=desc,
+            )
+            for k in sorted(self)  # deterministic split order for https://github.com/huggingface/datasets/issues/3847
+        }
+        return DatasetDict({k: out[k] for k in self})
 
     def filter(
         self,
@@ -452,7 +449,6 @@ class DatasetDict(dict):
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
-        remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         cache_file_names: Optional[Dict[str, Optional[str]]] = None,
@@ -494,27 +490,24 @@ class DatasetDict(dict):
         self._check_values_type()
         if cache_file_names is None:
             cache_file_names = {k: None for k in self}
-        return DatasetDict(
-            {
-                k: self[k].filter(
-                    function=function,
-                    with_indices=with_indices,
-                    input_columns=input_columns,
-                    batched=batched,
-                    batch_size=batch_size,
-                    keep_in_memory=keep_in_memory,
-                    load_from_cache_file=load_from_cache_file,
-                    cache_file_name=cache_file_names[k],
-                    writer_batch_size=writer_batch_size,
-                    fn_kwargs=fn_kwargs,
-                    num_proc=num_proc,
-                    desc=desc,
-                )
-                for k in sorted(
-                    self
-                )  # deterministic split order for https://github.com/huggingface/datasets/issues/3847
-            }
-        )
+        out = {
+            k: self[k].filter(
+                function=function,
+                with_indices=with_indices,
+                input_columns=input_columns,
+                batched=batched,
+                batch_size=batch_size,
+                keep_in_memory=keep_in_memory,
+                load_from_cache_file=load_from_cache_file,
+                cache_file_name=cache_file_names[k],
+                writer_batch_size=writer_batch_size,
+                fn_kwargs=fn_kwargs,
+                num_proc=num_proc,
+                desc=desc,
+            )
+            for k in sorted(self)  # deterministic split order for https://github.com/huggingface/datasets/issues/3847
+        }
+        return DatasetDict({k: out[k] for k in self})
 
     def sort(
         self,
