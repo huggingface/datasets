@@ -56,7 +56,6 @@ round(results["perplexity"], 1)
 >>> 117.9
 ```
 
-
 ## Limitations and Bias
 This metric is limited in that it isn't comparable between models or datasets.
 
