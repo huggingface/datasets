@@ -923,6 +923,7 @@ class IterableDatasetDict(dict):
         """
         Return a dataset with the specified format.
         This method only supports the "torch" format for now.
+        The format is set to all the datasets of the dataset dictionary.
 
         Args:
 
@@ -944,6 +945,7 @@ class IterableDatasetDict(dict):
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
         If your function returns a column that already exists, then it overwrites it.
         The function is applied on-the-fly on the examples when iterating over the dataset.
+        The transformation is applied to all the datasets of the dataset dictionary.
 
         You can specify whether the function should be batched or not with the ``batched`` parameter:
 
@@ -998,6 +1000,7 @@ class IterableDatasetDict(dict):
     ) -> "IterableDatasetDict":
         """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
         The filtering is done on-the-fly when iterating over the dataset.
+        The filtering is applied to all the datasets of the dataset dictionary.
 
         Args:
             function (:obj:`Callable`): Callable with one of the following signatures:
@@ -1032,6 +1035,7 @@ class IterableDatasetDict(dict):
     ) -> "IterableDatasetDict":
         """
         Randomly shuffles the elements of this dataset.
+        The shuffling is applied to all the datasets of the dataset dictionary.
 
         This dataset fills a buffer with buffer_size elements, then randomly samples elements from this buffer,
         replacing the selected elements with new elements. For perfect shuffling, a buffer size greater than or
@@ -1064,6 +1068,7 @@ class IterableDatasetDict(dict):
         """
         Rename a column in the dataset, and move the features associated to the original column under the new column
         name.
+        The renaming is applied to all the datasets of the dataset dictionary.
 
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
@@ -1083,6 +1088,7 @@ class IterableDatasetDict(dict):
         """
         Rename several columns in the dataset, and move the features associated to the original columns under
         the new column names.
+        The renaming is applied to all the datasets of the dataset dictionary.
 
         Args:
             column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
@@ -1098,6 +1104,7 @@ class IterableDatasetDict(dict):
         """
         Remove one or several column(s) in the dataset and the features associated to them.
         The removal is done on-the-fly on the examples when iterating over the dataset.
+        The removal is applied to all the datasets of the dataset dictionary.
 
 
         Args:
@@ -1110,6 +1117,7 @@ class IterableDatasetDict(dict):
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDatasetDict":
         """Cast column to feature for decoding.
+        The type casting is applied to all the datasets of the dataset dictionary.
 
         Args:
             column (:obj:`str`): Column name.
@@ -1128,6 +1136,7 @@ class IterableDatasetDict(dict):
     ) -> "IterableDatasetDict":
         """
         Cast the dataset to a new set of features.
+        The type casting is applied to all the datasets of the dataset dictionary.
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
