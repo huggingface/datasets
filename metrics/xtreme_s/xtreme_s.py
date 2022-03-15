@@ -28,9 +28,6 @@ else:
     import importlib.metadata as importlib_metadata
 
 
-SENTENCE_DELIMITER = ""
-
-
 # TODO(Patrick/Anton)
 _CITATION = """\
 """
@@ -40,40 +37,37 @@ _DESCRIPTION = """\
 """
 
 # TODO(Patrick/Anton)
-# Also add tests
 _KWARGS_DESCRIPTION = """
-    >>> xtreme_s_metric = datasets.load_metric('xtreme_s', 'mls')  # 'mls' or 'voxpopuli' or 'babel'
+    >>> xtreme_s_metric = datasets.load_metric('/home/patrick/datasets/metrics/xtreme_s', 'mls')  # 'mls', 'voxpopuli', 'fleurs-asr' or 'babel'
     >>> references = ["it is sunny here", "paper and pen are essentials"]
     >>> predictions = ["it's sunny", "paper pen are essential"]
     >>> results = xtreme_s_metric.compute(predictions=predictions, references=references)
     >>> print({k: round(v, 2) for k, v in results.items()})
-    {'wer': 0.56}
+    {'wer': 0.56, 'cer': 0.27}
 
-    >>> xtreme_s_metric = datasets.load_metric('xtreme_s', 'covost2')
+    >>> xtreme_s_metric = datasets.load_metric('/home/patrick/datasets/metrics/xtreme_s', 'covost2')
     >>> references = ["bonjour paris", "il est necessaire de faire du sport de temps en temp"]
     >>> predictions = ["bonjour paris", "il est important de faire du sport souvent"]
     >>> results = xtreme_s_metric.compute(predictions=predictions, references=references)
     >>> print({k: round(v, 2) for k, v in results.items()})
-    {'bleu': 19.38}
+    {'bleu': 31.65}
 
-    >>> xtreme_s_metric = datasets.load_metric('xtreme_s', 'fleurs')
+    >>> xtreme_s_metric = datasets.load_metric('/home/patrick/datasets/metrics/xtreme_s', 'fleurs-lang_id')
     >>> references = [0, 1, 0, 0, 1]
     >>> predictions = [0, 1, 1, 0, 0]
     >>> results = xtreme_s_metric.compute(predictions=predictions, references=references)
     >>> print({k: round(v, 2) for k, v in results.items()})
-    {'accuracy': 0.6'}
+    {'accuracy': 0.6}
 
-    >>> xtreme_s_metric = datasets.load_metric('xtreme_s', 'minds14')
+    >>> xtreme_s_metric = datasets.load_metric('/home/patrick/datasets/metrics/xtreme_s', 'minds14')
     >>> references = [0, 1, 0, 0, 1]
     >>> predictions = [0, 1, 1, 0, 0]
     >>> results = xtreme_s_metric.compute(predictions=predictions, references=references)
     >>> print({k: round(v, 2) for k, v in results.items()})
-    {'f1': 0.5}
+    {'f1': 0.58, 'accuracy': 0.6}
 """
 
-#    >>> print({"pearson": round(results["pearson"], 2), "spearmanr": round(results["spearmanr"], 2)})
-
-_CONFIG_NAMES = ["fleurs-asr", "mls", "voxpopuli", "babel", "covost2", "fleurs-land_id", "minds14"]
+_CONFIG_NAMES = ["fleurs-asr", "mls", "voxpopuli", "babel", "covost2", "fleurs-lang_id", "minds14"]
 
 try:
     from jiwer import transforms as tr
@@ -83,6 +77,7 @@ except ImportError:
     _jiwer_available = False
 
 if _jiwer_available and version.parse(importlib_metadata.version("jiwer")) < version.parse("2.3.0"):
+    SENTENCE_DELIMITER = ""
 
     class SentencesToListOfCharacters(tr.AbstractTransform):
         def __init__(self, sentence_delimiter: str = " "):
@@ -120,7 +115,10 @@ def simple_accuracy(preds, labels):
 
 
 def f1_and_simple_accuracy(preds, labels):
-    return {"f1": float(f1_score(y_true=labels, y_pred=preds, average="macro")), "accuracy": simple_accuracy(preds, labels)}
+    return {
+        "f1": float(f1_score(y_true=labels, y_pred=preds, average="macro")),
+        "accuracy": simple_accuracy(preds, labels),
+    }
 
 
 def bleu(
