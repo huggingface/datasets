@@ -1,28 +1,50 @@
 import json
 import os
 from collections import namedtuple
+from dataclasses import dataclass
+
+from packaging import version
 
 from datasets import config
 from datasets.commands.test import TestCommand
 
 
-TestCommandArgs = namedtuple(
-    "TestCommandArgs",
-    [
-        "dataset",
-        "name",
-        "cache_dir",
-        "data_dir",
-        "all_configs",
-        "save_infos",
-        "ignore_verifications",
-        "force_redownload",
-        "clear_cache",
-        "proc_rank",
-        "num_proc",
-    ],
-    defaults=[None, None, None, False, False, False, False, False, 0, 1],
-)
+if config.PY_VERSION >= version.parse("3.7"):
+    TestCommandArgs = namedtuple(
+        "TestCommandArgs",
+        [
+            "dataset",
+            "name",
+            "cache_dir",
+            "data_dir",
+            "all_configs",
+            "save_infos",
+            "ignore_verifications",
+            "force_redownload",
+            "clear_cache",
+            "proc_rank",
+            "num_proc",
+        ],
+        defaults=[None, None, None, False, False, False, False, False, 0, 1],
+    )
+else:
+
+    @dataclass
+    class TestCommandArgs:
+        dataset: str
+        name: str = None
+        cache_dir: str = None
+        data_dir: str = None
+        all_configs: bool = False
+        save_infos: bool = False
+        ignore_verifications: bool = False
+        force_redownload: bool = False
+        clear_cache: bool = False
+        proc_rank: int = 0
+        num_proc: int = 1
+
+        def __iter__(self):
+            return iter(self.__dict__.values())
 
 
 def test_test_command(dataset_loading_script_dir):
