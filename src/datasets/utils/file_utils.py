@@ -333,6 +333,7 @@ def _retry(
                 raise err
             else:
                 sleep_time = min(max_wait_time, base_wait_time * 2**retry)  # Exponential backoff
+                logger.info(f"{func} timed out, retrying in {sleep_time}s... [{retry/max_retries}]")
                 time.sleep(sleep_time)
                 retry += 1
 
