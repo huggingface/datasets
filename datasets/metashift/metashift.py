@@ -87,7 +87,7 @@ _ATTRIBUTES_URLS = {
 # for the full object vocabulary and its hierarchy.
 # Since the total number of all subsets is very large, all of the following scripts only generate a subset of MetaShift.
 
-_SELECTED_CLASSES = [
+_CLASSES = [
     "cat",
     "dog",
     "bus",
@@ -110,18 +110,14 @@ class MetashiftConfig(datasets.BuilderConfig):
         **kwargs: keyword arguments forwarded to super.
         """
 
-        super(MetashiftConfig, self).__init__(*args, **kwargs)
-        self.selected_classes = selected_classes if selected_classes is not None else []
+        super(MetashiftConfig, self).__init__(*args, version=datasets.Version("1.0.0"), **kwargs)
+        self.selected_classes = _CLASSES if selected_classes is None else selected_classes
 
 
 class Metashift(datasets.GeneratorBasedBuilder):
 
-    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        MetashiftConfig(
-            selected_classes=_SELECTED_CLASSES,
-            version=VERSION,
-        ),
+        MetashiftConfig(),
     ]
 
     BUILDER_CONFIG_CLASS = MetashiftConfig
