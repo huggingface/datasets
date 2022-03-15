@@ -19,7 +19,7 @@ task_ids:
 - other-other-domain-generalization;subpopulation-shifts-settings;assess-training-conflicts
 ---
 
-# Dataset Card for metashift
+# Dataset Card for MetaShift
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -46,20 +46,19 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**  https://metashift.readthedocs.io/
-- **Repository:** https://github.com/Weixin-Liang/MetaShift
-- **Paper:** https://arxiv.org/abs/2202.06523v1
-- **Leaderboard:**  [More Information Needed]
-- **Point of Contact:**  [More Information Needed]
+- **Homepage:**  [MetaShift homepage](https://metashift.readthedocs.io/)
+- **Repository:** [MetaShift repository](https://github.com/Weixin-Liang/MetaShift)
+- **Paper:** [MetaShift paper](https://arxiv.org/abs/2202.06523v1)
+- **Point of Contact:**  [Weixin Liang](mailto:wxliang@stanford.edu)
 
 ### Dataset Summary
 
-The MetaShift dataset is a collection of 12,868 sets of natural images across 410 classes . It was created for understanding the performance of a machine learning model across diverse data distributions.
+The MetaShift dataset is a collection of 12,868 sets of natural images across 410 classes. It was created for understanding the performance of a machine learning model across diverse data distributions.
 
 The authors leverage the natural heterogeneity of Visual Genome and  its annotations used to construct MetaShift.
 The key idea is to cluster images using its metadata which provides context for each image.
 For example : cats with cars or cats in bathroom.
-The main advantage is the dataset contains many more coherent sets of data compared to other benchmarks..
+The main advantage is the dataset contains many more coherent sets of data compared to other benchmarks.
 
 Two important benefits of MetaShift :
 - Contains orders of magnitude more natural data shifts than previously available.
@@ -169,7 +168,7 @@ From the paper :
 
 ### Citation Information
 
-```
+```bibtex
 @InProceedings{liang2022metashift,
 title={MetaShift: A Dataset of Datasets for Evaluating Contextual Distribution Shifts and Training Conflicts},
 author={Weixin Liang and James Zou},

@@ -87,7 +87,7 @@ _ATTRIBUTES_URLS = {
 # for the full object vocabulary and its hierarchy.
 # Since the total number of all subsets is very large, all of the following scripts only generate a subset of MetaShift.
 
-_SELECTED_CLASSES = [
+_CLASSES = [
     "cat",
     "dog",
     "bus",
@@ -110,18 +110,14 @@ class MetashiftConfig(datasets.BuilderConfig):
         **kwargs: keyword arguments forwarded to super.
         """
 
-        super(MetashiftConfig, self).__init__(*args, **kwargs)
-        self.selected_classes = selected_classes if selected_classes is not None else []
+        super(MetashiftConfig, self).__init__(*args, version=datasets.Version("1.0.0"), **kwargs)
+        self.selected_classes = _CLASSES if selected_classes is None else selected_classes
 
 
 class Metashift(datasets.GeneratorBasedBuilder):
 
-    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        MetashiftConfig(
-            selected_classes=_SELECTED_CLASSES,
-            version=VERSION,
-        ),
+        MetashiftConfig(),
     ]
 
     BUILDER_CONFIG_CLASS = MetashiftConfig
@@ -142,17 +138,19 @@ class Metashift(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[ImageClassification(image_column="image", label_column="label")]
         )
 
-    def _parse_node_str(self, node_str):
+    @staticmethod
+    def _parse_node_str(node_str):
         tag = node_str.split("(")[-1][:-1]
         subject_str = node_str.split("(")[0].strip()
         return subject_str, tag
 
-    def _load_candidate_subsets(self, pkl_save_path):
+    @staticmethod
+    def _load_candidate_subsets(pkl_save_path):
         with open(pkl_save_path, "rb") as pkl_f:
             load_data = pickle.load(pkl_f)
-            print("pickle load", len(load_data), pkl_save_path)
             return load_data
 
     def _preprocess_groups(self, pkl_save_path, output_files_flag=False, subject_classes=_SELECTED_CLASSES):
@@ -247,20 +245,18 @@ class Metashift(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "images_path": data_path["image_files"],
+                    "images_path": os.path.join(data_path["image_files"], "images"),
                     "subjects_to_all_set": subjects_to_all_set,
                 },
             ),
         ]
 
     def _generate_examples(self, images_path, subjects_to_all_set):
-
         idx = 0
-        IMAGE_DATA_FOLDER = images_path + "/images/"
         for subset in subjects_to_all_set:
             class_name, context = self._parse_node_str(subset)
             for image_id in subjects_to_all_set[subset]:
-                src_image_path = IMAGE_DATA_FOLDER + image_id + ".jpg"
+                src_image_path = images_path + image_id + ".jpg"
                 yield idx, {
                     "image_id": image_id,
                     "image": src_image_path,
