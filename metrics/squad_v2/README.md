@@ -50,7 +50,7 @@ The range of `f1` is 0-1 -- its lowest possible value is 0, if either the precis
 
 The range of `total` depends on the length of predictions/references: its minimal value is 0, and maximal value is the total number of questions in the predictions and references.
 
-## Values from popular papers
+### Values from popular papers
 The [SQuAD v2 paper](https://arxiv.org/pdf/1806.03822.pdf) reported an F1 score of 66.3% and an Exact Match score of 63.4%. 
 They also report that human performance on the dataset represents an F1 score of 89.5% and an Exact Match score of 86.9%.
 
