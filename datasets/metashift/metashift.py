@@ -145,10 +145,10 @@ class Metashift(datasets.GeneratorBasedBuilder):
         subject_str = node_str.split("(")[0].strip()
         return subject_str, tag
 
-    def _load_candidate_subsets(self, pkl_save_path):
+    @staticmethod
+    def _load_candidate_subsets(pkl_save_path):
         with open(pkl_save_path, "rb") as pkl_f:
             load_data = pickle.load(pkl_f)
-            print("pickle load", len(load_data), pkl_save_path)
             return load_data
 
     def _preprocess_groups(self, pkl_save_path, output_files_flag=False, subject_classes=_SELECTED_CLASSES):
