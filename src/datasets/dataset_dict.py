@@ -916,7 +916,6 @@ class DatasetDict(dict):
 
 
 class IterableDatasetDict(dict):
-
     def with_format(
         self,
         type: Optional[str] = None,
@@ -930,9 +929,7 @@ class IterableDatasetDict(dict):
             type (:obj:`str`, optional, default None): if set to "torch", the returned dataset
                 will be a subclass of torch.utils.data.IterableDataset to be used in a DataLoader
         """
-        return IterableDatasetDict({
-            k: dataset.with_format(type=type) for k, dataset in self.items()
-        })
+        return IterableDatasetDict({k: dataset.with_format(type=type) for k, dataset in self.items()})
 
     def map(
         self,
@@ -977,9 +974,19 @@ class IterableDatasetDict(dict):
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
         """
-        return IterableDatasetDict({
-            k: dataset.map(function=function, with_indices=with_indices, input_columns=input_columns, batched=batched, batch_size=batch_size, remove_columns=remove_columns) for k, dataset in self.items()
-        })
+        return IterableDatasetDict(
+            {
+                k: dataset.map(
+                    function=function,
+                    with_indices=with_indices,
+                    input_columns=input_columns,
+                    batched=batched,
+                    batch_size=batch_size,
+                    remove_columns=remove_columns,
+                )
+                for k, dataset in self.items()
+            }
+        )
 
     def filter(
         self,
@@ -1007,9 +1014,18 @@ class IterableDatasetDict(dict):
             batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
         """
-        return IterableDatasetDict({
-            k: dataset.filter(function=function, with_indices=with_indices, input_columns=input_columns, batched=batched, batch_size=batch_size) for k, dataset in self.items()
-        })
+        return IterableDatasetDict(
+            {
+                k: dataset.filter(
+                    function=function,
+                    with_indices=with_indices,
+                    input_columns=input_columns,
+                    batched=batched,
+                    batch_size=batch_size,
+                )
+                for k, dataset in self.items()
+            }
+        )
 
     def shuffle(
         self, seed=None, generator: Optional[np.random.Generator] = None, buffer_size: int = 1000
@@ -1037,9 +1053,12 @@ class IterableDatasetDict(dict):
                 If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
             buffer_size (:obj:`int`, default 1000): size of the buffer.
         """
-        return IterableDatasetDict({
-            k: dataset.shuffle(seed=seed, generator=generator, buffer_size=buffer_size) for k, dataset in self.items()
-        })
+        return IterableDatasetDict(
+            {
+                k: dataset.shuffle(seed=seed, generator=generator, buffer_size=buffer_size)
+                for k, dataset in self.items()
+            }
+        )
 
     def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDatasetDict":
         """
@@ -1053,9 +1072,12 @@ class IterableDatasetDict(dict):
         Returns:
             :class:`IterableDatasetDict`: A copy of the dataset with a renamed column.
         """
-        return IterableDatasetDict({
-            k: dataset.rename_column(original_column_name=original_column_name, new_column_name=new_column_name) for k, dataset in self.items()
-        })
+        return IterableDatasetDict(
+            {
+                k: dataset.rename_column(original_column_name=original_column_name, new_column_name=new_column_name)
+                for k, dataset in self.items()
+            }
+        )
 
     def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDatasetDict":
         """
@@ -1068,9 +1090,9 @@ class IterableDatasetDict(dict):
         Returns:
             :class:`IterableDatasetDict`: A copy of the dataset with renamed columns
         """
-        return IterableDatasetDict({
-            k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()
-        })
+        return IterableDatasetDict(
+            {k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()}
+        )
 
     def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDatasetDict":
         """
@@ -1084,9 +1106,7 @@ class IterableDatasetDict(dict):
         Returns:
             :class:`IterableDatasetDict`: A copy of the dataset object without the columns to remove.
         """
-        return IterableDatasetDict({
-            k: dataset.remove_columns(column_names) for k, dataset in self.items()
-        })
+        return IterableDatasetDict({k: dataset.remove_columns(column_names) for k, dataset in self.items()})
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDatasetDict":
         """Cast column to feature for decoding.
@@ -1098,9 +1118,9 @@ class IterableDatasetDict(dict):
         Returns:
             :class:`IterableDatasetDict`
         """
-        return IterableDatasetDict({
-            k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()
-        })
+        return IterableDatasetDict(
+            {k: dataset.cast_column(column=column, feature=feature) for k, dataset in self.items()}
+        )
 
     def cast(
         self,
@@ -1118,6 +1138,4 @@ class IterableDatasetDict(dict):
         Returns:
             :class:`IterableDatasetDict`: A copy of the dataset with casted features.
         """
-        return IterableDatasetDict({
-            k: dataset.cast(features=features) for k, dataset in self.items()
-        })
+        return IterableDatasetDict({k: dataset.cast(features=features) for k, dataset in self.items()})
