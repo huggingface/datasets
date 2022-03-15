@@ -29,6 +29,8 @@
     title: Process
   - local: audio_process
     title: Process audio data
+  - local: image_process
+    title: Process image data
   - local: stream
     title: Stream
   - local: share
