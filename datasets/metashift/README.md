@@ -123,13 +123,17 @@ From the paper:
 
 ### Annotations
 
+The MetaShift dataset uses Visual Genome as its base, therefore the annotations process is same as the Visual Genome dataset.
+
 #### Annotation process
 
- [More Information Needed]
+From the Visual Genome paper :
+> We used Amazon Mechanical Turk (AMT) as our primary source of annotations. Overall, a total of over 33,000 unique workers contributed to the dataset. The dataset was collected over the course of 6 months after 15 months of experimentation and iteration on the data representation. Approximately 800, 000 Human Intelligence Tasks (HITs) were launched on AMT, where each HIT involved creating descriptions, questions and answers, or region graphs.
 
 #### Who are the annotators?
 
- [More Information Needed]
+From the Visual Genome paper :
+> Visual Genome was collected and verified entirely by crowd workers from Amazon Mechanical Turk. 
 
 ### Personal and Sensitive Information
 
