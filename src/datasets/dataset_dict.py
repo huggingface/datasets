@@ -192,6 +192,21 @@ class DatasetDict(dict):
             }
         )
 
+    def rename_columns(self, column_mapping: Dict[str, str]) -> "DatasetDict":
+        """
+        Rename several columns in the dataset, and move the features associated to the original columns under
+        the new column names.
+        The transformation is applied to all the datasets of the dataset dictionary.
+
+        Args:
+            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+
+        Returns:
+            :class:`DatasetDict`: A copy of the dataset with renamed columns
+        """
+        self._check_values_type()
+        return DatasetDict({k: dataset.rename_columns(column_mapping=column_mapping) for k, dataset in self.items()})
+
     def class_encode_column(self, column: str, include_nulls: bool = False) -> "DatasetDict":
         """Casts the given column as :obj:``datasets.features.ClassLabel`` and updates the tables.
 
