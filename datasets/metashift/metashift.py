@@ -141,7 +141,8 @@ class Metashift(datasets.GeneratorBasedBuilder):
             task_templates=[ImageClassification(image_column="image", label_column="label")]
         )
 
-    def _parse_node_str(self, node_str):
+    @staticmethod
+    def _parse_node_str(node_str):
         tag = node_str.split("(")[-1][:-1]
         subject_str = node_str.split("(")[0].strip()
         return subject_str, tag
