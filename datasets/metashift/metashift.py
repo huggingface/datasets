@@ -243,20 +243,18 @@ class Metashift(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "images_path": data_path["image_files"],
+                    "images_path": os.path.join(data_path["image_files"], "images"),
                     "subjects_to_all_set": subjects_to_all_set,
                 },
             ),
         ]
 
     def _generate_examples(self, images_path, subjects_to_all_set):
-
         idx = 0
-        IMAGE_DATA_FOLDER = images_path + "/images/"
         for subset in subjects_to_all_set:
             class_name, context = self._parse_node_str(subset)
             for image_id in subjects_to_all_set[subset]:
-                src_image_path = IMAGE_DATA_FOLDER + image_id + ".jpg"
+                src_image_path = images_path + image_id + ".jpg"
                 yield idx, {
                     "image_id": image_id,
                     "image": src_image_path,
