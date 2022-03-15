@@ -17,7 +17,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "1.18.5.dev0"
+__version__ = "2.0.0"
 
 import pyarrow
 from packaging import version
