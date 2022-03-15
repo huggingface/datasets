@@ -149,7 +149,7 @@ From the paper :
 
 ### Citation Information
 
-```
+```bibtex
 @InProceedings{liang2022metashift,
 title={MetaShift: A Dataset of Datasets for Evaluating Contextual Distribution Shifts and Training Conflicts},
 author={Weixin Liang and James Zou},
