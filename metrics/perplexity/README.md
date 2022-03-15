@@ -70,16 +70,18 @@ Note that the output value is based heavily on what text the model was trained o
 
 ## Citation
 
-    @article{jelinek1977perplexity,
-    title={Perplexity—a measure of the difficulty of speech recognition tasks},
-    author={Jelinek, Fred and Mercer, Robert L and Bahl, Lalit R and Baker, James K},
-    journal={The Journal of the Acoustical Society of America},
-    volume={62},
-    number={S1},
-    pages={S63--S63},
-    year={1977},
-    publisher={Acoustical Society of America}
-    }
+```bibtex
+@article{jelinek1977perplexity,
+title={Perplexity—a measure of the difficulty of speech recognition tasks},
+author={Jelinek, Fred and Mercer, Robert L and Bahl, Lalit R and Baker, James K},
+journal={The Journal of the Acoustical Society of America},
+volume={62},
+number={S1},
+pages={S63--S63},
+year={1977},
+publisher={Acoustical Society of America}
+}
+```
 
 ## Further References
 - [Hugging Face Perplexity Blog Post](https://huggingface.co/docs/transformers/perplexity)
