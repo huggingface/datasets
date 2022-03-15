@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, Optional, TypeVar, Union
+from typing import Dict, List, Optional, Type, TypeVar, Union
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -310,6 +310,32 @@ def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
         raise OfflineModeIsEnabled(
             "Offline mode is enabled." if msg is None else "Offline mode is enabled. " + str(msg)
         )
+
+
+def _retry(
+    func,
+    func_args: Optional[tuple] = None,
+    func_kwargs: Optional[dict] = None,
+    exceptions: Type[requests.exceptions.RequestException] = requests.exceptions.RequestException,
+    status_codes: Optional[List[int]] = None,
+    max_retries: int = 0,
+    base_wait_time: float = 0.5,
+    max_wait_time: float = 2,
+):
+    func_args = func_args or ()
+    func_kwargs = func_kwargs or {}
+    retry = 0
+    while True:
+        try:
+            return func(*func_args, **func_kwargs)
+        except exceptions as err:
+            if retry >= max_retries or (status_codes and err.response.status_code not in status_codes):
+                raise err
+            else:
+                sleep_time = min(max_wait_time, base_wait_time * 2**retry)  # Exponential backoff
+                logger.info(f"{func} timed out, retrying in {sleep_time}s... [{retry/max_retries}]")
+                time.sleep(sleep_time)
+                retry += 1
 
 
 def _request_with_retry(
