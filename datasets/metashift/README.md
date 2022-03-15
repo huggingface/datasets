@@ -39,7 +39,7 @@ The MetaShift dataset is a collection of 12,868 sets of natural images across 41
 The authors leverage the natural heterogeneity of Visual Genome and  its annotations used to construct MetaShift.
 The key idea is to cluster images using its metadata which provides context for each image.
 For example : cats with cars or cats in bathroom.
-The main advantage is the dataset contains many more coherent sets of data compared to other benchmarks..
+The main advantage is the dataset contains many more coherent sets of data compared to other benchmarks.
 
 Two important benefits of MetaShift :
 - Contains orders of magnitude more natural data shifts than previously available.
