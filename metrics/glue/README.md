@@ -9,11 +9,11 @@ GLUE, the General Language Understanding Evaluation benchmark is a collection of
 
 There are two steps: (1) loading the GLUE metric relevant to the subset of the GLUE dataset being used for evaluation; and (2) calculating the metric.
 
-1. **Loading the relevant GLUE metric** : the subsets of GLUE are the following: `sst2`,  `mnli`, `mnli_mismatched`, `mnli_matched`, `qnli`, `rte`, `wnli` and `hans`.
+1. **Loading the relevant GLUE metric** : the subsets of GLUE are the following: `sst2`,  `mnli`, `mnli_mismatched`, `mnli_matched`, `qnli`, `rte`, `wnli`, `cola`,`stsb`, `mrpc`, `qqp`, and `hans`.
 
 More information about the different subsets of the GLUE dataset can be found on the [GLUE dataset page](https://huggingface.co/datasets/glue).
 
-2. **Calculating the metric**: the metric takes two inputs : one list with the predictions of the model to score and one lists of lists of references (??) for each translation.
+2. **Calculating the metric**: the metric takes two inputs : one list with the predictions of the model to score and one lists of references for each translation.
 
 ```python
 from datasets import load_metric
@@ -36,6 +36,7 @@ The output of the metric depends on the GLUE subset chosen, consisting of a dict
 
 `matthews_correlation`: a measure of the quality of binary and multiclass classifications (see [Matthews Correlation](https://huggingface.co/metrics/matthews_correlation) for more information). Its range of values is between -1 and +1, where a coefficient of +1 represents a perfect prediction, 0 an average random prediction and -1 an inverse prediction.
 
+The `cola` subset returns `matthews_correlation`, the `stsb` subset returns `pearson` and `spearmanr`, the `mrpc` and `qqp` subsets return both `accuracy` and `f1`, and all other subsets of GLUE return only accuracy. 
 
 ### Values from popular papers
 The [original GLUE paper](https://huggingface.co/datasets/glue) reported average scores ranging from 58 to 64%, depending on the model used (with all evaluation values scaled by 100 to make computing the average possible).
