@@ -138,6 +138,7 @@ class Metashift(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
+            task_templates=[ImageClassification(image_column="image", label_column="label")]
         )
 
     def _parse_node_str(self, node_str):
