@@ -55,7 +55,7 @@ def test_test_command(dataset_loading_script_dir):
     assert os.path.exists(dataset_infos_path)
     with open(dataset_infos_path, encoding="utf-8") as f:
         dataset_infos = json.load(f)
-    assert dataset_infos == {
+    expected_dataset_infos = {
         "default": {
             "description": "",
             "citation": "",
@@ -128,3 +128,44 @@ def test_test_command(dataset_loading_script_dir):
             "size_in_bytes": 6530717,
         }
     }
+    assert dataset_infos.keys() == expected_dataset_infos.keys()
+    assert dataset_infos["default"].keys() == expected_dataset_infos["default"].keys()
+    for key in dataset_infos["default"].keys():
+        if key in [
+            "description",
+            "citation",
+            "homepage",
+            "license",
+            "features",
+            "post_processed",
+            "supervised_keys",
+            "task_templates",
+            "builder_name",
+            "config_name",
+            "version",
+            "download_checksums",
+            "download_size",
+            "post_processing_size",
+        ]:
+            assert dataset_infos["default"][key] == expected_dataset_infos["default"][key]
+        elif key in ["dataset_size", "size_in_bytes"]:
+            assert round(dataset_infos["default"][key] / 10**5) == round(
+                expected_dataset_infos["default"][key] / 10**5
+            )
+        elif key == "splits":
+            assert dataset_infos["default"]["splits"].keys() == expected_dataset_infos["default"]["splits"].keys()
+            for split in dataset_infos["default"]["splits"].keys():
+                assert (
+                    dataset_infos["default"]["splits"][split].keys()
+                    == expected_dataset_infos["default"]["splits"][split].keys()
+                )
+                for subkey in dataset_infos["default"]["splits"][split].keys():
+                    if subkey == "num_bytes":
+                        assert round(dataset_infos["default"]["splits"][split][subkey] / 10**2) == round(
+                            expected_dataset_infos["default"]["splits"][split][subkey] / 10**2
+                        )
+                    else:
+                        assert (
+                            dataset_infos["default"]["splits"][split][subkey]
+                            == expected_dataset_infos["default"]["splits"][split][subkey]
+                        )
