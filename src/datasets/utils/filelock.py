@@ -212,8 +212,6 @@ class BaseFileLock:
         """
         True, if the object holds the file lock.
 
-        .. versionchanged:: 2.0.0
-
             This was previously a method and is now a property.
         """
         return self._lock_file_fd is not None
@@ -222,18 +220,18 @@ class BaseFileLock:
         """
         Acquires the file lock or fails with a :exc:`Timeout` error.
 
-        .. code-block:: python
+        ```py
+        # You can use this method in the context manager (recommended)
+        with lock.acquire():
+            pass
 
-            # You can use this method in the context manager (recommended)
-            with lock.acquire():
-                pass
-
-            # Or use an equivalent try-finally construct:
-            lock.acquire()
-            try:
-                pass
-            finally:
-                lock.release()
+        # Or use an equivalent try-finally construct:
+        lock.acquire()
+        try:
+            pass
+        finally:
+            lock.release()
+        ```
 
         :arg float timeout:
             The maximum time waited for the file lock.
@@ -247,8 +245,6 @@ class BaseFileLock:
 
         :raises Timeout:
             if the lock could not be acquired in *timeout* seconds.
-
-        .. versionchanged:: 2.0.0
 
             This method returns now a *proxy* object instead of *self*,
             so that it can be used in a with statement without side effects.

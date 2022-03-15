@@ -17,7 +17,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 import datasets
-from datasets.utils import tqdm
+from datasets import logging
 
 
 _CITATION = """\
@@ -113,7 +113,7 @@ class Perplexity(datasets.Metric):
 
         ppls = []
 
-        for text_index in tqdm(range(0, len(encoded_texts))):
+        for text_index in logging.tqdm(range(0, len(encoded_texts))):
             encoded_text = encoded_texts[text_index]
             special_tokens_mask = special_tokens_masks[text_index]
 

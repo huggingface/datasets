@@ -40,6 +40,9 @@
             "named-entity-recognition",
             "part-of-speech-tagging",
             "parsing",
+            "semantic-role-labeling",
+            "lemmatization",
+            "word-sense-disambiguation",
             "other"
         ]
     },
