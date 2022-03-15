@@ -12,6 +12,14 @@ Any language generation task.
 
 ## How to Use
 
+The metric takes a list of text as input, as well as the name of the model used to compute the metric:
+
+```python
+from datasets import load_metric
+perplexity = load_metric("perplexity")
+results = perplexity.compute(input_texts=input_texts, model_id='gpt2')
+```
+
 ### Inputs
 - **model_id** (str): model used for calculating Perplexity. NOTE: Perplexity can only be calculated for causal language models.
     - This includes models such as gpt2, causal variations of bert, causal versions of t5, and more (the full list can be found in the AutoModelForCausalLM documentation here: https://huggingface.co/docs/transformers/master/en/model_doc/auto#transformers.AutoModelForCausalLM )
