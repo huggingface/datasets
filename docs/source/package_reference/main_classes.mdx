@@ -28,6 +28,7 @@ The base class [`datasets.Dataset`] implements a Dataset backed by an Apache Arr
     - cast_column
     - remove_columns
     - rename_column
+    - rename_columns
     - class_encode_column
     - __len__
     - __iter__
@@ -129,6 +130,7 @@ It also has dataset transform methods like map or filter, to process all the spl
     - cast_column
     - remove_columns
     - rename_column
+    - rename_columns
     - class_encode_column
     - push_to_hub
     - save_to_disk
@@ -175,6 +177,15 @@ The base class [`datasets.IterableDataset`] implements an iterable Dataset backe
 Dictionary with split names as keys ('train', 'test' for example), and `datasets.IterableDataset` objects as values.
 
 [[autodoc]] datasets.IterableDatasetDict
+    - map
+    - filter
+    - shuffle
+    - with_format
+    - cast
+    - cast_column
+    - remove_columns
+    - rename_column
+    - rename_columns
 
 ## Features
 
