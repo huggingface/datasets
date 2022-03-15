@@ -27,11 +27,10 @@
 
 ## Dataset Description
 
-- **Homepage:**  https://metashift.readthedocs.io/
-- **Repository:** https://github.com/Weixin-Liang/MetaShift
-- **Paper:** https://arxiv.org/abs/2202.06523v1
-- **Leaderboard:**  [More Information Needed]
-- **Point of Contact:**  [More Information Needed]
+- **Homepage:**  [MetaShift homepage](https://metashift.readthedocs.io/)
+- **Repository:** [MetaShift repository](https://github.com/Weixin-Liang/MetaShift)
+- **Paper:** [MetaShift paper](https://arxiv.org/abs/2202.06523v1)
+- **Point of Contact:**  [Weixin Liang](mailto:wxliang@stanford.edu)
 
 ### Dataset Summary
 
