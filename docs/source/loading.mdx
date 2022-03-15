@@ -38,7 +38,7 @@ Some datasets may have more than one version, based on Git tags, branches or com
 
 <Tip>
 
-Refer to the [upload_dataset_repo](#upload_dataset_repo) guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
+Refer to the [Upload](./upload_dataset) guide for more instructions on how to create a dataset repository on the Hub, and how to upload your data files.
 
 </Tip>
 
@@ -211,7 +211,7 @@ Load Pandas DataFrames with [`datasets.Dataset.from_pandas`]:
 
 <Tip warning={true}>
 
-An object data type in [pandas.Series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html) doesn't always carry enough information for Arrow to automatically infer a data type. For example, if a DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to null. Avoid potential errors by constructing an explicit schema with [`datasets.Features`] using the `from_dict` or `from_pandas` methods. See the [troubleshoot](#troubleshoot) for more details on how to explicitly specify your own features.
+An object data type in [pandas.Series](https://pandas.pydata.org/docs/reference/api/pandas.Series.html) doesn't always carry enough information for Arrow to automatically infer a data type. For example, if a DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to null. Avoid potential errors by constructing an explicit schema with [`datasets.Features`] using the `from_dict` or `from_pandas` methods. See the [troubleshoot](./loading#specify-features) for more details on how to explicitly specify your own features.
 
 </Tip>
 
@@ -377,7 +377,7 @@ When the metric you want to use is not supported by 🤗 Datasets, you can write
 
 <Tip>
 
-See the [metric_script](#metric_script) guide for more details on how to write your own metric loading script.
+See the [Metrics](./how_to_metrics#custom-metric-loading-script) guide for more details on how to write your own metric loading script.
 
 </Tip>
 
