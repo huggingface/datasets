@@ -27,9 +27,6 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Dict, Mapping, Optional, Tuple, Union
 
-from datasets.features import Features
-from datasets.utils.mock_download_manager import MockDownloadManager
-
 from . import config, utils
 from .arrow_dataset import Dataset
 from .arrow_reader import (
@@ -42,6 +39,7 @@ from .arrow_reader import (
 from .arrow_writer import ArrowWriter, BeamWriter
 from .data_files import DataFilesDict, sanitize_patterns
 from .dataset_dict import DatasetDict, IterableDatasetDict
+from .features import Features
 from .fingerprint import Hasher
 from .info import DatasetInfo, DatasetInfosDict, PostProcessedInfo
 from .iterable_dataset import ExamplesIterable, IterableDataset, _generate_examples_from_tables_wrapper
@@ -49,9 +47,18 @@ from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils import logging
 from .utils.download_manager import DownloadManager, DownloadMode
-from .utils.file_utils import DownloadConfig, is_remote_url
+from .utils.file_utils import DownloadConfig, cached_path, is_remote_url
 from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
+from .utils.mock_download_manager import MockDownloadManager
+from .utils.py_utils import (
+    classproperty,
+    has_sufficient_disk_space,
+    map_nested,
+    memoize,
+    size_str,
+    temporary_assignment,
+)
 from .utils.streaming_download_manager import StreamingDownloadManager
 
 
@@ -389,9 +396,9 @@ class DatasetBuilder:
 
         return builder_config, config_id
 
-    @utils.classproperty
+    @classproperty
     @classmethod
-    @utils.memoize()
+    @memoize()
     def builder_configs(cls):
         """Pre-defined list of configurations for this builder class."""
         configs = {config.name: config for config in cls.BUILDER_CONFIGS}
@@ -537,9 +544,9 @@ class DatasetBuilder:
                 return
             logger.info(f"Generating dataset {self.name} ({self._cache_dir})")
             if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
-                if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
+                if not has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
                     raise OSError(
-                        f"Not enough disk space. Needed: {utils.size_str(self.info.size_in_bytes or 0)} (download: {utils.size_str(self.info.download_size or 0)}, generated: {utils.size_str(self.info.dataset_size or 0)}, post-processed: {utils.size_str(self.info.post_processing_size or 0)})"
+                        f"Not enough disk space. Needed: {size_str(self.info.size_in_bytes or 0)} (download: {size_str(self.info.download_size or 0)}, generated: {size_str(self.info.dataset_size or 0)}, post-processed: {size_str(self.info.post_processing_size or 0)})"
                     )
 
             @contextlib.contextmanager
@@ -565,9 +572,9 @@ class DatasetBuilder:
             if self.info.size_in_bytes:
                 print(
                     f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
-                    f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
-                    f"post-processed: {utils.size_str(self.info.post_processing_size)}, "
-                    f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
+                    f"(download: {size_str(self.info.download_size)}, generated: {size_str(self.info.dataset_size)}, "
+                    f"post-processed: {size_str(self.info.post_processing_size)}, "
+                    f"total: {size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
                 )
             else:
                 print(
@@ -580,7 +587,7 @@ class DatasetBuilder:
             with incomplete_dir(self._cache_dir) as tmp_data_dir:
                 # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
                 # it to every sub function.
-                with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
+                with temporary_assignment(self, "_cache_dir", tmp_data_dir):
                     # Try to download the already prepared dataset files
                     downloaded_from_gcs = False
                     if try_from_hf_gcs:
@@ -637,7 +644,7 @@ class DatasetBuilder:
                 if os.sep in resource_file_name:
                     raise ValueError(f"Resources shouldn't be in a sub-directory: {resource_file_name}")
                 try:
-                    resource_path = utils.cached_path(remote_cache_dir + "/" + resource_file_name)
+                    resource_path = cached_path(remote_cache_dir + "/" + resource_file_name)
                     shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
                 except ConnectionError:
                     logger.info(f"Couldn't download resourse file {resource_file_name} from Hf google storage.")
@@ -761,7 +768,7 @@ class DatasetBuilder:
             split = {s: s for s in self.info.splits}
 
         # Create a dataset for each of the given splits
-        datasets = utils.map_nested(
+        datasets = map_nested(
             partial(
                 self._build_single_dataset,
                 run_post_process=run_post_process,
@@ -770,7 +777,7 @@ class DatasetBuilder:
             ),
             split,
             map_tuple=True,
-            disable_tqdm=not utils.is_progress_bar_enabled(),
+            disable_tqdm=not logging.is_progress_bar_enabled(),
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
@@ -903,7 +910,7 @@ class DatasetBuilder:
             raise ValueError(f"Bad split: {split}. Available splits: {list(splits_generators)}")
 
         # Create a dataset for each of the given splits
-        datasets = utils.map_nested(
+        datasets = map_nested(
             self._as_streaming_dataset_single,
             splits_generator,
             map_tuple=True,
@@ -1074,12 +1081,12 @@ class GeneratorBasedBuilder(DatasetBuilder):
             check_duplicates=check_duplicate_keys,
         ) as writer:
             try:
-                for key, record in utils.tqdm(
+                for key, record in logging.tqdm(
                     generator,
                     unit=" examples",
                     total=split_info.num_examples,
                     leave=False,
-                    disable=not utils.is_progress_bar_enabled(),
+                    disable=not logging.is_progress_bar_enabled(),
                     desc=f"Generating {split_info.name} split",
                 ):
                     example = self.info.features.encode_example(record)
@@ -1138,8 +1145,8 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
         with ArrowWriter(features=self.info.features, path=fpath) as writer:
-            for key, table in utils.tqdm(
-                generator, unit=" tables", leave=False, disable=True  # not utils.is_progress_bar_enabled()
+            for key, table in logging.tqdm(
+                generator, unit=" tables", leave=False, disable=True  # not logging.is_progress_bar_enabled()
             ):
                 writer.write_table(table)
             num_examples, num_bytes = writer.finalize()

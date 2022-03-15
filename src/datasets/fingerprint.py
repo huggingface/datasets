@@ -14,9 +14,9 @@ import numpy as np
 import pyarrow as pa
 import xxhash
 
-from datasets.table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
-
 from .info import DatasetInfo
+from .table import ConcatenationTable, InMemoryTable, MemoryMappedTable, Table
+from .utils.deprecation_utils import deprecated
 from .utils.logging import get_logger
 from .utils.py_utils import dumps
 
@@ -93,6 +93,51 @@ def get_datasets_with_cache_file_in_temp_dir():
     return list(_DATASETS_WITH_TABLE_IN_TEMP_DIR) if _DATASETS_WITH_TABLE_IN_TEMP_DIR is not None else []
 
 
+def enable_caching():
+    """
+    When applying transforms on a dataset, the data are stored in cache files.
+    The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
+    after each transform.
+
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    More precisely, if the caching is disabled:
+    - cache files are always recreated
+    - cache files are written to a temporary directory that is deleted when session closes
+    - cache files are named using a random hash instead of the dataset fingerprint
+    - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
+    the ``download_mode`` parameter in :func:`datasets.load_dataset`.
+    """
+    global _CACHING_ENABLED
+    _CACHING_ENABLED = True
+
+
+def disable_caching():
+    """
+    When applying transforms on a dataset, the data are stored in cache files.
+    The caching mechanism allows to reload an existing cache file if it's already been computed.
+
+    Reloading a dataset is possible since the cache files are named using the dataset fingerprint, which is updated
+    after each transform.
+
+    If disabled, the library will no longer reload cached datasets files when applying transforms to the datasets.
+    More precisely, if the caching is disabled:
+    - cache files are always recreated
+    - cache files are written to a temporary directory that is deleted when session closes
+    - cache files are named using a random hash instead of the dataset fingerprint
+    - use :func:`datasets.Dataset.save_to_disk` to save a transformed dataset or it will be deleted when session closes
+    - caching doesn't affect :func:`datasets.load_dataset`. If you want to regenerate a dataset from scratch you should use
+    the ``download_mode`` parameter in :func:`datasets.load_dataset`.
+    """
+    global _CACHING_ENABLED
+    _CACHING_ENABLED = False
+
+
+@deprecated(
+    "Use datasets.enable_caching() or datasets.disable_caching() instead. This function will be removed in a future version of datasets."
+)
 def set_caching_enabled(boolean: bool):
     """
     When applying transforms on a dataset, the data are stored in cache files.

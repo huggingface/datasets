@@ -25,6 +25,7 @@ import pickle
 import re
 import sys
 import types
+from contextlib import contextmanager
 from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
@@ -35,7 +36,7 @@ import dill
 import numpy as np
 from tqdm.auto import tqdm
 
-from .. import utils
+from .. import config
 from . import logging
 
 
@@ -117,6 +118,60 @@ def temporary_assignment(obj, attr, value):
         yield
     finally:
         setattr(obj, attr, original)
+
+
+@contextmanager
+def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
+    """Temporarily set the random seed. This works for python numpy, pytorch and tensorflow."""
+    np_state = np.random.get_state()
+    np.random.seed(seed)
+
+    if set_pytorch and config.TORCH_AVAILABLE:
+        import torch
+
+        torch_state = torch.random.get_rng_state()
+        torch.random.manual_seed(seed)
+
+        if torch.cuda.is_available():
+            torch_cuda_states = torch.cuda.get_rng_state_all()
+            torch.cuda.manual_seed_all(seed)
+
+    if set_tensorflow and config.TF_AVAILABLE:
+        import tensorflow as tf
+        from tensorflow.python import context as tfpycontext
+
+        tf_state = tf.random.get_global_generator()
+        temp_gen = tf.random.Generator.from_seed(seed)
+        tf.random.set_global_generator(temp_gen)
+
+        if not tf.executing_eagerly():
+            raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
+
+        tf_context = tfpycontext.context()  # eager mode context
+        tf_seed = tf_context._seed
+        tf_rng_initialized = hasattr(tf_context, "_rng")
+        if tf_rng_initialized:
+            tf_rng = tf_context._rng
+        tf_context._set_global_seed(seed)
+
+    try:
+        yield
+    finally:
+        np.random.set_state(np_state)
+
+        if set_pytorch and config.TORCH_AVAILABLE:
+            torch.random.set_rng_state(torch_state)
+            if torch.cuda.is_available():
+                torch.cuda.set_rng_state_all(torch_cuda_states)
+
+        if set_tensorflow and config.TF_AVAILABLE:
+            tf.random.set_global_generator(tf_state)
+
+            tf_context._seed = tf_seed
+            if tf_rng_initialized:
+                tf_context._rng = tf_rng
+            else:
+                delattr(tf_context, "_rng")
 
 
 def unique_values(values):
@@ -206,7 +261,7 @@ def _single_map_nested(args):
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
     pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-    pbar = utils.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
+    pbar = logging.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
 
     if isinstance(data_struct, dict):
         return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
@@ -250,7 +305,7 @@ def map_nested(
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
         return function(data_struct)
 
-    disable_tqdm = disable_tqdm or not utils.is_progress_bar_enabled()
+    disable_tqdm = disable_tqdm or not logging.is_progress_bar_enabled()
     iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
 
     if num_proc is None:
@@ -258,7 +313,7 @@ def map_nested(
     if num_proc <= 1 or len(iterable) <= num_proc:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
-            for obj in utils.tqdm(iterable, disable=disable_tqdm, desc=desc)
+            for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
         split_kwds = []  # We organize the splits ourselve (contiguous splits)
@@ -297,34 +352,6 @@ def map_nested(
             return tuple(mapped)
         else:
             return np.array(mapped)
-
-
-def zip_nested(arg0, *args, **kwargs):
-    """Zip data struct together and return a data struct with the same shape."""
-    # Python 2 do not support kwargs only arguments
-    dict_only = kwargs.pop("dict_only", False)
-    assert not kwargs
-
-    # Could add support for more exotic data_struct, like OrderedDict
-    if isinstance(arg0, dict):
-        return {k: zip_nested(*a, dict_only=dict_only) for k, a in zip_dict(arg0, *args)}
-    elif not dict_only:
-        if isinstance(arg0, list):
-            return [zip_nested(*a, dict_only=dict_only) for a in zip(arg0, *args)]
-    # Singleton
-    return (arg0,) + args
-
-
-def flatten_nest_dict(d):
-    """Return the dict with all nested keys flattened joined with '/'."""
-    # Use NonMutableDict to ensure there is no collision between features keys
-    flat_dict = NonMutableDict()
-    for k, v in d.items():
-        if isinstance(v, dict):
-            flat_dict.update({f"{k}/{k2}": v2 for k2, v2 in flatten_nest_dict(v).items()})
-        else:
-            flat_dict[k] = v
-    return flat_dict
 
 
 class NestedDataStructure:
