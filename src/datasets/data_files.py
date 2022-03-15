@@ -7,13 +7,11 @@ import huggingface_hub
 from fsspec.implementations.local import LocalFileSystem
 from tqdm.contrib.concurrent import thread_map
 
-from datasets.filesystems.hffilesystem import HfFileSystem
-
+from .filesystems.hffilesystem import HfFileSystem
 from .splits import Split
 from .utils import logging
 from .utils.file_utils import hf_hub_url, is_remote_url, request_etag
 from .utils.py_utils import string_to_dict
-from .utils.tqdm_utils import is_progress_bar_enabled, tqdm
 
 
 DEFAULT_SPLIT = str(Split.TRAIN)
@@ -495,9 +493,9 @@ def _get_origin_metadata_locally_or_by_urls(
         partial(_get_single_origin_metadata_locally_or_by_urls, use_auth_token=use_auth_token),
         data_files,
         max_workers=max_workers,
-        tqdm_class=tqdm,
+        tqdm_class=logging.tqdm,
         desc="Resolving data files",
-        disable=len(data_files) <= 16 or not is_progress_bar_enabled(),
+        disable=len(data_files) <= 16 or not logging.is_progress_bar_enabled(),
     )
 
 

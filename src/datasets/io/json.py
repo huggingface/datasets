@@ -4,9 +4,10 @@ from typing import BinaryIO, Optional, Union
 
 import fsspec
 
-from .. import Dataset, Features, NamedSplit, config, utils
+from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.json.json import Json
+from ..utils import logging
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -126,10 +127,10 @@ class JsonDatasetWriter:
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:
-            for offset in utils.tqdm(
+            for offset in logging.tqdm(
                 range(0, len(self.dataset), self.batch_size),
                 unit="ba",
-                disable=not utils.is_progress_bar_enabled(),
+                disable=not logging.is_progress_bar_enabled(),
                 desc="Creating json from Arrow format",
             ):
                 json_str = self._batch_json((offset, orient, lines, to_json_kwargs))
@@ -137,14 +138,14 @@ class JsonDatasetWriter:
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
-                for json_str in utils.tqdm(
+                for json_str in logging.tqdm(
                     pool.imap(
                         self._batch_json,
                         [(offset, orient, lines, to_json_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
-                    disable=not utils.is_progress_bar_enabled(),
+                    disable=not logging.is_progress_bar_enabled(),
                     desc="Creating json from Arrow format",
                 ):
                     written += file_obj.write(json_str)

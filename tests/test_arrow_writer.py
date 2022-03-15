@@ -8,7 +8,8 @@ import pyarrow as pa
 import pytest
 
 from datasets.arrow_writer import ArrowWriter, OptimizedTypedSequence, TypedSequence
-from datasets.features import Array2D, Array2DExtensionType, ClassLabel, Features, Value
+from datasets.features import Array2D, ClassLabel, Features, Value
+from datasets.features.features import Array2DExtensionType
 from datasets.keyhash import DuplicatedKeysError, InvalidKeyError
 
 
