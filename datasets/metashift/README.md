@@ -1,6 +1,6 @@
 [Needs More Information]
 
-# Dataset Card for metashift
+# Dataset Card for MetaShift
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
