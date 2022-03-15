@@ -25,8 +25,8 @@ TestCommandArgs = namedtuple(
 )
 
 
-def test_test_command(dataset_loading_script_dir, data_dir):
-    args = TestCommandArgs(dataset=dataset_loading_script_dir, data_dir=data_dir, all_configs=True, save_infos=True)
+def test_test_command(dataset_loading_script_dir):
+    args = TestCommandArgs(dataset=dataset_loading_script_dir, all_configs=True, save_infos=True)
     test_command = TestCommand(*args)
     test_command.run()
     dataset_infos_path = os.path.join(dataset_loading_script_dir, config.DATASETDICT_INFOS_FILENAME)

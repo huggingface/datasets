@@ -1,17 +1,6 @@
 import pytest
 
 
-@pytest.fixture
-def data_dir(tmp_path):
-    data_dir = tmp_path / "data_dir"
-    data_dir.mkdir()
-    with open(data_dir / "train.txt", "w") as f:
-        f.write("foo\n" * 10)
-    with open(data_dir / "test.txt", "w") as f:
-        f.write("bar\n" * 10)
-    return str(data_dir)
-
-
 DATASET_LOADING_SCRIPT_NAME = "__dummy_dataset1__"
 
 DATASET_LOADING_SCRIPT_CODE = """
