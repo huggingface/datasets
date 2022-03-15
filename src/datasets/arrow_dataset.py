@@ -3486,7 +3486,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 ),
                 exceptions=HTTPError,
                 status_codes=[504],
-                max_retries=2,
+                base_wait_time=2.0,
+                max_retries=5,
+                max_wait_time=20.0,
             )
         return repo_id, split, uploaded_size, dataset_nbytes
 
