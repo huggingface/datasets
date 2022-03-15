@@ -244,6 +244,44 @@ Dataset({
 
 Notice how the subfields are now their own independent columns: `answers.text` and `answers.answer_start`.
 
+## Align
+
+The [`~datasets.Dataset.align_labels_with_mapping`] function is used to align a dataset label id with the label name, or you can also assign a different mapping of label to ids. 
+
+For example, the [Poem Sentiment](https://huggingface.co/datasets/poem_sentiment) dataset uses the following label mapping:
+
+```py
+>>> from datasets import load_dataset
+
+>>> poem = load_dataset("poem_sentiment")
+>>> labels = poem["train"].features["label"].names
+>>> label2id, id2label = dict(), dict()
+>>> for i, label in enumerate(labels):
+...     label2id[label] = str(i)
+...     id2label[str(i)] = label
+>>> label2id
+{'mixed': '3', 'negative': '0', 'no_impact': '2', 'positive': '1'}
+```
+
+According to the Poem Sentiment [dataset card](https://huggingface.co/datasets/poem_sentiment#data-fields), this mapping is different from the original label mapping. To use the original label mappings, create a dictionary of the name and id to align on. There was no `mixed` label in the original dataset, so you don't have to change it:
+
+```py
+>>> label2id = {'negative': -1, 'no_impact': 0, 'positive': 1, 'mixed': 3}
+```
+
+Pass the dictionary of the original label mappings to the [`~datasets.Dataset.align_labels_with_mapping`] function, and the column to align on:
+
+```py
+>>> aligned_poem = poem.align_labels_with_mapping(label2id, "label")
+```
+
+Now when you look at the label mapping, it is aligned with the mappings from the original dataset:
+
+```py
+>>> label2id
+{'mixed': 3, 'negative': -1, 'no_impact': 0, 'positive': 1}
+```
+
 ## Map
 
 Some of the more powerful applications of 🤗 Datasets come from using [`datasets.Dataset.map`]. The primary purpose of [`datasets.Dataset.map`] is to speed up processing functions. It allows you to apply a processing function to each example in a dataset, independently or in batches. This function can even create new rows and columns.
