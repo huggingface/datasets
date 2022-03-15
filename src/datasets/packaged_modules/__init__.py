@@ -11,7 +11,7 @@ from .parquet import parquet
 from .text import text
 
 
-def hash_python_lines(lines: List[str]) -> str:
+def _hash_python_lines(lines: List[str]) -> str:
     filtered_lines = []
     for line in lines:
         line = re.sub(r"#.*", "", line)  # remove comments
@@ -26,12 +26,12 @@ def hash_python_lines(lines: List[str]) -> str:
 
 # get importable module names and hash for caching
 _PACKAGED_DATASETS_MODULES = {
-    "csv": (csv.__name__, hash_python_lines(inspect.getsource(csv).splitlines())),
-    "json": (json.__name__, hash_python_lines(inspect.getsource(json).splitlines())),
-    "pandas": (pandas.__name__, hash_python_lines(inspect.getsource(pandas).splitlines())),
-    "parquet": (parquet.__name__, hash_python_lines(inspect.getsource(parquet).splitlines())),
-    "text": (text.__name__, hash_python_lines(inspect.getsource(text).splitlines())),
-    "imagefolder": (imagefolder.__name__, hash_python_lines(inspect.getsource(imagefolder).splitlines())),
+    "csv": (csv.__name__, _hash_python_lines(inspect.getsource(csv).splitlines())),
+    "json": (json.__name__, _hash_python_lines(inspect.getsource(json).splitlines())),
+    "pandas": (pandas.__name__, _hash_python_lines(inspect.getsource(pandas).splitlines())),
+    "parquet": (parquet.__name__, _hash_python_lines(inspect.getsource(parquet).splitlines())),
+    "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
+    "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
 }
 
 _EXTENSION_TO_MODULE = {

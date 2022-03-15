@@ -153,6 +153,7 @@ class TestCommand(BaseDatasetsCLICommand):
 
         for j, builder in enumerate(get_builders()):
             print(f"Testing builder '{builder.config.name}' ({j + 1}/{n_builders})")
+            builder._record_infos = True
             builder.download_and_prepare(
                 download_mode=DownloadMode.REUSE_CACHE_IF_EXISTS
                 if not self._force_redownload

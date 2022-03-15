@@ -36,7 +36,7 @@ def set_test_cache_config(tmp_path_factory, monkeypatch):
 
 @pytest.fixture(autouse=True, scope="session")
 def disable_tqdm_output():
-    datasets.set_progress_bar_enabled(False)
+    datasets.disable_progress_bar()
 
 
 @pytest.fixture(autouse=True)

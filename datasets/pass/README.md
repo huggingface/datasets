@@ -17,7 +17,7 @@ source_datasets:
 task_categories:
 - other
 task_ids:
-- other-image-pretraining
+- other-image-self-supervised pretraining
 paperswithcode_id: pass
 pretty_name: Pictures without humAns for Self-Supervision
 ---

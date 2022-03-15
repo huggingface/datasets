@@ -55,22 +55,11 @@ from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
 
-from . import config, utils
+from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import (
-    Audio,
-    ClassLabel,
-    Features,
-    FeatureType,
-    Image,
-    Sequence,
-    Value,
-    _ArrayXD,
-    decode_nested_example,
-    pandas_types_mapper,
-    require_decoding,
-)
+from .features import Audio, ClassLabel, Features, Image, Sequence, Value
+from .features.features import FeatureType, _ArrayXD, decode_nested_example, pandas_types_mapper, require_decoding
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -1204,7 +1193,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             include_nulls (`bool`, default `False`):
                 Whether to include null values in the class labels. If True, the null values will be encoded as the `"None"` class label.
 
-                .. versionadded:: 1.14.2
+                *New in version 1.14.2*
         """
         # Sanity checks
         if column not in self._data.column_names:
@@ -1293,17 +1282,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The name of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
-            batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to cast.
+            batch_size (:obj:`int`, defaults to `1000`): Number of examples per batch provided to cast.
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to cast.
             keep_in_memory (:obj:`bool`, default ``False``): Whether to copy the data in-memory.
             load_from_cache_file (:obj:`bool`, default `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_name (:obj:`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            num_proc (`Optional[int]`, default `None`): Number of processes for multiprocessing. By default it doesn't
+            num_proc (:obj:`int`, optional, default `None`): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing.
 
         Returns:
@@ -1368,7 +1357,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
-            new_fingerprint
+            new_fingerprint (:obj:`str`, optional): The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
 
         Returns:
             :class:`Dataset`: A copy of the dataset object without the columns to remove.
@@ -1402,7 +1392,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             original_column_name (:obj:`str`): Name of the column to rename.
             new_column_name (:obj:`str`): New name for the column.
-            new_fingerprint
+            new_fingerprint (:obj:`str`, optional): The new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
 
         Returns:
             :class:`Dataset`: A copy of the dataset with a renamed column.
@@ -1537,14 +1528,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         output_all_columns: bool = False,
         **format_kwargs,
     ):
-        """To be used in a `with` statement. Set __getitem__ return format (type and columns).
+        """To be used in a ``with`` statement. Set ``__getitem__`` return format (type and columns).
 
         Args:
-            type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow']
-                None means __getitem__ returns python objects (default)
-            columns (Optional ``List[str]``): columns to format in the output
-                None means __getitem__ returns all columns (default)
-            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+            type (:obj:`str`, optional): output type selected in ``[None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow']``
+                None means ``__getitem__`` returns python objects (default)
+            columns (:obj:`List[str]`, optional): columns to format in the output
+                None means ``__getitem__`` returns all columns (default)
+            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         old_format_type = self._format_type
@@ -1570,12 +1561,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         It's also possible to use custom transforms for formatting using :func:`datasets.Dataset.set_transform`.
 
         Args:
-            type (Optional ``str``):
+            type (:obj:`str`, optional):
                 Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow'].
                 None means __getitem__ returns python objects (default)
-            columns (Optional ``List[str]``): columns to format in the output.
+            columns (:obj:`List[str]`, optional): columns to format in the output.
                 None means __getitem__ returns all columns (default).
-            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
 
         It is possible to call ``map`` after calling ``set_format``. Since ``map`` may add new columns, then the list of formatted columns
@@ -1631,12 +1622,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         As :func:`datasets.Dataset.set_format`, this can be reset using :func:`datasets.Dataset.reset_format`
 
         Args:
-            transform (Optional ``Callable``): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+            transform (:obj:`Callable`, optional): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
                 A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
                 This function is applied right before returning the objects in __getitem__.
-            columns (Optional ``List[str]``): columns to format in the output
+            columns (:obj:`List[str]`, optional): columns to format in the output
                 If specified, then the input batch of the transform only contains those columns.
-            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
                 If set to True, then the other un-formatted columns are kept with the output of the transform.
 
         """
@@ -1657,12 +1648,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Contrary to :func:`datasets.Dataset.set_format`, ``with_format`` returns a new Dataset object.
 
         Args:
-            type (Optional ``str``):
+            type (:obj:`str`, optional):
                 Either output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas', 'arrow'].
                 None means __getitem__ returns python objects (default)
-            columns (Optional ``List[str]``): columns to format in the output
+            columns (:obj:`List[str]`, optional): columns to format in the output
                 None means __getitem__ returns all columns (default)
-            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         dataset = copy.deepcopy(self)
@@ -1682,12 +1673,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Contrary to :func:`datasets.Dataset.set_transform`, ``with_transform`` returns a new Dataset object.
 
         Args:
-            transform (Optional ``Callable``): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
+            transform (:obj:`Callable`, optional): user-defined formatting transform, replaces the format defined by :func:`datasets.Dataset.set_format`
                 A formatting function is a callable that takes a batch (as a dict) as input and returns a batch.
                 This function is applied right before returning the objects in __getitem__.
-            columns (Optional ``List[str]``): columns to format in the output
+            columns (:obj:`List[str]`, optional): columns to format in the output
                 If specified, then the input batch of the transform only contains those columns.
-            output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
+            output_all_columns (:obj:`bool`, default to False): keep un-formatted columns as well in the output (as python objects)
                 If set to True, then the other un-formatted columns are kept with the output of the transform.
 
         """
@@ -1696,18 +1687,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         return dataset
 
     def prepare_for_task(self, task: Union[str, TaskTemplate], id: int = 0) -> "Dataset":
-        """Prepare a dataset for the given task by casting the dataset's :class:`Features` to standardized column names and types as detailed in :py:mod:`datasets.tasks`.
+        """
+        Prepare a dataset for the given task by casting the dataset's [`Features`] to standardized column names and types as detailed in [datasets.tasks](/docs/datasets/package_reference/task_templates).
 
-        Casts :attr:`datasets.DatasetInfo.features` according to a task-specific schema. Intended for single-use only, so all task templates are removed from :attr:`datasets.DatasetInfo.task_templates` after casting.
+        Casts [`datasets.DatasetInfo.features`] according to a task-specific schema. Intended for single-use only, so all task templates are removed from [`datasets.DatasetInfo.task_templates`] after casting.
 
         Args:
-            task (:obj:`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If :obj:`str`, supported tasks include:
+            task (`Union[str, TaskTemplate]`): The task to prepare the dataset for during training and evaluation. If `str`, supported tasks include:
 
-                - :obj:`"text-classification"`
-                - :obj:`"question-answering"`
+                - `"text-classification"`
+                - `"question-answering"`
 
-                If :obj:`TaskTemplate`, must be one of the task templates in :py:mod:`datasets.tasks`.
-            id (:obj:`int`, default `0`): The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
+                If [`TaskTemplate`], must be one of the task templates in [`datasets.tasks`](/docs/datasets/package_reference/task_templates).
+            id (`int`, defaults to 0): The id required to unambiguously identify the task template when multiple task templates of the same type are supported.
         """
         # TODO(lewtun): Add support for casting nested features like answers.text and answers.answer_start in SQuAD
         if isinstance(task, str):
@@ -1834,8 +1826,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         new_fingerprint: Optional[str] = None,
         desc: Optional[str] = None,
     ) -> "Dataset":
-        """Apply a function to all the elements in the table (individually or in batches)
-        and update the table (if function does update examples).
+        """
+        Apply a function to all the examples in the table (individually or in batches) and update the table.
+        If your function returns a column that already exists, then it overwrites it.
+
+        You can specify whether the function should be batched or not with the ``batched`` parameter:
+
+        - If batched is False, then the function takes 1 example in and should return 1 example.
+          An example is a dictionary, e.g. {"text": "Hello there !"}
+        - If batched is True and batch_size is 1, then the function takes a batch of 1 example as input and can return a batch with 1 or more examples.
+          A batch is a dictionary, e.g. a batch of 1 example is {"text": ["Hello there !"]}
+        - If batched is True and batch_size is ``n`` > 1, then the function takes a batch of ``n`` examples as input and can return a batch with ``n`` examples, or with an arbitrary number of examples.
+          Note that the last batch may have less than ``n`` examples.
+          A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
 
         Args:
             function (:obj:`Callable`): Function with one of the following signatures:
@@ -1853,7 +1856,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, default `False`): Provide batch of examples to `function`.
-            batch_size (`Optional[int]`, default `1000`): Number of examples per batch provided to `function` if `batched=True`
+            batch_size (:obj:`int`, optional, default `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`.
             drop_last_batch (:obj:`bool`, default `False`): Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
@@ -1863,7 +1866,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory (:obj:`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_name (:obj:`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
@@ -1871,15 +1874,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `False`): Disallow null values in the table.
-            fn_kwargs (`Optional[Dict]`, default `None`): Keyword arguments to be passed to `function`.
-            num_proc (`Optional[int]`, default `None`): Max number of processes when generating cache. Already cached shards are loaded sequentially
+            fn_kwargs (:obj:`Dict`, optional, default `None`): Keyword arguments to be passed to `function`.
+            num_proc (:obj:`int`, optional, default `None`): Max number of processes when generating cache. Already cached shards are loaded sequentially
             suffix_template (:obj:`str`):
                 If cache_file_name is specified, then this suffix
                 will be added at the end of the base name of each: defaults to "_{rank:05d}_of_{num_proc:05d}". For example, if cache_file_name is "processed.arrow", then for
                 rank=1 and num_proc=4, the resulting file would be "processed_00001_of_00004.arrow" for the default suffix.
-            new_fingerprint (`Optional[str]`, default `None`): the new fingerprint of the dataset after transform.
+            new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
-            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            desc (:obj:`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
         """
         if keep_in_memory and cache_file_name is not None:
             raise ValueError("Please use either `keep_in_memory` or `cache_file_name` but not both.")
@@ -1944,7 +1947,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
-        disable_tqdm = not utils.is_progress_bar_enabled()
+        disable_tqdm = not logging.is_progress_bar_enabled()
 
         if num_proc is None or num_proc == 1:
             return self._map_single(
@@ -2116,7 +2119,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             input_columns (`Optional[List[str]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
-            batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
+            batch_size (:obj:`int`, optional, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
             drop_last_batch (:obj:`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
                 dropped instead of being processed by the function.
@@ -2126,7 +2129,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             keep_in_memory (:obj:`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, defaults to `True` if caching is enabled): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_name (:obj:`str`, optional, defaults to `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
@@ -2134,13 +2137,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (`Optional[datasets.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, defaults to `False`): Disallow null values in the table.
-            fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
-            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
+            fn_kwargs (:obj:`Dict`, optional, defaults to `None`): Keyword arguments to be passed to `function`
+            new_fingerprint (:obj:`str`, optional, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
-            rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
+            rank: (:obj:`int`, optional, defaults to `None`): If specified, this is the process rank when doing multiprocessing
             offset: (:obj:`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`.
             disable_tqdm (:obj:`bool`, defaults to `False`): Whether to silence tqdm's output.
-            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
+            desc (:obj:`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while mapping examples.
             cache_only (`bool`, defaults to `False`): Flag in order to notifiy the method will either find a cached dataset or raise `NonExistentDatasetError` exception,
         """
         # Reduce logging to keep things readable in multiprocessing with tqdm
@@ -2302,7 +2305,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-                pbar = utils.tqdm(
+                pbar = logging.tqdm(
                     pbar_iterable,
                     total=pbar_total,
                     disable=disable_tqdm,
@@ -2391,7 +2394,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
-        remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
@@ -2439,7 +2441,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 `_{rank:05d}_of_{num_proc:05d}`)
             new_fingerprint (:obj:`str`, optional): The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments.
-            desc (`Optional[str]`, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while filtering examples.
+            desc (:obj:`str`, optional, defaults to `None`): Meaningful description to be displayed alongside with the progress bar while filtering examples.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -2448,9 +2450,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         if function is None:
             function = lambda x: True  # noqa: E731
-
-        if remove_columns is not None:
-            raise ValueError("Parameter `remove_columns` passed to .filter() is no longer supported.")
 
         indices = self.map(
             function=partial(
@@ -2492,7 +2491,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             keep_in_memory (:obj:`bool`, default `False`): Keep the dataset in memory instead of writing it to a cache file.
-            cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
+            cache_file_name (:obj:`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
@@ -2500,7 +2499,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             features (`Optional[datasets.Features]`, default `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
             disable_nullable (:obj:`bool`, default `False`): Allow null values in the table.
-            new_fingerprint (`Optional[str]`, default `None`): The new fingerprint of the dataset after transform.
+            new_fingerprint (:obj:`str`, optional, default `None`): The new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
 
@@ -2561,12 +2560,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         Args:
             indices (sequence, iterable, ndarray or Series): List or 1D-array of integer indices for indexing.
             keep_in_memory (:obj:`bool`, default `False`): Keep the indices mapping in memory instead of writing it to a cache file.
-            indices_cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
+            indices_cache_file_name (:obj:`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
                 indices mapping instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 This value is a good trade-off between memory usage during the processing, and processing speed.
                 Higher value makes the processing do fewer lookups, lower value consume less temporary memory while running `.map()`.
-            new_fingerprint (`Optional[str]`, default `None`): the new fingerprint of the dataset after transform.
+            new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         if keep_in_memory and indices_cache_file_name is not None:
@@ -2664,15 +2663,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             null_placement (:obj:`str`, default `last`):
                 Put `None` values at the beginning if ‘first‘; ‘last‘ puts `None` values at the end.
 
-                .. versionadded:: 1.14.2
+                *New in version 1.14.2*
             keep_in_memory (:obj:`bool`, default `False`): Keep the sorted indices in memory instead of writing it to a cache file.
             load_from_cache_file (:obj:`bool`, default `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
-            indices_cache_file_name (`Optional[str]`, default `None`): Provide the name of a path for the cache file. It is used to store the
+            indices_cache_file_name (:obj:`str`, optional, default `None`): Provide the name of a path for the cache file. It is used to store the
                 sorted indices instead of the automatically generated cache file name.
             writer_batch_size (:obj:`int`, default `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory.
-            new_fingerprint (`Optional[str]`, default `None`): the new fingerprint of the dataset after transform.
+            new_fingerprint (:obj:`str`, optional, default `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         if len(self.list_indexes()) > 0:
@@ -3145,7 +3144,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
-            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             num_proc (:obj:`int`, optional): Number of processes for multiprocessing. By default it doesn't
                 use multiprocessing. ``batch_size`` in this case defaults to
@@ -3165,9 +3164,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Returns the dataset as a Python dict. Can also return a generator for large datasets.
 
         Args:
-            batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
+            batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+            batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
@@ -3235,9 +3234,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
         """Returns the dataset as a :class:`pandas.DataFrame`. Can also return a generator for large datasets.
 
         Args:
-            batched (``bool``): Set to :obj:`True` to return a generator that yields the dataset as batches
+            batched (:obj:`bool`): Set to :obj:`True` to return a generator that yields the dataset as batches
                 of ``batch_size`` rows. Defaults to :obj:`False` (returns the whole datasetas once)
-            batch_size (Optional ``int``): The size (number of rows) of the batches if ``batched`` is `True`.
+            batch_size (:obj:`int`, optional): The size (number of rows) of the batches if ``batched`` is `True`.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
 
         Returns:
@@ -3270,7 +3269,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
         Args:
             path_or_buf (``PathLike`` or ``FileOrBuffer``): Either a path to a file or a BinaryIO.
-            batch_size (Optional ``int``): Size of the batch to load in memory and write at once.
+            batch_size (:obj:`int`, optional): Size of the batch to load in memory and write at once.
                 Defaults to :obj:`datasets.config.DEFAULT_MAX_BATCH_SIZE`.
             parquet_writer_kwargs: Parameters to pass to PyArrow's :class:`pyarrow.parquet.ParquetWriter`
 
@@ -3328,9 +3327,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dataset_nbytes (:obj:`int`): approximate size in bytes of the uploaded dataset afer uncompression
 
         Example:
-            .. code-block:: python
 
-                >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        ```python
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        ```
         """
         api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
@@ -3391,7 +3391,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 nonlocal extra_nbytes
                 if isinstance(feature, (Audio, Image)):
                     for x in array.to_pylist():
-                        if x["bytes"] is None and x["path"] is not None:
+                        if x is not None and x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])
                             extra_nbytes += size
                     extra_nbytes -= array.field("path").nbytes
@@ -3455,20 +3455,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
 
         if len(file_shards_to_delete):
-            for file in utils.tqdm(
+            for file in logging.tqdm(
                 file_shards_to_delete,
                 desc="Deleting unused files from dataset repository",
                 total=len(file_shards_to_delete),
-                disable=not utils.is_progress_bar_enabled(),
+                disable=not logging.is_progress_bar_enabled(),
             ):
                 delete_file(file)
 
         uploaded_size = 0
-        for index, shard in utils.tqdm(
+        for index, shard in logging.tqdm(
             enumerate(shards),
             desc="Pushing dataset shards to the dataset hub",
             total=num_shards,
-            disable=not utils.is_progress_bar_enabled(),
+            disable=not logging.is_progress_bar_enabled(),
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)
@@ -3524,9 +3524,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
 
         Example:
-            .. code-block:: python
 
-                >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        ```python
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        ```
         """
         repo_id, split, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
@@ -3565,7 +3566,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def add_column(self, name: str, column: Union[list, np.array], new_fingerprint: str):
         """Add column to Dataset.
 
-        .. versionadded:: 1.7
+        *New in version 1.7.*
 
         Args:
             name (str): Column name.
@@ -3611,9 +3612,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The index_name/identifier of the index.
                 This is the index_name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
                 By default it corresponds to `column`.
-            device (Optional :obj:`int`):
-                If not None, this is the index of the GPU to use.
-                By default it uses the CPU.
+            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+                If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             string_factory (Optional :obj:`str`):
                 This is passed to the index factory of Faiss to create the index.
                 Default index class is ``IndexFlat``.
@@ -3629,21 +3629,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 Default is ``np.float32``.
 
         Example:
-            .. code-block:: python
 
-                ds = datasets.load_dataset('crime_and_punish', split='train')
-                ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
-                ds_with_embeddings.add_faiss_index(column='embeddings')
-                # query
-                scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
-                # save index
-                ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
+        ```python
+        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
+        >>> ds_with_embeddings.add_faiss_index(column='embeddings')
+        >>> # query
+        >>> scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
+        >>> # save index
+        >>> ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
 
-                ds = datasets.load_dataset('crime_and_punish', split='train')
-                # load index
-                ds.load_faiss_index('embeddings', 'my_index.faiss')
-                # query
-                scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
+        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> # load index
+        >>> ds.load_faiss_index('embeddings', 'my_index.faiss')
+        >>> # query
+        >>> scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
+        ```
         """
         with self.formatted_as(type="numpy", columns=[column], dtype=dtype):
             super().add_faiss_index(
@@ -3684,9 +3685,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             index_name (:obj:`str`):
                 The index_name/identifier of the index.
                 This is the index_name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
-            device (Optional :obj:`int`):
-                If not None, this is the index of the GPU to use.
-                By default it uses the CPU.
+            device (Optional :obj:`Union[int, List[int]]`): If positive integer, this is the index of the GPU to use. If negative integer, use all GPUs.
+                If a list of positive integers is passed in, run only on those GPUs. By default it uses the CPU.
             string_factory (Optional :obj:`str`):
                 This is passed to the index factory of Faiss to create the index.
                 Default index class is ``IndexFlat``.
@@ -3759,13 +3759,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     }
 
         Example:
-            .. code-block:: python
 
-                es_client = elasticsearch.Elasticsearch()
-                ds = datasets.load_dataset('crime_and_punish', split='train')
-                ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
-                scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
-
+        ```python
+        >>> es_client = elasticsearch.Elasticsearch()
+        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
+        >>> scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
+        ```
         """
         with self.formatted_as(type=None, columns=[column]):
             super().add_elasticsearch_index(
@@ -3784,7 +3784,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
     def add_item(self, item: dict, new_fingerprint: str):
         """Add item to Dataset.
 
-        .. versionadded:: 1.7
+        *New in version 1.7.*
 
         Args:
             item (dict): Item data to be added.
@@ -3831,13 +3831,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 The column name of labels to align on.
 
         Example:
-            .. code-block:: python
 
-                # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
-                ds = load_dataset("glue", "mnli", split="train")
-                # mapping to align with
-                label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
-                ds_aligned = ds.align_labels_with_mapping(label2id, "label")
+        ```python
+        >>> # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+        >>> ds = load_dataset("glue", "mnli", split="train")
+        >>> # mapping to align with
+        >>> label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
+        >>> ds_aligned = ds.align_labels_with_mapping(label2id, "label")
+        ```
+
         """
         # Sanity checks
         if label_column not in self._data.column_names:
@@ -3888,7 +3890,7 @@ def concatenate_datasets(
             Axis to concatenate over, where ``0`` means over rows (vertically) and ``1`` means over columns
             (horizontally).
 
-            .. versionadded:: 1.6.0
+            *New in version 1.6.0*
     """
     # Ignore datasets with no rows
     if any(dset.num_rows > 0 for dset in dsets):
