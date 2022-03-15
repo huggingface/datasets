@@ -18,10 +18,10 @@ class Translation:
     Example:
 
     ```python
-    > # At construction time:
-    > datasets.features.Translation(languages=['en', 'fr', 'de'])
-    > # During data generation:
-    > yield {
+    >>> # At construction time:
+    >>> datasets.features.Translation(languages=['en', 'fr', 'de'])
+    >>> # During data generation:
+    >>> yield {
     ...         'en': 'the cat',
     ...         'fr': 'le chat',
     ...         'de': 'die katze'
@@ -58,16 +58,16 @@ class TranslationVariableLanguages:
     Example:
 
     ```python
-    > # At construction time:
-    > datasets.features.Translation(languages=['en', 'fr', 'de'])
-    > # During data generation:
-    > yield {
+    >>> # At construction time:
+    >>> datasets.features.Translation(languages=['en', 'fr', 'de'])
+    >>> # During data generation:
+    >>> yield {
     ...         'en': 'the cat',
     ...         'fr': ['le chat', 'la chatte,']
     ...         'de': 'die katze'
     ... }
-    > # Tensor returned :
-    > {
+    >>> # Tensor returned :
+    >>> {
     ...         'language': ['en', 'de', 'fr', 'fr'],
     ...         'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
     ... }
