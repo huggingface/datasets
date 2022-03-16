@@ -132,19 +132,7 @@ For this univariate regular time series we have:
 
 ### Data Splits
 
-The datasets are split in time depending on the prediction length specified in the datasets. If no prediction length is specified then we use the following prediction lengths given the frequency of the datasets:
-
-```py
-prediction_length_map = {
-    "S": 60,
-    "T": 60,
-    "H": 48,
-    "D": 30,
-    "W": 8,
-    "M": 12,
-    "Y": 4,
-}
-```
+The datasets are split in time depending on the prediction length specified in the datasets. In particular for each time time series in a dataset there is a prediction length window of the future in the validation split and another prediction length more in the test split.
 
 
 ## Dataset Creation
