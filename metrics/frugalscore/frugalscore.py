@@ -97,7 +97,7 @@ class FRUGALSCORE(datasets.Metric):
             "trainer",
             fp16=(device == "gpu"),
             per_device_eval_batch_size=batch_size,
-            report_to=None,
+            report_to="all",
             no_cuda=(device == "cpu"),
         )
         dataset = {"sentence1": predictions, "sentence2": references}
