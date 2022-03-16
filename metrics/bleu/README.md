@@ -12,18 +12,18 @@ BLEU and BLEU-derived metrics are most often used for machine translation.
 ## How to Use
 
 ### Inputs
-**predictions** (list of translations to score): Each translation should be tokenized into a list of tokens.
-**references** (list of lists): references for each translation. Each reference should be tokenized into a list of tokens.
-**max_order** (int): Maximum n-gram order to use when computing BLEU score. Defaults to 4.
-**smooth** (boolean): Whether or not to apply Lin et al. 2004 smoothing. Defaults to False.
+- **predictions** (list of translations to score): Each translation should be tokenized into a list of tokens.
+- **references** (list of lists): references for each translation. Each reference should be tokenized into a list of tokens.
+- **max_order** (int): Maximum n-gram order to use when computing BLEU score. Defaults to 4.
+- **smooth** (boolean): Whether or not to apply Lin et al. 2004 smoothing. Defaults to False.
 
 ### Output Values
-**bleu** (float): bleu score
-**precisions** (list of floats): geometric mean of n-gram precisions,
-**brevity_penalty** (float): brevity penalty,
-**length_ratio** (float): ratio of lengths,
-**translation_length** (int): translation_length,
-**reference_length** (int): reference_length
+- **bleu** (float): bleu score
+- **precisions** (list of floats): geometric mean of n-gram precisions,
+- **brevity_penalty** (float): brevity penalty,
+- **length_ratio** (float): ratio of lengths,
+- **translation_length** (int): translation_length,
+- **reference_length** (int): reference_length
 
 Output Example:
 ```python
@@ -33,8 +33,6 @@ Output Example:
 BLEU's output is always a number between 0 and 1. This value indicates how similar the candidate text is to the reference texts, with values closer to 1 representing more similar texts. Few human translations will attain a score of 1, since this would indicate that the candidate is identical to one of the reference translations. For this reason, it is not necessary to attain a score of 1. Because there are more opportunities to match, adding additional reference translations will increase the BLEU score.
 
 #### Values from Popular Papers
-*Give examples, preferrably with links, to papers that have reported this metric, along with the values they have reported.*
-
 The [Attention is All you Need paper](https://proceedings.neurips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf) (Vaswani et al. 2017) got a BLEU score of 0.284 on the WMT 2014 English-to-German translation task, and 0.41 on the WMT 2014 English-to-French translation task.
 
 ### Examples
@@ -79,6 +77,7 @@ This metric hase multiple known limitations and biases:
 
 
 ## Citation
+```bibtex
 @INPROCEEDINGS{Papineni02bleu:a,
     author = {Kishore Papineni and Salim Roukos and Todd Ward and Wei-jing Zhu},
     title = {BLEU: a Method for Automatic Evaluation of Machine Translation},
@@ -98,6 +97,7 @@ This metric hase multiple known limitations and biases:
     url = "https://www.aclweb.org/anthology/C04-1072",
     pages = "501--507",
 }
+```
 
 ## Further References
 - This Hugging Face implementation uses [this Tensorflow implementation](https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py)
