@@ -70,9 +70,9 @@ The following table shows a list of datasets available:
 | tourism_monthly               | Tourism   | 1311          | 1M     | 24         | [Athanasopoulos et al., 2011](https://doi.org/10.1016/j.ijforecast.2010.04.009)                                                     |
 | cif_2016                      | Banking   | 72            | 1M     | 12         | [Stepnicka and Burda, 2017](https://doi.org/10.1109/FUZZ-IEEE.2017.8015455)                                                         |
 | london_smart_meters           | Energy    | 5560          | 30T    | 60         | [Jean-Michel, 2019](https://www.kaggle.com/jeanmidev/smart-meters-in-london)                                                        |
-| australian_electricity_demand | Energy    | 5             | 30T    | 60         |                                                                                                                                     |
-| wind_farms_minutely           | Energy    | 339           | 1T     | 60         |                                                                                                                                     |
-| bitcoin                       | Economic  | 18            | 1D     | 30         |                                                                                                                                     |
+| australian_electricity_demand | Energy    | 5             | 30T    | 60         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU-)                                                                    |
+| wind_farms_minutely           | Energy    | 339           | 1T     | 60         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU- )                                                                   |
+| bitcoin                       | Economic  | 18            | 1D     | 30         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU- )                                                                   |
 | pedestrian_counts             | Transport | 66            | 1H     | 48         | [City of Melbourne, 2020](https://data.melbourne.vic.gov.au/Transport/Pedestrian-Counting-System-Monthly-counts-per-hour/b2ak-trbp) |
 | vehicle_trips                 | Transport | 329           | 1D     | 30         | [fivethirtyeight, 2015](https://github.com/fivethirtyeight/uber-tlc-foil-response)                                                  |
 | kdd_cup_2018                  | Nature    | 270           | 1H     | 48         | [KDD Cup, 2018](https://www.kdd.org/kdd2018/kdd-cup)                                                                                |
@@ -91,11 +91,11 @@ The following table shows a list of datasets available:
 | sunspot                       | Nature    | 1             | 1D     | 30         | [Sunspot, 2015](http://www.sidc.be/silso/newdataset)                                                                                |
 | saugeenday                    | Nature    | 1             | 1D     | 30         | [McLeod and Gweon, 2013](http://www.jenvstat.org/v04/i11)                                                                           |
 | us_births                     | Health    | 1             | 1D     | 30         | [Pruim et al., 2020](https://cran.r-project.org/web/packages/mosaicData)                                                            |
-| solar_4_seconds               | Energy    | 1             | 4S     | 60         |                                                                                                                                     |
-| wind_4_seconds                | Energy    | 1             | 4S     | 60         |                                                                                                                                     |
-| rideshare                     | Transport | 2304          | 1H     | 48         |                                                                                                                                     |
+| solar_4_seconds               | Energy    | 1             | 4S     | 60         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU- )                                                                   |
+| wind_4_seconds                | Energy    | 1             | 4S     | 60         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU- )                                                                   |
+| rideshare                     | Transport | 2304          | 1H     | 48         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU- )                                                                   |
 | oikolab_weather               | Nature    | 8             | 1H     | 48         | [Oikolab](https://oikolab.com/)                                                                                                     |
-| temperature_rain              | Nature    | 32072         | 1D     | 30         |                                                                                                                                     |
+| temperature_rain              | Nature    | 32072         | 1D     | 30         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU- )                                                                   |
 
 ### Supported Tasks and Leaderboards
 
