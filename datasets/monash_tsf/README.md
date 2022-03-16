@@ -99,8 +99,15 @@ The following table shows a list of datasets available:
 
 ### Supported Tasks and Leaderboards
 
-- `univariate-time-series-forecasting`: The time series forecasting tasks involves learning the future `target` values of time series in a dataset for the `prediction_length` time steps. The performance of the forecast models can then be validated via the ground truth in the `validation` split and tested via the `test` split.
+#### `time-series-forecasting`
 
+##### `univariate-time-series-forecasting`
+
+The univariate time series forecasting tasks involves learning the future one dimensional `target` values of a time series in a dataset for some `prediction_length` time steps. The performance of the forecast models can then be validated via the ground truth in the `validation` split and tested via the `test` split.
+
+##### `multivariate-time-series-forecasting`
+
+The multivariate time series forecasting task involves learning the future vector of `target` values of a time series in a dataset for some `prediction_length` time steps. Similar to the univariate setting the performance of a multivariate model can be validated via the ground truth in the `validation` split and tested via the `test` split.
 
 ### Languages
 
@@ -147,12 +154,9 @@ To facilitate the evaluation of global forecasting models. All datasets in our r
 
 #### Initial Data Collection and Normalization
 
-Out of the 30 datasets, 23 were already publicly available in different platforms with different data
-formats. The original sources of all datasets are mentioned in the datasets table above.
+Out of the 30 datasets, 23 were already publicly available in different platforms with different data formats. The original sources of all datasets are mentioned in the datasets table above.
 
-After extracting and curating these datasets, we analysed them individually to identify the datasets
-containing series with different frequencies and missing observations. Nine datasets contain time
-series belonging to different frequencies and the archive contains a separate dataset per each frequency.
+After extracting and curating these datasets, we analysed them individually to identify the datasets containing series with different frequencies and missing observations. Nine datasets contain time series belonging to different frequencies and the archive contains a separate dataset per each frequency.
 
 #### Who are the source language producers?
 
