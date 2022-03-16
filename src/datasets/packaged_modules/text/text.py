@@ -19,6 +19,7 @@ class TextConfig(datasets.BuilderConfig):
     chunksize: int = 10 << 20  # 10MB
     keep_linebreaks: bool = False
     sample_by: str = "line"
+    newline: Optional[str] = None
 
 
 class Text(datasets.ArrowBasedBuilder):
@@ -54,7 +55,7 @@ class Text(datasets.ArrowBasedBuilder):
         schema = pa.schema(self.config.features.type if self.config.features is not None else {"text": pa.string()})
         for file_idx, file in enumerate(files):
             # open in text mode, by default translates universal newlines ("\n", "\r\n" and "\r") into "\n"
-            with open(file, encoding=self.config.encoding) as f:
+            with open(file, encoding=self.config.encoding, newline=self.config.newline) as f:
                 if self.config.sample_by == "line":
                     batch_idx = 0
                     while True:
