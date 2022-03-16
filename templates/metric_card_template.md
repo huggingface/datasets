@@ -9,6 +9,9 @@
 *What type of task can this metric be used for? If the metric is limited for specific dataset(s), which dataset(s)?*
 
 ## How to Use
+*Give general statement of how to use the metric*
+
+*Provide simplest possible example for using the metric*
 
 ### Inputs
 *List all inputs in the format below*
@@ -25,7 +28,7 @@
 *Give examples, preferrably with links, to papers that have reported this metric, along with the values they have reported.*
 
 ### Examples
-*Give examples of the metric being used. Try to include examples that clear up any potential ambiguity left from the metric description above.*
+*Give code examples of the metric being used. Try to include examples that clear up any potential ambiguity left from the metric description above.*
 
 ## Limitations and Bias
 *Note any limitations or biases that the metric has.*
