@@ -268,12 +268,6 @@ Next, apply this function to the dataset with [`datasets.Dataset.map`]:
 ]
 ```
 
-<Tip>
-
-To disable `tqdm` progress bar printed by default, pass `False` as an argument to [`datasets.set_progress_bar_enabled`].
-
-</Tip>
-
 Let's take a look at another example, except this time, you will remove a column with [`datasets.Dataset.map`]. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed.
 
 Specify the column to remove with the `remove_columns` argument in [`datasets.Dataset.map`]:
@@ -518,7 +512,7 @@ Separate datasets can be concatenated if they share the same column types. Conca
 
 <Tip>
 
-You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving, and you can use it with [`datasets.interleave_datasets`]. Both [`datasets.interleave_datasets`] and [`datasets.concatenate_datasets`] will work with regular [`datasets.Dataset`] and [`datasets.IterableDataset`] objects. Refer to the [interleave_datasets](#interleave_datasets) section for an example of how it's used.
+You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving, and you can use it with [`datasets.interleave_datasets`]. Both [`datasets.interleave_datasets`] and [`datasets.concatenate_datasets`] will work with regular [`datasets.Dataset`] and [`datasets.IterableDataset`] objects. Refer to the [Stream](./stream#interleave) section for an example of how it's used.
 
 </Tip>
 

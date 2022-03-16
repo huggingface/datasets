@@ -55,7 +55,7 @@ from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
 
-from . import config, utils
+from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
 from .features import Audio, ClassLabel, Features, Image, Sequence, Value
@@ -86,7 +86,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils.file_utils import estimate_dataset_size
+from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
 from .utils.streaming_download_manager import xgetsize
@@ -1947,7 +1947,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
-        disable_tqdm = not utils.is_progress_bar_enabled()
+        disable_tqdm = not logging.is_progress_bar_enabled()
 
         if num_proc is None or num_proc == 1:
             return self._map_single(
@@ -2305,7 +2305,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-                pbar = utils.tqdm_utils.tqdm(
+                pbar = logging.tqdm(
                     pbar_iterable,
                     total=pbar_total,
                     disable=disable_tqdm,
@@ -3455,32 +3455,40 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
 
         if len(file_shards_to_delete):
-            for file in utils.tqdm_utils.tqdm(
+            for file in logging.tqdm(
                 file_shards_to_delete,
                 desc="Deleting unused files from dataset repository",
                 total=len(file_shards_to_delete),
-                disable=not utils.is_progress_bar_enabled(),
+                disable=not logging.is_progress_bar_enabled(),
             ):
                 delete_file(file)
 
         uploaded_size = 0
-        for index, shard in utils.tqdm_utils.tqdm(
+        for index, shard in logging.tqdm(
             enumerate(shards),
             desc="Pushing dataset shards to the dataset hub",
             total=num_shards,
-            disable=not utils.is_progress_bar_enabled(),
+            disable=not logging.is_progress_bar_enabled(),
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)
             uploaded_size += buffer.tell()
-            api.upload_file(
-                path_or_fileobj=buffer.getvalue(),
-                path_in_repo=path_in_repo(index),
-                repo_id=repo_id,
-                token=token,
-                repo_type="dataset",
-                revision=branch,
-                identical_ok=True,
+            _retry(
+                api.upload_file,
+                func_kwargs=dict(
+                    path_or_fileobj=buffer.getvalue(),
+                    path_in_repo=path_in_repo(index),
+                    repo_id=repo_id,
+                    token=token,
+                    repo_type="dataset",
+                    revision=branch,
+                    identical_ok=True,
+                ),
+                exceptions=HTTPError,
+                status_codes=[504],
+                base_wait_time=2.0,
+                max_retries=5,
+                max_wait_time=20.0,
             )
         return repo_id, split, uploaded_size, dataset_nbytes
 

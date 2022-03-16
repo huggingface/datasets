@@ -36,7 +36,7 @@ import dill
 import numpy as np
 from tqdm.auto import tqdm
 
-from .. import config, utils
+from .. import config
 from . import logging
 
 
@@ -261,7 +261,7 @@ def _single_map_nested(args):
     # Loop over single examples or batches and write to buffer/file if examples are to be updated
     pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
     pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-    pbar = utils.tqdm_utils.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
+    pbar = logging.tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
 
     if isinstance(data_struct, dict):
         return {k: _single_map_nested((function, v, types, None, True, None)) for k, v in pbar}
@@ -305,7 +305,7 @@ def map_nested(
     if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
         return function(data_struct)
 
-    disable_tqdm = disable_tqdm or not utils.is_progress_bar_enabled()
+    disable_tqdm = disable_tqdm or not logging.is_progress_bar_enabled()
     iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
 
     if num_proc is None:
@@ -313,7 +313,7 @@ def map_nested(
     if num_proc <= 1 or len(iterable) <= num_proc:
         mapped = [
             _single_map_nested((function, obj, types, None, True, None))
-            for obj in utils.tqdm_utils.tqdm(iterable, disable=disable_tqdm, desc=desc)
+            for obj in logging.tqdm(iterable, disable=disable_tqdm, desc=desc)
         ]
     else:
         split_kwds = []  # We organize the splits ourselve (contiguous splits)

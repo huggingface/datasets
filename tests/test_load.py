@@ -651,6 +651,12 @@ def test_load_dataset_zip_text(data_file, streaming, zip_text_path, zip_text_wit
         assert ds_item == {"text": "0"}
 
 
+def test_load_dataset_text_with_unicode_new_lines(text_path_with_unicode_new_lines):
+    data_files = str(text_path_with_unicode_new_lines)
+    ds = load_dataset("text", split="train", data_files=data_files)
+    assert ds.num_rows == 3
+
+
 def test_loading_from_the_datasets_hub():
     with tempfile.TemporaryDirectory() as tmp_dir:
         dataset = load_dataset(SAMPLE_DATASET_IDENTIFIER, cache_dir=tmp_dir)

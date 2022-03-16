@@ -20,12 +20,12 @@ from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, Optional, TypeVar, Union
+from typing import Dict, List, Optional, Type, TypeVar, Union
 from urllib.parse import urljoin, urlparse
 
 import requests
 
-from .. import __version__, config, utils
+from .. import __version__, config
 from . import logging
 from .extract import ExtractManager
 from .filelock import FileLock
@@ -312,6 +312,32 @@ def _raise_if_offline_mode_is_enabled(msg: Optional[str] = None):
         )
 
 
+def _retry(
+    func,
+    func_args: Optional[tuple] = None,
+    func_kwargs: Optional[dict] = None,
+    exceptions: Type[requests.exceptions.RequestException] = requests.exceptions.RequestException,
+    status_codes: Optional[List[int]] = None,
+    max_retries: int = 0,
+    base_wait_time: float = 0.5,
+    max_wait_time: float = 2,
+):
+    func_args = func_args or ()
+    func_kwargs = func_kwargs or {}
+    retry = 0
+    while True:
+        try:
+            return func(*func_args, **func_kwargs)
+        except exceptions as err:
+            if retry >= max_retries or (status_codes and err.response.status_code not in status_codes):
+                raise err
+            else:
+                sleep_time = min(max_wait_time, base_wait_time * 2**retry)  # Exponential backoff
+                logger.info(f"{func} timed out, retrying in {sleep_time}s... [{retry/max_retries}]")
+                time.sleep(sleep_time)
+                retry += 1
+
+
 def _request_with_retry(
     method: str,
     url: str,
@@ -392,13 +418,13 @@ def http_get(
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    with utils.tqdm_utils.tqdm(
+    with logging.tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
         desc=desc or "Downloading",
-        disable=not utils.is_progress_bar_enabled(),
+        disable=not logging.is_progress_bar_enabled(),
     ) as progress:
         for chunk in response.iter_content(chunk_size=1024):
             progress.update(len(chunk))
