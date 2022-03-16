@@ -32,12 +32,31 @@ else:
 _CITATION = """\
 """
 
-# TODO(Patrick/Anton)
 _DESCRIPTION = """\
+    XTREME-S is a benchmark to evaluate universal cross-lingual speech representations in many languages.
+    XTREME-S covers four task families: speech recognition, classification, speech-to-text translation and retrieval.
 """
 
-# TODO(Patrick/Anton)
 _KWARGS_DESCRIPTION = """
+Compute XTREME-S evaluation metric associated to each XTREME-S dataset.
+Args:
+    predictions: list of predictions to score.
+        Each translation should be tokenized into a list of tokens.
+    references: list of lists of references for each translation.
+        Each reference should be tokenized into a list of tokens.
+    bleu_kwargs: optional dict of keywords to be passed when computing 'bleu'.
+        Keywords include Dict can be one of 'smooth_method', 'smooth_value', 'force', 'lowercase',
+        'tokenize', 'use_effective_order'.
+    wer_kwargs: optional dict of keywords to be passed when computing 'wer' and 'cer'.
+        Keywords include 'concatenate_texts'.
+Returns: depending on the XTREME-S task, one or several of:
+    "accuracy": Accuracy - for 'fleurs-lang_id', 'minds14'
+    "f1": F1 score - for 'minds14'
+    "wer": Word error rate - for 'mls', 'fleurs-asr', 'voxpopuli', 'babel'
+    "cer": Character error rate - for 'mls', 'fleurs-asr', 'voxpopuli', 'babel'
+    "bleu": BLEU score according to the `sacrebleu` metric - for 'covost2'
+Examples:
+
     >>> xtreme_s_metric = datasets.load_metric('xtreme_s', 'mls')  # 'mls', 'voxpopuli', 'fleurs-asr' or 'babel'
     >>> references = ["it is sunny here", "paper and pen are essentials"]
     >>> predictions = ["it's sunny", "paper pen are essential"]
