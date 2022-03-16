@@ -38,9 +38,8 @@ _CITATION = """\
 }
 """
 
-# You can copy an official description
 _DESCRIPTION = """\
-The first repository containing datasets of related time series for global forecasting.
+Monash Time Series Forecasting Repository which contains 30+ datasets of related time series for global forecasting research. This repository includes both real-world and competition time series datasets covering varied domains.
 """
 
 _HOMEPAGE = "https://forecastingdata.org/"
