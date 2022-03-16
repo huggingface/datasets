@@ -47,6 +47,8 @@ _HOMEPAGE = "https://forecastingdata.org/"
 
 _LICENSE = "The Creative Commons Attribution 4.0 International License. https://creativecommons.org/licenses/by/4.0/"
 
+_ROOT_URL = "https://zenodo.org/record"
+
 
 @dataclass
 class MonashTSFBuilderConfig(datasets.BuilderConfig):
@@ -62,7 +64,6 @@ class MonashTSFBuilderConfig(datasets.BuilderConfig):
     feat_dynamic_real_fields: Optional[List[str]] = None
     multivariate: bool = False
     rolling_evaluations: int = 1
-    ROOT: str = "https://zenodo.org/record"
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
@@ -469,7 +470,7 @@ class MonashTSF(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLS
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
         # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
-        urls = f"{self.config.ROOT}/{self.config.record}/files/{self.config.file_name}"
+        urls = f"{_ROOT_URL}/{self.config.record}/files/{self.config.file_name}"
         data_dir = dl_manager.download_and_extract(urls)
         file_path = Path(data_dir) / (self.config.file_name.split(".")[0] + ".tsf")
 
