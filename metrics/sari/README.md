@@ -17,7 +17,8 @@ where
 `F1_keep` is the n-gram F1 score for keep operations 
 
 `P_del` is the n-gram precision score for delete operations
-n = 4, as in the original paper. 
+
+The number of n grams, `n`, is equal to 4, as in the original paper. 
 
 This implementation is adapted from [Tensorflow's tensor2tensor implementation](https://github.com/tensorflow/tensor2tensor/blob/master/tensor2tensor/utils/sari_hook.py).
 It has two differences with the [original GitHub implementation](https://github.com/cocoxu/simplification/blob/master/SARI.py):
