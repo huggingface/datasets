@@ -1,4 +1,4 @@
-# Metric Card for *Current Metric*
+# Metric Card for Google BLEU (GLEU)
 
 
 ## Metric Description
@@ -60,7 +60,7 @@ print(result_a == result_b)
 ```
 
 #### Values from Popular Papers
-**To Do:** *Give examples, preferrably with links, to papers that have reported this metric, along with the values they have reported.*
+
 
 ### Examples
 Example with one reference per sample:
@@ -170,7 +170,7 @@ print(results["google_bleu"])
 ```
 
 ## Limitations and Bias
-**To Do:** *Note any known limitations or biases that the metric has.*
+
 
 ## Citation
 ```bibtex
