@@ -39,9 +39,10 @@
 
 """MetaShift Dataset."""
 
+import os
 import pickle
 from collections import Counter, defaultdict
-import os
+
 import datasets
 from datasets.tasks import ImageClassification
 
@@ -257,7 +258,8 @@ class Metashift(datasets.GeneratorBasedBuilder):
         for subset in subjects_to_all_set:
             class_name, context = self._parse_node_str(subset)
             for image_id in subjects_to_all_set[subset]:
-                src_image_path = images_path + image_id + ".jpg"
+                image_filename = image_id + ".jpg"
+                src_image_path = os.path.join(images_path, image_filename)
                 yield idx, {
                     "image_id": image_id,
                     "image": src_image_path,
