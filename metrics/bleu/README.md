@@ -11,6 +11,23 @@ BLEU and BLEU-derived metrics are most often used for machine translation.
 
 ## How to Use
 
+This metric takes as input lists of predicted sentences and reference sentences:
+
+```python
+predictions = [
+    ["hello", "there", "general", "kenobi",
+    ["foo", "bar" "foobar"]
+]
+references = [
+    [["hello", "there", "general", "kenobi"]],
+    [["foo", "bar", "foobar"]]
+]
+bleu = datasets.load_metric("bleu")
+results = bleu.compute(predictions=predictions, references=references)
+print(results)
+>>> {'bleu': 0.6370964381207871, 'precisions': [0.8333333333333334, 0.75, 1.0, 1.0], 'brevity_penalty': 0.7165313105737893, 'length_ratio': 0.75, 'translation_length': 6, 'reference_length': 8}
+```
+
 ### Inputs
 - **predictions** (list of translations to score): Each translation should be tokenized into a list of tokens.
 - **references** (list of lists): references for each translation. Each reference should be tokenized into a list of tokens.
