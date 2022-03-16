@@ -139,13 +139,18 @@ The datasets are split in time depending on the prediction length specified in t
 
 ### Curation Rationale
 
-To facilitate the evaluation of global forecasting models. 
+To facilitate the evaluation of global forecasting models. All datasets in our repository are intended for research purposes and to evaluate the performance of new forecasting algorithms.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+Out of the 30 datasets, 23 were already publicly available in different platforms with different data
+formats. The original sources of all datasets are mentioned in the datasets table above.
+
+After extracting and curating these datasets, we analysed them individually to identify the datasets
+containing series with different frequencies and missing observations. Nine datasets contain time
+series belonging to different frequencies and the archive contains a separate dataset per each frequency.
 
 #### Who are the source language producers?
 
