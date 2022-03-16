@@ -99,6 +99,7 @@ class FRUGALSCORE(datasets.Metric):
             per_device_eval_batch_size=batch_size,
             report_to="all",
             no_cuda=(device == "cpu"),
+            log_level="warning",
         )
         dataset = {"sentence1": predictions, "sentence2": references}
         raw_datasets = datasets.Dataset.from_dict(dataset)
