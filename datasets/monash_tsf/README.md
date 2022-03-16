@@ -183,7 +183,11 @@ To facilitate the evaluation of global forecasting models.
 
 ### Dataset Curators
 
-[More Information Needed]
+* [Rakshitha Godahewa](mailto:rakshitha.godahewa@monash.edu)
+* [Christoph Bergmeir](mailto:christoph.bergmeir@monash.edu)
+* [Geoff Webb](mailto:geoff.webb@monash.edu)
+* [Rob Hyndman](mailto:rob.hyndman@monash.edu)
+* [Pablo Montero-Manso](mailto:pablo.monteromanso@sydney.edu.au)
 
 ### Licensing Information
 
