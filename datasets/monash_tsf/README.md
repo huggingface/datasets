@@ -122,7 +122,7 @@ A sample from the training set is provided below:
 
 ### Data Fields
 
-For this univariate regular time series we have:
+For the univariate regular time series each series has the following keys:
 
 * `start`: a datetime of the first entry of each time series in the dataset
 * `target`: an array[float32] of the actual target values
@@ -130,9 +130,11 @@ For this univariate regular time series we have:
 * `feat_dynamic_real`: optional array of covariate features
 * `item_id`: a string identifier of each time series in a dataset for reference
 
+For the multivariate time series the `target` is a vector of the multivariate dimension for each time point.
+
 ### Data Splits
 
-The datasets are split in time depending on the prediction length specified in the datasets. In particular for each time time series in a dataset there is a prediction length window of the future in the validation split and another prediction length more in the test split.
+The datasets are split in time depending on the prediction length specified in the datasets. In particular for each time series in a dataset there is a prediction length window of the future in the validation split and another prediction length more in the test split.
 
 
 ## Dataset Creation
