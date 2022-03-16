@@ -60,6 +60,43 @@ task_ids:
 
 The first comprehensive time series forecasting repository containing datasets of related time series to facilitate the evaluation of global forecasting models. All datasets are intended to use only for research purpose. Our repository contains 30 datasets including both publicly available time series datasets (in different formats) and datasets curated by us. Many datasets have different versions based on the frequency and the inclusion of missing values, making the total number of dataset variations to 58. Furthermore, it includes both real-world and competition time series datasets covering varied domains.
 
+The following table shows a list of datasets available:
+
+| Name                          | Domain    | No. of series | Freq.  | Pred. Len. | Source                                                                                                                              |
+|-------------------------------|-----------|---------------|--------|------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| weather                       | Nature    | 3010          | 1D     |            | [Sparks et al., 2020](https://cran.r-project.org/web/packages/bomrang)                                                              |
+| tourism_yearly                | Tourism   | 1311          | 1Y     |            | [Athanasopoulos et al., 2011](https://doi.org/10.1016/j.ijforecast.2010.04.009)                                                     |
+| tourism_quarterly             | Tourism   | 1311          | 1Q-JAN |            | [Athanasopoulos et al., 2011](https://doi.org/10.1016/j.ijforecast.2010.04.009)                                                     |
+| tourism_monthly               | Tourism   | 1311          | 1M     |            | [Athanasopoulos et al., 2011](https://doi.org/10.1016/j.ijforecast.2010.04.009)                                                     |
+| cif_2016                      | Banking   | 72            | 1M     |            | [Stepnicka and Burda, 2017](https://doi.org/10.1109/FUZZ-IEEE.2017.8015455)                                                         |
+| london_smart_meters           | Energy    | 5560          | 30T    |            | [Jean-Michel, 2019](https://www.kaggle.com/jeanmidev/smart-meters-in-london)                                                        |
+| australian_electricity_demand | Energy    | 5             | 30T    |            |                                                                                                                                     |
+| wind_farms_minutely           | Energy    | 339           | 1T     |            |                                                                                                                                     |
+| bitcoin                       | Economic  | 18            | 1D     |            |                                                                                                                                     |
+| pedestrian_counts             | Transport | 66            | 1H     |            | [City of Melbourne, 2020](https://data.melbourne.vic.gov.au/Transport/Pedestrian-Counting-System-Monthly-counts-per-hour/b2ak-trbp) |
+| vehicle_trips                 | Transport | 329           | 1D     |            | [fivethirtyeight, 2015](https://github.com/fivethirtyeight/uber-tlc-foil-response)                                                  |
+| kdd_cup_2018                  | Nature    | 270           | 1H     |            | [KDD Cup, 2018](https://www.kdd.org/kdd2018/kdd-cup)                                                                                |
+| nn5_daily                     | Banking   | 111           | 1D     |            | [Ben Taieb et al., 2012](https://doi.org/10.1016/j.eswa.2012.01.039)                                                                |
+| nn5_weekly                    | Banking   | 111           | 1W-MON |            | [Ben Taieb et al., 2012](https://doi.org/10.1016/j.eswa.2012.01.039)                                                                |
+| kaggle_web_traffic            | Web       | 145063        | 1D     |            | [Google, 2017](https://www.kaggle.com/c/web-traffic-time-series-forecasting)                                                        |
+| kaggle_web_traffic_weekly     | Web       | 145063        | 1W-WED |            | [Google, 2017](https://www.kaggle.com/c/web-traffic-time-series-forecasting)                                                        |
+| solar_10_minutes              | Energy    | 137           | 10T    |            | [Solar, 2020](https://www.nrel.gov/grid/solar-power-data.html)                                                                      |
+| solar_weekly                  | Energy    | 137           | 1W-SUN |            | [Solar, 2020](https://www.nrel.gov/grid/solar-power-data.html)                                                                      |
+| car_parts                     | Sales     | 2674          | 1M     |            | [Hyndman, 2015](https://cran.r-project.org/web/packages/expsmooth/)                                                                 |
+| fred_md                       | Economic  | 107           | 1M     |            | [McCracken and Ng, 2016](https://doi.org/10.1080/07350015.2015.1086655)                                                             |
+| traffic_hourly                | Transport | 862           | 1H     |            | [Caltrans, 2020](http://pems.dot.ca.gov/)                                                                                           |
+| traffic_weekly                | Transport | 862           | 1W-WED |            | [Caltrans, 2020](http://pems.dot.ca.gov/)                                                                                           |
+| hospital                      | Health    | 767           | 1M     |            | [Hyndman, 2015](https://cran.r-project.org/web/packages/expsmooth/)                                                                 |
+| covid_deaths                  | Health    | 266           | 1D     |            | [Johns Hopkins University, 2020](https://github.com/CSSEGISandData/COVID-19)                                                        |
+| sunspot                       | Nature    | 1             | 1D     |            | [Sunspot, 2015](http://www.sidc.be/silso/newdataset)                                                                                |
+| saugeenday                    | Nature    | 1             | 1D     |            | [McLeod and Gweon, 2013](http://www.jenvstat.org/v04/i11)                                                                           |
+| us_births                     | Health    | 1             | 1D     |            | [Pruim et al., 2020](https://cran.r-project.org/web/packages/mosaicData)                                                            |
+| solar_4_seconds               | Energy    | 1             | 4S     |            |                                                                                                                                     |
+| wind_4_seconds                | Energy    | 1             | 4S     |            |                                                                                                                                     |
+| rideshare                     | Transport | 2304          | 1H     |            |                                                                                                                                     |
+| oikolab_weather               | Nature    | 8             | 1H     |            | [Oikolab](https://oikolab.com/)                                                                                                     |
+| temperature_rain              | Nature    | 32072         | 1D     |            |                                                                                                                                     |
+
 ### Supported Tasks and Leaderboards
 
 - `univariate-time-series-forecasting`: The time series forecasting tasks involves learning the future `target` values of time series in a dataset for the `prediction_length` time steps. The performance of the forecast models can then be validated via the ground truth in the `validation` split and tested via the `test` split.
