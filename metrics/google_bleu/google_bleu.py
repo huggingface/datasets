@@ -117,7 +117,7 @@ Examples:
         >>> results = google_bleu.compute(predictions=hypotheses, references=list_of_references)
         >>> print(round(results["google_bleu"], 2))
         0.61
-    
+
     Example 3:
         >>> hyp1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
         ...         'ensures', 'that', 'the', 'rubber', 'duck', 'always',
