@@ -7,13 +7,11 @@ import huggingface_hub
 from fsspec.implementations.local import LocalFileSystem
 from tqdm.contrib.concurrent import thread_map
 
-from datasets.filesystems.hffilesystem import HfFileSystem
-
+from .filesystems.hffilesystem import HfFileSystem
 from .splits import Split
 from .utils import logging
 from .utils.file_utils import hf_hub_url, is_remote_url, request_etag
 from .utils.py_utils import string_to_dict
-from .utils.tqdm_utils import is_progress_bar_enabled, tqdm
 
 
 DEFAULT_SPLIT = str(Split.TRAIN)
@@ -170,7 +168,7 @@ def resolve_patterns_locally_or_by_urls(
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
 
-    Examples:
+    Example::
 
         >>> import huggingface_hub
         >>> from datasets.data_files import resolve_patterns_locally_or_by_urls
@@ -302,7 +300,7 @@ def _resolve_single_pattern_in_dataset_repository(
 ) -> List[PurePath]:
     data_files_ignore = FILES_TO_IGNORE
     fs = HfFileSystem(repo_info=dataset_info)
-    glob_iter = [PurePath(filepath) for filepath in fs.glob(pattern) if fs.isfile(filepath)]
+    glob_iter = [PurePath(filepath) for filepath in fs.glob(PurePath(pattern).as_posix()) if fs.isfile(filepath)]
     matched_paths = [
         filepath
         for filepath in glob_iter
@@ -353,7 +351,7 @@ def resolve_patterns_in_dataset_repository(
     - '*' matches any character except a forward-slash (to match just the file or directory name)
     - '**' matches any character including a forward-slash /
 
-    Examples:
+    Example::
 
         >>> import huggingface_hub
         >>> from datasets.data_files import resolve_patterns_in_dataset_repository
@@ -495,9 +493,9 @@ def _get_origin_metadata_locally_or_by_urls(
         partial(_get_single_origin_metadata_locally_or_by_urls, use_auth_token=use_auth_token),
         data_files,
         max_workers=max_workers,
-        tqdm_class=tqdm,
+        tqdm_class=logging.tqdm,
         desc="Resolving data files",
-        disable=len(data_files) <= 16 or not is_progress_bar_enabled(),
+        disable=len(data_files) <= 16 or not logging.is_progress_bar_enabled(),
     )
 
 

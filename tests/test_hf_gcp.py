@@ -8,7 +8,7 @@ from datasets import config
 from datasets.arrow_reader import HF_GCP_BASE_URL
 from datasets.builder import DatasetBuilder
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils import cached_path
+from datasets.utils.file_utils import cached_path
 
 
 DATASETS_ON_HF_GCP = [

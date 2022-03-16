@@ -1,0 +1,226 @@
+# Metrics
+
+Metrics are important for evaluating a model's predictions. In the tutorial, you learned how to compute a metric over an entire evaluation set. You have also seen how to load a metric. 
+
+This guide will show you how to:
+
+- Add predictions and references.
+- Compute metrics using different methods.
+- Write your own metric loading script.
+
+## Add predictions and references
+
+When you want to add model predictions and references to a [`datasets.Metric`] instance, you have two options:
+
+- [`datasets.Metric.add`] adds a single `prediction` and `reference`.
+
+- [`datasets.Metric.add_batch`] adds a batch of `predictions` and `references`.
+
+Use [`datasets.Metric.add_batch`] by passing it your model predictions, and the references the model predictions should be evaluated against:
+
+```py
+>>> import datasets
+>>> metric = datasets.load_metric('my_metric')
+>>> for model_input, gold_references in evaluation_dataset:
+...     model_predictions = model(model_inputs)
+...     metric.add_batch(predictions=model_predictions, references=gold_references)
+>>> final_score = metric.compute()
+```
+
+<Tip>
+
+Metrics accepts various input formats (Python lists, NumPy arrays, PyTorch tensors, etc.) and converts them to an appropriate format for storage and computation.
+
+</Tip>
+
+## Compute scores
+
+The most straightforward way to calculate a metric is to call [`datasets.Metric.compute`]. But some metrics have additional arguments that allow you to modify the metrics behavior. 
+
+Let's load the [SacreBLEU](https://huggingface.co/metrics/sacrebleu) metric, and compute it with a different smoothing method.
+
+1. Load the SacreBLEU metric:
+
+```py
+>>> import datasets
+>>> metric = datasets.load_metric('sacrebleu')
+```
+
+2. Inspect the different argument methods for computing the metric:
+
+```py
+>>> print(metric.inputs_description)
+Produces BLEU scores along with its sufficient statistics
+from a source against one or more references.
+
+Args:
+    predictions: The system stream (a sequence of segments).
+    references: A list of one or more reference streams (each a sequence of segments).
+    smooth_method: The smoothing method to use. (Default: 'exp').
+    smooth_value: The smoothing value. Only valid for 'floor' and 'add-k'. (Defaults: floor: 0.1, add-k: 1).
+    tokenize: Tokenization method to use for BLEU. If not provided, defaults to 'zh' for Chinese, 'ja-mecab' for Japanese and '13a' (mteval) otherwise.
+    lowercase: Lowercase the data. If True, enables case-insensitivity. (Default: False).
+    force: Insist that your tokenized input is actually detokenized.
+...
+```
+
+3. Compute the metric with the `floor` method, and a different `smooth_value`:
+
+```py
+>>> score = metric.compute(smooth_method="floor", smooth_value=0.2)
+```
+
+<a id='metric_script'></a>
+
+## Custom metric loading script
+
+Write a metric loading script to use your own custom metric (or one that is not on the Hub). Then you can load it as usual with [`datasets.load_metric`].
+
+To help you get started, open the [SQuAD metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/squad/squad.py) and follow along.
+
+<Tip>
+
+Get jump started with our metric loading script [template](https://github.com/huggingface/datasets/blob/master/templates/new_metric_script.py)!
+
+</Tip>
+
+### Add metric attributes
+
+Start by adding some information about your metric in [`datasets.Metric._info`]. The most important attributes you should specify are:
+
+1. [`datasets.MetricInfo.description`] provides a brief description about your metric.
+
+2. [`datasets.MetricInfo.citation`] contains a BibTex citation for the metric.
+
+3. [`datasets.MetricInfo.inputs_description`] describes the expected inputs and outputs. It may also provide an example usage of the metric.
+
+4. [`datasets.MetricInfo.features`] defines the name and type of the predictions and references.
+
+After you've filled out all these fields in the template, it should look like the following example from the SQuAD metric script:
+
+```py
+class Squad(datasets.Metric):
+    def _info(self):
+        return datasets.MetricInfo(
+            description=_DESCRIPTION,
+            citation=_CITATION,
+            inputs_description=_KWARGS_DESCRIPTION,
+            features=datasets.Features(
+                {
+                    "predictions": {"id": datasets.Value("string"), "prediction_text": datasets.Value("string")},
+                    "references": {
+                        "id": datasets.Value("string"),
+                        "answers": datasets.features.Sequence(
+                            {
+                                "text": datasets.Value("string"),
+                                "answer_start": datasets.Value("int32"),
+                            }
+                        ),
+                    },
+                }
+            ),
+            codebase_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
+            reference_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
+        )
+```
+
+### Download metric files
+
+If your metric needs to download, or retrieve local files, you will need to use the [`datasets.Metric._download_and_prepare`] method. For this example, let's examine the [BLEURT metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/bleurt/bleurt.py). 
+
+1. Provide a dictionary of URLs that point to the metric files:
+
+```py
+CHECKPOINT_URLS = {
+    "bleurt-tiny-128": "https://storage.googleapis.com/bleurt-oss/bleurt-tiny-128.zip",
+    "bleurt-tiny-512": "https://storage.googleapis.com/bleurt-oss/bleurt-tiny-512.zip",
+    "bleurt-base-128": "https://storage.googleapis.com/bleurt-oss/bleurt-base-128.zip",
+    "bleurt-base-512": "https://storage.googleapis.com/bleurt-oss/bleurt-base-512.zip",
+    "bleurt-large-128": "https://storage.googleapis.com/bleurt-oss/bleurt-large-128.zip",
+    "bleurt-large-512": "https://storage.googleapis.com/bleurt-oss/bleurt-large-512.zip",
+}
+```
+
+<Tip>
+
+If the files are stored locally, provide a dictionary of path(s) instead of URLs.
+
+</Tip>
+
+2. [`datasets.Metric._download_and_prepare`] will take the URLs and download the metric files specified:
+
+```py
+def _download_and_prepare(self, dl_manager):
+
+    # check that config name specifies a valid BLEURT model
+    if self.config_name == "default":
+        logger.warning(
+            "Using default BLEURT-Base checkpoint for sequence maximum length 128. "
+            "You can use a bigger model for better results with e.g.: datasets.load_metric('bleurt', 'bleurt-large-512')."
+        )
+        self.config_name = "bleurt-base-128"
+    if self.config_name not in CHECKPOINT_URLS.keys():
+        raise KeyError(
+            f"{self.config_name} model not found. You should supply the name of a model checkpoint for bleurt in {CHECKPOINT_URLS.keys()}"
+        )
+
+    # download the model checkpoint specified by self.config_name and set up the scorer
+    model_path = dl_manager.download_and_extract(CHECKPOINT_URLS[self.config_name])
+    self.scorer = score.BleurtScorer(os.path.join(model_path, self.config_name))
+```
+
+### Compute score
+
+[`datasets.DatasetBuilder._compute`] provides the actual instructions for how to compute a metric given the predictions and references. Now let's take a look at the [GLUE metric loading script](https://github.com/huggingface/datasets/blob/master/metrics/glue/glue.py).
+
+1. Provide the functions for [`datasets.DatasetBuilder._compute`] to calculate your metric:
+
+```py
+def simple_accuracy(preds, labels):
+    return (preds == labels).mean().item()
+
+def acc_and_f1(preds, labels):
+    acc = simple_accuracy(preds, labels)
+    f1 = f1_score(y_true=labels, y_pred=preds).item()
+    return {
+        "accuracy": acc,
+        "f1": f1,
+    }
+
+def pearson_and_spearman(preds, labels):
+    pearson_corr = pearsonr(preds, labels)[0].item()
+    spearman_corr = spearmanr(preds, labels)[0].item()
+    return {
+        "pearson": pearson_corr,
+        "spearmanr": spearman_corr,
+    }
+```
+
+2. Create [`datasets.DatasetBuilder._compute`] with instructions for what metric to calculate for each configuration:
+
+```py
+def _compute(self, predictions, references):
+    if self.config_name == "cola":
+        return {"matthews_correlation": matthews_corrcoef(references, predictions)}
+    elif self.config_name == "stsb":
+        return pearson_and_spearman(predictions, references)
+    elif self.config_name in ["mrpc", "qqp"]:
+        return acc_and_f1(predictions, references)
+    elif self.config_name in ["sst2", "mnli", "mnli_mismatched", "mnli_matched", "qnli", "rte", "wnli", "hans"]:
+        return {"accuracy": simple_accuracy(predictions, references)}
+    else:
+        raise KeyError(
+            "You should supply a configuration name selected in "
+            '["sst2", "mnli", "mnli_mismatched", "mnli_matched", '
+            '"cola", "stsb", "mrpc", "qqp", "qnli", "rte", "wnli", "hans"]'
+        )
+```
+
+### Test
+
+Once you're finished writing your metric loading script, try to load it locally:
+
+```py
+>>> from datasets import load_metric
+>>> metric = load_metric('PATH/TO/MY/SCRIPT.py')
+```

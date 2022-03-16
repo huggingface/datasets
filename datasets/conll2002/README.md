@@ -134,10 +134,10 @@ The original splits were named `train`, `testa` and `testb` and they correspond 
 
 The splits have the following sizes :
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| N. Examples (Spanish)      | 8324   | 1916  | 1518 |
-| N. Examples (Dutch)        | 15807  | 2896  | 5196 |
+|                            |  train |  validation |  test |
+| -----                      |-------:|------------:|------:|
+| N. Examples (Spanish)      |   8324 |        1916 |  1518 |
+| N. Examples (Dutch)        |  15807 |        2896 |  5196 |
 
 ## Dataset Creation
 

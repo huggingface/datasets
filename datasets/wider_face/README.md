@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - extended|other-wider
 task_categories:
-- other
+- object-detection
 task_ids:
-- other-other-face-detection
+- face-detection
 paperswithcode_id: wider-face-1
 pretty_name: WIDER FACE
 ---
