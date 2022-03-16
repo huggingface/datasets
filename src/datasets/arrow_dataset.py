@@ -86,7 +86,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils.file_utils import estimate_dataset_size
+from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
 from .utils.streaming_download_manager import xgetsize
@@ -3473,14 +3473,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             buffer = BytesIO()
             shard.to_parquet(buffer)
             uploaded_size += buffer.tell()
-            api.upload_file(
-                path_or_fileobj=buffer.getvalue(),
-                path_in_repo=path_in_repo(index),
-                repo_id=repo_id,
-                token=token,
-                repo_type="dataset",
-                revision=branch,
-                identical_ok=True,
+            _retry(
+                api.upload_file,
+                func_kwargs=dict(
+                    path_or_fileobj=buffer.getvalue(),
+                    path_in_repo=path_in_repo(index),
+                    repo_id=repo_id,
+                    token=token,
+                    repo_type="dataset",
+                    revision=branch,
+                    identical_ok=True,
+                ),
+                exceptions=HTTPError,
+                status_codes=[504],
+                base_wait_time=2.0,
+                max_retries=5,
+                max_wait_time=20.0,
             )
         return repo_id, split, uploaded_size, dataset_nbytes
 
