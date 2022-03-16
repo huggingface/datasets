@@ -41,8 +41,9 @@
 
 import pickle
 from collections import Counter, defaultdict
-
+import os
 import datasets
+from datasets.tasks import ImageClassification
 
 
 _CITATION = """\
@@ -138,7 +139,7 @@ class Metashift(datasets.GeneratorBasedBuilder):
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
-            task_templates=[ImageClassification(image_column="image", label_column="label")]
+            task_templates=[ImageClassification(image_column="image", label_column="label")],
         )
 
     @staticmethod
@@ -153,7 +154,7 @@ class Metashift(datasets.GeneratorBasedBuilder):
             load_data = pickle.load(pkl_f)
             return load_data
 
-    def _preprocess_groups(self, pkl_save_path, output_files_flag=False, subject_classes=_SELECTED_CLASSES):
+    def _preprocess_groups(self, pkl_save_path, output_files_flag=False, subject_classes=_CLASSES):
 
         IMAGE_SUBSET_SIZE_THRESHOLD = 25
         trainsg_dupes = set()
