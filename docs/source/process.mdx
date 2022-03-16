@@ -255,15 +255,13 @@ For example, the [Poem Sentiment](https://huggingface.co/datasets/poem_sentiment
 
 >>> poem = load_dataset("poem_sentiment")
 >>> labels = poem["train"].features["label"].names
->>> label2id, id2label = dict(), dict()
->>> for i, label in enumerate(labels):
-...     label2id[label] = str(i)
-...     id2label[str(i)] = label
+>>> id2label = {i, label for i, label in enumerate(labels)}
+>>> label2id = {label, i for i, label in id2label}
 >>> label2id
 {'mixed': '3', 'negative': '0', 'no_impact': '2', 'positive': '1'}
 ```
 
-According to the Poem Sentiment [dataset card](https://huggingface.co/datasets/poem_sentiment#data-fields), this mapping is different from the original label mapping. To use the original label mappings, create a dictionary of the name and id to align on. There was no `mixed` label in the original dataset, so you don't have to change it:
+According to the Poem Sentiment [dataset card](https://huggingface.co/datasets/poem_sentiment#data-fields), this mapping is different from the original label mapping. The label indices are different, and the authors dropped the `mixed` label from the final version of the original dataset. To use the original label mappings, create a dictionary of the label name and id to align on (we won't do any additional preprocessing to remove the `mixed` label):
 
 ```py
 >>> label2id = {'negative': -1, 'no_impact': 0, 'positive': 1, 'mixed': 3}
