@@ -246,39 +246,28 @@ Notice how the subfields are now their own independent columns: `answers.text` a
 
 ## Align
 
-The [`~datasets.Dataset.align_labels_with_mapping`] function is used to align a dataset label id with the label name, or you can also assign a different mapping of label to ids. 
+The [`~datasets.Dataset.align_labels_with_mapping`] function aligns a dataset label id with the label name. Not all 🤗 Transformers models follow the prescribed label mapping of the original dataset, especially for NLI dataset labels. For example, the [MNLI](https://huggingface.co/datasets/glue) dataset uses the following label mapping:
 
-For example, the [Poem Sentiment](https://huggingface.co/datasets/poem_sentiment) dataset uses the following label mapping:
+```py
+>>> label2id = {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+```
+
+To align the dataset label mapping with the mapping used by a model, create a dictionary of the label name and id to align on:
+
+```py
+>>> label2id = {"contradiction": 0, "neutral": 1, "entailment": 2}
+```
+
+Pass the dictionary of the label mappings to the [`~datasets.Dataset.align_labels_with_mapping`] function, and the column to align on:
 
 ```py
 >>> from datasets import load_dataset
 
->>> poem = load_dataset("poem_sentiment")
->>> labels = poem["train"].features["label"].names
->>> id2label = {i, label for i, label in enumerate(labels)}
->>> label2id = {label, i for i, label in id2label}
->>> label2id
-{'mixed': '3', 'negative': '0', 'no_impact': '2', 'positive': '1'}
+>>> mnli = load_dataset("glue", "mnli", split="train")
+>>> mnli_aligned = mnli.align_labels_with_mapping(label2id, "label")
 ```
 
-According to the Poem Sentiment [dataset card](https://huggingface.co/datasets/poem_sentiment#data-fields), this mapping is different from the original label mapping. The label indices are different, and the authors dropped the `mixed` label from the final version of the original dataset. To use the original label mappings, create a dictionary of the label name and id to align on (we won't do any additional preprocessing to remove the `mixed` label):
-
-```py
->>> label2id = {'negative': -1, 'no_impact': 0, 'positive': 1, 'mixed': 3}
-```
-
-Pass the dictionary of the original label mappings to the [`~datasets.Dataset.align_labels_with_mapping`] function, and the column to align on:
-
-```py
->>> aligned_poem = poem.align_labels_with_mapping(label2id, "label")
-```
-
-Now when you look at the label mapping, it is aligned with the mappings from the original dataset:
-
-```py
->>> label2id
-{'mixed': 3, 'negative': -1, 'no_impact': 0, 'positive': 1}
-```
+You can also use this function to assign a custom mapping of labels to ids.
 
 ## Map
 
