@@ -11,10 +11,10 @@ from typing import Optional
 from datasets import config
 from datasets.commands import BaseDatasetsCLICommand
 from datasets.load import dataset_module_factory, import_main_class
-from datasets.utils import MockDownloadManager
 from datasets.utils.download_manager import DownloadManager
 from datasets.utils.file_utils import DownloadConfig
 from datasets.utils.logging import get_logger, set_verbosity_warning
+from datasets.utils.mock_download_manager import MockDownloadManager
 from datasets.utils.py_utils import map_nested
 
 

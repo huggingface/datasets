@@ -1,0 +1,19 @@
+# All about metrics
+
+🤗 Datasets provides access to a wide range of NLP metrics. You can load metrics associated with benchmark datasets like GLUE or SQuAD, and complex metrics like BLEURT or BERTScore, with a single command: [`datasets.load_metric`]. Once you've loaded a metric, easily compute and evaluate a model's performance.
+
+## ELI5: `load_metric`
+
+Loading a dataset and loading a metric share many similarities. This was an intentional design choice because we wanted to create a simple and unified experience. When you call [`datasets.load_metric`], the metric loading script is downloaded and imported from GitHub (if it hasn't already been downloaded before). It contains information about the metric such as it's citation, homepage, and description.
+
+The metric loading script will instantiate and return a [`datasets.Metric`] object. This stores the predictions and references, which you need to compute the metric values. The [`datasets.Metric`] object is stored as an Apache Arrow table. As a result, the predictions and references are stored directly on disk with memory-mapping. This enables 🤗 Datasets to do a lazy computation of the metric, and makes it easier to gather all the predictions in a distributed setting.
+
+## Distributed evaluation
+
+Computing metrics in a distributed environment can be tricky. Metric evaluation is executed in separate Python processes, or nodes, on different subsets of a dataset. Typically, when a metric score is additive (`f(AuB) = f(A) + f(B)`), you can use distributed reduce operations to gather the scores for each subset of the dataset. But when a metric is non-additive (`f(AuB) ≠ f(A) + f(B)`), it's not that simple. For example, you can't take the sum of the [F1](https://huggingface.co/metrics/f1) scores of each data subset as your **final metric**.
+
+A common way to overcome this issue is to fallback on single process evaluation. The metrics are evaluated on a single GPU, which becomes inefficient.
+
+🤗 Datasets solves this issue by only computing the final metric on the first node. The predictions and references are computed and provided to the metric separately for each node. These are temporarily stored in an Apache Arrow table, avoiding cluttering the GPU or CPU memory. When you are ready to [`datasets.Metric.compute`] the final metric, the first node is able to access the predictions and references stored on all the other nodes. Once it has gathered all the predictions and references, [`datasets.Metric.compute`] will perform the final metric evaluation.
+
+This solution allows 🤗 Datasets to perform distributed predictions, which is important for evaluation speed in distributed settings. At the same time, you can also use complex non-additive metrics without wasting valuable GPU or CPU memory.

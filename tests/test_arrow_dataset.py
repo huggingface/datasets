@@ -17,7 +17,7 @@ import pytest
 from absl.testing import parameterized
 
 import datasets.arrow_dataset
-from datasets import concatenate_datasets, interleave_datasets, load_from_disk, temp_seed
+from datasets import concatenate_datasets, interleave_datasets, load_from_disk
 from datasets.arrow_dataset import Dataset, transmit_format, update_metadata_with_features
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Array2D, Array3D, ClassLabel, Features, Sequence, Value
@@ -33,6 +33,7 @@ from datasets.tasks import (
     TextClassification,
 )
 from datasets.utils.logging import WARNING
+from datasets.utils.py_utils import temp_seed
 
 from .conftest import s3_test_bucket_name
 from .utils import (
@@ -433,20 +434,6 @@ class BaseDatasetTest(TestCase):
                 dset.set_format("numpy", columns=["col_1", "col_2"])
                 self.assertEqual(dset._fingerprint, transform(dset)._fingerprint)
 
-    def test_cast_in_place(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                features = dset.features
-                features["col_1"] = Value("float64")
-                features = Features({k: features[k] for k in list(features)[::-1]})
-                fingerprint = dset._fingerprint
-                dset.cast_(features)
-                self.assertEqual(dset.num_columns, 3)
-                self.assertEqual(dset.features["col_1"], Value("float64"))
-                self.assertIsInstance(dset[0]["col_1"], float)
-                self.assertNotEqual(dset._fingerprint, fingerprint)
-                assert_arrow_metadata_are_synced_with_dataset_features(dset)
-
     def test_cast(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
@@ -499,22 +486,6 @@ class BaseDatasetTest(TestCase):
                     with self.assertRaises(ValueError):
                         dset.class_encode_column(column)
 
-    def test_remove_columns_in_place(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                fingerprint = dset._fingerprint
-                with assert_arrow_memory_doesnt_increase():
-                    dset.remove_columns_(column_names="col_1")
-                self.assertEqual(dset.num_columns, 2)
-                self.assertListEqual(list(dset.column_names), ["col_2", "col_3"])
-                assert_arrow_metadata_are_synced_with_dataset_features(dset)
-
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                dset.remove_columns_(column_names=["col_1", "col_2", "col_3"])
-                self.assertEqual(dset.num_columns, 0)
-                self.assertNotEqual(dset._fingerprint, fingerprint)
-                assert_arrow_metadata_are_synced_with_dataset_features(dset)
-
     def test_remove_columns(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
@@ -530,16 +501,6 @@ class BaseDatasetTest(TestCase):
                     self.assertEqual(new_dset.num_columns, 0)
                     self.assertNotEqual(new_dset._fingerprint, fingerprint)
                     assert_arrow_metadata_are_synced_with_dataset_features(new_dset)
-
-    def test_rename_column_in_place(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True) as dset:
-                fingerprint = dset._fingerprint
-                dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
-                self.assertEqual(dset.num_columns, 3)
-                self.assertListEqual(list(dset.column_names), ["new_name", "col_2", "col_3"])
-                self.assertNotEqual(dset._fingerprint, fingerprint)
-                assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
     def test_rename_column(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -740,7 +701,7 @@ class BaseDatasetTest(TestCase):
             )
 
             dset3 = dset3.rename_column("foo", "new_foo")
-            dset3.remove_columns_("new_foo")
+            dset3 = dset3.remove_columns("new_foo")
             if in_memory:
                 dset3._data.table = Unpicklable()
             else:
@@ -767,14 +728,14 @@ class BaseDatasetTest(TestCase):
             ) as dset:
                 with self._to(in_memory, tmp_dir, dset) as dset:
                     fingerprint = dset._fingerprint
-                    dset.flatten_()
-                    self.assertListEqual(sorted(dset.column_names), ["a.b.c", "foo"])
-                    self.assertListEqual(sorted(dset.features.keys()), ["a.b.c", "foo"])
-                    self.assertDictEqual(
-                        dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
-                    )
-                    self.assertNotEqual(dset._fingerprint, fingerprint)
-                    assert_arrow_metadata_are_synced_with_dataset_features(dset)
+                    with dset.flatten() as dset:
+                        self.assertListEqual(sorted(dset.column_names), ["a.b.c", "foo"])
+                        self.assertListEqual(sorted(dset.features.keys()), ["a.b.c", "foo"])
+                        self.assertDictEqual(
+                            dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
+                        )
+                        self.assertNotEqual(dset._fingerprint, fingerprint)
+                        assert_arrow_metadata_are_synced_with_dataset_features(dset)
 
     def test_map(self, in_memory):
         # standard
@@ -1139,7 +1100,7 @@ class BaseDatasetTest(TestCase):
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     with self._caplog.at_level(WARNING):
                         with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
-                            datasets.set_caching_enabled(False)
+                            datasets.disable_caching()
                             with dset.map(lambda x: {"foo": "bar"}) as dset_test1:
                                 with dset.map(lambda x: {"foo": "bar"}) as dset_test2:
                                     self.assertNotEqual(dset_test1.cache_files, dset_test2.cache_files)
@@ -1150,7 +1111,7 @@ class BaseDatasetTest(TestCase):
                                     self.assertIn("tmp", dset_test1.cache_files[0]["filename"])
                                     self.assertIn("tmp", dset_test2.cache_files[0]["filename"])
             finally:
-                datasets.set_caching_enabled(True)
+                datasets.enable_caching()
 
     @require_torch
     def test_map_torch(self, in_memory):
@@ -1553,31 +1514,31 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with self._create_dummy_dataset(in_memory, tmp_dir) as dset:
                 self.assertEqual(len(dset.cache_files), 0 if in_memory else 1)
-                dset.rename_column_("filename", "file")
-                self.assertListEqual(dset.column_names, ["file"])
-                with dset.select(range(5)) as dset:
-                    self.assertEqual(len(dset), 5)
-                    with dset.map(lambda x: {"id": int(x["file"][-1])}) as dset:
-                        self.assertListEqual(sorted(dset.column_names), ["file", "id"])
-                        dset.rename_column_("id", "number")
-                        self.assertListEqual(sorted(dset.column_names), ["file", "number"])
-                        with dset.select([1]) as dset:
-                            self.assertEqual(dset[0]["file"], "my_name-train_1")
-                            self.assertEqual(dset[0]["number"], 1)
+                with dset.rename_column("filename", "file") as dset:
+                    self.assertListEqual(dset.column_names, ["file"])
+                    with dset.select(range(5)) as dset:
+                        self.assertEqual(len(dset), 5)
+                        with dset.map(lambda x: {"id": int(x["file"][-1])}) as dset:
+                            self.assertListEqual(sorted(dset.column_names), ["file", "id"])
+                            with dset.rename_column("id", "number") as dset:
+                                self.assertListEqual(sorted(dset.column_names), ["file", "number"])
+                                with dset.select([1]) as dset:
+                                    self.assertEqual(dset[0]["file"], "my_name-train_1")
+                                    self.assertEqual(dset[0]["number"], 1)
 
-                            self.assertEqual(dset._indices["indices"].to_pylist(), [1])
-                            if not in_memory:
-                                self.assertIn(
-                                    ("rename_columns", (["file", "number"],), {}),
-                                    dset._data.replays,
-                                )
-                            if not in_memory:
-                                dset._data.table = Unpicklable()  # check that we don't pickle the entire table
+                                    self.assertEqual(dset._indices["indices"].to_pylist(), [1])
+                                    if not in_memory:
+                                        self.assertIn(
+                                            ("rename_columns", (["file", "number"],), {}),
+                                            dset._data.replays,
+                                        )
+                                    if not in_memory:
+                                        dset._data.table = Unpicklable()  # check that we don't pickle the entire table
 
-                            pickled = pickle.dumps(dset)
-                            with pickle.loads(pickled) as loaded:
-                                self.assertEqual(loaded[0]["file"], "my_name-train_1")
-                                self.assertEqual(loaded[0]["number"], 1)
+                                    pickled = pickle.dumps(dset)
+                                    with pickle.loads(pickled) as loaded:
+                                        self.assertEqual(loaded[0]["file"], "my_name-train_1")
+                                        self.assertEqual(loaded[0]["number"], 1)
 
     def test_shuffle(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1654,28 +1615,28 @@ class BaseDatasetTest(TestCase):
                     with_indices=True,
                     remove_columns=["filename"],
                 ) as formatted_dset:
-                    formatted_dset.flatten_()
-                    formatted_dset.set_format("numpy")
-                    formatted_dset.export(filename=tfrecord_path, format="tfrecord")
+                    with formatted_dset.flatten() as formatted_dset:
+                        formatted_dset.set_format("numpy")
+                        formatted_dset.export(filename=tfrecord_path, format="tfrecord")
 
-                    # Import the data
-                    import tensorflow as tf
+                        # Import the data
+                        import tensorflow as tf
 
-                    tf_dset = tf.data.TFRecordDataset([tfrecord_path])
-                    feature_description = {
-                        "id": tf.io.FixedLenFeature([], tf.int64),
-                        "question": tf.io.FixedLenFeature([], tf.string),
-                        "answers.text": tf.io.VarLenFeature(tf.string),
-                        "answers.answer_start": tf.io.VarLenFeature(tf.int64),
-                    }
-                    tf_parsed_dset = tf_dset.map(
-                        lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
-                    )
-                    # Test that keys match original dataset
-                    for i, ex in enumerate(tf_parsed_dset):
-                        self.assertEqual(ex.keys(), formatted_dset[i].keys())
-                    # Test for equal number of elements
-                    self.assertEqual(i, len(formatted_dset) - 1)
+                        tf_dset = tf.data.TFRecordDataset([tfrecord_path])
+                        feature_description = {
+                            "id": tf.io.FixedLenFeature([], tf.int64),
+                            "question": tf.io.FixedLenFeature([], tf.string),
+                            "answers.text": tf.io.VarLenFeature(tf.string),
+                            "answers.answer_start": tf.io.VarLenFeature(tf.int64),
+                        }
+                        tf_parsed_dset = tf_dset.map(
+                            lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
+                        )
+                        # Test that keys match original dataset
+                        for i, ex in enumerate(tf_parsed_dset):
+                            self.assertEqual(ex.keys(), formatted_dset[i].keys())
+                        # Test for equal number of elements
+                        self.assertEqual(i, len(formatted_dset) - 1)
 
     def test_to_csv(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -2924,28 +2885,6 @@ def test_dataset_to_json(dataset, tmp_path):
             },
         ),
         ("flatten", tuple(), {}),
-        ("rename_column_", tuple(), {"original_column_name": "labels", "new_column_name": "label"}),
-        ("remove_columns_", tuple(), {"column_names": "labels"}),
-        (
-            "cast_",
-            tuple(),
-            {
-                "features": Features(
-                    {
-                        "tokens": Sequence(Value("string")),
-                        "labels": Sequence(Value("int16")),
-                        "answers": Sequence(
-                            {
-                                "text": Value("string"),
-                                "answer_start": Value("int32"),
-                            }
-                        ),
-                        "id": Value("int32"),
-                    }
-                )
-            },
-        ),
-        ("flatten_", tuple(), {}),
     ],
 )
 def test_pickle_dataset_after_transforming_the_table(in_memory, method_and_params, arrow_file):

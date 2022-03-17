@@ -57,17 +57,17 @@ class TokenizersDumpTest(TestCase):
 
         # TODO: add hash consistency tests across sessions
         tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-        hash1 = md5(datasets.utils.dumps(tokenizer)).hexdigest()
-        hash1_lambda = md5(datasets.utils.dumps(lambda x: tokenizer(x))).hexdigest()
-        hash1_encode = md5(datasets.utils.dumps(encode)).hexdigest()
+        hash1 = md5(datasets.utils.py_utils.dumps(tokenizer)).hexdigest()
+        hash1_lambda = md5(datasets.utils.py_utils.dumps(lambda x: tokenizer(x))).hexdigest()
+        hash1_encode = md5(datasets.utils.py_utils.dumps(encode)).hexdigest()
         tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
-        hash2 = md5(datasets.utils.dumps(tokenizer)).hexdigest()
-        hash2_lambda = md5(datasets.utils.dumps(lambda x: tokenizer(x))).hexdigest()
-        hash2_encode = md5(datasets.utils.dumps(encode)).hexdigest()
+        hash2 = md5(datasets.utils.py_utils.dumps(tokenizer)).hexdigest()
+        hash2_lambda = md5(datasets.utils.py_utils.dumps(lambda x: tokenizer(x))).hexdigest()
+        hash2_encode = md5(datasets.utils.py_utils.dumps(encode)).hexdigest()
         tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-        hash3 = md5(datasets.utils.dumps(tokenizer)).hexdigest()
-        hash3_lambda = md5(datasets.utils.dumps(lambda x: tokenizer(x))).hexdigest()
-        hash3_encode = md5(datasets.utils.dumps(encode)).hexdigest()
+        hash3 = md5(datasets.utils.py_utils.dumps(tokenizer)).hexdigest()
+        hash3_lambda = md5(datasets.utils.py_utils.dumps(lambda x: tokenizer(x))).hexdigest()
+        hash3_encode = md5(datasets.utils.py_utils.dumps(encode)).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
         self.assertEqual(hash1_lambda, hash3_lambda)
@@ -80,9 +80,9 @@ class TokenizersDumpTest(TestCase):
         from transformers import AutoTokenizer
 
         tokenizer = AutoTokenizer.from_pretrained("gpt2")
-        hash1 = md5(datasets.utils.dumps(tokenizer)).hexdigest()
+        hash1 = md5(datasets.utils.py_utils.dumps(tokenizer)).hexdigest()
         tokenizer("Hello world !")  # call once to change the tokenizer's cache
-        hash2 = md5(datasets.utils.dumps(tokenizer)).hexdigest()
+        hash2 = md5(datasets.utils.py_utils.dumps(tokenizer)).hexdigest()
         self.assertEqual(hash1, hash2)
 
     @require_regex
@@ -90,11 +90,11 @@ class TokenizersDumpTest(TestCase):
         import regex
 
         pat = regex.Regex("foo")
-        hash1 = md5(datasets.utils.dumps(pat)).hexdigest()
+        hash1 = md5(datasets.utils.py_utils.dumps(pat)).hexdigest()
         pat = regex.Regex("bar")
-        hash2 = md5(datasets.utils.dumps(pat)).hexdigest()
+        hash2 = md5(datasets.utils.py_utils.dumps(pat)).hexdigest()
         pat = regex.Regex("foo")
-        hash3 = md5(datasets.utils.dumps(pat)).hexdigest()
+        hash3 = md5(datasets.utils.py_utils.dumps(pat)).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
@@ -105,11 +105,11 @@ class RecurseDumpTest(TestCase):
             return foo
 
         foo = [0]
-        hash1 = md5(datasets.utils.dumps(func)).hexdigest()
+        hash1 = md5(datasets.utils.py_utils.dumps(func)).hexdigest()
         foo = [1]
-        hash2 = md5(datasets.utils.dumps(func)).hexdigest()
+        hash2 = md5(datasets.utils.py_utils.dumps(func)).hexdigest()
         foo = [0]
-        hash3 = md5(datasets.utils.dumps(func)).hexdigest()
+        hash3 = md5(datasets.utils.py_utils.dumps(func)).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
@@ -117,27 +117,27 @@ class RecurseDumpTest(TestCase):
         def func():
             pass
 
-        hash1 = md5(datasets.utils.dumps(func)).hexdigest()
+        hash1 = md5(datasets.utils.py_utils.dumps(func)).hexdigest()
 
         def func():
             pass
 
-        hash2 = md5(datasets.utils.dumps(func)).hexdigest()
+        hash2 = md5(datasets.utils.py_utils.dumps(func)).hexdigest()
         self.assertEqual(hash1, hash2)
 
     def test_recurse_dump_for_class(self):
 
-        hash1 = md5(datasets.utils.dumps(Foo([0]))).hexdigest()
-        hash2 = md5(datasets.utils.dumps(Foo([1]))).hexdigest()
-        hash3 = md5(datasets.utils.dumps(Foo([0]))).hexdigest()
+        hash1 = md5(datasets.utils.py_utils.dumps(Foo([0]))).hexdigest()
+        hash2 = md5(datasets.utils.py_utils.dumps(Foo([1]))).hexdigest()
+        hash3 = md5(datasets.utils.py_utils.dumps(Foo([0]))).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
     def test_recurse_dump_for_method(self):
 
-        hash1 = md5(datasets.utils.dumps(Foo([0]).__call__)).hexdigest()
-        hash2 = md5(datasets.utils.dumps(Foo([1]).__call__)).hexdigest()
-        hash3 = md5(datasets.utils.dumps(Foo([0]).__call__)).hexdigest()
+        hash1 = md5(datasets.utils.py_utils.dumps(Foo([0]).__call__)).hexdigest()
+        hash2 = md5(datasets.utils.py_utils.dumps(Foo([1]).__call__)).hexdigest()
+        hash3 = md5(datasets.utils.py_utils.dumps(Foo([0]).__call__)).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
@@ -195,11 +195,11 @@ class RecurseDumpTest(TestCase):
             return FunctionType(code, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
 
         co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [0]
-        hash1 = md5(datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
+        hash1 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
         co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [1]
-        hash2 = md5(datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
+        hash2 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
         co_filename, returned_obj = "<ipython-input-5-713f6613acf3>", [0]
-        hash3 = md5(datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
+        hash3 = md5(datasets.utils.py_utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
@@ -218,10 +218,10 @@ class RecurseDumpTest(TestCase):
             return {"bar": bar, "foo": foo}
 
         with patch("dill.detect.globalvars", side_effect=globalvars_mock1_side_effect) as globalvars_mock1:
-            hash1 = md5(datasets.utils.dumps(func)).hexdigest()
+            hash1 = md5(datasets.utils.py_utils.dumps(func)).hexdigest()
             self.assertGreater(globalvars_mock1.call_count, 0)
         with patch("dill.detect.globalvars", side_effect=globalvars_mock2_side_effect) as globalvars_mock2:
-            hash2 = md5(datasets.utils.dumps(func)).hexdigest()
+            hash2 = md5(datasets.utils.py_utils.dumps(func)).hexdigest()
             self.assertGreater(globalvars_mock2.call_count, 0)
         self.assertEqual(hash1, hash2)
 
@@ -232,11 +232,11 @@ class TypeHintDumpTest(TestCase):
 
         t1 = Union[str, None]  # this type is not picklable in python 3.6
         # let's check that we can pickle it anyway using our pickler, even in 3.6
-        hash1 = md5(datasets.utils.dumps(t1)).hexdigest()
+        hash1 = md5(datasets.utils.py_utils.dumps(t1)).hexdigest()
         t2 = Union[str]  # this type is picklable in python 3.6
-        hash2 = md5(datasets.utils.dumps(t2)).hexdigest()
+        hash2 = md5(datasets.utils.py_utils.dumps(t2)).hexdigest()
         t3 = Union[str, None]
-        hash3 = md5(datasets.utils.dumps(t3)).hexdigest()
+        hash3 = md5(datasets.utils.py_utils.dumps(t3)).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 

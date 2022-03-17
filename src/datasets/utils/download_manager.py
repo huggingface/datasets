@@ -21,9 +21,9 @@ import os
 import tarfile
 from datetime import datetime
 from functools import partial
-from typing import Dict, List, Optional, Union
+from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
-from .. import config, utils
+from .. import config
 from .deprecation_utils import DeprecatedEnum
 from .file_utils import (
     DownloadConfig,
@@ -34,7 +34,7 @@ from .file_utils import (
     url_or_path_join,
 )
 from .info_utils import get_size_checksum_dict
-from .logging import get_logger
+from .logging import get_logger, is_progress_bar_enabled
 from .py_utils import NestedDataStructure, map_nested, size_str
 
 
@@ -49,15 +49,12 @@ class DownloadMode(enum.Enum):
 
     The generations modes:
 
-    +------------------------------------+-----------+---------+
-    |                                    | Downloads | Dataset |
-    +====================================+===========+=========+
-    | `REUSE_DATASET_IF_EXISTS` (default)| Reuse     | Reuse   |
-    +------------------------------------+-----------+---------+
-    | `REUSE_CACHE_IF_EXISTS`            | Reuse     | Fresh   |
-    +------------------------------------+-----------+---------+
-    | `FORCE_REDOWNLOAD`                 | Fresh     | Fresh   |
-    +------------------------------------+-----------+---------+
+    |                                     | Downloads | Dataset |
+    |-------------------------------------|-----------|---------|
+    | `REUSE_DATASET_IF_EXISTS` (default) | Reuse     | Reuse   |
+    | `REUSE_CACHE_IF_EXISTS`             | Reuse     | Fresh   |
+    | `FORCE_REDOWNLOAD`                  | Fresh     | Fresh   |
+
     """
 
     REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
@@ -73,6 +70,72 @@ class GenerateMode(DeprecatedEnum):
     @property
     def help_message(self):
         return "Use 'DownloadMode' instead."
+
+
+class _IterableFromGenerator(Iterable):
+    """Utility class to create an iterable from a generator function, in order to reset the generator when needed."""
+
+    def __init__(self, generator: Callable, *args, **kwargs):
+        self.generator = generator
+        self.args = args
+        self.kwargs = kwargs
+
+    def __iter__(self):
+        yield from self.generator(*self.args, **self.kwargs)
+
+
+class ArchiveIterable(_IterableFromGenerator):
+    """An iterable of (path, fileobj) from a TAR archive, used by `iter_archive`"""
+
+    @classmethod
+    def _iter_from_fileobj(cls, f) -> Generator[Tuple, None, None]:
+        stream = tarfile.open(fileobj=f, mode="r|*")
+        for tarinfo in stream:
+            file_path = tarinfo.name
+            if not tarinfo.isreg():
+                continue
+            if file_path is None:
+                continue
+            if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
+                # skipping hidden files
+                continue
+            file_obj = stream.extractfile(tarinfo)
+            yield file_path, file_obj
+            stream.members = []
+        del stream
+
+    @classmethod
+    def _iter_from_path(cls, urlpath: str) -> Generator[Tuple, None, None]:
+        with open(urlpath, "rb") as f:
+            yield from cls._iter_from_fileobj(f)
+
+    @classmethod
+    def from_buf(cls, fileobj) -> "ArchiveIterable":
+        return cls(cls._iter_from_fileobj, fileobj)
+
+    @classmethod
+    def from_path(cls, urlpath_or_buf) -> "ArchiveIterable":
+        return cls(cls._iter_from_path, urlpath_or_buf)
+
+
+class FilesIterable(_IterableFromGenerator):
+    """An iterable of paths from a list of directories or files"""
+
+    @classmethod
+    def _iter_from_paths(cls, urlpaths: Union[str, List[str]]) -> Generator[str, None, None]:
+        if not isinstance(urlpaths, list):
+            urlpaths = [urlpaths]
+        for urlpath in urlpaths:
+            if os.path.isfile(urlpath):
+                yield urlpath
+            else:
+                for dirpath, _, filenames in os.walk(urlpath):
+                    for filename in filenames:
+                        yield os.path.join(dirpath, filename)
+
+    @classmethod
+    def from_paths(cls, urlpaths) -> "FilesIterable":
+        return cls(cls._iter_from_paths, urlpaths)
 
 
 class DownloadManager:
@@ -121,7 +184,7 @@ class DownloadManager:
         """
         Ship the files using Beam FileSystems to the pipeline temp dir.
         """
-        from datasets.utils.beam_utils import upload_local_to_remote
+        from .beam_utils import upload_local_to_remote
 
         remote_dir = pipeline._options.get_all_options().get("temp_location")
         if remote_dir is None:
@@ -140,7 +203,7 @@ class DownloadManager:
         uploaded_path_or_paths = map_nested(
             lambda local_file_path: upload(local_file_path),
             downloaded_path_or_paths,
-            disable_tqdm=not utils.is_progress_bar_enabled(),
+            disable_tqdm=not is_progress_bar_enabled(),
         )
         return uploaded_path_or_paths
 
@@ -173,7 +236,7 @@ class DownloadManager:
             return os.path.join(cache_dir, hash_url_to_filename(url))
 
         downloaded_path_or_paths = map_nested(
-            url_to_downloaded_path, url_or_urls, disable_tqdm=not utils.is_progress_bar_enabled()
+            url_to_downloaded_path, url_or_urls, disable_tqdm=not is_progress_bar_enabled()
         )
         url_or_urls = NestedDataStructure(url_or_urls)
         downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
@@ -221,7 +284,7 @@ class DownloadManager:
             url_or_urls,
             map_tuple=True,
             num_proc=download_config.num_proc,
-            disable_tqdm=not utils.is_progress_bar_enabled(),
+            disable_tqdm=not is_progress_bar_enabled(),
             desc="Downloading data files",
         )
         duration = datetime.now() - start_time
@@ -255,27 +318,10 @@ class DownloadManager:
                 File object is opened in binary mode.
         """
 
-        def _iter_archive(f):
-            stream = tarfile.open(fileobj=f, mode="r|*")
-            for tarinfo in stream:
-                file_path = tarinfo.name
-                if not tarinfo.isreg():
-                    continue
-                if file_path is None:
-                    continue
-                if os.path.basename(file_path).startswith(".") or os.path.basename(file_path).startswith("__"):
-                    # skipping hidden files
-                    continue
-                file_obj = stream.extractfile(tarinfo)
-                yield file_path, file_obj
-                stream.members = []
-            del stream
-
         if hasattr(path_or_buf, "read"):
-            yield from _iter_archive(path_or_buf)
+            return ArchiveIterable.from_buf(path_or_buf)
         else:
-            with open(path_or_buf, "rb") as f:
-                yield from _iter_archive(f)
+            return ArchiveIterable.from_path(path_or_buf)
 
     def iter_files(self, paths: Union[str, List[str]]):
         """Iterate over file paths.
@@ -286,15 +332,7 @@ class DownloadManager:
         Yields:
             str: File path.
         """
-        if not isinstance(paths, list):
-            paths = [paths]
-        for path in paths:
-            if os.path.isfile(path):
-                yield path
-            else:
-                for dirpath, _, filenames in os.walk(path):
-                    for filename in filenames:
-                        yield os.path.join(dirpath, filename)
+        return FilesIterable.from_paths(paths)
 
     def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).
@@ -318,7 +356,7 @@ class DownloadManager:
             partial(cached_path, download_config=download_config),
             path_or_paths,
             num_proc=num_proc,
-            disable_tqdm=not utils.is_progress_bar_enabled(),
+            disable_tqdm=not is_progress_bar_enabled(),
             desc="Extracting data files",
         )
         path_or_paths = NestedDataStructure(path_or_paths)
