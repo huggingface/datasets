@@ -263,7 +263,7 @@ class XtremeS(datasets.Metric):
                 tokenize=tokenize,
                 use_effective_order=use_effective_order,
             )
-        elif self.config_name in ["fleurs-asr", "mls", "voxpopuli" , "babel"]:
+        elif self.config_name in ["fleurs-asr", "mls", "voxpopuli", "babel"]:
             concatenate_texts = wer_kwargs.pop("concatenate_texts", False)
             return wer_and_cer(predictions, references, concatenate_texts, self.config_name)
         else:
