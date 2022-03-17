@@ -1867,8 +1867,8 @@ def table_cast(table: pa.Table, schema: pa.Schema):
 def table_flatten(table: pa.Table):
     """Improved version of pa.Table.flatten.
 
-    It behaves as pa.Table.flatten, but skips decodable features
-    unless the `decode` attribute of these features is set to False.
+    It behaves as pa.Table.flatten in a sense it does 1-step flatten of the columns with a struct type into one column per struct field,
+    but skips decodable features unless the `decode` attribute of these features is set to False.
 
     Args:
         table (Table): PyArrow table to flatten
