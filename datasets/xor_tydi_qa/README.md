@@ -108,10 +108,10 @@ A typical data point comprises a `question`, it's `answer` the `language` of the
 
 The data is split into a training, validation and test set for each of the two configurations.
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| XOR Retrieve               |   15250|   2113|  2501|
-| XOR Full                   |   61360|   3179|  8177|
+|              | train | validation | test |
+|--------------|------:|-----------:|-----:|
+| XOR Retrieve | 15250 |       2113 | 2501 |
+| XOR Full     | 61360 |       3179 | 8177 |
 
 ## Dataset Creation
 

@@ -70,8 +70,6 @@ class BaseCompressedFileFileSystem(AbstractArchiveFileSystem):
         path = self._strip_protocol(path)
         if mode != "rb":
             raise ValueError(f"Tried to read with mode {mode} on file {self.file.path} opened with mode 'rb'")
-        if path != self.uncompressed_name:
-            raise FileNotFoundError(f"Expected file {self.uncompressed_name} but got {path}")
         return self.file.open()
 
 

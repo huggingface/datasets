@@ -128,12 +128,11 @@ Note that the test set has no labels, and therefore all labels are set to False.
 
 ### Data Splits
 
-|                            | Tain   | Dev   | Test |
-| -----                      | ------ | ----- | ---- |
-| English                    | 6,838  |  886  | 3,259|
-| Arabic                     | 2,278  |  585  | 1,518|
-| Spanish                    | 3,561  |  679  | 2,854|
-
+|         | train | validation |  test |
+|---------|------:|-----------:|------:|
+| English | 6,838 |        886 | 3,259 |
+| Arabic  | 2,278 |        585 | 1,518 |
+| Spanish | 3,561 |        679 | 2,854 |
 
 ## Dataset Creation
 

@@ -13,7 +13,7 @@ import pytest
 import requests
 
 import datasets
-from datasets import SCRIPTS_VERSION, load_dataset, load_from_disk
+from datasets import SCRIPTS_VERSION, config, load_dataset, load_from_disk
 from datasets.arrow_dataset import Dataset
 from datasets.builder import DatasetBuilder
 from datasets.data_files import DataFilesDict
@@ -23,10 +23,10 @@ from datasets.iterable_dataset import IterableDataset
 from datasets.load import (
     CachedDatasetModuleFactory,
     CachedMetricModuleFactory,
-    CanonicalDatasetModuleFactory,
-    CanonicalMetricModuleFactory,
-    CommunityDatasetModuleFactoryWithoutScript,
-    CommunityDatasetModuleFactoryWithScript,
+    GithubDatasetModuleFactory,
+    GithubMetricModuleFactory,
+    HubDatasetModuleFactoryWithoutScript,
+    HubDatasetModuleFactoryWithScript,
     LocalDatasetModuleFactoryWithoutScript,
     LocalDatasetModuleFactoryWithScript,
     LocalMetricModuleFactory,
@@ -72,6 +72,7 @@ class __DummyDataset1__(datasets.GeneratorBasedBuilder):
 
 SAMPLE_DATASET_IDENTIFIER = "lhoestq/test"  # has dataset script
 SAMPLE_DATASET_IDENTIFIER2 = "lhoestq/test2"  # only has data files
+SAMPLE_DATASET_IDENTIFIER3 = "mariosasko/test_multi_dir_dataset"  # has multiple data directories
 SAMPLE_NOT_EXISTING_DATASET_IDENTIFIER = "lhoestq/_dummy"
 SAMPLE_DATASET_NAME_THAT_DOESNT_EXIST = "_dummy"
 
@@ -182,25 +183,26 @@ class ModuleFactoryTest(TestCase):
             hf_modules_cache=self.hf_modules_cache,
         )
 
-    def test_CanonicalDatasetModuleFactory(self):
+    def test_GithubDatasetModuleFactory(self):
         # "wmt_t2t" has additional imports (internal)
-        factory = CanonicalDatasetModuleFactory(
+        factory = GithubDatasetModuleFactory(
             "wmt_t2t", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
-    def test_CanonicalMetricModuleFactory_with_internal_import(self):
+    def test_GithubMetricModuleFactory_with_internal_import(self):
         # "squad_v2" requires additional imports (internal)
-        factory = CanonicalMetricModuleFactory(
+        factory = GithubMetricModuleFactory(
             "squad_v2", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
-    def test_CanonicalMetricModuleFactory_with_external_import(self):
+    def test_GithubMetricModuleFactory_with_external_import(self):
         # "bleu" requires additional imports (external from github)
-        factory = CanonicalMetricModuleFactory(
+        factory = GithubMetricModuleFactory(
             "bleu", download_config=self.download_config, dynamic_modules_path=self.dynamic_modules_path
         )
         module_factory_result = factory.get_module()
@@ -221,11 +223,13 @@ class ModuleFactoryTest(TestCase):
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
 
     def test_LocalDatasetModuleFactoryWithoutScript(self):
         factory = LocalDatasetModuleFactoryWithoutScript(self._data_dir)
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert os.path.isdir(module_factory_result.builder_kwargs["base_path"])
 
     def test_PackagedDatasetModuleFactory(self):
         factory = PackagedDatasetModuleFactory(
@@ -234,21 +238,50 @@ class ModuleFactoryTest(TestCase):
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
 
-    def test_CommunityDatasetModuleFactoryWithoutScript(self):
-        factory = CommunityDatasetModuleFactoryWithoutScript(
+    def test_PackagedDatasetModuleFactory_with_data_dir(self):
+        factory = PackagedDatasetModuleFactory("json", data_dir=self._data_dir, download_config=self.download_config)
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+        )
+        assert Path(module_factory_result.builder_kwargs["data_files"]["train"][0]).parent.samefile(self._data_dir)
+
+    def test_HubDatasetModuleFactoryWithoutScript(self):
+        factory = HubDatasetModuleFactoryWithoutScript(
             SAMPLE_DATASET_IDENTIFIER2, download_config=self.download_config
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
-    def test_CommunityDatasetModuleFactoryWithScript(self):
-        factory = CommunityDatasetModuleFactoryWithScript(
+    def test_HubDatasetModuleFactoryWithoutScript_with_data_dir(self):
+        data_dir = "data2"
+        factory = HubDatasetModuleFactoryWithoutScript(
+            SAMPLE_DATASET_IDENTIFIER3, data_dir=data_dir, download_config=self.download_config
+        )
+        module_factory_result = factory.get_module()
+        assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
+        assert (
+            module_factory_result.builder_kwargs["data_files"] is not None
+            and len(module_factory_result.builder_kwargs["data_files"]["train"]) > 0
+        )
+        assert all(
+            data_dir in Path(data_file).parts
+            for data_file in module_factory_result.builder_kwargs["data_files"]["train"]
+        )
+
+    def test_HubDatasetModuleFactoryWithScript(self):
+        factory = HubDatasetModuleFactoryWithScript(
             SAMPLE_DATASET_IDENTIFIER,
             download_config=self.download_config,
             dynamic_modules_path=self.dynamic_modules_path,
         )
         module_factory_result = factory.get_module()
         assert importlib.import_module(module_factory_result.module_path) is not None
+        assert module_factory_result.builder_kwargs["base_path"].startswith(config.HF_ENDPOINT)
 
     def test_CachedDatasetModuleFactory(self):
         path = os.path.join(self._dataset_loading_script_dir, f"{DATASET_LOADING_SCRIPT_NAME}.py")
@@ -358,7 +391,7 @@ class LoadTest(TestCase):
                 self.assertNotEqual(dataset_module_1.module_path, dataset_module_3.module_path)
                 self.assertIn("Using the latest cached version of the module", self._caplog.text)
 
-    def test_load_dataset_canonical(self):
+    def test_load_dataset_from_github(self):
         scripts_version = os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
         with self.assertRaises(FileNotFoundError) as context:
             datasets.load_dataset("_dummy")
@@ -616,6 +649,12 @@ def test_load_dataset_zip_text(data_file, streaming, zip_text_path, zip_text_wit
         assert ds.shape[0] == expected_size
         ds_item = next(iter(ds))
         assert ds_item == {"text": "0"}
+
+
+def test_load_dataset_text_with_unicode_new_lines(text_path_with_unicode_new_lines):
+    data_files = str(text_path_with_unicode_new_lines)
+    ds = load_dataset("text", split="train", data_files=data_files)
+    assert ds.num_rows == 3
 
 
 def test_loading_from_the_datasets_hub():

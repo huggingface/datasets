@@ -172,10 +172,10 @@ There are also some non-categorical slots whose values are carried over from ano
 
 The dataset is split into a `train`, `validation`, and `test` split with the following sizes:
 
-|                            | Tain   | Valid | Test |
-| -----                      | ------ | ----- | ---- |
-| Number of dialogues        | 8438   | 1000  | 1000 |
-| Number of turns            | 42190  | 5000  | 5000 |
+|                     | train | validation | test |
+|---------------------|------:|-----------:|-----:|
+| Number of dialogues |  8438 |       1000 | 1000 |
+| Number of turns     | 42190 |       5000 | 5000 |
 
 ## Dataset Creation
 
