@@ -47,7 +47,7 @@ Refer to [`datasets.DownloadMode`] for a full list of download modes.
 Clean up the cache files in the directory with [`datasets.Dataset.cleanup_cache_files`]:
 
 ```py
-#Returns the number of removed cache files
+# Returns the number of removed cache files
 >>> dataset.cleanup_cache_files()
 2
 ```
@@ -62,11 +62,11 @@ If you're using a cached file locally, it will automatically reload the dataset 
 
 In the example above, 🤗 Datasets will execute the function `add_prefix` over the entire dataset again instead of loading the dataset from its previous state.
 
-Disable caching on a global scale with [`datasets.set_caching_enabled`]:
+Disable caching on a global scale with [`datasets.disable_caching`]:
 
 ```py
->>> from datasets import set_caching_enabled
->>> set_caching_enabled(False)
+>>> from datasets import disable_caching
+>>> disable_caching()
 ```
 
 When you disable caching, 🤗 Datasets will no longer reload cached files when applying transforms to datasets. Any transform you apply on your dataset will be need to be reapplied.

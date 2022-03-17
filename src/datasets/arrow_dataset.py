@@ -55,22 +55,11 @@ from multiprocess import Pool, RLock
 from requests import HTTPError
 from tqdm.auto import tqdm
 
-from . import config, utils
+from . import config
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, OptimizedTypedSequence
-from .features import (
-    Audio,
-    ClassLabel,
-    Features,
-    FeatureType,
-    Image,
-    Sequence,
-    Value,
-    _ArrayXD,
-    decode_nested_example,
-    pandas_types_mapper,
-    require_decoding,
-)
+from .features import Audio, ClassLabel, Features, Image, Sequence, Value
+from .features.features import FeatureType, _ArrayXD, decode_nested_example, pandas_types_mapper, require_decoding
 from .filesystems import extract_path_from_uri, is_remote_filesystem
 from .fingerprint import (
     fingerprint_transform,
@@ -97,7 +86,7 @@ from .table import (
 )
 from .tasks import TaskTemplate
 from .utils import logging
-from .utils.file_utils import estimate_dataset_size
+from .utils.file_utils import _retry, estimate_dataset_size
 from .utils.info_utils import is_small_dataset
 from .utils.py_utils import temporary_assignment, unique_values
 from .utils.streaming_download_manager import xgetsize
@@ -1958,7 +1947,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 f"num_proc must be <= {len(self)}. Reducing num_proc to {num_proc} for dataset of size {len(self)}."
             )
 
-        disable_tqdm = not utils.is_progress_bar_enabled()
+        disable_tqdm = not logging.is_progress_bar_enabled()
 
         if num_proc is None or num_proc == 1:
             return self._map_single(
@@ -2316,7 +2305,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                     pbar_total = (num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size
                 pbar_unit = "ex" if not batched else "ba"
                 pbar_desc = (desc + " " if desc is not None else "") + "#" + str(rank) if rank is not None else desc
-                pbar = utils.tqdm(
+                pbar = logging.tqdm(
                     pbar_iterable,
                     total=pbar_total,
                     disable=disable_tqdm,
@@ -3337,10 +3326,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             uploaded_size (:obj:`int`): number of uploaded bytes
             dataset_nbytes (:obj:`int`): approximate size in bytes of the uploaded dataset afer uncompression
 
-        Example::
-            .. code-block:: python
+        Example:
 
-                >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        ```python
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        ```
         """
         api = HfApi(endpoint=config.HF_ENDPOINT)
         token = token if token is not None else HfFolder.get_token()
@@ -3401,7 +3391,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                 nonlocal extra_nbytes
                 if isinstance(feature, (Audio, Image)):
                     for x in array.to_pylist():
-                        if x["bytes"] is None and x["path"] is not None:
+                        if x is not None and x["bytes"] is None and x["path"] is not None:
                             size = xgetsize(x["path"])
                             extra_nbytes += size
                     extra_nbytes -= array.field("path").nbytes
@@ -3465,32 +3455,40 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             api.delete_file(file, repo_id=repo_id, token=token, repo_type="dataset", revision=branch)
 
         if len(file_shards_to_delete):
-            for file in utils.tqdm(
+            for file in logging.tqdm(
                 file_shards_to_delete,
                 desc="Deleting unused files from dataset repository",
                 total=len(file_shards_to_delete),
-                disable=not utils.is_progress_bar_enabled(),
+                disable=not logging.is_progress_bar_enabled(),
             ):
                 delete_file(file)
 
         uploaded_size = 0
-        for index, shard in utils.tqdm(
+        for index, shard in logging.tqdm(
             enumerate(shards),
             desc="Pushing dataset shards to the dataset hub",
             total=num_shards,
-            disable=not utils.is_progress_bar_enabled(),
+            disable=not logging.is_progress_bar_enabled(),
         ):
             buffer = BytesIO()
             shard.to_parquet(buffer)
             uploaded_size += buffer.tell()
-            api.upload_file(
-                path_or_fileobj=buffer.getvalue(),
-                path_in_repo=path_in_repo(index),
-                repo_id=repo_id,
-                token=token,
-                repo_type="dataset",
-                revision=branch,
-                identical_ok=True,
+            _retry(
+                api.upload_file,
+                func_kwargs=dict(
+                    path_or_fileobj=buffer.getvalue(),
+                    path_in_repo=path_in_repo(index),
+                    repo_id=repo_id,
+                    token=token,
+                    repo_type="dataset",
+                    revision=branch,
+                    identical_ok=True,
+                ),
+                exceptions=HTTPError,
+                status_codes=[504],
+                base_wait_time=2.0,
+                max_retries=5,
+                max_wait_time=20.0,
             )
         return repo_id, split, uploaded_size, dataset_nbytes
 
@@ -3533,10 +3531,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
 
                 - :class:`Audio` and class:`Image`: remove local path information and embed file content in the Parquet files.
 
-        Example::
-            .. code-block:: python
+        Example:
 
-                >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        ```python
+        >>> dataset.push_to_hub("<organization>/<dataset_id>", split="evaluation")
+        ```
         """
         repo_id, split, uploaded_size, dataset_nbytes = self._push_parquet_shards_to_hub(
             repo_id=repo_id,
@@ -3637,22 +3636,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             dtype (data-type): The dtype of the numpy arrays that are indexed.
                 Default is ``np.float32``.
 
-        Example::
-            .. code-block:: python
+        Example:
 
-                ds = datasets.load_dataset('crime_and_punish', split='train')
-                ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
-                ds_with_embeddings.add_faiss_index(column='embeddings')
-                # query
-                scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
-                # save index
-                ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
+        ```python
+        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
+        >>> ds_with_embeddings.add_faiss_index(column='embeddings')
+        >>> # query
+        >>> scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
+        >>> # save index
+        >>> ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
 
-                ds = datasets.load_dataset('crime_and_punish', split='train')
-                # load index
-                ds.load_faiss_index('embeddings', 'my_index.faiss')
-                # query
-                scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
+        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> # load index
+        >>> ds.load_faiss_index('embeddings', 'my_index.faiss')
+        >>> # query
+        >>> scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
+        ```
         """
         with self.formatted_as(type="numpy", columns=[column], dtype=dtype):
             super().add_faiss_index(
@@ -3766,14 +3766,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
                         },
                     }
 
-        Example::
-            .. code-block:: python
+        Example:
 
-                es_client = elasticsearch.Elasticsearch()
-                ds = datasets.load_dataset('crime_and_punish', split='train')
-                ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
-                scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
-
+        ```python
+        >>> es_client = elasticsearch.Elasticsearch()
+        >>> ds = datasets.load_dataset('crime_and_punish', split='train')
+        >>> ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
+        >>> scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
+        ```
         """
         with self.formatted_as(type=None, columns=[column]):
             super().add_elasticsearch_index(
@@ -3838,14 +3838,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin, TensorflowDatasetMixin):
             label_column (:obj:`str`):
                 The column name of labels to align on.
 
-        Example::
-            .. code-block:: python
+        Example:
 
-                # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
-                ds = load_dataset("glue", "mnli", split="train")
-                # mapping to align with
-                label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
-                ds_aligned = ds.align_labels_with_mapping(label2id, "label")
+        ```python
+        >>> # dataset with mapping {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+        >>> ds = load_dataset("glue", "mnli", split="train")
+        >>> # mapping to align with
+        >>> label2id = {'CONTRADICTION': 0, 'NEUTRAL': 1, 'ENTAILMENT': 2}
+        >>> ds_aligned = ds.align_labels_with_mapping(label2id, "label")
+        ```
+
         """
         # Sanity checks
         if label_column not in self._data.column_names:

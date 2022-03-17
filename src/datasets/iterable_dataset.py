@@ -8,7 +8,8 @@ import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import DatasetInfoMixin
-from .features import Features, FeatureType
+from .features import Features
+from .features.features import FeatureType
 from .formatting import PythonFormatter
 from .info import DatasetInfo
 from .splits import NamedSplit
@@ -264,6 +265,73 @@ class MappedExamplesIterable(_BaseExamplesIterable):
         return self.ex_iterable.n_shards
 
 
+class FilteredExamplesIterable(_BaseExamplesIterable):
+    def __init__(
+        self,
+        ex_iterable: _BaseExamplesIterable,
+        function: Callable,
+        with_indices: bool = False,
+        input_columns: Optional[List[str]] = None,
+        batched: bool = False,
+        batch_size: int = 1000,
+    ):
+        self.ex_iterable = ex_iterable
+        self.function = function
+        self.batched = batched
+        self.batch_size = batch_size
+        self.with_indices = with_indices
+        self.input_columns = input_columns
+
+    def __iter__(self):
+        iterator = iter(self.ex_iterable)
+        current_idx = 0
+        if self.batched:
+            for key, example in iterator:
+                # If batched, first build the batch
+                key_examples_list = [(key, example)] + [
+                    (key, example) for key, example in islice(iterator, self.batch_size - 1)
+                ]
+                keys, examples = zip(*key_examples_list)
+                batch = _examples_to_batch(examples)
+                # then compute the mask for the batch
+                inputs = batch
+                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
+                if self.with_indices:
+                    function_args.append([current_idx + i for i in range(len(key_examples_list))])
+                mask = self.function(*function_args)
+                # yield one example at a time from the batch
+                for batch_idx, (key_example, to_keep) in enumerate(zip(key_examples_list, mask)):
+                    if to_keep:
+                        yield key_example
+                current_idx += batch_idx + 1
+        else:
+            for key, example in iterator:
+                # If not batched, we can apply the filtering function direcly
+                inputs = dict(example)
+                function_args = [inputs] if self.input_columns is None else [inputs[col] for col in self.input_columns]
+                if self.with_indices:
+                    function_args.append(current_idx)
+                to_keep = self.function(*function_args)
+                if to_keep:
+                    yield key, example
+                current_idx += 1
+
+    def shuffle_data_sources(self, seed: Optional[int]) -> "MappedExamplesIterable":
+        """Shuffle the wrapped examples iterable."""
+        return FilteredExamplesIterable(
+            self.ex_iterable.shuffle_data_sources(seed),
+            function=self.function,
+            with_indices=self.with_indices,
+            input_columns=self.input_columns,
+            batched=self.batched,
+            batch_size=self.batch_size,
+        )
+
+    @property
+    def n_shards(self) -> int:
+        return self.ex_iterable.n_shards
+
+
 class BufferShuffledExamplesIterable(_BaseExamplesIterable):
     def __init__(self, ex_iterable: _BaseExamplesIterable, buffer_size: int, generator: np.random.Generator):
         self.ex_iterable = ex_iterable
@@ -455,7 +523,7 @@ class IterableDataset(DatasetInfoMixin):
         # TODO(QL): add pandas, numpy and tf formats
         return iterable_dataset(
             ex_iterable=self._ex_iterable,
-            info=copy.deepcopy(self._info),
+            info=self._info.copy(),
             split=self._split,
             format_type=type,
             shuffling=copy.deepcopy(self._shuffling),
@@ -463,13 +531,13 @@ class IterableDataset(DatasetInfoMixin):
 
     def map(
         self,
-        function: Callable,
+        function: Optional[Callable] = None,
         with_indices: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: int = 1000,
         remove_columns: Optional[Union[str, List[str]]] = None,
-    ):
+    ) -> "IterableDataset":
         """
         Apply a function to all the examples in the iterable dataset (individually or in batches) and update them.
         If your function returns a column that already exists, then it overwrites it.
@@ -486,8 +554,15 @@ class IterableDataset(DatasetInfoMixin):
           A batch is a dictionary, e.g. a batch of ``n`` examples is {"text": ["Hello there !"] * n}
 
         Args:
-            function (:obj:`Callable`, optional, default None): if not None, this function is applied
-                on-the-fly on the examples when you iterate on the dataset.
+            function (:obj:`Callable`, optional, default None): Function applied on-the-fly on the examples when you iterate on the dataset
+                It must have one of the following signatures:
+
+                - `function(example: Union[Dict, Any]) -> dict` if `batched=False` and `with_indices=False`
+                - `function(example: Union[Dict, Any], idx: int) -> dict` if `batched=False` and `with_indices=True`
+                - `function(batch: Union[Dict[List], List[Any]]) -> dict` if `batched=True` and `with_indices=False`
+                - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> dict` if `batched=True` and `with_indices=True`
+
+                If no function is provided, default to identity function: ``lambda x: x``.
             with_indices (:obj:`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx[, rank]): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, default `None`): The columns to be passed into `function`
                 as positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
@@ -501,7 +576,9 @@ class IterableDataset(DatasetInfoMixin):
             input_columns = [input_columns]
         if isinstance(remove_columns, str):
             remove_columns = [remove_columns]
-        info = copy.deepcopy(self._info)
+        if function is None:
+            function = lambda x: x  # noqa: E731
+        info = self._info.copy()
         info.features = None
         ex_iterable = MappedExamplesIterable(
             TypedExamplesIterable(self._ex_iterable, self._info.features)
@@ -513,6 +590,58 @@ class IterableDataset(DatasetInfoMixin):
             batched=batched,
             batch_size=batch_size,
             remove_columns=remove_columns,
+        )
+        return iterable_dataset(
+            ex_iterable=ex_iterable,
+            info=info,
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+        )
+
+    def filter(
+        self,
+        function: Optional[Callable] = None,
+        with_indices=False,
+        input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+    ) -> "IterableDataset":
+        """Apply a filter function to all the elements so that the dataset only includes examples according to the filter function.
+        The filtering is done on-the-fly when iterating over the dataset.
+
+        Args:
+            function (:obj:`Callable`): Callable with one of the following signatures:
+
+                - ``function(example: Union[Dict, Any]) -> bool`` if ``with_indices=False, batched=False``
+                - ``function(example: Union[Dict, Any], indices: int) -> bool`` if ``with_indices=True, batched=False``
+                - ``function(example: Union[Dict, Any]) -> List[bool]`` if ``with_indices=False, batched=True``
+                - ``function(example: Union[Dict, Any], indices: int) -> List[bool]`` if ``with_indices=True, batched=True``
+
+                If no function is provided, defaults to an always True function: ``lambda x: True``.
+            with_indices (:obj:`bool`, default `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+            input_columns (:obj:`str` or `List[str]`, optional): The columns to be passed into `function` as
+                positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+            batched (:obj:`bool`, defaults to `False`): Provide batch of examples to `function`
+            batch_size (:obj:`int`, optional, default ``1000``): Number of examples per batch provided to `function` if `batched=True`.
+        """
+        if isinstance(input_columns, str):
+            input_columns = [input_columns]
+
+        # TODO(QL): keep the features (right now if we keep it it would call decode_example again on an already decoded example)
+        info = copy.deepcopy(self._info)
+        info.features = None
+
+        # We need the examples to be decoded for certain feature types like Image or Audio, so we use TypedExamplesIterable here
+        ex_iterable = FilteredExamplesIterable(
+            TypedExamplesIterable(self._ex_iterable, self._info.features)
+            if self._info.features is not None
+            else self._ex_iterable,
+            function=function,
+            with_indices=with_indices,
+            input_columns=input_columns,
+            batched=batched,
+            batch_size=batch_size,
         )
         return iterable_dataset(
             ex_iterable=ex_iterable,
@@ -557,7 +686,7 @@ class IterableDataset(DatasetInfoMixin):
             ex_iterable=BufferShuffledExamplesIterable(
                 self._ex_iterable, buffer_size=buffer_size, generator=generator
             ).shuffle_data_sources(generator),
-            info=copy.deepcopy(self._info),
+            info=self._info.copy(),
             split=self._split,
             format_type=self._format_type,
             shuffling=shuffling,
@@ -576,7 +705,7 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable = SkipExamplesIterable(self._ex_iterable, n)
         return iterable_dataset(
             ex_iterable=ex_iterable,
-            info=copy.deepcopy(self._info),
+            info=self._info.copy(),
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
@@ -592,11 +721,83 @@ class IterableDataset(DatasetInfoMixin):
         ex_iterable = TakeExamplesIterable(self._ex_iterable, n)
         return iterable_dataset(
             ex_iterable=ex_iterable,
-            info=copy.deepcopy(self._info),
+            info=self._info.copy(),
             split=self._split,
             format_type=self._format_type,
             shuffling=copy.deepcopy(self._shuffling),
         )
+
+    def add_column(self, name: str, column: Union[list, np.array]) -> "IterableDataset":
+        """Add column to Dataset.
+
+        Args:
+            name (str): Column name.
+            column (list or np.array): Column data to be added.
+
+        Returns:
+            :class:`IterableDataset`
+        """
+
+        def add_column_fn(example, idx):
+            if name in example:
+                raise ValueError(f"Error when adding {name}: column {name} is already in the dataset.")
+            return {name: column[idx]}
+
+        return self.map(add_column_fn, with_indices=True)
+
+    def rename_column(self, original_column_name: str, new_column_name: str) -> "IterableDataset":
+        """
+        Rename a column in the dataset, and move the features associated to the original column under the new column
+        name.
+
+        Args:
+            original_column_name (:obj:`str`): Name of the column to rename.
+            new_column_name (:obj:`str`): New name for the column.
+
+        Returns:
+            :class:`IterableDataset`: A copy of the dataset with a renamed column.
+        """
+
+        def rename_column_fn(example):
+            if original_column_name not in example:
+                raise ValueError(
+                    f"Error when renaming {original_column_name} to {new_column_name}: column {original_column_name} is not in the dataset."
+                )
+            if new_column_name in example:
+                raise ValueError(
+                    f"Error when renaming {original_column_name} to {new_column_name}: column {new_column_name} is already in the dataset."
+                )
+            return {new_column_name: example[original_column_name]}
+
+        return self.map(rename_column_fn, remove_columns=[original_column_name])
+
+    def rename_columns(self, column_mapping: Dict[str, str]) -> "IterableDataset":
+        """
+        Rename several columns in the dataset, and move the features associated to the original columns under
+        the new column names.
+
+        Args:
+            column_mapping (:obj:`Dict[str, str]`): A mapping of columns to rename to their new names
+
+        Returns:
+            :class:`IterableDataset`: A copy of the dataset with renamed columns
+        """
+
+        def rename_columns_fn(example):
+            if any(col not in example for col in column_mapping):
+                raise ValueError(
+                    f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(column_mapping) - set(example)} are not in the dataset."
+                )
+            if any(col in example for col in column_mapping.values()):
+                raise ValueError(
+                    f"Error when renaming {list(column_mapping)} to {list(column_mapping.values())}: columns {set(example) - set(column_mapping.values())} are already in the dataset."
+                )
+            return {
+                new_column_name: example[original_column_name]
+                for original_column_name, new_column_name in column_mapping.items()
+            }
+
+        return self.map(rename_columns_fn, remove_columns=list(column_mapping))
 
     def remove_columns(self, column_names: Union[str, List[str]]) -> "IterableDataset":
         """
@@ -610,13 +811,7 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             :class:`IterableDataset`: A copy of the dataset object without the columns to remove.
         """
-        if isinstance(column_names, str):
-            column_names = [column_names]
-
-        def remove_fn(example):
-            return {k: v for k, v in example.items() if k not in column_names}
-
-        return self.map(remove_fn)
+        return self.map(remove_columns=column_names)
 
     def cast_column(self, column: str, feature: FeatureType) -> "IterableDataset":
         """Cast column to feature for decoding.
@@ -628,8 +823,44 @@ class IterableDataset(DatasetInfoMixin):
         Returns:
             :class:`IterableDataset`
         """
-        info = copy.deepcopy(self._info)
+        info = self._info.copy()
         info.features[column] = feature
+        # check that it's still valid, especially with regard to task templates
+        try:
+            info.copy()
+        except ValueError:
+            info.task_templates = None
+        return iterable_dataset(
+            ex_iterable=self._ex_iterable,
+            info=info,
+            split=self._split,
+            format_type=self._format_type,
+            shuffling=copy.deepcopy(self._shuffling),
+        )
+
+    def cast(
+        self,
+        features: Features,
+    ) -> "IterableDataset":
+        """
+        Cast the dataset to a new set of features.
+
+        Args:
+            features (:class:`datasets.Features`): New features to cast the dataset to.
+                The name of the fields in the features must match the current column names.
+                The type of the data must also be convertible from one type to the other.
+                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+
+        Returns:
+            :class:`IterableDataset`: A copy of the dataset with casted features.
+        """
+        info = self._info.copy()
+        info.features = features
+        # check that it's still valid, especially with regard to task templates
+        try:
+            info.copy()
+        except ValueError:
+            info.task_templates = None
         return iterable_dataset(
             ex_iterable=self._ex_iterable,
             info=info,

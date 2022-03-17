@@ -8,72 +8,10 @@ on:
       - v*-release
 
 jobs:
-  build_and_package:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
-
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          repository: 'huggingface/doc-builder'
-          path: doc-builder
-
-      - uses: actions/checkout@v2
-        with:
-          repository: 'huggingface/doc-build'
-          path: doc-build
-          token: ${{ secrets.HUGGINGFACE_PUSH }}
-      
-      - uses: actions/checkout@v2
-        with:
-          repository: 'huggingface/datasets'
-          path: datasets
-      
-      - name: Loading cache.
-        uses: actions/cache@v2
-        id: cache
-        with:
-          path: ~/.cache/pip
-          key: v1-test_build_doc
-          restore-keys: |
-            v1-test_build_doc-${{ hashFiles('setup.py') }}
-            v1-test_build_doc
-
-      - name: Setup environment
-        run: |
-          sudo apt-get -y update && sudo apt-get install -y libsndfile1-dev
-
-          pip install git+https://github.com/huggingface/doc-builder
-          cd datasets
-          pip install .[dev]
-          cd ..
-
-      - name: Setup git
-        run: |
-          git config --global user.name "Hugging Face Doc Builder"
-          git config --global user.email docs@huggingface.co
-          
-          cd doc-build
-          git pull origin main
-          cd ..
-
-      - name: Make documentation
-        run: |
-          cd doc-builder &&
-          doc-builder build datasets ../datasets/docs/source --build_dir ../doc-build --clean --html &&
-          cd ..
-        env:
-          NODE_OPTIONS: --max-old-space-size=6656
-
-      - name: Push to repositories
-        run: |
-          cd doc-build &&
-          if [[ `git status --porcelain` ]]; then 
-            git add . &&
-            git commit -m "Updated with commit ${{ github.sha }} \n\nSee: https://github.com/huggingface/datasets/commit/${{ github.sha }}" &&
-            git push origin main
-          else
-            echo "No diff in the documentation."
-          fi
+   build:
+    uses: huggingface/doc-builder/.github/workflows/build_main_documentation.yml@main
+    with:
+      commit_sha: ${{ github.sha }}
+      package: datasets
+    secrets:
+      token: ${{ secrets.HUGGINGFACE_PUSH }}

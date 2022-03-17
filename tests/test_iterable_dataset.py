@@ -11,6 +11,7 @@ from datasets.iterable_dataset import (
     BufferShuffledExamplesIterable,
     CyclingMultiSourcesExamplesIterable,
     ExamplesIterable,
+    FilteredExamplesIterable,
     IterableDataset,
     MappedExamplesIterable,
     RandomlyCyclingMultiSourcesExamplesIterable,
@@ -47,6 +48,15 @@ def generate_examples_fn():
 @pytest.fixture
 def dataset(generate_examples_fn):
     ex_iterable = ExamplesIterable(generate_examples_fn, {})
+    return IterableDataset(ex_iterable, info=DatasetInfo(description="dummy"), split="train")
+
+
+@pytest.fixture
+def dataset_with_several_columns(generate_examples_fn):
+    ex_iterable = ExamplesIterable(
+        generate_examples_fn,
+        {"filepath": ["data0.txt", "data1.txt", "data2.txt"], "metadata": {"sources": ["https://foo.bar"]}},
+    )
     return IterableDataset(ex_iterable, info=DatasetInfo(description="dummy"), split="train")
 
 
@@ -301,6 +311,94 @@ def test_mapped_examples_iterable_input_columns(generate_examples_fn, n, func, b
     assert list(x for _, x in ex_iterable) == expected
 
 
+@pytest.mark.parametrize(
+    "n, func, batch_size",
+    [
+        (3, lambda x: x["id"] % 2 == 0, None),  # keep even number
+        (3, lambda x: [x["id"][0] % 2 == 0], 1),  # same with bs=1
+        (5, lambda x: [i % 2 == 0 for i in x["id"]], 10),  # same with bs=10
+        (25, lambda x: [i % 2 == 0 for i in x["id"]], 10),  # same with bs=10
+        (3, lambda x: False, None),  # return 0 examples
+        (3, lambda x: [False] * len(x["id"]), 10),  # same with bs=10
+    ],
+)
+def test_filtered_examples_iterable(generate_examples_fn, n, func, batch_size):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = FilteredExamplesIterable(
+        base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if batch_size is None:
+        expected = [x for x in all_examples if func(x)]
+    else:
+        # For batched filter we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
+        expected = []
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = _examples_to_batch(examples)
+            mask = func(batch)
+            expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
+    if expected:
+        assert next(iter(ex_iterable))[1] == expected[0]
+    assert list(x for _, x in ex_iterable) == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batch_size",
+    [
+        (3, lambda x, index: index % 2 == 0, None),  # keep even number
+        (25, lambda x, indices: [idx % 2 == 0 for idx in indices], 10),  # same with bs=10
+    ],
+)
+def test_filtered_examples_iterable_with_indices(generate_examples_fn, n, func, batch_size):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = FilteredExamplesIterable(
+        base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, with_indices=True
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    if batch_size is None:
+        expected = [x for idx, x in enumerate(all_examples) if func(x, idx)]
+    else:
+        # For batched filter we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
+        expected = []
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = _examples_to_batch(examples)
+            indices = list(range(batch_offset, batch_offset + len(examples)))
+            mask = func(batch, indices)
+            expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert list(x for _, x in ex_iterable) == expected
+
+
+@pytest.mark.parametrize(
+    "n, func, batch_size, input_columns",
+    [
+        (3, lambda id_: id_ % 2 == 0, None, ["id"]),  # keep even number
+        (25, lambda ids_: [i % 2 == 0 for i in ids_], 10, ["id"]),  # same with bs=10
+    ],
+)
+def test_filtered_examples_iterable_input_columns(generate_examples_fn, n, func, batch_size, input_columns):
+    base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": n})
+    ex_iterable = FilteredExamplesIterable(
+        base_ex_iterable, func, batched=batch_size is not None, batch_size=batch_size, input_columns=input_columns
+    )
+    all_examples = [x for _, x in generate_examples_fn(n=n)]
+    columns_to_input = input_columns if isinstance(input_columns, list) else [input_columns]
+    if batch_size is None:
+        expected = [x for x in all_examples if func(*[x[col] for col in columns_to_input])]
+    else:
+        # For batched filter we have to format the examples as a batch (i.e. in one single dictionary) to pass the batch to the function
+        expected = []
+        for batch_offset in range(0, len(all_examples), batch_size):
+            examples = all_examples[batch_offset : batch_offset + batch_size]
+            batch = _examples_to_batch(examples)
+            mask = func(*[batch[col] for col in columns_to_input])
+            expected.extend([x for x, to_keep in zip(examples, mask) if to_keep])
+    assert next(iter(ex_iterable))[1] == expected[0]
+    assert list(x for _, x in ex_iterable) == expected
+
+
 def test_skip_examples_iterable(generate_examples_fn):
     total, count = 10, 2
     base_ex_iterable = ExamplesIterable(generate_examples_fn, {"n": total})
@@ -526,6 +624,40 @@ def test_iterable_dataset_shuffle_after_skip_or_take(generate_examples_fn, metho
     assert sorted(dataset, key=key) == sorted(shuffled_dataset, key=key)
 
 
+def test_iterable_dataset_add_column(dataset_with_several_columns):
+    new_column = list(range(DEFAULT_N_EXAMPLES))
+    new_dataset = dataset_with_several_columns.add_column("new_column", new_column)
+    assert list(new_dataset) == [
+        {**example, "new_column": idx} for idx, example in enumerate(dataset_with_several_columns)
+    ]
+
+
+def test_iterable_dataset_rename_column(dataset_with_several_columns):
+    new_dataset = dataset_with_several_columns.rename_column("id", "new_id")
+    assert list(new_dataset) == [
+        {("new_id" if k == "id" else k): v for k, v in example.items()} for example in dataset_with_several_columns
+    ]
+
+
+def test_iterable_dataset_rename_columns(dataset_with_several_columns):
+    column_mapping = {"id": "new_id", "filepath": "filename"}
+    new_dataset = dataset_with_several_columns.rename_columns(column_mapping)
+    assert list(new_dataset) == [
+        {column_mapping.get(k, k): v for k, v in example.items()} for example in dataset_with_several_columns
+    ]
+
+
+def test_iterable_dataset_remove_columns(dataset_with_several_columns):
+    new_dataset = dataset_with_several_columns.remove_columns("id")
+    assert list(new_dataset) == [
+        {k: v for k, v in example.items() if k != "id"} for example in dataset_with_several_columns
+    ]
+    new_dataset = dataset_with_several_columns.remove_columns(["id", "filepath"])
+    assert list(new_dataset) == [
+        {k: v for k, v in example.items() if k != "id" and k != "filepath"} for example in dataset_with_several_columns
+    ]
+
+
 def test_iterable_dataset_cast_column(generate_examples_fn):
     ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
     features = Features({"id": Value("int64"), "label": Value("int64")})
@@ -534,6 +666,15 @@ def test_iterable_dataset_cast_column(generate_examples_fn):
     casted_features = features.copy()
     casted_features["label"] = Value("bool")
     assert list(casted_dataset) == [casted_features.encode_example(ex) for _, ex in ex_iterable]
+
+
+def test_iterable_dataset_cast(generate_examples_fn):
+    ex_iterable = ExamplesIterable(generate_examples_fn, {"label": 10})
+    features = Features({"id": Value("int64"), "label": Value("int64")})
+    dataset = IterableDataset(ex_iterable, info=DatasetInfo(features=features))
+    new_features = Features({"id": Value("int64"), "label": Value("bool")})
+    casted_dataset = dataset.cast(new_features)
+    assert list(casted_dataset) == [new_features.encode_example(ex) for _, ex in ex_iterable]
 
 
 @pytest.mark.parametrize(

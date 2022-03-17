@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
 import numpy as np
 
-from . import utils
 from .utils import logging
 
 
@@ -150,7 +149,7 @@ class ElasticSearchIndex(BaseIndex):
         index_config = self.es_index_config
         self.es_client.indices.create(index=index_name, body=index_config)
         number_of_docs = len(documents)
-        progress = utils.tqdm(unit="docs", total=number_of_docs, disable=not utils.is_progress_bar_enabled())
+        progress = logging.tqdm(unit="docs", total=number_of_docs, disable=not logging.is_progress_bar_enabled())
         successes = 0
 
         def passage_generator():
@@ -293,7 +292,7 @@ class FaissIndex(BaseIndex):
 
         # Add vectors
         logger.info(f"Adding {len(vectors)} vectors to the faiss index")
-        for i in utils.tqdm(range(0, len(vectors), batch_size), disable=not utils.is_progress_bar_enabled()):
+        for i in logging.tqdm(range(0, len(vectors), batch_size), disable=not logging.is_progress_bar_enabled()):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
 

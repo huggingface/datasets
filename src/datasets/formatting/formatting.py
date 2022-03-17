@@ -21,9 +21,9 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
-from ..features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
+from ..features.features import _ArrayXDExtensionType, _is_zero_copy_only, decode_nested_example, pandas_types_mapper
 from ..table import Table
-from ..utils import no_op_if_value_is_null
+from ..utils.py_utils import no_op_if_value_is_null
 
 
 T = TypeVar("T")
