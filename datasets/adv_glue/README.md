@@ -5,7 +5,7 @@ languages:
 paperswithcode_id: adversarial-glue-a-multi-task-benchmark-for
 ---
 
-# Dataset Card for "adv_glue"
+# Dataset Card for Adversarial GLUE
 
 ## Dataset Description
 
