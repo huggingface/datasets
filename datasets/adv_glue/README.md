@@ -1,11 +1,45 @@
 ---
+annotations_creators: []
+language_creators: []
+languages: ['en']
+licenses: []
+multilinguality: []
 pretty_name: Adversarial GLUE
-languages:
-- en
 paperswithcode_id: adversarial-glue-a-multi-task-benchmark-for
+size_categories:
+- unknown
+source_datasets: []
+task_categories: []
+task_ids: []
 ---
 
 # Dataset Card for Adversarial GLUE
+
+## Table of Contents
+- [Table of Contents](#table-of-contents)
+- [Dataset Description](#dataset-description)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks and Leaderboards](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
+- [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-fields)
+  - [Data Splits](#data-splits)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
+- [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
+  - [Contributions](#contributions)
+
 
 ## Dataset Description
 
@@ -34,6 +68,11 @@ We show detailed information for up to 5 configurations of the dataset.
 #### default
 
 - **Size of downloaded dataset files:** 198 KB
+- **Example**:
+```python
+>>> datasets.load_dataset('adv_glue', 'adv_sst2')['validation'][0]
+{'sentence': "it 's an uneven treat that bores fun at the democratic exercise while also examining its significance for those who take part .", 'label': 1, 'idx': 0}
+```
 
 ### Data Fields
 
@@ -42,7 +81,28 @@ The data fields are the same as in the GLUE dataset, which differ by task.
 ### Data Splits
 
 Adversarial GLUE provides only a 'dev' split.
+## Dataset Creation
+### Curation Rationale
+[More Information Needed]
 
+### Source Data
+[More Information Needed]
+### Annotations
+[More Information Needed]
+### Personal and Sensitive Information
+[More Information Needed]
+
+## Considerations for Using the Data
+### Social Impact of Dataset
+[More Information Needed]
+
+### Discussion of Biases
+[More Information Needed]
+
+### Other Known Limitations
+[More Information Needed]
+
+## Additional Information 
 ### Citation Information
 
 ```
