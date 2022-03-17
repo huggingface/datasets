@@ -9,6 +9,11 @@ paperswithcode_id: adversarial-glue-a-multi-task-benchmark-for
 
 ## Dataset Description
 
+- **Homepage:**  https://adversarialglue.github.io/
+- **Repository:**
+- **Paper:** [arXiv](https://arxiv.org/pdf/2111.02840.pdf)
+- **Leaderboard:**
+- **Point of Contact:**
 Adversarial GLUE Benchmark (AdvGLUE) is a comprehensive robustness evaluation benchmark that focuses on the adversarial robustness evaluation of language models. It covers five natural language understanding tasks from the famous GLUE tasks and is an adversarial version of GLUE benchmark.
 
 AdvGLUE considers textual adversarial attacks from different perspectives and hierarchies, including word-level transformations, sentence-level manipulations, and human-written adversarial examples, which provide comprehensive coverage of various adversarial linguistic phenomena.
