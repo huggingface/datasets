@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- object-detection
 task_ids:
-- other-other-object-detection
+- other
 paperswithcode_id: cppe-5
 pretty_name: CPPE - 5
 ---

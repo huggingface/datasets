@@ -23,7 +23,7 @@ from datetime import datetime
 from functools import partial
 from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple, Union
 
-from .. import config, utils
+from .. import config
 from .deprecation_utils import DeprecatedEnum
 from .file_utils import (
     DownloadConfig,
@@ -34,7 +34,7 @@ from .file_utils import (
     url_or_path_join,
 )
 from .info_utils import get_size_checksum_dict
-from .logging import get_logger
+from .logging import get_logger, is_progress_bar_enabled
 from .py_utils import NestedDataStructure, map_nested, size_str
 
 
@@ -184,7 +184,7 @@ class DownloadManager:
         """
         Ship the files using Beam FileSystems to the pipeline temp dir.
         """
-        from datasets.utils.beam_utils import upload_local_to_remote
+        from .beam_utils import upload_local_to_remote
 
         remote_dir = pipeline._options.get_all_options().get("temp_location")
         if remote_dir is None:
@@ -203,7 +203,7 @@ class DownloadManager:
         uploaded_path_or_paths = map_nested(
             lambda local_file_path: upload(local_file_path),
             downloaded_path_or_paths,
-            disable_tqdm=not utils.is_progress_bar_enabled(),
+            disable_tqdm=not is_progress_bar_enabled(),
         )
         return uploaded_path_or_paths
 
@@ -236,7 +236,7 @@ class DownloadManager:
             return os.path.join(cache_dir, hash_url_to_filename(url))
 
         downloaded_path_or_paths = map_nested(
-            url_to_downloaded_path, url_or_urls, disable_tqdm=not utils.is_progress_bar_enabled()
+            url_to_downloaded_path, url_or_urls, disable_tqdm=not is_progress_bar_enabled()
         )
         url_or_urls = NestedDataStructure(url_or_urls)
         downloaded_path_or_paths = NestedDataStructure(downloaded_path_or_paths)
@@ -284,7 +284,7 @@ class DownloadManager:
             url_or_urls,
             map_tuple=True,
             num_proc=download_config.num_proc,
-            disable_tqdm=not utils.is_progress_bar_enabled(),
+            disable_tqdm=not is_progress_bar_enabled(),
             desc="Downloading data files",
         )
         duration = datetime.now() - start_time
@@ -356,7 +356,7 @@ class DownloadManager:
             partial(cached_path, download_config=download_config),
             path_or_paths,
             num_proc=num_proc,
-            disable_tqdm=not utils.is_progress_bar_enabled(),
+            disable_tqdm=not is_progress_bar_enabled(),
             desc="Extracting data files",
         )
         path_or_paths = NestedDataStructure(path_or_paths)

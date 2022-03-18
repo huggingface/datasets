@@ -15,10 +15,10 @@ size_categories:
 source_datasets:
 - extended|ade20k
 task_categories:
-- other
+- image-segmentation
 task_ids:
+- instance-segmentation
 - other-scene-parsing
-- other-instance-segmentation
 paperswithcode_id: null
 pretty_name: MIT Scene Parsing Benchmark
 ---

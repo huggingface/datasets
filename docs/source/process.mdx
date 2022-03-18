@@ -83,7 +83,7 @@ There are two options for filtering rows in a dataset: [`datasets.Dataset.select
 [`datasets.Dataset.filter`] can also filter by indices if you set `with_indices=True`:
 
 ```py
->>> even_dataset = dataset.filter(lambda example, indice: indice % 2 == 0, with_indices=True)
+>>> even_dataset = dataset.filter(lambda example, idx: idx % 2 == 0, with_indices=True)
 >>> len(even_dataset)
 1834
 >>> len(dataset) / 2
@@ -267,12 +267,6 @@ Next, apply this function to the dataset with [`datasets.Dataset.map`]:
 'My sentence: Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
 ]
 ```
-
-<Tip>
-
-To disable `tqdm` progress bar printed by default, pass `False` as an argument to [`datasets.set_progress_bar_enabled`].
-
-</Tip>
 
 Let's take a look at another example, except this time, you will remove a column with [`datasets.Dataset.map`]. When you remove a column, it is only removed after the example has been provided to the mapped function. This allows the mapped function to use the content of the columns before they are removed.
 
@@ -518,7 +512,7 @@ Separate datasets can be concatenated if they share the same column types. Conca
 
 <Tip>
 
-You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving, and you can use it with [`datasets.interleave_datasets`]. Both [`datasets.interleave_datasets`] and [`datasets.concatenate_datasets`] will work with regular [`datasets.Dataset`] and [`datasets.IterableDataset`] objects. Refer to the [interleave_datasets](#interleave_datasets) section for an example of how it's used.
+You can also mix several datasets together by taking alternating examples from each one to create a new dataset. This is known as interleaving, and you can use it with [`datasets.interleave_datasets`]. Both [`datasets.interleave_datasets`] and [`datasets.concatenate_datasets`] will work with regular [`datasets.Dataset`] and [`datasets.IterableDataset`] objects. Refer to the [Stream](./stream#interleave) section for an example of how it's used.
 
 </Tip>
 

@@ -2,9 +2,10 @@ import multiprocessing
 import os
 from typing import BinaryIO, Optional, Union
 
-from .. import Dataset, Features, NamedSplit, config, utils
+from .. import Dataset, Features, NamedSplit, config
 from ..formatting import query_table
 from ..packaged_modules.csv.csv import Csv
+from ..utils import logging
 from ..utils.typing import NestedDataStructureLike, PathLike
 from .abc import AbstractDatasetReader
 
@@ -104,10 +105,10 @@ class CsvDatasetWriter:
         written = 0
 
         if self.num_proc is None or self.num_proc == 1:
-            for offset in utils.tqdm(
+            for offset in logging.tqdm(
                 range(0, len(self.dataset), self.batch_size),
                 unit="ba",
-                disable=not utils.is_progress_bar_enabled(),
+                disable=not logging.is_progress_bar_enabled(),
                 desc="Creating CSV from Arrow format",
             ):
                 csv_str = self._batch_csv((offset, header, to_csv_kwargs))
@@ -116,14 +117,14 @@ class CsvDatasetWriter:
         else:
             num_rows, batch_size = len(self.dataset), self.batch_size
             with multiprocessing.Pool(self.num_proc) as pool:
-                for csv_str in utils.tqdm(
+                for csv_str in logging.tqdm(
                     pool.imap(
                         self._batch_csv,
                         [(offset, header, to_csv_kwargs) for offset in range(0, num_rows, batch_size)],
                     ),
                     total=(num_rows // batch_size) + 1 if num_rows % batch_size else num_rows // batch_size,
                     unit="ba",
-                    disable=not utils.is_progress_bar_enabled(),
+                    disable=not logging.is_progress_bar_enabled(),
                     desc="Creating CSV from Arrow format",
                 ):
                     written += file_obj.write(csv_str)

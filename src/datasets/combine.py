@@ -189,7 +189,10 @@ def _interleave_iterable_datasets(
     if probabilities is None:
         ex_iterable = CyclingMultiSourcesExamplesIterable(ex_iterables)
     else:
-        ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(ex_iterables, seed=seed, probabilities=probabilities)
+        generator = np.random.default_rng(seed)
+        ex_iterable = RandomlyCyclingMultiSourcesExamplesIterable(
+            ex_iterables, generator=generator, probabilities=probabilities
+        )
     # Set new info - we reset the features
     if info is None:
         info = DatasetInfo.from_merge([d.info for d in datasets])
