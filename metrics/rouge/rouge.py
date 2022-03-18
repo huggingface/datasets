@@ -51,7 +51,7 @@ https://github.com/google-research/google-research/tree/master/rouge
 _KWARGS_DESCRIPTION = """
 Calculates average rouge scores for a list of hypotheses and references
 Args:
-    predictions: list of predictions to score. Each predictions
+    predictions: list of predictions to score. Each prediction
         should be a string with tokens separated by spaces.
     references: list of reference for each prediction. Each
         reference should be a string with tokens separated by spaces.
