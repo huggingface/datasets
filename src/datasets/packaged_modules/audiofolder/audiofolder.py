@@ -22,7 +22,7 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = AudioFolderConfig
 
     AUDIO_EXTENSIONS: List[str] = []  # definition at the bottom of the script
-    TRANSCRIPT_EXTENSIONS: List[str] = []  # definition at the bottom of the script
+    # TRANSCRIPT_EXTENSIONS: List[str] = []  # definition at the bottom of the script
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -64,13 +64,15 @@ class AudioFolder(datasets.GeneratorBasedBuilder):
                 )
             )
 
+        return splits
+
     def _split_files_and_archives(self, data_files):
         files, archives, transcript = [], [], None
         for data_file in data_files:
             _, data_file_ext = os.path.splitext(data_file)
             if data_file_ext.lower() in self.AUDIO_EXTENSIONS:  # .txt is for transcription file
                 files.append(data_file)
-            elif data_file == "transcripts.txt":
+            elif os.path.split(data_file)[-1] == "transcripts.txt":
                 transcript = data_file
             else:
                 archives.append(data_file)

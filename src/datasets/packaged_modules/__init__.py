@@ -33,7 +33,7 @@ _PACKAGED_DATASETS_MODULES = {
     "parquet": (parquet.__name__, _hash_python_lines(inspect.getsource(parquet).splitlines())),
     "text": (text.__name__, _hash_python_lines(inspect.getsource(text).splitlines())),
     "imagefolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(imagefolder).splitlines())),
-    "audiofolder": (imagefolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
+    "audiofolder": (audiofolder.__name__, _hash_python_lines(inspect.getsource(audiofolder).splitlines())),
 }
 
 _EXTENSION_TO_MODULE = {
