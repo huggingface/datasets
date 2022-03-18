@@ -95,7 +95,20 @@ The following table shows a list of datasets available:
 | wind_4_seconds                | Energy    | 1             | 4S     | 60         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU- )                                                                   |
 | rideshare                     | Transport | 2304          | 1H     | 48         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU- )                                                                   |
 | oikolab_weather               | Nature    | 8             | 1H     | 48         | [Oikolab](https://oikolab.com/)                                                                                                     |
-| temperature_rain              | Nature    | 32072         | 1D     | 30         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU- )                                                                   |
+| temperature_rain              | Nature    | 32072         | 1D     | 30         | [Godahewa et al. 2021](https://openreview.net/pdf?id=wEc1mgAjU- )      
+
+
+### Dataset Usage
+
+To load a particular dataset just specify its name from the table above e.g.:
+
+```python
+load_dataset("monash_tsf", "nn5_daily")
+```
+> Notes:
+> - Data might contain missing values as in the original datasets.
+> - The prediction length is either specified in the dataset or a default value depending on the frequency is used as in the original repository benchmark.
+
 
 ### Supported Tasks and Leaderboards
 
