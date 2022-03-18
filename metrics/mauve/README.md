@@ -59,7 +59,7 @@ This metric outputs a dictionary with 5 key-value pairs:
 
 `divergence_curve`: a numpy.ndarray of shape (m, 2); plot it with `matplotlib` to view the divergence curve.
 
-`p_hist`: a discrete distribution, which is a quantized version of the text distribution `p_text`
+`p_hist`: a discrete distribution, which is a quantized version of the text distribution `p_text`.
  
 `q_hist`: same as above, but with `q_text`.
 
