@@ -69,7 +69,6 @@ class MonashTSFBuilderConfig(datasets.BuilderConfig):
             raise ValueError("Please use either `freq` or `prediction_length` but not both.")
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class MonashTSF(datasets.GeneratorBasedBuilder):
     """Builder of Monash Time Series Forecasting repository of datasets."""
 
